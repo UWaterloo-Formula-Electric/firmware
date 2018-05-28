@@ -8,11 +8,12 @@
 #define CAT(a, b) CAT_AUX(a, b)
 #define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
 
-#include "stm32f0xx_hal.h"
+#include "stm32f7xx_hal.h"
 #include "userCan.h"
 #include "stdbool.h"
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
+#include "can.h"
 
 CanRxMsgTypeDef RxMessage;
 
@@ -36,8 +37,7 @@ HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
     printf("Received can message with id 0x%lX\n", hcan->pRxMsg->ExtId);
-    int msgId = (hcan->pRxMsg->ExtId & 0xFF0000) >> 16;
-    if (parseCANData(msgId, hcan->pRxMsg->Data))
+    if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
     {
         // TODO: Probably shouldn't call this from an interrupt
         Error_Handler();
@@ -55,19 +55,19 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 }
 
 
-HAL_StatusTypeDef sendCanMessage(CAN_HandleTypeDef *hcan, int id, int length, uint8_t *data)
+HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
   const int CAN_TIMEOUT = 100;
 
   HAL_StatusTypeDef rc = HAL_ERROR;
   CanTxMsgTypeDef        TxMessage;
-  hcan->pTxMsg = &TxMessage;
+  hcan1.pTxMsg = &TxMessage;
 
   if (length > 8) {
     return HAL_ERROR;
   }
 
-  printf("Sending CAN message with length %d, data:\n", length);
+  printf("Sending CAN message with id %d, length %d, data:\n", id, length);
   for (int i=0; i<length; i++) {
     printf("0x%X ", data[i]);
   }
@@ -79,7 +79,7 @@ HAL_StatusTypeDef sendCanMessage(CAN_HandleTypeDef *hcan, int id, int length, ui
   TxMessage.DLC = length;
   memcpy(TxMessage.Data, data, length);
 
-  rc = HAL_CAN_Transmit(hcan, CAN_TIMEOUT);
+  rc = HAL_CAN_Transmit(&hcan1, CAN_TIMEOUT);
   if (rc != HAL_OK)
   {
     printf("CAN Transmit failed with rc %d\n", rc);
