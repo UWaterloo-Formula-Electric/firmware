@@ -135,9 +135,9 @@ for signal in variables:
 	fWrite('volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
 	fWrite('extern volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
 	fWrite('void '+ signal.name+'Received(int newValue)\n{', sourceFileHandle)
-	fWrite("	newValue = newValue * "+str(signal.scale)+";", sourceFileHandle)
-	fWrite("	newValue = newValue + "+str(signal.offset)+";", sourceFileHandle)
-	fWrite("	"+signal.name + " = newValue;", sourceFileHandle)
+	fWrite("	float floatValue = (float)newValue * "+str(signal.scale)+";", sourceFileHandle)
+	fWrite("	floatValue = floatValue + "+str(signal.offset)+";", sourceFileHandle)
+	fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
 	fWrite("}\n", sourceFileHandle)
 
 fWrite('// Outgoing variables', sourceFileHandle)
