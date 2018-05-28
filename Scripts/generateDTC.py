@@ -4,7 +4,7 @@ import csv
 import os
 import sys
 
-commonDir = 'common-f7'
+commonDir = 'common-all'
 
 ScriptsDir = os.path.join(commonDir, 'Scripts')
 
