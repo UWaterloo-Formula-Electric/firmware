@@ -69,7 +69,7 @@ def fWrite(string, fileHandle):
 def generateDepedencyFile(headerFile, target):
     with open(depFile, 'w+') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateCANHeadder.py {dbFile}'.format(headerFile=headerFile, dbFile=dbFile, dir=ScriptsDir), depFileHandle)
-        fWrite('	{dir}/generateCANHeadder.py {target}'.format(target=target, dir=ScriptsDir), depFileHandle)
+        fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=target, boardType=boardType, dir=ScriptsDir), depFileHandle)
 
 
 headerFileHandle = open(headerFile, "w+")
