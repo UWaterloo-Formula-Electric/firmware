@@ -36,18 +36,16 @@ HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
-    printf("Received can message with id 0x%lX\n", hcan->pRxMsg->ExtId);
     if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
     {
         // TODO: Probably shouldn't call this from an interrupt
         Error_Handler();
     }
 
-    printf("Can state is 0x%X\n", HAL_CAN_GetState(hcan));
-    /*if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {*/
-        /*// TODO: Probably shouldn't call this from an interrupt*/
-        /*Error_Handler();*/
-    /*}*/
+    if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
+        // TODO: Probably shouldn't call this from an interrupt
+        Error_Handler();
+    }
     /*if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {*/
         /*// TODO: Probably shouldn't call this from an interrupt*/
         /*Error_Handler();*/
@@ -67,7 +65,7 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
     return HAL_ERROR;
   }
 
-  printf("Sending CAN message with length %d, data:\n", length);
+  printf("Sending CAN message with id %d, length %d, data:\n", id, length);
   for (int i=0; i<length; i++) {
     printf("0x%X ", data[i]);
   }
