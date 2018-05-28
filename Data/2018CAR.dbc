@@ -242,9 +242,9 @@ BO_ 4 BMU_batteryStatusHV: 7 BMU
  SG_ stateBMS : 52|4@1- (1,0) [0|0] "" Vector__XXX
  SG_ TempCellMin : 42|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
  SG_ TempCellMax : 32|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
- SG_ stateBatteryPowerHV : 20|12@1+ (0.1,0) [0|409.5] "A"  VCU_BeagleBone,DCU,ChargeCart
- SG_ stateBatteryHealthHV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone
- SG_ stateBatteryChargeHV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone,DCU
+ SG_ stateBatteryPowerHV : 20|12@1+ (0.1,0) [0|409.5] "A"  VCU_BeagleBone,DCU,ChargeCart,VCU_F7
+ SG_ stateBatteryHealthHV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone,VCU_F7
+ SG_ stateBatteryChargeHV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone,DCU,VCU_F7
 
 BO_ 3 BMU_stateBusHV: 8 BMU
  SG_ voltageCellMin : 48|16@1+ (0.1,0) [0|0] "V" Vector__XXX
