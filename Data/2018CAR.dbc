@@ -1,0 +1,376 @@
+VERSION "1"
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: VCU_BeagleBone MCLeft MCRight DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart
+VAL_TABLE_ DC_Channel 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_TABLE_ Contactor 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
+VAL_TABLE_ DCDC_State 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
+VAL_TABLE_ BMS_State 5 "Charging" 4 "Energized MC Enabled" 3 "Energized MC Disabled" 2 "Pre Charge" 1 "Standby Contactors off" 0 "Invalid" ;
+
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ TempInletRadBatt : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempOutletRadBatt : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempOutletRadMotorLeft : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempOutletRadMotorRight : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempInletRadMotorRight : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempInletRadMotorLeft : 0|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+
+BO_ 33 ChargeCart_VERSION: 8 ChargeCart
+ SG_ ChargeCart_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ ChargeCart_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 32 BMU_VERSION: 8 BMU
+ SG_ BMU_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ BMU_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 31 DCU_VERSION: 8 DCU
+ SG_ DCU_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ DCU_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 30 PDU_VERSION: 8 PDU
+ SG_ PDU_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ PDU_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 29 VCU_VERSION: 8 VCU_F7
+ SG_ VCU_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ VCU_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2147483676 TempInverterRight: 8 MCRight
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ InverterAUTHSEEDRight : 36|12@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempInverterRight : 24|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempInverterDeltaRight : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ StateInverterRight : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483675 TempMotorRight: 8 MCRight
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TempMotorRight : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempMotorDeltaRight : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483674 BusHVFeedbackRight: 8 MCRight
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ VoltageHVBusInverterRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
+ SG_ CurrentHVBusInverterRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
+
+BO_ 2147483673 SpeedFeedbackRight: 8 MCRight
+ SG_ SpeedMotorRight : 0|16@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2147483672 TorqueFeedbackRight: 8 MCRight
+ SG_ PRO_CAN_RES : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TorqueEstimateRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+ SG_ TorqueAvailableDriveRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+ SG_ TorqueAvailableBrakingRight : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483671 VoltageLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ VoltageLimitLowInverterRight : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+ SG_ VoltageLimitHighInverterRight : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+
+BO_ 2147483670 CurrentLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ CurrentLimitDschrgInverterRight : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+ SG_ CurrentLimitChargeInverterRight : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+
+BO_ 2147483669 SpeedLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ SpeedLimitReverseRight : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+ SG_ SpeedLimitForwardRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+ SG_ InverterCommandRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+
+BO_ 2147483668 TorqueLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TorqueLimitDriveRight : 32|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
+ SG_ TorqueLimitBrakingRight : 16|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
+ SG_ TorqueDemandRight : 0|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
+
+BO_ 2147483667 TempInverterLeft: 8 MCLeft
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ InverterAUTHSEEDLeft : 36|12@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempInverterLeft : 24|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempInverterDeltaLeft : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ StateInverterLeft : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483666 TempMotorLeft: 8 MCLeft
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TempMotorLeft : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempMotorDeltaLeft : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483665 BusHVFeedbackLeft: 8 MCLeft
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ VoltageHVBusInverterLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
+ SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
+
+BO_ 2147483664 SpeedFeedbackLeft: 8 MCLeft
+ SG_ SpeedMotorLeft : 0|16@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2147483663 TorqueFeedbackLeft: 8 MCLeft
+ SG_ PRO_CAN_RES : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TorqueEstimateLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+ SG_ TorqueAvailableDriveLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+ SG_ TorqueAvailableBrakingLeft : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
+
+BO_ 2147483662 VoltageLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ VoltageLimitLowInverterLeft : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+ SG_ VoltageLimitHighInverterLeft : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+
+BO_ 2147483661 CurrentLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ CurrentLimitDschrgInverterLeft : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+ SG_ CurrentLimitChargeInverterLeft : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+
+BO_ 2147483660 SpeedLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ SpeedLimitReverseLeft : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+ SG_ SpeedLimitForwardLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+ SG_ InverterCommandLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+
+BO_ 2147483659 TorqueLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TorqueLimitDriveLeft : 32|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
+ SG_ TorqueLimitBrakingLeft : 16|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
+ SG_ TorqueDemandLeft : 0|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
+
+BO_ 10 WSBRR_WheelData: 3 WSBRR
+ SG_ SpeedWheelRightBack : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+BO_ 9 WSBRL_WheelData: 3 WSBRL
+ SG_ SpeedWheelLeftBack : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+BO_ 8 PDU_StateBatteryLV: 2 PDU
+ SG_ voltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV"  VCU_BeagleBone,VCU_F7
+
+BO_ 7 BMU_stateBatteryHV: 8 BMU
+ SG_ powerBatteryHV : 42|22@1- (0.01,0) [0|0] "W"  VCU_BeagleBone,VCU_F7
+ SG_ currentDCBatteryHV : 20|22@1- (0.001,0) [-2097.152|2097.151] "Amps"  VCU_BeagleBone,VCU_F7
+ SG_ voltageBatteryHV : 0|20@1+ (1,0) [0|1048575] "mV"  VCU_BeagleBone,VCU_F7
+
+BO_ 6 PDU_ChannelStatus: 7 PDU
+ SG_ statusPowerVCU : 48|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerMCRight : 44|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerMCLeft : 40|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerIMD : 36|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerDCU : 32|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerDAU : 28|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingPumpRight : 24|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingPumpLeft : 20|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingPumpBattery : 16|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingFanRight : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingFanLeft : 8|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerCoolingFanBattery : 4|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ statusPowerBMU : 0|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 5 PDU_batteryStatusLV: 8 PDU
+ SG_ voltageBusLV : 44|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+ SG_ voltageBatteryLV : 30|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+ SG_ stateBatteryPowerLV : 20|10@1+ (0.1,0) [0|100] "A"  VCU_BeagleBone
+ SG_ stateBatteryHealthLV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone
+ SG_ stateBatteryChargeLV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone
+
+BO_ 4 BMU_batteryStatusHV: 7 BMU
+ SG_ stateBMS : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ TempCellMin : 42|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ TempCellMax : 32|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
+ SG_ stateBatteryPowerHV : 20|12@1+ (0.1,0) [0|409.5] "A"  VCU_BeagleBone,DCU,ChargeCart
+ SG_ stateBatteryHealthHV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone
+ SG_ stateBatteryChargeHV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone,DCU
+
+BO_ 3 BMU_stateBusHV: 8 BMU
+ SG_ voltageCellMin : 48|16@1+ (0.1,0) [0|0] "V" Vector__XXX
+ SG_ voltageCellMax : 32|16@1+ (0.1,0) [0|0] "V" Vector__XXX
+ SG_ stateContactorPositive : 27|3@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ stateContactorNegative : 24|3@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ voltageBusHV : 0|22@1+ (0.1,0) [0|419430.3] "mV"  VCU_BeagleBone,VCU_F7
+
+BO_ 2 PDU_DCDC_Status: 2 PDU
+ SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
+ SG_ currentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone,BMU
+
+BO_ 1 WSBFL_WheelData: 3 WSBFL
+ SG_ SpeedWheelLeftFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+BO_ 0 WSBFR_WheelData: 3 WSBFR
+ SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+
+
+CM_ BU_ MCLeft "5_2_Left Inverter";
+CM_ BU_ MCRight "6_2_Right Inverter";
+CM_ BU_ DCU "7_3_Driver Contol Unit";
+CM_ BU_ PDU "3__Power Distribution Unit";
+CM_ BU_ BMU "1_1_Battery Managment Unit";
+CM_ BU_ VCU_F7 "2_1_Vehicle Control Unit";
+CM_ BU_ WSBFL "8_4_Wheel Sensor Board Front Left";
+CM_ BU_ WSBFR "9_4_Wheel Sensor Board Front Right";
+CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
+CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
+CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
+CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
+CM_ BO_ 33 "VERSION";
+CM_ BO_ 32 "VERSION";
+CM_ BO_ 31 "VERSION";
+CM_ BO_ 30 "VERSION";
+CM_ BO_ 29 "VERSION";
+CM_ BO_ 2147483676 "PROCAN";
+CM_ SG_ 2147483676 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483676 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483676 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483675 "PROCAN";
+CM_ SG_ 2147483675 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483675 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483675 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483674 "PROCAN";
+CM_ SG_ 2147483674 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483674 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483674 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483673 "PROCAN";
+CM_ SG_ 2147483673 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483673 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483673 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483672 "PROCAN";
+CM_ SG_ 2147483672 PRO_CAN_RES "PROCAN";
+CM_ SG_ 2147483672 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483672 PRO_CAN_COUNT "PROCAN";
+CM_ BO_ 2147483671 "PROCAN";
+CM_ SG_ 2147483671 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483671 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483671 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483670 "PROCAN";
+CM_ SG_ 2147483670 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483670 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483670 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483669 "PROCAN";
+CM_ SG_ 2147483669 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483669 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483669 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483668 "PROCAN";
+CM_ SG_ 2147483668 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483668 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483668 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483667 "PROCAN";
+CM_ SG_ 2147483667 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483667 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483667 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483666 "PROCAN";
+CM_ SG_ 2147483666 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483666 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483666 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483665 "PROCAN";
+CM_ SG_ 2147483665 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483665 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483665 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483664 "PROCAN";
+CM_ SG_ 2147483664 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483664 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483664 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483663 "PROCAN";
+CM_ SG_ 2147483663 PRO_CAN_RES "PROCAN";
+CM_ SG_ 2147483663 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483663 PRO_CAN_COUNT "PROCAN";
+CM_ BO_ 2147483662 "PROCAN";
+CM_ SG_ 2147483662 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483662 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483662 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483661 "PROCAN";
+CM_ SG_ 2147483661 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483661 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483661 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483660 "PROCAN";
+CM_ SG_ 2147483660 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483660 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483660 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2147483659 "PROCAN";
+CM_ SG_ 2147483659 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2147483659 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2147483659 PRO_CAN_RES "PROCAN";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+VAL_ 6 statusPowerVCU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerMCRight 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerMCLeft 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerIMD 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerDCU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerDAU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingPumpRight 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingPumpLeft 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingPumpBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingFanRight 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingFanLeft 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 6 statusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
+VAL_ 4 stateBMS 5 "Charging" 4 "Energized MC Enabled" 3 "Energized MC Disabled" 2 "Pre Charge" 1 "Standby Contactors off" 0 "Invalid" ;
+VAL_ 3 stateContactorPositive 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
+VAL_ 3 stateContactorNegative 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
+VAL_ 2 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
+
