@@ -134,7 +134,7 @@ for signal in variables:
 	type = "float "
 	fWrite('volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
 	fWrite('extern volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
-	fWrite('void '+ signal.name+'Received(int newValue)\n{', sourceFileHandle)
+	fWrite('void '+ signal.name+'Received(int64_t newValue)\n{', sourceFileHandle)
 	fWrite("	float floatValue = (float)newValue * "+str(signal.scale)+";", sourceFileHandle)
 	fWrite("	floatValue = floatValue + "+str(signal.offset)+";", sourceFileHandle)
 	fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
@@ -152,7 +152,7 @@ for mes in db.messages:
 
 			for signal in mes.signals:
 				if signal.comment != "PROCAN":
-					type = "int "
+					type = "int64_t "
 					fWrite('extern volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
 					fWrite('volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
 					fWrite('__weak '+type+ signal.name+'Sending()\n{', sourceFileHandle)
@@ -198,9 +198,9 @@ for message in messagesREL:
 			if signal.start != currentPos:
 				fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
 			if signal.is_signed	:
-				fWrite('	         int ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+				fWrite('	         int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
 			else :
-				fWrite('	unsigned int ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+				fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
 			currentPos = signal.start + signal.length
 		if currentPos != totalSize:
 			fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
@@ -217,9 +217,9 @@ for message in messages:
 		if signal.start != currentPos:
 			fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
 		if signal.is_signed	:
-			fWrite('		     int ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+			fWrite('		     int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
 		else :
-			fWrite('	unsigned int ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+			fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
 		currentPos = signal.start + signal.length
 	if currentPos != totalSize:
 		fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
