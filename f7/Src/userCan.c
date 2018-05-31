@@ -133,7 +133,7 @@ HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)
     DTC_Data = (float)data;
     DTC_Severity = (float)severity;
     DTC_CODE = (float)dtcCode;
-    sendCAN_BMU_DTC();
+    return sendCAN_BMU_DTC();
 }
 /*
  *bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,

@@ -2,7 +2,7 @@
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-import cantools #$ pip install cantools
+import cantools #$ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
 import os
 from pprint import pprint
 import subprocess
@@ -122,7 +122,7 @@ variablesPROCANHeader = list()
 for mes in db.messages:
 	messageUseful = 0
 	for signal in mes.signals:
-			if nodeName in signal.nodes:
+			if nodeName in signal.receivers:
 				messageUseful = 1
 				variables.append(signal)
 	if messageUseful == 1:
@@ -142,7 +142,7 @@ for signal in variables:
 
 fWrite('// Outgoing variables', sourceFileHandle)
 for mes in db.messages:
-	if nodeName in mes.nodes:
+	if nodeName in mes.senders:
 		if mes.comment == 'PROCAN':
 			variablesPROCAN.append('int '+mes.name+'_PRO_CAN_SEED = 127;');
 			variablesPROCAN.append('int '+mes.name+'_PRO_CAN_COUNT = 0;');
@@ -181,7 +181,7 @@ fWrite('', sourceFileHandle)
 
 messagesREL = list()
 for mes in db.messages:
-	if nodeName in mes.nodes:
+	if nodeName in mes.senders:
 		messagesREL.append(mes)
 for message in messagesREL:
 	fWrite('struct ' + message.name + '{', sourceFileHandle)
@@ -242,7 +242,7 @@ for message in messages:
 
 	fWrite('			struct ' + message.name + ' *new_'+message.name +' = data;', sourceFileHandle)
 	for signal in message.signals:
-		if nodeName in signal.nodes:
+		if nodeName in signal.receivers:
 			fWrite('			'+signal.name+ 'Received(new_'+message.name +'->'+ signal.name+');', sourceFileHandle)
 
 	fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
@@ -259,7 +259,7 @@ fWrite('}', sourceFileHandle)
 messagesTransmit = list()
 
 for mes in db.messages:
-	if nodeName in mes.nodes:
+	if nodeName in mes.senders:
 		messagesTransmit.append(mes)
 for message in messagesTransmit:
 	fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
