@@ -15,7 +15,10 @@
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "can.h"
 
+// valid DLC is from 0..8, this value means the msg hasnt been received yet
+#define CAN_MESSAGE_DLC_INVALID 9
 CanRxMsgTypeDef RxMessage;
+CanRxMsgTypeDef Rx1Message;
 
 void canInit(CAN_HandleTypeDef *hcan)
 {
@@ -24,9 +27,16 @@ void canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
 {
+    RxMessage.DLC = CAN_MESSAGE_DLC_INVALID;
+    Rx1Message.DLC = CAN_MESSAGE_DLC_INVALID;
     hcan->pRxMsg = &RxMessage;
+    hcan->pRx1Msg = &Rx1Message;
 
     if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
+        printf("Error receiving CAN msgs from FIFO0\n");
+        return HAL_ERROR;
+    }
+    if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
         printf("Error receiving CAN msgs from FIFO0\n");
         return HAL_ERROR;
     }
@@ -36,20 +46,51 @@ HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
-    if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
-    {
-        // TODO: Probably shouldn't call this from an interrupt
-        Error_Handler();
-    }
+    if (hcan->pRxMsg->DLC != CAN_MESSAGE_DLC_INVALID) {
+        printf("Received msg on FIFO0\n");
+        printf("DLC of fifo1 is %ld\n", Rx1Message.DLC); 
+        hcan->pRxMsg->DLC = CAN_MESSAGE_DLC_INVALID;
 
-    if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
-        // TODO: Probably shouldn't call this from an interrupt
-        Error_Handler();
+        HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
+        if (canState == HAL_CAN_STATE_BUSY_RX0 ||
+            canState == HAL_CAN_STATE_BUSY_TX_RX0 ||
+            canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
+            canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
+        {
+            printf("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
+            Error_Handler();
+        }
+
+        if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
+        {
+            // TODO: Probably shouldn't call this from an interrupt
+            Error_Handler();
+        }
+
+        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
+            // TODO: Probably shouldn't call this from an interrupt
+            Error_Handler();
+        }
+    } else {
+        printf("Received msg on FIFO1\n");
+        printf("DLC of fifo0 is %ld\n", RxMessage.DLC); 
+        hcan->pRx1Msg->DLC = CAN_MESSAGE_DLC_INVALID;
+
+        HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
+        if (canState == HAL_CAN_STATE_BUSY_RX1 ||
+            canState == HAL_CAN_STATE_BUSY_TX_RX1 ||
+            canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
+            canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
+        {
+            printf("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
+            Error_Handler();
+        }
+
+        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
+            // TODO: Probably shouldn't call this from an interrupt
+            Error_Handler();
+        }
     }
-    /*if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {*/
-        /*// TODO: Probably shouldn't call this from an interrupt*/
-        /*Error_Handler();*/
-    /*}*/
 }
 
 
@@ -85,6 +126,14 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
   }
 
   return rc;
+}
+
+HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)
+{
+    DTC_Data = (float)data;
+    DTC_Severity = (float)severity;
+    DTC_CODE = (float)dtcCode;
+    sendCAN_BMU_DTC();
 }
 /*
  *bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,
