@@ -9,6 +9,7 @@
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "can.h"
+#include "debug.h"
 
 // valid DLC is from 0..8, this value means the msg hasnt been received yet
 #define CAN_MESSAGE_DLC_INVALID 9
@@ -28,11 +29,11 @@ HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
     hcan->pRx1Msg = &Rx1Message;
 
     if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
-        printf("Error receiving CAN msgs from FIFO0\n");
+        ERROR_PRINT("Error receiving CAN msgs from FIFO0\n");
         return HAL_ERROR;
     }
     if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
-        printf("Error receiving CAN msgs from FIFO0\n");
+        ERROR_PRINT("Error receiving CAN msgs from FIFO0\n");
         return HAL_ERROR;
     }
 
@@ -42,8 +43,6 @@ HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
     if (hcan->pRxMsg->DLC != CAN_MESSAGE_DLC_INVALID) {
-        printf("Received msg on FIFO0\n");
-        printf("DLC of fifo1 is %ld\n", Rx1Message.DLC); 
         hcan->pRxMsg->DLC = CAN_MESSAGE_DLC_INVALID;
 
         HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
@@ -52,7 +51,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
             canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
         {
-            printf("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
+            ERROR_PRINT("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
             Error_Handler();
         }
 
@@ -67,8 +66,6 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             Error_Handler();
         }
     } else {
-        printf("Received msg on FIFO1\n");
-        printf("DLC of fifo0 is %ld\n", RxMessage.DLC); 
         hcan->pRx1Msg->DLC = CAN_MESSAGE_DLC_INVALID;
 
         HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
@@ -77,7 +74,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
             canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
         {
-            printf("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
+            ERROR_PRINT("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
             Error_Handler();
         }
 
@@ -101,11 +98,11 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
     return HAL_ERROR;
   }
 
-  printf("Sending CAN message with id %d, length %d, data:\n", id, length);
-  for (int i=0; i<length; i++) {
-    printf("0x%X ", data[i]);
-  }
-  printf("\n");
+  /*printf("Sending CAN message with id %d, length %d, data:\n", id, length);*/
+  /*for (int i=0; i<length; i++) {*/
+    /*printf("0x%X ", data[i]);*/
+  /*}*/
+  /*printf("\n");*/
 
   TxMessage.ExtId = id;
   TxMessage.RTR = CAN_RTR_DATA;
@@ -116,7 +113,7 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
   rc = HAL_CAN_Transmit(&hcan1, CAN_TIMEOUT);
   if (rc != HAL_OK)
   {
-    printf("CAN Transmit failed with rc %d\n", rc);
+    ERROR_PRINT("CAN Transmit failed with rc %d\n", rc);
     return HAL_ERROR;
   }
 
