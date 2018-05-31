@@ -2,11 +2,6 @@
  * userCan.c
  *
  */
-#define STRINGIZE_AUX(a) #a
-#define STRINGIZE(a) STRINGIZE_AUX(a)
-#define CAT_AUX(a, b) a##b
-#define CAT(a, b) CAT_AUX(a, b)
-#define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
 
 #include "stm32f7xx_hal.h"
 #include "userCan.h"
