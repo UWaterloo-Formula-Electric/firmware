@@ -92,7 +92,7 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 
   HAL_StatusTypeDef rc = HAL_ERROR;
   CanTxMsgTypeDef        TxMessage;
-  hcan1.pTxMsg = &TxMessage;
+  CAN_HANDLE.pTxMsg = &TxMessage;
 
   if (length > 8) {
     return HAL_ERROR;
@@ -110,7 +110,7 @@ HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
   TxMessage.DLC = length;
   memcpy(TxMessage.Data, data, length);
 
-  rc = HAL_CAN_Transmit(&hcan1, CAN_TIMEOUT);
+  rc = HAL_CAN_Transmit(&CAN_HANDLE, CAN_TIMEOUT);
   if (rc != HAL_OK)
   {
     ERROR_PRINT("CAN Transmit failed with rc %d\n", rc);
