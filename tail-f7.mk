@@ -46,8 +46,10 @@ DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
 ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO-F7)'
 	LINK_SCRIPT="STM32F767ZITx_FLASH.ld"
-else
+else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
 	LINK_SCRIPT="STM32F767VITx_FLASH.ld"
+else
+	$(error Unsupported Board type)
 endif
 
 CPU = -mcpu=cortex-m7
