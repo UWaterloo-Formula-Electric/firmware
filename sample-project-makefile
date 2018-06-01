@@ -1,0 +1,8 @@
+BINARY_BASE_NAME=STM32_BASEPRG_F7
+BOARD_NAME=BMU
+
+COMMON_LIB_SRC = userCan.c debug.c
+
+BOARD_TYPE=NUCLEO-F7 # one of NUCLEO-F7, F7
+
+include common-all/tail-f7.mk
