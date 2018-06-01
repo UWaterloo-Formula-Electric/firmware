@@ -2,8 +2,6 @@ CC=arm-none-eabi-gcc
 HEX=arm-none-eabi-objcopy
 
 RM=rm -rf
-BINARY_BASE_NAME=STM32_BASEPRG_F7
-BOARD_NAME=BMU
 
 SRC_DIR = Src
 BIN_BASE_DIR = Bin
@@ -14,7 +12,6 @@ COMMON_LIB_DIR = common-all
 MIDDLEWARE_DIR = Middlewares
 FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
 
-COMMON_LIB_SRC = userCan.c debug.c
 
 GEN_DIR = Gen
 GEN_INC_DIR = $(GEN_DIR)/Inc
@@ -45,7 +42,11 @@ INCLUDE_FLAGS := $(addprefix -I,$(INCLUDE_DIRS))
 DEFINES := "USE_HAL_DRIVER" "STM32F767xx" BOARD_NAME=$(BOARD_NAME)
 DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
-LINK_SCRIPT="STM32F767VITx_FLASH.ld"
+ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO-F7)'
+	LINK_SCRIPT="STM32F767ZITx_FLASH.ld"
+else
+	LINK_SCRIPT="STM32F767VITx_FLASH.ld"
+endif
 
 CPU = -mcpu=cortex-m7
 
@@ -127,7 +128,7 @@ RELEASE_OBJS = $(SRC:%.c=$(RELEASE_BIN_DIR)/%.o) $(SRCASM:%.s=$(RELEASE_BIN_DIR)
 ###
 
 DEBUG_BIN_DIR = $(BIN_BASE_DIR)/Debug
-DEBUG_FLAGS=-g -O0
+DEBUG_FLAGS=-g -Og
 
 DEBUG_BIN_FILE = $(DEBUG_BIN_DIR)/$(BIN_FILE)
 DEBUG_ELF_FILE = $(DEBUG_BIN_DIR)/$(ELF_FILE)
