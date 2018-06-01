@@ -1,4 +1,3 @@
-#include "stm32f7xx_hal.h"
 #include "debug.h"
 #include "bsp.h"
 

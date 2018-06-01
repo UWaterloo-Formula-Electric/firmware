@@ -1,4 +1,4 @@
-#include "stm32f7xx_hal.h"
+#include "bsp.h"
 
 uint8_t autosar_crc_lookup_table[246];
 uint8_t calculate_base_CRC( uint8_t * data_bytes )

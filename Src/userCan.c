@@ -2,21 +2,20 @@
  * userCan.c
  *
  */
-#define STRINGIZE_AUX(a) #a
-#define STRINGIZE(a) STRINGIZE_AUX(a)
-#define CAT_AUX(a, b) a##b
-#define CAT(a, b) CAT_AUX(a, b)
-#define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
 
-#include "stm32f0xx_hal.h"
 #include "userCan.h"
 #include "stdbool.h"
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "can.h"
+#include "debug.h"
+#include "bsp.h"
 
 // valid DLC is from 0..8, this value means the msg hasnt been received yet
 #define CAN_MESSAGE_DLC_INVALID 9
+
+#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
+
 CanRxMsgTypeDef RxMessage;
 CanRxMsgTypeDef Rx1Message;
 
@@ -129,7 +128,7 @@ HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)
     DTC_Data = (float)data;
     DTC_Severity = (float)severity;
     DTC_CODE = (float)dtcCode;
-    sendCAN_BMU_DTC();
+    return DTC_SEND_FUNCTION();
 }
 /*
  *bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,

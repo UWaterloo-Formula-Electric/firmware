@@ -8,6 +8,7 @@ BIN_BASE_DIR = Bin
 DRIVER_DIR = Drivers
 DRIVER_HAL_DIR = $(DRIVER_DIR)/STM32F7xx_HAL_Driver
 COMMON_LIB_DIR = common-all
+COMMON_F7_LIB_DIR = common-all/f7
 
 MIDDLEWARE_DIR = Middlewares
 FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
@@ -26,7 +27,8 @@ $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 
-INCLUDE_DIRS= $(COMMON_LIB_DIR)/f7/Inc \
+INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
+			  $(DRIVER_HAL_DIR)/f7/Inc \
 			  $(DRIVER_HAL_DIR)/Inc \
 			  $(DRIVER_DIR)/CMSIS/Device/ST/STM32F7xx/Include \
 			  $(DRIVER_DIR)/CMSIS/Include \
@@ -83,7 +85,8 @@ SRC := $(wildcard $(SRC_DIR)/*.c) \
 	   $(wildcard $(DRIVER_HAL_DIR)/Src/*.c) \
 	   $(wildcard $(FREERTOS_DIR)/Source/*.c) \
 	   $(wildcard $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM7/r0p1/*.c) \
-	   $(addprefix $(COMMON_LIB_DIR)/f7/Src/, $(COMMON_LIB_SRC)) \
+	   $(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
+	   $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC)) \
 	   $(FREERTOS_DIR)/Source/portable/MemMang/heap_4.c \
 	   $(wildcard $(FREERTOS_DIR)/Source/CMSIS_RTOS/*.c) \
 	   $(SRC_DIR)/system_stm32f7xx.c \
