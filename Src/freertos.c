@@ -113,17 +113,22 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN StartDefaultTask */
+
+
   printf("BMU init\n");
   printf("Code version: \n");
-//TODO: pull in git commit version
-  sendCAN_BMU_VERSION();
-//TODO: self test code here
-  printf("init complete\n");
+// //TODO: pull in git commit version
+//   sendCAN_BMU_VERSION();
+// //TODO: self test code here
+//   printf("init complete\n");
 
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    HAL_GPIO_TogglePin(LED_R_GPIO_Port,LED_R_Pin);
+    HAL_GPIO_TogglePin(LED_Y_GPIO_Port,LED_Y_Pin );
+    HAL_GPIO_TogglePin(LED_B_GPIO_Port,LED_B_Pin);
+    osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
 }
