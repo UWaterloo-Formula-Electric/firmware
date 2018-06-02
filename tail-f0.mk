@@ -47,6 +47,10 @@ PERIFLIB_PATH =
 # Build path
 BUILD_DIR = build
 
+# More dirs
+MIDDLEWARE_DIR = Middlewares
+FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
+
 # common code dir
 COMMON_LIB_DIR = common-all
 
@@ -80,7 +84,13 @@ Gen/Src/$(BOARD_NAME)_can.c \
 Src/gpio.c \
 Src/usart.c \
 Src/can.c \
-$(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC))
+Src/freertos.c \
+Src/CRC_CALC.c \
+$(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
+$(wildcard $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM0/*.c) \
+$(wildcard $(FREERTOS_DIR)/Source/*.c) \
+$(FREERTOS_DIR)/Source/portable/MemMang/heap_4.c \
+$(wildcard $(FREERTOS_DIR)/Source/CMSIS_RTOS/*.c)
 
 # ASM sources
 ASM_SOURCES =  \
@@ -144,7 +154,10 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -IGen/Inc \
 -Icommon-all/Inc\
--Icommon-all/f0/Inc
+-Icommon-all/f0/Inc \
+-I$(FREERTOS_DIR)/Source/include \
+-I$(FREERTOS_DIR)/Source/portable/GCC/ARM_CM0 \
+-I$(FREERTOS_DIR)/Source/CMSIS_RTOS
 
 
 # compile gcc flags
@@ -191,7 +204,6 @@ GEN_DEPS = $(GEN_DIR)/dtc.d $(GEN_DIR)/canGen.d
 #######################################
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
-$(info $(sort $(dir $(C_SOURCES))))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM program objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
