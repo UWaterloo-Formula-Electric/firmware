@@ -1,0 +1,6 @@
+[submodule "drivers"]
+	path = drivers
+	url = git@bitbucket.org:waterloohybrid/drivers.git
+[submodule "common-all"]
+	path = common-all
+	url = git@bitbucket.org:waterloohybrid/common-all.git
