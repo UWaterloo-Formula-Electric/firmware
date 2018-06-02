@@ -19,9 +19,14 @@
 CanRxMsgTypeDef RxMessage;
 CanRxMsgTypeDef Rx1Message;
 
-void canInit(CAN_HandleTypeDef *hcan)
+HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
     configCANFilters(hcan);
+    if (HAL_OK != init_can_driver()) {
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan)

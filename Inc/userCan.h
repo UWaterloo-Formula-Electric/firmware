@@ -21,7 +21,7 @@
 // defined in the makefile
 #define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
 
-void canInit(CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data);
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data);
