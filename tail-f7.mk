@@ -46,8 +46,10 @@ DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
 ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO-F7)'
 	LINK_SCRIPT="STM32F767ZITx_FLASH.ld"
-else
+else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
 	LINK_SCRIPT="STM32F767VITx_FLASH.ld"
+else
+	$(error Unsupported Board type)
 endif
 
 CPU = -mcpu=cortex-m7
@@ -95,6 +97,7 @@ SRC := $(wildcard $(SRC_DIR)/*.c) \
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_alarm_template.c, $(SRC))
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_wakeup_template.c, $(SRC))
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_msp_template.c, $(SRC))
+SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_tim_template.c, $(SRC))
 
 SRCASM := startup_stm32f767xx.s
 
