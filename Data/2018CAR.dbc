@@ -628,7 +628,6 @@ VAL_ 6 StatusPowerCoolingFanRight 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_
 VAL_ 6 StatusPowerCoolingFanLeft 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
 VAL_ 6 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
 VAL_ 6 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
-VAL_ 4 StateBMS 5 "Charging" 4 "Energized MC Enabled" 3 "Energized MC Disabled" 2 "Pre Charge" 1 "Standby Contactors off" 0 "Invalid" ;
 VAL_ 3 StateContactorPositive 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
 VAL_ 3 StateContactorNegative 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
 VAL_ 2 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
