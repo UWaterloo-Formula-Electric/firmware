@@ -14,3 +14,4 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 13,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short
 14,INSULATION_RESISTANCE_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is abnormaly low
 15,INSULATION_RESISTANCE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is critically low
+16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMY,VCU_BEAGLEBONE",Reason,The vcu failed to em enable for reason #data
