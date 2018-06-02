@@ -83,6 +83,9 @@ if boardType == 'F7':
 else:
     fWrite("#include \"stm32f0xx_hal.h\"", headerFileHandle);
 
+fWrite("#include \"FreeRTOS.h\"", headerFileHandle);
+fWrite("#include \"queue.h\"", headerFileHandle);
+
 fWrite('//Message Filtering', headerFileHandle);
 nodeAddress = 0
 messageGroups = list()
@@ -130,15 +133,40 @@ for mes in db.messages:
 
 
 fWrite('// Incoming variables', sourceFileHandle)
+
+# Treat DTC signal/msgs differently
+
+dtcQueueSize = 5
+queueInitStrings = list()
+for message in messages:
+    if 'DTC' in message.name:
+        fWrite('typedef struct ' + message.name + '_unpacked {', headerFileHandle)
+        for signal in message.signals:
+            fWrite('int ' + signal.name + ';', headerFileHandle)
+        fWrite('} ' + message.name + '_unpacked;', headerFileHandle)
+
+	queueName = 'queue' + message.name
+        fWrite('extern QueueHandle_t ' + queueName + ';', headerFileHandle)
+        fWrite('QueueHandle_t ' + queueName + ';', sourceFileHandle)
+	queueInitStrings.append(queueName + ' = xQueueCreate(' +str(dtcQueueSize) + ', sizeof(' + message.name + '_unpacked)); if (' + queueName + '== NULL) return HAL_ERROR;')
+        for signal in message.signals:
+            fWrite('int ' + signal.name + 'Received(int64_t newValue)\n{', sourceFileHandle)
+            fWrite("	newValue = newValue * "+str(signal.scale)+";", sourceFileHandle)
+            fWrite("	newValue = newValue + "+str(signal.offset)+";", sourceFileHandle)
+            fWrite("	return newValue;", sourceFileHandle)
+            fWrite("}\n", sourceFileHandle)
+
+# Everything else
 for signal in variables:
-	type = "float "
-	fWrite('volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
-	fWrite('extern volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
-	fWrite('void '+ signal.name+'Received(int64_t newValue)\n{', sourceFileHandle)
-	fWrite("	float floatValue = (float)newValue * "+str(signal.scale)+";", sourceFileHandle)
-	fWrite("	floatValue = floatValue + "+str(signal.offset)+";", sourceFileHandle)
-	fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
-	fWrite("}\n", sourceFileHandle)
+    if not 'DTC' in signal.name:
+        type = "float "
+        fWrite('volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
+        fWrite('extern volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
+        fWrite('void '+ signal.name+'Received(int64_t newValue)\n{', sourceFileHandle)
+        fWrite("	float floatValue = (float)newValue * "+str(signal.scale)+";", sourceFileHandle)
+        fWrite("	floatValue = floatValue + "+str(signal.offset)+";", sourceFileHandle)
+        fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
+        fWrite("}\n", sourceFileHandle)
 
 fWrite('// Outgoing variables', sourceFileHandle)
 for mes in db.messages:
@@ -174,8 +202,10 @@ fWrite('', sourceFileHandle)
 
 fWrite('int init_can_driver();', headerFileHandle)
 fWrite('int init_can_driver(){', sourceFileHandle)
+for string in queueInitStrings:
+    fWrite('	' + string, sourceFileHandle)
 fWrite('	generate_CRC_lookup_table();', sourceFileHandle)
-fWrite('	return 0;', sourceFileHandle)
+fWrite('	return HAL_OK;', sourceFileHandle)
 fWrite('}', sourceFileHandle)
 fWrite('', sourceFileHandle)
 
@@ -240,10 +270,18 @@ for message in messages:
 	# for signal in message.signals:
 	fWrite('		{', sourceFileHandle)
 
-	fWrite('			struct ' + message.name + ' *new_'+message.name +' = data;', sourceFileHandle)
-	for signal in message.signals:
+	fWrite('			struct ' + message.name + ' *in_'+message.name +' = data;', sourceFileHandle)
+	if 'DTC' in message.name:
+	    unpackedStructName = str(message.name + '_unpacked')
+	    unpackedStructInstance = str('new_' + message.name)
+	    fWrite('			' + unpackedStructName + ' ' + unpackedStructInstance + ';', sourceFileHandle)
+	    for signal in message.signals:
+		fWrite('			' + unpackedStructInstance + '.' + signal.name + ' = ' +signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
+	    fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
+	else:
+	    for signal in message.signals:
 		if nodeName in signal.receivers:
-			fWrite('			'+signal.name+ 'Received(new_'+message.name +'->'+ signal.name+');', sourceFileHandle)
+		    fWrite('			'+signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
 
 	fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
 	fWrite('			break;', sourceFileHandle)
