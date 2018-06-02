@@ -100,6 +100,8 @@
 #define IMD_SENSE_Pin GPIO_PIN_8
 #define IMD_SENSE_GPIO_Port GPIOC
 
+#define DEBUG_ON
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

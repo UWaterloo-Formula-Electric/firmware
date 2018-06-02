@@ -50,6 +50,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
+#include <stdio.h>
+#include <BMU_can.h>
 
 /* USER CODE BEGIN Includes */     
 
@@ -111,6 +113,13 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN StartDefaultTask */
+  printf("BMU init\n");
+  printf("Code version: \n");
+//TODO: pull in git commit version
+  sendCAN_BMU_VERSION();
+//TODO: self test code here
+  printf("init complete\n");
+
   /* Infinite loop */
   for(;;)
   {
