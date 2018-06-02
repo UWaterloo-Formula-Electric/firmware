@@ -85,7 +85,6 @@ Src/gpio.c \
 Src/usart.c \
 Src/can.c \
 Src/freertos.c \
-Src/CRC_CALC.c \
 $(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
 $(wildcard $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM0/*.c) \
 $(wildcard $(FREERTOS_DIR)/Source/*.c) \
