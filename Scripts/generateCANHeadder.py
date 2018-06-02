@@ -180,7 +180,7 @@ for mes in db.messages:
 			variablesPROCAN.append('int '+mes.name+'_PRO_CAN_COUNT = 0;');
 			variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_SEED;');
 			variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_COUNT;');
-		if mes.comment != 'VERSION':
+		else:
 			for signal in mes.signals:
 				if signal.comment != "PROCAN":	
 					if re.match('.+\d+$', signal.name):
@@ -241,6 +241,7 @@ for message in txMessages:
 		fWrite('	int DBC : 8;', sourceFileHandle)
 		for i  in range(0,7):
 			fWrite('	char git' + str(i) + ' : 8;', sourceFileHandle)
+			
 	else:
 		for signal in message.signals:
 			if signal.start != currentPos:
@@ -275,12 +276,14 @@ for message in rxMessages:
 
 
 fWrite('// Message Received callbacks, declared with weak linkage to be overwritten by user functions', sourceFileHandle)
+
 for message in rxMessages:
 	fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(void)\n{ return; }', sourceFileHandle)
 	fWrite('', sourceFileHandle)
-	fWrite('int parseCANData(int id, void * data);', headerFileHandle)
-	fWrite('int parseCANData(int id, void * data) {', sourceFileHandle)
-	fWrite('	switch(id) {', sourceFileHandle)
+
+fWrite('int parseCANData(int id, void * data);', headerFileHandle)
+fWrite('int parseCANData(int id, void * data) {', sourceFileHandle)
+fWrite('	switch(id) {', sourceFileHandle)
 
 for message in rxMessages:
 	fWrite('		case '+ str(message.frame_id) + ' : // '+str(message.name), sourceFileHandle)
@@ -303,13 +306,14 @@ for message in rxMessages:
 	fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
 	fWrite('			break;', sourceFileHandle)
 	fWrite('		}', sourceFileHandle)
-	fWrite('		default:', sourceFileHandle)
-	fWrite('		{', sourceFileHandle)
-	fWrite('			return -1;', sourceFileHandle)
-	fWrite('		}', sourceFileHandle)
-	fWrite('	}', sourceFileHandle)
-	fWrite('	return(0);', sourceFileHandle)
-	fWrite('}', sourceFileHandle)
+
+fWrite('		default:', sourceFileHandle)
+fWrite('		{', sourceFileHandle)
+fWrite('			return -1;', sourceFileHandle)
+fWrite('		}', sourceFileHandle)
+fWrite('	}', sourceFileHandle)
+fWrite('	return(0);', sourceFileHandle)
+fWrite('}', sourceFileHandle)
 
 for message in txMessages:
 	fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
@@ -319,6 +323,12 @@ for message in txMessages:
 		fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
 		for i  in range(0,7):
 			fWrite('	new_'+message.name +'.git'+str(i)+' = gitCommit['+str(i)+'];', sourceFileHandle)
+	
+	elif message.comment == 'PROCAN':
+		fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
+		fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
+		fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
+	
 	else:
 		for signal in message.signals:
 			if signal.comment != 'PROCAN':
@@ -329,12 +339,7 @@ for message in txMessages:
 					variableName = re.sub('\d+$', '', signal.name)
 					index = int(re.findall('\d+$', signal.name)[0]) - 1
 					fWrite('	new_'+message.name + '.' + signal.name + ' = ' + variableName + 'Sending(' + str(index) + ');', sourceFileHandle)
-
-			if message.comment == 'PROCAN':
-				fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
-				fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
-				fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
-		fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +'); }', sourceFileHandle)
+	fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +'); }', sourceFileHandle)
 
 
 fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
