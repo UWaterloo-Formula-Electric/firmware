@@ -97,6 +97,7 @@ SRC := $(wildcard $(SRC_DIR)/*.c) \
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_alarm_template.c, $(SRC))
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_wakeup_template.c, $(SRC))
 SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_msp_template.c, $(SRC))
+SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_tim_template.c, $(SRC))
 
 SRCASM := startup_stm32f767xx.s
 
