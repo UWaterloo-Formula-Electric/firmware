@@ -50,11 +50,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
-#include <stdio.h>
-#include <BMU_can.h>
 
 /* USER CODE BEGIN Includes */     
-
+#include <stdio.h>
+#include "main.h"
+#include "stm32f7xx_hal.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/

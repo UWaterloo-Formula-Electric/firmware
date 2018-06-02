@@ -63,7 +63,7 @@ void MX_CAN3_Init(void)
 {
 
   hcan3.Instance = CAN3;
-  hcan3.Init.Prescaler = 16;
+  hcan3.Init.Prescaler = 27;
   hcan3.Init.Mode = CAN_MODE_NORMAL;
   hcan3.Init.SJW = CAN_SJW_1TQ;
   hcan3.Init.BS1 = CAN_BS1_1TQ;
