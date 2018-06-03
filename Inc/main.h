@@ -59,12 +59,23 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define THROTTLE_B_Pin GPIO_PIN_4
+#define THROTTLE_B_GPIO_Port GPIOA
+#define BRAKE_POS_Pin GPIO_PIN_5
+#define BRAKE_POS_GPIO_Port GPIOA
+#define THROTTLE_A_Pin GPIO_PIN_6
+#define THROTTLE_A_GPIO_Port GPIOA
+#define STEERING_Pin GPIO_PIN_7
+#define STEERING_GPIO_Port GPIOA
+#define BRAKE_PRES_Pin GPIO_PIN_1
+#define BRAKE_PRES_GPIO_Port GPIOB
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
   *        HAL drivers code
   */
- #define USE_FULL_ASSERT    1U 
+/* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
 
