@@ -57,10 +57,10 @@ label = '0df2a9a'
 gitClean = '0';
 
 try:
-	if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
-		label = subprocess.check_output(["git", "describe" ,"--tags", "--always"]).strip()
+    if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
+        label = subprocess.check_output(["git", "describe" ,"--tags", "--always"]).strip()
 except Exception:
-	pass
+    pass
 
 gitCommit = label
 
@@ -92,13 +92,13 @@ nodeAddress = 0
 messageGroups = list()
 
 for node in db.nodes:
-	if node.name == nodeName:
-		nodeAddress = node.comment.split("_")[0]
-		fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle);
-		for messageGroup in node.comment.split("_")[1].split(","):
-			if messageGroup != "":
-				fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle);
-				messageGroups.append(messageGroup)
+    if node.name == nodeName:
+        nodeAddress = node.comment.split("_")[0]
+        fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle);
+        for messageGroup in node.comment.split("_")[1].split(","):
+            if messageGroup != "":
+                fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle);
+                messageGroups.append(messageGroup)
 fWrite('', headerFileHandle);
 
 
@@ -120,18 +120,19 @@ rxMessages = list()
 txVariables = list()
 txVariableArrays = {}
 txMessages = list()
+txMessageArrays = {}
 
 variablesPROCAN = list()
 variablesPROCANHeader = list()
 
 for mes in db.messages:
-	messageUseful = 0
-	for signal in mes.signals:
-			if nodeName in signal.receivers:
-				messageUseful = 1
-				rxVariables.append(signal)
-	if messageUseful == 1:
-		rxMessages.append(mes)
+    messageUseful = 0
+    for signal in mes.signals:
+            if nodeName in signal.receivers:
+                messageUseful = 1
+                rxVariables.append(signal)
+    if messageUseful == 1:
+        rxMessages.append(mes)
 
 
 fWrite('// Incoming variables', sourceFileHandle)
@@ -147,10 +148,10 @@ for message in rxMessages:
             fWrite('int ' + signal.name + ';', headerFileHandle)
         fWrite('} ' + message.name + '_unpacked;', headerFileHandle)
 
-	queueName = 'queue' + message.name
+        queueName = 'queue' + message.name
         fWrite('extern QueueHandle_t ' + queueName + ';', headerFileHandle)
         fWrite('QueueHandle_t ' + queueName + ';', sourceFileHandle)
-	queueInitStrings.append(queueName + ' = xQueueCreate(' +str(dtcQueueSize) + ', sizeof(' + message.name + '_unpacked)); if (' + queueName + '== NULL) return HAL_ERROR;')
+        queueInitStrings.append(queueName + ' = xQueueCreate(' +str(dtcQueueSize) + ', sizeof(' + message.name + '_unpacked)); if (' + queueName + '== NULL) return HAL_ERROR;')
         for signal in message.signals:
             fWrite('int ' + signal.name + 'Received(int64_t newValue)\n{', sourceFileHandle)
             fWrite("	newValue = newValue * "+str(signal.scale)+";", sourceFileHandle)
@@ -159,7 +160,7 @@ for message in rxMessages:
             fWrite("}\n", sourceFileHandle)
 
 # Everything else
-for signal in variables:
+for signal in rxVariables:
     if not 'DTC' in signal.name:
         type = "float "
         fWrite('volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
@@ -170,58 +171,69 @@ for signal in variables:
         fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
         fWrite("}\n", sourceFileHandle)
 
+messageFrameIdArrays = {}
+
 fWrite('// Outgoing variables', sourceFileHandle)
 for mes in db.messages:
-	messageUseful = 0
-	if nodeName in mes.senders:
-		messageUseful = 1
-		if mes.comment == 'PROCAN':
-			variablesPROCAN.append('int '+mes.name+'_PRO_CAN_SEED = 127;');
-			variablesPROCAN.append('int '+mes.name+'_PRO_CAN_COUNT = 0;');
-			variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_SEED;');
-			variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_COUNT;');
-		else:
-			for signal in mes.signals:
-				if signal.comment != "PROCAN":	
-					if re.match('.+\d+$', signal.name):
-						name = re.sub('\d+$', '', signal.name)
-						if not name in txVariableArrays:
-							txVariableArrays[name] = {'offset': signal.offset, 'scale': signal.scale, 'count': 1}
-						elif txVariableArrays[name]['offset'] == signal.offset and txVariableArrays[name]['scale'] == signal.scale:
-							txVariableArrays[name]['count'] += 1
-					else:
-						txVariables.append(signal)
-	if messageUseful == 1:
-		txMessages.append(mes)
+    messageUseful = 0
+    if nodeName in mes.senders:
+        messageUseful = 1
+        if mes.comment == 'PROCAN':
+            variablesPROCAN.append('int '+mes.name+'_PRO_CAN_SEED = 127;');
+            variablesPROCAN.append('int '+mes.name+'_PRO_CAN_COUNT = 0;');
+            variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_SEED;');
+            variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_COUNT;');
+        else:
+            for signal in mes.signals:
+                if signal.comment != "PROCAN":	
+                    if re.match('.+\d+$', signal.name):
+                        name = re.sub('\d+$', '', signal.name)
+                        if not name in txVariableArrays:
+                            txVariableArrays[name] = {'offset': signal.offset, 'scale': signal.scale, 'count': 1}
+                        elif txVariableArrays[name]['offset'] == signal.offset and txVariableArrays[name]['scale'] == signal.scale:
+                            txVariableArrays[name]['count'] += 1
+                    else:
+                        txVariables.append(signal)
+    if messageUseful == 1:
+        if re.match('.+\d+$', mes.name):
+            name = re.sub('\d+$', '', mes.name)
+            if not name in txMessageArrays:
+                txMessageArrays[name] = mes
+            if not (name + '_MessageFrameIds') in messageFrameIdArrays:
+                messageFrameIdArrays[(name + '_MessageFrameIds')] = [str(mes.frame_id)]
+            else:
+                messageFrameIdArrays[(name + '_MessageFrameIds')].append(str(mes.frame_id))
+        else:
+            txMessages.append(mes)
 
 for signal in txVariables:
-	type = "int64_t "
-	fWrite('extern volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
-	fWrite('volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
-	fWrite('__weak '+type+ signal.name+'Sending()\n{', sourceFileHandle)
-	fWrite('	float sendValue = '+ signal.name+';', sourceFileHandle)
-	fWrite("	sendValue = sendValue - "+str(signal.offset)+";", sourceFileHandle)
-	fWrite("	sendValue = sendValue / "+str(signal.scale)+";", sourceFileHandle)
-	fWrite("	return sendValue;", sourceFileHandle)
-	fWrite("}\n", sourceFileHandle)
+    type = "int64_t "
+    fWrite('extern volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
+    fWrite('volatile float ' + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
+    fWrite('__weak '+type+ signal.name+'Sending()\n{', sourceFileHandle)
+    fWrite('	float sendValue = '+ signal.name+';', sourceFileHandle)
+    fWrite("	sendValue = sendValue - "+str(signal.offset)+";", sourceFileHandle)
+    fWrite("	sendValue = sendValue / "+str(signal.scale)+";", sourceFileHandle)
+    fWrite("	return sendValue;", sourceFileHandle)
+    fWrite("}\n", sourceFileHandle)
 
 for name, signal in txVariableArrays.items():
-	type = "int64_t "
-	fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), headerFileHandle)
-	fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), sourceFileHandle)
-	fWrite('__weak '+ type + name + 'Sending(int index)\n{', sourceFileHandle)
-	fWrite('	float sendValue = ' + name + '[index];', sourceFileHandle)
-	fWrite("	sendValue = sendValue - "+str(signal['offset'])+";", sourceFileHandle)
-	fWrite("	sendValue = sendValue / "+str(signal['scale'])+";", sourceFileHandle)
-	fWrite("	return sendValue;", sourceFileHandle)
-	fWrite("}\n", sourceFileHandle)
+    type = "int64_t "
+    fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), headerFileHandle)
+    fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), sourceFileHandle)
+    fWrite('__weak '+ type + name + 'Sending(int index)\n{', sourceFileHandle)
+    fWrite('	float sendValue = ' + name + '[index];', sourceFileHandle)
+    fWrite("	sendValue = sendValue - "+str(signal['offset'])+";", sourceFileHandle)
+    fWrite("	sendValue = sendValue / "+str(signal['scale'])+";", sourceFileHandle)
+    fWrite("	return sendValue;", sourceFileHandle)
+    fWrite("}\n", sourceFileHandle)
 
 fWrite('', sourceFileHandle)
 fWrite('// PRO_CAN ', sourceFileHandle)
 for string in variablesPROCAN:
-	fWrite(string, sourceFileHandle)
+    fWrite(string, sourceFileHandle)
 for string in variablesPROCANHeader:
-	fWrite('extern ' + string, headerFileHandle)
+    fWrite('extern ' + string, headerFileHandle)
 fWrite('', sourceFileHandle)
 
 fWrite('int init_can_driver();', headerFileHandle)
@@ -234,78 +246,109 @@ fWrite('}', sourceFileHandle)
 fWrite('', sourceFileHandle)
 
 for message in txMessages:
-	fWrite('struct ' + message.name + '{', sourceFileHandle)
-	totalSize = message.length*8;
-	currentPos = 0;
-	if message.comment == 'VERSION':
-		fWrite('	int DBC : 8;', sourceFileHandle)
-		for i  in range(0,7):
-			fWrite('	char git' + str(i) + ' : 8;', sourceFileHandle)
-			
-	else:
-		for signal in message.signals:
-			if signal.start != currentPos:
-				fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
-			if signal.is_signed	:
-				fWrite('	         int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-			else :
-				fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-			currentPos = signal.start + signal.length
-		if currentPos != totalSize:
-			fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
-	fWrite('};', sourceFileHandle)
-	fWrite('', sourceFileHandle)
+    fWrite('struct ' + message.name + '{', sourceFileHandle)
+    totalSize = message.length*8;
+    currentPos = 0;
+    if message.comment == 'VERSION':
+        fWrite('	int DBC : 8;', sourceFileHandle)
+        for i  in range(0,7):
+            fWrite('	char git' + str(i) + ' : 8;', sourceFileHandle)
+            
+    else:
+        for signal in message.signals:
+            if signal.start != currentPos:
+                fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
+            if signal.is_signed	:
+                fWrite('	         int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+            else :
+                fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+            currentPos = signal.start + signal.length
+        if currentPos != totalSize:
+            fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
+    fWrite('};', sourceFileHandle)
+    fWrite('', sourceFileHandle)
 fWrite('', sourceFileHandle)
 
+for name, message in txMessageArrays.items():
+    fWrite('struct ' + name + '{', sourceFileHandle)
+    totalSize = message.length * 8;
+    currentPos = 0;
+    count = 1
+
+    for signal in message.signals:
+        dataName = re.sub('\d+$', '', signal.name)
+
+        if txVariableArrays[dataName]['count'] > 1:
+            signalName = dataName + str(count)
+            count += 1
+        else:
+            count = 1
+            signalName = dataName
+
+        if signal.start != currentPos:
+            fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
+        if signal.is_signed	:
+            fWrite('	         int64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
+        else :
+            fWrite('	uint64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
+        currentPos = signal.start + signal.length
+    
+    if currentPos != totalSize:
+        fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
+
+    fWrite('};', sourceFileHandle)
+    fWrite('', sourceFileHandle)
+fWrite('', sourceFileHandle)
+    
 for message in rxMessages:
-	fWrite('struct ' + message.name + ' {', sourceFileHandle)
-	totalSize = message.length*8;
-	currentPos = 0;
-	for signal in message.signals:
-		if signal.start != currentPos:
-			fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
-		if signal.is_signed	:
-			fWrite('		     int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-		else :
-			fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-		currentPos = signal.start + signal.length
-	if currentPos != totalSize:
-		fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
-	fWrite('};', sourceFileHandle)
-	fWrite('', sourceFileHandle)
+    fWrite('struct ' + message.name + ' {', sourceFileHandle)
+    totalSize = message.length*8;
+    currentPos = 0;
+    for signal in message.signals:
+        if signal.start != currentPos:
+            fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
+        if signal.is_signed	:
+            fWrite('		     int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+        else :
+            fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
+        currentPos = signal.start + signal.length
+    if currentPos != totalSize:
+        fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
+    fWrite('};', sourceFileHandle)
+    fWrite('', sourceFileHandle)
 
 
 fWrite('// Message Received callbacks, declared with weak linkage to be overwritten by user functions', sourceFileHandle)
 
 for message in rxMessages:
-	fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(void)\n{ return; }', sourceFileHandle)
-	fWrite('', sourceFileHandle)
+    fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(void)\n{ return; }', sourceFileHandle)
+    fWrite('', sourceFileHandle)
 
 fWrite('int parseCANData(int id, void * data);', headerFileHandle)
 fWrite('int parseCANData(int id, void * data) {', sourceFileHandle)
 fWrite('	switch(id) {', sourceFileHandle)
 
 for message in rxMessages:
-	fWrite('		case '+ str(message.frame_id) + ' : // '+str(message.name), sourceFileHandle)
-	# for signal in message.signals:
-	fWrite('		{', sourceFileHandle)
+    fWrite('		case '+ str(message.frame_id) + ' : // '+str(message.name), sourceFileHandle)
+    # for signal in message.signals:
+    fWrite('		{', sourceFileHandle)
 
-	fWrite('			struct ' + message.name + ' *in_'+message.name +' = data;', sourceFileHandle)
-	if 'DTC' in message.name:
-	    unpackedStructName = str(message.name + '_unpacked')
-	    unpackedStructInstance = str('new_' + message.name)
-	    fWrite('			' + unpackedStructName + ' ' + unpackedStructInstance + ';', sourceFileHandle)
-	    for signal in message.signals:
-		fWrite('			' + unpackedStructInstance + '.' + signal.name + ' = ' +signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
-	    fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
-	else:
-	    for signal in message.signals:
-		if nodeName in signal.receivers:
-		    fWrite('			'+signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
+    fWrite('			struct ' + message.name + ' *in_'+message.name +' = data;', sourceFileHandle)
+    if 'DTC' in message.name:
+        unpackedStructName = str(message.name + '_unpacked')
+        unpackedStructInstance = str('new_' + message.name)
+        fWrite('			' + unpackedStructName + ' ' + unpackedStructInstance + ';', sourceFileHandle)
+        for signal in message.signals:
+            fWrite('			' + unpackedStructInstance + '.' + signal.name + ' = ' +signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
+            fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
+    else:
+        for signal in message.signals:
+            if nodeName in signal.receivers:
+                fWrite('			'+signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
 
-	fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
-	fWrite('			break;', sourceFileHandle)
-	fWrite('		}', sourceFileHandle)
+    fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
+    fWrite('			break;', sourceFileHandle)
+    fWrite('		}', sourceFileHandle)
 
 fWrite('		default:', sourceFileHandle)
 fWrite('		{', sourceFileHandle)
@@ -316,31 +359,58 @@ fWrite('	return(0);', sourceFileHandle)
 fWrite('}', sourceFileHandle)
 
 for message in txMessages:
-	fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
-	fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
-	fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
-	if message.comment == 'VERSION':
-		fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
-		for i  in range(0,7):
-			fWrite('	new_'+message.name +'.git'+str(i)+' = gitCommit['+str(i)+'];', sourceFileHandle)
-	
-	elif message.comment == 'PROCAN':
-		fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
-		fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
-		fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
-	
-	else:
-		for signal in message.signals:
-			if signal.comment != 'PROCAN':
-				isSignalArray = re.sub('\d+$', '', signal.name) in txVariableArrays
-				if not isSignalArray:
-					fWrite('	new_'+message.name +'.'+signal.name+' = '+signal.name+'Sending();', sourceFileHandle)
-				else:
-					variableName = re.sub('\d+$', '', signal.name)
-					index = int(re.findall('\d+$', signal.name)[0]) - 1
-					fWrite('	new_'+message.name + '.' + signal.name + ' = ' + variableName + 'Sending(' + str(index) + ');', sourceFileHandle)
-	fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +'); }', sourceFileHandle)
+    fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
+    fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
+    fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
+    if message.comment == 'VERSION':
+        fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
+        for i  in range(0,7):
+            fWrite('	new_'+message.name +'.git'+str(i)+' = gitCommit['+str(i)+'];', sourceFileHandle)
+    
+    elif message.comment == 'PROCAN':
+        fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
+        fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
+        fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
+    
+    else:
+        for signal in message.signals:
+            if signal.comment != 'PROCAN':
+                if not re.sub('\d+$', '', signal.name) in txVariableArrays:
+                    fWrite('	new_'+message.name +'.'+signal.name+' = '+signal.name+'Sending();', sourceFileHandle)
+                else:
+                    variableName = re.sub('\d+$', '', signal.name)
+                    index = int(re.findall('\d+$', signal.name)[0]) - 1
+                    fWrite('	new_'+message.name + '.' + signal.name + ' = ' + variableName + 'Sending(' + str(index) + ');', sourceFileHandle)
+    fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
+    fWrite('}', sourceFileHandle)
 
+for name, message in txMessageArrays.items():
+    fWrite('int ' + name + '_MessageFrameIds[' + str(len(messageFrameIdArrays[name + '_MessageFrameIds'])) + '];', headerFileHandle)
+    fWrite('int ' + name + '_MessageFrameIds[' + str(len(messageFrameIdArrays[name + '_MessageFrameIds'])) + '] = {' + ','.join(messageFrameIdArrays[name + '_MessageFrameIds']) + '};', sourceFileHandle)
+    fWrite("int sendCAN_" + name +"(int index);", headerFileHandle)
+    fWrite("int sendCAN_" + name +"(int index){", sourceFileHandle)
+    fWrite('	struct ' + name + ' new_'+ name +';', sourceFileHandle)
+    count = 1
+
+    for signal in message.signals:
+        if signal.comment != 'PROCAN':    
+            variableName = re.sub('\d+$', '', signal.name)
+            variableCount = txVariableArrays[variableName]['count'] 
+            signalsPerMessage = str(int(variableCount / len(messageFrameIdArrays[name + '_MessageFrameIds'])))
+
+            if variableCount > 1:
+                signalName = variableName + str(count)
+                fWrite('	new_'+name + '.' + signalName + ' = ' + variableName + 'Sending((index * ' + signalsPerMessage + ') + ' + str(count - 1) + ');', sourceFileHandle)
+                count += 1
+            else:
+                signalName = variableName
+                fWrite('	new_' + name + '.' + signalName + ' = ' + variableName + 'Sending(index);', sourceFileHandle)
+                count = 1
+
+            index = int(re.findall('\d+$', signal.name)[0]) - 1
+            
+    fWrite('	return sendCanMessage('+ name + '_MessageFrameIds[index],' + str(message.length) + ',(uint8_t *) &new_'+name +');', sourceFileHandle)
+    fWrite('}', sourceFileHandle)
 
 fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
 fWrite('__weak void configCANFilters(CAN_HandleTypeDef* canHandle)\n{', sourceFileHandle)
@@ -387,26 +457,26 @@ fWrite('	}', sourceFileHandle)
 
 i = 1
 for messageGroup in messageGroups:
-	i = i + 1
-	fWrite('\n	// Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
-	fWrite('	filterID = ' + messageGroup +'<<12;', sourceFileHandle)
-	fWrite('	filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
-	fWrite('	filterMask = 0xFF00;', sourceFileHandle)
-	fWrite('	filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterNumber = ' + str(i) + ';', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
-	fWrite('	sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-	fWrite('	sFilterConfig.BankNumber = ' + str(i) + ';\n', sourceFileHandle)
-	fWrite('	if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
-	fWrite('	{', sourceFileHandle)
-	fWrite('	  Error_Handler();', sourceFileHandle)
-	fWrite('	}', sourceFileHandle)
+    i = i + 1
+    fWrite('\n	// Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
+    fWrite('	filterID = ' + messageGroup +'<<12;', sourceFileHandle)
+    fWrite('	filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
+    fWrite('	filterMask = 0xFF00;', sourceFileHandle)
+    fWrite('	filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterNumber = ' + str(i) + ';', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
+    fWrite('	sFilterConfig.BankNumber = ' + str(i) + ';\n', sourceFileHandle)
+    fWrite('	if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
+    fWrite('	{', sourceFileHandle)
+    fWrite('	  Error_Handler();', sourceFileHandle)
+    fWrite('	}', sourceFileHandle)
 
 fWrite('}', sourceFileHandle)
 fWrite("#endif /*__"+nodeName+"_can_H */", headerFileHandle);
