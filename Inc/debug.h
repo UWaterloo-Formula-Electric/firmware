@@ -17,4 +17,6 @@
 
 #define UART_PRINT_TIMEOUT 1000
 
+HAL_StatusTypeDef uartStartReceiving(UART_HandleTypeDef *huart);
+
 #endif /* define(__DEBUG_H) */
