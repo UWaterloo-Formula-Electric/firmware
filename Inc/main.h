@@ -70,6 +70,20 @@
 #define BRAKE_PRES_Pin GPIO_PIN_1
 #define BRAKE_PRES_GPIO_Port GPIOB
 
+/* Check to see if these are the correct pins (just copied from BMU)*/
+#define LED_B_Pin GPIO_PIN_13
+#define LED_B_GPIO_Port GPIOC
+#define LED_R_Pin GPIO_PIN_0
+#define LED_R_GPIO_Port GPIOC
+#define LED_Y_Pin GPIO_PIN_5
+#define LED_Y_GPIO_Port GPIOC
+#define BUT1_Pin GPIO_PIN_14
+#define BUT1_GPIO_Port GPIOC
+#define BUT2_Pin GPIO_PIN_15
+#define BUT2_GPIO_Port GPIOC
+#define BUT3_Pin GPIO_PIN_15
+#define BUT3_GPIO_Port GPIOE
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

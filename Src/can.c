@@ -63,17 +63,17 @@ void MX_CAN3_Init(void)
 {
 
   hcan3.Instance = CAN3;
-  hcan3.Init.Prescaler = 25;
+  hcan3.Init.Prescaler = 23;
   hcan3.Init.Mode = CAN_MODE_NORMAL;
-  hcan3.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan3.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan3.Init.TimeSeg2 = CAN_BS2_1TQ;
-  hcan3.Init.TimeTriggeredMode = DISABLE;
-  hcan3.Init.AutoBusOff = DISABLE;
-  hcan3.Init.AutoWakeUp = DISABLE;
-  hcan3.Init.AutoRetransmission = DISABLE;
-  hcan3.Init.ReceiveFifoLocked = DISABLE;
-  hcan3.Init.TransmitFifoPriority = DISABLE;
+  hcan3.Init.SJW = CAN_SJW_1TQ;
+  hcan3.Init.BS1 = CAN_BS1_1TQ;
+  hcan3.Init.BS2 = CAN_BS2_1TQ;
+  hcan3.Init.TTCM = DISABLE;
+  hcan3.Init.ABOM = DISABLE;
+  hcan3.Init.AWUM = DISABLE;
+  hcan3.Init.NART = DISABLE;
+  hcan3.Init.RFLM = DISABLE;
+  hcan3.Init.TXFP = DISABLE;
   if (HAL_CAN_Init(&hcan3) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
