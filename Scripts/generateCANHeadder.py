@@ -45,7 +45,7 @@ ScriptsDir = os.path.join(commonDir, 'Scripts')
 
 depFile = os.path.join(genDir, 'canGen.d')
 
-dataDir = os.path.join(commonDir, 'data')
+dataDir = os.path.join(commonDir, 'Data')
 dbFile = os.path.join(dataDir, '2018CAR.dbc')
 
 headerFile = os.path.join(genIncDir, nodeName + '_can.h')
@@ -185,7 +185,7 @@ for mes in db.messages:
             variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_COUNT;');
         else:
             for signal in mes.signals:
-                if signal.comment != "PROCAN":	
+                if signal.comment != "PROCAN":
                     if re.match('.+\d+$', signal.name):
                         name = re.sub('\d+$', '', signal.name)
                         if not name in txVariableArrays:
@@ -253,7 +253,7 @@ for message in txMessages:
         fWrite('	int DBC : 8;', sourceFileHandle)
         for i  in range(0,7):
             fWrite('	char git' + str(i) + ' : 8;', sourceFileHandle)
-            
+
     else:
         for signal in message.signals:
             if signal.start != currentPos:
@@ -292,14 +292,14 @@ for name, message in txMessageArrays.items():
         else :
             fWrite('	uint64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
         currentPos = signal.start + signal.length
-    
+
     if currentPos != totalSize:
         fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
 
     fWrite('};', sourceFileHandle)
     fWrite('', sourceFileHandle)
 fWrite('', sourceFileHandle)
-    
+
 for message in rxMessages:
     fWrite('struct ' + message.name + ' {', sourceFileHandle)
     totalSize = message.length*8;
@@ -366,12 +366,12 @@ for message in txMessages:
         fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
         for i  in range(0,7):
             fWrite('	new_'+message.name +'.git'+str(i)+' = gitCommit['+str(i)+'];', sourceFileHandle)
-    
+
     elif message.comment == 'PROCAN':
         fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
         fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
         fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
-    
+
     else:
         for signal in message.signals:
             if signal.comment != 'PROCAN':
@@ -393,9 +393,9 @@ for name, message in txMessageArrays.items():
     count = 1
 
     for signal in message.signals:
-        if signal.comment != 'PROCAN':    
+        if signal.comment != 'PROCAN':
             variableName = re.sub('\d+$', '', signal.name)
-            variableCount = txVariableArrays[variableName]['count'] 
+            variableCount = txVariableArrays[variableName]['count']
             signalsPerMessage = str(int(variableCount / len(messageFrameIdArrays[name + '_MessageFrameIds'])))
 
             if variableCount > 1:
@@ -408,7 +408,7 @@ for name, message in txMessageArrays.items():
                 count = 1
 
             index = int(re.findall('\d+$', signal.name)[0]) - 1
-            
+
     fWrite('	return sendCanMessage('+ name + '_MessageFrameIds[index],' + str(message.length) + ',(uint8_t *) &new_'+name +');', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
