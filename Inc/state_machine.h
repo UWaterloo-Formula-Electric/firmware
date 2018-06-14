@@ -45,7 +45,7 @@ typedef struct {
 HAL_StatusTypeDef fsmInit(uint32_t startingState, FSM_Init_Struct *init,
                           FSM_Handle_Struct *handle);
 void fsmTaskFunction(FSM_Handle_Struct *handle);
-uint32_t fsmGetState();
+uint32_t fsmGetState(FSM_Handle_Struct *handle);
 HAL_StatusTypeDef fsmSendEventUrgent(FSM_Handle_Struct *handle, uint32_t event, uint32_t timeout_ms);
 HAL_StatusTypeDef fsmSendEvent(FSM_Handle_Struct *handle, uint32_t event, uint32_t timeout_ms);
 HAL_StatusTypeDef fsmSendEventUrgentISR(FSM_Handle_Struct *handle, uint32_t event);

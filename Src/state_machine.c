@@ -9,6 +9,12 @@ HAL_StatusTypeDef fsmInit(uint32_t startingState, FSM_Init_Struct *init,
                           FSM_Handle_Struct *handle)
 {
     memcpy(&(handle->init), init, sizeof(FSM_Init_Struct));
+
+    if (startingState > init->maxStateNum) {
+        ERROR_PRINT("Starting state out of range: %lu\n", startingState);
+        return HAL_ERROR;
+    }
+
     handle->state = startingState;
 
     if (handle->init.sizeofEventEnumType > sizeof(uint32_t)) {
@@ -35,6 +41,8 @@ HAL_StatusTypeDef fsmSendEventISR(FSM_Handle_Struct *handle, uint32_t event)
         ERROR_PRINT("Failed to send event to queue\n");
         return HAL_ERROR;
     }
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     return HAL_OK;
 }
 
@@ -46,6 +54,8 @@ HAL_StatusTypeDef fsmSendEventUrgentISR(FSM_Handle_Struct *handle, uint32_t even
         ERROR_PRINT("Failed to send event to queue\n");
         return HAL_ERROR;
     }
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     return HAL_OK;
 }
 HAL_StatusTypeDef fsmSendEvent(FSM_Handle_Struct *handle, uint32_t event, uint32_t timeout_ms)
