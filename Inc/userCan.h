@@ -22,7 +22,7 @@
 #define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
-HAL_StatusTypeDef canStartReceiving(CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data);
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data);
 //bool sendCanMessage(const uint16_t id, const uint8_t *data, const uint8_t length);
