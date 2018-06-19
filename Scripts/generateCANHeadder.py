@@ -54,7 +54,7 @@ sourceFile = os.path.join(genSrcDir, nodeName + '_can.c')
 db = cantools.db.load_file(dbFile)
 
 label = '0df2a9a'
-gitClean = '0';
+gitClean = '0'
 
 try:
     if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
@@ -120,7 +120,6 @@ rxMessages = list()
 txVariables = list()
 txVariableArrays = {}
 txMessages = list()
-txMessageArrays = {}
 
 variablesPROCAN = list()
 variablesPROCANHeader = list()
@@ -173,8 +172,6 @@ for signal in rxVariables:
         fWrite("	"+signal.name + " = floatValue;", sourceFileHandle)
         fWrite("}\n", sourceFileHandle)
 
-messageFrameIdArrays = {}
-
 fWrite('// Outgoing variables', sourceFileHandle)
 for mes in db.messages:
     messageUseful = 0
@@ -187,26 +184,23 @@ for mes in db.messages:
             variablesPROCANHeader.append('int '+mes.name+'_PRO_CAN_COUNT;');
         else:
             for signal in mes.signals:
-                if signal.comment != "PROCAN":
+                if signal.comment != "PROCAN" and not signal.is_multiplexer:
                     if re.match('.+\d+$', signal.name):
                         name = re.sub('\d+$', '', signal.name)
-                        if not name in txVariableArrays:
-                            txVariableArrays[name] = {'offset': signal.offset, 'scale': signal.scale, 'count': 1}
-                        elif txVariableArrays[name]['offset'] == signal.offset and txVariableArrays[name]['scale'] == signal.scale:
-                            txVariableArrays[name]['count'] += 1
+                        if not signal.multiplexer_signal is None:
+                            if name in txVariableArrays:
+                                signalRef = txVariableArrays[name]['signal']
+                                if signalRef.offset == signal.offset and signalRef.scale == signal.scale and signalRef.multiplexer_signal.name == signal.multiplexer_signal.name: 
+                                    txVariableArrays[name]['count'] += 1
+                                elif signalRef.multiplexer_signal is None and signal.multiplexer_signal is None:
+                                    txVariableArrays[name]['count'] += 1
+                            else:
+                                txVariableArrays[name] = {'signal': signal, 'count': 1}
                     else:
                         txVariables.append(signal)
+    
     if messageUseful == 1:
-        if re.match('.+\d+$', mes.name):
-            name = re.sub('\d+$', '', mes.name)
-            if not name in txMessageArrays:
-                txMessageArrays[name] = mes
-            if not (name + '_MessageFrameIds') in messageFrameIdArrays:
-                messageFrameIdArrays[(name + '_MessageFrameIds')] = [str(mes.frame_id)]
-            else:
-                messageFrameIdArrays[(name + '_MessageFrameIds')].append(str(mes.frame_id))
-        else:
-            txMessages.append(mes)
+        txMessages.append(mes)
 
 for signal in txVariables:
     type = "int64_t "
@@ -221,8 +215,9 @@ for signal in txVariables:
 
 for name, signal in txVariableArrays.items():
     type = "int64_t "
-    fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), headerFileHandle)
-    fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signal['offset'])+ " scaler: "+ str(signal['scale']), sourceFileHandle)
+    signalRef = signal['signal']
+    fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), headerFileHandle)
+    fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), sourceFileHandle)
     fWrite('__weak '+ type + name + 'Sending(int index)\n{', sourceFileHandle)
     fWrite('	float sendValue = ' + name + '[index];', sourceFileHandle)
     fWrite("	sendValue = sendValue - "+str(signal['offset'])+";", sourceFileHandle)
@@ -249,55 +244,38 @@ fWrite('', sourceFileHandle)
 
 for message in txMessages:
     fWrite('struct ' + message.name + '{', sourceFileHandle)
-    totalSize = message.length*8;
-    currentPos = 0;
+    totalSize = message.length*8
+    currentPos = 0
     if message.comment == 'VERSION':
         fWrite('	int DBC : 8;', sourceFileHandle)
         for i  in range(0,7):
             fWrite('	char git' + str(i) + ' : 8;', sourceFileHandle)
-
     else:
+        count = 1
+        startBits = list()
         for signal in message.signals:
-            if signal.start != currentPos:
-                fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
-            if signal.is_signed	:
-                fWrite('	         int64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-            else :
-                fWrite('	uint64_t ' + signal.name + ' : ' + str(signal.length) + ';', sourceFileHandle)
-            currentPos = signal.start + signal.length
+            if not signal.start in startBits:
+                startBits.append(signal.start)
+                if signal.start != currentPos:
+                    fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
+                
+                if signal.is_multiplexer:
+                    signalName = signal.name + 'Select'
+                elif re.match('.+\d+$', signal.name):
+                    signalName = re.sub('\d+$', '', signal.name) + str(count)
+                    count += 1
+                else:
+                    signalName = signal.name
+                    count = 1
+                
+                if signal.is_signed	:
+                    fWrite('	         int64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
+                else :
+                    fWrite('	uint64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
+                currentPos = signal.start + signal.length
+
         if currentPos != totalSize:
             fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
-    fWrite('};', sourceFileHandle)
-    fWrite('', sourceFileHandle)
-fWrite('', sourceFileHandle)
-
-for name, message in txMessageArrays.items():
-    fWrite('struct ' + name + '{', sourceFileHandle)
-    totalSize = message.length * 8;
-    currentPos = 0;
-    count = 1
-
-    for signal in message.signals:
-        dataName = re.sub('\d+$', '', signal.name)
-
-        if txVariableArrays[dataName]['count'] > 1:
-            signalName = dataName + str(count)
-            count += 1
-        else:
-            count = 1
-            signalName = dataName
-
-        if signal.start != currentPos:
-            fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
-        if signal.is_signed	:
-            fWrite('	         int64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
-        else :
-            fWrite('	uint64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
-        currentPos = signal.start + signal.length
-
-    if currentPos != totalSize:
-        fWrite('	uint64_t FILLER_END : ' + str(totalSize - currentPos) + ';', sourceFileHandle)
-
     fWrite('};', sourceFileHandle)
     fWrite('', sourceFileHandle)
 fWrite('', sourceFileHandle)
@@ -362,57 +340,56 @@ fWrite('	return(0);', sourceFileHandle)
 fWrite('}', sourceFileHandle)
 
 for message in txMessages:
-    fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
-    fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
+    if not message.is_multiplexed:
+        fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
+        fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
+    else:
+        params = list()
+        for signal in message.signals:
+            if signal.is_multiplexer:
+                params.append('uint' + signal.length + '_t ' + signal.name + 'Select')
+
+        fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + ");", headerFileHandle)
+        fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + "){", sourceFileHandle)
+
     fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
+
     if message.comment == 'VERSION':
         fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
         for i  in range(0,7):
             fWrite('	new_'+message.name +'.git'+str(i)+' = gitCommit['+str(i)+'];', sourceFileHandle)
-
     elif message.comment == 'PROCAN':
         fWrite('	new_'+message.name +'.PRO_CAN_COUNT= '+message.name+'_PRO_CAN_COUNT++;', sourceFileHandle)
         fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
         fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
-
     else:
+        startBits = list()
+        signals = list()
+        signalsPerMessage = {}
+
         for signal in message.signals:
-            if signal.comment != 'PROCAN':
-                if not re.sub('\d+$', '', signal.name) in txVariableArrays:
-                    fWrite('	new_'+message.name +'.'+signal.name+' = '+signal.name+'Sending();', sourceFileHandle)
+            if signal.comment != 'PROCAN' and not signal.start in startBits:
+                startBits.append(signal.start)
+
+                if re.sub('\d+$', '', signal.name) in txVariableArrays:
+                    if not signal.name in signalsPerMessage:
+                        signalsPerMessage[signal.name] = 1
+                    signalsPerMessage[signal.name] += 1
+                    if not re.sub('\d+$', '', signal.name) in signals:
+                        signals.append(re.sub('\d+$', '', signal.name))
                 else:
-                    variableName = re.sub('\d+$', '', signal.name)
-                    index = int(re.findall('\d+$', signal.name)[0]) - 1
-                    fWrite('	new_'+message.name + '.' + signal.name + ' = ' + variableName + 'Sending(' + str(index) + ');', sourceFileHandle)
-    fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
-    fWrite('}', sourceFileHandle)
-
-for name, message in txMessageArrays.items():
-    fWrite('int ' + name + '_MessageFrameIds[' + str(len(messageFrameIdArrays[name + '_MessageFrameIds'])) + '];', headerFileHandle)
-    fWrite('int ' + name + '_MessageFrameIds[' + str(len(messageFrameIdArrays[name + '_MessageFrameIds'])) + '] = {' + ','.join(messageFrameIdArrays[name + '_MessageFrameIds']) + '};', sourceFileHandle)
-    fWrite("int sendCAN_" + name +"(int index);", headerFileHandle)
-    fWrite("int sendCAN_" + name +"(int index){", sourceFileHandle)
-    fWrite('	struct ' + name + ' new_'+ name +';', sourceFileHandle)
-    count = 1
-
-    for signal in message.signals:
-        if signal.comment != 'PROCAN':
-            variableName = re.sub('\d+$', '', signal.name)
-            variableCount = txVariableArrays[variableName]['count']
-            signalsPerMessage = str(int(variableCount / len(messageFrameIdArrays[name + '_MessageFrameIds'])))
-
-            if variableCount > 1:
-                signalName = variableName + str(count)
-                fWrite('	new_'+name + '.' + signalName + ' = ' + variableName + 'Sending((index * ' + signalsPerMessage + ') + ' + str(count - 1) + ');', sourceFileHandle)
-                count += 1
+                    signals.append(signal.name)
+        
+        for signal in signals:
+            if not signal in txVariableArrays:
+                fWrite('	new_' + message.name +'.'+signal+' = '+signal+'Sending();', sourceFileHandle)
             else:
-                signalName = variableName
-                fWrite('	new_' + name + '.' + signalName + ' = ' + variableName + 'Sending(index);', sourceFileHandle)
-                count = 1
+                for i in range(signalsPerMessage[signal]):
+                    muxSelect = signal.multiplexer_signal.name + 'Select'
+                    offset = i - 1
+                    fWrite('	new_'+message.name +'.'+signal+' = '+signal+'Sending(' + muxSelect + ' * ' + str(signalsPerMessage) + ' + ' + str(offset) + ');', sourceFileHandle) 
 
-            index = int(re.findall('\d+$', signal.name)[0]) - 1
-
-    fWrite('	return sendCanMessage('+ name + '_MessageFrameIds[index],' + str(message.length) + ',(uint8_t *) &new_'+name +');', sourceFileHandle)
+    fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
 fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
