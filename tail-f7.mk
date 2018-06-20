@@ -9,6 +9,8 @@ DRIVER_DIR = Drivers
 DRIVER_HAL_DIR = $(DRIVER_DIR)/STM32F7xx_HAL_Driver
 COMMON_LIB_DIR = common-all
 COMMON_F7_LIB_DIR = common-all/f7
+# only used to include some header files
+COMMON_F0_LIB_DIR = common-all/f0
 
 MIDDLEWARE_DIR = Middlewares
 FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
@@ -28,7 +30,8 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 
 INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
-			  $(DRIVER_HAL_DIR)/f7/Inc \
+			  $(COMMON_F7_LIB_DIR)/Inc \
+			  $(COMMON_F0_LIB_DIR)/Inc \
 			  $(DRIVER_HAL_DIR)/Inc \
 			  $(DRIVER_DIR)/CMSIS/Device/ST/STM32F7xx/Include \
 			  $(DRIVER_DIR)/CMSIS/Include \
