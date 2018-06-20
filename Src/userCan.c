@@ -31,7 +31,7 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 {
-#ifdef IS_BOARD_F7_FAMILY
+#if IS_BOARD_F7_FAMILY
     return F7_canStart(hcan);
 #elif IS_BOARD_F0_FAMILY
     return F0_canStart(hcan);
@@ -42,7 +42,7 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
-#ifdef IS_BOARD_F7_FAMILY
+#if IS_BOARD_F7_FAMILY
     return F7_sendCanMessage(id, length, data);
 #elif IS_BOARD_F0_FAMILY
     return F0_sendCanMessage(id, length, data);

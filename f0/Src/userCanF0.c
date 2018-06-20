@@ -29,7 +29,7 @@ HAL_StatusTypeDef F0_canInit(CAN_HandleTypeDef *hcan)
     return HAL_OK;
 }
 
-HAL_StatusTypeDef F0_canStartReceiving(CAN_HandleTypeDef *hcan)
+HAL_StatusTypeDef F0_canStart(CAN_HandleTypeDef *hcan)
 {
     RxMessage.DLC = CAN_MESSAGE_DLC_INVALID;
     Rx1Message.DLC = CAN_MESSAGE_DLC_INVALID;

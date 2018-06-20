@@ -414,7 +414,10 @@ for name, message in txMessageArrays.items():
 
 fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
 fWrite('__weak void configCANFilters(CAN_HandleTypeDef* canHandle)\n{', sourceFileHandle)
-fWrite('	CAN_FilterTypeDef  sFilterConfig;', sourceFileHandle)
+if boardType == 'F0':
+    fWrite('	CAN_FilterConfTypeDef  sFilterConfig;', sourceFileHandle)
+else: # F7
+    fWrite('	CAN_FilterTypeDef  sFilterConfig;', sourceFileHandle)
 fWrite('	// Filter msgs to this nodes Id to fifo 0', sourceFileHandle)
 fWrite('	uint32_t filterID = CAN_NODE_ADDRESS<<8;', sourceFileHandle)
 fWrite('	filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
@@ -428,9 +431,13 @@ fWrite('	sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFil
 fWrite('	sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
 fWrite('	sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
 fWrite('	sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-fWrite('	sFilterConfig.FilterBank = 0;', sourceFileHandle)
-# From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
-fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
+if boardType == 'F0':
+    fWrite('	sFilterConfig.BankNumber = 0;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterNumber = 0;', sourceFileHandle)
+else:
+    fWrite('	sFilterConfig.FilterBank = 0;', sourceFileHandle)
+    # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+    fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
 fWrite('	if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
 fWrite('	{', sourceFileHandle)
 fWrite('	  Error_Handler();', sourceFileHandle)
@@ -449,8 +456,13 @@ fWrite('	sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFil
 fWrite('	sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
 fWrite('	sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
 fWrite('	sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-fWrite('	sFilterConfig.FilterBank = 1;', sourceFileHandle)
-fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
+if boardType == 'F0':
+    fWrite('	sFilterConfig.BankNumber = 1;', sourceFileHandle)
+    fWrite('	sFilterConfig.FilterNumber = 1;', sourceFileHandle)
+else:
+    fWrite('	sFilterConfig.FilterBank = 1;', sourceFileHandle)
+    # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+    fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
 fWrite('	if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
 fWrite('	{', sourceFileHandle)
 fWrite('	  Error_Handler();', sourceFileHandle)
@@ -472,8 +484,13 @@ for messageGroup in messageGroups:
     fWrite('	sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
     fWrite('	sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
     fWrite('	sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-    fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
-    fWrite('	sFilterConfig.FilterBank = ' + str(i) + ';\n', sourceFileHandle)
+    if boardType == 'F0':
+        fWrite('	sFilterConfig.BankNumber = ' + str(i) + ';\n', sourceFileHandle)
+        fWrite('	sFilterConfig.FilterNumber = ' + str(i) + ';\n', sourceFileHandle)
+    else:
+        fWrite('	sFilterConfig.FilterBank = ' + str(i) + ';\n', sourceFileHandle)
+        # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+        fWrite('	sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
     fWrite('	if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
     fWrite('	{', sourceFileHandle)
     fWrite('	  Error_Handler();', sourceFileHandle)

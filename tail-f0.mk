@@ -53,6 +53,7 @@ FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
 
 # common code dir
 COMMON_LIB_DIR = common-all
+COMMON_F0_LIB_DIR = common-all/f0
 
 ######################################
 # source
@@ -86,6 +87,7 @@ Src/usart.c \
 Src/can.c \
 Src/freertos.c \
 $(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
+$(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC)) \
 $(wildcard $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM0/*.c) \
 $(wildcard $(FREERTOS_DIR)/Source/*.c) \
 $(FREERTOS_DIR)/Source/portable/MemMang/heap_4.c \
@@ -138,7 +140,8 @@ AS_DEFS =
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F072xB \
--DBOARD_NAME=$(BOARD_NAME)
+-DBOARD_NAME=$(BOARD_NAME) \
+-DBOARD_TYPE_$(BOARD_TYPE)=1
 
 
 # AS includes
@@ -154,6 +157,7 @@ C_INCLUDES =  \
 -IGen/Inc \
 -Icommon-all/Inc\
 -Icommon-all/f0/Inc \
+-Icommon-all/f7/Inc \
 -I$(FREERTOS_DIR)/Source/include \
 -I$(FREERTOS_DIR)/Source/portable/GCC/ARM_CM0 \
 -I$(FREERTOS_DIR)/Source/CMSIS_RTOS
