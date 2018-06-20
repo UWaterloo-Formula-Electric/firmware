@@ -10,6 +10,7 @@
 #include "can.h"
 #include "debug.h"
 #include "bsp.h"
+#include "boardTypes.h"
 
 #include "userCanF7.h"
 #include "userCanF0.h"
@@ -19,9 +20,9 @@
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
-#ifdef BOARD_TYPE_F7
+#if IS_BOARD_F7_FAMILY
     return F7_canInit(hcan);
-#elif defined(BOARD_TYPE_F0)
+#elif IS_BOARD_F0_FAMILY
     return F0_canInit(hcan);
 #else
 #error canInit not defined for this board type
@@ -30,9 +31,9 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 {
-#ifdef BOARD_TYPE_F7
+#ifdef IS_BOARD_F7_FAMILY
     return F7_canStart(hcan);
-#elif defined(BOARD_TYPE_F0)
+#elif IS_BOARD_F0_FAMILY
     return F0_canStart(hcan);
 #else
 #error canStart not defined for this board type
@@ -41,9 +42,9 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
-#ifdef BOARD_TYPE_F7
+#ifdef IS_BOARD_F7_FAMILY
     return F7_sendCanMessage(id, length, data);
-#elif defined(BOARD_TYPE_F0)
+#elif IS_BOARD_F0_FAMILY
     return F0_sendCanMessage(id, length, data);
 #else
 #error Send can message not defined for this board type
