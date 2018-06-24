@@ -342,7 +342,8 @@ for message in rxMessages:
         fWrite('			' + unpackedStructName + ' ' + unpackedStructInstance + ';', sourceFileHandle)
         for signal in message.signals:
             fWrite('			' + unpackedStructInstance + '.' + signal.name + ' = ' +signal.name+ 'Received(in_'+message.name +'->'+ signal.name+');', sourceFileHandle)
-            fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
+
+        fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
     else:
         for signal in message.signals:
             if nodeName in signal.receivers:
