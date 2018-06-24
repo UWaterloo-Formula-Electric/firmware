@@ -135,6 +135,8 @@ for mes in db.messages:
         rxMessages.append(mes)
 
 
+fWrite('#pragma pack(push)', sourceFileHandle)
+fWrite('#pragma pack(1)', sourceFileHandle)
 fWrite('// Incoming variables', sourceFileHandle)
 
 # Treat DTC signal/msgs differently
@@ -497,6 +499,8 @@ for messageGroup in messageGroups:
     fWrite('	}', sourceFileHandle)
 
 fWrite('}', sourceFileHandle)
+fWrite('#pragma pack(pop)', sourceFileHandle)
+
 fWrite("#endif /*__"+nodeName+"_can_H */", headerFileHandle);
 
 headerFileHandle.close()
