@@ -11,6 +11,9 @@
 #include "debug.h"
 #include "bsp.h"
 #include "boardTypes.h"
+#include "freertos.h"
+#include "queue.h"
+#include "task.h"
 
 #include "userCanF7.h"
 #include "userCanF0.h"
@@ -18,15 +21,40 @@
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
+#define CAN_SEND_MESSAGE_QUEUE_LENGTH 5
+
+// Private typedef for a struct to store a CAN message to be sent
+typedef struct CanMessage_t {
+    uint32_t id;
+    uint8_t length;
+    uint8_t data[8]; // msgs are up to 8 bytes
+} CanMessage_t;
+
+QueueHandle_t canMessageSendQueue;
+TaskHandle_t canTaskHandle;
+
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
 #if IS_BOARD_F7_FAMILY
-    return F7_canInit(hcan);
+    if (F7_canInit(hcan) != HAL_OK) {
+        return HAL_ERROR;
+    }
 #elif IS_BOARD_F0_FAMILY
-    return F0_canInit(hcan);
+    if (F0_canInit(hcan) != HAL_OK) {
+        return HAL_ERROR;
+    }
 #else
 #error canInit not defined for this board type
 #endif
+
+    canMessageSendQueue = xQueueCreate(CAN_SEND_MESSAGE_QUEUE_LENGTH, sizeof(CanMessage_t));
+
+    if (canMessageSendQueue == NULL) {
+        ERROR_PRINT("Failed to create CAN send queue\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
@@ -42,13 +70,48 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
+    CanMessage_t msg;
+    msg.id = id;
+    msg.length = length;
+    memcpy(msg.data, data, length);
+    if (xQueueSend(canMessageSendQueue, &msg, 0) != pdPASS) {
+        ERROR_PRINT("Failed to post can message to send queue\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+void setCanTaskHandle(TaskHandle_t handle)
+{
+    canTaskHandle = handle;
+}
+
+void canTask(void *pvParameters)
+{
+    CanMessage_t msg;
+
+    while (1) {
+        if (xQueueReceive(canMessageSendQueue, &msg, portMAX_DELAY) != pdPASS)
+        {
+            ERROR_PRINT("Failed to receive from can send queue\n");
+            continue;
+        }
+
+        HAL_StatusTypeDef rc;
 #if IS_BOARD_F7_FAMILY
-    return F7_sendCanMessage(id, length, data);
+        rc = F7_sendCanMessage(msg.id, msg.length, msg.data);
 #elif IS_BOARD_F0_FAMILY
-    return F0_sendCanMessage(id, length, data);
+        rc = F0_sendCanMessage(msg.id, msg.length, msg.data);
 #else
 #error Send can message not defined for this board type
 #endif
+        if (rc != HAL_OK)
+        {
+            ERROR_PRINT("Failed to send can message\n");
+            continue;
+        }
+    }
 }
 
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)
