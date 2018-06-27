@@ -389,7 +389,7 @@ for message in txMessages:
                 signalName = signal.name
 
             if signal.is_multiplexer:
-                fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + 'Select;', sourceFileHandle)
+                fWrite('	new_' + message.name +'.' + signalName + 'Select' + ' = ' + signalName + 'Select;', sourceFileHandle)
             elif not signalName in txVariableArrays:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + 'Sending();', sourceFileHandle)
             else:
