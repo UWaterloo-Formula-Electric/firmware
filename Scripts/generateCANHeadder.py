@@ -187,12 +187,14 @@ for name, signal in rxVariableArrays.items():
     type = "float "
     signalRef = signal['signal']
     if not 'DTC' in signalRef.name:
-        fWrite('volatile '+ type + signal.name + '[' + str(signal['count']) + '];	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), sourceFileHandle)
-        fWrite('extern volatile '+ type + signal.name + ';	// offset: ' + str(signal.offset)+ " scaler: "+ str(signal.scale), headerFileHandle)
-        fWrite('void '+ signal.name+'Received(int index, int64_t newValue)\n{', sourceFileHandle)
-        fWrite("	float floatValue = (float)newValue * "+str(signal.scale)+";", sourceFileHandle)
-        fWrite("	floatValue = floatValue + "+str(signal.offset)+";", sourceFileHandle)
-        fWrite("	" + signal.name + "[index] = floatValue;", sourceFileHandle)
+        fWrite('volatile '+ type + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), sourceFileHandle)
+        fWrite('extern volatile '+ type + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), headerFileHandle)
+        fWrite('const int ' + name + 'Count = ' + str(signal['count']) + ';', sourceFileHandle)
+        fWrite('extern const int ' + name + 'Count;', headerFileHandle)
+        fWrite('void '+ name + 'Received(int index, int64_t newValue)\n{', sourceFileHandle)
+        fWrite("	float floatValue = (float)newValue * " + str(signalRef.scale) + ";", sourceFileHandle)
+        fWrite("	floatValue = floatValue + " + str(signalRef.offset) + ";", sourceFileHandle)
+        fWrite("	" + name + "[index] = floatValue;", sourceFileHandle)
         fWrite("}\n", sourceFileHandle)
 
 fWrite('// Outgoing variables', sourceFileHandle)
@@ -239,6 +241,8 @@ for name, signal in txVariableArrays.items():
     signalRef = signal['signal']
     fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), headerFileHandle)
     fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), sourceFileHandle)
+    fWrite('const int ' + name + 'Count = ' + str(signal['count']) + ';', sourceFileHandle)
+    fWrite('extern const int ' + name + 'Count;', headerFileHandle)
     fWrite('__weak '+ type + name + 'Sending(int index)\n{', sourceFileHandle)
     fWrite('	float sendValue = ' + name + '[index];', sourceFileHandle)
     fWrite("	sendValue = sendValue - "+str(signalRef.offset)+";", sourceFileHandle)
@@ -366,7 +370,7 @@ for message in rxMessages:
             if nodeName in signal.receivers and not signal.start in startBits:
                 startBits.append(signal.start)
 
-                if re.sub('\d+$', '', signal.name) in txVariableArrays:
+                if re.sub('\d+$', '', signal.name) in rxVariableArrays:
                     signalName = re.sub('\d+$', '', signal.name)
                     if not signalName in signalsPerMessage:
                         signalsPerMessage[signalName] = 1
@@ -384,9 +388,9 @@ for message in rxMessages:
             else:
                 signalName = signal.name
 
-            if signalName in txVariableArrays:
+            if signalName in rxVariableArrays:
                 for i in range(signalsPerMessage[signalName]):
-                    fWrite('			'+signalName+ 'Received(in_' + + message.name + '->' + signal.multiplexer_signal + 'Select * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signal.name+');', sourceFileHandle)
+                    fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signal.multiplexer_signal + 'Select * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
             else:
                 fWrite('			'+signalName+ 'Received(in_' + message.name +'->'+ signalName+');', sourceFileHandle)
 
