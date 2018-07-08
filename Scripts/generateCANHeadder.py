@@ -101,9 +101,6 @@ for node in db.nodes:
                 messageGroups.append(messageGroup)
 fWrite('', headerFileHandle);
 
-
-
-
 fWrite('//DBC version:', sourceFileHandle)
 fWrite('int DBCVersion = '+db.version+';', sourceFileHandle)
 fWrite('char gitCommit[] = \"'+gitCommit+'\";', sourceFileHandle)
@@ -130,14 +127,19 @@ for mes in db.messages:
     for signal in mes.signals:
         if nodeName in signal.receivers:
             messageUseful = 1
+            # checks if more than one of this receive signal exists
             if re.match('.+\d+$', signal.name):
+                # gets name without numbered suffix
                 name = re.sub('\d+$', '', signal.name)
+                # checks if this signal is multiplexed
                 if not signal.multiplexer_signal is None:
                     if name in rxVariableArrays:
+                        # if receive signal belongs to some signal array in the set of signal arrays, increment the recorded size of this array
                         signalRef = rxVariableArrays[name]['signal']
                         if signalRef.offset == signal.offset and signalRef.scale == signal.scale and signalRef.multiplexer_signal == signal.multiplexer_signal: 
                             rxVariableArrays[name]['count'] += 1
                     else:
+                        # make a new entry to set of receive signal arrays
                         rxVariableArrays[name] = {'signal': signal, 'count': 1}
             else:
                 rxVariables.append(signal)
@@ -150,7 +152,6 @@ fWrite('#pragma pack(1)', sourceFileHandle)
 fWrite('// Incoming variables', sourceFileHandle)
 
 # Treat DTC signal/msgs differently
-
 dtcQueueSize = 5
 queueInitStrings = list()
 for message in rxMessages:
@@ -187,10 +188,13 @@ for name, signal in rxVariableArrays.items():
     type = "float "
     signalRef = signal['signal']
     if not 'DTC' in signalRef.name:
+        # defines signal arrays
         fWrite('volatile '+ type + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), sourceFileHandle)
         fWrite('extern volatile '+ type + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), headerFileHandle)
-        fWrite('const int ' + name + 'Count = ' + str(signal['count']) + ';', sourceFileHandle)
-        fWrite('extern const int ' + name + 'Count;', headerFileHandle)
+        # defines the size of this signal array 
+        fWrite('const int ' + name.upper() + '_COUNT = ' + str(signal['count']) + ';', sourceFileHandle)
+        # function for receiving a signal to put in some index of the array
+        fWrite('extern const int ' + name.upper() + '_COUNT;', headerFileHandle)
         fWrite('void '+ name + 'Received(int index, int64_t newValue)\n{', sourceFileHandle)
         fWrite("	float floatValue = (float)newValue * " + str(signalRef.scale) + ";", sourceFileHandle)
         fWrite("	floatValue = floatValue + " + str(signalRef.offset) + ";", sourceFileHandle)
@@ -210,14 +214,18 @@ for mes in db.messages:
         else:
             for signal in mes.signals:
                 if signal.comment != "PROCAN" and not signal.is_multiplexer:
+                    # checks if more than one of this signal exists (denoted by its numbered suffix)
                     if re.match('.+\d+$', signal.name):
+                        # remove the numbered suffix
                         name = re.sub('\d+$', '', signal.name)
                         if not signal.multiplexer_signal is None:
                             if name in txVariableArrays:
+                                # if transmit signal exists in some signal array in a set of signal arrays, increment the size counter for that array
                                 signalRef = txVariableArrays[name]['signal']
                                 if signalRef.offset == signal.offset and signalRef.scale == signal.scale and signalRef.multiplexer_signal == signal.multiplexer_signal: 
                                     txVariableArrays[name]['count'] += 1
                             else:
+                                # make a new entry for the set of transmit signal arrays
                                 txVariableArrays[name] = {'signal': signal, 'count': 1}
                     else:
                         txVariables.append(signal)
@@ -239,10 +247,13 @@ for signal in txVariables:
 for name, signal in txVariableArrays.items():
     type = "int64_t "
     signalRef = signal['signal']
+    # defines signal array
     fWrite('extern volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), headerFileHandle)
     fWrite('volatile float ' + name + '[' + str(signal['count']) + '];	// offset: ' + str(signalRef.offset)+ " scaler: "+ str(signalRef.scale), sourceFileHandle)
-    fWrite('const int ' + name + 'Count = ' + str(signal['count']) + ';', sourceFileHandle)
-    fWrite('extern const int ' + name + 'Count;', headerFileHandle)
+    # defines size of signal array
+    fWrite('const int ' + name.upper() + '_COUNT = ' + str(signal['count']) + ';', sourceFileHandle)
+    fWrite('extern const int ' + name.upper() + '_COUNT;', headerFileHandle)
+    # function for tranmitting some signal in this signal array
     fWrite('__weak '+ type + name + 'Sending(int index)\n{', sourceFileHandle)
     fWrite('	float sendValue = ' + name + '[index];', sourceFileHandle)
     fWrite("	sendValue = sendValue - "+str(signalRef.offset)+";", sourceFileHandle)
@@ -279,16 +290,20 @@ for message in txMessages:
         count = 1
         startBits = list()
         for signal in message.signals:
+            # checks if signal does not overlap another signal in this message
             if not signal.start in startBits:
                 startBits.append(signal.start)
                 if signal.start != currentPos:
                     fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
                 
+                # denotes a multiplexer signal in this message by suffixing the signal with select
                 if signal.is_multiplexer:
                     signalName = signal.name + 'Select'
+                # denotes a signal from some signal array that exists in this message
                 elif re.match('.+\d+$', signal.name):
                     signalName = re.sub('\d+$', '', signal.name) + str(count)
                     count += 1
+                # denotes a normal signal in this message
                 else:
                     signalName = signal.name
                     count = 1
@@ -312,19 +327,24 @@ for message in rxMessages:
     count = 1
     startBits = list()        
     for signal in message.signals:
+        # checks if signal does not overlap another signal in this message
         if not signal.start in startBits:
             startBits.append(signal.start)
             if signal.start != currentPos:
                 fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
             
-            if signal.is_multiplexer:
-                signalName = signal.name + 'Select'
-            elif re.match('.+\d+$', signal.name):
-                signalName = re.sub('\d+$', '', signal.name) + str(count)
-                count += 1
-            else:
-                signalName = signal.name
-                count = 1
+            # denotes a multiplexer signal in this message by suffixing the signal with select
+                if signal.is_multiplexer:
+                    signalName = signal.name + 'Select'
+                # denotes a signal from some signal array that exists in this message
+                elif re.match('.+\d+$', signal.name):
+                    signalName = re.sub('\d+$', '', signal.name) + str(count)
+                    count += 1
+                # denotes a normal signal in this message
+                else:
+                    signalName = signal.name
+                    count = 1
+
             if signal.is_signed	:
                 fWrite('	         int64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
             else :
@@ -365,11 +385,14 @@ for message in rxMessages:
         signals = list()
         signalNames = list()
         signalsPerMessage = {}
-        
+
+        # gets signals to be sent by a message        
         for signal in message.signals:
+            # checks if signal does not overlap with other signals in the message
             if nodeName in signal.receivers and not signal.start in startBits:
                 startBits.append(signal.start)
-
+ 
+                # gets signal arrays and records number of these signals per message
                 if re.sub('\d+$', '', signal.name) in rxVariableArrays:
                     signalName = re.sub('\d+$', '', signal.name)
                     if not signalName in signalsPerMessage:
@@ -383,11 +406,13 @@ for message in rxMessages:
                     signals.append(signal)
         
         for signal in signals:
+            # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
             else:
                 signalName = signal.name
 
+            # determine how to receive signal based on whether it was multiplexed or not
             if signalName in rxVariableArrays:
                 for i in range(signalsPerMessage[signalName]):
                     fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signal.multiplexer_signal + 'Select * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
@@ -436,10 +461,12 @@ for message in txMessages:
         signalsPerMessage = {}
 
         for signal in message.signals:
+            # checks if signal does not overlap with others in message
             if signal.comment != 'PROCAN' and not signal.start in startBits:
                 startBits.append(signal.start)
 
                 if re.sub('\d+$', '', signal.name) in txVariableArrays:
+                    # get signal array and record number of these signals in a message
                     signalName = re.sub('\d+$', '', signal.name)
                     if not signalName in signalsPerMessage:
                         signalsPerMessage[signalName] = 1
@@ -452,11 +479,13 @@ for message in txMessages:
                     signals.append(signal)
         
         for signal in signals:
+            # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
             else:
                 signalName = signal.name
 
+            # determine how to send signal based on if it is a multiplexer, multiplexed signal, or just a regular signal
             if signal.is_multiplexer:
                 fWrite('	new_' + message.name +'.' + signalName + 'Select' + ' = ' + signalName + 'Select;', sourceFileHandle)
             elif signalName in txVariableArrays:

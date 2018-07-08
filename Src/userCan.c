@@ -121,6 +121,7 @@ HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)
     DTC_CODE = (float)dtcCode;
     return DTC_SEND_FUNCTION();
 }
+
 /*
  *bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,
  *                             const uint8_t length, const uint32_t timeout)
