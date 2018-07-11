@@ -409,6 +409,8 @@ for message in rxMessages:
             # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
+            elif signal.is_multiplexer:
+                signalName = signal.name + 'Select'
             else:
                 signalName = signal.name
 
@@ -482,12 +484,14 @@ for message in txMessages:
             # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
+            elif signal.is_multiplexer:
+                signalName = signal.name + 'Select'
             else:
                 signalName = signal.name
 
             # determine how to send signal based on if it is a multiplexer, multiplexed signal, or just a regular signal
             if signal.is_multiplexer:
-                fWrite('	new_' + message.name +'.' + signalName + 'Select' + ' = ' + signalName + 'Select;', sourceFileHandle)
+                fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + ';', sourceFileHandle)
             elif signalName in txVariableArrays:
                 for i in range(signalsPerMessage[signalName]):
                     muxSelect = signal.multiplexer_signal + 'Select'
