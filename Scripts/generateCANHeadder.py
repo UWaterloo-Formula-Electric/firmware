@@ -296,11 +296,8 @@ for message in txMessages:
                 if signal.start != currentPos:
                     fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
                 
-                # denotes a multiplexer signal in this message by suffixing the signal with select
-                if signal.is_multiplexer:
-                    signalName = signal.name + 'Select'
                 # denotes a signal from some signal array that exists in this message
-                elif re.match('.+\d+$', signal.name):
+                if re.match('.+\d+$', signal.name):
                     signalName = re.sub('\d+$', '', signal.name) + str(count)
                     count += 1
                 # denotes a normal signal in this message
@@ -333,11 +330,8 @@ for message in rxMessages:
             if signal.start != currentPos:
                 fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
             
-            # denotes a multiplexer signal in this message by suffixing the signal with select
-            if signal.is_multiplexer:
-                signalName = signal.name + 'Select'
             # denotes a signal from some signal array that exists in this message
-            elif re.match('.+\d+$', signal.name):
+            if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name) + str(count)
                 count += 1
             # denotes a normal signal in this message
@@ -409,15 +403,13 @@ for message in rxMessages:
             # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
-            elif signal.is_multiplexer:
-                signalName = signal.name + 'Select'
             else:
                 signalName = signal.name
 
             # determine how to receive signal based on whether it was multiplexed or not
             if signalName in rxVariableArrays:
                 for i in range(signalsPerMessage[signalName]):
-                    fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signal.multiplexer_signal + 'Select * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
+                    fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signal.multiplexer_signal + ' * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
             else:
                 fWrite('			'+signalName+ 'Received(in_' + message.name +'->'+ signalName+');', sourceFileHandle)
 
@@ -441,7 +433,7 @@ for message in txMessages:
         params = list()
         for signal in message.signals:
             if signal.is_multiplexer:
-                params.append('uint' + str(signal.length) + '_t ' + signal.name + 'Select')
+                params.append('uint' + str(signal.length) + '_t ' + signal.name)
 
         fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + ");", headerFileHandle)
         fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + "){", sourceFileHandle)
@@ -484,8 +476,6 @@ for message in txMessages:
             # determine signal name
             if re.match('.+\d+$', signal.name):
                 signalName = re.sub('\d+$', '', signal.name)
-            elif signal.is_multiplexer:
-                signalName = signal.name + 'Select'
             else:
                 signalName = signal.name
 
@@ -494,7 +484,7 @@ for message in txMessages:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + ';', sourceFileHandle)
             elif signalName in txVariableArrays:
                 for i in range(signalsPerMessage[signalName]):
-                    muxSelect = signal.multiplexer_signal + 'Select'
+                    muxSelect = signal.multiplexer_signal
                     fWrite('	new_'+message.name +'.'+signalName + str(i + 1) + ' = '+signalName+'Sending(' + muxSelect + ' * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ');', sourceFileHandle) 
             else:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + 'Sending();', sourceFileHandle)
