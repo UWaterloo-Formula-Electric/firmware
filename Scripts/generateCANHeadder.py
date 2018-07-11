@@ -334,16 +334,16 @@ for message in rxMessages:
                 fWrite('	uint64_t FILLER_'+ str(signal.start) + ' : ' + str(signal.start - currentPos) + ';', sourceFileHandle)
             
             # denotes a multiplexer signal in this message by suffixing the signal with select
-                if signal.is_multiplexer:
-                    signalName = signal.name + 'Select'
-                # denotes a signal from some signal array that exists in this message
-                elif re.match('.+\d+$', signal.name):
-                    signalName = re.sub('\d+$', '', signal.name) + str(count)
-                    count += 1
-                # denotes a normal signal in this message
-                else:
-                    signalName = signal.name
-                    count = 1
+            if signal.is_multiplexer:
+                signalName = signal.name + 'Select'
+            # denotes a signal from some signal array that exists in this message
+            elif re.match('.+\d+$', signal.name):
+                signalName = re.sub('\d+$', '', signal.name) + str(count)
+                count += 1
+            # denotes a normal signal in this message
+            else:
+                signalName = signal.name
+                count = 1
 
             if signal.is_signed	:
                 fWrite('	         int64_t ' + signalName + ' : ' + str(signal.length) + ';', sourceFileHandle)
