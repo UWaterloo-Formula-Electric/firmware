@@ -61,6 +61,11 @@ BO_ 2147548929 BMU_DTC: 6 BMU
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
 
+BO_ 2147548930 ChargeCart_DTC: 6 ChargeCart
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
+
 BO_ 35 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonChargeStop : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
