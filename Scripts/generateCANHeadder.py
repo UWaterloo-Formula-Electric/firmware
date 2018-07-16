@@ -363,7 +363,7 @@ for message in rxMessages:
 
     for signal in message.signals:
         # checks if signal does not overlap with others in message
-        if signal.comment != 'PROCAN' and not signal.start in startBits:
+        if nodeName in signal.receivers and signal.comment != 'PROCAN' and not signal.start in startBits:
             startBits.append(signal.start)
 
             if re.sub('\d+$', '', signal.name) in rxVariableArrays:
@@ -413,7 +413,7 @@ for message in rxMessages:
 
     for signal in message.signals:
         # checks if signal does not overlap with others in message
-        if signal.comment != 'PROCAN' and not signal.start in startBits:
+        if nodeName in signal.receivers and signal.comment != 'PROCAN' and not signal.start in startBits:
             startBits.append(signal.start)
 
             if re.sub('\d+$', '', signal.name) in rxVariableArrays:
