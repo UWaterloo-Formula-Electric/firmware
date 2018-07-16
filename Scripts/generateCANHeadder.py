@@ -353,7 +353,50 @@ for message in rxMessages:
 fWrite('// Message Received callbacks, declared with weak linkage to be overwritten by user functions', sourceFileHandle)
 
 for message in rxMessages:
-    fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(void)\n{ return; }', sourceFileHandle)
+    params = list()
+    startBits = list()
+    signals = list()
+    signalNames = list()
+    callbackParams = list()
+    multiplexerSignals = {}
+    signalsPerMessage = {}
+
+    for signal in message.signals:
+        # checks if signal does not overlap with others in message
+        if signal.comment != 'PROCAN' and not signal.start in startBits:
+            startBits.append(signal.start)
+
+            if re.sub('\d+$', '', signal.name) in rxVariableArrays:
+                # get signal array and record number of these signals in a message
+                signalName = re.sub('\d+$', '', signal.name)
+                if not signalName in signalsPerMessage:
+                    signalsPerMessage[signalName] = 1
+                else:
+                    signalsPerMessage[signalName] += 1
+                if not signalName in signalNames:
+                    signals.append(signal)
+                    signalNames.append(signalName)
+            elif signal.is_multiplexer:
+                multiplexerSignals[signal.name] = signal
+            else:
+                signals.append(signal)
+
+    if message.is_multiplexed:
+        # builds signal index to mux select function
+        for signal in signals:
+            if re.sub('\d+$', '', signal.name) in rxVariableArrays:
+                signalName = re.sub('\d+$', '', signal.name)
+                signalMux = signal.multiplexer_signal
+                callbackParams.append('int base' + signalName + 'Index')
+                callbackParams.append('int ' + signalName + 'InMessage')
+                fWrite('int ' + signalMux + "To" + signalName +"Index( uint" + str(multiplexerSignals[signalMux].length) + '_t ' + signalMux + ", int " + signalName + "Offset);", headerFileHandle)
+                fWrite('int ' + signalMux + "To" + signalName +"Index( uint" + str(multiplexerSignals[signalMux].length) + '_t ' + signalMux + ", int " + signalName + "Offset){", sourceFileHandle)
+                fWrite('	return (int) ' + signalMux + ' * ' + str(signalsPerMessage[signalName]) + ' + (' + signalName + 'Offset);', sourceFileHandle)
+                fWrite('}', sourceFileHandle)
+
+        fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(' + ','.join(callbackParams) + ')\n{ return; }', sourceFileHandle)        
+    else:
+        fWrite('__weak void CAN_Msg_' + str(message.name) + '_Callback(void)\n{ return; }', sourceFileHandle)
     fWrite('', sourceFileHandle)
 
 fWrite('int parseCANData(int id, void * data);', headerFileHandle)
@@ -361,6 +404,33 @@ fWrite('int parseCANData(int id, void * data) {', sourceFileHandle)
 fWrite('	switch(id) {', sourceFileHandle)
 
 for message in rxMessages:
+    startBits = list()
+    signals = list()
+    signalNames = list()
+    callbackArgs = list()
+    multiplexerSignals = {}
+    signalsPerMessage = {}
+
+    for signal in message.signals:
+        # checks if signal does not overlap with others in message
+        if signal.comment != 'PROCAN' and not signal.start in startBits:
+            startBits.append(signal.start)
+
+            if re.sub('\d+$', '', signal.name) in rxVariableArrays:
+                # get signal array and record number of these signals in a message
+                signalName = re.sub('\d+$', '', signal.name)
+                if not signalName in signalsPerMessage:
+                    signalsPerMessage[signalName] = 1
+                else:
+                    signalsPerMessage[signalName] += 1
+                if not signalName in signalNames:
+                    signals.append(signal)
+                    signalNames.append(signalName)
+            elif signal.is_multiplexer:
+                multiplexerSignals[signal.name] = signal
+            else:
+                signals.append(signal)
+
     fWrite('		case '+ str(message.frame_id) + ' : // '+str(message.name), sourceFileHandle)
     # for signal in message.signals:
     fWrite('		{', sourceFileHandle)
@@ -375,30 +445,6 @@ for message in rxMessages:
 
         fWrite('			xQueueSendFromISR(queue' + message.name + ', &' + unpackedStructInstance + ', NULL);', sourceFileHandle)
     else:
-        startBits = list()
-        signals = list()
-        signalNames = list()
-        signalsPerMessage = {}
-
-        # gets signals to be sent by a message        
-        for signal in message.signals:
-            # checks if signal does not overlap with other signals in the message
-            if nodeName in signal.receivers and not signal.start in startBits:
-                startBits.append(signal.start)
- 
-                # gets signal arrays and records number of these signals per message
-                if re.sub('\d+$', '', signal.name) in rxVariableArrays:
-                    signalName = re.sub('\d+$', '', signal.name)
-                    if not signalName in signalsPerMessage:
-                        signalsPerMessage[signalName] = 1
-                    else:
-                        signalsPerMessage[signalName] += 1
-                    if not signalName in signalNames:
-                        signals.append(signal)
-                        signalNames.append(signalName)
-                else:
-                    signals.append(signal)
-        
         for signal in signals:
             # determine signal name
             if re.match('.+\d+$', signal.name):
@@ -408,12 +454,19 @@ for message in rxMessages:
 
             # determine how to receive signal based on whether it was multiplexed or not
             if signalName in rxVariableArrays:
+                signalMux = signal.multiplexer_signal
                 for i in range(signalsPerMessage[signalName]):
-                    fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signal.multiplexer_signal + ' * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
+                    helper = signalMux + "To" + signalName + 'Index(in_' + message.name + '->' + signal.multiplexer_signal + ", " + str(i) + ")"
+                    fWrite('			' + signalName + 'Received(' + helper + ', in_' + message.name + '->' + signalName + str(i + 1) +');', sourceFileHandle)
+                callbackArgs.append(signalMux + "To" + signalName + 'Index(in_' + message.name + '->' + signal.multiplexer_signal + ", 0)")
+                callbackArgs.append(str(signalsPerMessage[signalName]))
             else:
                 fWrite('			'+signalName+ 'Received(in_' + message.name +'->'+ signalName+');', sourceFileHandle)
 
-    fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
+    if message.is_multiplexed:
+        fWrite('			CAN_Msg_' + str(message.name) + '_Callback(' + ', '.join(callbackArgs) + ');', sourceFileHandle)
+    else:
+        fWrite('			CAN_Msg_' + str(message.name) + '_Callback();', sourceFileHandle)
     fWrite('			break;', sourceFileHandle)
     fWrite('		}', sourceFileHandle)
 
@@ -425,20 +478,55 @@ fWrite('	}', sourceFileHandle)
 fWrite('	return(0);', sourceFileHandle)
 fWrite('}', sourceFileHandle)
 
+# generates send function for normal messages
 for message in txMessages:
-    if not message.is_multiplexed:
-        fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
-        fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
-    else:
-        params = list()
-        for signal in message.signals:
-            if signal.is_multiplexer:
-                params.append('uint' + str(signal.length) + '_t ' + signal.name)
+    params = list()
+    startBits = list()
+    signals = list()
+    signalNames = list()
+    multiplexerSignals = {}
+    signalsPerMessage = {}
+
+    for signal in message.signals:
+        # checks if signal does not overlap with others in message
+        if signal.comment != 'PROCAN' and not signal.start in startBits:
+            startBits.append(signal.start)
+
+            if re.sub('\d+$', '', signal.name) in txVariableArrays:
+                # get signal array and record number of these signals in a message
+                signalName = re.sub('\d+$', '', signal.name)
+                if not signalName in signalsPerMessage:
+                    signalsPerMessage[signalName] = 1
+                else:
+                    signalsPerMessage[signalName] += 1
+                if not signalName in signalNames:
+                    signals.append(signal)
+                    signalNames.append(signalName)
+            elif signal.is_multiplexer:
+                multiplexerSignals[signal.name] = signal
+            else:
+                signals.append(signal)
+
+    if message.is_multiplexed:
+        # builds signal index to mux select function
+        for signal in signals:
+            if re.sub('\d+$', '', signal.name) in txVariableArrays:
+                signalName = re.sub('\d+$', '', signal.name)
+                signalMux = signal.multiplexer_signal
+                fWrite("uint" + str(multiplexerSignals[signalMux].length) + '_t ' + signalName + "IndexTo" + signalMux +"( int " + signalName + "Index );", headerFileHandle)
+                fWrite("uint" + str(multiplexerSignals[signalMux].length) + '_t ' + signalName + "IndexTo" + signalMux +"( int " + signalName + "Index ) {", sourceFileHandle)
+                fWrite('	return (uint' + str(multiplexerSignals[signalMux].length) + '_t) ' + signalName + 'Index / ' + str(signalsPerMessage[signalName]) + ';', sourceFileHandle)
+                fWrite('}', sourceFileHandle)
+                params.append('int ' + signalName + 'Index')
 
         fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + ");", headerFileHandle)
         fWrite("int sendCAN_" + message.name +"(" + ', '.join(params) + "){", sourceFileHandle)
+        fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
 
-    fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
+    else:
+        fWrite("int sendCAN_" + message.name +"();", headerFileHandle)
+        fWrite("int sendCAN_" + message.name +"(){", sourceFileHandle)
+        fWrite('	struct ' + message.name + ' new_'+message.name +';', sourceFileHandle)
 
     if message.comment == 'VERSION':
         fWrite('	new_'+message.name +'.DBC = DBCVersion;', sourceFileHandle)
@@ -449,29 +537,6 @@ for message in txMessages:
         fWrite('	'+message.name+'_PRO_CAN_COUNT = '+message.name+'_PRO_CAN_COUNT % 16;', sourceFileHandle)
         fWrite('	new_'+message.name +'.PRO_CAN_CRC= calculate_base_CRC((void *) &new_'+message.name+')^'+message.name+'_PRO_CAN_SEED;', sourceFileHandle)
     else:
-        startBits = list()
-        signals = list()
-        signalNames = list()
-        signalsPerMessage = {}
-
-        for signal in message.signals:
-            # checks if signal does not overlap with others in message
-            if signal.comment != 'PROCAN' and not signal.start in startBits:
-                startBits.append(signal.start)
-
-                if re.sub('\d+$', '', signal.name) in txVariableArrays:
-                    # get signal array and record number of these signals in a message
-                    signalName = re.sub('\d+$', '', signal.name)
-                    if not signalName in signalsPerMessage:
-                        signalsPerMessage[signalName] = 1
-                    else:
-                        signalsPerMessage[signalName] += 1
-                    if not signalName in signalNames:
-                        signals.append(signal)
-                        signalNames.append(signalName)
-                else:
-                    signals.append(signal)
-        
         for signal in signals:
             # determine signal name
             if re.match('.+\d+$', signal.name):
@@ -483,9 +548,10 @@ for message in txMessages:
             if signal.is_multiplexer:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + ';', sourceFileHandle)
             elif signalName in txVariableArrays:
-                for i in range(signalsPerMessage[signalName]):
-                    muxSelect = signal.multiplexer_signal
-                    fWrite('	new_'+message.name +'.'+signalName + str(i + 1) + ' = '+signalName+'Sending(' + muxSelect + ' * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ');', sourceFileHandle) 
+                signalMux = signal.multiplexer_signal
+                helper = signalName + "IndexTo" + signalMux +"(" + signalName + "Index)"
+                for i in range(signalsPerMessage[signalName]):    
+                    fWrite('	new_' + message.name + '.' + signalName + str(i + 1) + ' = ' + signalName + 'Sending(' + helper + ' * ' + str(signalsPerMessage[signalName]) + ' + ' + str(i) + ');', sourceFileHandle) 
             else:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + 'Sending();', sourceFileHandle)
 

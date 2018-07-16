@@ -61,7 +61,7 @@ BO_ 2147548929 BMU_DTC: 6 BMU
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
 
-BO_ 2147548930 ChargeCart_DTC: 6 ChargeCart
+BO_ 2147548943 ChargeCart_DTC: 6 ChargeCart
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
@@ -434,7 +434,7 @@ BO_ 2147749889 BMU_batteryStatusHV: 8 BMU
  SG_ StateBMS : 52|4@1- (1,0) [0|0] ""  VCU_F7
  SG_ TempCellMin : 42|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
  SG_ TempCellMax : 32|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
- SG_ StateBatteryPowerHV : 20|12@1+ (0.1,0) [0|409.5] "A"  VCU_BeagleBone,DCU,ChargeCart,VCU_F7
+ SG_ StateBatteryPowerHV : 20|12@1+ (0.1,0) [0|409.5] "A"  VCU_BeagleBone,DCU,VCU_F7
  SG_ StateBatteryHealthHV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone,VCU_F7
  SG_ StateBatteryChargeHV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone,DCU,VCU_F7
 
