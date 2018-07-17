@@ -428,6 +428,7 @@ for message in rxMessages:
                     signalNames.append(signalName)
             elif signal.is_multiplexer:
                 multiplexerSignals[signal.name] = signal
+                signals.append(signal)
             else:
                 signals.append(signal)
 
@@ -452,8 +453,10 @@ for message in rxMessages:
             else:
                 signalName = signal.name
 
+            if signal.is_multiplexer:
+                fWrite('			' + signalName + 'Received(in_' + message.name + '->' + signalName +');', sourceFileHandle)
             # determine how to receive signal based on whether it was multiplexed or not
-            if signalName in rxVariableArrays:
+            elif signalName in rxVariableArrays:
                 signalMux = signal.multiplexer_signal
                 for i in range(signalsPerMessage[signalName]):
                     helper = signalMux + "To" + signalName + 'Index(in_' + message.name + '->' + signal.multiplexer_signal + ", " + str(i) + ")"
@@ -545,9 +548,11 @@ for message in txMessages:
                 signalName = signal.name
 
             # determine how to send signal based on if it is a multiplexer, multiplexed signal, or just a regular signal
-            if signal.is_multiplexer:
-                fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + ';', sourceFileHandle)
-            elif signalName in txVariableArrays:
+            if not signal.multiplexer_signal is None:
+                signalMux = signal.multiplexer_signal
+                helper = signalName + "IndexTo" + signalMux +"(" + signalName + "Index)"
+                fWrite('	new_' + message.name +'.' + signalMux + ' = ' + helper + ';', sourceFileHandle)
+            if signalName in txVariableArrays:
                 signalMux = signal.multiplexer_signal
                 helper = signalName + "IndexTo" + signalMux +"(" + signalName + "Index)"
                 for i in range(signalsPerMessage[signalName]):    
