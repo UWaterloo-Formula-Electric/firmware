@@ -15,23 +15,23 @@ THIS_MAKEFILE_PATH := $(CUBE_F7_MAKEFILE_PATH)
 ######################################
 # target
 ######################################
-TARGET = 2018_VCU
+LIB_TARGET = 2018_VCU
 
 
 ######################################
 # building variables
 ######################################
 # debug build?
-DEBUG = 1
+LIB_DEBUG = 1
 # optimization
-OPT = -Og
+LIB_OPT = -Og
 
 
 #######################################
 # paths
 #######################################
 # source path
-SOURCES_DIR =  \
+LIB_SOURCES_DIR =  \
 Middlewares/FreeRTOS \
 Middlewares \
 Drivers \
@@ -42,11 +42,6 @@ Application/User/../.. \
 Drivers/STM32F7xx_HAL_Driver \
 Application/User
 
-# firmware library path
-PERIFLIB_PATH = 
-
-# Build path
-BUILD_DIR = build
 
 ######################################
 # source
@@ -99,12 +94,6 @@ startup_stm32f767xx.s
 LIB_ASM_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_ASM_SOURCES))
 
 
-######################################
-# firmware library
-######################################
-PERIFLIB_SOURCES = 
-
-
 #######################################
 # binaries
 #######################################
@@ -112,23 +101,23 @@ PERIFLIB_SOURCES =
 # CFLAGS
 #######################################
 # cpu
-CPU = -mcpu=cortex-m7
+LIB_CPU = -mcpu=cortex-m7
 
 # fpu
-FPU = -mfpu=fpv5-d16
+LIB_FPU = -mfpu=fpv5-d16
 
 # float-abi
-FLOAT-ABI = -mfloat-abi=hard
+LIB_FLOAT-ABI = -mfloat-abi=hard
 
 # mcu
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
+LIB_MCU = $(LIB_CPU) -mthumb $(LIB_FPU) $(LIB_FLOAT-ABI)
 
 # macros for gcc
 # AS defines
-AS_DEFS = 
+LIB_AS_DEFS = 
 
 # C defines
-C_DEFS =  \
+LIB_C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F767xx
 
@@ -156,26 +145,27 @@ LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))
 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(LIB_AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(OPT) -Wall -fdata-sections -ffunction-sections -c
 
-CFLAGS = $(MCU) $(C_DEFS) $(LIB_C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(OPT) -Wall -fdata-sections -ffunction-sections -c
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+LIB_CFLAGS += -g -gdwarf-2
 endif
 
 
 # Generate dependency information
-CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
+#LIB_CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
 
 
 #######################################
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F767VITx_FLASH.ld
+LDSCRIPT = $(THIS_MAKEFILE_PATH)/STM32F767VITx_FLASH.ld
 
 # libraries
-LIBS = -lc -lm -lnosys 
-LIBDIR = 
-LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LIB_LD_LIBS = -lc -lm -lnosys 
+LIB_LD_LIBDIR = 
+#LIB_LDFLAGS = $(LIB_MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIB_LD_LIBDIR) $(LIB_LD_LIBS) -Wl,--gc-sections
+LIB_LDFLAGS = $(LIB_MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIB_LD_LIBDIR) $(LIB_LD_LIBS) -Wl,--gc-sections
