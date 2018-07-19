@@ -52,11 +52,13 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */     
+#include "stm32f7xx_hal.h"
 
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
+osThreadId mainTaskHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -64,6 +66,7 @@ osThreadId defaultTaskHandle;
 
 /* Function prototypes -------------------------------------------------------*/
 void StartDefaultTask(void const * argument);
+void mainTaskFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -97,6 +100,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
+  /* definition and creation of mainTask */
+  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 128);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -117,6 +124,18 @@ void StartDefaultTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
+}
+
+/* mainTaskFunction function */
+__weak void mainTaskFunction(void const * argument)
+{
+  /* USER CODE BEGIN mainTaskFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END mainTaskFunction */
 }
 
 /* USER CODE BEGIN Application */
