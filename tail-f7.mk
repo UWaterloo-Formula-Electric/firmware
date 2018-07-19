@@ -5,8 +5,6 @@ RM=rm -rf
 
 SRC_DIR = Src
 BIN_BASE_DIR = Bin
-DRIVER_DIR = Drivers
-DRIVER_HAL_DIR = $(DRIVER_DIR)/STM32F7xx_HAL_Driver
 COMMON_LIB_DIR = common-all
 COMMON_F7_LIB_DIR = common-all/f7
 # only used to include some header files
@@ -24,44 +22,50 @@ ELF_FILE = $(BINARY_BASE_NAME).elf
 BIN_FILE = $(BINARY_BASE_NAME).bin
 MAP_FILE = $(BINARY_BASE_NAME).map
 
+ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO_F7)'
+	include $(CUBE_NUCLEO_MAKEFILE_PATH)/Makefile
+else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
+	include $(CUBE_F7_MAKEFILE_PATH)/Makefile
+else
+$(error "Unsupported Board type")
+endif
+
 DEPDIR := .d
 $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
-
+$(info $(C_INCLUDES))
 INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
-			  $(DRIVER_HAL_DIR)/Inc \
-			  $(DRIVER_DIR)/CMSIS/Device/ST/STM32F7xx/Include \
-			  $(DRIVER_DIR)/CMSIS/Include \
 			  Inc \
-			  $(FREERTOS_DIR)/Source/include \
-			  $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM7/r0p1 \
-			  $(FREERTOS_DIR)/Source/CMSIS_RTOS \
 			  $(GEN_INC_DIR)
 
+
 INCLUDE_FLAGS := $(addprefix -I,$(INCLUDE_DIRS))
+# add in driver dirs
+INCLUDE_FLAGS += $(LIB_C_INCLUDES)
+INCLUDE_FLAGS += $(LIB_AS_INCLUDES)
 
 
 DEFINES := "USE_HAL_DRIVER" "STM32F767xx" BOARD_NAME=$(BOARD_NAME) BOARD_TYPE_$(BOARD_TYPE)=1
 DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
-ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO_F7)'
-	LINK_SCRIPT="STM32F767ZITx_FLASH.ld"
-else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
-	LINK_SCRIPT="STM32F767VITx_FLASH.ld"
-else
-	$(error Unsupported Board type)
-endif
+#ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO_F7)'
+	#LINK_SCRIPT="STM32F767ZITx_FLASH.ld"
+#else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
+	#LINK_SCRIPT="STM32F767VITx_FLASH.ld"
+#else
+	#$(error Unsupported Board type)
+#endif
 
-CPU = -mcpu=cortex-m7
+#CPU = -mcpu=cortex-m7
 
-FPU = -mfpu=fpv5-d16
+#FPU = -mfpu=fpv5-d16
 
-FLOAT_ABI = -mfloat-abi=hard
+#FLOAT_ABI = -mfloat-abi=hard
 
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
+#MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
 # -l is to link a library
 #  -lc links libc.a, the c std lib
@@ -75,34 +79,34 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 #  -Wl,--start-group -m -Wl,--end-group creates a group that is searched repeatedly for circular dependencies until no new undefined references are created
 #  --cref, Output a cross reference table. If a linker map file is being generated, the cross reference table is printed to the map file
 # -Wl,--defsym=malloc_getpagesize_P=0x1000, set the default page size of malloc to 0x1000, which means the heap increases in size by 4096 bytes at a time
-LINKER_FLAGS=-lc -lnosys -lm  -Wl,--gc-sections -T$(LINK_SCRIPT) -static  -Wl,--start-group -lm -Wl,--end-group -Wl,-cref "-Wl,-Map=$(MAP_FILE_PATH)" -Wl,--defsym=malloc_getpagesize_P=0x1000 $(MCU)
+#LINKER_FLAGS=-lc -lnosys -lm  -Wl,--gc-sections -T$(LINK_SCRIPT) -static  -Wl,--start-group -lm -Wl,--end-group -Wl,-cref "-Wl,-Map=$(MAP_FILE_PATH)" -Wl,--defsym=malloc_getpagesize_P=0x1000 $(MCU)
 
-DEBUG_FLAGS=-g -O2
-COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
-ASSEMBLER_FLAGS=$(COMMON_FLAGS) -x assembler-with-cpp
+# inherit linker flags from hal driver makefile
+LINKER_FLAGS =$(LIB_LDFLAGS)
+LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
+
+#DEBUG_FLAGS=-g -O2
+#COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
+#ASSEMBLER_FLAGS=$(COMMON_FLAGS) -x assembler-with-cpp
+ASSEMBLER_FLAGS = $(LIB_ASFLAGS)
 
 # -ffunction-sections and -fdata-sections, Place each function or data item into its own section in the output file
 #  This is to allow linking only used functions and data
-COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
+#COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
+COMPILER_FLAGS = $(LIB_CFLAGS)
+COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS)
+
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
 SRC := $(wildcard $(SRC_DIR)/*.c) \
-	   $(wildcard $(DRIVER_HAL_DIR)/Src/*.c) \
-	   $(wildcard $(FREERTOS_DIR)/Source/*.c) \
-	   $(wildcard $(FREERTOS_DIR)/Source/portable/GCC/ARM_CM7/r0p1/*.c) \
 	   $(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
 	   $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC)) \
-	   $(FREERTOS_DIR)/Source/portable/MemMang/heap_4.c \
-	   $(wildcard $(FREERTOS_DIR)/Source/CMSIS_RTOS/*.c) \
-	   $(SRC_DIR)/system_stm32f7xx.c \
 	   $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
-SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_alarm_template.c, $(SRC))
-SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_rtc_wakeup_template.c, $(SRC))
-SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_msp_template.c, $(SRC))
-SRC := $(filter-out $(DRIVER_HAL_DIR)/Src/stm32f7xx_hal_timebase_tim_template.c, $(SRC))
+# add in driver sources
+SRC += $(LIB_C_SOURCES)
 
-SRCASM := startup_stm32f767xx.s
+SRCASM += $(LIB_ASM_SOURCES)
 
 OBJS = $(SRC:%.c=$(BIN_DIR)/%.o) $(SRCASM:%.s=$(BIN_DIR)/%.o)
 
