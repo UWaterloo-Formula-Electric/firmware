@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Project>
-<ProjectName>/Users/Richard/Documents/Waterloo/WFE/Code/2018_vcu/Cube-F7-Src/2018_VCU/2018_VCU\2018_VCU</ProjectName>
+<ProjectName>/Users/Richard/Documents/Waterloo/WFE/Code/2018_vcu/Cube-F7-Src/2018_VCU/2018_VCU/\2018_VCU</ProjectName>
 <ProjectNature>C</ProjectNature> 
 <CMSIS>../../Drivers/CMSIS</CMSIS>
 <HAL_Driver>/Users/Richard/STM32Cube/Repository//STM32Cube_FW_F7_V1.11.0/Drivers/CMSIS</HAL_Driver>
