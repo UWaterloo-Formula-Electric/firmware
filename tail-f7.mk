@@ -23,9 +23,9 @@ BIN_FILE = $(BINARY_BASE_NAME).bin
 MAP_FILE = $(BINARY_BASE_NAME).map
 
 ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO_F7)'
-	include $(CUBE_NUCLEO_MAKEFILE_PATH)/Makefile
+	include $(CUBE_NUCLEO_MAKEFILE_PATH)/Cube-Lib.mk
 else ifeq '$(strip $(BOARD_TYPE))' '$(strip F7)'
-	include $(CUBE_F7_MAKEFILE_PATH)/Makefile
+	include $(CUBE_F7_MAKEFILE_PATH)/Cube-Lib.mk
 else
 $(error "Unsupported Board type")
 endif
