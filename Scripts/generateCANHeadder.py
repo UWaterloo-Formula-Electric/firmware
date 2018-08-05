@@ -22,6 +22,41 @@ def create_dir(path):
 def fWrite(string, fileHandle):
     fileHandle.write(string + '\n')
 
+queueInitStrings = list()
+def generateDTCFunctionsAndHeaders(rxMessages):
+    dtcQueueSize = 5
+    createdDTCReceive = False
+
+    dtcRxMessages = [msg for msg in rxMessages if 'DTC' in msg.name]
+
+    for message in dtcRxMessages:
+        # Create unpacked struct definition in header file for use in rest of code
+        fWrite('typedef struct {message.name}_unpacked {{'.format(**locals()), headerFileHandle)
+        for signal in message.signals:
+            fWrite('int {signal.name};'.format(**locals()), headerFileHandle)
+        fWrite('}} {message.name}_unpacked;'.format(**locals()), headerFileHandle)
+
+        # create Queue to store received DTC messages
+        queueName = 'queue{message.name}'.format(**locals())
+        fWrite('extern QueueHandle_t {queueName};\n'.format(**locals()), headerFileHandle)
+        fWrite('QueueHandle_t {queueName};'.format(**locals()), sourceFileHandle)
+        queueInitStrings.append('{queueName} = xQueueCreate({dtcQueueSize}, sizeof({messageName}_unpacked)); if ({queueName} == NULL) return HAL_ERROR;'.format(queueName=queueName, messageName=message.name, dtcQueueSize=str(dtcQueueSize)))
+
+        # create functions to receive dtc signals
+        # only do this once
+        if not createdDTCReceive:
+            for signal in message.signals:
+                fWrite('int {signal.name}Received(int64_t newValue)\n{{'.format(**locals()),
+                       sourceFileHandle)
+                fWrite("	newValue = newValue * {signalScale};".format(signalScale=str(signal.scale)),
+                       sourceFileHandle)
+                fWrite("	newValue = newValue + {signalOffset};".format(signalOffset=str(signal.offset)),
+                       sourceFileHandle)
+                fWrite("	return newValue;", sourceFileHandle)
+                fWrite("}\n", sourceFileHandle)
+            createdDTCReceive = True
+
+
 if sys.argv and len(sys.argv) == 3:
     nodeName = sys.argv[1]
     boardType = sys.argv[2] # F0 or F7
@@ -140,26 +175,7 @@ fWrite('#pragma pack(1)', sourceFileHandle)
 fWrite('// Incoming variables', sourceFileHandle)
 
 # Treat DTC signal/msgs differently
-
-dtcQueueSize = 5
-queueInitStrings = list()
-for message in rxMessages:
-    if 'DTC' in message.name:
-        fWrite('typedef struct ' + message.name + '_unpacked {', headerFileHandle)
-        for signal in message.signals:
-            fWrite('int ' + signal.name + ';', headerFileHandle)
-        fWrite('} ' + message.name + '_unpacked;', headerFileHandle)
-
-        queueName = 'queue' + message.name
-        fWrite('extern QueueHandle_t ' + queueName + ';', headerFileHandle)
-        fWrite('QueueHandle_t ' + queueName + ';', sourceFileHandle)
-        queueInitStrings.append(queueName + ' = xQueueCreate(' +str(dtcQueueSize) + ', sizeof(' + message.name + '_unpacked)); if (' + queueName + '== NULL) return HAL_ERROR;')
-        for signal in message.signals:
-            fWrite('int ' + signal.name + 'Received(int64_t newValue)\n{', sourceFileHandle)
-            fWrite("	newValue = newValue * "+str(signal.scale)+";", sourceFileHandle)
-            fWrite("	newValue = newValue + "+str(signal.offset)+";", sourceFileHandle)
-            fWrite("	return newValue;", sourceFileHandle)
-            fWrite("}\n", sourceFileHandle)
+generateDTCFunctionsAndHeaders(rxMessages)
 
 # Everything else
 for signal in rxVariables:
