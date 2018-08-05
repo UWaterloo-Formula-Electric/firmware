@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * File Name          : dma.c
+  * Description        : This file provides code for the configuration
+  *                      of all the requested memory to memory DMA transfers.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -45,116 +46,46 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
-#include "FreeRTOS.h"
-#include "task.h"
-#include "cmsis_os.h"
+#include "dma.h"
 
-/* USER CODE BEGIN Includes */     
-#include "stm32f7xx_hal.h"
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-/* Variables -----------------------------------------------------------------*/
-osThreadId mainTaskHandle;
-osThreadId driveByWireHandle;
-
-/* USER CODE BEGIN Variables */
-
-/* USER CODE END Variables */
-
-/* Function prototypes -------------------------------------------------------*/
-void mainTaskFunction(void const * argument);
-void driveByWireTask(void const * argument);
-
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
-/* USER CODE BEGIN FunctionPrototypes */
-
-/* USER CODE END FunctionPrototypes */
-
-/* Hook prototypes */
-void configureTimerForRunTimeStats(void);
-unsigned long getRunTimeCounterValue(void);
+/*----------------------------------------------------------------------------*/
+/* Configure DMA                                                              */
+/*----------------------------------------------------------------------------*/
 
 /* USER CODE BEGIN 1 */
-/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
-__weak void configureTimerForRunTimeStats(void)
-{
 
-}
-
-__weak unsigned long getRunTimeCounterValue(void)
-{
-return 0;
-}
 /* USER CODE END 1 */
 
-/* Init FreeRTOS */
-
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
-       
-  /* USER CODE END Init */
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the thread(s) */
-  /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
-
-  /* definition and creation of driveByWire */
-  osThreadDef(driveByWire, driveByWireTask, osPriorityRealtime, 0, 1000);
-  driveByWireHandle = osThreadCreate(osThread(driveByWire), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-}
-
-/* mainTaskFunction function */
-__weak void mainTaskFunction(void const * argument)
+/** 
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void) 
 {
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* USER CODE BEGIN mainTaskFunction */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END mainTaskFunction */
+  /* DMA interrupt init */
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+
 }
 
-/* driveByWireTask function */
-__weak void driveByWireTask(void const * argument)
-{
-  /* USER CODE BEGIN driveByWireTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END driveByWireTask */
-}
+/* USER CODE BEGIN 2 */
 
-/* USER CODE BEGIN Application */
-     
-/* USER CODE END Application */
+/* USER CODE END 2 */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

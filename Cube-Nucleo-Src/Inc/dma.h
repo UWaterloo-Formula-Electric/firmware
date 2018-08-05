@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * File Name          : dma.h
+  * Description        : This file contains all the function prototypes for
+  *                      the dma.c file
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -45,116 +46,43 @@
   *
   ******************************************************************************
   */
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __dma_H
+#define __dma_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "FreeRTOS.h"
-#include "task.h"
-#include "cmsis_os.h"
-
-/* USER CODE BEGIN Includes */     
 #include "stm32f7xx_hal.h"
+#include "main.h"
+
+/* DMA memory to memory transfer handles -------------------------------------*/
+extern void _Error_Handler(char*, int);
+
+/* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-/* Variables -----------------------------------------------------------------*/
-osThreadId mainTaskHandle;
-osThreadId driveByWireHandle;
+/* USER CODE BEGIN Private defines */
 
-/* USER CODE BEGIN Variables */
+/* USER CODE END Private defines */
 
-/* USER CODE END Variables */
+void MX_DMA_Init(void);
 
-/* Function prototypes -------------------------------------------------------*/
-void mainTaskFunction(void const * argument);
-void driveByWireTask(void const * argument);
+/* USER CODE BEGIN Prototypes */
 
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+/* USER CODE END Prototypes */
 
-/* USER CODE BEGIN FunctionPrototypes */
-
-/* USER CODE END FunctionPrototypes */
-
-/* Hook prototypes */
-void configureTimerForRunTimeStats(void);
-unsigned long getRunTimeCounterValue(void);
-
-/* USER CODE BEGIN 1 */
-/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
-__weak void configureTimerForRunTimeStats(void)
-{
-
+#ifdef __cplusplus
 }
+#endif
 
-__weak unsigned long getRunTimeCounterValue(void)
-{
-return 0;
-}
-/* USER CODE END 1 */
+#endif /* __dma_H */
 
-/* Init FreeRTOS */
-
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
-       
-  /* USER CODE END Init */
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the thread(s) */
-  /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
-
-  /* definition and creation of driveByWire */
-  osThreadDef(driveByWire, driveByWireTask, osPriorityRealtime, 0, 1000);
-  driveByWireHandle = osThreadCreate(osThread(driveByWire), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-}
-
-/* mainTaskFunction function */
-__weak void mainTaskFunction(void const * argument)
-{
-
-  /* USER CODE BEGIN mainTaskFunction */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END mainTaskFunction */
-}
-
-/* driveByWireTask function */
-__weak void driveByWireTask(void const * argument)
-{
-  /* USER CODE BEGIN driveByWireTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END driveByWireTask */
-}
-
-/* USER CODE BEGIN Application */
-     
-/* USER CODE END Application */
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

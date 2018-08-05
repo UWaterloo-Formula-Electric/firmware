@@ -1,7 +1,7 @@
 BINARY_BASE_NAME=VCU
 BOARD_NAME=VCU_F7
 
-COMMON_LIB_SRC = userCan.c debug.c
+COMMON_LIB_SRC = userCan.c debug.c state_machine.c
 
 # one of NUCLEO_F7, F7
 BOARD_TYPE ?= NUCLEO_F7
