@@ -3,8 +3,6 @@
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
 
-#define MIN_BRAKE_PRESSURE 50 // TODO: Set this to a reasonable value
-
 typedef enum VCU_States_t {
     STATE_Self_Check = 0,
     STATE_EM_Disable = 1,

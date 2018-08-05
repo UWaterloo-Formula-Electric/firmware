@@ -98,8 +98,9 @@ void executeSerialCommand(char str[]) {
         sscanf(str, "throttle %u", &fakeThrottle);
         DEBUG_PRINT("setting throttle %d\n", fakeThrottle);
     } else if (STR_EQ(str, "brake pressure")) {
-        sscanf(str, "brake pressure %u", &fakeBrakePressure);
-        DEBUG_PRINT("setting brake pressure %d\n", fakeBrakePressure);
+        int newBrakePressure = 0;
+        sscanf(str, "brake pressure %u", &newBrakePressure);
+        setFakeBrakePressure(newBrakePressure);
     } else if (STR_EQ(str, "state throttle fail")) {
         setFakeThrottleSuccess(false);
     } else if (STR_EQ(str, "state throttle ok")) {

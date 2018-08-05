@@ -3,6 +3,8 @@
 #include "stm32f7xx_hal.h"
 #include "stdbool.h"
 
+#define MIN_BRAKE_PRESSURE 50 // TODO: Set this to a reasonable value
+
 HAL_StatusTypeDef outputThrottle();
 int getThrottle();
 bool checkBPSState();
