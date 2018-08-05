@@ -54,6 +54,7 @@ LIB_C_SOURCES =  \
 ../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c \
 ../../Src/gpio.c \
 ../../Src/main.c \
+../../Src/dma.c \
 ../../Src/stm32f7xx_it.c \
 ../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
 ../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \

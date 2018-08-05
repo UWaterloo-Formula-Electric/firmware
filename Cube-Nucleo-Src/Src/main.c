@@ -51,6 +51,7 @@
 #include "stm32f7xx_hal.h"
 #include "cmsis_os.h"
 #include "can.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -71,7 +72,7 @@ void MX_FREERTOS_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+__weak void userInit() {}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -107,10 +108,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  userInit();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -243,6 +245,8 @@ void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+  printf("ERROR!: File %s, line %d\n", file, line);
+  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
   while(1)
   {
   }
@@ -262,6 +266,8 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  printf("Wrong parameters value: file %s on line %d\r\n", file, line);
+  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

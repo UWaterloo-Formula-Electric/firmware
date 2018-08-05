@@ -57,7 +57,7 @@
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
+osThreadId driveByWireHandle;
 osThreadId mainTaskHandle;
 
 /* USER CODE BEGIN Variables */
@@ -65,7 +65,7 @@ osThreadId mainTaskHandle;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
-void StartDefaultTask(void const * argument);
+void driveByWireTask(void const * argument);
 void mainTaskFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -96,12 +96,12 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of driveByWire */
+  osThreadDef(driveByWire, driveByWireTask, osPriorityRealtime, 0, 1000);
+  driveByWireHandle = osThreadCreate(osThread(driveByWire), NULL);
 
   /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 128);
+  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -113,17 +113,17 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 }
 
-/* StartDefaultTask function */
-void StartDefaultTask(void const * argument)
+/* driveByWireTask function */
+__weak void driveByWireTask(void const * argument)
 {
 
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN driveByWireTask */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END driveByWireTask */
 }
 
 /* mainTaskFunction function */

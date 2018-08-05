@@ -182,6 +182,10 @@
                                 </file>
 
                                 <file>
+                                 <name>../Src/dma.c</name>
+                                </file>
+
+                                <file>
                                  <name>../Src/freertos.c</name>
                                 </file>
 
@@ -203,6 +207,12 @@
 
 
 
+    <group>
+        <name>..</name>
+                    <group>
+                    <name>Src</name>
+                    </group>
+    </group>
     <group>
         <name>..</name>
                     <group>

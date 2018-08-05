@@ -55,6 +55,7 @@ LIB_C_SOURCES =  \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
 ../Src/main.c \
+../Src/dma.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
 ../Src/freertos.c \
 ../Src/stm32f7xx_hal_timebase_TIM.c \

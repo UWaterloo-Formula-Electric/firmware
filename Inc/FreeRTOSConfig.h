@@ -166,6 +166,12 @@ standard names. */
 
 /* USER CODE BEGIN Defines */   	      
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
+#define configUSE_TIMERS                         1
+// Timer task has highest priority to ensure timely callbacks
+#define configTIMER_TASK_PRIORITY                (configMAX_PRIORITIES - 1)
+#define configTIMER_QUEUE_LENGTH                 4
+#define configTIMER_TASK_STACK_DEPTH             800
+#define configCHECK_FOR_STACK_OVERFLOW           2
 /* USER CODE END Defines */ 
 
 #endif /* FREERTOS_CONFIG_H */
