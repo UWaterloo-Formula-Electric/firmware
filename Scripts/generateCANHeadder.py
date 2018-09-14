@@ -576,7 +576,11 @@ for message in txMessages:
             else:
                 fWrite('	new_' + message.name +'.' + signalName + ' = ' + signalName + 'Sending();', sourceFileHandle)
 
-    fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
+    if not 'DTC' in message.name:
+        fWrite('	return sendCanMessage('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
+    else:
+        # Give DTC messages higher priority in send queue
+        fWrite('	return sendCanMessageUrgent('+str(message.frame_id)+','+str(message.length)+',(uint8_t *) &new_'+message.name +');', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
 fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
