@@ -141,7 +141,7 @@ def writeStructForMsg(msg, structName, fileHandle):
 
     fWrite('};\n', fileHandle)
 
-def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False):
+def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
     functionTemplate = ''
     if multiplexed:
         functionTemplate = """void {signalName}Received(int index, {dataType} newValue)
@@ -150,6 +150,14 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
     floatValue *= {scaler};
     floatValue += {offset};
     {signalName}[index] = floatValue;
+}}\n"""
+    elif dtc:
+        functionTemplate = """int {signalName}Received({dataType} newValue)
+{{
+    float floatValue = (float)newValue;
+    floatValue *= {scaler};
+    floatValue += {offset};
+    return floatValue;
 }}\n"""
     else:
         functionTemplate = """void {signalName}Received({dataType} newValue)
@@ -237,7 +245,7 @@ def writeDTCRxMessages(dtcRxMessages, sourceFileHandle, headerFileHandle):
     msg = dtcRxMessages[0]
     for signal in msg.signals:
         fWrite('// signal received functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
-        writeSignalReceivedFunction(signal, sourceFileHandle)
+        writeSignalReceivedFunction(signal, sourceFileHandle, dtc=True)
 
     writeStructForMsg(msg, msg.name, sourceFileHandle)
 
@@ -398,6 +406,71 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         writeIndexToMuxFunction(msg.name, numSignalsPerMessage, sourceFileHandle, headerFileHandle)
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=True, numSignalsPerMessage=numSignalsPerMessage)
 
+def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle):
+    functionPrototype = 'int parseCANData(int id, void *data)'
+    fWrite('{};'.format(functionPrototype), headerFileHandle)
+    fWrite('{} {{'.format(functionPrototype), sourceFileHandle)
+    fWrite('    switch (id) {', sourceFileHandle)
+
+    for msg in normalRxMessages:
+        fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
+        fWrite('            struct {structName} in_{structName} = data;'.format(structName=msg.name), sourceFileHandle)
+        for signal in msg.signals:
+            fWrite('            {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
+
+        callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        fWrite('            break;\n        }', sourceFileHandle)
+
+    for msg in dtcRxMessages:
+        fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
+        fWrite('            struct {structName} in_{structName} = data;'.format(structName=msg.name), sourceFileHandle)
+        fWrite('            struct {structName}_unpacked newDtc;'.format(structName=msg.name), sourceFileHandle)
+        for signal in msg.signals:
+            fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
+
+        fWrite('            xQueueSendFromISR(queue{msgName}, &newDTC, NULL);'.format(msgName=msg.name), sourceFileHandle)
+        callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        fWrite('            break;\n        }', sourceFileHandle)
+
+    for msg in multiplexedRxMessages:
+        (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal) = getMultiplexedMsgInfo(msg)
+        fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
+        fWrite('            struct {structName} in_{structName} = data;'.format(structName=msg.name), sourceFileHandle)
+
+        muxToIndexFunction = '{name}MuxSelectToIndex'.format(name=msg.name)
+        signal = msg.signals[0]
+        muxSignalName = ''
+        if signal.is_multiplexer:
+            muxSignalName = signal.name
+        else:
+            muxSignalName = signal.multiplexer_signal.name
+
+        for signal in msg.signals:
+            if signal.is_multiplexer:
+                fWrite('            {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
+            else:
+                # Signal will include ALL possible multiplexed signals, so just include up to the number of signals per message
+                if numSignalsPerMessage > 0 or signal.multiplexer_signal is None:
+                    strippedSignalName = getStrippedSignalName(signal.name)
+                    fWrite('            {signalName}Received({mToI}(in_{structName}->{multiplexerName}, in_{structName}->{signalName}{signalNum});'.format(signalName=strippedSignalName, structName=msg.name, mToI=muxToIndexFunction, multiplexerName=muxSignalName, signalNum=numSignalsPerMessage), sourceFileHandle)
+                    numSignalsPerMessage -= 1
+
+        callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        fWrite('            break;\n        }', sourceFileHandle)
+
+    fWrite("""
+        default:
+        {
+            return -1
+        }
+    }
+
+    return 0;
+}""", sourceFileHandle)
+
 
 def main(argv):
     if argv and len(argv) == 2:
@@ -469,6 +542,9 @@ def main(argv):
 
     # print multiplexed Tx Messages
     writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle)
+
+    # print parse can message function
+    writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
 
     print 'Multiplexed tx msgs'
     print multiplexedTxMessages
