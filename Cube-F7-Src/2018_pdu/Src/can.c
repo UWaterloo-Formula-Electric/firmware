@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : stm32f7xx_hal_msp.c
-  * Description        : This file provides code for the MSP Initialization 
-  *                      and de-Initialization codes.
+  * File Name          : CAN.c
+  * Description        : This file provides code for the configuration
+  *                      of the CAN instances.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -46,44 +46,96 @@
   *
   ******************************************************************************
   */
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
 
-extern void _Error_Handler(char *, int);
+/* Includes ------------------------------------------------------------------*/
+#include "can.h"
+
+#include "gpio.h"
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
-/**
-  * Initializes the Global MSP.
-  */
-void HAL_MspInit(void)
+
+CAN_HandleTypeDef hcan3;
+
+/* CAN3 init function */
+void MX_CAN3_Init(void)
 {
-  /* USER CODE BEGIN MspInit 0 */
 
-  /* USER CODE END MspInit 0 */
+  hcan3.Instance = CAN3;
+  hcan3.Init.Prescaler = 16;
+  hcan3.Init.Mode = CAN_MODE_NORMAL;
+  hcan3.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan3.Init.TimeSeg1 = CAN_BS1_1TQ;
+  hcan3.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan3.Init.TimeTriggeredMode = DISABLE;
+  hcan3.Init.AutoBusOff = DISABLE;
+  hcan3.Init.AutoWakeUp = DISABLE;
+  hcan3.Init.AutoRetransmission = DISABLE;
+  hcan3.Init.ReceiveFifoLocked = DISABLE;
+  hcan3.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
-  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
-  /* System interrupt init*/
-  /* MemoryManagement_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
-  /* BusFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
-  /* UsageFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
-  /* SVCall_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
-  /* DebugMonitor_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
-  /* PendSV_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
-
-  /* USER CODE BEGIN MspInit 1 */
-
-  /* USER CODE END MspInit 1 */
 }
+
+void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(canHandle->Instance==CAN3)
+  {
+  /* USER CODE BEGIN CAN3_MspInit 0 */
+
+  /* USER CODE END CAN3_MspInit 0 */
+    /* CAN3 clock enable */
+    __HAL_RCC_CAN3_CLK_ENABLE();
+    __HAL_RCC_CAN2_CLK_ENABLE();
+    __HAL_RCC_CAN1_CLK_ENABLE();
+  
+    /**CAN3 GPIO Configuration    
+    PB3     ------> CAN3_RX
+    PB4     ------> CAN3_TX 
+    */
+    GPIO_InitStruct.Pin = CAN_RX_Pin|CAN_TX_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN CAN3_MspInit 1 */
+
+  /* USER CODE END CAN3_MspInit 1 */
+  }
+}
+
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
+{
+
+  if(canHandle->Instance==CAN3)
+  {
+  /* USER CODE BEGIN CAN3_MspDeInit 0 */
+
+  /* USER CODE END CAN3_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_CAN3_CLK_DISABLE();
+    __HAL_RCC_CAN2_CLK_DISABLE();
+    __HAL_RCC_CAN1_CLK_DISABLE();
+  
+    /**CAN3 GPIO Configuration    
+    PB3     ------> CAN3_RX
+    PB4     ------> CAN3_TX 
+    */
+    HAL_GPIO_DeInit(GPIOB, CAN_RX_Pin|CAN_TX_Pin);
+
+  /* USER CODE BEGIN CAN3_MspDeInit 1 */
+
+  /* USER CODE END CAN3_MspDeInit 1 */
+  }
+} 
 
 /* USER CODE BEGIN 1 */
 

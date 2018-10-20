@@ -180,7 +180,31 @@
                                 </file>
 
                                 <file>
+                                 <name>Src/gpio.c</name>
+                                </file>
+
+                                <file>
+                                 <name>Src/adc.c</name>
+                                </file>
+
+                                <file>
+                                 <name>Src/can.c</name>
+                                </file>
+
+                                <file>
                                  <name>Src/freertos.c</name>
+                                </file>
+
+                                <file>
+                                 <name>Src/i2c.c</name>
+                                </file>
+
+                                <file>
+                                 <name>Src/tim.c</name>
+                                </file>
+
+                                <file>
+                                 <name>Src/usart.c</name>
                                 </file>
 
                                 <file>
@@ -196,9 +220,45 @@
     <group>
         <name>Src</name>
                     <group>
+                    <name>adc.c</name>
+                                    <file>
+                                            <name>Src/adc.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
                     <name>main.c</name>
                                     <file>
                                             <name>Src/main.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
+                    <name>tim.c</name>
+                                    <file>
+                                            <name>Src/tim.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
+                    <name>usart.c</name>
+                                    <file>
+                                            <name>Src/usart.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
+                    <name>i2c.c</name>
+                                    <file>
+                                            <name>Src/i2c.c</name>
                                     </file>
                     </group>
     </group>
@@ -214,9 +274,27 @@
     <group>
         <name>Src</name>
                     <group>
+                    <name>can.c</name>
+                                    <file>
+                                            <name>Src/can.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
                     <name>freertos.c</name>
                                     <file>
                                             <name>Src/freertos.c</name>
+                                    </file>
+                    </group>
+    </group>
+    <group>
+        <name>Src</name>
+                    <group>
+                    <name>gpio.c</name>
+                                    <file>
+                                            <name>Src/gpio.c</name>
                                     </file>
                     </group>
     </group>
