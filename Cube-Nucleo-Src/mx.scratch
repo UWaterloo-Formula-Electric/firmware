@@ -1,14 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Project>
-<ProjectName>/Users/Richard/Documents/Waterloo/WFE/Code/2018_vcu/Cube-Nucleo-Src/CanTest\CanTest</ProjectName>
+<ProjectName>/Users/Richard/Documents/Waterloo/WFE/Code/2018_pdu/Cube-Nucleo-Src/CanTest/CanTest/CanTest/CanTest\CanTest</ProjectName>
 <ProjectNature>C</ProjectNature> 
-<CMSIS>../Drivers/CMSIS</CMSIS>
+<CMSIS>../../../../Drivers/CMSIS</CMSIS>
 <HAL_Driver>/Users/Richard/STM32Cube/Repository//STM32Cube_FW_F7_V1.11.0/Drivers/CMSIS</HAL_Driver>
 <Toolchain>Makefile</Toolchain>
 <Version>0</Version>
 
 <filestoremove>
     <file>
+    <name>../../../Src/main.c</name>
+    <name>../../../Src/gpio.c</name>
+    <name>../../../Src/can.c</name>
+    <name>../../../Src/dma.c</name>
+    <name>../../../Src/freertos.c</name>
+    <name>../../../Src/usart.c</name>
+    <name>../../../Src/stm32f7xx_it.c</name>
+    <name>../../../Src/stm32f7xx_hal_msp.c</name>
+    <name>../../../Src/stm32f7xx_hal_timebase_TIM.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c</name>
+    <name>../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/list.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/queue.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/timers.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/tasks.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c</name>
+    <name>../../..//Src/system_stm32f7xx.c</name>
+    <name>../../../Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/list.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/queue.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/timers.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/tasks.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c</name>
+    <name>../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c</name>
     </file>
 </filestoremove>
 
@@ -17,6 +63,14 @@
 	   <include></include>
     </Aincludes>
 	<Cincludes>
+	   		<include>../../../Drivers/STM32F7xx_HAL_Driver/Inc</include>
+	   		<include>../../../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy</include>
+	   		<include>../../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1</include>
+	   		<include>../../../Drivers/CMSIS/Device/ST/STM32F7xx/Include</include>
+	   		<include>../../../Middlewares/Third_Party/FreeRTOS/Source/include</include>
+	   		<include>../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS</include>
+	   		<include>../../../Drivers/CMSIS/Include</include>
+	   		<include>../../../Inc</include>
     </Cincludes>
 </inctoremove>
 
@@ -39,7 +93,7 @@
 
     <UsedFreeRTOS>true</UsedFreeRTOS>
     <Aincludes>
-	   			<include>..//Inc</include>
+	   			<include>../../../..//Inc</include>
     </Aincludes>
     <Cdefines>
     </Cdefines>
@@ -54,14 +108,14 @@
     </definestoremove>
     
 	<Cincludes>
-	   <include>../Inc</include>
-	   <include>../Drivers/STM32F7xx_HAL_Driver/Inc</include>
-	   <include>../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy</include>
-	   <include>../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1</include>
-	   <include>../Drivers/CMSIS/Device/ST/STM32F7xx/Include</include>
-	   <include>../Middlewares/Third_Party/FreeRTOS/Source/include</include>
-	   <include>../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS</include>
-	   <include>../Drivers/CMSIS/Include</include>
+	   <include>../../../../Inc</include>
+	   <include>../../../../Drivers/STM32F7xx_HAL_Driver/Inc</include>
+	   <include>../../../../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy</include>
+	   <include>../../../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1</include>
+	   <include>../../../../Drivers/CMSIS/Device/ST/STM32F7xx/Include</include>
+	   <include>../../../../Middlewares/Third_Party/FreeRTOS/Source/include</include>
+	   <include>../../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS</include>
+	   <include>../../../../Drivers/CMSIS/Include</include>
 
     </Cincludes>
       </config>
@@ -74,31 +128,31 @@
                     <group>
                             <name>FreeRTOS</name>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/croutine.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/list.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/queue.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/list.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/timers.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/queue.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/tasks.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/tasks.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/timers.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c</name>
                                             </file>
                                             <file>
-                                                    <name>../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c</name>
+                                                    <name>../../../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c</name>
                                             </file>
                 </group>
       </group> 
@@ -107,61 +161,61 @@
 		   <group>
 		 		<name>STM32F7xx_HAL_Driver</name>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c</name>
 						</file>
 						<file>
-							<name>../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c</name>
+							<name>../../../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c</name>
 						</file>
 		    </group>
 		    <group>
 		    	<name>CMSIS</name>
 							<file>
-								<name>..//Src/system_stm32f7xx.c</name>
+								<name>../../../..//Src/system_stm32f7xx.c</name>
 							</file>
 		    	</group>
 	  </group>   
@@ -170,39 +224,39 @@
 	    <group>
 	      <name>User</name>  
                                 <file>
-                                 <name>../Src/main.c</name>
+                                 <name>../../../../Src/main.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/gpio.c</name>
+                                 <name>../../../../Src/gpio.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/can.c</name>
+                                 <name>../../../../Src/can.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/dma.c</name>
+                                 <name>../../../../Src/dma.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/freertos.c</name>
+                                 <name>../../../../Src/freertos.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/usart.c</name>
+                                 <name>../../../../Src/usart.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/stm32f7xx_it.c</name>
+                                 <name>../../../../Src/stm32f7xx_it.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/stm32f7xx_hal_msp.c</name>
+                                 <name>../../../../Src/stm32f7xx_hal_msp.c</name>
                                 </file>
 
                                 <file>
-                                 <name>../Src/stm32f7xx_hal_timebase_TIM.c</name>
+                                 <name>../../../../Src/stm32f7xx_hal_timebase_TIM.c</name>
                                 </file>
 
 
@@ -210,55 +264,55 @@
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
     <group>
         <name>..</name>
                     <group>
-                    <name>Src</name>
+                    <name>..</name>
                     </group>
     </group>
 
