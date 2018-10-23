@@ -68,6 +68,8 @@ def getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileH
                     messageGroups.append(messageGroup)
     fWrite('', headerFileHandle);
 
+    return messageGroups
+
 def writeSourceFileIncludes(nodeName, sourceFileHandle):
     fWrite('//'+nodeName+' autogen can source', sourceFileHandle)
     fWrite('// *** Do not modify by hand', sourceFileHandle)
@@ -471,6 +473,104 @@ def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedR
     return 0;
 }""", sourceFileHandle)
 
+def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle):
+    fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
+    fWrite('__weak void configCANFilters(CAN_HandleTypeDef* canHandle)\n{', sourceFileHandle)
+    if boardType == 'F0':
+        fWrite('    CAN_FilterConfTypeDef  sFilterConfig;', sourceFileHandle)
+    else: # F7
+        fWrite('    CAN_FilterTypeDef  sFilterConfig;', sourceFileHandle)
+    fWrite('    // Filter msgs to this nodes Id to fifo 0', sourceFileHandle)
+    fWrite('    uint32_t filterID = CAN_NODE_ADDRESS<<8;', sourceFileHandle)
+    fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
+    fWrite('    uint32_t filterMask = 0xFF00;', sourceFileHandle)
+    fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
+    if boardType == 'F0':
+        fWrite('    sFilterConfig.BankNumber = 0;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterNumber = 0;', sourceFileHandle)
+    else:
+        fWrite('    sFilterConfig.FilterBank = 0;', sourceFileHandle)
+        # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+        fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
+    fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
+    fWrite('    {', sourceFileHandle)
+    fWrite('      Error_Handler();', sourceFileHandle)
+    fWrite('    }', sourceFileHandle)
+
+    fWrite('\n    // Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
+    fWrite('    filterID = 0xFF<<8;', sourceFileHandle)
+    fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
+    fWrite('    filterMask = 0xFF00;', sourceFileHandle)
+    fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
+    fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
+    if boardType == 'F0':
+        fWrite('    sFilterConfig.BankNumber = 1;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterNumber = 1;', sourceFileHandle)
+    else:
+        fWrite('    sFilterConfig.FilterBank = 1;', sourceFileHandle)
+        # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+        fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
+    fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
+    fWrite('    {', sourceFileHandle)
+    fWrite('      Error_Handler();', sourceFileHandle)
+    fWrite('    }', sourceFileHandle)
+
+    i = 1
+    for messageGroup in messageGroups:
+        i = i + 1
+        fWrite('\n    // Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
+        fWrite('    filterID = {msgGrp}<<12;'.format(msgGrp=messageGroup), sourceFileHandle)
+        fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
+        fWrite('    filterMask = 0xFF00;', sourceFileHandle)
+        fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
+        fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
+        if boardType == 'F0':
+            fWrite('    sFilterConfig.BankNumber = {msgGrpNmbr};\n'.format(msgGrpNmbr=i), sourceFileHandle)
+            fWrite('    sFilterConfig.FilterNumber = {msgGrpNmbr};\n'.format(msgGrpNmbr=i), sourceFileHandle)
+        else:
+            fWrite('    sFilterConfig.FilterBank = {msgGrpNmbr};\n'.format(msgGrpNmbr=i), sourceFileHandle)
+            # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+            fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
+        fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
+        fWrite('    {', sourceFileHandle)
+        fWrite('      Error_Handler();', sourceFileHandle)
+        fWrite('    }', sourceFileHandle)
+
+    fWrite('}', sourceFileHandle)
+
+def writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle):
+    prototype = 'int init_can_driver()'
+    fWrite('{prototype};'.format(prototype=prototype), headerFileHandle)
+    fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
+    for string in queueInitStrings:
+        fWrite('    {string}'.format(string=string), sourceFileHandle)
+
+    fWrite('    generate_CRC_lookup_table();', sourceFileHandle)
+    fWrite('}', sourceFileHandle)
+
+
 
 def main(argv):
     if argv and len(argv) == 2:
@@ -516,7 +616,7 @@ def main(argv):
     writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName)
 
 
-    getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileHandle)
+    messageGroups = getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileHandle)
 
 
     writeSourceFileIncludes(nodeName, sourceFileHandle)
@@ -546,8 +646,9 @@ def main(argv):
     # print parse can message function
     writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
 
-    print 'Multiplexed tx msgs'
-    print multiplexedTxMessages
+    writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
+
+    writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
 
     headerFileHandle.close()
     sourceFileHandle.close()
