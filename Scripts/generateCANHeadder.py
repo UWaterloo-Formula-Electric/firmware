@@ -409,6 +409,7 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=True, numSignalsPerMessage=numSignalsPerMessage)
 
 def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle):
+    msgCallbackPrototypes = []
     functionPrototype = 'int parseCANData(int id, void *data)'
     fWrite('{};'.format(functionPrototype), headerFileHandle)
     fWrite('{} {{'.format(functionPrototype), sourceFileHandle)
@@ -421,6 +422,7 @@ def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedR
             fWrite('            {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -433,6 +435,7 @@ def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedR
 
         fWrite('            xQueueSendFromISR(queue{msgName}, &newDTC, NULL);'.format(msgName=msg.name), sourceFileHandle)
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -460,6 +463,7 @@ def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedR
                     numSignalsPerMessage -= 1
 
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        msgCallbackPrototypes.append('void {callback}(int baseIndex, int signalsInMessage)'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -472,6 +476,8 @@ def writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedR
 
     return 0;
 }""", sourceFileHandle)
+
+    return msgCallbackPrototypes
 
 def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle):
     fWrite('void configCANFilters(CAN_HandleTypeDef* canHandle);', headerFileHandle)
@@ -564,13 +570,17 @@ def writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
     fWrite('{prototype};'.format(prototype=prototype), headerFileHandle)
     fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
-    for string in queueInitStrings:
-        fWrite('    {string}'.format(string=string), sourceFileHandle)
+    if queueInitStrings:
+        for string in queueInitStrings:
+            fWrite('    {string}'.format(string=string), sourceFileHandle)
 
     fWrite('    generate_CRC_lookup_table();', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
-
+def writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle):
+    for prototype in msgCallbackPrototypes:
+        fWrite('{};\n'.format(prototype), headerFileHandle)
+        fWrite('__weak {} {{}}\n'.format(prototype), sourceFileHandle)
 
 def main(argv):
     if argv and len(argv) == 2:
@@ -644,11 +654,13 @@ def main(argv):
     writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle)
 
     # print parse can message function
-    writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
+    msgCallbackPrototypes = writeParseCanRxMessageFunction(normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
 
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
     writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
+
+    writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
 
     headerFileHandle.close()
     sourceFileHandle.close()
