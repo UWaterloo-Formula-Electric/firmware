@@ -4,7 +4,6 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 import cantools #$ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
 import os
-from pprint import pprint
 import subprocess
 import sys
 import errno
@@ -330,9 +329,6 @@ def writeMuxToIndexFunction(msgName, numSignals, numSignalsPerMessage, sourceFil
     fWrite(sourceTemplate.format(prototype=prototype, numSignalsPerMessage=numSignalsPerMessage, numSignals=numSignals), sourceFileHandle)
 
 def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFileHandle):
-    print 'Multiplexed messages'
-    print multiplexedRxMessages
-
     for msg in multiplexedRxMessages:
         fWrite('// Struct and signal receive functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
 
@@ -391,9 +387,6 @@ def writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle):
     writeNormalTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle)
 
 def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle):
-    print 'Multiplexed messages'
-    print multiplexedTxMessages
-
     for msg in multiplexedTxMessages:
         fWrite('// Struct and signal receive functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
 
@@ -590,11 +583,10 @@ def main(argv):
         print('Error: no target specified or no boardtype specified')
         sys.exit(1)
 
-    print nodeName
-    print boardType
+    print 'Generating CAN source and header files for Board: {nodeName}, Type: {boardType}'.format(nodeName=nodeName, boardType=boardType)
 
     if not (boardType == 'F0' or boardType == 'F7'):
-        print("Specifiy either F0 or F7 for boardtype")
+        print("ERROR: Specifiy either F0 or F7 for boardtype")
         sys.exit(1)
 
     commonDir = 'common-all'
