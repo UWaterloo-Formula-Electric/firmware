@@ -11,6 +11,8 @@
 #define CAN_HANDLE hcan3
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
+#define ERROR_LED_PIN LED_Y_Pin
+#define ERROR_LED_PORT LED_Y_GPIO_Port
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"
@@ -19,6 +21,8 @@
 #define CAN_HANDLE hcan1
 #define DEBUG_LED_PIN LD2_Pin
 #define DEBUG_LED_PORT LD2_GPIO_Port
+#define ERROR_LED_PIN LED_R_Pin
+#define ERROR_LED_PORT LED_R_GPIO_Port
 
 #else
 
