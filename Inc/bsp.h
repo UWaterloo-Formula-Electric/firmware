@@ -21,8 +21,8 @@
 #define CAN_HANDLE hcan1
 #define DEBUG_LED_PIN LD2_Pin
 #define DEBUG_LED_PORT LD2_GPIO_Port
-#define ERROR_LED_PIN LED_R_Pin
-#define ERROR_LED_PORT LED_R_GPIO_Port
+#define ERROR_LED_PIN LD3_Pin
+#define ERROR_LED_PORT LD3_GPIO_Port
 
 #else
 
