@@ -22,10 +22,10 @@ def create_dir(path):
 def fWrite(string, fileHandle):
     fileHandle.write(string + '\n')
 
-def generateDepedencyFile(headerFile, target):
+def generateDepedencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir):
     with open(depFile, 'w+') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateCANHeadder.py {dbFile}'.format(headerFile=headerFile, dbFile=dbFile, dir=ScriptsDir), depFileHandle)
-        fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=target, boardType=boardType, dir=ScriptsDir), depFileHandle)
+        fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=nodeName, boardType=boardType, dir=ScriptsDir), depFileHandle)
 
 def getGitCommit():
     label = '0df2a9a'
@@ -222,10 +222,8 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
     fWrite(function, fileHandle)
 
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
-    if signal.is_signed:
-      dataType = 'int64_t'
-    else:
-      dataType = 'uint64_t'
+    # TODO: find better way than making all variables floats
+    dataType = 'float'
 
     fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
     fWrite('extern volatile {dataType} {name};\n'.format(dataType=dataType, name=signal.name), headerFileHandle)
@@ -694,6 +692,8 @@ def main(argv):
 
     headerFileHandle.close()
     sourceFileHandle.close()
+
+    generateDepedencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir)
 
 
 if __name__ == '__main__':
