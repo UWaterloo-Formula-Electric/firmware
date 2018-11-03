@@ -93,20 +93,30 @@ def isRxMessage(msg, nodeName):
             return True
     return False
 
+def isProCanMessage(msg):
+    for signal in msg.signals:
+        if 'PRO_CAN' in signal.name:
+            return True
+    return False
+
 def parseCanDB(db, nodeName):
     rxMessages = [msg for msg in db.messages if isRxMessage(msg, nodeName)]
     txMessages = [msg for msg in db.messages if nodeName in msg.senders]
 
     multiplexedRxMessages = [msg for msg in rxMessages if msg.is_multiplexed()]
     multiplexedTxMessages = [msg for msg in txMessages if msg.is_multiplexed()]
+
     dtcRxMessages = [msg for msg in rxMessages if 'DTC' in msg.name]
     dtcTxMessages = [msg for msg in txMessages if 'DTC' in msg.name]
 
-    normalRxMessages = [msg for msg in rxMessages if msg not in multiplexedRxMessages and msg not in dtcRxMessages]
-    normalTxMessages = [msg for msg in txMessages if msg not in multiplexedTxMessages and msg not in dtcTxMessages]
+    proCanRxMessages = [msg for msg in rxMessages if isProCanMessage(msg)]
+    proCanTxMessages = [msg for msg in txMessages if isProCanMessage(msg)]
+
+    normalRxMessages = [msg for msg in rxMessages if msg not in multiplexedRxMessages and msg not in dtcRxMessages and msg not in proCanRxMessages]
+    normalTxMessages = [msg for msg in txMessages if msg not in multiplexedTxMessages and msg not in dtcTxMessages and msg not in proCanTxMessages]
 
     return (rxMessages, txMessages, normalRxMessages, normalTxMessages,
-            multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages)
+            multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages)
 
 def getStrippedSignalName(signalName):
     strippedSignalName = re.sub('\d+$', '', signalName)
@@ -247,18 +257,19 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
     if len(dtcRxMessages) == 0:
         return
 
-    # Create DTC Receive functions and packed struct only once,
+    # Create DTC Receive functions only once,
     # so just choose the first dtc message to base them on
     msg = dtcRxMessages[0]
     for signal in getReceivedSignalsFromMessage(msg, nodeName):
         fWrite('// signal received functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
         writeSignalReceivedFunction(signal, sourceFileHandle, dtc=True)
 
-    writeStructForMsg(msg, msg.name, sourceFileHandle)
 
 
     # Now, create the struct and queue for all messages
     for msg in dtcRxMessages:
+        writeStructForMsg(msg, msg.name, sourceFileHandle)
+
         fWrite('typedef struct {msg.name}_unpacked {{'.format(**locals()), headerFileHandle)
         for signal in getReceivedSignalsFromMessage(msg, nodeName):
             fWrite('    int {signal.name};'.format(**locals()), headerFileHandle)
@@ -353,7 +364,18 @@ def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFi
         writeStructForMsg(msg, msg.name, sourceFileHandle)
         writeMuxToIndexFunction(msg.name, numSignals, numSignalsPerMessage, sourceFileHandle, headerFileHandle)
 
-def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=False, numSignalsPerMessage=0):
+def writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFileHandle):
+    # For now, just ignore PRO_CAN signals on receive
+    for msg in proCanRxMessages:
+        fWrite('// Struct and signal receive functions for msg {}'.format(msg.name), sourceFileHandle)
+        writeStructForMsg(msg, msg.name, sourceFileHandle)
+
+        for signal in getReceivedSignalsFromMessage(msg, nodeName):
+            if not 'PRO_CAN' in signal.name:
+                writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
+                writeSignalReceivedFunction(signal, sourceFileHandle)
+
+def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0):
     if multiplexed:
         multiplexIndexString = 'int index'
     else:
@@ -363,7 +385,12 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexe
     fWrite('int sendCAN_{name}({multiplexIndexString});'.format(name=msg.name, multiplexIndexString=multiplexIndexString), headerFileHandle)
 
     structInstanceName = 'new_{name}'.format(name=msg.name)
-    fWrite('    struct {structName} {instanceName};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
+    fWrite('    struct {structName} {instanceName} = {{0}};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
+
+    if proCAN:
+        fWrite('    {structName}.PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT++;'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
+        fWrite('    {msgName}_PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT % 16;'.format(msgName=msg.name), sourceFileHandle)
+        fWrite('    {structName}.PRO_CAN_CRC = calculate_base_CRC((void *) &{structName})^{msgName}_PRO_CAN_SEED;\n'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
 
     for signal in msg.signals:
         if multiplexed:
@@ -377,6 +404,10 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexe
                     strippedSignalName = getStrippedSignalName(signal.name)
                     fWrite('    {structName}.{signalName}{signalNumber} = {sendFunction}(index);'.format(structName=structInstanceName, signalName=strippedSignalName, sendFunction=sendFunctionName, signalNumber=str(numSignalsPerMessage)), sourceFileHandle)
                     numSignalsPerMessage -= 1
+        elif proCAN:
+            if not 'PRO_CAN' in signal.name:
+                sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
+                fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
         else:
             sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
             fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
@@ -384,13 +415,13 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexe
     fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
-def writeVersionSendFunction(sourceFileHandle):
+def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
     fWrite('int sendCAN_{name}();\n'.format(name=msg.name), headerFileHandle)
     fWrite('int sendCAN_{name}() {{'.format(name=msg.name), sourceFileHandle)
     structInstanceName = 'new_{name}'.format(name=msg.name)
     fWrite('    struct {structName} {instanceName};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
 
-    fWrite('    {structName}.DBC = DBCVERSION;'.format(structName=structInstanceName), sourceFileHandle)
+    fWrite('    {structName}.DBC = DBCVersion;'.format(structName=structInstanceName), sourceFileHandle)
     for i in range(0,7):
         fWrite('    {structName}.git{i} = gitCommit[{i}];'.format(structName=structInstanceName, i=i), sourceFileHandle)
 
@@ -404,7 +435,7 @@ def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle):
 
         if msg.comment == 'VERSION':
             # This is a message to send DBC and git commit, it is special
-            fWrite
+            writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle)
         else:
             for signal in msg.signals:
                 writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
@@ -429,6 +460,24 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         writeStructForMsg(msg, msg.name, sourceFileHandle)
         writeIndexToMuxFunction(msg.name, numSignalsPerMessage, sourceFileHandle, headerFileHandle)
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=True, numSignalsPerMessage=numSignalsPerMessage)
+
+def writeProCanSpecialVariables(msg, sourceFileHandle):
+    fWrite('int {msgName}_PRO_CAN_SEED = 127;'.format(msgName=msg.name), sourceFileHandle)
+    fWrite('int {msgName}_PRO_CAN_COUNT = 0;'.format(msgName=msg.name), sourceFileHandle)
+
+def writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle):
+    for msg in proCanTxMessages:
+        fWrite('// Struct and signal send functions for msg {}'.format(msg.name), sourceFileHandle)
+        writeStructForMsg(msg, msg.name, sourceFileHandle)
+
+        writeProCanSpecialVariables(msg, sourceFileHandle)
+
+        for signal in msg.signals:
+            if not 'PRO_CAN' in signal.name:
+                writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
+                writeSignalSendingFunction(signal, sourceFileHandle)
+        writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=True)
+
 
 def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle):
     msgCallbackPrototypes = []
@@ -659,7 +708,8 @@ def main(argv):
     writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle)
 
 
-    (rxMessages, txMessages, normalRxMessages, normalTxMessages, multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages) = parseCanDB(db, nodeName)
+    (rxMessages, txMessages, normalRxMessages, normalTxMessages, multiplexedRxMessages,
+     multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages) = parseCanDB(db, nodeName)
 
     # print normalRxMessages
     writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFileHandle)
@@ -678,6 +728,10 @@ def main(argv):
 
     # print multiplexed Tx Messages
     writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle)
+
+    writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFileHandle)
+
+    writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle)
 
     # print parse can message function
     msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
