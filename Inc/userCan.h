@@ -26,8 +26,9 @@
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data);
+HAL_StatusTypeDef sendCanMessageUrgent(int id, int length, uint8_t *data);
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data);
-void canTask(void *pvParameters);
+void canTask(const void *pvParameters);
 void setCanTaskHandle(TaskHandle_t handle);
 //bool sendCanMessage(const uint16_t id, const uint8_t *data, const uint8_t length);
 //bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,
