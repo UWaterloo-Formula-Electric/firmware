@@ -4,6 +4,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "drive_by_wire.h"
+#include "userCan.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -23,5 +24,9 @@ void userInit()
     }
 
     uartStartReceiving(&DEBUG_UART_HANDLE);
+
+    if (canInit(&CAN_HANDLE) != HAL_OK) {
+      Error_Handler();
+    }
 }
 
