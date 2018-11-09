@@ -3,6 +3,7 @@
 
 #include "bsp.h"
 #include "debug.h"
+#include "userCan.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -16,6 +17,9 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 // before freeRTOS initializes and starts up
 void userInit()
 {
-    uartStartReceiving(&DEBUG_UART_HANDLE);
+    if (canInit(&CAN_HANDLE) != HAL_OK) {
+      Error_Handler();
+    }
+    /*uartStartReceiving(&DEBUG_UART_HANDLE);*/
 }
 

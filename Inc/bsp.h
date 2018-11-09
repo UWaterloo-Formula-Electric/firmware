@@ -3,6 +3,7 @@
 
 #include "boardTypes.h"
 #include "main.h"
+#include "can.h"
 
 #if IS_BOARD_F0
 #include "stm32f0xx_hal.h"
