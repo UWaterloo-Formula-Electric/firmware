@@ -6,6 +6,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "DCU_can.h"
+#include "userCan.h"
 
 #define EM_BUTTON_DEBOUNCE_MS 100
 #define HV_BUTTON_DEBOUNCE_MS 100
@@ -89,6 +90,7 @@ void mainTaskFunction(void const * argument)
     uint32_t buttonStatuses;
 
     DEBUG_PRINT("Starting up!!\n");
+    canStart(&CAN_HANDLE);
 
     while (1) {
         xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
