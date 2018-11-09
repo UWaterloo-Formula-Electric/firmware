@@ -51,20 +51,30 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
+BO_ 2147548931 PDU_DTC: 6 Vector__XXX
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+
+BO_ 2147548935 DCU_DTC: 6 DCU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+
 BO_ 2147548930 VCU_F7_DTC: 6 VCU_F7
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
 
 BO_ 2147548929 BMU_DTC: 6 BMU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
 
 BO_ 2147548943 ChargeCart_DTC: 6 ChargeCart
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
 
 BO_ 35 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonChargeStop : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
