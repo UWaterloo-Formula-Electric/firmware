@@ -479,7 +479,7 @@ def writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle):
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=True)
 
 
-def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle):
+def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, sourceFileHandle, headerFileHandle):
     msgCallbackPrototypes = []
     functionPrototype = 'int parseCANData(int id, void *data)'
     fWrite('{};'.format(functionPrototype), headerFileHandle)
@@ -507,6 +507,19 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
             fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
         fWrite('            xQueueSendFromISR(queue{msgName}, &newDtc, NULL);'.format(msgName=msg.name), sourceFileHandle)
+        callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
+        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        fWrite('            break;\n        }', sourceFileHandle)
+
+    for msg in proCanRxMessages:
+        fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
+        fWrite('        {', sourceFileHandle)
+        fWrite('            struct {structName} *in_{structName} = data;'.format(structName=msg.name), sourceFileHandle)
+        for signal in getReceivedSignalsFromMessage(msg, nodeName):
+            if not 'PRO_CAN' in signal.name:
+                fWrite('            {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
+
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
         msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
@@ -734,7 +747,7 @@ def main(argv):
     writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle)
 
     # print parse can message function
-    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, sourceFileHandle, headerFileHandle)
+    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, sourceFileHandle, headerFileHandle)
 
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
