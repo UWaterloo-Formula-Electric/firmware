@@ -42,6 +42,8 @@
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern UART_HandleTypeDef huart2;
 
 /******************************************************************************/
 /*            Cortex-M0 Processor Interruption and Exception Handlers         */ 
@@ -68,6 +70,34 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f0xx.s).                    */
 /******************************************************************************/
+
+/**
+* @brief This function handles DMA1 channel 4, 5, 6 and 7 interrupts.
+*/
+void DMA1_Channel4_5_6_7_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel4_5_6_7_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+  /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel4_5_6_7_IRQn 1 */
+}
+
+/**
+* @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
+*/
+void USART2_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
+}
 
 /**
 * @brief This function handles HDMI-CEC and CAN interrupts / HDMI-CEC wake-up interrupt through EXTI line 27.

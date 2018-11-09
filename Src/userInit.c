@@ -20,6 +20,6 @@ void userInit()
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
-    /*uartStartReceiving(&DEBUG_UART_HANDLE);*/
+    uartStartReceiving(&DEBUG_UART_HANDLE);
 }
 
