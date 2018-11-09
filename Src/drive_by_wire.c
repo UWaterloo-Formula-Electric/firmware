@@ -7,7 +7,7 @@
 #include "debug.h"
 #include "state_machine.h"
 #include "timers.h"
-
+#include "VCU_F7_dtc.h"
 
 #define THROTTLE_POLL_TIME_MS 1000
 
@@ -103,20 +103,24 @@ uint32_t EM_Enable(uint32_t event)
     if (!bpsState) {
         // send DTC
         DEBUG_PRINT("Failed to em enable, bps fault\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(0);
         return STATE_EM_Disable;
     }
     if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
         // send DTC
         DEBUG_PRINT("Failed to em enable, brake pressure low\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(1);
         return STATE_EM_Disable;
     }
     if (!(throttle_is_zero(throttle))) {
         // send DTC
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(2);
         return STATE_EM_Disable;
     }
     if (!hvEnable) {
         // send DTC
+        sendDTC_WARNING_EM_ENABLE_FAILED(3);
         DEBUG_PRINT("Failed to em enable, not HV enabled\n");
         return STATE_EM_Disable;
     }
