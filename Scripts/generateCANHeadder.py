@@ -80,6 +80,7 @@ def writeSourceFileIncludes(nodeName, sourceFileHandle):
     fWrite("#include \""+nodeName+"_can.h\"", sourceFileHandle)
     fWrite('#include \"CRC_CALC.h\"', sourceFileHandle)
     fWrite('#include \"userCan.h\"', sourceFileHandle)
+    fWrite('#include \"debug.h\"', sourceFileHandle)
 
 def writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle):
     fWrite('//DBC version:', sourceFileHandle)
@@ -507,6 +508,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
             fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
         fWrite('            xQueueSendFromISR(queue{msgName}, &newDtc, NULL);'.format(msgName=msg.name), sourceFileHandle)
+        fWrite('            DEBUG_PRINT("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
         msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
