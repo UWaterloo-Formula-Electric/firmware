@@ -59,6 +59,8 @@
 /* Variables -----------------------------------------------------------------*/
 osThreadId driveByWireHandle;
 osThreadId mainTaskHandle;
+osThreadId canSendTaskHandle;
+osThreadId canReceiveTaskHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -67,6 +69,8 @@ osThreadId mainTaskHandle;
 /* Function prototypes -------------------------------------------------------*/
 void driveByWireTask(void const * argument);
 void mainTaskFunction(void const * argument);
+void canTask(void const * argument);
+void canReceive(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -104,6 +108,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+
+  /* definition and creation of canReceiveTask */
+  osThreadDef(canReceiveTask, canReceive, osPriorityNormal, 0, 1000);
+  canReceiveTaskHandle = osThreadCreate(osThread(canReceiveTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -136,6 +148,30 @@ __weak void mainTaskFunction(void const * argument)
     osDelay(1);
   }
   /* USER CODE END mainTaskFunction */
+}
+
+/* canTask function */
+__weak void canTask(void const * argument)
+{
+  /* USER CODE BEGIN canTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END canTask */
+}
+
+/* canReceive function */
+__weak void canReceive(void const * argument)
+{
+  /* USER CODE BEGIN canReceive */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END canReceive */
 }
 
 /* USER CODE BEGIN Application */
