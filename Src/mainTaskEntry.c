@@ -57,7 +57,7 @@ bool EM_TogglePressed() {
 
         //send CAN Message
 
-        HAL_GPIO_WritePin(DEBUG_LED_PORT, DEBUG_LED_PIN, EM_ToggleHigh);
+        HAL_GPIO_WritePin(EM_LED_GPIO_Port, EM_LED_Pin, EM_ToggleHigh);
         return true;
     } else {
         DEBUG_PRINT("Debounced out EM Toggle!\n");
@@ -77,7 +77,7 @@ bool HV_TogglePressed() {
 
         //send CAN Message
 
-        HAL_GPIO_WritePin(DEBUG_LED_PORT, DEBUG_LED_PIN, HV_ToggleHigh);
+        HAL_GPIO_WritePin(HV_LED_GPIO_Port, HV_LED_Pin, HV_ToggleHigh);
         return true;
     } else {
         DEBUG_PRINT("Debounced out HV Toggle!\n");
