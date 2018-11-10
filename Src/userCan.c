@@ -36,6 +36,8 @@ typedef struct CanMessage_t {
 QueueHandle_t canMessageSendQueue;
 TaskHandle_t canTaskHandle;
 
+bool canStarted = false;
+
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
 #if IS_BOARD_F7_FAMILY
@@ -62,13 +64,16 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 {
+    if (!canStarted) {
+        canStarted = true;
 #if IS_BOARD_F7_FAMILY
-    return F7_canStart(hcan);
+        return F7_canStart(hcan);
 #elif IS_BOARD_F0_FAMILY
-    return F0_canStart(hcan);
+        return F0_canStart(hcan);
 #else
 #error canStart not defined for this board type
 #endif
+    }
 }
 
 /* Queue a CAN message to be sent.
