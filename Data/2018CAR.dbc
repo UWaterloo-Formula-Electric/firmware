@@ -51,7 +51,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 2147548931 PDU_DTC: 6 Vector__XXX
+BO_ 2147548931 PDU_DTC: 6 PDU
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
