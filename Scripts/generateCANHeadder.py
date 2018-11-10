@@ -159,40 +159,47 @@ def writeStructForMsg(msg, structName, fileHandle):
     fWrite('};\n', fileHandle)
 
 def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
+    dataTypeOutput = 'float'
+    if signal.scale == 1:
+        if signal.is_signed:
+            dataTypeOutput = 'int64_t'
+        else:
+            dataTypeOutput = 'uint64_t'
+
     functionTemplate = ''
     if multiplexed:
-        functionTemplate = """void {signalName}Received(int index, {dataType} newValue)
+        functionTemplate = """void {signalName}Received(int index, {dataTypeInput} newValue)
 {{
-    float floatValue = (float)newValue;
-    floatValue *= {scaler};
-    floatValue += {offset};
-    {signalName}[index] = floatValue;
+    {dataTypeOutput} outValue = newValue;
+    outValue *= {scaler};
+    outValue += {offset};
+    {signalName}[index] = outValue;
 }}\n"""
     elif dtc:
-        functionTemplate = """int {signalName}Received({dataType} newValue)
+        functionTemplate = """int {signalName}Received({dataTypeInput} newValue)
 {{
-    float floatValue = (float)newValue;
-    floatValue *= {scaler};
-    floatValue += {offset};
-    return floatValue;
+    {dataTypeOutput} outValue = newValue;
+    outValue *= {scaler};
+    outValue += {offset};
+    return outValue;
 }}\n"""
     else:
-        functionTemplate = """void {signalName}Received({dataType} newValue)
+        functionTemplate = """void {signalName}Received({dataTypeInput} newValue)
 {{
-    float floatValue = (float)newValue;
-    floatValue *= {scaler};
-    floatValue += {offset};
-    {signalName} = floatValue;
+    {dataTypeOutput} outValue = newValue;
+    outValue *= {scaler};
+    outValue += {offset};
+    {signalName} = outValue;
 }}\n"""
 
     if signal.is_signed:
-      dataType = 'int64_t'
+      dataTypeInput = 'int64_t'
     else:
-      dataType = 'uint64_t'
+      dataTypeInput = 'uint64_t'
 
     if variableName == '':
         variableName = signal.name
-    function = functionTemplate.format(signalName=variableName,dataType=dataType, scaler=signal.scale, offset=signal.offset)
+    function = functionTemplate.format(signalName=variableName, dataTypeInput=dataTypeInput, dataTypeOutput=dataTypeOutput, scaler=signal.scale, offset=signal.offset)
     fWrite(function, fileHandle)
 
 def getSignalSendingFunctionName(signal, multiplexed):
@@ -204,37 +211,48 @@ def getSignalSendingFunctionName(signal, multiplexed):
     return '{signalName}Sending'.format(signalName=signalName)
 
 def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=False):
+    dataType = 'float'
+    if signal.scale == 1:
+        if signal.is_signed:
+            dataType = 'int64_t'
+        else:
+            dataType = 'uint64_t'
+
     functionTemplate = ''
     if not multiplexed:
-        functionTemplate = """{dataType} {signalName}Sending()
+        functionTemplate = """{dataTypeReturn} {signalName}Sending()
 {{
-    float sendValue = {signalName};
+    {dataType} sendValue = {signalName};
     sendValue -= {offset};
     sendValue /= {scaler};
     return sendValue;
 }}\n"""
     else:
-        functionTemplate = """{dataType} {signalName}Sending(int index)
+        functionTemplate = """{dataTypeReturn} {signalName}Sending(int index)
 {{
-    float sendValue = {signalName}[index];
+    {dataType} sendValue = {signalName}[index];
     sendValue -= {offset};
     sendValue /= {scaler};
     return sendValue;
 }}\n"""
 
     if signal.is_signed:
-      dataType = 'int64_t'
+      dataTypeReturn = 'int64_t'
     else:
-      dataType = 'uint64_t'
+      dataTypeReturn = 'uint64_t'
 
     if variableName == '':
         variableName = signal.name
-    function = functionTemplate.format(signalName=variableName,dataType=dataType, scaler=signal.scale, offset=signal.offset)
+    function = functionTemplate.format(signalName=variableName,dataType=dataType, dataTypeReturn=dataTypeReturn, scaler=signal.scale, offset=signal.offset)
     fWrite(function, fileHandle)
 
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
-    # TODO: find better way than making all variables floats
     dataType = 'float'
+    if signal.scale == 1:
+        if signal.is_signed:
+            dataType = 'int64_t'
+        else:
+            dataType = 'uint64_t'
 
     fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
     fWrite('extern volatile {dataType} {name};\n'.format(dataType=dataType, name=signal.name), headerFileHandle)
