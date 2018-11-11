@@ -166,7 +166,7 @@ LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(LIB_AS_INCLUDES) $(LIB_OPT) -Wall -fda
 
 LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
 
-ifeq ($(LIB_LIB_DEBUG), 1)
+ifeq ($(LIB_DEBUG), 1)
 LIB_CFLAGS += -g -gdwarf-2
 endif
 

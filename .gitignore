@@ -27,3 +27,4 @@ Gen/
 *.tmp
 *.bak
 *.d
+build/

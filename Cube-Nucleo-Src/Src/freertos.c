@@ -58,7 +58,8 @@
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId mainTaskHandle;
-osThreadId driveByWireHandle;
+osThreadId mainControlHandle;
+osThreadId canSendTaskHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -66,7 +67,8 @@ osThreadId driveByWireHandle;
 
 /* Function prototypes -------------------------------------------------------*/
 void mainTaskFunction(void const * argument);
-void driveByWireTask(void const * argument);
+void mainControlTask(void const * argument);
+void canTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -115,9 +117,13 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
-  /* definition and creation of driveByWire */
-  osThreadDef(driveByWire, driveByWireTask, osPriorityRealtime, 0, 1000);
-  driveByWireHandle = osThreadCreate(osThread(driveByWire), NULL);
+  /* definition and creation of mainControl */
+  osThreadDef(mainControl, mainControlTask, osPriorityRealtime, 0, 1000);
+  mainControlHandle = osThreadCreate(osThread(mainControl), NULL);
+
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -141,16 +147,28 @@ __weak void mainTaskFunction(void const * argument)
   /* USER CODE END mainTaskFunction */
 }
 
-/* driveByWireTask function */
-__weak void driveByWireTask(void const * argument)
+/* mainControlTask function */
+__weak void mainControlTask(void const * argument)
 {
-  /* USER CODE BEGIN driveByWireTask */
+  /* USER CODE BEGIN mainControlTask */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END driveByWireTask */
+  /* USER CODE END mainControlTask */
+}
+
+/* canTask function */
+__weak void canTask(void const * argument)
+{
+  /* USER CODE BEGIN canTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END canTask */
 }
 
 /* USER CODE BEGIN Application */

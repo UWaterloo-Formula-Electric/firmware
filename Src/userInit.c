@@ -3,7 +3,8 @@
 
 #include "bsp.h"
 #include "debug.h"
-#include "drive_by_wire.h"
+#include "controlStateMachine.h"
+#include "userCan.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -17,9 +18,13 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 // before freeRTOS initializes and starts up
 void userInit()
 {
-    if (driveByWireInit() != HAL_OK)
-    {
+    if (initStateMachines() != HAL_OK) {
+        ERROR_PRINT("Failed to init state machines!\n");
         Error_Handler();
+    }
+
+    if (canInit(&CAN_HANDLE) != HAL_OK) {
+      Error_Handler();
     }
 
     uartStartReceiving(&DEBUG_UART_HANDLE);

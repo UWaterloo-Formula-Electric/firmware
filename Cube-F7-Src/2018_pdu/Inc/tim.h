@@ -70,10 +70,9 @@ extern TIM_HandleTypeDef htim2;
 extern void _Error_Handler(char *, int);
 
 void MX_TIM2_Init(void);
-                    
+                        
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                
-
+                    
 /* USER CODE BEGIN Prototypes */
 
 /* USER CODE END Prototypes */
