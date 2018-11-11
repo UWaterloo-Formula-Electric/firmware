@@ -104,7 +104,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
-    CAN_TxHeaderTypeDef   TxHeader;
+    CAN_TxHeaderTypeDef   TxHeader = {0};
     uint32_t              TxMailbox;
 
     if (length > 8) {
@@ -121,6 +121,7 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     TxHeader.RTR = CAN_RTR_DATA;
     TxHeader.IDE = CAN_ID_EXT;
     TxHeader.DLC = length;
+    TxHeader.TransmitGlobalTime = DISABLE;
 
     if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
         ERROR_PRINT("Can transmit failed, no free mailboxes\n");
