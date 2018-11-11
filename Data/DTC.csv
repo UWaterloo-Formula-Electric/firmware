@@ -14,4 +14,8 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 13,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short
 14,INSULATION_RESISTANCE_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is abnormaly low
 15,INSULATION_RESISTANCE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is critically low
-16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMY,VCU_BEAGLEBONE",Reason,The vcu failed to em enable for reason #data
+16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: not hv enabled)"
+17,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is about to turn off the boards after a short delay"
+18,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards"
+19,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay"
+20,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU
