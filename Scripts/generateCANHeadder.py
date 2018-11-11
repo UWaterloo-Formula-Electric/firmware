@@ -10,6 +10,38 @@ import errno
 import re
 import operator
 
+ReceivedSignalsArray = []
+SentSignalsArray = []
+DeclaredVariablesSignalsArray = []
+
+def isSignalNameInArray(signal, array):
+    for sig in array:
+        if sig.name == signal.name:
+            return True
+
+    return False
+
+def checkForDuplicateSignalReceive(signal):
+    if isSignalNameInArray(signal, ReceivedSignalsArray):
+        return True
+    else:
+        ReceivedSignalsArray.append(signal)
+        return False
+
+def checkForDuplicateSignalSend(signal):
+    if isSignalNameInArray(signal, SentSignalsArray):
+        return True
+    else:
+        SentSignalsArray.append(signal)
+        return False
+
+def checkForDuplicateSignalDeclaration(signal):
+    if isSignalNameInArray(signal, DeclaredVariablesSignalsArray):
+        return True
+    else:
+        DeclaredVariablesSignalsArray.append(signal)
+        return False
+
 def create_dir(path):
     try:
         os.makedirs(path)
@@ -159,6 +191,9 @@ def writeStructForMsg(msg, structName, fileHandle):
     fWrite('};\n', fileHandle)
 
 def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
+    if checkForDuplicateSignalReceive(signal):
+        return
+
     dataTypeOutput = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -211,6 +246,9 @@ def getSignalSendingFunctionName(signal, multiplexed):
     return '{signalName}Sending'.format(signalName=signalName)
 
 def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=False):
+    if checkForDuplicateSignalSend(signal):
+        return
+
     dataType = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -247,6 +285,9 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
     fWrite(function, fileHandle)
 
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
+    if checkForDuplicateSignalDeclaration(signal):
+        return
+
     dataType = 'float'
     if signal.scale == 1:
         if signal.is_signed:
