@@ -75,6 +75,7 @@ void mainControlTask(void *pvParameters)
 {
     // Pre send EV_INIT to kick off self tests
     startControl();
+
     if (canStart(&CAN_HANDLE) != HAL_OK)
     {
         ERROR_PRINT("Failed to start CAN!\n");

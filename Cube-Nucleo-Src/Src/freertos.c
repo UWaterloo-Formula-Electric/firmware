@@ -67,8 +67,8 @@ osThreadId canSendTaskHandle;
 
 /* Function prototypes -------------------------------------------------------*/
 void mainTaskFunction(void const * argument);
-void mainControlTask(void const * argument);
-void canTask(void const * argument);
+extern void mainControlTask(void const * argument);
+extern void canTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -145,30 +145,6 @@ __weak void mainTaskFunction(void const * argument)
     osDelay(1);
   }
   /* USER CODE END mainTaskFunction */
-}
-
-/* mainControlTask function */
-__weak void mainControlTask(void const * argument)
-{
-  /* USER CODE BEGIN mainControlTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END mainControlTask */
-}
-
-/* canTask function */
-__weak void canTask(void const * argument)
-{
-  /* USER CODE BEGIN canTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END canTask */
 }
 
 /* USER CODE BEGIN Application */
