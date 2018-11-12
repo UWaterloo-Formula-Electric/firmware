@@ -90,6 +90,17 @@ void executeSerialCommand(char str[]) {
         fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_ENABLE);
     } else if (STR_EQ(str, "em disable")) {
         fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
+    } else if (STR_EQ(str, "hv enable")) {
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_ENABLE);
+    } else if (STR_EQ(str, "hv disable")) {
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_DISABLE);
+    } else if (STR_EQ(str, "overtemp")) {
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_OVERTEMP_WARNING);
+    } else if (STR_EQ(str, "print")) {
+        DEBUG_PRINT("States:\n");
+        DEBUG_PRINT("Cooling: %ld\n", fsmGetState(&coolingFsmHandle));
+        DEBUG_PRINT("Motors: %ld\n", fsmGetState(&motorFsmHandle));
+        DEBUG_PRINT("Main: %ld\n", fsmGetState(&mainFsmHandle));
     } else {
         DEBUG_PRINT("Unknown command\n");
     }

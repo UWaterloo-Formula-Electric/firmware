@@ -33,10 +33,29 @@ typedef enum MotorControl_PDU_Events_t {
     MTR_EV_ANY, // Must be the last event
 } MotorControl_PDU_Events_t;
 
+typedef enum CoolingControl_PDU_States_t {
+    COOL_STATE_OFF,
+    COOL_STATE_WAIT,
+    COOL_STATE_ON,
+    COOL_STATE_HV_CRITICAL,
+    COOL_STATE_LV_Cuttoff,
+    COOL_STATE_ANY, // Must be the last state
+} CoolingControl_PDU_States_t;
+
+typedef enum CoolingControl_PDU_Events_t {
+    COOL_EV_HV_ENABLE,
+    COOL_EV_HV_DISABLE,
+    COOL_EV_WAIT_ELAPSED,
+    COOL_EV_OVERTEMP_WARNING,
+    COOL_EV_Critical,
+    COOL_EV_LV_Cuttoff,
+    COOL_EV_ANY, // Must be the last event
+} CoolingControl_PDU_Events_t;
+
 extern FSM_Handle_Struct mainFsmHandle;
 extern FSM_Handle_Struct motorFsmHandle;
+extern FSM_Handle_Struct coolingFsmHandle;
 
 HAL_StatusTypeDef initStateMachines();
-HAL_StatusTypeDef startMainControl();
 void mainControlTask(void *pvParameters);
 #endif // __DRIVE_BY_WIRE_H
