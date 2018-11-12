@@ -3,23 +3,38 @@
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
 
-typedef enum VCU_States_t {
-    STATE_Boards_Off = 0,
-    STATE_Boards_On,
-    STATE_Warning_Critical,
-    STATE_Critical_Failure,
-    STATE_ANY, // Must be the last state
+typedef enum Main_PDU_States_t {
+    MN_STATE_Boards_Off = 0,
+    MN_STATE_Boards_On,
+    MN_STATE_Warning_Critical,
+    MN_STATE_Critical_Failure,
+    MN_STATE_ANY, // Must be the last state
 } Main_PDU_States_t;
 
-typedef enum VCU_Events_t {
-    EV_Init = 0,
-    EV_HV_CriticalFailure,
-    EV_CriticalDelayElapsed,
-    EV_LV_Cuttoff,
-    EV_ANY, // Must be the last event
+typedef enum MAIN_PDU_Events_t {
+    MN_EV_Init = 0,
+    MN_EV_HV_CriticalFailure,
+    MN_EV_CriticalDelayElapsed,
+    MN_EV_LV_Cuttoff,
+    MN_EV_ANY, // Must be the last event
 } MAIN_PDU_Events_t;
 
+typedef enum MotorControl_PDU_States_t {
+    MTR_STATE_Motors_Off = 0,
+    MTR_STATE_Motors_On,
+    MTR_STATE_Critical,
+    MTR_STATE_ANY, // Must be the last state
+} MotorControl_PDU_States_t;
+
+typedef enum MotorControl_PDU_Events_t {
+    MTR_EV_EM_ENABLE = 0,
+    MTR_EV_EM_DISABLE,
+    MTR_EV_Motor_Critical,
+    MTR_EV_ANY, // Must be the last event
+} MotorControl_PDU_Events_t;
+
 extern FSM_Handle_Struct mainFsmHandle;
+extern FSM_Handle_Struct motorFsmHandle;
 
 HAL_StatusTypeDef initStateMachines();
 HAL_StatusTypeDef startMainControl();

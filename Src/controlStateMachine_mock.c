@@ -83,9 +83,13 @@
 void executeSerialCommand(char str[]) {
     DEBUG_PRINT("Serial command: %s\n", str);
     if (STR_EQ(str, "critical")) {
-        fsmSendEventISR(&mainFsmHandle, EV_HV_CriticalFailure);
+        fsmSendEventISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
     } else if (STR_EQ(str, "lv cuttoff")) {
-        fsmSendEventISR(&mainFsmHandle, EV_LV_Cuttoff);
+        fsmSendEventISR(&mainFsmHandle, MN_EV_LV_Cuttoff);
+    } else if (STR_EQ(str, "em enable")) {
+        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_ENABLE);
+    } else if (STR_EQ(str, "em disable")) {
+        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
     } else {
         DEBUG_PRINT("Unknown command\n");
     }

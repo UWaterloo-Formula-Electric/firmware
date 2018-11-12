@@ -12,50 +12,85 @@
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
 
 FSM_Handle_Struct mainFsmHandle;
-TimerHandle_t criticalDelayTimes;
+FSM_Handle_Struct motorFsmHandle;
+TimerHandle_t criticalDelayTimer;
 
-uint32_t runSelftTests(uint32_t event);
 HAL_StatusTypeDef turnBoardsOn();
 HAL_StatusTypeDef turnBoardsOff();
+uint32_t runSelftTests(uint32_t event);
+uint32_t motorsOff(uint32_t event);
+uint32_t motorsOn(uint32_t event);
+uint32_t motorsOffCritical(uint32_t event);
 uint32_t lvCuttoff(uint32_t event);
 uint32_t criticalFailure(uint32_t event);
 uint32_t criticalFailureWarning(uint32_t event);
-uint32_t DefaultTransition(uint32_t event);
+uint32_t MainDefaultTransition(uint32_t event);
+uint32_t MotorDefaultTransition(uint32_t event);
+uint32_t mainDoNothing(uint32_t event);
+uint32_t motorDoNothing(uint32_t event);
 void hvCriticalDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
 
 Transition_t mainTransitions[] = {
-    { STATE_Boards_Off, EV_Init, &runSelftTests },
-    { STATE_Boards_On,  EV_HV_CriticalFailure, &criticalFailureWarning },
-    { STATE_Warning_Critical, EV_CriticalDelayElapsed, &criticalFailure },
-    { STATE_Boards_On, EV_LV_Cuttoff, &lvCuttoff },
-    { STATE_ANY, EV_ANY, &DefaultTransition}
+    { MN_STATE_Boards_Off, MN_EV_Init, &runSelftTests },
+    { MN_STATE_Boards_On,  MN_EV_HV_CriticalFailure, &criticalFailureWarning },
+    { MN_STATE_Warning_Critical, MN_EV_CriticalDelayElapsed, &criticalFailure },
+    { MN_STATE_Boards_On, MN_EV_LV_Cuttoff, &lvCuttoff },
+    { MN_STATE_Critical_Failure, MN_EV_ANY, &mainDoNothing },
+    { MN_STATE_ANY, MN_EV_ANY, &MainDefaultTransition}
 };
+
+Transition_t motorTransitions[] = {
+    { MTR_STATE_Motors_Off, MTR_EV_EM_ENABLE, &motorsOn },
+    { MTR_STATE_Motors_On, MTR_EV_EM_DISABLE, &motorsOff },
+    { MTR_STATE_Motors_On, MTR_EV_Motor_Critical, &motorsOff },
+    { MTR_STATE_Motors_Off, MTR_EV_Motor_Critical, &motorsOffCritical },
+    { MTR_STATE_Critical, MTR_EV_ANY, &motorDoNothing },
+    { MTR_STATE_ANY, MTR_EV_ANY, &MotorDefaultTransition}
+};
+
+HAL_StatusTypeDef motorControlInit()
+{
+    FSM_Init_Struct init;
+
+    init.maxStateNum = MTR_STATE_ANY;
+    init.maxEventNum = MTR_EV_ANY;
+    init.sizeofEventEnumType = sizeof(MotorControl_PDU_Events_t);
+    init.ST_ANY = MTR_STATE_ANY;
+    init.EV_ANY = MTR_EV_ANY;
+    init.transitions = motorTransitions;
+    init.transitionTableLength = TRANS_COUNT(motorTransitions);
+    init.eventQueueLength = 5;
+    fsmInit(MTR_STATE_Motors_Off, &init, &motorFsmHandle);
+
+    DEBUG_PRINT("Init motor control\n");
+    return HAL_OK;
+}
 
 HAL_StatusTypeDef maincontrolInit()
 {
     FSM_Init_Struct init;
 
-    criticalDelayTimes = xTimerCreate("HV_CRITICAL_DELAY",
+    criticalDelayTimer = xTimerCreate("HV_CRITICAL_DELAY",
                                        pdMS_TO_TICKS(HV_CRITICAL_MAIN_DELAY_TIME_MS),
                                        pdFALSE /* Auto Reload */,
                                        0,
                                        hvCriticalDelayCallback);
 
-    if (criticalDelayTimes == NULL) {
+    if (criticalDelayTimer == NULL) {
         ERROR_PRINT("Failed to create software timer\n");
         return HAL_ERROR;
     }
 
-    init.maxStateNum = STATE_ANY;
-    init.maxEventNum = EV_ANY;
+    init.maxStateNum = MN_STATE_ANY;
+    init.maxEventNum = MN_EV_ANY;
     init.sizeofEventEnumType = sizeof(MAIN_PDU_Events_t);
-    init.ST_ANY = STATE_ANY;
-    init.EV_ANY = EV_ANY;
+    init.ST_ANY = MN_STATE_ANY;
+    init.EV_ANY = MN_EV_ANY;
     init.transitions = mainTransitions;
     init.transitionTableLength = TRANS_COUNT(mainTransitions);
     init.eventQueueLength = 5;
-    fsmInit(STATE_Boards_Off, &init, &mainFsmHandle);
+    fsmInit(MN_STATE_Boards_Off, &init, &mainFsmHandle);
 
     DEBUG_PRINT("Init main control\n");
     return HAL_OK;
@@ -68,12 +103,30 @@ HAL_StatusTypeDef initStateMachines()
         return HAL_ERROR;
     }
 
+    if (motorControlInit() != HAL_OK) {
+        ERROR_PRINT("Failed to init motor control fsm\n");
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
+}
+
+void motorControlTask(void *pvParameters)
+{
+    if (canStart(&CAN_HANDLE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start CAN!\n");
+        Error_Handler();
+    }
+
+    fsmTaskFunction(&motorFsmHandle);
+
+    for(;;); // Shouldn't reach here
 }
 
 void mainControlTask(void *pvParameters)
 {
-    // Pre send EV_INIT to kick off self tests
+    // Pre send MN_EV_INIT to kick off self tests
     startControl();
 
     if (canStart(&CAN_HANDLE) != HAL_OK)
@@ -89,20 +142,20 @@ void mainControlTask(void *pvParameters)
 
 HAL_StatusTypeDef startControl()
 {
-    return fsmSendEvent(&mainFsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
+    return fsmSendEvent(&mainFsmHandle, MN_EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
 uint32_t startCriticalFailureDelay()
 {
     sendDTC_FATAL_BOARDS_TURNING_OFF();
 
-    if (xTimerStart(criticalDelayTimes, 100) != pdPASS) {
+    if (xTimerStart(criticalDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start critical delay timer\n");
-        criticalFailure(EV_CriticalDelayElapsed);
-        return STATE_Critical_Failure;
+        criticalFailure(MN_EV_CriticalDelayElapsed);
+        return MN_STATE_Critical_Failure;
     }
 
-    return STATE_Warning_Critical;
+    return MN_STATE_Warning_Critical;
 }
 
 uint32_t criticalFailureWarning(uint32_t event)
@@ -118,7 +171,8 @@ uint32_t criticalFailure(uint32_t event)
     DEBUG_PRINT("Critical Failure: Turning boards off\n");
     sendDTC_FATAL_BOARDS_OFF();
     turnBoardsOff();
-    return STATE_Critical_Failure;
+    fsmSendEventUrgent(&motorFsmHandle, MTR_EV_Motor_Critical, 10 /* timeout */);
+    return MN_STATE_Critical_Failure;
 }
 
 uint32_t lvCuttoff(uint32_t event)
@@ -135,14 +189,21 @@ uint32_t runSelftTests(uint32_t event)
     DEBUG_PRINT("Running self tests\n");
 
     turnBoardsOn();
-    return STATE_Boards_On;
+    return MN_STATE_Boards_On;
 }
 
-uint32_t DefaultTransition(uint32_t event)
+uint32_t MainDefaultTransition(uint32_t event)
 {
-    ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
+    ERROR_PRINT("Main FSM: No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&mainFsmHandle), event);
     return startCriticalFailureDelay();
+}
+
+uint32_t MotorDefaultTransition(uint32_t event)
+{
+    ERROR_PRINT("Motor FSM: No transition function registered for state %lu, event %lu\n",
+                fsmGetState(&motorFsmHandle), event);
+    return motorsOff(event);
 }
 
 HAL_StatusTypeDef turnBoardsOn()
@@ -157,9 +218,41 @@ HAL_StatusTypeDef turnBoardsOff()
     return HAL_OK;
 }
 
+uint32_t motorsOn(uint32_t event)
+{
+    DEBUG_PRINT("Turning motors on\n");
+    return MTR_STATE_Motors_On;
+}
+
+uint32_t motorsOff(uint32_t event)
+{
+    DEBUG_PRINT("Turning motors off\n");
+    if (event == MTR_EV_EM_DISABLE) {
+        return MTR_STATE_Motors_Off;
+    } else {
+        return MTR_STATE_Critical;
+    }
+}
+
+uint32_t motorsOffCritical(uint32_t event)
+{
+    // Probably don't need to do anything here
+    DEBUG_PRINT("Critical failure, motors already off\n");
+    return MTR_STATE_Critical;
+}
+
+uint32_t motorDoNothing(uint32_t event)
+{
+    return fsmGetState(&motorFsmHandle);
+}
+uint32_t mainDoNothing(uint32_t event)
+{
+    return fsmGetState(&mainFsmHandle);
+}
+
 void hvCriticalDelayCallback(TimerHandle_t timer)
 {
-    if (fsmSendEventUrgent(&mainFsmHandle, EV_CriticalDelayElapsed, 0) != HAL_OK) {
+    if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_CriticalDelayElapsed, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process critical delay elapsed event\n");
     }
 }

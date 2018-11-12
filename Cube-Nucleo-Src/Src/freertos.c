@@ -60,6 +60,7 @@
 osThreadId mainTaskHandle;
 osThreadId mainControlHandle;
 osThreadId canSendTaskHandle;
+osThreadId motorControlHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -69,6 +70,7 @@ osThreadId canSendTaskHandle;
 void mainTaskFunction(void const * argument);
 extern void mainControlTask(void const * argument);
 extern void canTask(void const * argument);
+extern void motorControlTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -124,6 +126,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of canSendTask */
   osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+
+  /* definition and creation of motorControl */
+  osThreadDef(motorControl, motorControlTask, osPriorityIdle, 0, 1000);
+  motorControlHandle = osThreadCreate(osThread(motorControl), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
