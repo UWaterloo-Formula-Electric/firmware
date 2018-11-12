@@ -73,6 +73,8 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 #else
 #error canStart not defined for this board type
 #endif
+    } else {
+        return HAL_OK;
     }
 }
 
