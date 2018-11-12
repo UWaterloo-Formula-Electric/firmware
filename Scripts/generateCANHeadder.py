@@ -435,7 +435,7 @@ def writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFi
                 writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
                 writeSignalReceivedFunction(signal, sourceFileHandle)
 
-def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0):
+def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0, dtc=False):
     if multiplexed:
         multiplexIndexString = 'int index'
     else:
@@ -472,7 +472,10 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
             sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
             fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
 
-    fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+    if dtc:
+        fWrite('    return sendCanMessageUrgent({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+    else:
+        fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
 def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
@@ -503,8 +506,14 @@ def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle):
             writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle)
 
 def writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle):
-    # handled the same as normal Tx messages
-    writeNormalTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle)
+    for msg in dtcTxMessages:
+        fWrite('// Struct and signal send functions for msg {}'.format(msg.name), sourceFileHandle)
+        writeStructForMsg(msg, msg.name, sourceFileHandle)
+
+        for signal in msg.signals:
+            writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
+            writeSignalSendingFunction(signal, sourceFileHandle)
+        writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, dtc=True)
 
 def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle):
     for msg in multiplexedTxMessages:
