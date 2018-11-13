@@ -59,7 +59,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
             canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
         {
-            ERROR_PRINT("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
+            ERROR_PRINT_ISR("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
             Error_Handler();
         }
 
@@ -82,7 +82,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
             canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
         {
-            ERROR_PRINT("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
+            ERROR_PRINT_ISR("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
             Error_Handler();
         }
 
@@ -134,7 +134,7 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 	// Deal with error
 
 	error = hcan->ErrorCode;
-        ERROR_PRINT("Error in CAN driver!!\n");
+        ERROR_PRINT_ISR("Error in CAN driver!!\n");
 //#define HAL_CAN_ERROR_NONE              ((uint32_t)0x00000000)  /*!< No error             */
 //#define HAL_CAN_ERROR_EWG               ((uint32_t)0x00000001)  /*!< EWG error            */
 //#define HAL_CAN_ERROR_EPV               ((uint32_t)0x00000002)  /*!< EPV error            */

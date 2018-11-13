@@ -43,7 +43,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
     {
-        ERROR_PRINT("Failed to receive CAN message from FIFO0\n");
+        ERROR_PRINT_ISR("Failed to receive CAN message from FIFO0\n");
         Error_Handler();
     }
 
@@ -144,7 +144,7 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 	// Deal with error
 
 	error = hcan->ErrorCode;
-        ERROR_PRINT("Error in CAN driver!!\n");
+        ERROR_PRINT_ISR("Error in CAN driver!!\n");
 //#define HAL_CAN_ERROR_NONE              ((uint32_t)0x00000000)  /*!< No error             */
 //#define HAL_CAN_ERROR_EWG               ((uint32_t)0x00000001)  /*!< EWG error            */
 //#define HAL_CAN_ERROR_EPV               ((uint32_t)0x00000002)  /*!< EPV error            */

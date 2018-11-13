@@ -38,7 +38,7 @@ HAL_StatusTypeDef fsmSendEventISR(FSM_Handle_Struct *handle, uint32_t event)
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     if (xQueueSendFromISR(handle->eventQueue, &event, &xHigherPriorityTaskWoken) != pdTRUE)
     {
-        ERROR_PRINT("Failed to send event to queue\n");
+        ERROR_PRINT_ISR("Failed to send event to queue\n");
         return HAL_ERROR;
     }
 
@@ -51,7 +51,7 @@ HAL_StatusTypeDef fsmSendEventUrgentISR(FSM_Handle_Struct *handle, uint32_t even
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     if (xQueueSendToFrontFromISR(handle->eventQueue, &event, &xHigherPriorityTaskWoken) != pdTRUE)
     {
-        ERROR_PRINT("Failed to send event to queue\n");
+        ERROR_PRINT_ISR("Failed to send event to queue\n");
         return HAL_ERROR;
     }
 

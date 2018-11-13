@@ -19,6 +19,8 @@ static int commandLen = 0;
 void print_now(char str[]);
 __weak void executeSerialCommand(char str[]);
 
+QueueHandle_t printQueue;
+
 int _write(int file, char* data, int len) {
     HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*)data, len, UART_PRINT_TIMEOUT);
     return len;
@@ -74,12 +76,37 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 void print_now(char str[]) {
-  HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t *)str, strlen(str), 5);
+    HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t *)str, strlen(str), 5);
 }
 
 // implement this function in your code to act on commands received from the
 // serial port
 // DO NOT change this empty implementation
 __weak void executeSerialCommand(char str[]) {
-    DEBUG_PRINT("Serial command: %s\n", str);
+    DEBUG_PRINT_ISR("Serial command: %s\n", str);
+}
+
+HAL_StatusTypeDef debugInit()
+{
+    printQueue = xQueueCreate(PRINT_QUEUE_LENGTH, PRINT_QUEUE_STRING_SIZE);
+    if (!printQueue)
+    {
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+void printTask(void *pvParameters)
+{
+    char buffer[PRINT_QUEUE_STRING_SIZE] = {0};
+
+    for ( ;; )
+    {
+        if (xQueueReceive(printQueue, buffer, portMAX_DELAY) == pdTRUE)
+        {
+            int len = strlen(buffer);
+            HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*)buffer, len, UART_PRINT_TIMEOUT);
+        }
+    }
 }
