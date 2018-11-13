@@ -96,6 +96,7 @@ DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 # inherit linker flags from hal driver makefile
 LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
+LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 
 #DEBUG_FLAGS=-g -O2
 #COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
@@ -251,8 +252,8 @@ load: release
 load-debug: debug
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
-connect: debug
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt &
+connect: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
 #=======
 #load: release
 	## this is stand alone stlink
@@ -268,7 +269,9 @@ connect: debug
 	#openocd -f interface/stlink-v2-1.cfg -f target/stm32f7x.cfg -c init -c "reset init" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x08000000" -c "verify_image $(RELEASE_BIN_FILE)" &
 #>>>>>>> 7ce22243a5a59845c153b3d793ee480bc9de4175
 
-gdb: connect
+# Need to start up openocd on seperate terminal using make connect
+# If you use the same terminal for both connect and gdb, then sending ctrl-c to stop the program will also stop openocd so you will get kicked out of gdb (not what you want)
+gdb:
 	arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(DEBUG_ELF_FILE)
 	#arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" --eval-command="monitor arm semihosting enable"  $(DEBUG_ELF_FILE)
 
