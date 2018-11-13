@@ -81,7 +81,7 @@
 
 #define STR_EQ(a, b) (strncmp(a, b, sizeof(b) - 1) == 0)
 void executeSerialCommand(char str[]) {
-    DEBUG_PRINT("Serial command: %s\n", str);
+    DEBUG_PRINT_ISR("Serial command: %s\n", str);
     if (STR_EQ(str, "critical")) {
         fsmSendEventISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
     } else if (STR_EQ(str, "lv cuttoff")) {
@@ -97,12 +97,12 @@ void executeSerialCommand(char str[]) {
     } else if (STR_EQ(str, "overtemp")) {
         fsmSendEventISR(&coolingFsmHandle, COOL_EV_OVERTEMP_WARNING);
     } else if (STR_EQ(str, "print")) {
-        DEBUG_PRINT("States:\n");
-        DEBUG_PRINT("Cooling: %ld\n", fsmGetState(&coolingFsmHandle));
-        DEBUG_PRINT("Motors: %ld\n", fsmGetState(&motorFsmHandle));
-        DEBUG_PRINT("Main: %ld\n", fsmGetState(&mainFsmHandle));
+        DEBUG_PRINT_ISR("States:\n");
+        DEBUG_PRINT_ISR("Cooling: %ld\n", fsmGetState(&coolingFsmHandle));
+        DEBUG_PRINT_ISR("Motors: %ld\n", fsmGetState(&motorFsmHandle));
+        DEBUG_PRINT_ISR("Main: %ld\n", fsmGetState(&mainFsmHandle));
     } else {
-        DEBUG_PRINT("Unknown command\n");
+        DEBUG_PRINT_ISR("Unknown command\n");
     }
 }
 
