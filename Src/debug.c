@@ -222,6 +222,57 @@ static const CLI_Command_Definition_t taskListCommandDefinition =
     0 /* Number of parameters */
 };
 
+#define STATS_LIST_NUM_BYTES_PER_TASK 50
+char *statsListBuffer = NULL; // A buffer to store taskList string in,
+                            // should be on first call, and never freed
+BaseType_t statsListCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static char *currentStringPointer = NULL;
+
+    if (statsListBuffer == NULL) {
+        UBaseType_t numTasks = uxTaskGetNumberOfTasks();
+        statsListBuffer = (char *)pvPortMalloc(numTasks*STATS_LIST_NUM_BYTES_PER_TASK);
+        if (statsListBuffer == NULL) {
+            COMMAND_OUTPUT("Failed to malloc statsListBuffer!\n");
+            return pdFALSE;
+        }
+    }
+
+    if (currentStringPointer == NULL) {
+        // We haven't created any output yet, so gather the stats to output
+        vTaskGetRunTimeStats(statsListBuffer);
+
+        // Init string pointer
+        currentStringPointer = statsListBuffer;
+
+        // Output the Column headers on the first call
+        COMMAND_OUTPUT("Name\tTicks runtime\t\tPercentage runtime\r\n");
+        return pdTRUE;
+    }
+
+    int charWritten = snprintf(writeBuffer, writeBufferLength, "%s", currentStringPointer);
+
+    if (charWritten < writeBufferLength) {
+        // All the string has been written
+        currentStringPointer = NULL;
+        return pdFALSE;
+    } else {
+        // Only part of the string was written, advance pointer by write buffer
+        // length, subtracting one for the null terminator
+        currentStringPointer += (writeBufferLength - 1);
+        return pdTRUE;
+    }
+}
+
+static const CLI_Command_Definition_t statsListCommandDefinition =
+{
+    "stats",
+    "stats:\r\n  Outputs the freeRTOS run time stats\r\n",
+    statsListCommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef debugInit()
 {
@@ -244,6 +295,9 @@ HAL_StatusTypeDef debugInit()
     if (FreeRTOS_CLIRegisterCommand(&taskListCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&statsListCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
@@ -260,4 +314,76 @@ void printTask(void *pvParameters)
             HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*)buffer, len, UART_PRINT_TIMEOUT);
         }
     }
+}
+
+
+/*
+ * Run time stats timer setup
+ * A 16 bit timer with clock source APB1 should be configured in cube
+ */
+
+uint32_t counterVal = 0; // store the counter value to help protect againts 16 bit overflow
+uint16_t lastCounterVal = 0;
+
+// stat timer frequency is this value times tick freqency
+#define STAT_TIMER_TICK_FREQUENCY_MULTIPLIER 20
+
+__weak void configureTimerForRunTimeStats(void) {
+    // Compute the right prescaler to set timer frequency
+    RCC_ClkInitTypeDef      clkconfig;
+    uint32_t                uwTimclock, uwAPB1Prescaler = 0U;
+    uint32_t                uwPrescalerValue = 0U;
+    uint32_t                timerFrequency;
+    uint32_t                pFLatency;
+
+    /* Get clock configuration */
+    HAL_RCC_GetClockConfig(&clkconfig, &pFLatency);
+
+    /* Get APB1 prescaler */
+    uwAPB1Prescaler = clkconfig.APB1CLKDivider;
+
+    /* Compute timer clock */
+    if (uwAPB1Prescaler == RCC_HCLK_DIV1) 
+    {
+    uwTimclock = HAL_RCC_GetPCLK1Freq();
+    }
+    else
+    {
+    uwTimclock = 2*HAL_RCC_GetPCLK1Freq();
+    }
+
+    timerFrequency = STAT_TIMER_TICK_FREQUENCY_MULTIPLIER * configTICK_RATE_HZ;
+
+    /* Compute the prescaler value to have TIM5 counter clock equal to desired
+     * freqeuncy*/
+    uwPrescalerValue = (uint32_t) ((uwTimclock / timerFrequency) - 1U);
+
+    __HAL_TIM_SET_PRESCALER(&STATS_TIM_HANDLE, uwPrescalerValue);
+
+    if (HAL_TIM_Base_Start(&STATS_TIM_HANDLE) != HAL_OK)
+    {
+        DEBUG_PRINT("Failed to start stats timer\n");
+        Error_Handler();
+    }
+}
+
+uint32_t getRunTimeCounterValue()
+{
+    uint64_t curCounterVal;
+    uint16_t val, elapsed;
+
+    portDISABLE_INTERRUPTS();
+
+    val = __HAL_TIM_GET_COUNTER(&STATS_TIM_HANDLE);
+
+    elapsed = val - lastCounterVal;
+
+    counterVal += elapsed;
+
+    lastCounterVal = val;
+    curCounterVal = counterVal;
+
+    portENABLE_INTERRUPTS();
+
+    return curCounterVal;
 }
