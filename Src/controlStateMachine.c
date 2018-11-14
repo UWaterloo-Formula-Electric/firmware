@@ -72,6 +72,7 @@ Transition_t coolingTransitions[] = {
     { COOL_STATE_ANY, COOL_EV_LV_Cuttoff, &coolingLVCuttoff },
     { COOL_STATE_LV_Cuttoff, COOL_EV_ANY, &coolingDoNothing },
     { COOL_STATE_HV_CRITICAL, COOL_EV_ANY, &coolingDoNothing },
+    { COOL_STATE_ON, COOL_EV_OVERTEMP_WARNING, &coolingDoNothing },
     { COOL_STATE_ANY, COOL_EV_ANY, &CoolDefaultTransition}
 };
 
