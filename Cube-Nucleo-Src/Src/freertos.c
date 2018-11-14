@@ -63,6 +63,7 @@ osThreadId canSendTaskHandle;
 osThreadId motorControlHandle;
 osThreadId coolingControlHandle;
 osThreadId printTaskNameHandle;
+osThreadId cliHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -75,6 +76,7 @@ extern void canTask(void const * argument);
 extern void motorControlTask(void const * argument);
 extern void coolingControlTask(void const * argument);
 extern void printTask(void const * argument);
+extern void cliTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -142,6 +144,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of printTaskName */
   osThreadDef(printTaskName, printTask, osPriorityLow, 0, 1000);
   printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of cli */
+  osThreadDef(cli, cliTask, osPriorityIdle, 0, 1000);
+  cliHandle = osThreadCreate(osThread(cli), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

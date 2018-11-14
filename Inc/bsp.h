@@ -40,4 +40,8 @@
 // Comment out to remove error printing
 #define ERROR_PRINT_ON
 
+// Comment out to disable CLI printing
+// To completely disable CLI, also remove call to uartStartReceiving
+#define CONSOLE_PRINT_ON
+
 #endif /* __BSP_H */

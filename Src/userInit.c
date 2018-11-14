@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "controlStateMachine.h"
 #include "userCan.h"
+#include "controlStateMachine_mock.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -31,7 +32,11 @@ void userInit()
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
-    
+
+    if (mockStateMachineInit() != HAL_OK) {
+        ERROR_PRINT("Failed to init state machines!\n");
+        Error_Handler();
+    }
 
     uartStartReceiving(&DEBUG_UART_HANDLE);
 }
