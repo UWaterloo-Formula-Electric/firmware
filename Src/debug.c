@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "FreeRTOS_CLI.h"
+#include "task.h"
 
 // Send a CLI string to the uart to be printed. Only for use by the CLI
 // buf must be of length PRINT_QUEUE_STRING_SIZE (this is always true for CLI
@@ -170,6 +171,57 @@ static const CLI_Command_Definition_t testCommandDefinition =
     1 /* Number of parameters */
 };
 
+#define TASK_LIST_NUM_BYTES_PER_TASK 50
+char *taskListBuffer = NULL; // A buffer to store taskList string in,
+                            // should be on first call, and never freed
+BaseType_t taskListCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static char *currentStringPointer = NULL;
+
+    if (taskListBuffer == NULL) {
+        UBaseType_t numTasks = uxTaskGetNumberOfTasks();
+        taskListBuffer = (char *)pvPortMalloc(numTasks*TASK_LIST_NUM_BYTES_PER_TASK);
+        if (taskListBuffer == NULL) {
+            COMMAND_OUTPUT("Failed to malloc taskListBuffer!\n");
+            return pdFALSE;
+        }
+    }
+
+    if (currentStringPointer == NULL) {
+        // We haven't created any output yet, so gather the stats to output
+        vTaskList(taskListBuffer);
+
+        // Init string pointer
+        currentStringPointer = taskListBuffer;
+
+        // Output the Column headers on the first call
+        COMMAND_OUTPUT("Name\tState\tPriority\tFreeStack (min)\tNum\r\n");
+        return pdTRUE;
+    }
+
+    int charWritten = snprintf(writeBuffer, writeBufferLength, "%s", currentStringPointer);
+
+    if (charWritten < writeBufferLength) {
+        // All the string has been written
+        currentStringPointer = NULL;
+        return pdFALSE;
+    } else {
+        // Only part of the string was written, advance pointer by write buffer
+        // length, subtracting one for the null terminator
+        currentStringPointer += (writeBufferLength - 1);
+        return pdTRUE;
+    }
+}
+
+static const CLI_Command_Definition_t taskListCommandDefinition =
+{
+    "taskList",
+    "taskList:\r\n  Outputs the freeRTOS task list and stats\r\n",
+    taskListCommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef debugInit()
 {
@@ -187,6 +239,9 @@ HAL_StatusTypeDef debugInit()
 
     /* Register common commands */
     if (FreeRTOS_CLIRegisterCommand(&testCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&taskListCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
