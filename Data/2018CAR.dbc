@@ -34,6 +34,7 @@ NS_ :
 BS_:
 
 BU_: VCU_BeagleBone MCLeft MCRight DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart
+VAL_TABLE_ Vt_On_Off 1 "On" 0 "Off" ;
 VAL_TABLE_ DC_Channel 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
 VAL_TABLE_ Contactor 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
 VAL_TABLE_ DCDC_State 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
@@ -50,6 +51,12 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRL : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2149973761 BMU_HV_Power_State: 1 BMU
+ SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  PDU
+
+BO_ 2147811074 VCU_EM_Power_State_Request: 1 VCU_F7
+ SG_ EM_Power_State_Request : 0|1@1+ (1,0) [0|0] ""  PDU
 
 BO_ 2147548931 PDU_DTC: 6 PDU
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
@@ -564,6 +571,8 @@ CM_ SG_ 2147483659 PRO_CAN_COUNT "PROCAN";
 CM_ SG_ 2147483659 PRO_CAN_RES "PROCAN";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+VAL_ 2149973761 HV_Power_State 1 "On" 0 "Off" ;
+VAL_ 2147811074 EM_Power_State_Request 1 "On" 0 "Off" ;
 VAL_ 6 StatusPowerVCU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
 VAL_ 6 StatusPowerMCRight 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
 VAL_ 6 StatusPowerMCLeft 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "Description for the value '0'" ;
