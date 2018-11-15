@@ -428,8 +428,8 @@ BO_ 7 BMU_stateBatteryHV: 8 BMU
 
 BO_ 6 PDU_ChannelStatus: 8 PDU
  SG_ StatusPowerVCU : 48|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerMCRight : 44|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerMCLeft : 40|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerMCRight : 44|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
+ SG_ StatusPowerMCLeft : 40|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
  SG_ StatusPowerIMD : 36|4@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StatusPowerDCU : 32|4@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StatusPowerDAU : 28|4@1- (1,0) [0|0] ""  VCU_BeagleBone
