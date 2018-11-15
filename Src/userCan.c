@@ -36,7 +36,7 @@ typedef struct CanMessage_t {
 QueueHandle_t canMessageSendQueue;
 TaskHandle_t canTaskHandle;
 
-bool canStarted = false;
+volatile bool canStarted = false;
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
