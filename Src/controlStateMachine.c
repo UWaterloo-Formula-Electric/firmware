@@ -8,6 +8,7 @@
 #include "state_machine.h"
 #include "timers.h"
 #include "PDU_dtc.h"
+#include "PDU_can.h"
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
 #define COOLING_DELAY_TIME_MS 5000
@@ -306,12 +307,27 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
+    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
+    StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+        return motorsOff(MTR_EV_EM_DISABLE);
+    }
     return MTR_STATE_Motors_On;
 }
 
 uint32_t motorsOff(uint32_t event)
 {
     DEBUG_PRINT("Turning motors off\n");
+
+    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
+    StatusPowerMCRight = StatusPowerMCRight_CHANNEL_OFF;
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    }
+
     if (event == MTR_EV_EM_DISABLE) {
         return MTR_STATE_Motors_Off;
     } else {
