@@ -60,7 +60,8 @@
 osThreadId mainTaskHandle;
 osThreadId driveByWireHandle;
 osThreadId canSendTaskHandle;
-osThreadId canReceiveTaskHandle;
+osThreadId printTaskNameHandle;
+osThreadId cliTaskNameHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -68,9 +69,10 @@ osThreadId canReceiveTaskHandle;
 
 /* Function prototypes -------------------------------------------------------*/
 void mainTaskFunction(void const * argument);
-void driveByWireTask(void const * argument);
-void canTask(void const * argument);
-void canReceive(void const * argument);
+extern void driveByWireTask(void const * argument);
+extern void canTask(void const * argument);
+extern void printTask(void const * argument);
+extern void cliTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -81,6 +83,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 /* Hook prototypes */
 void configureTimerForRunTimeStats(void);
 unsigned long getRunTimeCounterValue(void);
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
 
 /* USER CODE BEGIN 1 */
 /* Functions needed when configGENERATE_RUN_TIME_STATS is on */
@@ -94,6 +97,15 @@ __weak unsigned long getRunTimeCounterValue(void)
 return 0;
 }
 /* USER CODE END 1 */
+
+/* USER CODE BEGIN 4 */
+__weak void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+}
+/* USER CODE END 4 */
 
 /* Init FreeRTOS */
 
@@ -127,9 +139,13 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
-  /* definition and creation of canReceiveTask */
-  osThreadDef(canReceiveTask, canReceive, osPriorityNormal, 0, 1000);
-  canReceiveTaskHandle = osThreadCreate(osThread(canReceiveTask), NULL);
+  /* definition and creation of printTaskName */
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 1000);
+  printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of cliTaskName */
+  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 1000);
+  cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -151,42 +167,6 @@ __weak void mainTaskFunction(void const * argument)
     osDelay(1);
   }
   /* USER CODE END mainTaskFunction */
-}
-
-/* driveByWireTask function */
-__weak void driveByWireTask(void const * argument)
-{
-  /* USER CODE BEGIN driveByWireTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END driveByWireTask */
-}
-
-/* canTask function */
-__weak void canTask(void const * argument)
-{
-  /* USER CODE BEGIN canTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END canTask */
-}
-
-/* canReceive function */
-__weak void canReceive(void const * argument)
-{
-  /* USER CODE BEGIN canReceive */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END canReceive */
 }
 
 /* USER CODE BEGIN Application */

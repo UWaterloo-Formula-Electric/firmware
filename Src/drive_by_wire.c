@@ -8,8 +8,10 @@
 #include "state_machine.h"
 #include "timers.h"
 #include "VCU_F7_dtc.h"
+#include "VCU_F7_can.h"
 
 #define THROTTLE_POLL_TIME_MS 1000
+#define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 10000 // TODO: Change to good value
 
 FSM_Handle_Struct fsmHandle;
 TimerHandle_t throttleUpdateTimer;
@@ -66,7 +68,10 @@ HAL_StatusTypeDef driveByWireInit()
     init.transitions = transitions;
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 5;
-    fsmInit(STATE_Self_Check, &init, &fsmHandle);
+    if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
+        ERROR_PRINT("Failed to init drive by wire fsm\n");
+        return HAL_ERROR;
+    }
 
     DEBUG_PRINT("Init drive by wire\n");
     return HAL_OK;
@@ -76,6 +81,10 @@ void driveByWireTask(void *pvParameters)
 {
     // Pre send EV_INIT to kick off self tests
     startDriveByWire();
+
+    if (canStart(&CAN_HANDLE) != HAL_OK) {
+        Error_Handler();
+    }
 
     fsmTaskFunction(&fsmHandle);
 
@@ -127,7 +136,12 @@ uint32_t EM_Enable(uint32_t event)
 
     // send DTC
     DEBUG_PRINT("Trans to em enable\n");
-    MotorStart();
+    if (MotorStart() != HAL_OK) {
+        ERROR_PRINT("Failed to turn on motors\n");
+        sendDTC_FATAL_EM_ENABLE_FAILED(4);
+        return STATE_Failure_Fatal;
+    }
+
     return STATE_EM_Enable;
 }
 
@@ -191,8 +205,10 @@ uint32_t EM_Fault(uint32_t event)
             break;
     }
 
-    // TODO: turn off motors here
-    MotorStop();
+    if (MotorStop() != HAL_OK) {
+        ERROR_PRINT("Failed to stop motors\n");
+        newState = STATE_Failure_Fatal;
+    }
 
     return newState;
 }
@@ -208,7 +224,9 @@ uint32_t EM_Update_Throttle(uint32_t event)
     if (outputThrottle() != HAL_OK) {
         // TODO: Turn of motors
         ERROR_PRINT("Throttle update failed, trans to fatal\n");
-        MotorStop();
+        if (MotorStop() != HAL_OK) {
+            ERROR_PRINT("Failed to stop motors\n");
+        }
         return STATE_Failure_Fatal;
     }
 
@@ -219,7 +237,9 @@ uint32_t DefaultTransition(uint32_t event)
 {
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&fsmHandle), event);
-    MotorStop();
+    if (MotorStop() != HAL_OK) {
+        ERROR_PRINT("Failed to stop motors\n");
+    }
     return STATE_Failure_Fatal;
 }
 
@@ -230,9 +250,60 @@ void throttleTimerCallback(TimerHandle_t timer)
     }
 }
 
+HAL_StatusTypeDef turnOnMotorControllers() {
+    uint32_t dbwTaskNotifications;
+
+    // Request PDU to turn on motor controllers
+    EM_Power_State_Request = EM_Power_State_Request_On;
+    sendCAN_VCU_EM_Power_State_Request();
+
+    // Wait for PDU to turn on MCs
+    xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
+                     UINT32_MAX, /* Reset the notification value to 0 on exit. */
+                     &dbwTaskNotifications, /* Notified value pass out in
+                                          dbwTaskNotifications. */
+                     pdMS_TO_TICKS(MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS));  /* Timeout */
+
+    if (dbwTaskNotifications & (1<<NTFY_MCs_ON)) {
+        DEBUG_PRINT("PDU has turned on MCs\n");
+    } else {
+        ERROR_PRINT("Got unexpected notification 0x%lX\n", dbwTaskNotifications);
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef turnOffMotorControllers() {
+    uint32_t dbwTaskNotifications;
+
+    // Request PDU to turn on motor controllers
+    EM_Power_State_Request = EM_Power_State_Request_Off;
+    sendCAN_VCU_EM_Power_State_Request();
+
+    // Wait for PDU to turn on MCs
+    xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
+                     UINT32_MAX, /* Reset the notification value to 0 on exit. */
+                     &dbwTaskNotifications, /* Notified value pass out in
+                                          dbwTaskNotifications. */
+                     pdMS_TO_TICKS(MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS));  /* Timeout */
+
+    if (dbwTaskNotifications & (1<<NTFY_MCs_OFF)) {
+        DEBUG_PRINT("PDU has turned off MCs\n");
+    } else {
+        ERROR_PRINT("Got unexpected notification 0x%lX\n", dbwTaskNotifications);
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef MotorStart()
 {
     DEBUG_PRINT("Starting motors\n");
+    if (turnOnMotorControllers() != HAL_OK) {
+        return HAL_ERROR;
+    }
 
     if (xTimerStart(throttleUpdateTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start throttle update timer\n");
@@ -248,6 +319,10 @@ HAL_StatusTypeDef MotorStop()
 
     if (xTimerStop(throttleUpdateTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start throttle update timer\n");
+        return HAL_ERROR;
+    }
+
+    if (turnOffMotorControllers() != HAL_OK) {
         return HAL_ERROR;
     }
 

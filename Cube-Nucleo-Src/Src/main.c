@@ -52,6 +52,7 @@
 #include "cmsis_os.h"
 #include "can.h"
 #include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -111,6 +112,7 @@ int main(void)
   MX_DMA_Init();
   MX_CAN1_Init();
   MX_USART3_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   /* USER CODE END 2 */
@@ -247,6 +249,7 @@ void _Error_Handler(char *file, int line)
   /* User can add his own implementation to report the HAL error return state */
   printf("ERROR!: File %s, line %d\n", file, line);
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+  taskDISABLE_INTERRUPTS();
   while(1)
   {
   }
@@ -268,6 +271,8 @@ void assert_failed(uint8_t* file, uint32_t line)
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   printf("Wrong parameters value: file %s on line %d\r\n", file, line);
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+  taskDISABLE_INTERRUPTS();
+  while (1);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

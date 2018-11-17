@@ -4,6 +4,7 @@
 #include "boardTypes.h"
 #include "main.h"
 #include "can.h"
+#include <tim.h>
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
@@ -18,6 +19,7 @@
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"
 
+#define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart3
 #define CAN_HANDLE hcan1
 #define DEBUG_LED_PIN LD2_Pin
@@ -39,5 +41,7 @@
 
 // Comment out to remove error printing
 #define ERROR_PRINT_ON
+
+#define CONSOLE_PRINT_ON
 
 #endif /* __BSP_H */

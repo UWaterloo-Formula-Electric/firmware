@@ -23,6 +23,12 @@ typedef enum VCU_Events_t {
     EV_ANY, // Must be the last event
 } VCU_Events_t;
 
+// Bit numbers for drive by wire task notification bit fields
+typedef enum DBW_Task_Notifications_t {
+    NTFY_MCs_ON = 0,
+    NTFY_MCs_OFF = 1,
+} DBW_Task_Notifications_t;
+
 extern FSM_Handle_Struct fsmHandle;
 
 HAL_StatusTypeDef driveByWireInit(void);
