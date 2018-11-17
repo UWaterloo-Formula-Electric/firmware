@@ -284,9 +284,19 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
     function = functionTemplate.format(signalName=variableName,dataType=dataType, dataTypeReturn=dataTypeReturn, scaler=signal.scale, offset=signal.offset)
     fWrite(function, fileHandle)
 
+def writeValueTableEnum(signal, headerFileHandle):
+    if signal.choices is not None:
+        fWrite('enum {sigName}_Values {{'.format(sigName=signal.name), headerFileHandle)
+        for Value, Name in signal.choices.items():
+            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=Name, Value=Value), headerFileHandle)
+
+        fWrite('};\n', headerFileHandle)
+
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
     if checkForDuplicateSignalDeclaration(signal):
         return
+
+    writeValueTableEnum(signal, headerFileHandle)
 
     dataType = 'float'
     if signal.scale == 1:
