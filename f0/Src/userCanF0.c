@@ -65,12 +65,11 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 
         if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
         {
-            // TODO: Probably shouldn't call this from an interrupt
+            ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
             Error_Handler();
         }
 
         if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
-            // TODO: Probably shouldn't call this from an interrupt
             Error_Handler();
         }
     } else {
@@ -86,8 +85,13 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             Error_Handler();
         }
 
+        if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
+        {
+            ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
+            Error_Handler();
+        }
+
         if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
-            // TODO: Probably shouldn't call this from an interrupt
             Error_Handler();
         }
     }

@@ -48,7 +48,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
 
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        // TODO: Probably shouldn't call this from an interrupt
+        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
         Error_Handler();
     }
 }
