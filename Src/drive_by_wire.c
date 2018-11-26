@@ -42,6 +42,7 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Poll, &EM_Update_Throttle },
+    { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
@@ -150,6 +151,11 @@ uint32_t EM_Fault(uint32_t event)
     int newState = STATE_Failure_Fatal;
     int currentState = fsmGetState(&fsmHandle);
 
+    if (fsmGetState(&fsmHandle) == STATE_Failure_Fatal) {
+        DEBUG_PRINT("EM Fault, already in fatal failure state\n");
+        return STATE_Failure_Fatal;
+    }
+
     switch (event) {
         case EV_Bps_Fail:
             {
@@ -197,6 +203,13 @@ uint32_t EM_Fault(uint32_t event)
                 newState = STATE_EM_Disable;
             }
             break;
+        case EV_Fatal:
+            {
+                // send DTC
+                DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
+                newState = STATE_Failure_Fatal;
+            }
+            break;
         default:
             {
                 // send DTC
@@ -205,9 +218,11 @@ uint32_t EM_Fault(uint32_t event)
             break;
     }
 
-    if (MotorStop() != HAL_OK) {
-        ERROR_PRINT("Failed to stop motors\n");
-        newState = STATE_Failure_Fatal;
+    if (fsmGetState(&fsmHandle) == STATE_EM_Enable) {
+        if (MotorStop() != HAL_OK) {
+            ERROR_PRINT("Failed to stop motors\n");
+            newState = STATE_Failure_Fatal;
+        }
     }
 
     return newState;

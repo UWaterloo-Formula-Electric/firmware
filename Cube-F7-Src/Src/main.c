@@ -228,11 +228,7 @@ void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  printf("ERROR!: File %s, line %d\n", file, line);
-  HAL_GPIO_WritePin(LED_Y_GPIO_Port, LED_Y_Pin, GPIO_PIN_SET);
-  while(1)
-  {
-  }
+  _handleError(file, line);
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -250,7 +246,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   printf("Wrong parameters value: file %s on line %d\r\n", file, line);
-  HAL_GPIO_WritePin(LED_Y_GPIO_Port, LED_Y_Pin, GPIO_PIN_SET);
+  _handleError(file, line);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

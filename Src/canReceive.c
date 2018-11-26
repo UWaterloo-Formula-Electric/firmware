@@ -29,7 +29,7 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     
-    if (StatusPowerMCLeft == StatusPowerMCLeft_CHANNEL_ON &&
+    if (!motorControllersStatus && StatusPowerMCLeft == StatusPowerMCLeft_CHANNEL_ON &&
         StatusPowerMCRight == StatusPowerMCRight_CHANNEL_ON) {
         xTaskNotifyFromISR( driveByWireHandle,
                             (1<<NTFY_MCs_ON),
@@ -37,12 +37,18 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
                             &xHigherPriorityTaskWoken );
         motorControllersStatus = true;
     } else if (motorControllersStatus) {
-        // Only send a notification it MCs turned off if MCs were already ON
+        // Only send a notification if MCs turned off if MCs were already ON
         xTaskNotifyFromISR( driveByWireHandle,
                             (1<<NTFY_MCs_OFF),
                             eSetBits,
                             &xHigherPriorityTaskWoken );
+        motorControllersStatus = false;
     }
 
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+
+void DTC_Fatal_Callback(BoardNames_t board)
+{
+    fsmSendEventISR(&fsmHandle, EV_Fatal);
 }
