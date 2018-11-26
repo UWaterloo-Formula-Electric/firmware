@@ -22,6 +22,7 @@ static const CLI_Command_Definition_t criticalCommandDefinition =
 BaseType_t mockLVCuttoff(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+    COMMAND_OUTPUT("Sending lv cuttoff\n");
     fsmSendEventISR(&mainFsmHandle, MN_EV_LV_Cuttoff);
     return pdFALSE;
 }
@@ -98,7 +99,7 @@ static const CLI_Command_Definition_t mockOverTempCommandDefinition =
 BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    DEBUG_PRINT_ISR("States:\nCooling: %ld\nMotors: %ld\nMain: %ld\n", fsmGetState(&coolingFsmHandle), fsmGetState(&motorFsmHandle), fsmGetState(&mainFsmHandle));
+    COMMAND_OUTPUT("States:\nCooling: %ld\nMotors: %ld\nMain: %ld\n", fsmGetState(&coolingFsmHandle), fsmGetState(&motorFsmHandle), fsmGetState(&mainFsmHandle));
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
