@@ -14,7 +14,7 @@
     } while (0)
 
 // Buffer to receive uart characters (1 byte)
-uint8_t rxBuffer = '\000';
+uint8_t uartDMA_rxBuffer = '\000';
 
 QueueHandle_t printQueue;
 QueueHandle_t uartRxQueue;
@@ -29,7 +29,7 @@ int _write(int file, char* data, int len) {
 
 HAL_StatusTypeDef uartStartReceiving(UART_HandleTypeDef *huart) {
     __HAL_UART_FLUSH_DRREGISTER(huart); // Clear the buffer to prevent overrun
-    return HAL_UART_Receive_DMA(huart, &rxBuffer, 1);
+    return HAL_UART_Receive_DMA(huart, &uartDMA_rxBuffer, 1);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -38,7 +38,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
     xHigherPriorityTaskWoken = pdFALSE;
 
-    xQueueSendFromISR( uartRxQueue, &rxBuffer, &xHigherPriorityTaskWoken );
+    xQueueSendFromISR( uartRxQueue, &uartDMA_rxBuffer, &xHigherPriorityTaskWoken );
 
     if( xHigherPriorityTaskWoken )
     {
