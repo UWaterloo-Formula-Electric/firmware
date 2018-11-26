@@ -63,10 +63,10 @@ def generateErrorMacro(headerFileHandle, dtcName, dtcData, dtcCode, dtcSeverity)
 def generateDepedencyFile(headerFile, target):
     with open(depFile, 'w') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateDTC.py {dtcFile}'.format(headerFile=headerFile, dtcFile=dtcFile, dir=ScriptsDir), depFileHandle)
-        fWrite('	dir/generateDTC.py {target}'.format(target=target, dir=ScriptsDir), depFileHandle)
+        fWrite('	{dir}/generateDTC.py {target}'.format(target=target, dir=ScriptsDir), depFileHandle)
 
 def generateEnum(headerFileHandle, dtcCodeToName):
-    fWrite('\ntypedef enum dtcNames\n{', headerFileHandle)
+    fWrite('\ntypedef enum DtcNames_t\n{', headerFileHandle)
 
     for code in dtcCodeToName:
         name = dtcCodeToName[code]['name']
@@ -75,6 +75,14 @@ def generateEnum(headerFileHandle, dtcCodeToName):
         fWrite('    {severity}_{name} = {code}, // {msg}'.format(**locals()), headerFileHandle)
 
     fWrite('} dtcNames;', headerFileHandle)
+
+def generateSeveritiesEnum(headerFileHandle):
+    fWrite('typedef enum DtcSeverities_t\n{', headerFileHandle)
+
+    for idx, name in enumerate(dtcSeverityNames):
+        fWrite('DTC_Severity_{name} = {idx},'.format(name=name, idx=idx), headerFileHandle)
+
+    fWrite('} DtcSeverities_t;', headerFileHandle)
 
 def main(argv):
     createDir(genDir)
@@ -102,6 +110,7 @@ def main(argv):
             generateErrorMacro(headerFileHandle, row['NAME'], row['DATA'], row['DTC CODE'], row['SEVERITY'])
 
     generateEnum(headerFileHandle, dtcCodeToName)
+    generateSeveritiesEnum(headerFileHandle)
 
     generateHeaderFileTail(headerFileHandle, includeGuardMacroName)
 

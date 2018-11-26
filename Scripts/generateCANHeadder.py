@@ -113,6 +113,7 @@ def writeSourceFileIncludes(nodeName, sourceFileHandle):
     fWrite('#include \"CRC_CALC.h\"', sourceFileHandle)
     fWrite('#include \"userCan.h\"', sourceFileHandle)
     fWrite('#include \"debug.h\"', sourceFileHandle)
+    fWrite("#include \"{nodeName}_dtc.h\"".format(nodeName=nodeName), sourceFileHandle)
 
 def writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle):
     fWrite('//DBC version:', sourceFileHandle)
@@ -577,6 +578,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
+    createdFatalCallback = False
     for msg in dtcRxMessages:
         fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
         fWrite('        {', sourceFileHandle)
@@ -588,7 +590,19 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         fWrite('            xQueueSendFromISR(queue{msgName}, &newDtc, NULL);'.format(msgName=msg.name), sourceFileHandle)
         fWrite('            DEBUG_PRINT_ISR("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+
+        fatalCallbackName = 'DTC_Fatal_Callback'
+        fatalCallbackPrototype = 'void {name}(BoardNames_t board)'.format(name=fatalCallbackName)
+
         msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
+
+        # only create one fatal callback
+        if not createdFatalCallback:
+            msgCallbackPrototypes.append('{callback}'.format(callback=fatalCallbackPrototype))
+            createdFatalCallback = True
+
+        fWrite('            if (newDtc.DTC_Severity == DTC_Severity_FATAL) {', sourceFileHandle)
+        fWrite('                {fatalCallback}(BOARD_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -751,6 +765,14 @@ def writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
         fWrite('{};\n'.format(prototype), headerFileHandle)
         fWrite('__weak {} {{}}\n'.format(prototype), sourceFileHandle)
 
+def writeBoardNamesEnum(nodes, headerFileHandle):
+    fWrite('typedef enum BoardNames_t {', headerFileHandle)
+
+    for idx,node in enumerate(nodes):
+        fWrite('    BOARD_{name} = {idx},'.format(name=node.name, idx=idx), headerFileHandle)
+
+    fWrite('} BoardNames_t;', headerFileHandle)
+
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
@@ -832,6 +854,8 @@ def main(argv):
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
     writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
+
+    writeBoardNamesEnum(db.nodes, headerFileHandle)
 
     writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
 
