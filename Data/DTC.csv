@@ -20,3 +20,8 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards"
 20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay"
 21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU
+22, PDU_ERROR, PDU, 1, "DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
+23, VCU_F7_ERROR, VCU_F7, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
+24, BMU_ERROR, BMU, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
+25, DCU_ERROR, DCU, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
+26, VCU_BEAGLEBONE_ERROR, VCU_BEAGLEBONE, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
