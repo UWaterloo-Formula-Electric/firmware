@@ -12,6 +12,7 @@ void _handleError(char *file, int line)
   HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
   taskDISABLE_INTERRUPTS();
   sendDTC_FATAL_VCU_F7_ERROR();
+  while(1);
 #else
   // TODO: create production error handler
 #endif

@@ -111,31 +111,26 @@ uint32_t EM_Enable(uint32_t event)
     int throttle = getThrottle();
 
     if (!bpsState) {
-        // send DTC
         DEBUG_PRINT("Failed to em enable, bps fault\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(0);
         return STATE_EM_Disable;
     }
     if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-        // send DTC
         DEBUG_PRINT("Failed to em enable, brake pressure low\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(1);
         return STATE_EM_Disable;
     }
     if (!(throttle_is_zero(throttle))) {
-        // send DTC
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         return STATE_EM_Disable;
     }
     if (!hvEnable) {
-        // send DTC
         sendDTC_WARNING_EM_ENABLE_FAILED(3);
         DEBUG_PRINT("Failed to em enable, not HV enabled\n");
         return STATE_EM_Disable;
     }
 
-    // send DTC
     DEBUG_PRINT("Trans to em enable\n");
     if (MotorStart() != HAL_OK) {
         ERROR_PRINT("Failed to turn on motors\n");
@@ -159,35 +154,34 @@ uint32_t EM_Fault(uint32_t event)
     switch (event) {
         case EV_Bps_Fail:
             {
-                // send DTC
+                sendDTC_CRITICAL_BPS_FAIL();
                 DEBUG_PRINT("Bps failed, trans to fatal\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
         case EV_Brake_Pressure_Fault:
             {
-                // send DTC
+                sendDTC_CRITICAL_Brake_Pressure_FAIL();
                 DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
         case EV_DCU_Can_Timeout:
             {
-                // send DTC
+                sendDTC_FATAL_DCU_CAN_Timeout();
                 DEBUG_PRINT("DCU CAN Timeout, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
         case EV_Throttle_Failure:
             {
-                // send DTC
+                sendDTC_CRITICAL_Throtte_Failure();
                 DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
         case EV_Hv_Disable:
             {
-                // send DTC
                 if (currentState == STATE_EM_Disable) {
                     DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
                 } else {
@@ -198,21 +192,20 @@ uint32_t EM_Fault(uint32_t event)
             break;
         case EV_EM_Toggle:
             {
-                // send DTC
                 DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
                 newState = STATE_EM_Disable;
             }
             break;
         case EV_Fatal:
             {
-                // send DTC
                 DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
+                sendDTC_FATAL_VCU_F7_ERROR();
                 newState = STATE_Failure_Fatal;
             }
             break;
         default:
             {
-                // send DTC
+                sendDTC_FATAL_VCU_F7_ERROR();
                 DEBUG_PRINT("EM Enabled, unknown event %lu\n", event);
             }
             break;
@@ -252,6 +245,8 @@ uint32_t DefaultTransition(uint32_t event)
 {
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&fsmHandle), event);
+
+    sendDTC_FATAL_VCU_F7_ERROR();
     if (MotorStop() != HAL_OK) {
         ERROR_PRINT("Failed to stop motors\n");
     }
