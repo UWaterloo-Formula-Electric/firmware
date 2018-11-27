@@ -19,3 +19,7 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
     }
 }
 
+void DTC_Fatal_Callback(BoardNames_t board) {
+    fsmSendEventISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
+}
+
