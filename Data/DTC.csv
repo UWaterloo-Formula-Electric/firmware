@@ -25,3 +25,7 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 24, BMU_ERROR, BMU, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
 25, DCU_ERROR, DCU, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
 26, VCU_BEAGLEBONE_ERROR, VCU_BEAGLEBONE, 1, "PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU", NA, An unkown error occured
+27, BPS_FAIL, VCU_F7, 2, "PDU,BMU,VCU_BEAGLEBONE,DCU", NA,  Bps sensor detected a failure
+28, Brake_Pressure_FAIL, VCU_F7, 2, "PDU,BMU,VCU_BEAGLEBONE,DCU", NA,  Brake pressure sensor detected a failure
+29, DCU_CAN_Timeout, VCU_F7, 1, "PDU,BMU,VCU_BEAGLEBONE,DCU", NA,  DCU Can Timeout occured
+30, Throtte_Failure, VCU_F7, 2, "PDU,BMU,VCU_BEAGLEBONE,DCU", NA,  Throttle implausibility occured
