@@ -50,8 +50,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
 
-#include "gpio.h"
-
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -76,7 +74,7 @@ void MX_CAN1_Init(void)
   hcan1.Init.TransmitFifoPriority = DISABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
-    _Error_Handler(__FILE__, __LINE__);
+    Error_Handler();
   }
 
 }
@@ -84,7 +82,7 @@ void MX_CAN1_Init(void)
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(canHandle->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspInit 0 */
@@ -93,6 +91,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     /* CAN1 clock enable */
     __HAL_RCC_CAN1_CLK_ENABLE();
   
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**CAN1 GPIO Configuration    
     PD0     ------> CAN1_RX
     PD1     ------> CAN1_TX 
@@ -150,13 +149,5 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

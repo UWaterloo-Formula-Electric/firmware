@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * File Name          : freertos.c
@@ -45,18 +46,39 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
+#include "main.h"
 #include "cmsis_os.h"
 
+/* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
 #include "stm32f7xx_hal.h"
 
 /* USER CODE END Includes */
 
-/* Variables -----------------------------------------------------------------*/
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN Variables */
+
+/* USER CODE END Variables */
 osThreadId mainTaskHandle;
 osThreadId mainControlHandle;
 osThreadId canSendTaskHandle;
@@ -65,11 +87,11 @@ osThreadId coolingControlHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliHandle;
 
-/* USER CODE BEGIN Variables */
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
 
-/* USER CODE END Variables */
+/* USER CODE END FunctionPrototypes */
 
-/* Function prototypes -------------------------------------------------------*/
 void mainTaskFunction(void const * argument);
 extern void mainControlTask(void const * argument);
 extern void canTask(void const * argument);
@@ -79,10 +101,6 @@ extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
-/* USER CODE BEGIN FunctionPrototypes */
-
-/* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
 void configureTimerForRunTimeStats(void);
@@ -111,8 +129,11 @@ __weak void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTask
 }
 /* USER CODE END 4 */
 
-/* Init FreeRTOS */
-
+/**
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
        
@@ -168,7 +189,13 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 }
 
-/* mainTaskFunction function */
+/* USER CODE BEGIN Header_mainTaskFunction */
+/**
+  * @brief  Function implementing the mainTask thread.
+  * @param  argument: Not used 
+  * @retval None
+  */
+/* USER CODE END Header_mainTaskFunction */
 __weak void mainTaskFunction(void const * argument)
 {
 
@@ -181,6 +208,7 @@ __weak void mainTaskFunction(void const * argument)
   /* USER CODE END mainTaskFunction */
 }
 
+/* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
      
 /* USER CODE END Application */

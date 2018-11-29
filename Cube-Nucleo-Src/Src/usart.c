@@ -50,9 +50,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
 
-#include "gpio.h"
-#include "dma.h"
-
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -77,7 +74,7 @@ void MX_USART3_UART_Init(void)
   huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart3) != HAL_OK)
   {
-    _Error_Handler(__FILE__, __LINE__);
+    Error_Handler();
   }
 
 }
@@ -85,7 +82,7 @@ void MX_USART3_UART_Init(void)
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(uartHandle->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspInit 0 */
@@ -94,6 +91,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     /* USART3 clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
   
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**USART3 GPIO Configuration    
     PD8     ------> USART3_TX
     PD9     ------> USART3_RX 
@@ -119,7 +117,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_usart3_rx) != HAL_OK)
     {
-      _Error_Handler(__FILE__, __LINE__);
+      Error_Handler();
     }
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart3_rx);
@@ -164,13 +162,5 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

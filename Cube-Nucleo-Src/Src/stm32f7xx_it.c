@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    stm32f7xx_it.c
@@ -30,12 +31,42 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f7xx_hal.h"
-#include "stm32f7xx.h"
+#include "main.h"
 #include "stm32f7xx_it.h"
 #include "cmsis_os.h"
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN TD */
+
+/* USER CODE END TD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+ 
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -44,28 +75,15 @@
 extern CAN_HandleTypeDef hcan1;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern UART_HandleTypeDef huart3;
-
 extern TIM_HandleTypeDef htim1;
 
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
+
 /******************************************************************************/
-/*            Cortex-M7 Processor Interruption and Exception Handlers         */ 
+/*           Cortex-M7 Processor Interruption and Exception Handlers          */ 
 /******************************************************************************/
-
-/**
-* @brief This function handles System tick timer.
-*/
-void SysTick_Handler(void)
-{
-  /* USER CODE BEGIN SysTick_IRQn 0 */
-
-  /* USER CODE END SysTick_IRQn 0 */
-  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-    xPortSysTickHandler();
-  }
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
-}
 
 /******************************************************************************/
 /* STM32F7xx Peripheral Interrupt Handlers                                    */
@@ -75,8 +93,8 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles DMA1 stream1 global interrupt.
-*/
+  * @brief This function handles DMA1 stream1 global interrupt.
+  */
 void DMA1_Stream1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
@@ -89,8 +107,8 @@ void DMA1_Stream1_IRQHandler(void)
 }
 
 /**
-* @brief This function handles CAN1 TX interrupts.
-*/
+  * @brief This function handles CAN1 TX interrupts.
+  */
 void CAN1_TX_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_TX_IRQn 0 */
@@ -103,8 +121,8 @@ void CAN1_TX_IRQHandler(void)
 }
 
 /**
-* @brief This function handles CAN1 RX0 interrupts.
-*/
+  * @brief This function handles CAN1 RX0 interrupts.
+  */
 void CAN1_RX0_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
@@ -117,8 +135,8 @@ void CAN1_RX0_IRQHandler(void)
 }
 
 /**
-* @brief This function handles CAN1 RX1 interrupt.
-*/
+  * @brief This function handles CAN1 RX1 interrupt.
+  */
 void CAN1_RX1_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_RX1_IRQn 0 */
@@ -131,8 +149,8 @@ void CAN1_RX1_IRQHandler(void)
 }
 
 /**
-* @brief This function handles CAN1 SCE interrupt.
-*/
+  * @brief This function handles CAN1 SCE interrupt.
+  */
 void CAN1_SCE_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_SCE_IRQn 0 */
@@ -145,8 +163,8 @@ void CAN1_SCE_IRQHandler(void)
 }
 
 /**
-* @brief This function handles TIM1 update interrupt and TIM10 global interrupt.
-*/
+  * @brief This function handles TIM1 update interrupt and TIM10 global interrupt.
+  */
 void TIM1_UP_TIM10_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */
@@ -159,8 +177,8 @@ void TIM1_UP_TIM10_IRQHandler(void)
 }
 
 /**
-* @brief This function handles USART3 global interrupt.
-*/
+  * @brief This function handles USART3 global interrupt.
+  */
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
