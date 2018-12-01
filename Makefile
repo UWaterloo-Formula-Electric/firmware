@@ -1,8 +1,13 @@
 BINARY_BASE_NAME=BMU
 BOARD_NAME=BMU
 
-COMMON_LIB_SRC = userCan.c debug.c
+COMMON_LIB_SRC = userCan.c debug.c state_machine.c CRC_CALC.c FreeRTOS_CLI.c freertos_openocd_hack.c
+COMMON_F7_LIB_SRC = userCanF7.c
 
-BOARD_TYPE=F7 # one of NUCLEO-F7, F7
+# one of NUCLEO_F7, F7
+BOARD_TYPE ?= NUCLEO_F7
 
-include common-all/tail-f7.mk
+CUBE_F7_MAKEFILE_PATH= Cube-F7-Src/2018_VCU/2018_VCU/
+CUBE_NUCLEO_MAKEFILE_PATH = Cube-Nucleo-Src/CanTest/
+
+include common-all/tail.mk
