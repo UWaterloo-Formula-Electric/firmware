@@ -96,6 +96,7 @@ DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 # inherit linker flags from hal driver makefile
 LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
+LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 
 #DEBUG_FLAGS=-g -O2
@@ -252,8 +253,14 @@ load: release
 load-debug: debug
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
-connect: load-debug
+# Use this if you want gdb to be rtos thread aware
+connect-rtos: load-debug
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
+
+# use this to debug stuff before rtos starts
+connect: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
+
 #=======
 #load: release
 	## this is stand alone stlink
