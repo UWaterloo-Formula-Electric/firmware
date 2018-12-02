@@ -249,7 +249,7 @@ BO_ 2147483682 TempCoolantLeft: 8 WSBRL
  SG_ TempInletRadMotorLeft : 0|10@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214662151 DCU_buttonEvents: 8 DCU
- SG_ ButtonHVEnabled : 1|1@1- (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
+ SG_ ButtonHVEnabled : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone,VCU_F7
  SG_ ButtonEMEnabled : 0|1@1- (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
 
 BO_ 33 ChargeCart_VERSION: 8 ChargeCart
