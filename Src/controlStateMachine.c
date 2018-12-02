@@ -24,6 +24,7 @@ uint32_t stopPrecharge(uint32_t event);
 uint32_t hvEnabledHVFault(uint32_t event);
 uint32_t hvDisabledHVFault(uint32_t event);
 uint32_t prechargeDischargeFailed(uint32_t event);
+uint32_t controlDoNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
 
 Transition_t transitions[] = {
@@ -38,6 +39,7 @@ Transition_t transitions[] = {
     { STATE_Discharge, EV_PrechargeDischarge_Fail, &prechargeDischargeFailed },
     { STATE_HV_Enable, EV_HV_Fault, &hvEnabledHVFault },
     { STATE_HV_Disable, EV_HV_Fault, &hvDisabledHVFault },
+    { STATE_Failure_Fatal, EV_ANY, &controlDoNothing },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
@@ -87,6 +89,11 @@ uint32_t runSelftTests(uint32_t event)
     return STATE_HV_Disable;
 }
 
+uint32_t controlDoNothing(uint32_t event)
+{
+    return fsmGetState(&fsmHandle);
+}
+
 uint32_t DefaultTransition(uint32_t event)
 {
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
@@ -114,12 +121,20 @@ uint32_t startDischarge(uint32_t event)
 uint32_t dischargeFinished(uint32_t event)
 {
     DEBUG_PRINT("discharge finished\n");
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
     return STATE_HV_Disable;
 }
 
 uint32_t prechargeFinished(uint32_t event)
 {
     DEBUG_PRINT("precharge finished\n");
+
+    HV_Power_State = HV_Power_State_On;
+    sendCAN_BMU_HV_Power_State();
+
     return STATE_HV_Enable;
 }
 
@@ -140,6 +155,7 @@ uint32_t stopPrecharge(uint32_t event)
 uint32_t hvEnabledHVFault(uint32_t event)
 {
     DEBUG_PRINT("hvEnabledHVFault\n");
+    xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
     return STATE_Failure_Fatal;
 }
 

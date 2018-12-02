@@ -311,7 +311,9 @@ void pcdcTask(void *pvParameter)
         } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
 
             // TODO: Implement discharge
+            DEBUG_PRINT("Discharge start\n");
             vTaskDelay(1000);
+            DEBUG_PRINT("Discharge done\n");
             fsmSendEvent(&fsmHandle, EV_Discharge_Finished, portMAX_DELAY);
 
         } else {
