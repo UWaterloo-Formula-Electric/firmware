@@ -19,13 +19,9 @@ uint32_t startPrecharge(uint32_t event);
 uint32_t startDischarge(uint32_t event);
 uint32_t dischargeFinished(uint32_t event);
 uint32_t prechargeFinished(uint32_t event);
-uint32_t stopDischarge(uint32_t event);
-uint32_t stopPrecharge(uint32_t event);
-uint32_t hvEnabledHVFault(uint32_t event);
-uint32_t hvDisabledHVFault(uint32_t event);
-uint32_t prechargeDischargeFailed(uint32_t event);
 uint32_t controlDoNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
+uint32_t handleFault(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
@@ -33,12 +29,12 @@ Transition_t transitions[] = {
     { STATE_Precharge, EV_Precharge_Finished, &prechargeFinished },
     { STATE_HV_Enable, EV_HV_Toggle, &startDischarge },
     { STATE_Discharge, EV_Discharge_Finished, &dischargeFinished },
-    { STATE_Precharge, EV_HV_Fault, &stopPrecharge },
-    { STATE_Discharge, EV_HV_Fault, &stopDischarge },
-    { STATE_Precharge, EV_PrechargeDischarge_Fail, &prechargeDischargeFailed },
-    { STATE_Discharge, EV_PrechargeDischarge_Fail, &prechargeDischargeFailed },
-    { STATE_HV_Enable, EV_HV_Fault, &hvEnabledHVFault },
-    { STATE_HV_Disable, EV_HV_Fault, &hvDisabledHVFault },
+    { STATE_Precharge, EV_HV_Fault, &handleFault },
+    { STATE_Discharge, EV_HV_Fault, &handleFault },
+    { STATE_Precharge, EV_PrechargeDischarge_Fail, &handleFault },
+    { STATE_Discharge, EV_PrechargeDischarge_Fail, &handleFault },
+    { STATE_HV_Enable, EV_HV_Fault, &handleFault },
+    { STATE_HV_Disable, EV_HV_Fault, &handleFault },
     { STATE_Failure_Fatal, EV_ANY, &controlDoNothing },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
@@ -100,7 +96,7 @@ uint32_t DefaultTransition(uint32_t event)
                 fsmGetState(&fsmHandle), event);
 
     sendDTC_FATAL_BMU_ERROR();
-    return STATE_Failure_Fatal;
+    return handleFault(EV_HV_Fault);
 }
 
 uint32_t startPrecharge(uint32_t event)
@@ -138,35 +134,60 @@ uint32_t prechargeFinished(uint32_t event)
     return STATE_HV_Enable;
 }
 
-uint32_t stopDischarge(uint32_t event)
+uint32_t stopDischarge()
 {
     DEBUG_PRINT("stopDischarge\n");
     xTaskNotify(PCDCHandle, (1<<STOP_NOTIFICATION), eSetBits);
     return STATE_HV_Enable;
 }
 
-uint32_t stopPrecharge(uint32_t event)
+void stopPrecharge()
 {
     DEBUG_PRINT("stopPrecharge\n");
     xTaskNotify(PCDCHandle, (1<<STOP_NOTIFICATION), eSetBits);
-    return STATE_HV_Disable;
 }
 
-uint32_t hvEnabledHVFault(uint32_t event)
+uint32_t handleFault(uint32_t event)
 {
-    DEBUG_PRINT("hvEnabledHVFault\n");
-    xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
-    return STATE_Failure_Fatal;
-}
+    sendDTC_FATAL_BMU_ERROR();
+    ERROR_PRINT("State machine receive fault\n");
 
-uint32_t hvDisabledHVFault(uint32_t event)
-{
-    DEBUG_PRINT("hvEnabledHVFault\n");
-    return STATE_Failure_Fatal;
-}
+    uint32_t currentState = fsmGetState(&fsmHandle);
 
-uint32_t prechargeDischargeFailed(uint32_t event)
-{
-    DEBUG_PRINT("Precharge or discharge failed\n");
+    switch (currentState) {
+        case STATE_HV_Disable:
+            {
+                DEBUG_PRINT("HV disabled fault, do nothing\n");
+            }
+            break;
+        case STATE_HV_Enable:
+            {
+                DEBUG_PRINT("hvEnabledHVFault, starting discharge\n");
+                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+                return STATE_Failure_Fatal;
+            }
+            break;
+        case STATE_Precharge:
+            {
+                // Only send stop if the precharge hasn't already failed
+                // Otherwise it's been stopped already
+                if (event != EV_PrechargeDischarge_Fail) {
+                    stopPrecharge();
+                }
+            }
+            break;
+        case STATE_Discharge:
+            {
+                DEBUG_PRINT("Fault during discharge. Attempting to continue discharge\n");
+            }
+            break;
+        default:
+            {
+                ERROR_PRINT("HV Fault during other state. Starting discharge\n");
+                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+            }
+            break;
+    }
+
     return STATE_Failure_Fatal;
 }

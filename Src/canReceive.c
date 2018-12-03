@@ -22,5 +22,5 @@ void CAN_Msg_DCU_buttonEvents_Callback()
 
 void DTC_Fatal_Callback(BoardNames_t board)
 {
-    fsmSendEventISR(&fsmHandle, EV_HV_Fault);
+    fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
 }
