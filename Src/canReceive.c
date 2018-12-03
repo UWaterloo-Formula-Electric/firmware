@@ -12,6 +12,26 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+/*
+ * External Board Statuses:
+ * Variables for keeping track of external board statuses that get updated by
+ * Can messages
+ */
+volatile bool motorControllersStatus = false;
+
+/*
+ * Functions to get external board status
+ */
+bool getHvEnableState()
+{
+    return HV_Power_State == HV_Power_State_On;
+}
+
+bool getMotorControllersStatus()
+{
+    return motorControllersStatus;
+}
+
 extern osThreadId driveByWireHandle;
 
 void CAN_Msg_DCU_buttonEvents_Callback()
@@ -23,7 +43,6 @@ void CAN_Msg_DCU_buttonEvents_Callback()
     // complete HV Enable
 }
 
-volatile bool motorControllersStatus = false;
 
 void CAN_Msg_PDU_ChannelStatus_Callback()
 {
@@ -50,5 +69,12 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
 
 void DTC_Fatal_Callback(BoardNames_t board)
 {
-    fsmSendEventISR(&fsmHandle, EV_Fatal);
+    fsmSendEventUrgentISR(&fsmHandle, EV_Fatal);
+}
+
+void CAN_Msg_BMU_HV_Power_State_Callback() {
+    DEBUG_PRINT_ISR("Receive hv power state\n");
+    if (HV_Power_State != HV_Power_State_On) {
+        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+    }
 }

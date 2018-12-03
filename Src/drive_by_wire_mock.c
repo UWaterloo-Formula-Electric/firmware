@@ -6,11 +6,11 @@
 #include "FreeRTOS_CLI.h"
 #include "task.h"
 #include "cmsis_os.h"
+#include "VCU_F7_can.h"
 
 extern osThreadId driveByWireHandle;
 
 volatile bool fakeBPSState = true;
-bool hvEnable = false;
 
 volatile int fakeBrakePressure = 100;
 volatile int fakeThrottle = 0;
@@ -198,10 +198,16 @@ BaseType_t fakeHVStateChange(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
-    if (hvEnable && newHVState != hvEnable) {
+    if (HV_Power_State == HV_Power_State_On && !newHVState) {
         fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
     }
-    hvEnable = newHVState;
+
+    if (newHVState) {
+        HV_Power_State = HV_Power_State_On;
+    } else{
+        HV_Power_State = HV_Power_State_Off;
+    }
+
     return pdFALSE;
 }
 static const CLI_Command_Definition_t hvStateCommandDefinition =
@@ -240,9 +246,6 @@ bool checkBPSState() {
 }
 bool throttle_is_zero() {
     return (fakeThrottle==0);
-}
-bool getHvEnableState() {
-    return hvEnable;
 }
 
 HAL_StatusTypeDef stateMachineMockInit()

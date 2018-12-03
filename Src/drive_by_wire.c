@@ -9,6 +9,7 @@
 #include "timers.h"
 #include "VCU_F7_dtc.h"
 #include "VCU_F7_can.h"
+#include "canReceive.h"
 
 #define THROTTLE_POLL_TIME_MS 1000
 #define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 10000 // TODO: Change to good value

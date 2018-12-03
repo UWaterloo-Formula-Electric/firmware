@@ -10,7 +10,6 @@ int getThrottle();
 bool checkBPSState();
 int getBrakePressure();
 bool throttle_is_zero();
-bool getHvEnableState();
 HAL_StatusTypeDef stateMachineMockInit();
 
 #endif // __DRIVE_BY_WIRE_MOCK_H
