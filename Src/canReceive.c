@@ -12,7 +12,7 @@ void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
 }
 
 void CAN_Msg_BMU_HV_Power_State_Callback() {
-    if (HV_Power_State) {
+    if (HV_Power_State == HV_Power_State_On) {
         fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_ENABLE);
     } else {
         fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_DISABLE);
@@ -20,6 +20,6 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
 }
 
 void DTC_Fatal_Callback(BoardNames_t board) {
-    fsmSendEventISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
+    fsmSendEventUrgentISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
 }
 
