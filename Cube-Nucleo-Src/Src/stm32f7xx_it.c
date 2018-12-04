@@ -37,7 +37,7 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN 0 */
-
+extern void xPortSysTickHandler(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

@@ -4,6 +4,7 @@
 #include "freertos.h"
 #include "task.h"
 #include "math.h"
+#include "BMU_DTC.h"
 
 
 #ifdef MOCK_MEASUREMENTS
@@ -48,6 +49,13 @@ typedef enum Precharge_Discharge_Return_t {
     PCDC_ERROR
 } Precharge_Discharge_Return_t;
 
+typedef enum Precharge_Discharge_FailureType {
+    PCDC_IBUS_FAIL,
+    PCDC_VBATT_FAIL,
+    PCDC_VBUS_FAIL,
+    PCDC_ALL_OK
+} Precharge_Discharge_FailureType;
+
 
 #define MEASUREMENT_IN_RANGE(val, target, range) (fabsf((val) - (target)) <= range) 
 
@@ -68,7 +76,8 @@ typedef enum Precharge_Discharge_Return_t {
 Precharge_Discharge_Return_t 
     measureCurrentAndVoltages(float currentVal, float currentRange, float vBusVal, 
                               float vBusRange, float vBattVal, float vBattRange,
-                              uint32_t waitTimeMs, uint32_t currentMeasurePeriodMs)
+                              uint32_t waitTimeMs, uint32_t currentMeasurePeriodMs,
+                              Precharge_Discharge_FailureType *failure)
 {
     uint32_t dbwTaskNotifications;
 
@@ -83,6 +92,7 @@ Precharge_Discharge_Return_t
                                      currentRange))
             {
                 ERROR_PRINT("IShunt out of range for precharge: %f\n", IShunt); 
+                (*failure) = PCDC_IBUS_FAIL;
                 return PCDC_ERROR;
             }
 
@@ -101,6 +111,7 @@ Precharge_Discharge_Return_t
                               vBattRange))
     {
         ERROR_PRINT("VBatt out of range for precharge: %f\n", VBatt);
+        (*failure) = PCDC_VBATT_FAIL;
         return PCDC_ERROR;
     }
     if (!MEASUREMENT_IN_RANGE(VBus,
@@ -108,15 +119,18 @@ Precharge_Discharge_Return_t
                               vBusRange))
     {
         ERROR_PRINT("VBus out of range for precharge: %f\n", VBus);
+        (*failure) = PCDC_VBUS_FAIL;
         return PCDC_ERROR;
     }
 
+    (*failure) = PCDC_ALL_OK;
     return PCDC_DONE;
 }
 
 Precharge_Discharge_Return_t precharge()
 {
     Precharge_Discharge_Return_t rc;
+    Precharge_Discharge_FailureType failure;
 
     /*
      * Step 1:
@@ -138,10 +152,12 @@ Precharge_Discharge_Return_t precharge()
                               PRECHARGE_STEP_1_VBUS_VAL, PRECHARGE_STEP_1_VBUS_RANGE,
                               PRECHARGE_STEP_1_VBATT_VAL, PRECHARGE_STEP_1_VBATT_RANGE,
                               PRECHARGE_STEP_1_WAIT_TIME_MS,
-                              PRECHARGE_STEP_1_CURRENT_MEASURE_PERIOD_MS);
+                              PRECHARGE_STEP_1_CURRENT_MEASURE_PERIOD_MS,
+                              &failure);
 
     if (rc == PCDC_ERROR) {
         // TODO: Handle step 1 error
+        sendDTC_FATAL_PrechargeFailed(1);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
         // TODO: Handle step 1 stop
@@ -168,10 +184,12 @@ Precharge_Discharge_Return_t precharge()
                               PRECHARGE_STEP_2_VBUS_VAL, PRECHARGE_STEP_2_VBUS_RANGE,
                               PRECHARGE_STEP_2_VBATT_VAL, PRECHARGE_STEP_2_VBATT_RANGE,
                               PRECHARGE_STEP_2_WAIT_TIME_MS,
-                              PRECHARGE_STEP_2_CURRENT_MEASURE_PERIOD_MS);
+                              PRECHARGE_STEP_2_CURRENT_MEASURE_PERIOD_MS,
+                              &failure);
 
     if (rc == PCDC_ERROR) {
         // TODO: Handle step 2 error
+        sendDTC_FATAL_PrechargeFailed(2);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
         // TODO: Handle step 2 stop
@@ -198,10 +216,12 @@ Precharge_Discharge_Return_t precharge()
                               PRECHARGE_STEP_3_VBUS_VAL, PRECHARGE_STEP_3_VBUS_RANGE,
                               PRECHARGE_STEP_3_VBATT_VAL, PRECHARGE_STEP_3_VBATT_RANGE,
                               PRECHARGE_STEP_3_WAIT_TIME_MS,
-                              PRECHARGE_STEP_3_CURRENT_MEASURE_PERIOD_MS);
+                              PRECHARGE_STEP_3_CURRENT_MEASURE_PERIOD_MS,
+                              &failure);
 
     if (rc == PCDC_ERROR) {
         // TODO: Handle step 3 error
+        sendDTC_FATAL_PrechargeFailed(3);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
         // TODO: Handle step 3 stop
@@ -228,10 +248,12 @@ Precharge_Discharge_Return_t precharge()
                               PRECHARGE_STEP_4_VBUS_VAL, PRECHARGE_STEP_4_VBUS_RANGE,
                               PRECHARGE_STEP_4_VBATT_VAL, PRECHARGE_STEP_4_VBATT_RANGE,
                               PRECHARGE_STEP_4_WAIT_TIME_MS,
-                              PRECHARGE_STEP_4_CURRENT_MEASURE_PERIOD_MS);
+                              PRECHARGE_STEP_4_CURRENT_MEASURE_PERIOD_MS,
+                              &failure);
 
     if (rc == PCDC_ERROR) {
         // TODO: Handle step 4 error
+        sendDTC_FATAL_PrechargeFailed(4);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
         // TODO: Handle step 4 stop
@@ -258,10 +280,12 @@ Precharge_Discharge_Return_t precharge()
                               PRECHARGE_STEP_5_VBUS_VAL, PRECHARGE_STEP_5_VBUS_RANGE,
                               PRECHARGE_STEP_5_VBATT_VAL, PRECHARGE_STEP_5_VBATT_RANGE,
                               PRECHARGE_STEP_5_WAIT_TIME_MS,
-                              PRECHARGE_STEP_5_CURRENT_MEASURE_PERIOD_MS);
+                              PRECHARGE_STEP_5_CURRENT_MEASURE_PERIOD_MS,
+                              &failure);
 
     if (rc == PCDC_ERROR) {
         // TODO: Handle step 5 error
+        sendDTC_FATAL_PrechargeFailed(5);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
         // TODO: Handle step 5 stop
