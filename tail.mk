@@ -108,7 +108,7 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 #  This is to allow linking only used functions and data
 #COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
 COMPILER_FLAGS = $(LIB_CFLAGS)
-COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS)
+COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS) -Werror
 
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
