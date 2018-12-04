@@ -57,7 +57,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "errorHandler.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -247,12 +247,7 @@ void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  printf("ERROR!: File %s, line %d\n", file, line);
-  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
-  taskDISABLE_INTERRUPTS();
-  while(1)
-  {
-  }
+  _handleError(file, line);
   /* USER CODE END Error_Handler_Debug */
 }
 

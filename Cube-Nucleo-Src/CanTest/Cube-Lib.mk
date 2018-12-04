@@ -145,6 +145,8 @@ LIB_C_DEFS =  \
 # AS includes
 LIB_AS_INCLUDES =  \
 -I..//Inc
+LIB_AS_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_AS_INCLUDES))
+LIB_AS_INCLUDES := $(addprefix -I, $(LIB_AS_INCLUDES))
 
 # C includes
 LIB_C_INCLUDES =  \

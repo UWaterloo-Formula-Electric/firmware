@@ -85,7 +85,8 @@ LIB_C_SOURCES =  \
 ../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
 ../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 ../../Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
-../../Src/usart.c
+../../Src/usart.c \
+../../Src/tim.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
@@ -147,11 +148,11 @@ LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))
 
 
 # compile gcc flags
-LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(OPT) -Wall -fdata-sections -ffunction-sections -c
+LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
 
-LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(OPT) -Wall -fdata-sections -ffunction-sections -c
+LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
 
-ifeq ($(DEBUG), 1)
+ifeq ($(LIB_DEBUG), 1)
 LIB_CFLAGS += -g -gdwarf-2
 endif
 
