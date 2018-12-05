@@ -107,7 +107,7 @@
 #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 7 )
-#define configMINIMAL_STACK_SIZE                 ((uint16_t)1000)
+#define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
 #define configTOTAL_HEAP_SIZE                    ((size_t)262144)
 #define configMAX_TASK_NAME_LEN                  ( 16 )
 #define configGENERATE_RUN_TIME_STATS            1
@@ -178,7 +178,7 @@ standard names. */
 
 /* IMPORTANT: This define is commented when used with STM32Cube firmware, when timebase is systick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
-#define xPortSysTickHandler SysTick_Handler
+/* #define xPortSysTickHandler SysTick_Handler */
 
 /* USER CODE BEGIN 2 */    
 /* Definitions needed when configGENERATE_RUN_TIME_STATS is on */
