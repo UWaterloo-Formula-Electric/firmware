@@ -25,7 +25,10 @@ HAL_StatusTypeDef F7_canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef F7_canStart(CAN_HandleTypeDef *hcan)
 {
-    HAL_CAN_Start(hcan);
+    if (HAL_CAN_Start(hcan) != HAL_OK) {
+        ERROR_PRINT("Failed to start CAN!\n");
+        return HAL_ERROR;
+    }
 
     if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
     {
