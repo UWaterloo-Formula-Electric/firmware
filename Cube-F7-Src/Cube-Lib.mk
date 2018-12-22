@@ -75,7 +75,8 @@ Src/adc.c \
 Src/can.c \
 Src/i2c.c \
 Src/tim.c \
-Src/usart.c
+Src/usart.c \
+Src/dma.c \
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
