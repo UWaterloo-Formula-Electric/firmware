@@ -61,11 +61,11 @@ void MX_CAN3_Init(void)
 {
 
   hcan3.Instance = CAN3;
-  hcan3.Init.Prescaler = 27;
+  hcan3.Init.Prescaler = 25;
   hcan3.Init.Mode = CAN_MODE_NORMAL;
   hcan3.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan3.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan3.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan3.Init.TimeSeg1 = CAN_BS1_5TQ;
+  hcan3.Init.TimeSeg2 = CAN_BS2_2TQ;
   hcan3.Init.TimeTriggeredMode = DISABLE;
   hcan3.Init.AutoBusOff = DISABLE;
   hcan3.Init.AutoWakeUp = DISABLE;
@@ -105,6 +105,15 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+    /* CAN3 interrupt Init */
+    HAL_NVIC_SetPriority(CAN3_TX_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(CAN3_TX_IRQn);
+    HAL_NVIC_SetPriority(CAN3_RX0_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(CAN3_RX0_IRQn);
+    HAL_NVIC_SetPriority(CAN3_RX1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(CAN3_RX1_IRQn);
+    HAL_NVIC_SetPriority(CAN3_SCE_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(CAN3_SCE_IRQn);
   /* USER CODE BEGIN CAN3_MspInit 1 */
 
   /* USER CODE END CAN3_MspInit 1 */
@@ -130,6 +139,11 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3|GPIO_PIN_4);
 
+    /* CAN3 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(CAN3_TX_IRQn);
+    HAL_NVIC_DisableIRQ(CAN3_RX0_IRQn);
+    HAL_NVIC_DisableIRQ(CAN3_RX1_IRQn);
+    HAL_NVIC_DisableIRQ(CAN3_SCE_IRQn);
   /* USER CODE BEGIN CAN3_MspDeInit 1 */
 
   /* USER CODE END CAN3_MspDeInit 1 */
