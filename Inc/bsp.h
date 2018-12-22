@@ -4,13 +4,14 @@
 #include "boardTypes.h"
 #include "main.h"
 #include "can.h"
-#include <tim.h>
+#include "tim.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
 
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
+#define STATS_TIM_HANDLE htim4
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin
