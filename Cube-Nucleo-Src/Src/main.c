@@ -51,6 +51,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "adc.h"
 #include "can.h"
 #include "dma.h"
 #include "tim.h"
@@ -129,6 +130,7 @@ int main(void)
   MX_CAN1_Init();
   MX_USART3_UART_Init();
   MX_TIM3_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   /* USER CODE END 2 */

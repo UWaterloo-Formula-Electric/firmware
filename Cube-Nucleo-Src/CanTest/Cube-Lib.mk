@@ -88,7 +88,10 @@ LIB_C_SOURCES =  \
 ../Src/can.c \
 ../Src/gpio.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
-../Src/tim.c
+../Src/tim.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
+../Src/adc.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
