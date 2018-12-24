@@ -298,29 +298,30 @@ HAL_StatusTypeDef turnBoardsOn()
 {
     DEBUG_PRINT("Turning boards on\n");
 
-    HAL_GPIO_WritePin(BMU_EN_GPIO_Port,BMU_EN_Pin,GPIO_PIN_SET);
-    VCU_ENABLE
-    DCU_ENABLE
-    WSB_ENABLE
-    BMU_ENABLE
+    VCU_ENABLE;
+    DCU_ENABLE;
+    WSB_ENABLE;
+    BMU_ENABLE;
     return HAL_OK;
 }
 
 HAL_StatusTypeDef turnBoardsOff()
 {
     DEBUG_PRINT("Turning boards off\n");
-    VCU_DISABLE
-    DCU_DISABLE
-    WSB_DISABLE
-    BMU_DISABLE
+    VCU_DISABLE;
+    DCU_DISABLE;
+    WSB_DISABLE;
+    BMU_DISABLE;
     return HAL_OK;
 }
 
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    MC_LEFT_ENABLE
-    MC_RIGHT_ENABLE
+
+    MC_LEFT_ENABLE;
+    MC_RIGHT_ENABLE;
+
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
 
@@ -335,8 +336,9 @@ uint32_t motorsOff(uint32_t event)
 {
     DEBUG_PRINT("Turning motors off\n");
 
-    MC_LEFT_DISABLE
-    MC_RIGHT_DISABLE
+    MC_LEFT_DISABLE;
+    MC_RIGHT_DISABLE;
+
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_OFF;
 
@@ -410,19 +412,19 @@ uint32_t coolingCriticalFailure(uint32_t event) {
 
 uint32_t coolingOff(uint32_t event) {
     DEBUG_PRINT("Turning cooling off\n");
-    FAN_LEFT_DISABLE
-    FAN_RIGHT_DISABLE
-    PUMP_LEFT_DISABLE
-    PUMP_RIGHT_DISABLE
+    FAN_LEFT_DISABLE;
+    FAN_RIGHT_DISABLE;
+    PUMP_LEFT_DISABLE;
+    PUMP_RIGHT_DISABLE;
     return COOL_STATE_OFF;
 }
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-        FAN_LEFT_ENABLE
-    FAN_RIGHT_ENABLE
-    PUMP_LEFT_ENABLE
-    PUMP_RIGHT_ENABLE
+    FAN_LEFT_ENABLE;
+    FAN_RIGHT_ENABLE;
+    PUMP_LEFT_ENABLE;
+    PUMP_RIGHT_ENABLE;
     return COOL_STATE_ON;
 }
 
