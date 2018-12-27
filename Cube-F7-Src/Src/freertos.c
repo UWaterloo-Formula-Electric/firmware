@@ -79,7 +79,6 @@
 
 /* USER CODE END Variables */
 osThreadId mainTaskHandle;
-osThreadId canSendTaskHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
 osThreadId controlTaskNameHandle;
@@ -91,7 +90,6 @@ osThreadId PCDCHandle;
 /* USER CODE END FunctionPrototypes */
 
 void mainTaskFunction(void const * argument);
-extern void canTask(void const * argument);
 extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void controlTask(void const * argument);
@@ -152,10 +150,6 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of mainTask */
   osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
-
-  /* definition and creation of canSendTask */
-  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
-  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of printTaskName */
   osThreadDef(printTaskName, printTask, osPriorityLow, 0, 1000);
