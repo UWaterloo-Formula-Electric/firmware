@@ -484,7 +484,7 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
             fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
 
     if dtc:
-        fWrite('    return sendCanMessageUrgent({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+        fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     else:
         fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     fWrite('}', sourceFileHandle)

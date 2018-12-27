@@ -10,6 +10,8 @@
 #include "can.h"
 #include "debug.h"
 #include "bsp.h"
+#include "freertos.h"
+#include "task.h"
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
@@ -44,6 +46,22 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
     {
         ERROR_PRINT_ISR("Failed to receive CAN message from FIFO0\n");
+        Error_Handler();
+    }
+
+    if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+    }
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+    CAN_RxHeaderTypeDef   RxHeader;
+    uint8_t               RxData[8];
+
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader, RxData) != HAL_OK)
+    {
+        ERROR_PRINT_ISR("Failed to receive CAN message from FIFO1\n");
         Error_Handler();
     }
 
@@ -100,6 +118,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
  */
 
 
+#define F7_CAN_SEND_TIMEOUT_MS 2
 HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
@@ -131,6 +150,11 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     if (rc != HAL_OK)
     {
         ERROR_PRINT("CAN Transmit failed with rc %d\n", rc);
+        if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+            vTaskDelay(pdMS_TO_TICKS(F7_CAN_SEND_TIMEOUT_MS));
+        } else {
+            HAL_Delay(F7_CAN_SEND_TIMEOUT_MS);
+        }
         return HAL_ERROR;
     }
 
