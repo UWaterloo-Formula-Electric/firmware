@@ -44,6 +44,7 @@ INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
 			  Inc \
+			  $(F7_INC_DIR) \
 			  $(GEN_INC_DIR)
 
 
@@ -120,6 +121,18 @@ ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F7 F7))
    SRC += $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC))
 else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F0 F0))
    SRC += $(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC))
+else
+	$(error "Unsupported Board type: $(BOARD_TYPE)")
+endif
+
+ifeq ($(BOARD_TYPE), NUCLEO_F7)
+   SRC += $(addprefix $(NUCLEO_F7_SRC_DIR)/, $(NUCLEO_F7_SRC))
+else ifeq ($(BOARD_TYPE), F7)
+   SRC += $(addprefix $(F7_SRC_DIR)/, $(F7_SRC))
+else ifeq ($(BOARD_TYPE), NUCLEO_F0)
+   SRC += $(addprefix $(NUCLEO_F0_SRC_DIR)/, $(NUCLEO_F0_SRC))
+else ifeq ($(BOARD_TYPE), F0)
+   SRC += $(addprefix $(F0_SRC_DIR)/, $(F0_SRC))
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
