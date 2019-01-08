@@ -1,8 +1,9 @@
-#include <errorHandler.h>
+#include "errorHandler.h"
 #include "main.h"
 #include "freertos.h"
 #include "stdio.h"
 #include "stm32f7xx_hal.h"
+#include "debug.h"
 #include "BMU_dtc.h"
 
 void _handleError(char *file, int line)
@@ -18,4 +19,10 @@ void _handleError(char *file, int line)
 #else
   // TODO: create production error handler
 #endif
+}
+
+int log_assert_violation(char *file, int line, char *condition)
+{
+    ERROR_PRINT("ASSERT FAILURE: (%s): %s:%d\n", condition, file, line);
+    return 1;
 }
