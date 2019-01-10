@@ -383,10 +383,12 @@ def getMultiplexedMsgInfo(msg):
             sampleSignal = signal
             break
 
-    if is_signed:
-        dataType = 'int64_t'
-    else:
-        dataType = 'uint64_t'
+    dataType = 'float'
+    if signal.scale == 1:
+        if signal.is_signed:
+            dataType = 'int64_t'
+        else:
+            dataType = 'uint64_t'
 
     return (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal)
 
