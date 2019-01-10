@@ -14,22 +14,11 @@
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+#define VOLTAGE_MEASURE_DELAY_MS    5   // Length of time for voltage measurements to finish
+#define TEMP_MEASURE_DELAY_MS       5   // Length of time for temperature measurements to finish
 
-/* Functions */
-void batt_init_board(uint16_t address);
-void batt_write_config_to_board(uint16_t address);
-void batt_read_config(uint8_t* rxBuffer, uint8_t address);
-int32_t batt_read_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals);       // Reads voltage block of specified AMS board
-int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *adc_vals);   // Reads temperature block of specified AMS board
-int32_t batt_start_voltage_measurement(uint16_t address);
-int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel);
-void batt_clear_registers();
-int32_t batt_poll_adc_state(uint8_t address);
-void batt_unset_balancing_cell (int board, int cell);
-void batt_set_balancing_cell (int board, int cell);
-
-/* Helpers */
-void batt_gen_pec(uint8_t * arrdata, unsigned int dataSizeInBytes, uint8_t * pec);
-void batt_spi_wakeup();
+/* Public Functions */
+HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
+HAL_StatusTypeDef batt_init();
 
 #endif /* end of include guard: LTC6811_H */

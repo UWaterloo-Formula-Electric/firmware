@@ -11,6 +11,9 @@
 #include "math.h"
 #include "stdbool.h"
 #include "errorHandler.h"
+#include "debug.h"
+#include "freertos.h"
+#include "task.h"
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
@@ -107,17 +110,28 @@
 /** Voltage constants in 100uV steps **/
 #define VUV 0x658 // based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V
 #define VOV 0x8CA // based on: (VOV) * 16 * 100uV and target VOV of 3.6V
-#define LIMIT_OVERVOLTAGE ((adc_reading_t)36000)
-#define LIMIT_LOWVOLTAGE ((adc_reading_t)30000)
-#define LIMIT_UNDERVOLTAGE ((adc_reading_t)26000)
 
-#define BALANCE_THRESHOLD ((adc_reading_t)300) // 30mV
-#define BALANCE_HYSTERESIS ((adc_reading_t)220) // 22mV
-#define DELTA_DANGER ((adc_reading_t)2500) // 250mV
-#define RETRY_COUNT 0
+#define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
 
 // Configuration array
 static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE];
+
+/* Function Prototypes */
+void batt_init_board(uint16_t address);
+int batt_write_config_to_board(uint16_t address);
+int batt_read_config(uint8_t* rxBuffer, uint8_t address);
+int32_t batt_read_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals);       // Reads voltage block of specified AMS board
+int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *adc_vals);   // Reads temperature block of specified AMS board
+int32_t batt_start_voltage_measurement(uint16_t address);
+int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel);
+void batt_clear_registers();
+int32_t batt_poll_adc_state(uint8_t address);
+void batt_unset_balancing_cell (int board, int cell);
+void batt_set_balancing_cell (int board, int cell);
+
+/* Helper prototypes */
+void batt_gen_pec(uint8_t * arrdata, unsigned int dataSizeInBytes, uint8_t * pec);
+int batt_spi_wakeup();
 
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
@@ -192,7 +206,7 @@ void batt_init_board(uint16_t address)
 }
 
 
-void batt_write_config_to_board(uint16_t address) 
+int batt_write_config_to_board(uint16_t address) 
 {
     const size_t BUF_SIZE = COMMAND_SIZE + PEC_SIZE + BATT_CONFIG_SIZE + PEC_SIZE;
     uint8_t rxBuffer[BUF_SIZE];
@@ -211,10 +225,16 @@ void batt_write_config_to_board(uint16_t address)
     batt_gen_pec(m_batt_config[address], BATT_CONFIG_SIZE, &(txBuffer[COMMAND_SIZE + PEC_SIZE + BATT_CONFIG_SIZE]));
 
     // Transmit entire command + data
-    batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE);
+    if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))
+    {
+        ERROR_PRINT("Failed to transmit config to AMS board\n");
+        return 1;
+    }
+
+    return 0;
 }
 
-void batt_read_config(uint8_t* dataBuffer, uint8_t address) {
+int batt_read_config(uint8_t* dataBuffer, uint8_t address) {
     const size_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
     const size_t RX_SIZE = BATT_CONFIG_SIZE + PEC_SIZE;
     const size_t BUF_SIZE = TX_SIZE + RX_SIZE;
@@ -232,13 +252,19 @@ void batt_read_config(uint8_t* dataBuffer, uint8_t address) {
     fillDummyBytes(&txBuffer[TX_SIZE], RX_SIZE);
 
     // Transmit command, pec, and junk
-    batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, BATT_CONFIG_SIZE);
+    if (batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, BATT_CONFIG_SIZE))
+    {
+        ERROR_PRINT("Failed to read config from AMS board\n");
+        return 1;
+    }
 
     // We will copy the relevant data into the actual rxBuffer
     // Do this so the caller doesn't need to know info about the size of cmds
     for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
         dataBuffer[i] = rxBuffer[i + TX_SIZE];
     }
+
+    return 0;
 }
 
 void batt_set_balancing_cell (int board, int cell) 
@@ -286,7 +312,7 @@ int32_t batt_poll_adc_state(uint8_t address)
     return (rxBuffer[TX_SIZE] == 0xff);
 }
 
-int32_t batt_read_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals) 
+int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals)
 {
     const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
     const uint8_t RX_SIZE = VOLTAGE_BLOCK_SIZE + PEC_SIZE;
@@ -379,7 +405,11 @@ int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *a
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
     fillDummyBytes(&txBuffer[TX_SIZE], RX_SIZE);
 
-    batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, VOLTAGE_BLOCK_SIZE);
+    if (batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, VOLTAGE_BLOCK_SIZE))
+    {
+        ERROR_PRINT("Failed to read temperature block\n");
+        return 1;
+    }
 
     // Have to read 3 thermistor voltages from each auxiliary register
     for (int cvreg = 0; cvreg < 3; cvreg ++) 
@@ -409,13 +439,16 @@ int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel)
         case 2: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
         case 3: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
         case 4: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 5: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break; 
+        case 5: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
         case 6: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
         case 7: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
     }
 
     // Send over via SPI
-    batt_write_config_to_board(address);
+    if (batt_write_config_to_board(address))
+    {
+        return 1;
+    }
 
     uint8_t txBuffer[BUF_SIZE];
     uint8_t rxBuffer[BUF_SIZE];
@@ -424,7 +457,10 @@ int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel)
 
     // send ADAX and PEC over SPI
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-    batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE);
+    if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))
+    {
+        return 1;
+    }
 
     return 0;
 }
@@ -441,7 +477,11 @@ int32_t batt_start_voltage_measurement(uint16_t address)
 
     // send ADCV and PEC over SPI
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-    batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE);
+    if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))
+    {
+        ERROR_PRINT("Failed to start voltage measurement\n");
+        return 1;
+    }
 
     return 0;
 }
@@ -504,18 +544,184 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
     pecAddr[1] = pec & 0xff;
 }
 
-void batt_spi_wakeup() 
+int batt_spi_wakeup()
 {
     // Send some dummy bytes to wake up SPI/LTC
     uint8_t dummy = 0xFF;
     uint8_t rxBuffer;
 
     // Wake up the serial interface on device S1.
-    batt_spi_tx_rx_no_pec(&dummy, &rxBuffer, JUNK_SIZE);
+    if (batt_spi_tx_rx_no_pec(&dummy, &rxBuffer, JUNK_SIZE))
+    {
+        ERROR_PRINT("Failed to wakeup batt spi\n");
+        return 1;
+    }
     HAL_Delay(T_WAKE_MS);
 
     // For large stacks where some devices may go to the IDLE state after waking
-    batt_spi_tx_rx_no_pec(&dummy, &rxBuffer, JUNK_SIZE);
+    if (batt_spi_tx_rx_no_pec(&dummy, &rxBuffer, JUNK_SIZE))
+    {
+        ERROR_PRINT("Failed to wakeup batt spi\n");
+        return 1;
+    }
     HAL_Delay(T_WAKE_MS);
+
+    return 0;
 }
 
+// Read a cell voltage block, checking that cells are connected to all values
+// read
+int batt_read_voltage_block_bounds_check(uint32_t ams_index, uint32_t block_index, float *cell_voltage_array) {
+    uint16_t adc_vals[3] = {0};
+
+    // Index of cells to be logged, calculated from a combo of ams index and block index
+    uint32_t cell_index = 0;
+
+    // Check that the ADC is not currently reading, if it did something went horribly wrong
+    if(c_assert(batt_poll_adc_state(ams_index)))
+    {
+        return 1;
+    }
+
+    // Read specific voltage block of specific ams board
+    c_assert(!batt_read_cell_voltage_block(ams_index, block_index, adc_vals));
+
+    // Log voltage for the three cells, if there is actually a cell connected as given by the defines
+    for(uint32_t i = 0; i < 3; i++)
+    {
+        if((block_index*VOLTAGES_PER_BLOCK + i) < CELLS_PER_BOARD)
+        {
+            cell_index = ams_index*CELLS_PER_BOARD + block_index*VOLTAGES_PER_BLOCK + i;  // Calculate cell index
+            if(c_assert(cell_index < NUM_BOARDS*CELLS_PER_BOARD)) {return 1;}               // Check bounds
+            cell_voltage_array[cell_index] = ((float)adc_vals[i]) / VOLTAGE_REGISTER_COUNTS_PER_VOLT; // Put reading into array, convert from 100s of uV to float in volts
+        }
+    }
+
+    return 0;
+}
+
+// input voltage is in 100uV
+// output temp is in degrees C
+float batt_convert_voltage_to_temp(int voltage) {
+    // directly using the formulae from 
+    // http://www.murata.com/~/media/webrenewal/support/library/catalog/products/thermistor/ntc/r44e.ashx
+
+    const float r0 = 10e3;
+    const float t0 = 298.15;
+    const float B = 3380;
+    const float vt = 3.0;
+    float v = 0.0001 * (float) voltage;
+    if (vt == v) {
+        return NAN;
+    }
+    // http://www.wolframalpha.com/input/?i=rearrange+v+%3D+r%2F(r%2Br0)*v0+for+r
+    float r = r0 * v / (vt - v);
+    float temperature = 1./(logf(r/r0)/B + 1./t0) - 273.15f;
+    return temperature;
+}
+
+/*
+ *
+ * Public Functions
+ *
+ */
+
+HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array)
+{
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        if (batt_spi_wakeup())
+        {
+            return HAL_ERROR;
+        }
+
+        // TODO: These were in the 2017 code, but probably don't need, as can
+        // put in an init function
+        // Delete if they prove unecessary
+        /*batt_init_board(board);*/
+        /*batt_write_config_to_board(board);*/
+
+        /*
+         * Voltage Readings
+         */
+        if (batt_start_voltage_measurement(board))
+        {
+            ERROR_PRINT("Failed to start voltage measure for board %d\n", board);
+            return HAL_ERROR;
+        }
+
+        vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+        if (batt_spi_wakeup())
+        {
+            return HAL_ERROR;
+        }
+
+        if (c_assert(batt_poll_adc_state(board))) {
+            ERROR_PRINT("state of board %u is bad\r\n", board);
+            return HAL_ERROR;
+        }
+
+        for (int block = 0; block < VOLTAGE_BLOCKS_PER_BOARD; block++) {
+            if (batt_read_voltage_block_bounds_check(board, block, cell_voltage_array)) {
+                ERROR_PRINT("Failed to read voltage block %i from board %i\n", block, board);
+                return HAL_ERROR;
+            }
+        }
+
+        /*
+         * Temperature readings
+         */
+        for (int i = 0; i < THERMISTORS_PER_BOARD; i++) {
+            // TODO: Do we need this wakeup? The boards should be up after the
+            // voltage measure, but maybe theres a chance the task gets
+            // interrupted in the middle
+            if (batt_spi_wakeup())
+            {
+                return HAL_ERROR;
+            }
+            if (batt_start_temp_measurement(board, i))
+            {
+                ERROR_PRINT("Failed to start temp measure for board %i\n", board);
+                return HAL_ERROR;
+            }
+            vTaskDelay(TEMP_MEASURE_DELAY_MS);
+            if (batt_spi_wakeup())
+            {
+                return HAL_ERROR;
+            }
+            if (c_assert(batt_poll_adc_state(board))) {
+                return HAL_ERROR;
+            }
+
+            uint16_t adc_vals[3] = {0};
+            if (c_assert(!batt_read_temperature_block(board, 0, adc_vals))) {
+                return HAL_ERROR;
+            }
+            // TODO: Since there's less thermistors then cells, figure out what
+            // to do for the array
+            cell_temp_array[board * THERMISTORS_PER_BOARD + i] = batt_convert_voltage_to_temp(adc_vals[0]);
+            // printf("B%dT%d,%hx\r\n", board, i, adc_vals[0]);
+        }
+    }
+
+    return HAL_OK;
+}
+
+void batt_set_balancing()
+{
+}
+
+HAL_StatusTypeDef batt_init()
+{
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        batt_init_board(board);
+        if (batt_write_config_to_board(board))
+        {
+            ERROR_PRINT("Failed to init board %d\n", board);
+            return HAL_ERROR;
+        }
+    }
+
+    return HAL_OK;
+}
