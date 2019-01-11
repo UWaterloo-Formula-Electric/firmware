@@ -15,6 +15,17 @@
 #include "freertos.h"
 #include "task.h"
 
+// The following defines change depending on battery box layout
+#define NUM_BOARDS                  6   // Number of AMS boards in system
+#define CELLS_PER_BOARD             12  // Number of valid cells per board, starting from the most negative terminal
+#define THERMISTORS_PER_BOARD       8   // Number of thermistors attached to each AMS, starting from A0
+
+// The following defines are always fixed due to AMS architecture, DO NOT CHANGE
+#define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
+#define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+#define VOLTAGE_MEASURE_DELAY_MS    5   // Length of time for voltage measurements to finish
+#define TEMP_MEASURE_DELAY_MS       5   // Length of time for temperature measurements to finish
+
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
@@ -288,6 +299,18 @@ void batt_unset_balancing_cell (int board, int cell)
     else 
     {
         CLEARBIT(m_batt_config[board][5], cell - 8);
+    }
+}
+
+bool batt_get_balancing_cell_state(int board, int cell)
+{
+    if (cell < 8) // 8 bits per byte in the register
+    {
+        return GETBIT(m_batt_config[board][4], cell);
+    }
+    else
+    {
+        return GETBIT(m_batt_config[board][5], cell - 8);
     }
 }
 
@@ -707,8 +730,54 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
     return HAL_OK;
 }
 
-void batt_set_balancing()
+HAL_StatusTypeDef batt_balance_cell(int cell)
 {
+    if (c_assert(cell >= (NUM_BOARDS * CELLS_PER_BOARD)))
+    {
+        return HAL_ERROR;
+    }
+
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD);
+
+    batt_set_balancing_cell(boardIdx, amsCellIdx);
+
+    return HAL_OK;
+}
+
+bool batt_is_cell_balancing(int cell)
+{
+    if (c_assert(cell >= (NUM_BOARDS * CELLS_PER_BOARD)))
+    {
+        return false;
+    }
+
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD);
+
+    return batt_get_balancing_cell_state(boardIdx, amsCellIdx);
+}
+
+HAL_StatusTypeDef batt_write_balancing_config()
+{
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        if (batt_write_config_to_board(board)) {
+            return HAL_ERROR;
+        }
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_unset_balancing_all_cells()
+{
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for (int cell = 0; cell < CELLS_PER_BOARD; cell++) {
+            batt_unset_balancing_cell(board, cell);
+        }
+    }
+
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_init()
