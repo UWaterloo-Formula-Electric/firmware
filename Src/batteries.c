@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "math.h"
 #include "BMU_can.h"
+#include "boardTypes.h"
 
 #define BATTERY_TASK_PERIOD_MS 100
 
@@ -14,9 +15,25 @@
  * Platform specific functions
  *
  */
+
+#if IS_BOARD_F7
+#include "ltc6811.h"
+#endif
+
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
+#if IS_BOARD_F7
+   _Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");
+   _Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");
+
+   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
+#elif IS_BOARD_NUCLEO_F7
+   // For nucleo, cell voltages and temps can be manually changed via CLI for
+   // testing, so we don't do anything here
    return HAL_OK;
+#else
+#error Unsupported board type
+#endif
 }
 
 /*

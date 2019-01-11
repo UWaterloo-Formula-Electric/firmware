@@ -15,11 +15,6 @@
 #include "freertos.h"
 #include "task.h"
 
-// The following defines change depending on battery box layout
-#define NUM_BOARDS                  6   // Number of AMS boards in system
-#define CELLS_PER_BOARD             12  // Number of valid cells per board, starting from the most negative terminal
-#define THERMISTORS_PER_BOARD       8   // Number of thermistors attached to each AMS, starting from A0
-
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
@@ -732,7 +727,7 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
 
 HAL_StatusTypeDef batt_balance_cell(int cell)
 {
-    if (c_assert(cell >= (NUM_BOARDS * CELLS_PER_BOARD)))
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
         return HAL_ERROR;
     }
@@ -747,7 +742,7 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 
 bool batt_is_cell_balancing(int cell)
 {
-    if (c_assert(cell >= (NUM_BOARDS * CELLS_PER_BOARD)))
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
         return false;
     }
