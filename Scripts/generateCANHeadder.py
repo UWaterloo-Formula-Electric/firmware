@@ -426,7 +426,7 @@ def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFi
 
         fWrite('volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), sourceFileHandle)
         fWrite('extern volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), headerFileHandle)
-        fWrite('const int {name}_COUNT = {count};\n'.format(name=strippedSignalName.upper(), count=numSignals), sourceFileHandle)
+        fWrite('#define {name}_COUNT ({count})'.format(name=strippedSignalName.upper(), count=numSignals), headerFileHandle)
 
         writeSignalReceivedFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
         # write the signal receive function for the multiplexer signal. Set multiplexed to false since this signal isn't multiplexed
@@ -535,7 +535,7 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal) = getMultiplexedMsgInfo(msg)
 
         fWrite('volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), sourceFileHandle)
-        fWrite('const int {name}_COUNT = {count};'.format(name=strippedSignalName.upper(), count=numSignals), sourceFileHandle)
+        fWrite('#define {name}_COUNT ({count})'.format(name=strippedSignalName.upper(), count=numSignals), headerFileHandle)
         fWrite('extern volatile {dataType} {name}[{count}];\n'.format(dataType=dataType, name=strippedSignalName, count=numSignals), headerFileHandle)
 
         writeSignalSendingFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
