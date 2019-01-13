@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2018 STMicroelectronics International N.V. 
+  * Copyright (c) 2019 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -62,6 +62,7 @@ osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
 osThreadId controlTaskNameHandle;
 osThreadId PCDCHandle;
+osThreadId BatteryTaskHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -73,6 +74,7 @@ extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void controlTask(void const * argument);
 extern void pcdcTask(void const * argument);
+extern void batteryTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -146,6 +148,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of PCDC */
   osThreadDef(PCDC, pcdcTask, osPriorityNormal, 0, 1000);
   PCDCHandle = osThreadCreate(osThread(PCDC), NULL);
+
+  /* definition and creation of BatteryTask */
+  osThreadDef(BatteryTask, batteryTask, osPriorityRealtime, 0, 1000);
+  BatteryTaskHandle = osThreadCreate(osThread(BatteryTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

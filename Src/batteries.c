@@ -10,6 +10,19 @@
 
 #define BATTERY_TASK_PERIOD_MS 100
 
+// Cell Low and High Voltages, in volts (floating point)
+#define LIMIT_OVERVOLTAGE 4.2F
+#define LIMIT_HIGHVOLTAGE 4.2F // TODO: Not sure what this should be
+#define LIMIT_LOWVOLTAGE 3.0F // TODO: Not sure what this should be
+#define LIMIT_UNDERVOLTAGE 3.0F
+
+#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
+#define CELL_DCR (0.01)
+#define CELL_HEAT_CAPACITY (1034.2) //kj/kg•k
+#define CELL_MASS (0.496)
+#define CELL_MAX_TEMP_C (60.0)
+#define CELL_OVERTEMP (CELL_MAX_TEMP_C)
+
 /*
  *
  * Platform specific functions
@@ -37,8 +50,39 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 }
 
 /*
+ * This functions sets all cell voltages and temps to known values
+ * This is necessary for testing on Nucleo so it doesn't immediately error
+ * before the user can manually set the Voltages and Temperatures
+ */
+HAL_StatusTypeDef initVoltageAndTempArrays()
+{
+#if IS_BOARD_F7
+   // For F7 just zero out the array
+   float initVoltage = 0;
+   float initTemp = 0;
+#elif IS_BOARD_NUCLEO_F7
+   float initVoltage = LIMIT_OVERVOLTAGE - 0.1;
+   float initTemp = CELL_OVERTEMP - 20;
+#else
+#error Unsupported board type
+#endif
+
+   for (int i=0; i<= VOLTAGECELL_COUNT; i++)
+   {
+      VoltageCell[i] = initVoltage;
+   }
+   for (int i=0; i<= TEMPCELL_COUNT; i++)
+   {
+      TempCell[i] = initTemp;
+   }
+
+   return HAL_OK;
+}
+
+/*
  * This task will retry its readings MAX_ERROR_COUNT times, then fail and send
  * error event
+ * TODO: ensure this is max 500 ms
  */
 #define MAX_ERROR_COUNT 3
 #define BOUNDED_CONTINUE \
@@ -56,16 +100,57 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
     } while (0)
 
 
-HAL_StatusTypeDef checkCellVoltagesAndTemps()
+HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage)
 {
-   return HAL_OK;
+   HAL_StatusTypeDef rc = HAL_OK;
+   float measure;
+
+   *maxVoltage = 0;
+   *minVoltage = LIMIT_OVERVOLTAGE;
+   *maxTemp = -100; // Cells shouldn't get this cold right??
+   *minTemp = CELL_OVERTEMP;
+   packVoltage = 0;
+
+   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   {
+      measure = VoltageCell[i];
+
+      // Check it is within bounds
+      if (measure < LIMIT_UNDERVOLTAGE) {
+         ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure);
+         rc = HAL_ERROR;
+      }
+      if (measure > LIMIT_OVERVOLTAGE) {
+         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
+         rc = HAL_ERROR;
+      }
+
+      // Update max voltage
+      if (measure > (*maxVoltage)) {(*maxVoltage) = measure;}
+      if (measure < (*minVoltage)) {(*minVoltage) = measure;}
+
+      // Sum up cell voltages to get overall pack voltage
+      (*packVoltage) += measure;
+   }
+
+   for (int i=0; i < TEMPCELL_COUNT; i++)
+   {
+      measure = TempCell[i];
+
+      // Check it is within bounds
+      if (measure > CELL_OVERTEMP) {
+         ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
+         rc = HAL_ERROR;
+      }
+
+      // Update max voltage
+      if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+      if (measure < (*minTemp)) {(*minTemp) = measure;}
+   }
+
+   return rc;
 }
 
-#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
-#define CELL_DCR (0.01)
-#define CELL_HEAT_CAPACITY (1034.2) //kj/kg•k
-#define CELL_MASS (0.496)
-#define CELL_MAX_TEMP_C (50.0)
 
 float calculateStateOfPower()
 {
@@ -74,12 +159,6 @@ float calculateStateOfPower()
    return maxCurrent;
 }
 
-// Cell Low and High Voltages, in volts (floating point)
-// TODO: Update these
-#define LIMIT_OVERVOLTAGE 4.25F
-#define LIMIT_HIGHVOLTAGE 4.2F
-#define LIMIT_LOWVOLTAGE 3.4F
-#define LIMIT_UNDERVOLTAGE 3.35F
 
 float calculateStateOfCharge()
 {
@@ -88,17 +167,32 @@ float calculateStateOfCharge()
 
 HAL_StatusTypeDef batteryStart()
 {
+#if IS_BOARD_F7
+   return batt_init();
+#elif IS_BOARD_NUCLEO_F7
+   // For nucleo, cell voltages and temps can be manually changed via CLI for
+   // testing, so we don't do anything here
+   return HAL_OK;
+#else
+#error Unsupported board type
+#endif
     return HAL_OK;
 }
 
 void batteryTask(void *pvParameter)
 {
+    if (initVoltageAndTempArrays() != HAL_OK)
+    {
+       Error_Handler();
+    }
+
     if (batteryStart() != HAL_OK)
     {
         Error_Handler();
     }
 
     int errorCounter = 0;
+    float packVoltage;
     while (1)
     {
         if (readCellVoltagesAndTemps() != HAL_OK) {
@@ -106,7 +200,11 @@ void batteryTask(void *pvParameter)
             BOUNDED_CONTINUE
         }
 
-        if (checkCellVoltagesAndTemps() != HAL_OK) {
+        if (checkCellVoltagesAndTemps(
+              ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
+              ((float *)&TempCellMax), ((float *)&TempCellMin),
+              &packVoltage) != HAL_OK)
+        {
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
             // TODO: What should happen here?
             vTaskSuspend(NULL); // Suspend this task as the system should be shutting down
@@ -114,6 +212,7 @@ void batteryTask(void *pvParameter)
 
         StateBatteryPowerHV = calculateStateOfPower();
         StateBatteryChargeHV = calculateStateOfCharge();
+        StateBMS = fsmGetState(&fsmHandle);
 
 
         /* This sends the following data, all of which get updated each time
@@ -123,7 +222,7 @@ void batteryTask(void *pvParameter)
          * - State of power
          * - TempCellMax
          * - TempCellMin
-         * - StateBMS TODO: Implement
+         * - StateBMS
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send batter status HV\n");
