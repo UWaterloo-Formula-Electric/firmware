@@ -23,6 +23,10 @@
 #define CELL_MAX_TEMP_C (60.0)
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
 
+QueueHandle_t IBusQueue;
+QueueHandle_t VBusQueue;
+QueueHandle_t VBattQueue;
+
 /*
  *
  * Platform specific functions
@@ -31,7 +35,25 @@
 
 #if IS_BOARD_F7
 #include "ltc6811.h"
+#include "ade7912.h"
 #endif
+
+HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
+{
+#if IS_BOARD_F7
+   (*IBus) = adc_read_current();
+   (*VBus) = adc_read_v1();
+   (*VBatt) = adc_read_v2();
+   return HAL_OK;
+
+#elif IS_BOARD_NUCLEO_F7
+   // For nucleo, voltages and current can be manually changed via CLI for
+   // testing, so we don't do anything here
+   return HAL_OK;
+#else
+#error Unsupported board type
+#endif
+}
 
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
@@ -99,6 +121,28 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
         errorCounter--; \
     } while (0)
 
+HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
+{
+   IBusQueue = xQueueCreate(1, sizeof(float));
+   VBusQueue = xQueueCreate(1, sizeof(float));
+   VBattQueue = xQueueCreate(1, sizeof(float));
+
+   if (IBusQueue == NULL || VBusQueue == NULL || VBattQueue == NULL) {
+      ERROR_PRINT("Failed to create bus voltages and current queues!\n");
+      return HAL_ERROR;
+   }
+
+   return HAL_OK;
+}
+
+HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *IBus, float *VBus, float *Vbatt)
+{
+   xQueueOverwrite(IBusQueue, IBus);
+   xQueueOverwrite(VBusQueue, VBus);
+   xQueueOverwrite(VBattQueue, Vbatt);
+
+   return HAL_OK;
+}
 
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage)
 {
@@ -179,6 +223,9 @@ HAL_StatusTypeDef batteryStart()
     return HAL_OK;
 }
 
+float VBus;
+float VBatt;
+float IBus;
 void batteryTask(void *pvParameter)
 {
     if (initVoltageAndTempArrays() != HAL_OK)
@@ -198,6 +245,15 @@ void batteryTask(void *pvParameter)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             BOUNDED_CONTINUE
+        }
+
+        if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
+            ERROR_PRINT("Failed to read bus voltages and current!\n");
+            BOUNDED_CONTINUE
+        }
+
+        if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {
+            ERROR_PRINT("Failed to publish bus voltages and current!\n");
         }
 
         if (checkCellVoltagesAndTemps(

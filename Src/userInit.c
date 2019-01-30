@@ -6,6 +6,7 @@
 #include "userCan.h"
 #include "controlStateMachine_mock.h"
 #include "controlStateMachine.h"
+#include "batteries.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -37,6 +38,9 @@ void userInit()
         Error_Handler();
     }
     if (controlInit() != HAL_OK) {
+        Error_Handler();
+    }
+    if (initBusVoltagesAndCurrentQueues() != HAL_OK) {
         Error_Handler();
     }
 }

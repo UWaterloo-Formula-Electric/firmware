@@ -77,12 +77,6 @@ typedef enum PCDC_Notifications_t {
 #define PRECHARGE_STEP_5_VBATT_RANGE 50 // Volts
 
 
-/*
- * Mock testing defines/parameters/functions
- */
-
-#define MOCK_MEASUREMENTS
-
 // Uncomment these to have the code auto set I_Shunt, VBatt, and VBus to the
 // right values before that step
 #define PC_STEP_1_Succeed
@@ -90,12 +84,6 @@ typedef enum PCDC_Notifications_t {
 #define PC_STEP_3_Succeed
 #define PC_STEP_4_Succeed
 #define PC_STEP_5_Succeed
-
-#ifdef MOCK_MEASUREMENTS
-extern float I_Shunt;
-extern float VBatt;
-extern float VBus;
-#endif
 
 float getIshunt(void);
 float getVBatt(void);

@@ -5,13 +5,7 @@
 #include "task.h"
 #include "math.h"
 #include "BMU_DTC.h"
-
-
-#ifdef MOCK_MEASUREMENTS
-float I_Shunt;
-float VBatt;
-float VBus;
-#endif
+#include "batteries.h"
 
 HAL_StatusTypeDef pcdcInit()
 {
@@ -21,26 +15,38 @@ HAL_StatusTypeDef pcdcInit()
 
 float getIshunt(void)
 {
-#ifdef MOCK_MEASUREMENTS
-    return I_Shunt;
-#else
-#endif
+    float Ishunt;
+
+    if (xQueueReceive(IBusQueue, &Ishunt, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive Ishunt current from queue\n");
+        return -1;
+    }
+
+    return Ishunt;
 }
 
 float getVBatt(void)
 {
-#ifdef MOCK_MEASUREMENTS
+    float VBatt;
+
+    if (xQueueReceive(IBusQueue, &VBatt, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive VBatt current from queue\n");
+        return -1;
+    }
+
     return VBatt;
-#else
-#endif
 }
 
 float getVBus(void)
 {
-#ifdef MOCK_MEASUREMENTS
+    float VBus;
+
+    if (xQueueReceive(IBusQueue, &VBus, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive VBus current from queue\n");
+        return -1;
+    }
+
     return VBus;
-#else
-#endif
 }
 
 typedef enum Precharge_Discharge_Return_t {

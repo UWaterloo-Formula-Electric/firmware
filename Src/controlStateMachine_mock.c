@@ -9,6 +9,10 @@
 #include "BMU_can.h"
 #include "controlStateMachine.h"
 
+extern float IBus;
+extern float VBus;
+extern float VBatt;
+
 BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -165,7 +169,7 @@ BaseType_t setIBus(char *writeBuffer, size_t writeBufferLength,
     sscanf(param, "%f", &current);
 
     COMMAND_OUTPUT("setting bus current %f\n", current);
-    I_Shunt = current;
+    IBus = current;
 
     return pdFALSE;
 }
@@ -222,7 +226,7 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
-    I_Shunt = 0;
+    IBus = 0;
     VBatt = 0;
 
     VBus = 0;
