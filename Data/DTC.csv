@@ -1,33 +1,35 @@
 DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 1,CELL_VOLTAGE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is low
-2,CELL_VOLTAGE_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
-3,CELL_VOLTAGE_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is low
-4,CELL_VOLTAGE_HIGH,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
-5,CONTACTOR_OPEN_IMPENDING,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,BMS is opening contactors
-6,CONTACTOR_WELDED_SHUT_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor is welded shut
-7,CONTACTOR_WELDED_SHUT_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor is welded shut
-8,CONTACTOR_COIL_FAILURE_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor coil has faild open
-9,CONTACTOR_COIL_FAILURE_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor coil has faild open
-10,CONTACTOR_PRECHARGE_STUCK_ON,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck closed
-11,CONTACTOR_PRECHARGE_STUCK_OFF,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck open
-12,CONTACTOR_PRECHARGE_RESISTOR_SHORT,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed open
-13,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short
-14,INSULATION_RESISTANCE_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is abnormaly low
-15,INSULATION_RESISTANCE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is critically low
-16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: not hv enabled, 4: Motors failed to start)"
-17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: not hv enabled, 4: Motors failed to start)"
-18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is about to turn off the boards after a short delay"
-19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards"
-20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay"
-21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU
-22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-24, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-25, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-26, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-27, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
-28, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
-29, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU Can Timeout occured
-30, Throtte_Failure,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Throttle implausibility occured
-31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The precharge process failed during step #data
-31,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The discharge process failed during step #data
+2,CELL_VOLTAGE_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
+3,CELL_VOLTAGE_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high
+4,CELL_VOLTAGE_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
+5,CELL_TEMP_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high
+6,CELL_TEMP_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
+7,CONTACTOR_OPEN_IMPENDING,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,BMS is opening contactors
+8,CONTACTOR_WELDED_SHUT_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor is welded shut
+9,CONTACTOR_WELDED_SHUT_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor is welded shut
+10,CONTACTOR_COIL_FAILURE_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor coil has faild open
+11,CONTACTOR_COIL_FAILURE_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor coil has faild open
+12,CONTACTOR_PRECHARGE_STUCK_ON,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck closed
+13,CONTACTOR_PRECHARGE_STUCK_OFF,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck open
+14,CONTACTOR_PRECHARGE_RESISTOR_SHORT,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed open
+15,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short
+16,INSULATION_RESISTANCE_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is abnormaly low
+17,INSULATION_RESISTANCE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",Resistance,The insulation resistance: #data is critically low
+18,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: not hv enabled, 4: Motors failed to start)"
+19,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: not hv enabled, 4: Motors failed to start)"
+20,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is about to turn off the boards after a short delay"
+21,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards"
+22,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay"
+23,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU
+24, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
+25, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
+26, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
+27, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
+28, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
+29, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
+30, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
+31, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU Can Timeout occured
+32, Throtte_Failure,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Throttle implausibility occured
+33,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The precharge process failed during step #data
+34,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The discharge process failed during step #data
