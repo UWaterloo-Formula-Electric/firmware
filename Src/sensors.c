@@ -7,6 +7,9 @@
 #include "sensors.h"
 #include "adc.h"
 
+// TODO: Find this value
+#define FUSE_BLOWN_MIN_CURRENT_AMPS 0.001
+
 uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
 HAL_StatusTypeDef startADCConversions()
@@ -42,6 +45,11 @@ float readBusCurrent()
     return rawValue; // TODO: Add approriate scaling
 }
 
+bool checkBlownFuse(float channelCurrent)
+{
+    return channelCurrent >= FUSE_BLOWN_MIN_CURRENT_AMPS;
+}
+
 void sensorTask(void *pvParameters)
 {
     if (startADCConversions() != HAL_OK) {
@@ -63,7 +71,13 @@ void sensorTask(void *pvParameters)
         DEBUG_PRINT("Channel currents:\n");
         for (int i=0; i<NUM_PDU_CHANNELS; i++) {
             float channelCurrent = readCurrent(i);
-            DEBUG_PRINT("1: %f\n", channelCurrent);
+
+            if (checkBlownFuse(channelCurrent)) {
+                ERROR_PRINT("Channel %d has a blown fuse\n", i);
+                fsmSendEventUrgent(&mainFsmHandle, MN_EV_HV_CriticalFailure, 1000);
+            }
+
+            DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);
             // TODO: Log current
         }
 
