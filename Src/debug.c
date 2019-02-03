@@ -11,6 +11,7 @@
 #define CONSOLE_SEND(buf) \
     do { \
         xQueueSendFromISR(printQueue, buf, NULL); \
+        vTaskDelay(1); \
     } while (0)
 
 // Buffer to receive uart characters (1 byte)
