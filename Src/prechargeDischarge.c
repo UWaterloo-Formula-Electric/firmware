@@ -17,7 +17,7 @@ float getIshunt(void)
 {
     float Ishunt;
 
-    if (xQueueReceive(IBusQueue, &Ishunt, 0) != pdTRUE) {
+    if (xQueuePeek(IBusQueue, &Ishunt, 0) != pdTRUE) {
         ERROR_PRINT("Failed to receive Ishunt current from queue\n");
         return -1;
     }
@@ -29,8 +29,8 @@ float getVBatt(void)
 {
     float VBatt;
 
-    if (xQueueReceive(IBusQueue, &VBatt, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive VBatt current from queue\n");
+    if (xQueuePeek(VBattQueue, &VBatt, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive VBatt voltage from queue\n");
         return -1;
     }
 
@@ -41,8 +41,8 @@ float getVBus(void)
 {
     float VBus;
 
-    if (xQueueReceive(IBusQueue, &VBus, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive VBus current from queue\n");
+    if (xQueuePeek(VBusQueue, &VBus, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive VBus voltage from queue\n");
         return -1;
     }
 
@@ -145,12 +145,11 @@ Precharge_Discharge_Return_t precharge()
      * VBATT = VPACK / 2
      */
 
-#ifdef MOCK_MEASUREMENTS
 #ifdef PC_STEP_1_Succeed
-    I_Shunt = 0;
+    IBus = 0;
     VBus = 0;
     VBatt = VPACK/2;
-#endif
+    vTaskDelay(500); // Delay to allow battery task to publish these values
 #endif
 
     DEBUG_PRINT("Precharge step 1 start\n");
@@ -177,12 +176,10 @@ Precharge_Discharge_Return_t precharge()
      * VBATT = VPACK
      */
 
-#ifdef MOCK_MEASUREMENTS
 #ifdef PC_STEP_2_Succeed
-    I_Shunt = 0;
+    IBus = 0;
     VBus = 0;
     VBatt = VPACK;
-#endif
 #endif
 
     DEBUG_PRINT("Precharge step 2 start\n");
@@ -209,12 +206,10 @@ Precharge_Discharge_Return_t precharge()
      * VBATT = VPACK / 2
      */
 
-#ifdef MOCK_MEASUREMENTS
 #ifdef PC_STEP_3_Succeed
-    I_Shunt = 0;
+    IBus = 0;
     VBus = 0;
     VBatt = VPACK/2;
-#endif
 #endif
 
     DEBUG_PRINT("Precharge step 3 start\n");
@@ -241,12 +236,10 @@ Precharge_Discharge_Return_t precharge()
      * VBATT = VPACK
      */
 
-#ifdef MOCK_MEASUREMENTS
 #ifdef PC_STEP_4_Succeed
-    I_Shunt = 10;
+    IBus = 10;
     VBus = 0;
     VBatt = VPACK;
-#endif
 #endif
 
     DEBUG_PRINT("Precharge step 4 start\n");
@@ -273,12 +266,10 @@ Precharge_Discharge_Return_t precharge()
      * VBATT = VPACK
      */
 
-#ifdef MOCK_MEASUREMENTS
 #ifdef PC_STEP_5_Succeed
-    I_Shunt = 3;
+    IBus = 3;
     VBus = VPACK;
     VBatt = VPACK;
-#endif
 #endif
 
     DEBUG_PRINT("Precharge step 5 start\n");

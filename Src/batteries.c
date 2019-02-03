@@ -27,6 +27,10 @@ QueueHandle_t IBusQueue;
 QueueHandle_t VBusQueue;
 QueueHandle_t VBattQueue;
 
+float VBus;
+float VBatt;
+float IBus;
+
 /*
  *
  * Platform specific functions
@@ -135,11 +139,11 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
    return HAL_OK;
 }
 
-HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *IBus, float *VBus, float *Vbatt)
+HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float *pVBatt)
 {
-   xQueueOverwrite(IBusQueue, IBus);
-   xQueueOverwrite(VBusQueue, VBus);
-   xQueueOverwrite(VBattQueue, Vbatt);
+   xQueueOverwrite(IBusQueue, pIBus);
+   xQueueOverwrite(VBusQueue, pVBus);
+   xQueueOverwrite(VBattQueue, pVBatt);
 
    return HAL_OK;
 }
@@ -223,9 +227,6 @@ HAL_StatusTypeDef batteryStart()
     return HAL_OK;
 }
 
-float VBus;
-float VBatt;
-float IBus;
 void batteryTask(void *pvParameter)
 {
     if (initVoltageAndTempArrays() != HAL_OK)

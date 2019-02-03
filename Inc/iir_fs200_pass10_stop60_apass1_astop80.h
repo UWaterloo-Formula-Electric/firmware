@@ -1,0 +1,19 @@
+// iir_fs200_pass10_stop60_apass1_astop80.h
+// this file was generated using
+// function STM32F4_iirsos_coeffs.m
+
+#ifndef IIR_FS200_PASS10_STOP60_APASS1_ASTOP80_H
+
+#define IIR_FS200_PASS10_STOP60_APASS1_ASTOP80_H
+
+#define NUM_SECTIONS 2
+
+float b[NUM_SECTIONS][3] = { 
+{6.27041078E-02, 4.75018371E-02, 6.27041078E-02},
+{3.93132407E-02, 6.73425093E-02, 3.93132407E-02} };
+
+float a[NUM_SECTIONS][3] = { 
+{1.00000000E+00, -1.54325451E+00, 7.16164565E-01},
+{1.00000000E+00, -1.27555859E+00, 4.21527577E-01} };
+
+#endif /* end of include guard: IIR_FS200_PASS10_STOP60_APASS1_ASTOP80_H */

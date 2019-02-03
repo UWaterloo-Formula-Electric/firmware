@@ -8,19 +8,64 @@
 #include "prechargeDischarge.h"
 #include "BMU_can.h"
 #include "controlStateMachine.h"
+#include "testData.h"
+#include "filters.h"
 
 extern float IBus;
 extern float VBus;
 extern float VBatt;
+
+float output[DATA_LENGTH];
+BaseType_t testLowPassFilter(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    const int BLOCK_SIZE = 20;
+    float *samplePointer = data;
+    float *outputPointer = output;
+
+    filtersInit();
+
+    uint32_t startTime = getRunTimeCounterValue();
+    for (int i=0; i<DATA_LENGTH / BLOCK_SIZE; i++) {
+        samplePointer = &(data[i*BLOCK_SIZE]);
+        outputPointer = &(output[i*BLOCK_SIZE]);
+        lowPassFilter(samplePointer, BLOCK_SIZE, outputPointer);
+    }
+    uint32_t elapsedTime = getRunTimeCounterValue() - startTime;
+
+    DEBUG_PRINT("Filtered data length %d in %lu us\n", DATA_LENGTH, elapsedTime*50);
+    DEBUG_PRINT("outputData = [\n");
+    vTaskDelay(10);
+    for (int j=0; j<DATA_LENGTH; j++) {
+        DEBUG_PRINT("%f,\n", output[j]);
+        vTaskDelay(2);
+    }
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t testLowPassFilterCommandDefinition =
+{
+    "lowPass",
+    "lowPass:\r\n Print output of low pass filter\r\n",
+    testLowPassFilter,
+    0 /* Number of parameters */
+};
 
 BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     _Static_assert(VOLTAGECELL_COUNT == TEMPCELL_COUNT, "Length of array for cell voltages doens't match array for cell temps");
 
-    static int cellIdx = -3;
+    static int cellIdx = -5;
 
-    if (cellIdx == -3) {
+    if (cellIdx == -5) {
+        COMMAND_OUTPUT("IBUS\tVBUS\tVBATT\r\n");
+        cellIdx = -4;
+        return pdTRUE;
+    } else if (cellIdx == -4) {
+        COMMAND_OUTPUT("%f\t%f\t%f\r\n\n", IBus, VBus, VBatt);
+        cellIdx = -3;
+        return pdTRUE;
+    } else if (cellIdx == -3) {
         COMMAND_OUTPUT("MinVoltage\tMaxVoltage\tMinTemp\tMaxTemp\r\n");
         cellIdx = -2;
         return pdTRUE;
@@ -260,6 +305,8 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&printBattInfoCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&testLowPassFilterCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }

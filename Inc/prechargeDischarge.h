@@ -84,6 +84,12 @@ typedef enum PCDC_Notifications_t {
 #define PC_STEP_3_Succeed
 #define PC_STEP_4_Succeed
 #define PC_STEP_5_Succeed
+// These varaiables are only used to allow setting these values for testing, shouldn't be used by
+// actual code
+//
+extern float IBus;
+extern float VBus;
+extern float VBatt;
 
 float getIshunt(void);
 float getVBatt(void);

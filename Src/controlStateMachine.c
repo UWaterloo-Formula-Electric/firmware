@@ -150,7 +150,7 @@ void stopPrecharge()
 uint32_t handleFault(uint32_t event)
 {
     sendDTC_FATAL_BMU_ERROR();
-    ERROR_PRINT("State machine receive fault\n");
+    ERROR_PRINT("State machine received fault\n");
 
     uint32_t currentState = fsmGetState(&fsmHandle);
 
@@ -169,6 +169,7 @@ uint32_t handleFault(uint32_t event)
             break;
         case STATE_Precharge:
             {
+                DEBUG_PRINT("hvEnabledHVFault during precharge\n");
                 // Only send stop if the precharge hasn't already failed
                 // Otherwise it's been stopped already
                 if (event != EV_PrechargeDischarge_Fail) {
