@@ -4,6 +4,61 @@
 #include "string.h"
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
+#include "sensors.h"
+
+uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int channelIdx;
+    float current;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    const char *currentParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    sscanf(idxParam, "%u", &channelIdx);
+
+    if (channelIdx < 0 || channelIdx >= NUM_PDU_CHANNELS) {
+        COMMAND_OUTPUT("channelIdx Index must be between 0 and %d\n", NUM_PDU_CHANNELS);
+        return pdFALSE;
+    }
+
+    sscanf(currentParam, "%f", &current);
+    COMMAND_OUTPUT("Channel %d current = %f A\n", channelIdx, current);
+
+    ADC_Buffer[channelIdx] = current * ADC_TO_AMPS_DIVIDER;
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setChannelCurrentCommandDefinition =
+{
+    "channelCurrent",
+    "channelCurrent <channel> <current>:\r\n  Set channel <channel> current\r\n",
+    setChannelCurrent,
+    2 /* Number of parameters */
+};
+
+BaseType_t setBusVoltage(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float voltage;
+
+    const char *voltageParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(voltageParam, "%f", &voltage);
+    COMMAND_OUTPUT("Bus voltage = %f V\n", voltage);
+
+    ADC_Buffer[LV_Voltage] = voltage * ADC_TO_VOLTS_DIVIDER;
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setBusVoltageCommandDefinition =
+{
+    "busVoltage",
+    "busVoltage <voltage>:\r\n  Set bus voltage\r\n",
+    setBusVoltage,
+    1 /* Number of parameters */
+};
 
 BaseType_t mockCritical(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -128,6 +183,12 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setBusVoltageCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setChannelCurrentCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

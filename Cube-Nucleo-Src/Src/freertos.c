@@ -81,7 +81,6 @@
 /* USER CODE END Variables */
 osThreadId mainTaskHandle;
 osThreadId mainControlHandle;
-osThreadId canSendTaskHandle;
 osThreadId motorControlHandle;
 osThreadId coolingControlHandle;
 osThreadId printTaskNameHandle;
@@ -95,7 +94,6 @@ osThreadId SensorHandle;
 
 void mainTaskFunction(void const * argument);
 extern void mainControlTask(void const * argument);
-extern void canTask(void const * argument);
 extern void motorControlTask(void const * argument);
 extern void coolingControlTask(void const * argument);
 extern void printTask(void const * argument);
@@ -161,10 +159,6 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of mainControl */
   osThreadDef(mainControl, mainControlTask, osPriorityRealtime, 0, 1000);
   mainControlHandle = osThreadCreate(osThread(mainControl), NULL);
-
-  /* definition and creation of canSendTask */
-  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
-  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of motorControl */
   osThreadDef(motorControl, motorControlTask, osPriorityNormal, 0, 1000);

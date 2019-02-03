@@ -50,6 +50,7 @@ Transition_t mainTransitions[] = {
     { MN_STATE_Warning_Critical, MN_EV_CriticalDelayElapsed, &criticalFailure },
     { MN_STATE_Boards_On, MN_EV_LV_Cuttoff, &lvCuttoff },
     { MN_STATE_Critical_Failure, MN_EV_ANY, &mainDoNothing },
+    { MN_STATE_Warning_Critical, MN_EV_ANY, &mainDoNothing },
     { MN_STATE_ANY, MN_EV_ANY, &MainDefaultTransition}
 };
 

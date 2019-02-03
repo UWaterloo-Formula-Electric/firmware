@@ -6,20 +6,31 @@
 #include "debug.h"
 #include "sensors.h"
 #include "adc.h"
-
-// TODO: Find this value
-#define FUSE_BLOWN_MIN_CURRENT_AMPS 0.001
+#include <stdbool.h>
 
 uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
 HAL_StatusTypeDef startADCConversions()
 {
+#ifndef MOCK_ADC_READINGS
     if (HAL_ADC_Start_DMA(&ADC_HANDLE, ADC_Buffer, NUM_PDU_CHANNELS) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
         Error_Handler();
         return HAL_ERROR;
     }
+#else
+    // Init to reasonable values
+    for (int i=0; i < NUM_PDU_CHANNELS; i++) {
+        if (i == LV_Voltage) {
+            ADC_Buffer[i] = 12 * ADC_TO_VOLTS_DIVIDER;
+        } else if (i == LV_Current) {
+            ADC_Buffer[i] = 20 * ADC_TO_AMPS_DIVIDER;
+        } else {
+            ADC_Buffer[i] = 1.5 * ADC_TO_AMPS_DIVIDER;
+        }
+    }
+#endif
 
     return HAL_OK;
 }
@@ -28,26 +39,26 @@ float readCurrent(PDU_Channels_t channel)
 {
     uint32_t rawValue = ADC_Buffer[channel];
 
-    return rawValue; // TODO: Add approriate scaling
+    return rawValue / ADC_TO_AMPS_DIVIDER;
 }
 
 float readBusVoltage()
 {
     uint32_t rawValue = ADC_Buffer[LV_Voltage];
 
-    return rawValue; // TODO: Add approriate scaling
+    return rawValue / ADC_TO_VOLTS_DIVIDER;
 }
 
 float readBusCurrent()
 {
     uint32_t rawValue = ADC_Buffer[LV_Current];
 
-    return rawValue; // TODO: Add approriate scaling
+    return rawValue / ADC_TO_AMPS_DIVIDER;
 }
 
 bool checkBlownFuse(float channelCurrent)
 {
-    return channelCurrent >= FUSE_BLOWN_MIN_CURRENT_AMPS;
+    return channelCurrent <= FUSE_BLOWN_MIN_CURRENT_AMPS;
 }
 
 void sensorTask(void *pvParameters)
@@ -68,16 +79,20 @@ void sensorTask(void *pvParameters)
             // TODO: Should we do anything?
         }
 
-        DEBUG_PRINT("Channel currents:\n");
+        /*DEBUG_PRINT("Channel currents:\n");*/
         for (int i=0; i<NUM_PDU_CHANNELS; i++) {
+            if (i == LV_Current || i == LV_Voltage) {
+                continue;
+            }
+
             float channelCurrent = readCurrent(i);
+            /*DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);*/
 
             if (checkBlownFuse(channelCurrent)) {
                 ERROR_PRINT("Channel %d has a blown fuse\n", i);
                 fsmSendEventUrgent(&mainFsmHandle, MN_EV_HV_CriticalFailure, 1000);
             }
 
-            DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);
             // TODO: Log current
         }
 
