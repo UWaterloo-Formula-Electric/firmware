@@ -596,7 +596,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         fatalCallbackName = 'DTC_Fatal_Callback'
         fatalCallbackPrototype = 'void {name}(BoardNames_t board)'.format(name=fatalCallbackName)
 
-        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
+        msgCallbackPrototypes.append('void {callback}(int DTC_CODE, int DTC_Severity, int DTC_Data)'.format(callback=callbackName))
 
         # only create one fatal callback
         if not createdFatalCallback:
@@ -605,7 +605,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
         fWrite('            if (newDtc.DTC_Severity == DTC_Severity_FATAL) {', sourceFileHandle)
         fWrite('                {fatalCallback}(BOARD_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
-        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        fWrite('            {callback}(newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
     for msg in proCanRxMessages:
