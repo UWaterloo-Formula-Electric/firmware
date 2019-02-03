@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "math.h"
 #include "BMU_can.h"
+#include "BMU_dtc.h"
 #include "boardTypes.h"
 
 #define BATTERY_TASK_PERIOD_MS 100
@@ -15,6 +16,7 @@
 #define LIMIT_HIGHVOLTAGE 4.2F // TODO: Not sure what this should be
 #define LIMIT_LOWVOLTAGE 3.0F // TODO: Not sure what this should be
 #define LIMIT_UNDERVOLTAGE 3.0F
+#define LIMIT_LOWVOLTAGE_WARNING 3.2F
 
 #define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
 #define CELL_DCR (0.01)
@@ -22,6 +24,7 @@
 #define CELL_MASS (0.496)
 #define CELL_MAX_TEMP_C (60.0)
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
+#define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
 
 QueueHandle_t IBusQueue;
 QueueHandle_t VBusQueue;
@@ -166,11 +169,16 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Check it is within bounds
       if (measure < LIMIT_UNDERVOLTAGE) {
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure);
+         sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
-      }
-      if (measure > LIMIT_OVERVOLTAGE) {
+      } else if (measure > LIMIT_OVERVOLTAGE) {
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
+         sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
+      } else if (measure < LIMIT_LOWVOLTAGE_WARNING) {
+         ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure);
+         sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
+         rc = HAL_OK;
       }
 
       // Update max voltage
@@ -188,7 +196,12 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
          ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
+         sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
          rc = HAL_ERROR;
+      } else if (measure > CELL_OVERTEMP_WARNING) {
+         ERROR_PRINT("WARN: Cell %d is high temp at %f deg C\n", i, measure);
+         sendDTC_WARNING_CELL_TEMP_HIGH(i);
+         rc = HAL_OK;
       }
 
       // Update max voltage
