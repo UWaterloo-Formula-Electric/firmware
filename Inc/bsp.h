@@ -15,6 +15,8 @@
 #define STATS_TIM_HANDLE htim4
 #define ISO_SPI_HANDLE hspi4
 #define HV_ADC_SPI_HANDLE hspi1
+#define IMD_TIM_HANDLE htim3
+#define IMD_TIM_INSTANCE TIM3
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin

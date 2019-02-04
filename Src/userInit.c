@@ -8,6 +8,10 @@
 #include "controlStateMachine.h"
 #include "batteries.h"
 
+#if IS_BOARD_F7
+#include "imdDriver.h"
+#endif
+
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
 {
@@ -43,5 +47,10 @@ void userInit()
     if (initBusVoltagesAndCurrentQueues() != HAL_OK) {
         Error_Handler();
     }
+#if IS_BOARD_F7
+    if (init_imd_measurement() != HAL_OK) {
+        Error_Handler();
+    }
+#endif
 }
 

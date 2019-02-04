@@ -43,6 +43,7 @@ float IBus;
 #if IS_BOARD_F7
 #include "ltc6811.h"
 #include "ade7912.h"
+#include "imdDriver.h"
 #endif
 
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
@@ -251,6 +252,14 @@ void batteryTask(void *pvParameter)
     {
         Error_Handler();
     }
+
+#if IS_BOARD_F7
+    // This runs in the background via interrupts
+    if (begin_imd_measurement() != HAL_OK)
+    {
+        Error_Handler();
+    }
+#endif
 
     int errorCounter = 0;
     float packVoltage;
