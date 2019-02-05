@@ -9,6 +9,7 @@
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
 #include "spi.h"
+#include "adc.h"
 
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
@@ -17,6 +18,7 @@
 #define HV_ADC_SPI_HANDLE hspi1
 #define IMD_TIM_HANDLE htim3
 #define IMD_TIM_INSTANCE TIM3
+#define BRAKE_ADC_HANDLE hadc2
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin
