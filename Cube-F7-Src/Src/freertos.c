@@ -84,6 +84,7 @@ osThreadId cliTaskNameHandle;
 osThreadId controlTaskNameHandle;
 osThreadId PCDCHandle;
 osThreadId BatteryTaskHandle;
+osThreadId sensorTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -96,6 +97,7 @@ extern void cliTask(void const * argument);
 extern void controlTask(void const * argument);
 extern void pcdcTask(void const * argument);
 extern void batteryTask(void const * argument);
+extern void sensorTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -172,6 +174,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of BatteryTask */
   osThreadDef(BatteryTask, batteryTask, osPriorityRealtime, 0, 1000);
   BatteryTaskHandle = osThreadCreate(osThread(BatteryTask), NULL);
+
+  /* definition and creation of sensorTaskName */
+  osThreadDef(sensorTaskName, sensorTask, osPriorityNormal, 0, 1000);
+  sensorTaskNameHandle = osThreadCreate(osThread(sensorTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

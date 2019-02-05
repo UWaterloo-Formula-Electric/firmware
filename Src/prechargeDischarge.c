@@ -49,6 +49,45 @@ float getVBus(void)
     return VBus;
 }
 
+typedef enum ContactorState_t {
+    CONTACTOR_CLOSED = GPIO_PIN_RESET,
+    CONTACTOR_OPEN = GPIO_PIN_SET,
+} ContactorState_t;
+
+void setNegContactor(ContactorState_t state)
+{
+    DEBUG_PRINT("%s negative contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
+
+#if IS_BOARD_F7
+    HAL_GPIO_WritePin(CONT_NEG_GPIO_Port, CONT_NEG_Pin, state);
+#endif
+}
+
+void setPosContactor(ContactorState_t state)
+{
+    DEBUG_PRINT("%s positive contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
+
+#if IS_BOARD_F7
+    HAL_GPIO_WritePin(CONT_POS_GPIO_Port, CONT_POS_Pin, state);
+#endif
+}
+
+void setPrechargeContactor(ContactorState_t state)
+{
+    DEBUG_PRINT("%s precharge contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
+
+#if IS_BOARD_F7
+    HAL_GPIO_WritePin(CONT_PRE_GPIO_Port, CONT_PRE_Pin, state);
+#endif
+}
+
+void openAllContactors()
+{
+    setPosContactor(CONTACTOR_OPEN);
+    setNegContactor(CONTACTOR_OPEN);
+    setPrechargeContactor(CONTACTOR_OPEN);
+}
+
 typedef enum Precharge_Discharge_Return_t {
     PCDC_DONE,
     PCDC_STOPPED,
@@ -152,6 +191,10 @@ Precharge_Discharge_Return_t precharge()
     vTaskDelay(500); // Delay to allow battery task to publish these values
 #endif
 
+    setPrechargeContactor(CONTACTOR_OPEN);
+    setPosContactor(CONTACTOR_OPEN);
+    setNegContactor(CONTACTOR_OPEN);
+
     DEBUG_PRINT("Precharge step 1 start\n");
     rc = measureCurrentAndVoltages(PRECHARGE_STEP_1_CURRENT_VAL, PRECHARGE_STEP_1_CURRENT_RANGE,
                               PRECHARGE_STEP_1_VBUS_VAL, PRECHARGE_STEP_1_VBUS_RANGE,
@@ -161,11 +204,11 @@ Precharge_Discharge_Return_t precharge()
                               &failure);
 
     if (rc == PCDC_ERROR) {
-        // TODO: Handle step 1 error
+        openAllContactors();
         sendDTC_FATAL_PrechargeFailed(1);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
-        // TODO: Handle step 1 stop
+        openAllContactors();
         return PCDC_STOPPED;
     }
 
@@ -174,6 +217,7 @@ Precharge_Discharge_Return_t precharge()
      * IShunt == 0
      * VBUS = 0
      * VBATT = VPACK
+     * Close Precharge contactor
      */
 
 #ifdef PC_STEP_2_Succeed
@@ -181,6 +225,10 @@ Precharge_Discharge_Return_t precharge()
     VBus = 0;
     VBatt = VPACK;
 #endif
+
+    setPrechargeContactor(CONTACTOR_CLOSED);
+    setPosContactor(CONTACTOR_OPEN);
+    setNegContactor(CONTACTOR_OPEN);
 
     DEBUG_PRINT("Precharge step 2 start\n");
     rc = measureCurrentAndVoltages(PRECHARGE_STEP_2_CURRENT_VAL, PRECHARGE_STEP_2_CURRENT_RANGE,
@@ -191,11 +239,11 @@ Precharge_Discharge_Return_t precharge()
                               &failure);
 
     if (rc == PCDC_ERROR) {
-        // TODO: Handle step 2 error
+        openAllContactors();
         sendDTC_FATAL_PrechargeFailed(2);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
-        // TODO: Handle step 2 stop
+        openAllContactors();
         return PCDC_STOPPED;
     }
 
@@ -204,7 +252,12 @@ Precharge_Discharge_Return_t precharge()
      * IShunt == 0
      * VBUS = 0
      * VBATT = VPACK / 2
+     * Precharge open, neg contactor close, pos contactor open
      */
+
+    setPrechargeContactor(CONTACTOR_OPEN);
+    setNegContactor(CONTACTOR_CLOSED);
+    setPosContactor(CONTACTOR_OPEN);
 
 #ifdef PC_STEP_3_Succeed
     IBus = 0;
@@ -221,11 +274,11 @@ Precharge_Discharge_Return_t precharge()
                               &failure);
 
     if (rc == PCDC_ERROR) {
-        // TODO: Handle step 3 error
+        openAllContactors();
         sendDTC_FATAL_PrechargeFailed(3);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
-        // TODO: Handle step 3 stop
+        openAllContactors();
         return PCDC_STOPPED;
     }
 
@@ -234,6 +287,7 @@ Precharge_Discharge_Return_t precharge()
      * IShunt >= 1
      * VBUS = 0
      * VBATT = VPACK
+     * precharge closed, neg contactor closed, pos contactor open
      */
 
 #ifdef PC_STEP_4_Succeed
@@ -241,6 +295,10 @@ Precharge_Discharge_Return_t precharge()
     VBus = 0;
     VBatt = VPACK;
 #endif
+
+    setPrechargeContactor(CONTACTOR_CLOSED);
+    setNegContactor(CONTACTOR_CLOSED);
+    setPosContactor(CONTACTOR_OPEN);
 
     DEBUG_PRINT("Precharge step 4 start\n");
     rc = measureCurrentAndVoltages(PRECHARGE_STEP_4_CURRENT_VAL, PRECHARGE_STEP_4_CURRENT_RANGE,
@@ -251,11 +309,11 @@ Precharge_Discharge_Return_t precharge()
                               &failure);
 
     if (rc == PCDC_ERROR) {
-        // TODO: Handle step 4 error
+        openAllContactors();
         sendDTC_FATAL_PrechargeFailed(4);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
-        // TODO: Handle step 4 stop
+        openAllContactors();
         return PCDC_STOPPED;
     }
 
@@ -272,6 +330,10 @@ Precharge_Discharge_Return_t precharge()
     VBatt = VPACK;
 #endif
 
+    setPrechargeContactor(CONTACTOR_CLOSED);
+    setNegContactor(CONTACTOR_CLOSED);
+    setPosContactor(CONTACTOR_CLOSED);
+
     DEBUG_PRINT("Precharge step 5 start\n");
     rc = measureCurrentAndVoltages(PRECHARGE_STEP_5_CURRENT_VAL, PRECHARGE_STEP_5_CURRENT_RANGE,
                               PRECHARGE_STEP_5_VBUS_VAL, PRECHARGE_STEP_5_VBUS_RANGE,
@@ -281,11 +343,11 @@ Precharge_Discharge_Return_t precharge()
                               &failure);
 
     if (rc == PCDC_ERROR) {
-        // TODO: Handle step 5 error
+        openAllContactors();
         sendDTC_FATAL_PrechargeFailed(5);
         return PCDC_ERROR;
     } else if (rc == PCDC_STOPPED) {
-        // TODO: Handle step 5 stop
+        openAllContactors();
         return PCDC_STOPPED;
     }
 

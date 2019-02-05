@@ -130,6 +130,18 @@ void Error_Handler(void);
 #define IMD_STATUS_GPIO_Port GPIOC
 #define IMD_SENSE_Pin GPIO_PIN_8
 #define IMD_SENSE_GPIO_Port GPIOC
+#define CONT_NEG_Pin GPIO_PIN_1
+#define CONT_NEG_GPIO_Port GPIOD
+#define CONT_PRE_Pin GPIO_PIN_2
+#define CONT_PRE_GPIO_Port GPIOD
+#define CONT_CHARGE_Pin GPIO_PIN_3
+#define CONT_CHARGE_GPIO_Port GPIOD
+#define CONT_POS_Pin GPIO_PIN_4
+#define CONT_POS_GPIO_Port GPIOD
+#define CONT_DC_DC_Pin GPIO_PIN_5
+#define CONT_DC_DC_GPIO_Port GPIOD
+#define AMS_CONT_Pin GPIO_PIN_6
+#define AMS_CONT_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
