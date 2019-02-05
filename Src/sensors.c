@@ -8,7 +8,7 @@
 #include "adc.h"
 #include <stdbool.h>
 
-uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
 HAL_StatusTypeDef startADCConversions()
 {
