@@ -4,6 +4,7 @@
 #include "string.h"
 #include "FreeRTOS_CLI.h"
 #include "task.h"
+#include "userCan.h"
 
 // Send a CLI string to the uart to be printed. Only for use by the CLI
 // buf must be of length PRINT_QUEUE_STRING_SIZE (this is always true for CLI
@@ -51,7 +52,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 #define OUTPUT_BUFFER_SIZE (configCOMMAND_INT_MAX_OUTPUT_SIZE)
 static char rxString[INPUT_BUFFER_SIZE];
 static int rxIndex = 0;
-__weak char PS1[] = "CLI > "; // Can override this in project to change PS1
+#ifdef BOARD_NAME
+    __weak char PS1[] = STRINGIZE(BOARD_NAME) " > ";
+#else
+    __weak char PS1[] = "CLI > "; // Can override this in project to change PS1
+#endif
 
 void cliTask(void *pvParameters)
 {
