@@ -52,7 +52,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 2147545345 BMU_BrakePedalValue: 1 BMU
+BO_ 2148467201 BMU_BrakePedalValue: 1 BMU
  SG_ BrakePedalValuePercent : 0|8@1+ (0.1,0) [0|0] ""  VCU_F7
 
 BO_ 2149973761 BMU_HV_Power_State: 1 BMU
