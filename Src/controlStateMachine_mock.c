@@ -10,10 +10,33 @@
 #include "controlStateMachine.h"
 #include "testData.h"
 #include "filters.h"
+#include "sense.h"
 
 extern float IBus;
 extern float VBus;
 extern float VBatt;
+extern uint32_t brakeADCVal;
+
+BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float brakePressure;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(param, "%f", &brakePressure);
+    brakeADCVal = brakePressure * BRAKE_ADC_DIVIDER;
+    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePressure, brakeADCVal);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t brakePressureCommandDefinition =
+{
+    "brake",
+    "brake <val>:\r\n Set brake pressure to val %\r\n",
+    setBrakePressure,
+    1 /* Number of parameters */
+};
 
 float output[DATA_LENGTH];
 BaseType_t testLowPassFilter(char *writeBuffer, size_t writeBufferLength,
@@ -306,6 +329,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&testLowPassFilterCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&brakePressureCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;

@@ -5,8 +5,7 @@
 #include "freertos.h"
 #include "task.h"
 
-#define SENSOR_TASK_PERIOD 100
-#define BRAKE_ADC_DIVIDER_TO_PERCENT 40
+#define SENSOR_TASK_PERIOD 50
 
 volatile uint32_t brakeADCVal;
 
@@ -19,9 +18,9 @@ HAL_StatusTypeDef sensorTaskInit()
         Error_Handler();
         return HAL_ERROR;
     }
-#else 
+#else
     // Init to full brake
-    brakeADCVal = 100*BRAKE_ADC_DIVIDER_TO_PERCENT;
+    brakeADCVal = 100*BRAKE_ADC_DIVIDER;
 #endif
 
     return HAL_OK;
@@ -31,8 +30,8 @@ void sensorTask(void *pvParameters)
 {
    while (1)
    {
-      BrakePedalValuePercent = brakeADCVal / BRAKE_ADC_DIVIDER_TO_PERCENT;
-      if (sendCAN_BMU_BrakePedalValue() != HAL_OK) {
+      BrakePressureBMU = brakeADCVal / BRAKE_ADC_DIVIDER;
+      if (sendCAN_BMU_BrakePressure() != HAL_OK) {
          ERROR_PRINT("Failed to send brake value over CAN\n");
       }
       vTaskDelay(SENSOR_TASK_PERIOD);
