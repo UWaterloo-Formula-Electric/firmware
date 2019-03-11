@@ -99,6 +99,12 @@ HAL_StatusTypeDef startDriveByWire()
 uint32_t runSelftTests(uint32_t event)
 {
     // TODO: Run some tests
+    
+    if (brakeAndThrottleStart() != HAL_OK)
+    {
+        return EM_Fault(EV_Throttle_Failure);
+    }
+
     return STATE_EM_Disable;
 }
 
@@ -106,8 +112,7 @@ uint32_t EM_Enable(uint32_t event)
 {
     bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    int brakePressure = getBrakePressure();
-    int throttle = getThrottle();
+    float brakePressure = getBrakePressurePercent();
 
     if (!bpsState) {
         DEBUG_PRINT("Failed to em enable, bps fault\n");
@@ -115,11 +120,11 @@ uint32_t EM_Enable(uint32_t event)
         return STATE_EM_Disable;
     }
     if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-        DEBUG_PRINT("Failed to em enable, brake pressure low\n");
+        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
         sendDTC_WARNING_EM_ENABLE_FAILED(1);
         return STATE_EM_Disable;
     }
-    if (!(throttle_is_zero(throttle))) {
+    if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         return STATE_EM_Disable;

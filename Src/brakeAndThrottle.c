@@ -6,7 +6,7 @@
 #endif
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 20
-#define BRAKE_MSG_TIMEOUT_MS 100
+#define MAX_ZERO_THROTTLE_VAL_PERCENT 1
 
 #define TPS_TOLERANCE_PERCENT 10
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
@@ -19,6 +19,7 @@
 #define THROTT_B_HIGH (0x71f)
 
 #define MAX_THROTTLE_DEADZONE (0x20)
+
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 
@@ -33,7 +34,14 @@ HAL_StatusTypeDef startADCConversions()
     }
 #else
     for (int i=0; i < NUM_ADC_CHANNELS; i++) {
-        brakeThrottleSteeringADCVals[i] = 0;
+        if (i == BRAKE_PRES_INDEX) {
+            brakeThrottleSteeringADCVals[i] = 95 * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
+        } else {
+            brakeThrottleSteeringADCVals[i] = 0;
+        }
+
+        brakeThrottleSteeringADCVals[THROTTLE_A_INDEX] = calculate_throttle_adc_from_percent1(0);
+        brakeThrottleSteeringADCVals[THROTTLE_B_INDEX] = calculate_throttle_adc_from_percent2(0);
     }
 #endif
 
@@ -45,16 +53,7 @@ bool throttleAndBrakePressedError = false;
 
 float getBrakePositionPercent()
 {
-    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) / TPS_DIVISOR * TPS_MULTPLIER;
-}
-
-bool isBrakePressed()
-{
-    if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
-        return true;
-    } else {
-        return false;
-    }
+    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * TPS_MULTPLIER / TPS_DIVISOR;
 }
 
 int map_range(int in, int low, int high, int low_out, int high_out) {
@@ -89,6 +88,16 @@ uint16_t calculate_throttle_percent2(uint16_t tps_value)
       0, 100);
 }
 
+// These are for testing
+uint16_t calculate_throttle_adc_from_percent1(uint16_t percent)
+{
+  return map_range(percent, 0, 100, THROTT_A_LOW, THROTT_A_HIGH);
+}
+uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
+{
+  return map_range(percent, 0, 100, THROTT_B_LOW, THROTT_B_HIGH);
+}
+
 bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_percent)
 {
     if (throttle1_percent == throttle2_percent
@@ -102,16 +111,12 @@ bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_perc
 }
 
 
-/*
- * This functions gets the current throttle value, performs the throttle and
- * brake plausibility checks, and returns the throttle value in throttle out
- * @return: true if throttle ok, false if not
- *
- */
-ThrottleStatus_t getNewThrottle(float *throttleOut)
+// Get the throttle posiition as a percent
+// @ret False if implausibility, true otherwise
+bool getThrottlePositionPercent(float *throttleOut)
 {
     uint32_t throttle1_percent, throttle2_percent;
-    float throttle = 0;
+    float throttle;
     (*throttleOut) = 0;
 
     // Read both TPS sensors
@@ -122,17 +127,37 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         throttle2_percent = calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
     } else {
       ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
-      return THROTTLE_FAULT;
+      return false;
     }
 
     // Check if two throttle pots agree
     if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
-        ERROR_PRINT("implausible pedal! %lu\r\n", throttle1_percent - throttle2_percent);
-        return THROTTLE_FAULT;
+        ERROR_PRINT("implausible pedal! %ld\r\n", throttle1_percent - throttle2_percent);
+        return false;
     } else {
+        DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);
         throttle = (throttle1_percent + throttle2_percent) / 2;
+    }
+
+    *throttleOut = throttle;
+    return true;
+}
+
+/*
+ * This functions gets the current throttle value, performs the throttle and
+ * brake plausibility checks, and returns the throttle value in throttle out
+ * @return: true if throttle ok, false if not
+ *
+ */
+ThrottleStatus_t getNewThrottle(float *throttleOut)
+{
+    float throttle = 0;
+    (*throttleOut) = 0;
+
+    if (!getThrottlePositionPercent(&throttle)) {
+        return THROTTLE_FAULT;
     }
 
     // Both throttle and brake were pressed, check if still the case
@@ -156,4 +181,64 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     (*throttleOut) = throttle;
 
     return THROTTLE_OK;
+}
+
+/* Public Functions */
+HAL_StatusTypeDef outputThrottle() {
+    float throttle;
+
+    ThrottleStatus_t rc = getNewThrottle(&throttle);
+    if (rc == THROTTLE_FAULT) {
+        return HAL_ERROR;
+    } else if (rc == THROTTLE_DISABLED) {
+        DEBUG_PRINT("Throttle disabled due brake pressed\n");
+    }
+
+    // TODO: Output throttle to MCs
+    DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
+
+    return HAL_OK;
+}
+
+bool isBrakePressed()
+{
+    if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool throttleIsZero()
+{
+    float throttle;
+
+    if (!getThrottlePositionPercent(&throttle)) {
+      return false;
+    } else if (throttle < MAX_ZERO_THROTTLE_VAL_PERCENT) {
+      return true;
+    } else {
+      return false;
+    }
+}
+
+bool checkBPSState() {
+  // TODO: Monitor BPS for failures
+  return true;
+}
+
+int getBrakePressurePercent() {
+  return brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] * BRAKE_PRESSURE_MULTIPLIER / BRAKE_PRESSURE_DIVIDER;
+}
+
+
+HAL_StatusTypeDef brakeAndThrottleStart()
+{
+    if (startADCConversions() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start brake and throttle ADC conversions\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
 }

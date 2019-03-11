@@ -12,13 +12,6 @@
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
 
-volatile bool fakeBPSState = true;
-
-volatile int fakeBrakePressure = 100;
-volatile int fakeThrottle = 0;
-
-volatile HAL_StatusTypeDef fakeThrottleSuccess = HAL_OK;
-
 BaseType_t setBrakePosition(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -73,51 +66,49 @@ BaseType_t setFakeThrottle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
+    float throttlePercent;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(param, "%u", &fakeThrottle);
-    COMMAND_OUTPUT("Setting throttle %u\n", fakeThrottle);
+    sscanf(param, "%f", &throttlePercent);
+    brakeThrottleSteeringADCVals[THROTTLE_A_INDEX] = calculate_throttle_adc_from_percent1(throttlePercent);
+    brakeThrottleSteeringADCVals[THROTTLE_B_INDEX] = calculate_throttle_adc_from_percent2(throttlePercent);
+    COMMAND_OUTPUT("Setting throttle %f (ADC A: %lu, ADC B: %lu)\n", throttlePercent, brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
 
     return pdFALSE;
 }
 static const CLI_Command_Definition_t throttleCommandDefinition =
 {
     "throttle",
-    "throttle <val>:\r\n Set throttle to val\r\n",
+    "throttle <val>:\r\n Set throttle to val (sets both throttle pots to same val)\r\n",
     setFakeThrottle,
     1 /* Number of parameters */
 };
 
-BaseType_t setFakeThrottleSuccess(char *writeBuffer, size_t writeBufferLength,
+BaseType_t setFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
-    bool newState;
+    float throttlePercent1, throttlePercent2;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    if (STR_EQ(param, "ok", paramLen)) {
-        newState = true;
-    } else if (STR_EQ(param, "fail", paramLen)) {
-        newState = false;
-    } else {
-        COMMAND_OUTPUT("Unknown parameter\n");
-        return pdFALSE;
-    }
+    sscanf(param, "%f", &throttlePercent1);
+    brakeThrottleSteeringADCVals[THROTTLE_A_INDEX] = calculate_throttle_adc_from_percent1(throttlePercent1);
 
-    DEBUG_PRINT("setting throttle success state %d\n", newState);
-    fakeThrottleSuccess = newState;
-    if (!newState) {
-        fsmSendEvent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
-    }
+    param = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    sscanf(param, "%f", &throttlePercent2);
+    brakeThrottleSteeringADCVals[THROTTLE_B_INDEX] = calculate_throttle_adc_from_percent2(throttlePercent2);
+
+    COMMAND_OUTPUT("Setting throttle A %f (ADC: %lu), B %f (ADC: %lu)\n", throttlePercent1, brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], throttlePercent2, brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
 
     return pdFALSE;
 }
-static const CLI_Command_Definition_t throttleStateCommandDefinition =
+static const CLI_Command_Definition_t throttleABCommandDefinition =
 {
-    "throttleState",
-    "throttleState <ok|fail>:\r\n Set throttle state\r\n",
-    setFakeThrottleSuccess,
-    1 /* Number of parameters */
+    "throttleAB",
+    "throttleAB <A Val> <B Val>:\r\n Set throttle pots A and B seperately\r\n",
+    setFakeThrottleAB,
+    2 /* Number of parameters */
 };
 
 BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
@@ -133,7 +124,7 @@ BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
     if (pressure < MIN_BRAKE_PRESSURE) {
         fsmSendEventISR(&fsmHandle, EV_Brake_Pressure_Fault);
     }
-    fakeBrakePressure = pressure;
+    brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] = pressure * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
 
     return pdFALSE;
 }
@@ -142,38 +133,6 @@ static const CLI_Command_Definition_t brakePressureCommandDefinition =
     "brakePressure",
     "brakePressure <val>:\r\n Set brake pressure to val\r\n",
     setFakeBrakePressure,
-    1 /* Number of parameters */
-};
-
-BaseType_t setFakeBPSState(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    bool newBpsState;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    if (STR_EQ(param, "ok", paramLen)) {
-        newBpsState = true;
-    } else if (STR_EQ(param, "fail", paramLen)) {
-        newBpsState = false;
-    } else {
-        COMMAND_OUTPUT("Unknown parameter\n");
-        return pdFALSE;
-    }
-
-    if (fakeBPSState && newBpsState != fakeBPSState) {
-        fsmSendEventISR(&fsmHandle, EV_Bps_Fail);
-    }
-
-    fakeBPSState = newBpsState;
-
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t bpsCommandDefinition =
-{
-    "bps",
-    "bps <fail|ok>:\r\n Set bps state\r\n",
-    setFakeBPSState,
     1 /* Number of parameters */
 };
 
@@ -254,29 +213,9 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     0 /* Number of parameters */
 };
 
-// Mock functions
-int getThrottle() {
-    return fakeThrottle;
-}
-int getBrakePressure() {
-    return fakeBrakePressure;
-}
-HAL_StatusTypeDef outputThrottle() {
-    return fakeThrottleSuccess;
-}
-bool checkBPSState() {
-    return fakeBPSState;
-}
-bool throttle_is_zero() {
-    return (fakeThrottle==0);
-}
-
 HAL_StatusTypeDef stateMachineMockInit()
 {
-    if (FreeRTOS_CLIRegisterCommand(&bpsCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&throttleStateCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&brakePressureCommandDefinition) != pdPASS) {
