@@ -18,6 +18,7 @@
  * Can messages
  */
 volatile bool motorControllersStatus = false;
+uint32_t lastBrakeValReceiveTimeTicks = 0;
 
 /*
  * Functions to get external board status
@@ -77,4 +78,9 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
     if (HV_Power_State != HV_Power_State_On) {
         fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
     }
+}
+
+void CAN_Msg_BMU_BrakePedalValue_Callback()
+{
+    lastBrakeValReceiveTimeTicks = xTaskGetTickCount();
 }

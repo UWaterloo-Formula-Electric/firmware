@@ -63,18 +63,18 @@
 #define LED_B_GPIO_Port GPIOC
 #define CAN_HEARTBEAT_LED_Pin GPIO_PIN_0
 #define CAN_HEARTBEAT_LED_GPIO_Port GPIOC
-#define THROTTLE_B_Pin GPIO_PIN_4
-#define THROTTLE_B_GPIO_Port GPIOA
-#define BRAKE_POS_Pin GPIO_PIN_5
-#define BRAKE_POS_GPIO_Port GPIOA
-#define THROTTLE_A_Pin GPIO_PIN_6
-#define THROTTLE_A_GPIO_Port GPIOA
-#define STEERING_Pin GPIO_PIN_7
-#define STEERING_GPIO_Port GPIOA
+#define Throttle_A_Pin GPIO_PIN_4
+#define Throttle_A_GPIO_Port GPIOA
+#define Throttle_B_Pin GPIO_PIN_5
+#define Throttle_B_GPIO_Port GPIOA
+#define Brake_Pos_Pin GPIO_PIN_6
+#define Brake_Pos_GPIO_Port GPIOA
+#define Brake_Pres_Pin GPIO_PIN_7
+#define Brake_Pres_GPIO_Port GPIOA
 #define LED_Y_Pin GPIO_PIN_5
 #define LED_Y_GPIO_Port GPIOC
-#define BRAKE_PRES_Pin GPIO_PIN_1
-#define BRAKE_PRES_GPIO_Port GPIOB
+#define Steering_Pin GPIO_PIN_0
+#define Steering_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**

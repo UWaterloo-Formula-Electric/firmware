@@ -7,8 +7,10 @@
 #include "task.h"
 #include "cmsis_os.h"
 #include "VCU_F7_can.h"
+#include "brakeAndThrottle.h"
 
 extern osThreadId driveByWireHandle;
+extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
 
 volatile bool fakeBPSState = true;
 
@@ -16,6 +18,27 @@ volatile int fakeBrakePressure = 100;
 volatile int fakeThrottle = 0;
 
 volatile HAL_StatusTypeDef fakeThrottleSuccess = HAL_OK;
+
+BaseType_t setBrakePosition(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float brakePosition;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(param, "%f", &brakePosition);
+    brakeThrottleSteeringADCVals[BRAKE_POS_INDEX] = brakePosition * TPS_DIVISOR / TPS_MULTPLIER;
+    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePosition, brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t brakePositionCommandDefinition =
+{
+    "brake",
+    "brake <val>:\r\n Set brake Position to val %\r\n",
+    setBrakePosition,
+    1 /* Number of parameters */
+};
 
 BaseType_t pduMCsOnOffMock(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -277,6 +300,8 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&mcOnOffCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&brakePositionCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }

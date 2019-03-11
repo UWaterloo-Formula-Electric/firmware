@@ -10,9 +10,7 @@
 #include "VCU_F7_dtc.h"
 #include "VCU_F7_can.h"
 #include "canReceive.h"
-
-#define THROTTLE_POLL_TIME_MS 1000
-#define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 10000 // TODO: Change to good value
+#include "brakeAndThrottle.h"
 
 FSM_Handle_Struct fsmHandle;
 TimerHandle_t throttleUpdateTimer;
@@ -126,8 +124,13 @@ uint32_t EM_Enable(uint32_t event)
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         return STATE_EM_Disable;
     }
-    if (!hvEnable) {
+    if (!isBrakePressed()) {
+        DEBUG_PRINT("Failed to em enable, brake is not pressed\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(3);
+        return STATE_EM_Disable;
+    }
+    if (!hvEnable) {
+        sendDTC_WARNING_EM_ENABLE_FAILED(4);
         DEBUG_PRINT("Failed to em enable, not HV enabled\n");
         return STATE_EM_Disable;
     }
@@ -135,7 +138,7 @@ uint32_t EM_Enable(uint32_t event)
     DEBUG_PRINT("Trans to em enable\n");
     if (MotorStart() != HAL_OK) {
         ERROR_PRINT("Failed to turn on motors\n");
-        sendDTC_FATAL_EM_ENABLE_FAILED(4);
+        sendDTC_FATAL_EM_ENABLE_FAILED(5);
         return STATE_Failure_Fatal;
     }
 

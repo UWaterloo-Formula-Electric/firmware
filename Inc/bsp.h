@@ -5,6 +5,7 @@
 #include "main.h"
 #include "can.h"
 #include "tim.h"
+#include <stdbool.h>
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
@@ -22,6 +23,7 @@
 
 #define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart3
+#define ADC_HANDLE hadc1
 #define CAN_HANDLE hcan1
 #define DEBUG_LED_PIN LD2_Pin
 #define DEBUG_LED_PORT LD2_GPIO_Port
