@@ -332,7 +332,7 @@ HAL_StatusTypeDef MotorStop()
     DEBUG_PRINT("Stopping motors\n");
 
     if (xTimerStop(throttleUpdateTimer, 100) != pdPASS) {
-        ERROR_PRINT("Failed to start throttle update timer\n");
+        ERROR_PRINT("Failed to stop throttle update timer\n");
         return HAL_ERROR;
     }
 
