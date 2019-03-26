@@ -7,6 +7,9 @@
 #include "BMU_DTC.h"
 #include "batteries.h"
 
+#define ZERO_CURRENT_MAX_AMPS (0.5)
+#define CONTACTOR_OPEN_ZERO_CURRENT_TIMEOUT_MS 50
+
 HAL_StatusTypeDef pcdcInit()
 {
     DEBUG_PRINT("PCDC Init\n");
@@ -393,9 +396,20 @@ void pcdcTask(void *pvParameter)
 
         } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
 
-            // TODO: Implement discharge
-            DEBUG_PRINT("Discharge start\n");
-            vTaskDelay(1000);
+            DEBUG_PRINT("Discharge start, waiting for zero current\n");
+            sendDTC_WARNING_CONTACTOR_OPEN_IMPENDING();
+            uint32_t startTickVal = xTaskGetTickCount();
+            while (getIshunt() > ZERO_CURRENT_MAX_AMPS) {
+                if (xTaskGetTickCount() - startTickVal >
+                    pdMS_TO_TICKS(CONTACTOR_OPEN_ZERO_CURRENT_TIMEOUT_MS))
+                {
+                    ERROR_PRINT("Timed out waiting for zero current before opening contactors\n");
+                    break;
+                }
+                vTaskDelay(1);
+            }
+            DEBUG_PRINT("Opening contactors\n");
+            openAllContactors();
             DEBUG_PRINT("Discharge done\n");
             fsmSendEvent(&fsmHandle, EV_Discharge_Finished, portMAX_DELAY);
 
