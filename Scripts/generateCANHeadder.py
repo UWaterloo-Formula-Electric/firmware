@@ -10,6 +10,38 @@ import errno
 import re
 import operator
 
+ReceivedSignalsArray = []
+SentSignalsArray = []
+DeclaredVariablesSignalsArray = []
+
+def isSignalNameInArray(signal, array):
+    for sig in array:
+        if sig.name == signal.name:
+            return True
+
+    return False
+
+def checkForDuplicateSignalReceive(signal):
+    if isSignalNameInArray(signal, ReceivedSignalsArray):
+        return True
+    else:
+        ReceivedSignalsArray.append(signal)
+        return False
+
+def checkForDuplicateSignalSend(signal):
+    if isSignalNameInArray(signal, SentSignalsArray):
+        return True
+    else:
+        SentSignalsArray.append(signal)
+        return False
+
+def checkForDuplicateSignalDeclaration(signal):
+    if isSignalNameInArray(signal, DeclaredVariablesSignalsArray):
+        return True
+    else:
+        DeclaredVariablesSignalsArray.append(signal)
+        return False
+
 def create_dir(path):
     try:
         os.makedirs(path)
@@ -81,6 +113,7 @@ def writeSourceFileIncludes(nodeName, sourceFileHandle):
     fWrite('#include \"CRC_CALC.h\"', sourceFileHandle)
     fWrite('#include \"userCan.h\"', sourceFileHandle)
     fWrite('#include \"debug.h\"', sourceFileHandle)
+    fWrite("#include \"{nodeName}_dtc.h\"".format(nodeName=nodeName), sourceFileHandle)
 
 def writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle):
     fWrite('//DBC version:', sourceFileHandle)
@@ -159,6 +192,9 @@ def writeStructForMsg(msg, structName, fileHandle):
     fWrite('};\n', fileHandle)
 
 def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
+    if checkForDuplicateSignalReceive(signal):
+        return
+
     dataTypeOutput = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -211,6 +247,9 @@ def getSignalSendingFunctionName(signal, multiplexed):
     return '{signalName}Sending'.format(signalName=signalName)
 
 def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=False):
+    if checkForDuplicateSignalSend(signal):
+        return
+
     dataType = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -246,7 +285,20 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
     function = functionTemplate.format(signalName=variableName,dataType=dataType, dataTypeReturn=dataTypeReturn, scaler=signal.scale, offset=signal.offset)
     fWrite(function, fileHandle)
 
+def writeValueTableEnum(signal, headerFileHandle):
+    if signal.choices is not None:
+        fWrite('enum {sigName}_Values {{'.format(sigName=signal.name), headerFileHandle)
+        for Value, Name in signal.choices.items():
+            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=Name, Value=Value), headerFileHandle)
+
+        fWrite('};\n', headerFileHandle)
+
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
+    if checkForDuplicateSignalDeclaration(signal):
+        return
+
+    writeValueTableEnum(signal, headerFileHandle)
+
     dataType = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -331,10 +383,12 @@ def getMultiplexedMsgInfo(msg):
             sampleSignal = signal
             break
 
-    if is_signed:
-        dataType = 'int64_t'
-    else:
-        dataType = 'uint64_t'
+    dataType = 'float'
+    if signal.scale == 1:
+        if signal.is_signed:
+            dataType = 'int64_t'
+        else:
+            dataType = 'uint64_t'
 
     return (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal)
 
@@ -372,7 +426,7 @@ def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFi
 
         fWrite('volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), sourceFileHandle)
         fWrite('extern volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), headerFileHandle)
-        fWrite('const int {name}_COUNT = {count};\n'.format(name=strippedSignalName.upper(), count=numSignals), sourceFileHandle)
+        fWrite('#define {name}_COUNT ({count})'.format(name=strippedSignalName.upper(), count=numSignals), headerFileHandle)
 
         writeSignalReceivedFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
         # write the signal receive function for the multiplexer signal. Set multiplexed to false since this signal isn't multiplexed
@@ -394,7 +448,7 @@ def writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFi
                 writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
                 writeSignalReceivedFunction(signal, sourceFileHandle)
 
-def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0):
+def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0, dtc=False):
     if multiplexed:
         multiplexIndexString = 'int index'
     else:
@@ -431,7 +485,10 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
             sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
             fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
 
-    fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+    if dtc:
+        fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+    else:
+        fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
 def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
@@ -462,8 +519,14 @@ def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle):
             writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle)
 
 def writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle):
-    # handled the same as normal Tx messages
-    writeNormalTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle)
+    for msg in dtcTxMessages:
+        fWrite('// Struct and signal send functions for msg {}'.format(msg.name), sourceFileHandle)
+        writeStructForMsg(msg, msg.name, sourceFileHandle)
+
+        for signal in msg.signals:
+            writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
+            writeSignalSendingFunction(signal, sourceFileHandle)
+        writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, dtc=True)
 
 def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle):
     for msg in multiplexedTxMessages:
@@ -472,7 +535,7 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal) = getMultiplexedMsgInfo(msg)
 
         fWrite('volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), sourceFileHandle)
-        fWrite('const int {name}_COUNT = {count};'.format(name=strippedSignalName.upper(), count=numSignals), sourceFileHandle)
+        fWrite('#define {name}_COUNT ({count})'.format(name=strippedSignalName.upper(), count=numSignals), headerFileHandle)
         fWrite('extern volatile {dataType} {name}[{count}];\n'.format(dataType=dataType, name=strippedSignalName, count=numSignals), headerFileHandle)
 
         writeSignalSendingFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
@@ -517,6 +580,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
+    createdFatalCallback = False
     for msg in dtcRxMessages:
         fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
         fWrite('        {', sourceFileHandle)
@@ -526,10 +590,22 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
             fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
         fWrite('            xQueueSendFromISR(queue{msgName}, &newDtc, NULL);'.format(msgName=msg.name), sourceFileHandle)
-        fWrite('            DEBUG_PRINT("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
+        fWrite('            DEBUG_PRINT_ISR("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
-        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
-        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+
+        fatalCallbackName = 'DTC_Fatal_Callback'
+        fatalCallbackPrototype = 'void {name}(BoardNames_t board)'.format(name=fatalCallbackName)
+
+        msgCallbackPrototypes.append('void {callback}(int DTC_CODE, int DTC_Severity, int DTC_Data)'.format(callback=callbackName))
+
+        # only create one fatal callback
+        if not createdFatalCallback:
+            msgCallbackPrototypes.append('{callback}'.format(callback=fatalCallbackPrototype))
+            createdFatalCallback = True
+
+        fWrite('            if (newDtc.DTC_Severity == DTC_Severity_FATAL) {', sourceFileHandle)
+        fWrite('                {fatalCallback}(BOARD_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
+        fWrite('            {callback}(newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
     for msg in proCanRxMessages:
@@ -691,6 +767,14 @@ def writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
         fWrite('{};\n'.format(prototype), headerFileHandle)
         fWrite('__weak {} {{}}\n'.format(prototype), sourceFileHandle)
 
+def writeBoardNamesEnum(nodes, headerFileHandle):
+    fWrite('typedef enum BoardNames_t {', headerFileHandle)
+
+    for idx,node in enumerate(nodes):
+        fWrite('    BOARD_{name} = {idx},'.format(name=node.name, idx=idx), headerFileHandle)
+
+    fWrite('} BoardNames_t;', headerFileHandle)
+
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
@@ -772,6 +856,8 @@ def main(argv):
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
     writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
+
+    writeBoardNamesEnum(db.nodes, headerFileHandle)
 
     writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
 

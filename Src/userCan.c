@@ -24,19 +24,7 @@
 // this macro to create the right function name for the current board
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
-#define CAN_SEND_MESSAGE_QUEUE_LENGTH 5
-
-// Private typedef for a struct to store a CAN message to be sent
-typedef struct CanMessage_t {
-    uint32_t id;
-    uint8_t length;
-    uint8_t data[8]; // msgs are up to 8 bytes
-} CanMessage_t;
-
-QueueHandle_t canMessageSendQueue;
-TaskHandle_t canTaskHandle;
-
-bool canStarted = false;
+volatile bool canStarted = false;
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
@@ -52,13 +40,6 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 #error canInit not defined for this board type
 #endif
 
-    canMessageSendQueue = xQueueCreate(CAN_SEND_MESSAGE_QUEUE_LENGTH, sizeof(CanMessage_t));
-
-    if (canMessageSendQueue == NULL) {
-        ERROR_PRINT("Failed to create CAN send queue\n");
-        return HAL_ERROR;
-    }
-
     return HAL_OK;
 }
 
@@ -73,74 +54,23 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 #else
 #error canStart not defined for this board type
 #endif
+    } else {
+        return HAL_OK;
     }
 }
 
-/* Queue a CAN message to be sent.
- * **** IMPORTANT: Can't be called from an ISR ****
- */
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
-    CanMessage_t msg;
-    msg.id = id;
-    msg.length = length;
-    memcpy(msg.data, data, length);
-    if (xQueueSend(canMessageSendQueue, &msg, 0) != pdPASS) {
-        ERROR_PRINT("Failed to post can message to send queue\n");
-        return HAL_ERROR;
-    }
+    HAL_StatusTypeDef rc;
 
-    return HAL_OK;
-}
-
-/* Queue a CAN message to be sent. Urgent means that will be the next CAN
- * message to be sent
- * **** IMPORTANT: Can't be called from an ISR ****
- */
-HAL_StatusTypeDef sendCanMessageUrgent(int id, int length, uint8_t *data)
-{
-    CanMessage_t msg;
-    msg.id = id;
-    msg.length = length;
-    memcpy(msg.data, data, length);
-    if (xQueueSendToFront(canMessageSendQueue, &msg, 0) != pdPASS) {
-        ERROR_PRINT("Failed to post can message to send queue\n");
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
-}
-
-void setCanTaskHandle(TaskHandle_t handle)
-{
-    canTaskHandle = handle;
-}
-
-void canTask(const void *pvParameters)
-{
-    CanMessage_t msg;
-
-    while (1) {
-        if (xQueueReceive(canMessageSendQueue, &msg, portMAX_DELAY) != pdPASS)
-        {
-            ERROR_PRINT("Failed to receive from can send queue\n");
-            continue;
-        }
-
-        HAL_StatusTypeDef rc;
 #if IS_BOARD_F7_FAMILY
-        rc = F7_sendCanMessage(msg.id, msg.length, msg.data);
+    rc = F7_sendCanMessage(id, length, data);
 #elif IS_BOARD_F0_FAMILY
-        rc = F0_sendCanMessage(msg.id, msg.length, msg.data);
+    rc = F0_sendCanMessage(id, length, data);
 #else
 #error Send can message not defined for this board type
 #endif
-        if (rc != HAL_OK)
-        {
-            ERROR_PRINT("Failed to send can message\n");
-            continue;
-        }
-    }
+    return rc;
 }
 
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data)

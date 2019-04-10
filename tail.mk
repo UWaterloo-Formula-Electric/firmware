@@ -44,6 +44,7 @@ INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
 			  Inc \
+			  $(F7_INC_DIR) \
 			  $(GEN_INC_DIR)
 
 
@@ -96,6 +97,8 @@ DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 # inherit linker flags from hal driver makefile
 LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
+LINKER_FLAGS += -u_printf_float -u_scanf_float
+LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 
 #DEBUG_FLAGS=-g -O2
 #COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
@@ -106,7 +109,7 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 #  This is to allow linking only used functions and data
 #COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
 COMPILER_FLAGS = $(LIB_CFLAGS)
-COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS)
+COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS) -Werror
 
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
@@ -118,6 +121,18 @@ ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F7 F7))
    SRC += $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC))
 else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F0 F0))
    SRC += $(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC))
+else
+	$(error "Unsupported Board type: $(BOARD_TYPE)")
+endif
+
+ifeq ($(BOARD_TYPE), NUCLEO_F7)
+   SRC += $(addprefix $(NUCLEO_F7_SRC_DIR)/, $(NUCLEO_F7_SRC))
+else ifeq ($(BOARD_TYPE), F7)
+   SRC += $(addprefix $(F7_SRC_DIR)/, $(F7_SRC))
+else ifeq ($(BOARD_TYPE), NUCLEO_F0)
+   SRC += $(addprefix $(NUCLEO_F0_SRC_DIR)/, $(NUCLEO_F0_SRC))
+else ifeq ($(BOARD_TYPE), F0)
+   SRC += $(addprefix $(F0_SRC_DIR)/, $(F0_SRC))
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
@@ -251,8 +266,14 @@ load: release
 load-debug: debug
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
-connect: debug
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt &
+# Use this if you want gdb to be rtos thread aware
+connect-rtos: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
+
+# use this to debug stuff before rtos starts
+connect: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
+
 #=======
 #load: release
 	## this is stand alone stlink
@@ -268,7 +289,9 @@ connect: debug
 	#openocd -f interface/stlink-v2-1.cfg -f target/stm32f7x.cfg -c init -c "reset init" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x08000000" -c "verify_image $(RELEASE_BIN_FILE)" &
 #>>>>>>> 7ce22243a5a59845c153b3d793ee480bc9de4175
 
-gdb: connect
+# Need to start up openocd on seperate terminal using make connect
+# If you use the same terminal for both connect and gdb, then sending ctrl-c to stop the program will also stop openocd so you will get kicked out of gdb (not what you want)
+gdb:
 	arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(DEBUG_ELF_FILE)
 	#arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" --eval-command="monitor arm semihosting enable"  $(DEBUG_ELF_FILE)
 

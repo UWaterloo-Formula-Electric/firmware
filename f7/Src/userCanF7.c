@@ -10,6 +10,8 @@
 #include "can.h"
 #include "debug.h"
 #include "bsp.h"
+#include "freertos.h"
+#include "task.h"
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
@@ -25,7 +27,10 @@ HAL_StatusTypeDef F7_canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef F7_canStart(CAN_HandleTypeDef *hcan)
 {
-    HAL_CAN_Start(hcan);
+    if (HAL_CAN_Start(hcan) != HAL_OK) {
+        ERROR_PRINT("Failed to start CAN!\n");
+        return HAL_ERROR;
+    }
 
     if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
     {
@@ -43,13 +48,28 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
     {
-        ERROR_PRINT("Failed to receive CAN message from FIFO0\n");
+        ERROR_PRINT_ISR("Failed to receive CAN message from FIFO0\n");
         Error_Handler();
     }
 
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        // TODO: Probably shouldn't call this from an interrupt
+        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+    }
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+    CAN_RxHeaderTypeDef   RxHeader;
+    uint8_t               RxData[8];
+
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader, RxData) != HAL_OK)
+    {
+        ERROR_PRINT_ISR("Failed to receive CAN message from FIFO1\n");
         Error_Handler();
+    }
+
+    if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
     }
 }
 
@@ -101,10 +121,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
  */
 
 
+#define F7_CAN_SEND_TIMEOUT_MS 2
 HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
-    CAN_TxHeaderTypeDef   TxHeader;
+    CAN_TxHeaderTypeDef   TxHeader = {0};
     uint32_t              TxMailbox;
 
     if (length > 8) {
@@ -121,6 +142,7 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     TxHeader.RTR = CAN_RTR_DATA;
     TxHeader.IDE = CAN_ID_EXT;
     TxHeader.DLC = length;
+    TxHeader.TransmitGlobalTime = DISABLE;
 
     if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
         ERROR_PRINT("Can transmit failed, no free mailboxes\n");
@@ -131,6 +153,11 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     if (rc != HAL_OK)
     {
         ERROR_PRINT("CAN Transmit failed with rc %d\n", rc);
+        if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+            vTaskDelay(pdMS_TO_TICKS(F7_CAN_SEND_TIMEOUT_MS));
+        } else {
+            HAL_Delay(F7_CAN_SEND_TIMEOUT_MS);
+        }
         return HAL_ERROR;
     }
 
@@ -143,7 +170,7 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 	// Deal with error
 
 	error = hcan->ErrorCode;
-        ERROR_PRINT("Error in CAN driver!!\n");
+        ERROR_PRINT_ISR("Error in CAN driver!!\n");
 //#define HAL_CAN_ERROR_NONE              ((uint32_t)0x00000000)  /*!< No error             */
 //#define HAL_CAN_ERROR_EWG               ((uint32_t)0x00000001)  /*!< EWG error            */
 //#define HAL_CAN_ERROR_EPV               ((uint32_t)0x00000002)  /*!< EPV error            */
