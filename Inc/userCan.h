@@ -22,6 +22,7 @@
 // Use like: #include AUTOGEN_HEADER_NAME(BOARD_NAME), where BOARD_NAME is
 // defined in the makefile
 #define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
+#define AUTOGEN_DTC_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _dtc.h))
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan);
