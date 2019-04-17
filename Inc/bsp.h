@@ -6,6 +6,7 @@
 #include "can.h"
 #include "tim.h"
 #include "adc.h"
+#include "usart.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
