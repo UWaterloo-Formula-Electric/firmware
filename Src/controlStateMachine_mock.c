@@ -167,30 +167,30 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
 BaseType_t testOuput(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    FAN_LEFT_ENABLE 
+    FAN_LEFT_ENABLE; 
     HAL_Delay(1000);
-    FAN_LEFT_DISABLE 
-    FAN_RIGHT_ENABLE 
+    FAN_LEFT_DISABLE; 
+    FAN_RIGHT_ENABLE; 
     HAL_Delay(1000);
-    FAN_RIGHT_DISABLE 
-    PUMP_LEFT_ENABLE 
+    FAN_RIGHT_DISABLE; 
+    PUMP_LEFT_ENABLE; 
     HAL_Delay(1000);
-    PUMP_LEFT_DISABLE 
-    PUMP_RIGHT_ENABLE
+    PUMP_LEFT_DISABLE; 
+    PUMP_RIGHT_ENABLE;
     HAL_Delay(1000); 
-    PUMP_RIGHT_DISABLE
-    MC_LEFT_ENABLE 
+    PUMP_RIGHT_DISABLE;
+    MC_LEFT_ENABLE; 
     HAL_Delay(1000);
-    MC_LEFT_DISABLE
-    MC_RIGHT_ENABLE 
+    MC_LEFT_DISABLE;
+    MC_RIGHT_ENABLE; 
     HAL_Delay(1000);
-    MC_RIGHT_DISABLE 
-    TELEMETRY_ENABLE 
+    MC_RIGHT_DISABLE; 
+    TELEMETRY_ENABLE; 
     HAL_Delay(1000);
-    TELEMETRY_DISABLE 
-    FAN_BATT_ENABLE 
+    TELEMETRY_DISABLE; 
+    FAN_BATT_ENABLE; 
     HAL_Delay(1000);
-    FAN_BATT_DISABLE 
+    FAN_BATT_DISABLE; 
     return pdFALSE;
 }
 static const CLI_Command_Definition_t testOuputCommandDefinition =
