@@ -3,6 +3,7 @@
 #include "task.h"
 #include "state_machine.h"
 #include "controlStateMachine.h"
+#include "FreeRTOS_CLI.h"
 #include "debug.h"
 #include "sensors.h"
 #include "adc.h"
@@ -13,7 +14,7 @@ volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
-    if (HAL_ADC_Start_DMA(&ADC_HANDLE, ADC_Buffer, NUM_PDU_CHANNELS) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&ADC_HANDLE, (uint32_t*)ADC_Buffer, NUM_PDU_CHANNELS) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
         Error_Handler();
@@ -61,11 +62,45 @@ bool checkBlownFuse(float channelCurrent)
     return channelCurrent <= FUSE_BLOWN_MIN_CURRENT_AMPS;
 }
 
+BaseType_t getChannelCurrent(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int channelIdx;
+    float current;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(idxParam, "%u", &channelIdx);
+
+    if (channelIdx < 0 || channelIdx >= NUM_PDU_CHANNELS) {
+        COMMAND_OUTPUT("channelIdx Index must be between 0 and %d\n", NUM_PDU_CHANNELS);
+        return pdFALSE;
+    }
+
+    current = readCurrent(channelIdx);
+    COMMAND_OUTPUT("Channel %d current = %f A\n", channelIdx, current);
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getChannelCurrentCommandDefinition =
+{
+    "ChannelCurrent",
+    "ChannelCurrent <channel>:\r\n  get channel <channel> current\r\n",
+    getChannelCurrent,
+    1 /* Number of parameters */
+};
+
 void sensorTask(void *pvParameters)
 {
     if (startADCConversions() != HAL_OK) {
         ERROR_PRINT("Failed to start ADC conversions\n");
         Error_Handler();
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&getChannelCurrentCommandDefinition) != pdPASS) {
+
     }
 
     while (1)
@@ -79,22 +114,22 @@ void sensorTask(void *pvParameters)
             // TODO: Should we do anything?
         }
 
-        /*DEBUG_PRINT("Channel currents:\n");*/
-        for (int i=0; i<NUM_PDU_CHANNELS; i++) {
-            if (i == LV_Current || i == LV_Voltage) {
-                continue;
-            }
+        // DEBUG_PRINT("Channel currents:\n");
+        // for (int i=0; i<NUM_PDU_CHANNELS; i++) {
+        //     if (i == LV_Current || i == LV_Voltage) {
+        //         continue;
+        //     }
 
-            float channelCurrent = readCurrent(i);
-            /*DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);*/
+        //     float channelCurrent = readCurrent(i);
+        //     DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);
 
-            if (checkBlownFuse(channelCurrent)) {
-                ERROR_PRINT("Channel %d has a blown fuse\n", i);
-                fsmSendEventUrgent(&mainFsmHandle, MN_EV_HV_CriticalFailure, 1000);
-            }
+        //     // if (checkBlownFuse(channelCurrent)) {
+        //     //     ERROR_PRINT("Channel %d has a blown fuse\n", i);
+        //     //     fsmSendEventUrgent(&mainFsmHandle, MN_EV_HV_CriticalFailure, 1000);
+        //     // }
 
-            // TODO: Log current
-        }
+        //     // TODO: Log current
+        // }
 
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
     }

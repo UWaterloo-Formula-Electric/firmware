@@ -38,12 +38,12 @@ typedef enum PDU_Channels_t {
 #define LV_MAX_CURRENT_AMPS 50.0f
 //
 // TODO: Find this value
-#define FUSE_BLOWN_MIN_CURRENT_AMPS 0.001
+#define FUSE_BLOWN_MIN_CURRENT_AMPS 5.0
 
 // TODO: Find these values
 #define ADC_TO_AMPS_DIVIDER 10
 #define ADC_TO_VOLTS_DIVIDER 2
 
-#define MOCK_ADC_READINGS
+// #define MOCK_ADC_READINGS
 
 #endif /* end of include guard: SENSORS_H */
