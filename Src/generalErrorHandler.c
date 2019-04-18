@@ -1,10 +1,10 @@
-#include <errorHandler.h>
 #include "main.h"
 #include "freertos.h"
 #include "stdio.h"
 #include "userCan.h"
 #include "bsp.h"
 #include "string.h"
+#include "generalErrorHandler.h"
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
@@ -30,7 +30,7 @@ void _handleError(char *file, int line)
 {
 #ifndef PRODUCTION_ERROR_HANDLING
   const char errorStringFile[] = "Error!: File ";
-  const char errorStringLine[] = "line ";
+  const char errorStringLine[] = " line ";
   char lineNumberString[10];
 
   taskDISABLE_INTERRUPTS();
@@ -44,9 +44,9 @@ void _handleError(char *file, int line)
       while (1);
   }
 
-  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringFile), sizeof(errorStringFile), 1000);
-  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)file), sizeof(file), 1000);
-  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringLine), sizeof(errorStringLine), 1000);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringFile), strlen(errorStringFile), 1000);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)file), strlen(file), 1000);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringLine), strlen(errorStringLine), 1000);
   snprintf(lineNumberString, sizeof(lineNumberString), "%d\n", line);
   HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)lineNumberString), strlen(lineNumberString), 1000);
 

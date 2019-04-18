@@ -4,6 +4,7 @@
 #include "queue.h"
 #include "string.h"
 #include "debug.h"
+#include "watchdog.h"
 
 HAL_StatusTypeDef fsmInit(uint32_t startingState, FSM_Init_Struct *init,
                           FSM_Handle_Struct *handle)
@@ -86,6 +87,12 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
     uint32_t i;
     Transition_t *trans = handle->init.transitions;
 
+
+    if (event == WATCHDOG_REQUEST_EVENT_NUM) {
+        watchdogTaskCheckIn(handle->init.watchdogTaskId);
+        return HAL_OK;
+    }
+
     DEBUG_PRINT("Processing event %lu\n", event);
 
     if (event > handle->init.maxEventNum) {
@@ -132,7 +139,9 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
             continue;
         }
 
-        DEBUG_PRINT("Received event %lu\n", event);
+        if (event != UINT32_MAX) {
+            DEBUG_PRINT("Received event %lu\n", event);
+        }
 
         if (fsmProcessEvent(handle, event) != HAL_OK)
         {
