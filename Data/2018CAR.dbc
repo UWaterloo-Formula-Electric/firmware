@@ -52,6 +52,9 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
+BO_ 2148467201 BMU_BrakePressure: 4 BMU
+ SG_ BrakePressureBMU : 0|32@1+ (0.1,0) [0|0] ""  VCU_BeagleBone
+
 BO_ 2149973761 BMU_HV_Power_State: 1 BMU
  SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU
 
@@ -78,7 +81,7 @@ BO_ 2147548929 BMU_DTC: 6 BMU
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
 
-BO_ 2147548943 ChargeCart_DTC: 6 ChargeCart
+BO_ 2147548932 ChargeCart_DTC: 6 ChargeCart
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU

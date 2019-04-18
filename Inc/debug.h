@@ -23,7 +23,7 @@
 #ifdef CONSOLE_PRINT_ON
 #define CONSOLE_PRINT(...) _DEBUG_PRINT(__VA_ARGS__)
 #else
-#define CONSOLE_PRINT
+#define CONSOLE_PRINT(...)
 #endif
 
 /*
