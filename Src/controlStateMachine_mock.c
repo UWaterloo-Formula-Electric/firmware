@@ -164,6 +164,42 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     printStates,
     0 /* Number of parameters */
 };
+BaseType_t testOuput(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    FAN_LEFT_ENABLE; 
+    HAL_Delay(1000);
+    FAN_LEFT_DISABLE; 
+    FAN_RIGHT_ENABLE; 
+    HAL_Delay(1000);
+    FAN_RIGHT_DISABLE; 
+    PUMP_LEFT_ENABLE; 
+    HAL_Delay(1000);
+    PUMP_LEFT_DISABLE; 
+    PUMP_RIGHT_ENABLE;
+    HAL_Delay(1000); 
+    PUMP_RIGHT_DISABLE;
+    MC_LEFT_ENABLE; 
+    HAL_Delay(1000);
+    MC_LEFT_DISABLE;
+    MC_RIGHT_ENABLE; 
+    HAL_Delay(1000);
+    MC_RIGHT_DISABLE; 
+    TELEMETRY_ENABLE; 
+    HAL_Delay(1000);
+    TELEMETRY_DISABLE; 
+    FAN_BATT_ENABLE; 
+    HAL_Delay(1000);
+    FAN_BATT_DISABLE; 
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t testOuputCommandDefinition =
+{
+    "testOuput",
+    "testOuput:\r\n  Cycle through each of the outputs in 1s intervals.\r\n",
+    testOuput,
+    0 /* Number of parameters */
+};
 
 HAL_StatusTypeDef mockStateMachineInit()
 {
@@ -189,6 +225,9 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setChannelCurrentCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&testOuputCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

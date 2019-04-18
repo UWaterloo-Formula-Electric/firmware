@@ -24,6 +24,7 @@
 #define ERROR_LED_PIN LED_R_Pin
 #define ERROR_LED_PORT LED_R_GPIO_Port
 
+#define CAN_ENABLED
 
 
 #define FAN_BATT_ENABLE HAL_GPIO_WritePin(FAN_BATT_EN_GPIO_Port,FAN_BATT_EN_Pin,GPIO_PIN_SET)
@@ -51,6 +52,10 @@
 #define DCU_ENABLE HAL_GPIO_WritePin(DCU_EN_GPIO_Port,DCU_EN_Pin,GPIO_PIN_SET)
 #define DCU_DISABLE HAL_GPIO_WritePin(DCU_EN_GPIO_Port,DCU_EN_Pin,GPIO_PIN_RESET)
 
+#define DC_POWER_DISABLE HAL_GPIO_WritePin(BMGR_SHDN_GPIO_Port,BMGR_SHDN_Pin,GPIO_PIN_SET)
+#define DC_POWER_ENABLE HAL_GPIO_WritePin(BMGR_SHDN_GPIO_Port,BMGR_SHDN_Pin,GPIO_PIN_RESET)
+
+
 
 
 
@@ -68,34 +73,40 @@
 #define ERROR_LED_PIN LD3_Pin
 #define ERROR_LED_PORT LD3_GPIO_Port
 
-#define FAN_BATT_ENABLE
-#define FAN_BATT_DISABLE
-#define FAN_LEFT_ENABLE
-#define FAN_LEFT_DISABLE
-#define FAN_RIGHT_ENABLE
-#define FAN_RIGHT_DISABLE
+//#define CAN_ENABLED
 
-#define PUMP_LEFT_ENABLE
-#define PUMP_LEFT_DISABLE
-#define PUMP_RIGHT_ENABLE
-#define PUMP_RIGHT_DISABLE
+#define FAN_BATT_ENABLE		asm("NOP")
+#define FAN_BATT_DISABLE 	asm("NOP")
+#define FAN_LEFT_ENABLE		asm("NOP")
+#define FAN_LEFT_DISABLE	asm("NOP")
+#define FAN_RIGHT_ENABLE	asm("NOP")
+#define FAN_RIGHT_DISABLE	asm("NOP")
 
-#define MC_LEFT_ENABLE
-#define MC_LEFT_DISABLE
-#define MC_RIGHT_ENABLE
-#define MC_RIGHT_DISABLE
+#define PUMP_LEFT_ENABLE	asm("NOP")
+#define PUMP_LEFT_DISABLE	asm("NOP")
+#define PUMP_RIGHT_ENABLE	asm("NOP")
+#define PUMP_RIGHT_DISABLE	asm("NOP")
 
-#define TELEMETRY_ENABLE
-#define TELEMETRY_DISABLE
+#define MC_LEFT_ENABLE		asm("NOP")
+#define MC_LEFT_DISABLE		asm("NOP")
+#define MC_RIGHT_ENABLE		asm("NOP")
+#define MC_RIGHT_DISABLE	asm("NOP")
 
-#define WSB_ENABLE
-#define WSB_DISABLE
-#define BMU_ENABLE
-#define BMU_DISABLE
-#define VCU_ENABLE
-#define VCU_DISABLE
-#define DCU_ENABLE
-#define DCU_DISABLE
+#define TELEMETRY_ENABLE 	asm("NOP")
+#define TELEMETRY_DISABLE 	asm("NOP")
+
+#define DC_POWER_DISABLE 	asm("NOP")
+#define DC_POWER_ENABLE		asm("NOP")
+
+
+#define WSB_ENABLE 	asm("NOP")
+#define WSB_DISABLE	asm("NOP") 
+#define BMU_ENABLE 	asm("NOP")
+#define BMU_DISABLE asm("NOP")
+#define VCU_ENABLE 	asm("NOP")
+#define VCU_DISABLE asm("NOP")
+#define DCU_ENABLE 	asm("NOP")
+#define DCU_DISABLE	asm("NOP")
 
 
 
