@@ -10,6 +10,7 @@
 #include "PDU_dtc.h"
 #include "PDU_can.h"
 #include "bsp.h"
+#include "watchdog.h"
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
 #define COOLING_DELAY_TIME_MS 5000
@@ -93,7 +94,12 @@ HAL_StatusTypeDef motorControlInit()
     init.transitions = motorTransitions;
     init.transitionTableLength = TRANS_COUNT(motorTransitions);
     init.eventQueueLength = 5;
+    init.watchdogTaskId = 3;
     if (fsmInit(MTR_STATE_Motors_Off, &init, &motorFsmHandle) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    if (registerTaskToWatch(3, 5, true, &motorFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -124,7 +130,12 @@ HAL_StatusTypeDef coolingControlInit()
     init.transitions = coolingTransitions;
     init.transitionTableLength = TRANS_COUNT(coolingTransitions);
     init.eventQueueLength = 5;
+    init.watchdogTaskId = 2;
     if (fsmInit(COOL_STATE_OFF, &init, &coolingFsmHandle) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    if (registerTaskToWatch(2, 5, true, &coolingFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -155,7 +166,12 @@ HAL_StatusTypeDef maincontrolInit()
     init.transitions = mainTransitions;
     init.transitionTableLength = TRANS_COUNT(mainTransitions);
     init.eventQueueLength = 5;
+    init.watchdogTaskId = 1;
     if (fsmInit(MN_STATE_Boards_Off, &init, &mainFsmHandle) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    if (registerTaskToWatch(1, 5, true, &mainFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 

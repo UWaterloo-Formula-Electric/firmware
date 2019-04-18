@@ -6,7 +6,7 @@
 #include "debug.h"
 #include "sensors.h"
 #include "adc.h"
-#include <stdbool.h>
+#include "watchdog.h"
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -63,6 +63,12 @@ bool checkBlownFuse(float channelCurrent)
 
 void sensorTask(void *pvParameters)
 {
+    if (registerTaskToWatch(4, 2*pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register sensor task with watchdog!\n");
+        Error_Handler();
+    }
+
     if (startADCConversions() != HAL_OK) {
         ERROR_PRINT("Failed to start ADC conversions\n");
         Error_Handler();
@@ -96,6 +102,7 @@ void sensorTask(void *pvParameters)
             // TODO: Log current
         }
 
+        watchdogTaskCheckIn(4);
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
     }
 }
