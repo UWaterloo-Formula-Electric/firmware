@@ -106,7 +106,8 @@ def main(argv):
     dtcCodeToName = {}
     for row in dtcReader:
         dtcCodeToName[row['DTC CODE']] = {'name':row['NAME'], 'message':row['MESSAGE'], 'severity':row['SEVERITY']}
-        if (row['ORIGIN'] == target):
+        origins = row['ORIGIN'].split(',')
+        if (target in origins):
             generateErrorMacro(headerFileHandle, row['NAME'], row['DATA'], row['DTC CODE'], row['SEVERITY'])
 
     generateEnum(headerFileHandle, dtcCodeToName)

@@ -32,3 +32,5 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The precharge process failed during step #data
 32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The discharge process failed during step #data
 33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,The IMD detected a fault. Value is of enum IMDStatus in imdDriver.h
+34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"The watchdog task detected that a task missed its checkin time, a watchdog reset is about to happen for the board"
+35,WatchdogReset,"BMU,PDU,VCU_F7",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A watchdog reset occurred
