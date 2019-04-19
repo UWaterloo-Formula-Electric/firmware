@@ -11,6 +11,8 @@
 #include "freertos.h"
 #include "task.h"
 #include "debug.h"
+#include "userCan.h"
+#include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
 typedef struct TaskNode {
     uint32_t id;
@@ -60,7 +62,9 @@ HAL_StatusTypeDef registerTaskToWatch(uint32_t id, uint32_t timeoutTicks,
     if (tasksToWatchList == NULL) {
         tasksToWatchList = node;
     } else {
-        tasksToWatchList->next = node;
+        TaskNode *n = tasksToWatchList;
+        while (n->next != NULL) {n = n->next;}
+        n->next = node;
     }
 
     return HAL_OK;
@@ -91,6 +95,7 @@ HAL_StatusTypeDef watchdogRefresh()
 void watchdogSignalError(uint32_t id)
 {
     ERROR_PRINT("Watchdog error for task id %lu\n", id);
+    sendDTC_FATAL_WatchdogTaskMissedCheckIn();
     Error_Handler();
 }
 
@@ -150,6 +155,13 @@ void checkForWDReset()
 void printWDResetState()
 {
     if (wdReset) {
+        // Need to start CAN here since it won't be started already
+        if (canStart(&CAN_HANDLE) != HAL_OK)
+        {
+            Error_Handler();
+        }
+
+        sendDTC_FATAL_WatchdogReset();
         printf("Watchdog reset occured!!!\n");
     } else {
         DEBUG_PRINT("Watchdog reset didn't occur\n");
