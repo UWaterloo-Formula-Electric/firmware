@@ -37,6 +37,7 @@ LIB_OPT = -O3
 LIB_C_SOURCES =  \
 Src/main.c \
 Src/gpio.c \
+Src/tim.c \
 Src/can.c \
 Src/dma.c \
 Src/freertos.c \
