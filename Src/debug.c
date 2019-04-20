@@ -5,6 +5,7 @@
 #include "FreeRTOS_CLI.h"
 #include "task.h"
 #include "userCan.h"
+#include "canHeartbeat.h"
 
 // Send a CLI string to the uart to be printed. Only for use by the CLI
 // buf must be of length PRINT_QUEUE_STRING_SIZE (this is always true for CLI
@@ -169,13 +170,86 @@ BaseType_t heapUsageCommand(char *writeBuffer, size_t writeBufferLength,
     return pdFALSE;
 }
 
-static const CLI_Command_Definition_t testCommandDefinition =
+static const CLI_Command_Definition_t heapCommandDefinition =
 {
     "heap",
     "heap <min|cur>:\r\n  Outputs the <min|cur> free heap space\r\n",
     heapUsageCommand,
     1 /* Number of parameters */
 };
+
+BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (STR_EQ(param, "on", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat on (Boards need to be turned on as well)\n");
+        heartbeatEnabled = true;
+    } else if (STR_EQ(param, "off", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat off\n");
+        heartbeatEnabled = false;
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t generalHeartbeatCommandDefinition =
+{
+    "heartbeat",
+    "heartbeat <on|off>:\r\n  Turn on/off CAN heartbeat\r\n",
+    generalHeartbeatCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+        return pdFALSE;
+    }
+
+    const char * boardParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (STR_EQ(boardParam, "BMU", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat %s for BMU\n", onOff?"on":"off");
+        BMU_heartbeatEnabled = onOff;
+    } else if (STR_EQ(boardParam, "DCU", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat %s for DCU\n", onOff?"on":"off");
+        DCU_heartbeatEnabled = onOff;
+    } else if (STR_EQ(boardParam, "PDU", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat %s for PDU\n", onOff?"on":"off");
+        PDU_heartbeatEnabled = onOff;
+    } else if (STR_EQ(boardParam, "VCU_F7", paramLen)) {
+        COMMAND_OUTPUT("Turning can heartbeat %s for VCU_F7\n", onOff?"on":"off");
+        VCU_F7_heartbeatEnabled = onOff;
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t boardHeartbeatCommandDefinition =
+{
+    "heartbeatForBoard",
+    "heartbeatForBoard <BMU|PDU|DCU|VCU_F7> <on|off>:\r\n  Turn on/off CAN heartbeat for a board\r\n",
+    boardHeartbeatCommand,
+    2 /* Number of parameters */
+};
+
 
 #define TASK_LIST_NUM_BYTES_PER_TASK 50
 char *taskListBuffer = NULL; // A buffer to store taskList string in,
@@ -295,7 +369,7 @@ HAL_StatusTypeDef debugInit()
     }
 
     /* Register common commands */
-    if (FreeRTOS_CLIRegisterCommand(&testCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&heapCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&taskListCommandDefinition) != pdPASS) {
@@ -304,7 +378,12 @@ HAL_StatusTypeDef debugInit()
     if (FreeRTOS_CLIRegisterCommand(&statsListCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&generalHeartbeatCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }
 

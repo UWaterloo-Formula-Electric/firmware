@@ -46,45 +46,70 @@ void heartbeatReceived(BoardIDs board)
     }
 }
 
+#ifndef PRODUCTION_ERROR_HANDLING
+bool heartbeatEnabled = false;
+bool DCU_heartbeatEnabled = false;
+bool PDU_heartbeatEnabled = false;
+bool BMU_heartbeatEnabled = false;
+bool VCU_F7_heartbeatEnabled = false;
+#else
+bool heartbeatEnabled = true;
+bool DCU_heartbeatEnabled = true;
+bool PDU_heartbeatEnabled = true;
+bool BMU_heartbeatEnabled = true;
+bool VCU_F7_heartbeatEnabled = true;
+#endif
+
 HAL_StatusTypeDef checkAllHeartbeats()
 {
-    uint32_t curTick = xTaskGetTickCount();
+    if (heartbeatEnabled)
+    {
+        uint32_t curTick = xTaskGetTickCount();
 
 #if BOARD_ID != ID_DCU
-    if (curTick - lastDCU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
-    {
-        sendDTC_FATAL_DCU_MissedHeartbeat();
-        ERROR_PRINT("DCU Missed heartbeat check in\n");
-        return HAL_ERROR;
-    }
+        if (DCU_heartbeatEnabled) {
+            if (curTick - lastDCU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
+            {
+                sendDTC_FATAL_DCU_MissedHeartbeat();
+                ERROR_PRINT("DCU Missed heartbeat check in\n");
+                return HAL_ERROR;
+            }
+        }
 #endif
 
 #if BOARD_ID != ID_PDU
-    if (curTick - lastPDU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
-    {
-        sendDTC_FATAL_PDU_MissedHeartbeat();
-        ERROR_PRINT("PDU Missed heartbeat check in\n");
-        return HAL_ERROR;
-    }
+        if (PDU_heartbeatEnabled) {
+            if (curTick - lastPDU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
+            {
+                sendDTC_FATAL_PDU_MissedHeartbeat();
+                ERROR_PRINT("PDU Missed heartbeat check in\n");
+                return HAL_ERROR;
+            }
+        }
 #endif
 
 #if BOARD_ID != ID_BMU
-    if (curTick - lastBMU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
-    {
-        sendDTC_FATAL_BMU_MissedHeartbeat();
-        ERROR_PRINT("BMU Missed heartbeat check in\n");
-        return HAL_ERROR;
-    }
+        if (BMU_heartbeatEnabled) {
+            if (curTick - lastBMU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
+            {
+                sendDTC_FATAL_BMU_MissedHeartbeat();
+                ERROR_PRINT("BMU Missed heartbeat check in\n");
+                return HAL_ERROR;
+            }
+        }
 #endif
 
 #if BOARD_ID != ID_VCU_F7
-    if (curTick - lastVCU_F7_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
-    {
-        sendDTC_FATAL_VCU_F7_MissedHeartbeat();
-        ERROR_PRINT("VCU_F7 Missed heartbeat check in\n");
-        return HAL_ERROR;
-    }
+        if (VCU_F7_heartbeatEnabled) {
+            if (curTick - lastVCU_F7_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)
+            {
+                sendDTC_FATAL_VCU_F7_MissedHeartbeat();
+                ERROR_PRINT("VCU_F7 Missed heartbeat check in\n");
+                return HAL_ERROR;
+            }
+        }
 #endif
+    }
 
     return HAL_OK;
 }

@@ -10,6 +10,12 @@
 #define HEARTBEAT_PERIOD_TICKS 10
 #define HEARTBEAT_TIMEOUT_TICKS 25
 
+extern bool heartbeatEnabled;
+extern bool DCU_heartbeatEnabled;
+extern bool PDU_heartbeatEnabled;
+extern bool BMU_heartbeatEnabled;
+extern bool VCU_F7_heartbeatEnabled;
+
 HAL_StatusTypeDef sendHeartbeat();
 void heartbeatReceived(BoardIDs boardName);
 HAL_StatusTypeDef checkAllHeartbeats();

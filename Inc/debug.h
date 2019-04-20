@@ -92,7 +92,7 @@ extern QueueHandle_t printQueue;
 // send function relies on this. This optimizes sending
 #define configCOMMAND_INT_MAX_OUTPUT_SIZE PRINT_QUEUE_STRING_SIZE
 
-#define UART_RX_QUEUE_LENGTH 20
+#define UART_RX_QUEUE_LENGTH 100
 
 #define STR_EQ(a, b, len) (strncmp(a, b, len) == 0)
 
