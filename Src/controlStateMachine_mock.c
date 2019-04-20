@@ -292,6 +292,113 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int contState;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(idxParam, "%u", &contState);
+    switch (contState)
+    {
+        case 0:
+            CONT_POS_OPEN;
+        break;
+
+        case 1:
+            CONT_POS_CLOSE;
+        break;
+
+        default:
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            return pdFALSE;    
+        break;
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setPosContCommandDefinition =
+{
+    "setPosCont",
+    "setPosCont <state>:\r\n sets the state of the positive contactor, 1-> closed , 0-> open\r\n",
+    setPosCont,
+    1 /* Number of parameters */
+};
+
+BaseType_t setNegCont(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int contState;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(idxParam, "%u", &contState);
+    switch (contState)
+    {
+        case 0:
+            CONT_NEG_OPEN;
+        break;
+
+        case 1:
+            CONT_NEG_CLOSE;
+        break;
+
+        default:
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            return pdFALSE;    
+        break;
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setNegContCommandDefinition =
+{
+    "setNegCont",
+    "setNegCont <state>:\r\n sets the state of the negative contactor, 1-> closed , 0-> open\r\n",
+    setNegCont,
+    1 /* Number of parameters */
+};
+
+BaseType_t setPCDC(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int contState;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(idxParam, "%u", &contState);
+    switch (contState)
+    {
+        case 0:
+            PCDC_DC;
+        break;
+
+        case 1:
+            PCDC_PC;
+        break;
+
+        default:
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            return pdFALSE;    
+        break;
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setPCDCCommandDefinition =
+{
+    "setPCDC",
+    "setPCDC <state>:\r\n sets the state of the precharge / Discharge relay, 1-> precharge , 0-> dishcage\r\n",
+    setPCDC,
+    1 /* Number of parameters */
+};
+
+
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     IBus = 0;
@@ -332,6 +439,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&brakePressureCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }    
+    if (FreeRTOS_CLIRegisterCommand(&setPosContCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setNegContCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setPCDCCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;

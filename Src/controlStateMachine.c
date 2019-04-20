@@ -9,6 +9,7 @@
 #include "BMU_dtc.h"
 #include "BMU_can.h"
 #include "prechargeDischarge.h"
+#include "bsp.h"
 
 extern osThreadId PCDCHandle;
 

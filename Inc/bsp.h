@@ -24,6 +24,13 @@
 #define ERROR_LED_PIN LED_Y_Pin
 #define ERROR_LED_PORT LED_Y_GPIO_Port
 
+#define CONT_POS_CLOSE	HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_SET)
+#define CONT_POS_OPEN	HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_RESET)
+#define CONT_NEG_CLOSE	HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_SET)
+#define CONT_NEG_OPEN	HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_RESET)
+#define PCDC_PC			HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_SET)
+#define PCDC_DC			HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_RESET)
+
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"
 
@@ -35,6 +42,12 @@
 #define ERROR_LED_PIN LD3_Pin
 #define ERROR_LED_PORT LD3_GPIO_Port
 
+#define CONT_POS_CLOSE	asm("NOP")
+#define CONT_POS_OPEN	asm("NOP")
+#define CONT_NEG_CLOSE	asm("NOP")
+#define CONT_NEG_OPEN	asm("NOP")
+#define PCDC_PC			asm("NOP")
+#define PCDC_DC			asm("NOP")
 #else
 
 #define STR_HELPER(x) #x

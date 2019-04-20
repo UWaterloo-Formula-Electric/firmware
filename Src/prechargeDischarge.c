@@ -60,28 +60,24 @@ typedef enum ContactorState_t {
 void setNegContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s negative contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
-
-#if IS_BOARD_F7
-    HAL_GPIO_WritePin(CONT_NEG_GPIO_Port, CONT_NEG_Pin, state);
-#endif
+    if (state==CONTACTOR_CLOSED) CONT_NEG_CLOSE;
+    else if (state == CONTACTOR_OPEN) CONT_NEG_OPEN;
 }
 
 void setPosContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s positive contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
 
-#if IS_BOARD_F7
-    HAL_GPIO_WritePin(CONT_POS_GPIO_Port, CONT_POS_Pin, state);
-#endif
+    if (state==CONTACTOR_CLOSED) CONT_POS_CLOSE;
+    else if (state == CONTACTOR_OPEN) CONT_POS_CLOSE;
 }
 
 void setPrechargeContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s precharge contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
 
-#if IS_BOARD_F7
-    HAL_GPIO_WritePin(CONT_PRE_GPIO_Port, CONT_PRE_Pin, state);
-#endif
+    if (state==CONTACTOR_CLOSED) PCDC_PC;
+    else if (state == CONTACTOR_OPEN) PCDC_DC;
 }
 
 void openAllContactors()
