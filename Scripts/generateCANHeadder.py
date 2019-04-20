@@ -83,6 +83,8 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
 
     fWrite("#include \"FreeRTOS.h\"", headerFileHandle);
     fWrite("#include \"queue.h\"", headerFileHandle);
+    fWrite("#include \"canHeartbeat.h\"", headerFileHandle);
+    fWrite("#include \"boardTypes.h\"", headerFileHandle);
     fWrite("", headerFileHandle)
 
 def writeEndIncludeGuard(sourceFileHandle, headerFileHandle):
@@ -146,11 +148,13 @@ def parseCanDB(db, nodeName):
     proCanRxMessages = [msg for msg in rxMessages if isProCanMessage(msg)]
     proCanTxMessages = [msg for msg in txMessages if isProCanMessage(msg)]
 
-    normalRxMessages = [msg for msg in rxMessages if msg not in multiplexedRxMessages and msg not in dtcRxMessages and msg not in proCanRxMessages]
+    heartbeatRxMessages = [msg for msg in rxMessages if 'Heartbeat' in msg.name]
+
+    normalRxMessages = [msg for msg in rxMessages if msg not in multiplexedRxMessages and msg not in dtcRxMessages and msg not in proCanRxMessages and msg not in heartbeatRxMessages]
     normalTxMessages = [msg for msg in txMessages if msg not in multiplexedTxMessages and msg not in dtcTxMessages and msg not in proCanTxMessages]
 
     return (rxMessages, txMessages, normalRxMessages, normalTxMessages,
-            multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages)
+            multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages, heartbeatRxMessages)
 
 def getStrippedSignalName(signalName):
     strippedSignalName = re.sub('\d+$', '', signalName)
@@ -561,7 +565,7 @@ def writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle):
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=True)
 
 
-def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, sourceFileHandle, headerFileHandle):
+def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, heartbeatRxMessages, sourceFileHandle, headerFileHandle):
     msgCallbackPrototypes = []
     functionPrototype = 'int parseCANData(int id, void *data)'
     fWrite('{};'.format(functionPrototype), headerFileHandle)
@@ -579,6 +583,12 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
+    for msg in heartbeatRxMessages:
+        fWrite('        case {id}:'.format(id=msg.frame_id), sourceFileHandle)
+        fWrite('        {', sourceFileHandle)
+        txNode = msg.senders[0]
+        fWrite('            heartbeatReceived(ID_{txNode});'.format(txNode=txNode), sourceFileHandle)
+        fWrite('            break;\n        }', sourceFileHandle)
 
     createdFatalCallback = False
     for msg in dtcRxMessages:
@@ -594,7 +604,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
 
         fatalCallbackName = 'DTC_Fatal_Callback'
-        fatalCallbackPrototype = 'void {name}(BoardNames_t board)'.format(name=fatalCallbackName)
+        fatalCallbackPrototype = 'void {name}(BoardIDs board)'.format(name=fatalCallbackName)
 
         msgCallbackPrototypes.append('void {callback}(int DTC_CODE, int DTC_Severity, int DTC_Data)'.format(callback=callbackName))
 
@@ -604,7 +614,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
             createdFatalCallback = True
 
         fWrite('            if (newDtc.DTC_Severity == DTC_Severity_FATAL) {', sourceFileHandle)
-        fWrite('                {fatalCallback}(BOARD_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
+        fWrite('                {fatalCallback}(ID_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
         fWrite('            {callback}(newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -767,14 +777,6 @@ def writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
         fWrite('{};\n'.format(prototype), headerFileHandle)
         fWrite('__weak {} {{}}\n'.format(prototype), sourceFileHandle)
 
-def writeBoardNamesEnum(nodes, headerFileHandle):
-    fWrite('typedef enum BoardNames_t {', headerFileHandle)
-
-    for idx,node in enumerate(nodes):
-        fWrite('    BOARD_{name} = {idx},'.format(name=node.name, idx=idx), headerFileHandle)
-
-    fWrite('} BoardNames_t;', headerFileHandle)
-
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
@@ -826,7 +828,7 @@ def main(argv):
 
 
     (rxMessages, txMessages, normalRxMessages, normalTxMessages, multiplexedRxMessages,
-     multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages) = parseCanDB(db, nodeName)
+     multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages, heartbeatRxMessages) = parseCanDB(db, nodeName)
 
     # print normalRxMessages
     writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFileHandle)
@@ -851,13 +853,11 @@ def main(argv):
     writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle)
 
     # print parse can message function
-    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, sourceFileHandle, headerFileHandle)
+    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, heartbeatRxMessages, sourceFileHandle, headerFileHandle)
 
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
     writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
-
-    writeBoardNamesEnum(db.nodes, headerFileHandle)
 
     writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
 

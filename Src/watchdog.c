@@ -12,6 +12,7 @@
 #include "task.h"
 #include "debug.h"
 #include "userCan.h"
+#include "canHeartbeat.h"
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
 typedef struct TaskNode {
@@ -23,6 +24,8 @@ typedef struct TaskNode {
     FSM_Handle_Struct *fsmHandle;
     struct TaskNode *next;
 } TaskNode;
+
+#define WATCHDOGTASK_PERIOD_TICKS 5
 
 TaskNode *tasksToWatchList = NULL;
 
@@ -107,6 +110,16 @@ HAL_StatusTypeDef watchdogSendEventToFSM(FSM_Handle_Struct *fsmHandle)
 void watchdogTask(void *pvParameters)
 {
     TaskNode *node = NULL;
+    uint32_t lastHeartbeatTick = 0;
+
+    if (canStart(&CAN_HANDLE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start CAN!\n");
+        Error_Handler();
+    }
+
+    // Send heartbeat on startup so it gets sent ASAP
+    sendHeartbeat();
 
     while (1) {
         node = tasksToWatchList;
@@ -136,8 +149,19 @@ void watchdogTask(void *pvParameters)
             node = node->next;
         }
 
+        if (checkAllHeartbeats() != HAL_OK) {
+            // checkAllHeartbeats sends DTC, so don't need to do it here
+            ERROR_PRINT("Heartbeat missed!\n");
+            Error_Handler();
+        }
+
         watchdogRefresh();
-        vTaskDelay(5);
+
+        if (curTick - lastHeartbeatTick >= HEARTBEAT_PERIOD_TICKS) {
+            sendHeartbeat();
+        }
+
+        vTaskDelay(WATCHDOGTASK_PERIOD_TICKS);
     }
 }
 

@@ -52,6 +52,18 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
+BO_ 2147811079 DCU_Heartbeat: 1 DCU
+ SG_ DCU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,PDU,BMU
+
+BO_ 2147811075 PDU_Heartbeat: 1 PDU
+ SG_ PDU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,DCU,BMU
+
+BO_ 2147811074 VCU_Heartbeat: 1 VCU_F7
+ SG_ VCU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  PDU,DCU,BMU
+
+BO_ 2147811073 BMU_Heartbeat: 1 BMU
+ SG_ BMU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,PDU,DCU
+
 BO_ 2148467201 BMU_BrakePressure: 4 BMU
  SG_ BrakePressureBMU : 0|32@1+ (0.1,0) [0|0] ""  VCU_BeagleBone
 
