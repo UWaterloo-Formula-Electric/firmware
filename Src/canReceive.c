@@ -4,6 +4,7 @@
 #include "state_machine.h"
 #include "controlStateMachine.h"
 #include "debug.h"
+#include "boardTypes.h"
 
 void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
     if (EM_Power_State_Request) {
@@ -21,7 +22,7 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
     }
 }
 
-void DTC_Fatal_Callback(BoardNames_t board) {
+void DTC_Fatal_Callback(BoardIDs board) {
     fsmSendEventUrgentISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
 }
 
