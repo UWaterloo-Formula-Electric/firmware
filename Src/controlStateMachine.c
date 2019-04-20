@@ -10,6 +10,7 @@
 #include "BMU_can.h"
 #include "prechargeDischarge.h"
 #include "bsp.h"
+#include "watchdog.h"
 
 extern osThreadId PCDCHandle;
 
@@ -54,6 +55,10 @@ HAL_StatusTypeDef controlInit()
     init.eventQueueLength = 5;
     if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init control fsm\n");
+        return HAL_ERROR;
+    }
+
+    if (registerTaskToWatch(1, 5, true, &fsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 

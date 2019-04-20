@@ -8,6 +8,7 @@
 #include "BMU_can.h"
 #include "BMU_dtc.h"
 #include "boardTypes.h"
+#include "watchdog.h"
 
 #define BATTERY_TASK_PERIOD_MS 100
 
@@ -261,6 +262,12 @@ void batteryTask(void *pvParameter)
     }
 #endif
 
+    if (registerTaskToWatch(2, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register battery task with watchdog!\n");
+        Error_Handler();
+    }
+
     int errorCounter = 0;
     float packVoltage;
     while (1)
@@ -310,6 +317,7 @@ void batteryTask(void *pvParameter)
 
         // Succesfully reach end of loop, update error counter to reflect that
         ERROR_COUNTER_SUCCESS();
+        watchdogTaskCheckIn(2);
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

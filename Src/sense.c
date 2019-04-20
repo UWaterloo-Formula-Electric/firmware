@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "freertos.h"
 #include "task.h"
+#include "watchdog.h"
 
 #define SENSOR_TASK_PERIOD 50
 
@@ -28,12 +29,25 @@ HAL_StatusTypeDef sensorTaskInit()
 
 void sensorTask(void *pvParameters)
 {
+    if (registerTaskToWatch(3, 2*pdMS_TO_TICKS(SENSOR_TASK_PERIOD), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register battery task with watchdog!\n");
+        Error_Handler();
+    }
+
+    if (sensorTaskInit() != HAL_OK) {
+       ERROR_PRINT("Failed to init sensor task\n");
+       Error_Handler();
+    }
+
    while (1)
    {
       BrakePressureBMU = brakeADCVal / BRAKE_ADC_DIVIDER;
       if (sendCAN_BMU_BrakePressure() != HAL_OK) {
          ERROR_PRINT("Failed to send brake value over CAN\n");
       }
+
+      watchdogTaskCheckIn(3);
       vTaskDelay(SENSOR_TASK_PERIOD);
    }
 }

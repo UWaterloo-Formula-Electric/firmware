@@ -81,6 +81,7 @@ LIB_C_SOURCES =  \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
 ..//Src/system_stm32f7xx.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
@@ -90,7 +91,8 @@ LIB_C_SOURCES =  \
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c  
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c  \
+../Src/iwdg.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 

@@ -5,6 +5,8 @@
 #include "main.h"
 #include "can.h"
 #include "tim.h"
+#include "stdbool.h"
+#include "iwdg.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
@@ -23,6 +25,7 @@
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin
 #define ERROR_LED_PORT LED_Y_GPIO_Port
+#define IWDG_HANDLE hiwdg
 
 #define CONT_POS_CLOSE	HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_SET)
 #define CONT_POS_OPEN	HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_RESET)
@@ -41,6 +44,7 @@
 #define DEBUG_LED_PORT LD2_GPIO_Port
 #define ERROR_LED_PIN LD3_Pin
 #define ERROR_LED_PORT LD3_GPIO_Port
+#define IWDG_HANDLE hiwdg
 
 #define CONT_POS_CLOSE	asm("NOP")
 #define CONT_POS_OPEN	asm("NOP")

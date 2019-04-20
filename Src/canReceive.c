@@ -3,6 +3,7 @@
 #include "userCan.h"
 #include "bsp.h"
 #include "debug.h"
+#include "boardTypes.h"
 
 #include "controlStateMachine.h"
 
@@ -20,7 +21,7 @@ void CAN_Msg_DCU_buttonEvents_Callback()
     }
 }
 
-void DTC_Fatal_Callback(BoardNames_t board)
+void DTC_Fatal_Callback(BoardIDs board)
 {
     fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
 }
