@@ -5,7 +5,9 @@
 #include "main.h"
 #include "can.h"
 #include "tim.h"
+#include "iwdg.h"
 #include <stdbool.h>
+#include "adc.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
@@ -13,6 +15,8 @@
 #define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
+#define ADC_HANDLE hadc1
+#define IWDG_HANDLE hiwdg
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin
@@ -25,6 +29,7 @@
 #define DEBUG_UART_HANDLE huart3
 #define ADC_HANDLE hadc1
 #define CAN_HANDLE hcan1
+#define IWDG_HANDLE hiwdg
 #define DEBUG_LED_PIN LD2_Pin
 #define DEBUG_LED_PORT LD2_GPIO_Port
 #define ERROR_LED_PIN LD3_Pin

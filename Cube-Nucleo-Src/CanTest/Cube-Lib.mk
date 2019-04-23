@@ -74,6 +74,7 @@ LIB_C_SOURCES =  \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
 ../Src/stm32f7xx_it.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
@@ -88,7 +89,8 @@ LIB_C_SOURCES =  \
 ../Src/can.c \
 ../Src/gpio.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
-../Src/tim.c
+../Src/tim.c \
+../Src/iwdg.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 

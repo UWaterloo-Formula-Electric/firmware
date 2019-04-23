@@ -68,7 +68,7 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
-void DTC_Fatal_Callback(BoardNames_t board)
+void DTC_Fatal_Callback(BoardIDs board)
 {
     fsmSendEventUrgentISR(&fsmHandle, EV_Fatal);
 }

@@ -11,6 +11,7 @@
 #include "VCU_F7_can.h"
 #include "canReceive.h"
 #include "brakeAndThrottle.h"
+#include "watchdog.h"
 
 FSM_Handle_Struct fsmHandle;
 TimerHandle_t throttleUpdateTimer;
@@ -68,8 +69,13 @@ HAL_StatusTypeDef driveByWireInit()
     init.transitions = transitions;
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 5;
+    init.watchdogTaskId = 1;
     if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init drive by wire fsm\n");
+        return HAL_ERROR;
+    }
+
+    if (registerTaskToWatch(1, 5, true, &fsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 

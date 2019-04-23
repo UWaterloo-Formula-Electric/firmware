@@ -61,6 +61,7 @@ osThreadId mainTaskHandle;
 osThreadId driveByWireHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
+osThreadId watchdogTaskNamHandle;
 
 /* USER CODE BEGIN Variables */
 
@@ -71,6 +72,7 @@ void mainTaskFunction(void const * argument);
 extern void driveByWireTask(void const * argument);
 extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
+extern void watchdogTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -140,6 +142,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of cliTaskName */
   osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 1000);
   cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
+
+  /* definition and creation of watchdogTaskNam */
+  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 1000);
+  watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
