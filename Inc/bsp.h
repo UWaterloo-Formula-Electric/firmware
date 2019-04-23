@@ -7,10 +7,10 @@
 #include "tim.h"
 #include "iwdg.h"
 #include <stdbool.h>
-#include "adc.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
+#include "adc.h"
 
 #define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart2
