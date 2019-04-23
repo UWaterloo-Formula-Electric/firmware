@@ -58,7 +58,7 @@ BO_ 2147811079 DCU_Heartbeat: 1 DCU
 BO_ 2147811075 PDU_Heartbeat: 1 PDU
  SG_ PDU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,DCU,BMU
 
-BO_ 2147811074 VCU_Heartbeat: 1 VCU_F7
+BO_ 2147811074 VCU_F7_Heartbeat: 1 VCU_F7
  SG_ VCU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  PDU,DCU,BMU
 
 BO_ 2147811073 BMU_Heartbeat: 1 BMU
