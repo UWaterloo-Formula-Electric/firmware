@@ -9,6 +9,7 @@
 #include "adc.h"
 #include <stdbool.h>
 #include "PDU_can.h"
+#include "watchdog.h"
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -113,6 +114,12 @@ static const CLI_Command_Definition_t getBusVoltageCommandDefinition =
 
 void sensorTask(void *pvParameters)
 {
+    if (registerTaskToWatch(4, 2*pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register sensor task with watchdog!\n");
+        Error_Handler();
+    }
+
     if (startADCConversions() != HAL_OK) {
         ERROR_PRINT("Failed to start ADC conversions\n");
         Error_Handler();
@@ -163,6 +170,7 @@ void sensorTask(void *pvParameters)
         //     // TODO: Log current
         // }
 
+        watchdogTaskCheckIn(4);
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
     }
 }

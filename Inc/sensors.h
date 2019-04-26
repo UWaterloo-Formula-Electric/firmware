@@ -44,6 +44,8 @@ typedef enum PDU_Channels_t {
 #define ADC_TO_AMPS_DIVIDER 225.168595041322
 #define ADC_TO_VOLTS_DIVIDER 198.545454545455
 
+
  // #define MOCK_ADC_READINGS
+
 
 #endif /* end of include guard: SENSORS_H */

@@ -56,6 +56,7 @@ Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
@@ -77,6 +78,7 @@ Src/i2c.c \
 Src/tim.c \
 Src/usart.c \
 Src/dma.c \
+Src/iwdg.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
