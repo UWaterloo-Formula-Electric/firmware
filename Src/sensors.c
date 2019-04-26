@@ -8,6 +8,7 @@
 #include "sensors.h"
 #include "adc.h"
 #include <stdbool.h>
+#include "PDU_can.h"
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -92,6 +93,24 @@ static const CLI_Command_Definition_t getChannelCurrentCommandDefinition =
     1 /* Number of parameters */
 };
 
+
+BaseType_t BusVoltage(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+
+
+    COMMAND_OUTPUT("Bus Voltage: %f V\r\n", readBusVoltage());
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getBusVoltageCommandDefinition =
+{
+    "BusVoltage",
+    "BusVoltage:\r\n  Return the bus voltage in V\r\n",
+    BusVoltage,
+    0 /* Number of parameters */
+};
+
 void sensorTask(void *pvParameters)
 {
     if (startADCConversions() != HAL_OK) {
@@ -102,9 +121,22 @@ void sensorTask(void *pvParameters)
     if (FreeRTOS_CLIRegisterCommand(&getChannelCurrentCommandDefinition) != pdPASS) {
 
     }
+    if (FreeRTOS_CLIRegisterCommand(&getBusVoltageCommandDefinition) != pdPASS) {
+
+    }
 
     while (1)
     {
+        StateBatteryChargeLV=100;
+        StateBatteryHealthLV=100;
+        StateBatteryPowerLV=100;
+        VoltageBusLV= readBusVoltage();
+        if (sendCAN_PDU_batteryStatusLV() != HAL_OK)
+        {
+            ERROR_PRINT("Failed to send battery status on can!\n");
+        }
+
+
         if (readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {
             fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 1000);
         }
