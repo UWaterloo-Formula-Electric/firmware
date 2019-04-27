@@ -47,5 +47,9 @@ typedef enum PDU_Channels_t {
 
  // #define MOCK_ADC_READINGS
 
+float readBusCurrent();
+float readBusVoltage();
+float readCurrent(PDU_Channels_t channel);
+
 
 #endif /* end of include guard: SENSORS_H */

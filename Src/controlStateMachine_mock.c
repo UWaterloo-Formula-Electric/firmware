@@ -6,7 +6,34 @@
 #include "FreeRTOS_CLI.h"
 #include "sensors.h"
 
-uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+
+BaseType_t getChannelCurrents(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    for (int i=0; i<NUM_PDU_CHANNELS; i++) {
+        if (i == LV_Voltage) {
+            DEBUG_PRINT("Bus Voltage: %f V\n", readBusVoltage());
+            continue;
+        } else if (i == LV_Current) {
+            DEBUG_PRINT("Bus current: %f V\n", readBusCurrent());
+            continue;
+        }
+
+
+        DEBUG_PRINT("Channel %i: %f A\n", i, readCurrent(i));
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getChannelCurrentsCommandDefinition =
+{
+    "getChannels",
+    "getChannels:\r\n Print all channels voltages/currents\r\n",
+    getChannelCurrents,
+    0,
+};
+
 BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -87,6 +114,60 @@ static const CLI_Command_Definition_t lvCuttoffCommandDefinition =
     "lvCuttoff:\r\n  Generates a lv cuttoff failure event\r\n",
     mockLVCuttoff,
     0 /* Number of parameters */
+};
+
+BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+        return pdFALSE;
+    }
+
+    const char * boardParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (STR_EQ(boardParam, "BMU", paramLen)) {
+        COMMAND_OUTPUT("Turning BMU %s\n", onOff?"on":"off");
+        if (onOff) {
+            BMU_ENABLE;
+        } else {
+            BMU_DISABLE;
+        }
+    } else if (STR_EQ(boardParam, "DCU", paramLen)) {
+        COMMAND_OUTPUT("Turning DCU %s\n", onOff?"on":"off");
+        if (onOff) {
+            DCU_ENABLE;
+        } else {
+            DCU_DISABLE;
+        }
+    } else if (STR_EQ(boardParam, "VCU_F7", paramLen)) {
+        COMMAND_OUTPUT("Turning VCU_F7 %s\n", onOff?"on":"off");
+        if (onOff) {
+            VCU_ENABLE;
+        } else {
+            VCU_DISABLE;
+        }
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t channelEnableCommandDefinition =
+{
+    "board",
+    "board <BMU|DCU|VCU_F7> <on|off>:\r\n  Turn on/off board\r\n",
+    channelEnableCommand,
+    2 /* Number of parameters */
 };
 
 BaseType_t mockEMEnableDisable(char *writeBuffer, size_t writeBufferLength,
@@ -228,6 +309,12 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&testOuputCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&channelEnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getChannelCurrentsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
