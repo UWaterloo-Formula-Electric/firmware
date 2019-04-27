@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    stm32f0xx_it.c
@@ -30,28 +31,59 @@
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f0xx_hal.h"
-#include "stm32f0xx.h"
+#include "main.h"
 #include "stm32f0xx_it.h"
 #include "cmsis_os.h"
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN TD */
+
+/* USER CODE END TD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+ 
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #include "tim.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern CAN_HandleTypeDef hcan;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern UART_HandleTypeDef huart2;
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
 
 /******************************************************************************/
-/*            Cortex-M0 Processor Interruption and Exception Handlers         */ 
+/*           Cortex-M0 Processor Interruption and Exception Handlers          */ 
 /******************************************************************************/
-
 /**
-* @brief This function handles Non maskable interrupt.
-*/
+  * @brief This function handles Non maskable interrupt.
+  */
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
@@ -63,8 +95,8 @@ void NMI_Handler(void)
 }
 
 /**
-* @brief This function handles Hard fault interrupt.
-*/
+  * @brief This function handles Hard fault interrupt.
+  */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -75,14 +107,11 @@ void HardFault_Handler(void)
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
-  /* USER CODE BEGIN HardFault_IRQn 1 */
-
-  /* USER CODE END HardFault_IRQn 1 */
 }
 
 /**
-* @brief This function handles System tick timer.
-*/
+  * @brief This function handles System tick timer.
+  */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -103,23 +132,8 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles EXTI line 4 to 15 interrupts.
-*/
-void EXTI4_15_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI4_15_IRQn 0 */
-
-  /* USER CODE END EXTI4_15_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
-  /* USER CODE BEGIN EXTI4_15_IRQn 1 */
-
-  /* USER CODE END EXTI4_15_IRQn 1 */
-}
-
-/**
-* @brief This function handles DMA1 channel 4, 5, 6 and 7 interrupts.
-*/
+  * @brief This function handles DMA1 channel 4, 5, 6 and 7 interrupts.
+  */
 void DMA1_Channel4_5_6_7_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_5_6_7_IRQn 0 */
@@ -132,8 +146,8 @@ void DMA1_Channel4_5_6_7_IRQHandler(void)
 }
 
 /**
-* @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
-*/
+  * @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
+  */
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
@@ -143,20 +157,6 @@ void USART2_IRQHandler(void)
   /* USER CODE BEGIN USART2_IRQn 1 */
 
   /* USER CODE END USART2_IRQn 1 */
-}
-
-/**
-* @brief This function handles HDMI-CEC and CAN interrupts / HDMI-CEC wake-up interrupt through EXTI line 27.
-*/
-void CEC_CAN_IRQHandler(void)
-{
-  /* USER CODE BEGIN CEC_CAN_IRQn 0 */
-
-  /* USER CODE END CEC_CAN_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan);
-  /* USER CODE BEGIN CEC_CAN_IRQn 1 */
-
-  /* USER CODE END CEC_CAN_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

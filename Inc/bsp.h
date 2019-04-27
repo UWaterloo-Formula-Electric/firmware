@@ -5,6 +5,9 @@
 #include "main.h"
 #include "can.h"
 #include "tim.h"
+#include "usart.h"
+
+
 
 #if IS_BOARD_F0
 #include "stm32f0xx_hal.h"
@@ -17,10 +20,19 @@
 //#define ERROR_LED_PORT LED_R_GPIO_Port
 //#define DEBUG_LED_PIN LD2_Pin
 //#define DEBUG_LED_PORT LD2_GPIO_Port
-#define EM_TOGGLE_BUTTON_PIN EM_ENABLE_Pin
-#define EM_TOGGLE_BUTTON_PORT EM_ENABLE_GPIO_Port
-#define HV_TOGGLE_BUTTON_PIN HV_ENABLE_Pin
-#define HV_TOGGLE_BUTTON_PORT HV_ENABLE_GPIO_Port
+#define EM_TOGGLE_BUTTON_PIN BTN_EV_READ_Pin
+#define EM_TOGGLE_BUTTON_PORT BTN_EV_READ_GPIO_Port
+#define HV_TOGGLE_BUTTON_PIN BTN_HV_READ_Pin
+#define HV_TOGGLE_BUTTON_PORT BTN_HV_READ_GPIO_Port
+
+#define EM_LED_Pin EV_LED_EN_Pin
+#define EM_LED_GPIO_Port EV_LED_EN_GPIO_Port
+#define HV_LED_Pin HV_LED_EN_Pin
+#define HV_LED_GPIO_Port HV_LED_EN_GPIO_Port
+
+
+#define ERROR_LED_PIN LED_R_Pin
+#define ERROR_LED_PORT LED_R_GPIO_Port
 
 #elif IS_BOARD_NUCLEO_F0
 #include "stm32f0xx_hal.h"

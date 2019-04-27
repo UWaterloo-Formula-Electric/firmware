@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /*
     FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
     All rights reserved
@@ -66,6 +67,7 @@
 
     1 tab == 4 spaces!
 */
+/* USER CODE END Header */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
@@ -102,7 +104,7 @@
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)8192)
+#define configTOTAL_HEAP_SIZE                    ((size_t)3072)
 #define configMAX_TASK_NAME_LEN                  ( 16 )
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
@@ -123,31 +125,6 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelay                  1
 #define INCLUDE_xTaskGetSchedulerState      1
 
-/* Cortex-M specific definitions. */
-#ifdef __NVIC_PRIO_BITS
- /* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
- #define configPRIO_BITS         __NVIC_PRIO_BITS
-#else
- #define configPRIO_BITS         2
-#endif
-
-/* The lowest interrupt priority that can be used in a call to a "set priority"
-function. */
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   3
-
-/* The highest interrupt priority that can be used by any interrupt service
-routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
-INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
-PRIORITY THAN THIS! (higher priorities are lower numeric values. */
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 3
-
-/* Interrupt priorities used by the kernel port layer itself.  These are generic
-to all Cortex-M ports, and do not rely on any particular library functions. */
-#define configKERNEL_INTERRUPT_PRIORITY 		( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
-/* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
-See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
-
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
 /* USER CODE BEGIN 1 */
@@ -159,7 +136,7 @@ standard names. */
 #define vPortSVCHandler    SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
 
-/* IMPORTANT: This define MUST be commented when used with STM32Cube firmware, 
+/* IMPORTANT: This define is commented when used with STM32Cube firmware, when timebase is systick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 /* #define xPortSysTickHandler SysTick_Handler */
 

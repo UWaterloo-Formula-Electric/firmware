@@ -1,7 +1,7 @@
 BINARY_BASE_NAME=DCU
 BOARD_NAME=DCU
 
-COMMON_LIB_SRC = userCan.c debug.c CRC_CALC.c
+COMMON_LIB_SRC = userCan.c debug.c CRC_CALC.c generalErrorHandler.c
 COMMON_F0_LIB_SRC = userCanF0.c
 
 # one of NUCLEO_F7, F7, NUCLEO_F0, F0

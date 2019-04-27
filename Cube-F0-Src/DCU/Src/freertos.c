@@ -78,16 +78,14 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-osThreadId mainTaskHandle;
-osThreadId canSendTaskHandle;
+osThreadId defaultTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
    
 /* USER CODE END FunctionPrototypes */
 
-void mainTaskFunction(void const * argument);
-void canTask(void const * argument);
+void StartDefaultTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -114,13 +112,9 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the thread(s) */
-  /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 256);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
-
-  /* definition and creation of canSendTask */
-  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 256);
-  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -131,41 +125,23 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 }
 
-/* USER CODE BEGIN Header_mainTaskFunction */
+/* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the mainTask thread.
+  * @brief  Function implementing the defaultTask thread.
   * @param  argument: Not used 
   * @retval None
   */
-/* USER CODE END Header_mainTaskFunction */
-__weak void mainTaskFunction(void const * argument)
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
 {
 
-  /* USER CODE BEGIN mainTaskFunction */
+  /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END mainTaskFunction */
-}
-
-/* USER CODE BEGIN Header_canTask */
-/**
-* @brief Function implementing the canSendTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_canTask */
-__weak void canTask(void const * argument)
-{
-  /* USER CODE BEGIN canTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END canTask */
+  /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
