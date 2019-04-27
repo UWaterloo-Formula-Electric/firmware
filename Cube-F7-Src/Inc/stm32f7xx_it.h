@@ -73,6 +73,10 @@ void DMA1_Stream2_IRQHandler(void);
 void ADC_IRQHandler(void);
 void UART4_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
+void CAN3_TX_IRQHandler(void);
+void CAN3_RX0_IRQHandler(void);
+void CAN3_RX1_IRQHandler(void);
+void CAN3_SCE_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

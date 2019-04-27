@@ -74,6 +74,7 @@
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc1;
 extern ADC_HandleTypeDef hadc1;
+extern CAN_HandleTypeDef hcan3;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern UART_HandleTypeDef huart4;
 /* USER CODE BEGIN EV */
@@ -245,6 +246,62 @@ void DMA2_Stream0_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
 
   /* USER CODE END DMA2_Stream0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN3 TX interrupt.
+  */
+void CAN3_TX_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN3_TX_IRQn 0 */
+
+  /* USER CODE END CAN3_TX_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan3);
+  /* USER CODE BEGIN CAN3_TX_IRQn 1 */
+
+  /* USER CODE END CAN3_TX_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN3 RX0 interrupt.
+  */
+void CAN3_RX0_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN3_RX0_IRQn 0 */
+
+  /* USER CODE END CAN3_RX0_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan3);
+  /* USER CODE BEGIN CAN3_RX0_IRQn 1 */
+
+  /* USER CODE END CAN3_RX0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN3 RX1 interrupt.
+  */
+void CAN3_RX1_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN3_RX1_IRQn 0 */
+
+  /* USER CODE END CAN3_RX1_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan3);
+  /* USER CODE BEGIN CAN3_RX1_IRQn 1 */
+
+  /* USER CODE END CAN3_RX1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN3 SCE interrupt.
+  */
+void CAN3_SCE_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN3_SCE_IRQn 0 */
+
+  /* USER CODE END CAN3_SCE_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan3);
+  /* USER CODE BEGIN CAN3_SCE_IRQn 1 */
+
+  /* USER CODE END CAN3_SCE_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
