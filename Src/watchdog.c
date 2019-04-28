@@ -159,6 +159,7 @@ void watchdogTask(void *pvParameters)
 
         if (curTick - lastHeartbeatTick >= HEARTBEAT_PERIOD_TICKS) {
             sendHeartbeat();
+            lastHeartbeatTick = curTick;
         }
 
         vTaskDelay(WATCHDOGTASK_PERIOD_TICKS);

@@ -7,8 +7,8 @@
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "boardTypes.h"
 
-#define HEARTBEAT_PERIOD_TICKS 10
-#define HEARTBEAT_TIMEOUT_TICKS 25
+#define HEARTBEAT_PERIOD_TICKS 1000
+#define HEARTBEAT_TIMEOUT_TICKS 2500
 
 extern bool heartbeatEnabled;
 extern bool DCU_heartbeatEnabled;

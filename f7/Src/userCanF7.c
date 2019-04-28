@@ -46,6 +46,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     CAN_RxHeaderTypeDef   RxHeader;
     uint8_t               RxData[8];
 
+    DEBUG_PRINT("Received can msg\n");
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
     {
         ERROR_PRINT_ISR("Failed to receive CAN message from FIFO0\n");
@@ -62,6 +63,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
     CAN_RxHeaderTypeDef   RxHeader;
     uint8_t               RxData[8];
 
+    DEBUG_PRINT("Received can msg\n");
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeader, RxData) != HAL_OK)
     {
         ERROR_PRINT_ISR("Failed to receive CAN message from FIFO1\n");
