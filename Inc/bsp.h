@@ -14,7 +14,7 @@
 #include "stm32f7xx_hal.h"
 
 #define STATS_TIM_HANDLE htim3
-#define DEBUG_UART_HANDLE huart4 // TODO: Check this
+#define DEBUG_UART_HANDLE huart4
 #define CAN_HANDLE hcan3
 #define ADC_HANDLE hadc1
 #define IWDG_HANDLE hiwdg
