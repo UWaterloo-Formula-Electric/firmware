@@ -6,14 +6,15 @@
 #include "task.h"
 #include "watchdog.h"
 
-#define SENSOR_TASK_PERIOD 50
+/*#define SENSOR_TASK_PERIOD 50*/
+#define SENSOR_TASK_PERIOD 1000
 
-volatile uint32_t brakeADCVal;
+volatile uint32_t brakeAndHVILVals[2] = {0};
 
 HAL_StatusTypeDef sensorTaskInit()
 {
 #if IS_BOARD_F7
-    if (HAL_ADC_Start_DMA(&BRAKE_ADC_HANDLE, (uint32_t *)(&brakeADCVal), 1) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&BRAKE_ADC_HANDLE, (uint32_t *)brakeAndHVILVals, 2) != HAL_OK)
     {
         ERROR_PRINT("Failed to start Brake sensor ADC DMA conversions\n");
         Error_Handler();
@@ -42,7 +43,8 @@ void sensorTask(void *pvParameters)
 
    while (1)
    {
-      BrakePressureBMU = brakeADCVal / BRAKE_ADC_DIVIDER;
+      BrakePressureBMU = brakeAndHVILVals[BRAKE_ADC_CHANNEL] / BRAKE_ADC_DIVIDER;
+      DEBUG_PRINT("Brake pressure %f\n", BrakePressureBMU);
       if (sendCAN_BMU_BrakePressure() != HAL_OK) {
          ERROR_PRINT("Failed to send brake value over CAN\n");
       }

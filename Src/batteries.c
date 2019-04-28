@@ -12,6 +12,8 @@
 
 #define BATTERY_TASK_PERIOD_MS 100
 
+#define DISABLE_BATTERY_MONITORING_HARDWARE
+
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
 #define LIMIT_HIGHVOLTAGE 4.2F // TODO: Not sure what this should be
@@ -49,13 +51,13 @@ float IBus;
 
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    (*IBus) = adc_read_current();
    (*VBus) = adc_read_v1();
    (*VBatt) = adc_read_v2();
    return HAL_OK;
 
-#elif IS_BOARD_NUCLEO_F7
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    // For nucleo, voltages and current can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -66,12 +68,12 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
 
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    _Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");
    _Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");
 
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
-#elif IS_BOARD_NUCLEO_F7
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -87,11 +89,11 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
  */
 HAL_StatusTypeDef initVoltageAndTempArrays()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    // For F7 just zero out the array
    float initVoltage = 0;
    float initTemp = 0;
-#elif IS_BOARD_NUCLEO_F7
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    float initVoltage = LIMIT_OVERVOLTAGE - 0.1;
    float initTemp = CELL_OVERTEMP - 20;
 #else
@@ -230,9 +232,9 @@ float calculateStateOfCharge()
 
 HAL_StatusTypeDef batteryStart()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    return batt_init();
-#elif IS_BOARD_NUCLEO_F7
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -254,7 +256,7 @@ void batteryTask(void *pvParameter)
         Error_Handler();
     }
 
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
     // This runs in the background via interrupts
     if (begin_imd_measurement() != HAL_OK)
     {

@@ -9,7 +9,7 @@ F7_SRC_DIR = Src/F7_Src
 F7_SRC = ltc6811.c ade7912.c imdDriver.c
 
 # one of NUCLEO_F7, F7
-BOARD_TYPE ?= NUCLEO_F7
+BOARD_TYPE ?= F7
 
 CUBE_F7_MAKEFILE_PATH= Cube-F7-Src/
 CUBE_NUCLEO_MAKEFILE_PATH = Cube-Nucleo-Src/CanTest/

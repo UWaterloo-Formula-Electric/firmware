@@ -52,5 +52,7 @@ void userInit()
         Error_Handler();
     }
 #endif
+
+    printf("Finished user init\n");
 }
 

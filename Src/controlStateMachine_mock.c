@@ -15,7 +15,7 @@
 extern float IBus;
 extern float VBus;
 extern float VBatt;
-extern uint32_t brakeADCVal;
+extern uint32_t brakeAndHVILVals[2];
 
 BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -25,8 +25,8 @@ BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(param, "%f", &brakePressure);
-    brakeADCVal = brakePressure * BRAKE_ADC_DIVIDER;
-    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePressure, brakeADCVal);
+    brakeAndHVILVals[BRAKE_ADC_CHANNEL] = brakePressure * BRAKE_ADC_DIVIDER;
+    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePressure, brakeAndHVILVals[BRAKE_ADC_CHANNEL]);
 
     return pdFALSE;
 }

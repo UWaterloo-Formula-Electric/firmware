@@ -53,6 +53,7 @@ HAL_StatusTypeDef controlInit()
     init.transitions = transitions;
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 5;
+    init.watchdogTaskId = 1;
     if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init control fsm\n");
         return HAL_ERROR;
