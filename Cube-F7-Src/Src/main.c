@@ -136,6 +136,7 @@ int main(void)
   MX_UART4_Init();
   MX_TIM3_Init();
   MX_IWDG_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();

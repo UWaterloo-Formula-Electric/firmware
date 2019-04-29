@@ -22,6 +22,11 @@ HAL_StatusTypeDef startADCConversions()
         Error_Handler();
         return HAL_ERROR;
     }
+    if (HAL_TIM_Base_Start(&ADC_TIM_HANDLE) != HAL_OK) {
+        ERROR_PRINT("Failed to start ADC Timer\n");
+        Error_Handler();
+        return HAL_ERROR;
+    }
 #else
     // Init to reasonable values
     for (int i=0; i < NUM_PDU_CHANNELS; i++) {
@@ -119,4 +124,3 @@ void sensorTask(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
     }
 }
-
