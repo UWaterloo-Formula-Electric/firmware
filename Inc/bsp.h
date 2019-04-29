@@ -13,6 +13,7 @@
 #include "adc.h"
 
 #define STATS_TIM_HANDLE htim3
+#define BRAKE_ADC_TIM_HANDLE htim6
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
 #define ADC_HANDLE hadc1

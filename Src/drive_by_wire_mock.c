@@ -111,6 +111,28 @@ static const CLI_Command_Definition_t throttleABCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("Throttle A %u (ADC: %lu), B %u (ADC: %lu)\n",
+                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
+                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
+                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
+                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+
+    /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
+                   /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
+                   /*brakeThrottleSteeringADCVals[3], brakeThrottleSteeringADCVals[4]);*/
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getThrottleABCommandDefinition =
+{
+    "getThrottleAB",
+    "getThrottleAB:\r\n Get throttle pots A and B\r\n",
+    getFakeThrottleAB,
+    0 /* Number of parameters */
+};
+
 BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -242,5 +264,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&brakePositionCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&getThrottleABCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }

@@ -32,6 +32,11 @@ HAL_StatusTypeDef startADCConversions()
         Error_Handler();
         return HAL_ERROR;
     }
+    if (HAL_TIM_Base_Start(&BRAKE_ADC_TIM_HANDLE) != HAL_OK) {
+      ERROR_PRINT("Failed to start brake and throttle adc timer\n");
+      Error_Handler();
+      return HAL_ERROR;
+    }
 #else
     for (int i=0; i < NUM_ADC_CHANNELS; i++) {
         if (i == BRAKE_PRES_INDEX) {

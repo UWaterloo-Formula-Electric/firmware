@@ -39,5 +39,7 @@ HAL_StatusTypeDef brakeAndThrottleStart();
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
+uint16_t calculate_throttle_percent1(uint16_t tps_value);
+uint16_t calculate_throttle_percent2(uint16_t tps_value);
 
 #endif /* end of include guard: BRAKEANDTHROTTLE_H */
