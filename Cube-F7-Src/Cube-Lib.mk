@@ -23,7 +23,7 @@ TARGET = 2018_pdu
 # debug build?
 LIB_DEBUG = 1
 # optimization
-LIB_OPT = -O3
+LIB_OPT = -Og
 
 
 #######################################
