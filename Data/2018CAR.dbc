@@ -455,7 +455,7 @@ BO_ 2147942147 PDU_ChannelStatus: 8 PDU
  SG_ StatusPowerCoolingFanBattery : 4|4@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StatusPowerBMU : 0|4@1- (1,0) [0|0] ""  VCU_BeagleBone
 
-BO_ 5 PDU_batteryStatusLV: 8 PDU
+BO_ 2147488259 PDU_batteryStatusLV: 8 PDU
  SG_ VoltageBusLV : 44|14@1+ (1,0) [0|16383] "mV" Vector__XXX
  SG_ VoltageBatteryLV : 30|14@1+ (1,0) [0|16383] "mV" Vector__XXX
  SG_ StateBatteryPowerLV : 20|10@1+ (0.1,0) [0|100] "A"  VCU_BeagleBone
