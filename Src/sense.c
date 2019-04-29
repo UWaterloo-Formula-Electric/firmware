@@ -22,7 +22,7 @@ HAL_StatusTypeDef sensorTaskInit()
     }
 #else
     // Init to full brake
-    brakeADCVal = 100*BRAKE_ADC_DIVIDER;
+    brakeAndHVILVals[BRAKE_ADC_CHANNEL] = 100*BRAKE_ADC_DIVIDER;
 #endif
 
     return HAL_OK;
