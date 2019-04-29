@@ -111,6 +111,26 @@ static const CLI_Command_Definition_t throttleABCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t getThrottle(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    float throttle = 0;
+    ThrottleStatus_t rc = getNewThrottle(&throttle);
+    COMMAND_OUTPUT("Throttle %f, status (%s)\n", throttle, rc==THROTTLE_OK?"OK":"FAIL");
+
+    /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
+                   /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
+                   /*brakeThrottleSteeringADCVals[3], brakeThrottleSteeringADCVals[4]);*/
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getThrottleCommandDefinition =
+{
+    "getThrottle",
+    "getThrottle:\r\n Get throttle and throttle state\r\n",
+    getThrottle,
+    0 /* Number of parameters */
+};
+
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -265,6 +285,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getThrottleABCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getThrottleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

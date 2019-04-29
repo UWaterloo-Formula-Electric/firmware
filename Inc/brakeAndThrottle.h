@@ -7,11 +7,11 @@
 
 /* Only declared public for use in CLI for mock testing */
 typedef enum ADC_Indices_t {
-    THROTTLE_A_INDEX = 0,
-    THROTTLE_B_INDEX,
+    THROTTLE_B_INDEX = 0,
     BRAKE_POS_INDEX,
-    BRAKE_PRES_INDEX,
+    THROTTLE_A_INDEX,
     STEERING_INDEX,
+    BRAKE_PRES_INDEX,
     NUM_ADC_CHANNELS
 } ADC_Indices_t;
 
@@ -41,5 +41,6 @@ uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
 uint16_t calculate_throttle_percent1(uint16_t tps_value);
 uint16_t calculate_throttle_percent2(uint16_t tps_value);
+ThrottleStatus_t getNewThrottle(float *throttleOut);
 
 #endif /* end of include guard: BRAKEANDTHROTTLE_H */

@@ -12,13 +12,20 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (0xd44)
-#define THROTT_B_LOW (0x5d2)
+#define THROTT_A_LOW (0)
+#define THROTT_B_LOW (0)
 
-#define THROTT_A_HIGH (0xf08)
-#define THROTT_B_HIGH (0x71f)
+#define THROTT_A_HIGH (4095)
+#define THROTT_B_HIGH (4095)
 
-#define MAX_THROTTLE_DEADZONE (0x20)
+/*#define THROTT_A_LOW (0xd44)*/
+/*#define THROTT_B_LOW (0x5d2)*/
+
+/*#define THROTT_A_HIGH (0xf08)*/
+/*#define THROTT_B_HIGH (0x71f)*/
+
+#define MAX_THROTTLE_DEADZONE (0)
+/*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
@@ -139,7 +146,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
-        ERROR_PRINT("implausible pedal! %ld\r\n", throttle1_percent - throttle2_percent);
+        ERROR_PRINT("implausible pedal! difference: %ld %%\r\n", throttle1_percent - throttle2_percent);
         return false;
     } else {
         DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);
@@ -162,6 +169,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     (*throttleOut) = 0;
 
     if (!getThrottlePositionPercent(&throttle)) {
+      DEBUG_PRINT("Throttle error\n");
         return THROTTLE_FAULT;
     }
 
@@ -171,6 +179,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
             throttleAndBrakePressedError = false;
         } else {
             (*throttleOut) = 0;
+            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
             return THROTTLE_DISABLED;
         }
     }
@@ -179,6 +188,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     if (isBrakePressed() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
         (*throttleOut) = 0;
         throttleAndBrakePressedError = true;
+        DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return THROTTLE_DISABLED;
     }
 
@@ -207,6 +217,7 @@ HAL_StatusTypeDef outputThrottle() {
 
 bool isBrakePressed()
 {
+    DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());
     if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
         return true;
     } else {
