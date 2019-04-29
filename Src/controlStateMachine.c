@@ -325,10 +325,10 @@ HAL_StatusTypeDef turnBoardsOn()
 HAL_StatusTypeDef turnBoardsOff()
 {
     DEBUG_PRINT("Turning boards off\n");
-    VCU_DISABLE;
-    DCU_DISABLE;
-    WSB_DISABLE;
-    BMU_DISABLE;
+    /*VCU_DISABLE;*/
+    /*DCU_DISABLE;*/
+    /*WSB_DISABLE;*/
+    /*BMU_DISABLE;*/
     return HAL_OK;
 }
 
