@@ -866,7 +866,7 @@ def main(argv):
     headerFileHandle.close()
     sourceFileHandle.close()
 
-    generateDepedencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir)
+    # generateDepedencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir)
 
 
 if __name__ == '__main__':

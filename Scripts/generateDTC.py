@@ -3,6 +3,7 @@
 import csv
 import os
 import sys
+import errno
 
 commonDir = 'common-all'
 
@@ -21,8 +22,13 @@ def fWrite(string, fileHandle):
     fileHandle.write(string + '\n')
 
 def createDir(directory):
-    if not os.path.exists(directory):
+    try:
         os.makedirs(directory)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(directory):
+            pass
+        else:
+            raise
 
 def generateHeaderFilePreamble(headerFileHandle, includeGuardMacroName):
     fWrite('#ifndef ' + includeGuardMacroName, headerFileHandle)
@@ -117,7 +123,7 @@ def main(argv):
 
     headerFileHandle.close()
 
-    generateDepedencyFile(headerFile, target)
+    # generateDepedencyFile(headerFile, target)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
