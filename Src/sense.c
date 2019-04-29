@@ -20,6 +20,13 @@ HAL_StatusTypeDef sensorTaskInit()
         Error_Handler();
         return HAL_ERROR;
     }
+
+    if (HAL_TIM_Base_Start(&BRAKE_TIM_ADC_HANDLE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start Brake sensor ADC DMA conversions\n");
+        Error_Handler();
+        return HAL_ERROR;
+    }
 #else
     // Init to full brake
     brakeAndHVILVals[BRAKE_ADC_CHANNEL] = 100*BRAKE_ADC_DIVIDER;
@@ -44,7 +51,6 @@ void sensorTask(void *pvParameters)
    while (1)
    {
       BrakePressureBMU = brakeAndHVILVals[BRAKE_ADC_CHANNEL] / BRAKE_ADC_DIVIDER;
-      DEBUG_PRINT("Brake pressure %f\n", BrakePressureBMU);
       if (sendCAN_BMU_BrakePressure() != HAL_OK) {
          ERROR_PRINT("Failed to send brake value over CAN\n");
       }

@@ -21,6 +21,7 @@
 #define IMD_TIM_HANDLE htim3
 #define IMD_TIM_INSTANCE TIM3
 #define BRAKE_ADC_HANDLE hadc2
+#define BRAKE_TIM_ADC_HANDLE htim6
 #define DEBUG_LED_PIN LED_B_Pin
 #define DEBUG_LED_PORT LED_B_GPIO_Port
 #define ERROR_LED_PIN LED_Y_Pin

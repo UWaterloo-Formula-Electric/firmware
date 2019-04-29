@@ -17,6 +17,23 @@ extern float VBus;
 extern float VBatt;
 extern uint32_t brakeAndHVILVals[2];
 
+BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("Brake %f %%, (adcVal: %lu)\n",
+                   ((float)brakeAndHVILVals[BRAKE_ADC_CHANNEL]) / BRAKE_ADC_DIVIDER,
+                   brakeAndHVILVals[BRAKE_ADC_CHANNEL]);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getBrakePressureCommandDefinition =
+{
+    "getBrake",
+    "getBrake:\r\n Get brake pressure\r\n",
+    getBrakePressure,
+    0 /* Number of parameters */
+};
+
 BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -33,7 +50,7 @@ BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t brakePressureCommandDefinition =
 {
     "brake",
-    "brake <val>:\r\n Set brake pressure to val %\r\n",
+    "brake <val>:\r\n Set brake pressure to val \r\n",
     setBrakePressure,
     1 /* Number of parameters */
 };
@@ -450,5 +467,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&setPCDCCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }
