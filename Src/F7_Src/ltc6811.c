@@ -18,16 +18,16 @@
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+#define TEMP_CHANNELS_PER_BOARD     12
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
-#define TEMP_MEASURE_DELAY_MS       2   // Length of time for temperature measurements to finish
-#define TEMP_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
+#define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
 // If not using address mode, set address to 0
-#define USE_ADDRESS_MODE
+/*#define USE_ADDRESS_MODE*/
 // For testing, allow using address mode, but assume address is 0
 
 #ifdef USE_ADDRESS_MODE
@@ -160,12 +160,16 @@
 #define COMMAND_SIZE 2
 #define PEC_SIZE 2
 #define VOLTAGE_BLOCK_SIZE 6
+#define AUX_BLOCK_SIZE 6
 #define CELL_VOLTAGE_SIZE_BYTES 2
 #define STATUS_SIZE 6
 #define JUNK_SIZE 1
 
 #define STATUS_INDEX_END 4
 #define STATUS_INDEX_START 2
+
+#define TEMP_ADC_IDX_LOW 2
+#define TEMP_ADC_IDX_HIGH 3
 
 #define GPIO_CONVERSION_TIME 800        // See datasheet for min conversion times w/ 7kHz ADC
 #define BATT_CONVERSION_TIME 3000
@@ -579,6 +583,108 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     return HAL_OK;
 }
 
+// input voltage is in 100uV
+// output temp is in degrees C
+float batt_convert_voltage_to_temp(uint16_t voltage) {
+    // directly using the formulae from 
+    // http://www.murata.com/~/media/webrenewal/support/library/catalog/products/thermistor/ntc/r44e.ashx
+
+    const float r0 = 10e3;
+    const float t0 = 298.15;
+    const float B = 3380;
+    const float vt = 3.0;
+    float v = 0.0001 * (float) voltage;
+    if (vt == v) {
+        return NAN;
+    }
+    // http://www.wolframalpha.com/input/?i=rearrange+v+%3D+r%2F(r%2Br0)*v0+for+r
+    float r = r0 * v / (vt - v);
+    float temperature = 1./(logf(r/r0)/B + 1./t0) - 273.15f;
+    return temperature;
+}
+
+HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
+{
+    const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
+    uint8_t txBuffer[TX_BUFF_SIZE];
+
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    // Validate parameters
+    if(c_assert(channel < TEMP_CHANNELS_PER_BOARD))
+    {
+        return HAL_ERROR;
+    }
+
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
+        m_batt_config[board][0] = (channel << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+    }
+
+    if (batt_write_config() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to setup mux for temp reading\n");
+        return HAL_ERROR;
+    }
+
+    if (batt_format_broadcast_command(ADAX_BYTE0, ADAX_BYTE1, txBuffer) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to format read temp command\n");
+        return HAL_ERROR;
+    }
+
+    if (batt_spi_tx(txBuffer, TX_BUFF_SIZE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to transmit read temp command\n");
+        return HAL_ERROR;
+    }
+
+    delay_us(TEMP_MEASURE_DELAY_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    // adc values for one block from all boards
+    uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS] = {0};
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        size_t cellIdx = board * CELLS_PER_BOARD + channel;
+        // We only use one GPIO input to measure temperatures, so pick that out
+        uint16_t temp = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
+                                     | adc_vals[TEMP_ADC_IDX_LOW]));
+        cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(temp);
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
+{
+    for (int channel = 0; channel < TEMP_CHANNELS_PER_BOARD; channel++)
+    {
+        if (batt_read_cell_temps_single_channel(channel, cell_temp_array) != HAL_OK)
+        {
+            return HAL_ERROR;
+        }
+    }
+
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array){
-    return batt_read_cell_voltages(cell_voltage_array);
+    if (batt_read_cell_voltages(cell_voltage_array) != HAL_OK) {
+        ERROR_PRINT("Failed to read cell voltages\n");
+        return HAL_ERROR;
+    }
+    if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
+        ERROR_PRINT("Failed to read cell temperatures\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_ERROR;
 }
