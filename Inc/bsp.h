@@ -37,6 +37,7 @@
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"
+#include "spi.h"
 
 #define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart3
@@ -46,6 +47,7 @@
 #define ERROR_LED_PIN LD3_Pin
 #define ERROR_LED_PORT LD3_GPIO_Port
 #define IWDG_HANDLE hiwdg
+#define ISO_SPI_HANDLE hspi4
 
 #define CONT_POS_CLOSE	asm("NOP")
 #define CONT_POS_OPEN	asm("NOP")

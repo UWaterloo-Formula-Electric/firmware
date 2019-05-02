@@ -11,7 +11,7 @@
 // --- Private Defines ---
 // The following defines change depending on battery box layout
 // TODO: Update these to 2018 values
-#define NUM_BOARDS                  6   // Number of AMS boards in system
+#define NUM_BOARDS                  1   // Number of AMS boards in system
 #define CELLS_PER_BOARD             12  // Number of valid cells per board, starting from the most negative terminal
 #define THERMISTORS_PER_BOARD       12   // Number of thermistors attached to each AMS, starting from A0
 
@@ -27,6 +27,7 @@ HAL_StatusTypeDef batt_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
+HAL_StatusTypeDef batt_test_bus();
 
 HAL_StatusTypeDef batt_init();
 

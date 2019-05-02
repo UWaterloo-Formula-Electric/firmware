@@ -7,6 +7,9 @@ COMMON_F7_LIB_SRC = userCanF7.c
 F7_INC_DIR = Inc/F7_Inc
 F7_SRC_DIR = Src/F7_Src
 F7_SRC = ltc6811.c ade7912.c imdDriver.c
+NUCLEO_F7_INC_DIR = Inc/F7_Inc
+NUCLEO_F7_SRC_DIR = Src/F7_Src
+NUCLEO_F7_SRC = ltc6811.c
 
 # one of NUCLEO_F7, F7
 BOARD_TYPE ?= F7

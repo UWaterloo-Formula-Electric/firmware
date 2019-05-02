@@ -59,6 +59,8 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define ISO_SPI_NSS_Pin GPIO_PIN_4
+#define ISO_SPI_NSS_GPIO_Port GPIOE
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define MCO_Pin GPIO_PIN_0

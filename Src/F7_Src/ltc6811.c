@@ -24,59 +24,124 @@
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
+// If not using address mode, set address to 0
+#define USE_ADDRESS_MODE
 
-#define WRCFG_BYTE0(address) (0x80 | (address<<3))
+#ifdef USE_ADDRESS_MODE
+#define WRCFG_BYTE0(address) (0x80 | ((address)<<3))
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0(address) (0x80 | (address<<3))
+#define RDCFG_BYTE0(address) (0x80 | ((address)<<3))
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0(address) (0x80 | (address<<3))
+#define RDCVA_BYTE0(address) (0x80 | ((address)<<3))
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0(address) (0x80 | (address<<3))
+#define RDCVB_BYTE0(address) (0x80 | ((address)<<3))
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0(address) (0x80 | (address<<3))
+#define RDCVC_BYTE0(address) (0x80 | ((address)<<3))
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0(address) (0x80 | (address<<3))
+#define RDCVD_BYTE0(address) (0x80 | ((address)<<3))
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0(address)  (0x87 | (address<<3))
+#define PLADC_BYTE0(address)  (0x87 | ((address)<<3))
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0(address) (0x87 | (address<<3))
+#define CLRSTAT_BYTE0(address) (0x87 | ((address)<<3))
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0(address) (0x87 | (address<<3))
+#define CLRCELL_BYTE0(address) (0x87 | ((address)<<3))
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0(address) (0x87 | (address<<3))
+#define CLRAUX_BYTE0(address) (0x87 | ((address)<<3))
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0(address) (0x80 | (address<<3))
+#define RDAUXA_BYTE0(address) (0x80 | ((address)<<3))
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0(address) (0x80 | (address<<3))
+#define RDAUXB_BYTE0(address) (0x80 | ((address)<<3))
 #define RDAUXB_BYTE1 0x0e
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0(address) (0x84 | (address<<3))
+#define ADCVAX_BYTE0(address) (0x84 | ((address)<<3))
 #define ADCVAX_BYTE1 0xef
 
 // Use fast MD (27kHz), Discharge not permission, all channels
-#define ADCV_BYTE0(address) (0x82 | (address<<3))
+#define ADCV_BYTE0(address) (0x82 | ((address)<<3))
 #define ADCV_BYTE1 0xe0
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADAX_BYTE0(address) (0x84 | (address<<3))
+#define ADAX_BYTE0(address) (0x84 | ((address)<<3))
 #define ADAX_BYTE1 0xe0
 
-#define RDSTATB_BYTE0(address) (0x80 | (address<<3))
+#define RDSTATB_BYTE0(address) (0x80 | ((address)<<3))
 #define RDSTATB_BYTE1 0x12
+
+#define ADOW_BYTE0(address) (0x84 | ((address)<<3))
+#define ADOW_BYTE1(PUP) (0xA8 | ((PUP)<<6))
+
+#else // defined(USE_ADDRES_MODE)
+
+#define WRCFG_BYTE0(address) (0x00 | ((address)<<3))
+#define WRCFG_BYTE1 0x01
+
+#define RDCFG_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCFG_BYTE1 0x02
+
+#define RDCVA_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVA_BYTE1 0x04
+
+#define RDCVB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVB_BYTE1 0x06
+
+#define RDCVC_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVC_BYTE1 0x08
+
+#define RDCVD_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVD_BYTE1 0x0a
+
+#define PLADC_BYTE0(address)  (0x07 | ((address)<<3))
+#define PLADC_BYTE1 0x14
+
+#define CLRSTAT_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRSTAT_BYTE1 0x13
+
+#define CLRCELL_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRCELL_BYTE1 0x11
+
+#define CLRAUX_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRAUX_BYTE1 0x12
+
+// For reading auxiliary register group A
+#define RDAUXA_BYTE0(address) (0x00 | ((address)<<3))
+#define RDAUXA_BYTE1 0x0c
+
+// For reading auxiliary register group B
+#define RDAUXB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDAUXB_BYTE1 0x0e
+
+// Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADCVAX_BYTE0(address) (0x04 | ((address)<<3))
+#define ADCVAX_BYTE1 0xef
+
+// Use fast MD (27kHz), Discharge not permission, all channels
+#define ADCV_BYTE0(address) (0x02 | ((address)<<3))
+#define ADCV_BYTE1 0xe0
+
+// Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADAX_BYTE0(address) (0x04 | ((address)<<3))
+#define ADAX_BYTE1 0xe0
+
+#define RDSTATB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDSTATB_BYTE1 0x12
+
+#define ADOW_BYTE0(address) (0x04 | ((address)<<3))
+#define ADOW_BYTE1(PUP) (0xA8 | ((PUP)<<6))
+#endif // defined(USE_ADDRESS_MODE)
 
 #define PEC_INIT_VAL 0x0010
 
@@ -120,7 +185,7 @@
 #define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
 
 // Configuration array
-static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE];
+static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
 /* Function Prototypes */
 void batt_init_board(uint16_t address);
@@ -271,6 +336,31 @@ int batt_read_config(uint8_t* dataBuffer, uint8_t address) {
     }
 
     return 0;
+}
+
+HAL_StatusTypeDef batt_test_bus()
+{
+    DEBUG_PRINT("Testing bus\n");
+    uint16_t board = 0;
+    uint8_t configRead[BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup()) {
+        return HAL_ERROR;
+    }
+    batt_init_board(0);
+    if (batt_write_config_to_board(board)) {
+        return HAL_ERROR;
+    }
+    DEBUG_PRINT("Wrote: %d %d %d\n", m_batt_config[board][0], m_batt_config[board][4], m_batt_config[board][5]);
+
+    if (batt_read_config(configRead, board)) {
+        return HAL_ERROR;
+    }
+
+    DEBUG_PRINT("Wrote: %d %d %d\n", m_batt_config[board][0], m_batt_config[board][4], m_batt_config[board][5]);
+
+    DEBUG_PRINT("Read: %d %d %d\n", configRead[0], configRead[4], configRead[5]);
+    return HAL_OK;
 }
 
 void batt_set_balancing_cell (int board, int cell) 
@@ -444,7 +534,7 @@ int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel)
     const uint32_t BUF_SIZE = TX_SIZE;
 
     // Validate parameters
-    if(c_assert(channel < 8))
+    if(c_assert(channel < 12))
     {
         return 1;
     }
@@ -777,6 +867,12 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
 
 HAL_StatusTypeDef batt_init()
 {
+    uint8_t configRead[BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup()) {
+        return HAL_ERROR;
+    }
+
     for (int board = 0; board < NUM_BOARDS; board++)
     {
         batt_init_board(board);
@@ -784,6 +880,17 @@ HAL_StatusTypeDef batt_init()
         {
             ERROR_PRINT("Failed to init board %d\n", board);
             return HAL_ERROR;
+        }
+
+        if (batt_read_config(configRead, board)) {
+            return HAL_ERROR;
+        }
+
+        for (int i=0; i<BATT_CONFIG_SIZE; i++) {
+            if (configRead[i] != m_batt_config[board][i]) {
+                ERROR_PRINT("Config read doesn't match config written, [%d] r %d != w %d\n", i, configRead[i], m_batt_config[board][i]);
+                return HAL_ERROR;
+            }
         }
     }
 

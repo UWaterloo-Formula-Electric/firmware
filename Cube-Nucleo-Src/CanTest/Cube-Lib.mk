@@ -60,12 +60,14 @@ LIB_C_SOURCES =  \
 ../Src/dma.c \
 ../Src/freertos.c \
 ../Src/tim.c \
+../Src/spi.c \
 ../Src/usart.c \
 ../Src/stm32f7xx_it.c \
 ../Src/stm32f7xx_hal_msp.c \
 ../Src/stm32f7xx_hal_timebase_TIM.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
@@ -79,6 +81,7 @@ LIB_C_SOURCES =  \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
+../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 ../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
