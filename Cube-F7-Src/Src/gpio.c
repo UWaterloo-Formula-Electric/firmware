@@ -87,7 +87,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(HVIL_CONTROL_GPIO_Port, HVIL_CONTROL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, CONT_NEG_Pin|CONT_PRE_Pin|CONT_CHARGE_Pin|CONT_POS_Pin 

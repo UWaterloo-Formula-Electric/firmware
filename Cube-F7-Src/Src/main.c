@@ -139,6 +139,7 @@ int main(void)
   MX_TIM4_Init();
   MX_IWDG_Init();
   MX_TIM6_Init();
+  MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
