@@ -18,129 +18,133 @@
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
-#define VOLTAGE_MEASURE_DELAY_MS    5   // Length of time for voltage measurements to finish
-#define TEMP_MEASURE_DELAY_MS       5   // Length of time for temperature measurements to finish
+#define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
+#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
+#define TEMP_MEASURE_DELAY_MS       2   // Length of time for temperature measurements to finish
+#define TEMP_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
 // If not using address mode, set address to 0
 #define USE_ADDRESS_MODE
+// For testing, allow using address mode, but assume address is 0
 
 #ifdef USE_ADDRESS_MODE
-#define WRCFG_BYTE0(address) (0x80 | ((address)<<3))
+#define WRCFG_BYTE0 (0x80)
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0(address) (0x80 | ((address)<<3))
+#define RDCFG_BYTE0 (0x80)
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0(address) (0x80 | ((address)<<3))
+#define RDCVA_BYTE0 (0x80)
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0(address) (0x80 | ((address)<<3))
+#define RDCVB_BYTE0 (0x80)
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0(address) (0x80 | ((address)<<3))
+#define RDCVC_BYTE0 (0x80)
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0(address) (0x80 | ((address)<<3))
+#define RDCVD_BYTE0 (0x80)
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0(address)  (0x87 | ((address)<<3))
+#define PLADC_BYTE0  (0x87)
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0(address) (0x87 | ((address)<<3))
+#define CLRSTAT_BYTE0 (0x87)
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0(address) (0x87 | ((address)<<3))
+#define CLRCELL_BYTE0 (0x87)
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0(address) (0x87 | ((address)<<3))
+#define CLRAUX_BYTE0 (0x87)
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0(address) (0x80 | ((address)<<3))
+#define RDAUXA_BYTE0 (0x80)
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0(address) (0x80 | ((address)<<3))
+#define RDAUXB_BYTE0 (0x80)
 #define RDAUXB_BYTE1 0x0e
 
+// Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADCVAX_BYTE0 (0x85)
+#define ADCVAX_BYTE1 0x6f
+
+// Use normal MD (7kHz), Discharge not permission, all channels
+#define ADCV_BYTE0 (0x83)
+#define ADCV_BYTE1 0x60
+
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0(address) (0x84 | ((address)<<3))
-#define ADCVAX_BYTE1 0xef
+#define ADAX_BYTE0 (0x85)
+#define ADAX_BYTE1 0x60
 
-// Use fast MD (27kHz), Discharge not permission, all channels
-#define ADCV_BYTE0(address) (0x82 | ((address)<<3))
-#define ADCV_BYTE1 0xe0
-
-// Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADAX_BYTE0(address) (0x84 | ((address)<<3))
-#define ADAX_BYTE1 0xe0
-
-#define RDSTATB_BYTE0(address) (0x80 | ((address)<<3))
+#define RDSTATB_BYTE0 (0x80)
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0(address) (0x84 | ((address)<<3))
-#define ADOW_BYTE1(PUP) (0xA8 | ((PUP)<<6))
+#define ADOW_BYTE0 (0x85)
+#define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 #else // defined(USE_ADDRES_MODE)
 
-#define WRCFG_BYTE0(address) (0x00 | ((address)<<3))
+#define WRCFG_BYTE0 (0x00)
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCFG_BYTE0 (0x00)
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVA_BYTE0 (0x00)
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVB_BYTE0 (0x00)
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVC_BYTE0 (0x00)
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0(address) (0x00 | ((address)<<3))
+#define RDCVD_BYTE0 (0x00)
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0(address)  (0x07 | ((address)<<3))
+#define PLADC_BYTE0  (0x07)
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRSTAT_BYTE0 (0x07)
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRCELL_BYTE0 (0x07)
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0(address) (0x07 | ((address)<<3))
+#define CLRAUX_BYTE0 (0x07)
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0(address) (0x00 | ((address)<<3))
+#define RDAUXA_BYTE0 (0x00)
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDAUXB_BYTE0 (0x00)
 #define RDAUXB_BYTE1 0x0e
 
-// Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0(address) (0x04 | ((address)<<3))
-#define ADCVAX_BYTE1 0xef
+// Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADCVAX_BYTE0 (0x05)
+#define ADCVAX_BYTE1 0x6f
 
-// Use fast MD (27kHz), Discharge not permission, all channels
-#define ADCV_BYTE0(address) (0x02 | ((address)<<3))
-#define ADCV_BYTE1 0xe0
+// Use normal MD (7kHz), Discharge not permission, all channels
+#define ADCV_BYTE0 (0x03)
+#define ADCV_BYTE1 0x60
 
-// Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADAX_BYTE0(address) (0x04 | ((address)<<3))
-#define ADAX_BYTE1 0xe0
+// Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADAX_BYTE0 (0x05)
+#define ADAX_BYTE1 0x60
 
-#define RDSTATB_BYTE0(address) (0x00 | ((address)<<3))
+#define RDSTATB_BYTE0 (0x00)
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0(address) (0x04 | ((address)<<3))
-#define ADOW_BYTE1(PUP) (0xA8 | ((PUP)<<6))
+#define ADOW_BYTE0 (0x05)
+#define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
+
 #endif // defined(USE_ADDRESS_MODE)
 
 #define PEC_INIT_VAL 0x0010
@@ -166,6 +170,9 @@
 #define BATT_CONVERSION_TIME 3000
 #define T_SLEEP_US           2000000    // The LTC sleeps in 2 seconds
 #define T_WAKE_MS            1        // The LTC wakes in 300 us, but since systick is 1 KHz just round up to 1 ms
+#define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
+#define T_IDLE_MS            5 // Time for SPI bus to go to idle state (5.5 ms)
+
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
 
@@ -191,9 +198,8 @@ static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 void batt_init_board(uint16_t address);
 int batt_write_config_to_board(uint16_t address);
 int batt_read_config(uint8_t* rxBuffer, uint8_t address);
-int32_t batt_read_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals);       // Reads voltage block of specified AMS board
 int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *adc_vals);   // Reads temperature block of specified AMS board
-int32_t batt_start_voltage_measurement(uint16_t address);
+int32_t batt_start_voltage_measurement();
 int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel);
 void batt_clear_registers();
 int32_t batt_poll_adc_state(uint8_t address);
@@ -202,7 +208,17 @@ void batt_set_balancing_cell (int board, int cell);
 
 /* Helper prototypes */
 void batt_gen_pec(uint8_t * arrdata, unsigned int dataSizeInBytes, uint8_t * pec);
-int batt_spi_wakeup();
+int batt_spi_wakeup(bool sleeping);
+
+/* delay function for wakeup */
+void delay_us(uint32_t time_us)
+{
+	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
+	__HAL_TIM_SetAutoreload(&DELAY_TIMER,0xffff);
+	HAL_TIM_Base_Start(&DELAY_TIMER);
+	while(DELAY_TIMER_INSTANCE->CNT < time_us);
+	HAL_TIM_Base_Stop(&DELAY_TIMER);
+}
 
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
@@ -277,13 +293,13 @@ void batt_init_board(uint16_t address)
 }
 
 
-int batt_write_config_to_board(uint16_t address) 
+int batt_write_config_to_board(uint16_t address)
 {
     const size_t BUF_SIZE = COMMAND_SIZE + PEC_SIZE + BATT_CONFIG_SIZE + PEC_SIZE;
     uint8_t rxBuffer[BUF_SIZE];
     uint8_t txBuffer[BUF_SIZE];
 
-    txBuffer[0] = WRCFG_BYTE0(address);
+    txBuffer[0] = WRCFG_BYTE0;
     txBuffer[1] = WRCFG_BYTE1;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
 
@@ -315,7 +331,7 @@ int batt_read_config(uint8_t* dataBuffer, uint8_t address) {
     uint8_t txBuffer[BUF_SIZE];
 
     // Cmd
-    txBuffer[0] = RDCFG_BYTE0(address);
+    txBuffer[0] = RDCFG_BYTE0;
     txBuffer[1] = RDCFG_BYTE1;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
 
@@ -344,7 +360,7 @@ HAL_StatusTypeDef batt_test_bus()
     uint16_t board = 0;
     uint8_t configRead[BATT_CONFIG_SIZE] = {0};
 
-    if (batt_spi_wakeup()) {
+    if (batt_spi_wakeup(true /*sleeping*/)) {
         return HAL_ERROR;
     }
     batt_init_board(0);
@@ -408,7 +424,7 @@ int32_t batt_poll_adc_state(uint8_t address)
     uint8_t txBuffer[BUF_SIZE];
     uint8_t rxBuffer[BUF_SIZE];
 
-    txBuffer[0] = PLADC_BYTE0(address);
+    txBuffer[0] = PLADC_BYTE0;
     txBuffer[1] = PLADC_BYTE1;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
 
@@ -420,7 +436,7 @@ int32_t batt_poll_adc_state(uint8_t address)
     return (rxBuffer[TX_SIZE] == 0xff);
 }
 
-int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *adc_vals)
+int32_t batt_read_cell_voltage_block(uint8_t block, uint16_t *adc_vals)
 {
     const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
     const uint8_t RX_SIZE = VOLTAGE_BLOCK_SIZE + PEC_SIZE;
@@ -429,8 +445,7 @@ int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *
     uint8_t txBuffer[BUF_SIZE];
 
     // Validate parameters
-    if( c_assert(address < NUM_BOARDS) ||
-        c_assert(block < 4) ||
+    if( c_assert(block < 4) ||
         c_assert(adc_vals))
     {
         return 1;
@@ -439,22 +454,22 @@ int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *
     // Select appropriate bank
     if(block == 0)
     {
-        txBuffer[0] = RDCVA_BYTE0(address);
+        txBuffer[0] = RDCVA_BYTE0;
         txBuffer[1] = RDCVA_BYTE1;
     }
     else if(block == 1)
     {
-        txBuffer[0] = RDCVB_BYTE0(address);
+        txBuffer[0] = RDCVB_BYTE0;
         txBuffer[1] = RDCVB_BYTE1;
     }
     else if(block == 2)
     {
-        txBuffer[0] = RDCVC_BYTE0(address);
+        txBuffer[0] = RDCVC_BYTE0;
         txBuffer[1] = RDCVC_BYTE1;
     }
     else if(block == 3)
     {
-        txBuffer[0] = RDCVD_BYTE0(address);
+        txBuffer[0] = RDCVD_BYTE0;
         txBuffer[1] = RDCVD_BYTE1;
     }
     else
@@ -469,7 +484,7 @@ int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *
     batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, VOLTAGE_BLOCK_SIZE);
 
     // Have to read 3 battery voltages from each cell voltage register
-    for (int cvreg = 0; cvreg < 3; cvreg ++) 
+    for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg ++)
     {
         uint16_t index = TX_SIZE + cvreg*2;
         adc_vals[cvreg] = ((unsigned short) (rxBuffer[(index + 1)] << 8 | rxBuffer[index]));
@@ -478,109 +493,109 @@ int32_t batt_read_cell_voltage_block(uint16_t address, uint8_t block, uint16_t *
     return 0;
 }
 
-int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *adc_vals) 
-{
-    const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
-    const uint8_t RX_SIZE = VOLTAGE_BLOCK_SIZE + PEC_SIZE;
-    const uint8_t BUF_SIZE = TX_SIZE + RX_SIZE;
-    uint8_t rxBuffer[BUF_SIZE];
-    uint8_t txBuffer[BUF_SIZE];
+/*int32_t batt_read_temperature_block(uint16_t address, uint8_t block, uint16_t *adc_vals) */
+/*{*/
+    /*const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;*/
+    /*const uint8_t RX_SIZE = VOLTAGE_BLOCK_SIZE + PEC_SIZE;*/
+    /*const uint8_t BUF_SIZE = TX_SIZE + RX_SIZE;*/
+    /*uint8_t rxBuffer[BUF_SIZE];*/
+    /*uint8_t txBuffer[BUF_SIZE];*/
 
-    // Validate parameters
-    if( c_assert(address < NUM_BOARDS) ||
-        c_assert(block < 2) ||
-        c_assert(adc_vals))
-    {
-        return 1;
-    }
+    /*// Validate parameters*/
+    /*if( c_assert(address < NUM_BOARDS) ||*/
+        /*c_assert(block < 2) ||*/
+        /*c_assert(adc_vals))*/
+    /*{*/
+        /*return 1;*/
+    /*}*/
 
-    // Select appropriate block
-    if(block == 0)
-    {
-        txBuffer[0] = RDAUXA_BYTE0(address);
-        txBuffer[1] = RDAUXA_BYTE1;
-    }
-    else if(block == 1)
-    {
-        txBuffer[0] = RDAUXB_BYTE0(address);
-        txBuffer[1] = RDAUXB_BYTE1;
-    }
-    else
-    {
-        return 1;
-    }
+    /*// Select appropriate block*/
+    /*if(block == 0)*/
+    /*{*/
+        /*txBuffer[0] = RDAUXA_BYTE0(address);*/
+        /*txBuffer[1] = RDAUXA_BYTE1;*/
+    /*}*/
+    /*else if(block == 1)*/
+    /*{*/
+        /*txBuffer[0] = RDAUXB_BYTE0(address);*/
+        /*txBuffer[1] = RDAUXB_BYTE1;*/
+    /*}*/
+    /*else*/
+    /*{*/
+        /*return 1;*/
+    /*}*/
 
-    batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-    fillDummyBytes(&txBuffer[TX_SIZE], RX_SIZE);
+    /*batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));*/
+    /*fillDummyBytes(&txBuffer[TX_SIZE], RX_SIZE);*/
 
-    if (batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, VOLTAGE_BLOCK_SIZE))
-    {
-        ERROR_PRINT("Failed to read temperature block\n");
-        return 1;
-    }
+    /*if (batt_spi_tx_rx_pec(txBuffer, rxBuffer, BUF_SIZE, TX_SIZE, VOLTAGE_BLOCK_SIZE))*/
+    /*{*/
+        /*ERROR_PRINT("Failed to read temperature block\n");*/
+        /*return 1;*/
+    /*}*/
 
-    // Have to read 3 thermistor voltages from each auxiliary register
-    for (int cvreg = 0; cvreg < 3; cvreg ++) 
-    {
-        uint16_t index = TX_SIZE + cvreg*2;
-        adc_vals[cvreg] = ((unsigned short) (rxBuffer[(index + 1)] << 8 | rxBuffer[index]));
-    }
-    return 0;
-}
+    /*// Have to read 3 thermistor voltages from each auxiliary register*/
+    /*for (int cvreg = 0; cvreg < 3; cvreg ++) */
+    /*{*/
+        /*uint16_t index = TX_SIZE + cvreg*2;*/
+        /*adc_vals[cvreg] = ((unsigned short) (rxBuffer[(index + 1)] << 8 | rxBuffer[index]));*/
+    /*}*/
+    /*return 0;*/
+/*}*/
 
-int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel)
-{
-    const uint32_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
-    const uint32_t BUF_SIZE = TX_SIZE;
+/*int32_t batt_start_temp_measurement(uint16_t address, uint32_t channel)*/
+/*{*/
+    /*const uint32_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;*/
+    /*const uint32_t BUF_SIZE = TX_SIZE;*/
 
-    // Validate parameters
-    if(c_assert(channel < 12))
-    {
-        return 1;
-    }
+    /*// Validate parameters*/
+    /*if(c_assert(channel < 12))*/
+    /*{*/
+        /*return 1;*/
+    /*}*/
 
-    // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-    switch(channel)
-    {
-        case 0: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (0 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 1: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 2: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 3: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 4: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 5: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 6: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-        case 7: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;
-    }
+    /*// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.*/
+    /*switch(channel)*/
+    /*{*/
+        /*case 0: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (0 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 1: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 2: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 3: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (0 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 4: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 5: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (0 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 6: m_batt_config[address][0] = (1 << GPIO1_POS) | (0 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+        /*case 7: m_batt_config[address][0] = (1 << GPIO1_POS) | (1 << GPIO2_POS) | (1 << GPIO3_POS) | (1 << GPIO4_POS) | REFON(1) | ADC_OPT(0); break;*/
+    /*}*/
 
-    // Send over via SPI
-    if (batt_write_config_to_board(address))
-    {
-        return 1;
-    }
+    /*// Send over via SPI*/
+    /*if (batt_write_config_to_board(address))*/
+    /*{*/
+        /*return 1;*/
+    /*}*/
 
-    uint8_t txBuffer[BUF_SIZE];
-    uint8_t rxBuffer[BUF_SIZE];
-    txBuffer[0] = ADAX_BYTE0(address);
-    txBuffer[1] = ADAX_BYTE1;
+    /*uint8_t txBuffer[BUF_SIZE];*/
+    /*uint8_t rxBuffer[BUF_SIZE];*/
+    /*txBuffer[0] = ADAX_BYTE0(address);*/
+    /*txBuffer[1] = ADAX_BYTE1;*/
 
-    // send ADAX and PEC over SPI
-    batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-    if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))
-    {
-        return 1;
-    }
+    /*// send ADAX and PEC over SPI*/
+    /*batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));*/
+    /*if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))*/
+    /*{*/
+        /*return 1;*/
+    /*}*/
 
-    return 0;
-}
+    /*return 0;*/
+/*}*/
 
-int32_t batt_start_voltage_measurement(uint16_t address)
+int32_t batt_start_voltage_measurement()
 {
     const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
     const uint8_t BUF_SIZE = TX_SIZE;
 
     uint8_t txBuffer[BUF_SIZE];
     uint8_t rxBuffer[BUF_SIZE];
-    txBuffer[0] = ADCV_BYTE0(address);
+    txBuffer[0] = ADCV_BYTE0;
     txBuffer[1] = ADCV_BYTE1;
 
     // send ADCV and PEC over SPI
@@ -652,8 +667,20 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
     pecAddr[1] = pec & 0xff;
 }
 
-int batt_spi_wakeup()
+// Wake up the spi bus
+// @param standby: Set to true if the device is in standby already, the device
+// wakes faster in this case
+uint32_t lastWakeup_ticks = 0;
+int batt_spi_wakeup(bool sleeping)
 {
+    if (!sleeping) {
+        // The boards have been initialized, so we're in the REFUP state
+        if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(T_IDLE_MS)) {
+            // SPI bus already up
+            return 0;
+        }
+    }
+
     // Send some dummy bytes to wake up SPI/LTC
     uint8_t dummy = 0xFF;
     uint8_t rxBuffer;
@@ -664,7 +691,12 @@ int batt_spi_wakeup()
         ERROR_PRINT("Failed to wakeup batt spi\n");
         return 1;
     }
-    HAL_Delay(T_WAKE_MS);
+
+    if (sleeping) {
+        HAL_Delay(T_WAKE_MS);
+    } else {
+        delay_us(T_READY_US);
+    }
 
     // For large stacks where some devices may go to the IDLE state after waking
     if (batt_spi_tx_rx_no_pec(&dummy, &rxBuffer, JUNK_SIZE))
@@ -672,37 +704,12 @@ int batt_spi_wakeup()
         ERROR_PRINT("Failed to wakeup batt spi\n");
         return 1;
     }
-    HAL_Delay(T_WAKE_MS);
+    lastWakeup_ticks = xTaskGetTickCount();
 
-    return 0;
-}
-
-// Read a cell voltage block, checking that cells are connected to all values
-// read
-int batt_read_voltage_block_bounds_check(uint32_t ams_index, uint32_t block_index, float *cell_voltage_array) {
-    uint16_t adc_vals[3] = {0};
-
-    // Index of cells to be logged, calculated from a combo of ams index and block index
-    uint32_t cell_index = 0;
-
-    // Check that the ADC is not currently reading, if it did something went horribly wrong
-    if(c_assert(batt_poll_adc_state(ams_index)))
-    {
-        return 1;
-    }
-
-    // Read specific voltage block of specific ams board
-    c_assert(!batt_read_cell_voltage_block(ams_index, block_index, adc_vals));
-
-    // Log voltage for the three cells, if there is actually a cell connected as given by the defines
-    for(uint32_t i = 0; i < 3; i++)
-    {
-        if((block_index*VOLTAGES_PER_BLOCK + i) < CELLS_PER_BOARD)
-        {
-            cell_index = ams_index*CELLS_PER_BOARD + block_index*VOLTAGES_PER_BLOCK + i;  // Calculate cell index
-            if(c_assert(cell_index < NUM_BOARDS*CELLS_PER_BOARD)) {return 1;}               // Check bounds
-            cell_voltage_array[cell_index] = ((float)adc_vals[i]) / VOLTAGE_REGISTER_COUNTS_PER_VOLT; // Put reading into array, convert from 100s of uV to float in volts
-        }
+    if (sleeping) {
+        HAL_Delay(T_WAKE_MS);
+    } else {
+        delay_us(T_READY_US);
     }
 
     return 0;
@@ -728,6 +735,102 @@ float batt_convert_voltage_to_temp(int voltage) {
     return temperature;
 }
 
+HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
+{
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    /*
+     * Voltage Readings
+     */
+    if (batt_start_voltage_measurement(0))
+    {
+        ERROR_PRINT("Failed to start voltage measure\n");
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (c_assert(batt_poll_adc_state(0))) {
+        ERROR_PRINT("adc still busy\r\n");
+        return HAL_ERROR;
+    }
+
+    uint16_t adc_vals[VOLTAGES_PER_BLOCK] = {0}; // Temp buffer
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        for (int block = 0; block < VOLTAGE_BLOCKS_PER_BOARD; block++) {
+
+            // Read vals from board
+            if (batt_read_cell_voltage_block(block, adc_vals)) {
+                ERROR_PRINT("Failed to read voltage block %i\n", block);
+                return HAL_ERROR;
+            }
+
+            // copy to voltage array
+            int cell_index = 0;
+
+            for (int voltage = 0; voltage < VOLTAGES_PER_BLOCK; voltage++) {
+                cell_index = board*CELLS_PER_BOARD + block*VOLTAGES_PER_BLOCK + voltage;
+
+                // Put reading into array, convert from 100s of uV to float in volts
+                cell_voltage_array[cell_index]
+                    = ((float)adc_vals[voltage]) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+            }
+
+        }
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
+{
+    /*
+     * Temperature readings
+     */
+    /*for (int i = 0; i < THERMISTORS_PER_BOARD; i++) {*/
+        /*// TODO: Do we need this wakeup? The boards should be up after the*/
+        /*// voltage measure, but maybe theres a chance the task gets*/
+        /*// interrupted in the middle*/
+        /*if (batt_spi_wakeup(false [> not sleeping <]))*/
+        /*{*/
+            /*return HAL_ERROR;*/
+        /*}*/
+        /*if (batt_start_temp_measurement(0, i))*/
+        /*{*/
+            /*ERROR_PRINT("Failed to start temp measure\n");*/
+            /*return HAL_ERROR;*/
+        /*}*/
+        /*vTaskDelay(TEMP_MEASURE_DELAY_MS);*/
+        /*if (batt_spi_wakeup(false [> not sleeping <]))*/
+        /*{*/
+            /*return HAL_ERROR;*/
+        /*}*/
+        /*if (c_assert(batt_poll_adc_state(0))) {*/
+            /*return HAL_ERROR;*/
+        /*}*/
+
+        /*uint16_t adc_vals[3] = {0};*/
+        /*if (c_assert(!batt_read_temperature_block(0, 0, adc_vals))) {*/
+            /*return HAL_ERROR;*/
+        /*}*/
+        /*// TODO: Since there's less thermistors then cells, figure out what*/
+        /*// to do for the array*/
+        /*cell_temp_array[0 * THERMISTORS_PER_BOARD + i] = batt_convert_voltage_to_temp(adc_vals[0]);*/
+        /*// printf("B%dT%d,%hx\r\n", board, i, adc_vals[0]);*/
+    /*}*/
+
+    return HAL_OK;
+}
+
 /*
  *
  * Public Functions
@@ -736,82 +839,9 @@ float batt_convert_voltage_to_temp(int voltage) {
 
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array)
 {
-    for (int board = 0; board < NUM_BOARDS; board++)
-    {
-        if (batt_spi_wakeup())
-        {
-            return HAL_ERROR;
-        }
-
-        // TODO: These were in the 2017 code, but probably don't need, as can
-        // put in an init function
-        // Delete if they prove unecessary
-        /*batt_init_board(board);*/
-        /*batt_write_config_to_board(board);*/
-
-        /*
-         * Voltage Readings
-         */
-        if (batt_start_voltage_measurement(board))
-        {
-            ERROR_PRINT("Failed to start voltage measure for board %d\n", board);
-            return HAL_ERROR;
-        }
-
-        vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-        if (batt_spi_wakeup())
-        {
-            return HAL_ERROR;
-        }
-
-        if (c_assert(batt_poll_adc_state(board))) {
-            ERROR_PRINT("state of board %u is bad\r\n", board);
-            return HAL_ERROR;
-        }
-
-        for (int block = 0; block < VOLTAGE_BLOCKS_PER_BOARD; block++) {
-            if (batt_read_voltage_block_bounds_check(board, block, cell_voltage_array)) {
-                ERROR_PRINT("Failed to read voltage block %i from board %i\n", block, board);
-                return HAL_ERROR;
-            }
-        }
-
-        /*
-         * Temperature readings
-         */
-        for (int i = 0; i < THERMISTORS_PER_BOARD; i++) {
-            // TODO: Do we need this wakeup? The boards should be up after the
-            // voltage measure, but maybe theres a chance the task gets
-            // interrupted in the middle
-            if (batt_spi_wakeup())
-            {
-                return HAL_ERROR;
-            }
-            if (batt_start_temp_measurement(board, i))
-            {
-                ERROR_PRINT("Failed to start temp measure for board %i\n", board);
-                return HAL_ERROR;
-            }
-            vTaskDelay(TEMP_MEASURE_DELAY_MS);
-            if (batt_spi_wakeup())
-            {
-                return HAL_ERROR;
-            }
-            if (c_assert(batt_poll_adc_state(board))) {
-                return HAL_ERROR;
-            }
-
-            uint16_t adc_vals[3] = {0};
-            if (c_assert(!batt_read_temperature_block(board, 0, adc_vals))) {
-                return HAL_ERROR;
-            }
-            // TODO: Since there's less thermistors then cells, figure out what
-            // to do for the array
-            cell_temp_array[board * THERMISTORS_PER_BOARD + i] = batt_convert_voltage_to_temp(adc_vals[0]);
-            // printf("B%dT%d,%hx\r\n", board, i, adc_vals[0]);
-        }
+    if (batt_read_cell_voltages(cell_voltage_array) != HAL_OK) {
+        return HAL_ERROR;
     }
-
     return HAL_OK;
 }
 
@@ -865,11 +895,57 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
     return HAL_OK;
 }
 
+int32_t sendADOWCMD(uint16_t address, uint8_t pullup)
+{
+    const uint8_t TX_SIZE = COMMAND_SIZE + PEC_SIZE;
+    const uint8_t BUF_SIZE = TX_SIZE;
+
+    uint8_t txBuffer[BUF_SIZE];
+    uint8_t rxBuffer[BUF_SIZE];
+
+    c_assert(pullup==0 || pullup==1);
+
+    txBuffer[0] = ADOW_BYTE0;
+    txBuffer[1] = ADOW_BYTE1(pullup);
+
+    // send ADCV and PEC over SPI
+    batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
+    if (batt_spi_tx_rx_no_pec(txBuffer, rxBuffer, BUF_SIZE))
+    {
+        ERROR_PRINT("Failed to send ADOW command\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+HAL_StatusTypeDef checkForOpenCircuit()
+{
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        if (batt_spi_wakeup(false /* not sleeping*/)) {
+            return HAL_ERROR;
+        }
+
+        if (sendADOWCMD(0 /* address is always zero for now since we are using daisy chain */,
+                        1)) {
+            return HAL_ERROR;
+        }
+        if (sendADOWCMD(0 /* address is always zero for now since we are using daisy chain */,
+                        1)) {
+            return HAL_ERROR;
+        }
+
+    }
+
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef batt_init()
 {
     uint8_t configRead[BATT_CONFIG_SIZE] = {0};
 
-    if (batt_spi_wakeup()) {
+    if (batt_spi_wakeup(true /* sleeping*/)) {
         return HAL_ERROR;
     }
 
