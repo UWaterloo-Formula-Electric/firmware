@@ -15,6 +15,7 @@
 extern float IBus;
 extern float VBus;
 extern float VBatt;
+extern float packVoltage;
 extern uint32_t brakeAndHVILVals[2];
 
 BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
@@ -106,11 +107,11 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         cellIdx = -3;
         return pdTRUE;
     } else if (cellIdx == -3) {
-        COMMAND_OUTPUT("MinVoltage\tMaxVoltage\tMinTemp\tMaxTemp\r\n");
+        COMMAND_OUTPUT("MinVoltage\tMaxVoltage\tMinTemp\tMaxTemp\tPackVoltage\r\n");
         cellIdx = -2;
         return pdTRUE;
     } else if (cellIdx == -2) {
-        COMMAND_OUTPUT("%f\t%f\t%f\t%f\r\n\n", VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax);
+        COMMAND_OUTPUT("%f\t%f\t%f\t%f\t%f\r\n\n", VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax, packVoltage);
         cellIdx = -1;
         return pdTRUE;
     } else if (cellIdx == -1) {
