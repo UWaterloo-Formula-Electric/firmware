@@ -847,3 +847,80 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
     return HAL_OK;
 }
+
+void batt_set_balancing_cell (int board, int cell)
+{
+    if (cell < 8) // 8 bits per byte in the register
+    {
+        SETBIT(m_batt_config[board][4], cell);
+    }
+    else
+    {
+        SETBIT(m_batt_config[board][5], cell - 8);
+    }
+}
+
+void batt_unset_balancing_cell (int board, int cell)
+{
+    if (cell < 8) // 8 bits per byte in the register
+    {
+        CLEARBIT(m_batt_config[board][4], cell);
+    }
+    else
+    {
+        CLEARBIT(m_batt_config[board][5], cell - 8);
+    }
+}
+
+bool batt_get_balancing_cell_state(int board, int cell)
+{
+    if (cell < 8) // 8 bits per byte in the register
+    {
+        return GETBIT(m_batt_config[board][4], cell);
+    }
+    else
+    {
+        return GETBIT(m_batt_config[board][5], cell - 8);
+    }
+}
+
+// Need to write config after
+HAL_StatusTypeDef batt_balance_cell(int cell)
+{
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
+    {
+        return HAL_ERROR;
+    }
+
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD);
+
+    batt_set_balancing_cell(boardIdx, amsCellIdx);
+
+    return HAL_OK;
+}
+
+// Need to read config first
+bool batt_is_cell_balancing(int cell)
+{
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
+    {
+        return false;
+    }
+
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD);
+
+    return batt_get_balancing_cell_state(boardIdx, amsCellIdx);
+}
+
+HAL_StatusTypeDef batt_unset_balancing_all_cells()
+{
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for (int cell = 0; cell < CELLS_PER_BOARD; cell++) {
+            batt_unset_balancing_cell(board, cell);
+        }
+    }
+
+    return HAL_OK;
+}
