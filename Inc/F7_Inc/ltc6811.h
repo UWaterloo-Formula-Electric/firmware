@@ -28,6 +28,7 @@ bool batt_is_cell_balancing(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef batt_test_bus();
+HAL_StatusTypeDef checkForOpenCircuit();
 
 HAL_StatusTypeDef batt_init();
 

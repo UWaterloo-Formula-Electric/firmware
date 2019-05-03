@@ -13,7 +13,7 @@
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_TASK_ID 2
 
-/*#define DISABLE_BATTERY_MONITORING_HARDWARE*/
+#define DISABLE_BATTERY_MONITORING_HARDWARE
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
@@ -50,11 +50,11 @@ bool warningSentForCellTemp[TEMPCELL_COUNT];
  *
  */
 
-/*#if IS_BOARD_F7*/
+#if IS_BOARD_F7
 #include "ltc6811.h"
 #include "ade7912.h"
 #include "imdDriver.h"
-/*#endif*/
+#endif
 
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
@@ -75,18 +75,18 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
 
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
-/*#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   _Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");
+   _Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");
 
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
-/*#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
-   /*// For nucleo, cell voltages and temps can be manually changed via CLI for*/
-   /*// testing, so we don't do anything here*/
-   /*return HAL_OK;*/
-/*#else*/
-/*#error Unsupported board type*/
-/*#endif*/
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   // For nucleo, cell voltages and temps can be manually changed via CLI for
+   // testing, so we don't do anything here
+   return HAL_OK;
+#else
+#error Unsupported board type
+#endif
 }
 
 /*
@@ -96,16 +96,16 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
  */
 HAL_StatusTypeDef initVoltageAndTempArrays()
 {
-/*#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    // For F7 just zero out the array
    float initVoltage = 0;
    float initTemp = 0;
-/*#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
-   /*float initVoltage = LIMIT_OVERVOLTAGE - 0.1;*/
-   /*float initTemp = CELL_OVERTEMP - 20;*/
-/*#else*/
-/*#error Unsupported board type*/
-/*#endif*/
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   float initVoltage = LIMIT_OVERVOLTAGE - 0.1;
+   float initTemp = CELL_OVERTEMP - 20;
+#else
+#error Unsupported board type
+#endif
 
    for (int i=0; i<= VOLTAGECELL_COUNT; i++)
    {
@@ -165,8 +165,6 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
    return HAL_OK;
 }
 
-#undef VOLTAGECELL_COUNT
-#define VOLTAGECELL_COUNT 12
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage)
 {
    HAL_StatusTypeDef rc = HAL_OK;
@@ -197,7 +195,6 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
             warningSentForCellVoltage[i] = true;
          }
-         rc = HAL_OK;
       } else if (warningSentForCellVoltage[i] == true) {
          warningSentForCellVoltage[i] = false;
       }
@@ -210,30 +207,29 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure;
    }
 
-   /*for (int i=0; i < TEMPCELL_COUNT; i++)*/
-   /*{*/
-      /*measure = TempCell[i];*/
+   for (int i=0; i < TEMPCELL_COUNT; i++)
+   {
+      measure = TempCell[i];
 
-      /*// Check it is within bounds*/
-      /*if (measure > CELL_OVERTEMP) {*/
-         /*ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);*/
-         /*sendDTC_CRITICAL_CELL_TEMP_HIGH(i);*/
-         /*rc = HAL_ERROR;*/
-      /*} else if (measure > CELL_OVERTEMP_WARNING) {*/
-         /*if (!warningSentForCellTemp[i]) {*/
-            /*ERROR_PRINT("WARN: Cell %d is high temp at %f deg C\n", i, measure);*/
-            /*sendDTC_WARNING_CELL_TEMP_HIGH(i);*/
-            /*warningSentForCellTemp[i] = true;*/
-         /*}*/
-         /*rc = HAL_OK;*/
-      /*} else if (warningSentForCellTemp[i] == true) {*/
-         /*warningSentForCellTemp[i] = false;*/
-      /*}*/
+      // Check it is within bounds
+      if (measure > CELL_OVERTEMP) {
+         ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
+         sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
+         rc = HAL_ERROR;
+      } else if (measure > CELL_OVERTEMP_WARNING) {
+         if (!warningSentForCellTemp[i]) {
+            ERROR_PRINT("WARN: Cell %d is high temp at %f deg C\n", i, measure);
+            sendDTC_WARNING_CELL_TEMP_HIGH(i);
+            warningSentForCellTemp[i] = true;
+         }
+      } else if (warningSentForCellTemp[i] == true) {
+         warningSentForCellTemp[i] = false;
+      }
 
-      /*// Update max voltage*/
-      /*if (measure > (*maxTemp)) {(*maxTemp) = measure;}*/
-      /*if (measure < (*minTemp)) {(*minTemp) = measure;}*/
-   /*}*/
+      // Update max voltage
+      if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+      if (measure < (*minTemp)) {(*minTemp) = measure;}
+   }
 
    return rc;
 }
@@ -254,16 +250,16 @@ float calculateStateOfCharge()
 
 HAL_StatusTypeDef batteryStart()
 {
-/*#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
    return batt_init();
-/*#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)*/
-   /*// For nucleo, cell voltages and temps can be manually changed via CLI for*/
-   /*// testing, so we don't do anything here*/
-   /*return HAL_OK;*/
-/*#else*/
-/*#error Unsupported board type*/
-/*#endif*/
-    /*return HAL_OK;*/
+#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   // For nucleo, cell voltages and temps can be manually changed via CLI for
+   // testing, so we don't do anything here
+   return HAL_OK;
+#else
+#error Unsupported board type
+#endif
+    return HAL_OK;
 }
 
 void batteryTask(void *pvParameter)
@@ -280,10 +276,10 @@ void batteryTask(void *pvParameter)
 
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
     // This runs in the background via interrupts
-    /*if (begin_imd_measurement() != HAL_OK)*/
-    /*{*/
-        /*Error_Handler();*/
-    /*}*/
+    if (begin_imd_measurement() != HAL_OK)
+    {
+        Error_Handler();
+    }
 #endif
 
     if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
@@ -295,26 +291,28 @@ void batteryTask(void *pvParameter)
     int errorCounter = 0;
     while (1)
     {
+        if (checkForOpenCircuit() != HAL_OK) {
+            ERROR_PRINT("Open wire test failed!\n");
+            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+            while (1) {
+               // Suspend this task while still updating watchdog
+               watchdogTaskCheckIn(BATTERY_TASK_ID);
+               vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+            }
+        }
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             BOUNDED_CONTINUE
         }
-        /*if (batt_test_bus() != HAL_OK) {*/
-            /*ERROR_PRINT("Failed to test bus\n");*/
-            /*BOUNDED_CONTINUE*/
-        /*}*/
-        /*if (batt_init() != HAL_OK) {*/
-            /*ERROR_PRINT("Failed to test bus\n");*/
-        /*}*/
 
-        /*if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {*/
-            /*ERROR_PRINT("Failed to read bus voltages and current!\n");*/
-            /*BOUNDED_CONTINUE*/
-        /*}*/
+        if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
+            ERROR_PRINT("Failed to read bus voltages and current!\n");
+            BOUNDED_CONTINUE
+        }
 
-        /*if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {*/
-            /*ERROR_PRINT("Failed to publish bus voltages and current!\n");*/
-        /*}*/
+        if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {
+            ERROR_PRINT("Failed to publish bus voltages and current!\n");
+        }
 
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
@@ -322,13 +320,16 @@ void batteryTask(void *pvParameter)
               &packVoltage) != HAL_OK)
         {
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
-            // TODO: What should happen here?
-            vTaskSuspend(NULL); // Suspend this task as the system should be shutting down
+            while (1) {
+               // Suspend this task while still updating watchdog
+               watchdogTaskCheckIn(BATTERY_TASK_ID);
+               vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+            }
         }
 
-        /*StateBatteryPowerHV = calculateStateOfPower();*/
-        /*StateBatteryChargeHV = calculateStateOfCharge();*/
-        /*StateBMS = fsmGetState(&fsmHandle);*/
+        StateBatteryPowerHV = calculateStateOfPower();
+        StateBatteryChargeHV = calculateStateOfCharge();
+        StateBMS = fsmGetState(&fsmHandle);
 
 
         /* This sends the following data, all of which get updated each time
@@ -340,10 +341,10 @@ void batteryTask(void *pvParameter)
          * - TempCellMin
          * - StateBMS
          */
-        /*if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {*/
-            /*ERROR_PRINT("Failed to send batter status HV\n");*/
-            /*BOUNDED_CONTINUE*/
-        /*}*/
+        if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
+            ERROR_PRINT("Failed to send batter status HV\n");
+            BOUNDED_CONTINUE
+        }
 
         // Succesfully reach end of loop, update error counter to reflect that
         ERROR_COUNTER_SUCCESS();

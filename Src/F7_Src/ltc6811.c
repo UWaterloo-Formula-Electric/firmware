@@ -27,64 +27,65 @@
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
 // If not using address mode, set address to 0
-/*#define USE_ADDRESS_MODE*/
+#define USE_ADDRESS_MODE
 // For testing, allow using address mode, but assume address is 0
+#define ADDRESS 1
 
 #ifdef USE_ADDRESS_MODE
-#define WRCFG_BYTE0 (0x80)
+#define WRCFG_BYTE0 ((0x80) | (ADDRESS << 3))
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0 (0x80)
+#define RDCFG_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0 (0x80)
+#define RDCVA_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0 (0x80)
+#define RDCVB_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0 (0x80)
+#define RDCVC_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0 (0x80)
+#define RDCVD_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0  (0x87)
+#define PLADC_BYTE0  ((0x87) | (ADDRESS << 3))
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0 (0x87)
+#define CLRSTAT_BYTE0 ((0x87) | (ADDRESS << 3))
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0 (0x87)
+#define CLRCELL_BYTE0 ((0x87) | (ADDRESS << 3))
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0 (0x87)
+#define CLRAUX_BYTE0 ((0x87) | (ADDRESS << 3))
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0 (0x80)
+#define RDAUXA_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0 (0x80)
+#define RDAUXB_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDAUXB_BYTE1 0x0e
 
 // Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0 (0x85)
+#define ADCVAX_BYTE0 ((0x85) | (ADDRESS << 3))
 #define ADCVAX_BYTE1 0x6f
 
 // Use normal MD (7kHz), Discharge not permission, all channels
-#define ADCV_BYTE0 (0x83)
+#define ADCV_BYTE0 ((0x83) | (ADDRESS << 3))
 #define ADCV_BYTE1 0x60
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADAX_BYTE0 (0x85)
-#define ADAX_BYTE1 0x60
+#define ADAX_BYTE0 ((0x85) | (ADDRESS << 3))
+#define ADAX_BYTE1 0x65
 
-#define RDSTATB_BYTE0 (0x80)
+#define RDSTATB_BYTE0 ((0x80) | (ADDRESS << 3))
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0 (0x85)
+#define ADOW_BYTE0 ((0x83) | (ADDRESS << 3))
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 #else // defined(USE_ADDRES_MODE)
@@ -137,12 +138,12 @@
 
 // Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
 #define ADAX_BYTE0 (0x05)
-#define ADAX_BYTE1 0x60
+#define ADAX_BYTE1 0x65
 
 #define RDSTATB_BYTE0 (0x00)
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0 (0x05)
+#define ADOW_BYTE0 (0x03)
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 #endif // defined(USE_ADDRESS_MODE)
@@ -220,8 +221,7 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
 
 void batt_init_board_config(uint16_t board) 
 {
-    m_batt_config[board][0] =   (1 << GPIO1_POS) |  // Mux always goes to GPIO1
-                            REFON(1) |          // Turn on referemce 
+    m_batt_config[board][0] = REFON(1) |          // Turn on reference
                             ADC_OPT(0);         // We use fast ADC speed so this has to be 0
     m_batt_config[board][4] = 0x00;                 // Disable the discharge bytes for now
     m_batt_config[board][5] = 0x00;
@@ -502,30 +502,14 @@ HAL_StatusTypeDef batt_init()
     return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
+/*
+ * Read back cell voltages, this assumes that the command to initiate ADC
+ * readings has been sent already and the appropriate amount of time has
+ * elapsed for readings to finish
+ * Used for both batt_read_cell_voltages and open wire check
+ */
+HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 {
-    const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
-    uint8_t txBuffer[TX_BUFF_SIZE];
-
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-
-    if (batt_format_broadcast_command(ADCV_BYTE0, ADCV_BYTE1, txBuffer) != HAL_OK)
-    {
-        ERROR_PRINT("Failed to format read voltage command\n");
-        return HAL_ERROR;
-    }
-
-    if (batt_spi_tx(txBuffer, TX_BUFF_SIZE) != HAL_OK)
-    {
-        ERROR_PRINT("Failed to transmit read voltage command\n");
-        return HAL_ERROR;
-    }
-
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
@@ -578,6 +562,43 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
                 cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
             }
         }
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
+{
+    const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
+    uint8_t txBuffer[TX_BUFF_SIZE];
+
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_format_broadcast_command(ADCV_BYTE0, ADCV_BYTE1, txBuffer) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to format read voltage command\n");
+        return HAL_ERROR;
+    }
+
+    if (batt_spi_tx(txBuffer, TX_BUFF_SIZE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to transmit read voltage command\n");
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_readBackCellVoltage(cell_voltage_array) != HAL_OK)
+    {
+        return HAL_ERROR;
     }
 
     return HAL_OK;
@@ -652,6 +673,12 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     // adc values for one block from all boards
     uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS] = {0};
 
+    if (batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to read temp adc vals\n");
+        return HAL_ERROR;
+    }
+
     for (int board = 0; board < NUM_BOARDS; board++) {
         size_t cellIdx = board * CELLS_PER_BOARD + channel;
         // We only use one GPIO input to measure temperatures, so pick that out
@@ -686,5 +713,137 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         return HAL_ERROR;
     }
 
-    return HAL_ERROR;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef sendADOWCMD(uint8_t pullup)
+{
+    const uint8_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
+
+    uint8_t txBuffer[BUFF_SIZE];
+
+    c_assert(pullup==0 || pullup==1);
+
+    uint8_t cmdByteLow = ADOW_BYTE0;
+    uint8_t cmdByteHigh = ADOW_BYTE1(pullup);
+
+    if (batt_format_broadcast_command(cmdByteLow, cmdByteHigh, txBuffer) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send ADOW command\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+float float_abs(float x)
+{
+    if (x<0) {
+        return (-1*x);
+    } else {
+        return x;
+    }
+}
+
+HAL_StatusTypeDef checkForOpenCircuit()
+{
+    float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS];
+    float cell_voltages_pulldown[CELLS_PER_BOARD * NUM_BOARDS];
+
+    if (batt_spi_wakeup(false /* not sleeping*/)) {
+        return HAL_ERROR;
+    }
+
+    if (sendADOWCMD(1 /*pullup*/)) {
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (sendADOWCMD(1 /*pullup*/)) {
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_readBackCellVoltage(cell_voltages_pullup) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    if (sendADOWCMD(0 /*pulldown*/)) {
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (sendADOWCMD(0 /*pulldown*/)) {
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_readBackCellVoltage(cell_voltages_pulldown) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    for (int board = 0; board < NUM_BOARDS; board++)
+    {
+        for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
+        {
+            float pullup = cell_voltages_pullup[board*CELLS_PER_BOARD + cell];
+            float pulldown = cell_voltages_pulldown[board*CELLS_PER_BOARD + cell];
+
+            if (float_abs(pullup - pulldown) > (0.4))
+            {
+                ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f > 0.4)\n",
+                            (cell+board*CELLS_PER_BOARD), pullup, pulldown,
+                            float_abs(pullup - pulldown));
+                return HAL_ERROR;
+            }
+        }
+
+        if (float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0) < 0.0002) {
+                ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
+                            board*CELLS_PER_BOARD, cell_voltages_pullup[board*CELLS_PER_BOARD],
+                            float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0));
+                return HAL_ERROR;
+        }
+
+        if (float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD+11] - 0) < 0.0002) {
+                ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
+                            11+board*CELLS_PER_BOARD, cell_voltages_pullup[board*CELLS_PER_BOARD],
+                            float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0));
+                return HAL_ERROR;
+        }
+
+    }
+
+    return HAL_OK;
 }
