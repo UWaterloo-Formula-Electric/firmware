@@ -5,6 +5,12 @@
 #define ADDR_V1 (0x01)
 #define ADDR_V2 (0x02)
 
+#define ADDR_STATUS0 (0x9)
+#define RESET_ON_BIT (0x0)
+
+#define ADDR_CFG (0x8)
+#define ADC_FREQ_2KHZ (0x20)
+
 #define SPI_TIMEOUT 15
 
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
@@ -22,23 +28,24 @@ HAL_StatusTypeDef adc_spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int
 }
 
 // also return data
-uint8_t adc_readbyte(uint8_t addr) {
+uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
   HAL_StatusTypeDef status;
   uint8_t rbuffer[2] = {0};
   uint8_t tbuffer[2] = {0};
 
   //modifying address to datasheet format
-  addr <<= 3; 
-  addr |= 0x4;
+  addr <<= 3;
+  addr |= 0x4; // Read Enable
   tbuffer[0] = addr;
 
   status = adc_spi_tx_rx(tbuffer, rbuffer, 2);
-  DEBUG_PRINT("%x %x\n", rbuffer[0], rbuffer[1]);
   if (status != HAL_OK) {
-    ERROR_PRINT("error reading :(\n");
-    return 0;
+    ERROR_PRINT("Error reading HV ADC\n");
+    return HAL_ERROR;
   }
-  return rbuffer[1];
+
+  (*dataOut) = rbuffer[1];
+  return HAL_OK;
 }
 
 //return the data from the address
@@ -49,7 +56,7 @@ int32_t adc_read(uint8_t addr){
   int32_t data = 0x0;
 
   //modifying address to datasheet format
-  addr <<= 3; 
+  addr <<= 3;
   addr |= 0x4;
   tbuffer[0] = addr;
 
@@ -60,6 +67,7 @@ int32_t adc_read(uint8_t addr){
     return 0;
   }
 
+  /*DEBUG_PRINT("0: 0x%X, 1: 0x%X, 2: 0x%X\n", rbuffer[1], rbuffer[2], rbuffer[3]);*/
   //put data into an u32. Skipping rbuffer[0] bc it contains high impedance GARBAGE
 
 
@@ -74,12 +82,12 @@ int32_t adc_read(uint8_t addr){
 }
 
 //writes data to an address
-void adc_write(uint8_t addr, uint8_t data){
+HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
   HAL_StatusTypeDef status;
   uint8_t tbuffer[2] = {0};
 
   // modifying address to datasheet format
-  addr <<= 3; 
+  addr <<= 3;
   addr &= 0xF8; // setting bit 2 (READ_EN) to 0
   tbuffer[0] = addr;
 
@@ -88,9 +96,12 @@ void adc_write(uint8_t addr, uint8_t data){
 
   status = adc_spi_tx(tbuffer, 2);
 
-  if (status !=HAL_OK){
-    printf("---Error writing to ADC! Status code: %d\n", status);
+  if (status != HAL_OK){
+    printf("Error writing to HVADC!\n");
+    return HAL_ERROR;
   }
+
+  return HAL_OK;
 }
 
 uint32_t adc_read_current(void) {
@@ -103,4 +114,38 @@ uint32_t adc_read_v1(void) {
 
 uint32_t adc_read_v2(void) {
   return adc_read(ADDR_V2);
+}
+
+HAL_StatusTypeDef hvadc_init()
+{
+  uint8_t status0;
+
+  // Wait for ADC to come out of reset
+  do {
+    if (adc_readbyte(ADDR_STATUS0, &status0) != HAL_OK) {
+      ERROR_PRINT("Error reading HV ADC status register\n");
+      return HAL_ERROR;
+    }
+  } while (status0 & (1<<RESET_ON_BIT));
+
+  // Set up config register
+  uint8_t cfgWrite = ADC_FREQ_2KHZ;
+  if (adc_write(ADDR_CFG, cfgWrite) != HAL_OK)
+  {
+    ERROR_PRINT("Failed to config HV ADC\n");
+    return HAL_ERROR;
+  }
+
+  uint8_t cfgRead;
+  if (adc_readbyte(ADDR_CFG, &cfgRead) != HAL_OK) {
+    ERROR_PRINT("Error reading HV ADC config register\n");
+    return HAL_ERROR;
+  }
+
+  if (cfgRead != cfgWrite) {
+    ERROR_PRINT("HVADC: config wrote %d != read %d\n", cfgWrite, cfgRead);
+    return HAL_ERROR;
+  }
+
+  return HAL_OK;
 }
