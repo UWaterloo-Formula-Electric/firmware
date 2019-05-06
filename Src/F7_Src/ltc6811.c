@@ -27,7 +27,7 @@
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
 // If not using address mode, set address to 0
-#define USE_ADDRESS_MODE
+/*#define USE_ADDRESS_MODE*/
 // For testing, allow using address mode, but assume address is 0
 #define ADDRESS 1
 
@@ -222,6 +222,7 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
 void batt_init_board_config(uint16_t board) 
 {
     m_batt_config[board][0] = REFON(1) |          // Turn on reference
+                              (1<<1) |
                             ADC_OPT(0);         // We use fast ADC speed so this has to be 0
     m_batt_config[board][4] = 0x00;                 // Disable the discharge bytes for now
     m_batt_config[board][5] = 0x00;
@@ -340,31 +341,24 @@ int batt_spi_wakeup(bool sleeping)
     uint8_t dummy = 0xFF;
 
     // Wake up the serial interface on device S1.
-    if (batt_spi_tx(&dummy, JUNK_SIZE))
-    {
-        ERROR_PRINT("Failed to wakeup batt spi\n");
-        return 1;
-    }
-
     if (sleeping) {
-        HAL_Delay(T_WAKE_MS);
+        for (int board = 0; board < NUM_BOARDS; board++) {
+            HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+            delay_us(300);
+            HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+            delay_us(10);
+        }
     } else {
-        delay_us(T_READY_US);
+        for (int board = 0; board < NUM_BOARDS; board++) {
+            if (batt_spi_tx(&dummy, JUNK_SIZE))
+            {
+                ERROR_PRINT("Failed to wakeup batt spi\n");
+                return 1;
+            }
+        }
     }
 
-    // For large stacks where some devices may go to the IDLE state after waking
-    if (batt_spi_tx(&dummy, JUNK_SIZE))
-    {
-        ERROR_PRINT("Failed to wakeup batt spi\n");
-        return 1;
-    }
     lastWakeup_ticks = xTaskGetTickCount();
-
-    if (sleeping) {
-        HAL_Delay(T_WAKE_MS);
-    } else {
-        delay_us(T_READY_US);
-    }
 
     return 0;
 }
@@ -920,6 +914,44 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
         for (int cell = 0; cell < CELLS_PER_BOARD; cell++) {
             batt_unset_balancing_cell(board, cell);
         }
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length)
+{
+    if (length >= INVALID_DT_TIME) {
+        return HAL_ERROR;
+    }
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        m_batt_config[board][5] |= (length << 4);
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef balanceTest()
+{
+    if (batt_spi_wakeup(true) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        batt_init_board_config(board);
+    }
+
+    if (batt_balance_cell(0) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    batt_set_disharge_timer(DT_30_SEC);
+
+    if (batt_write_config() != HAL_OK)
+    {
+        return HAL_ERROR;
     }
 
     return HAL_OK;
