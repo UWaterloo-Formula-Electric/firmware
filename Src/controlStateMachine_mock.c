@@ -123,7 +123,7 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
     COMMAND_OUTPUT("%d\t%f\t%f\r\n", cellIdx, VoltageCell[cellIdx], TempCell[cellIdx]);
 
     if (++cellIdx >= VOLTAGECELL_COUNT) {
-        cellIdx = -3;
+        cellIdx = -5;
         return pdFALSE;
     } else {
         vTaskDelay(1); // Hack to avoid overflowing our serial buffer
@@ -197,7 +197,12 @@ static const CLI_Command_Definition_t setCellTempCommandDefinition =
 BaseType_t printHVMeasurements(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("IShunt: %f\nVBus: %f\nVBatt: %f\n", getIshunt(), getVBus(), getVBatt());
+    float IBus, VBus, VBatt;
+    getIBus(&IBus);
+    getVBus(&VBus);
+    getVBatt(&VBatt);
+
+    COMMAND_OUTPUT("IShunt: %f\nVBus: %f\nVBatt: %f\n", IBus, VBus, VBatt);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printHVMeasurementsCommandDefinition =

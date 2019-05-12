@@ -11,88 +11,39 @@ typedef enum PCDC_Notifications_t {
     STOP_NOTIFICATION,
 } PCDC_Notifications_t;
 
+/*
+ * Discharge constants
+ */
+
+#define DISCHARGE_MEASURE_PERIOD_MS 100
+#define DISCHARGE_DONE_BUS_VOLTAGE (0.2F)
+
+#define ZERO_CURRENT_MAX_AMPS (0.01)
+#define CONTACTOR_OPEN_ZERO_CURRENT_TIMEOUT_MS 50
 
 /*
  * Precharge constants
  */
 
+#define PRECHARGE_RESISTOR_OHMS (10000)
+
 // Timeouts
-#define PRECHARGE_STEP_1_WAIT_TIME_MS 1000
-#define PRECHARGE_STEP_1_CURRENT_MEASURE_PERIOD_MS ((PRECHARGE_STEP_1_WAIT_TIME_MS) / 10)
+#define PRECHARGE_STEP_1_WAIT_TIME_MS 2000
 
-#define PRECHARGE_STEP_2_WAIT_TIME_MS 1000
-#define PRECHARGE_STEP_2_CURRENT_MEASURE_PERIOD_MS ((PRECHARGE_STEP_2_WAIT_TIME_MS) / 10)
+#define PRECHARGE_STEP_2_WAIT_TIME_MS 2000
 
-#define PRECHARGE_STEP_3_WAIT_TIME_MS 1000
-#define PRECHARGE_STEP_3_CURRENT_MEASURE_PERIOD_MS ((PRECHARGE_STEP_3_WAIT_TIME_MS) / 10)
+#define PRECHARGE_STEP_3_WAIT_TIME_MS 2000
 
-#define PRECHARGE_STEP_4_WAIT_TIME_MS 1000
-#define PRECHARGE_STEP_4_CURRENT_MEASURE_PERIOD_MS ((PRECHARGE_STEP_4_WAIT_TIME_MS) / 10)
+#define PRECHARGE_STEP_4_CURRENT_MEASURE_PERIOD_MS (5)
+#define PRECHARGE_STEP_4_TIMEOUT 20000
 
-#define PRECHARGE_STEP_5_WAIT_TIME_MS 1000
-#define PRECHARGE_STEP_5_CURRENT_MEASURE_PERIOD_MS ((PRECHARGE_STEP_5_WAIT_TIME_MS) / 10)
-
-// Target Values and acceptable ranges (note: ranges are ± specified range val)
-
-#define VPACK 300 // Volts
-
-// Step 1
-#define PRECHARGE_STEP_1_CURRENT_VAL 0 // Amps
-#define PRECHARGE_STEP_1_CURRENT_RANGE 1 // Amps
-#define PRECHARGE_STEP_1_VBUS_VAL 0 // Volts
-#define PRECHARGE_STEP_1_VBUS_RANGE 5 // Volts
-#define PRECHARGE_STEP_1_VBATT_VAL (VPACK/2) // Volts
-#define PRECHARGE_STEP_1_VBATT_RANGE 50 // Volts
-
-// Step 2
-#define PRECHARGE_STEP_2_CURRENT_VAL 0 // Amps
-#define PRECHARGE_STEP_2_CURRENT_RANGE 1 // Amps
-#define PRECHARGE_STEP_2_VBUS_VAL 0 // Volts
-#define PRECHARGE_STEP_2_VBUS_RANGE 5 // Volts
-#define PRECHARGE_STEP_2_VBATT_VAL (VPACK) // Volts
-#define PRECHARGE_STEP_2_VBATT_RANGE 50 // Volts
-
-// Step 3
-#define PRECHARGE_STEP_3_CURRENT_VAL 0 // Amps
-#define PRECHARGE_STEP_3_CURRENT_RANGE 1 // Amps
-#define PRECHARGE_STEP_3_VBUS_VAL 0 // Volts
-#define PRECHARGE_STEP_3_VBUS_RANGE 5 // Volts
-#define PRECHARGE_STEP_3_VBATT_VAL (VPACK/2) // Volts
-#define PRECHARGE_STEP_3_VBATT_RANGE 50 // Volts
-
-// Step 4
-#define PRECHARGE_STEP_4_CURRENT_VAL 10 // Amps
-#define PRECHARGE_STEP_4_CURRENT_RANGE 9 // Amps
-#define PRECHARGE_STEP_4_VBUS_VAL 0 // Volts
-#define PRECHARGE_STEP_4_VBUS_RANGE 5 // Volts
-#define PRECHARGE_STEP_4_VBATT_VAL (VPACK) // Volts
-#define PRECHARGE_STEP_4_VBATT_RANGE 50 // Volts
-
-// Step 5
-#define PRECHARGE_STEP_5_CURRENT_VAL 10 // Amps
-#define PRECHARGE_STEP_5_CURRENT_RANGE 9 // Amps
-#define PRECHARGE_STEP_5_VBUS_VAL (VPACK) // Volts
-#define PRECHARGE_STEP_5_VBUS_RANGE 50 // Volts
-#define PRECHARGE_STEP_5_VBATT_VAL (VPACK) // Volts
-#define PRECHARGE_STEP_5_VBATT_RANGE 50 // Volts
+#define PRECHARGE_STEP_5_CURRENT_MEASURE_PERIOD_MS (1)
+#define PRECHARGE_STEP_5_TIMEOUT 1000
 
 
-// Uncomment these to have the code auto set I_Shunt, VBatt, and VBus to the
-// right values before that step
-#define PC_STEP_1_Succeed
-#define PC_STEP_2_Succeed
-#define PC_STEP_3_Succeed
-#define PC_STEP_4_Succeed
-#define PC_STEP_5_Succeed
-// These varaiables are only used to allow setting these values for testing, shouldn't be used by
-// actual code
-//
-extern float IBus;
-extern float VBus;
-extern float VBatt;
-
-float getIshunt(void);
-float getVBatt(void);
-float getVBus(void);
+/* only used for testing in cli */
+HAL_StatusTypeDef getIBus(float *IBus);
+HAL_StatusTypeDef getVBatt(float *VBatt);
+HAL_StatusTypeDef getVBus(float * VBus);
 
 #endif /* end of include guard: PRECHARGEDISCHARGE_H */

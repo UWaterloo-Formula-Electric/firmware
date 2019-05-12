@@ -65,7 +65,7 @@ uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
 }
 
 //return the data from the address
-HAL_StatusTypeDef adc_read(uint8_t addr, uint32_t *dataOut){
+HAL_StatusTypeDef adc_read(uint8_t addr, int32_t *dataOut){
   HAL_StatusTypeDef status;
   uint8_t rbuffer[4] = {0};
   uint8_t tbuffer[4] = {0};
@@ -123,7 +123,7 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
 }
 
 HAL_StatusTypeDef adc_read_current(float *dataOut) {
-  uint32_t raw;
+  int32_t raw;
   if (adc_read(ADDR_CURRENT, &raw) != HAL_OK) {
     return HAL_ERROR;
   }
@@ -135,22 +135,23 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
 }
 
 HAL_StatusTypeDef adc_read_v1(float *dataOut) {
-  uint32_t raw;
+  int32_t raw;
   if (adc_read(ADDR_V1, &raw) != HAL_OK) {
     return HAL_ERROR;
   }
 
-  (*dataOut) = VOLTAGE_1_SCALE * ((float)raw) + VOLTAGE_1_OFFSET;
+  (*dataOut) = (VOLTAGE_1_SCALE * ((float)raw)) + VOLTAGE_1_OFFSET;
+
   return HAL_OK;
 }
 
 HAL_StatusTypeDef adc_read_v2(float *dataOut) {
-  uint32_t raw;
+  int32_t raw;
   if (adc_read(ADDR_V2, &raw) != HAL_OK) {
     return HAL_ERROR;
   }
 
-  (*dataOut) = VOLTAGE_2_SCALE * ((float)raw) + VOLTAGE_2_OFFSET;
+  (*dataOut) = (VOLTAGE_2_SCALE * ((float)raw)) + VOLTAGE_2_OFFSET;
   return HAL_OK;
 }
 
