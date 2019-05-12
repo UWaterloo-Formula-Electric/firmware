@@ -352,9 +352,10 @@ Precharge_Discharge_Return_t precharge()
 
 Precharge_Discharge_Return_t discharge()
 {
+    sendDTC_WARNING_CONTACTOR_OPEN_IMPENDING();
     DEBUG_PRINT("Discharge start, waiting for zero current\n");
     uint32_t startTickVal = xTaskGetTickCount();
-    float IBus;
+    float IBus, VBus, VBatt;
     do {
         if (getIBus(&IBus) != HAL_OK) {
             break;
@@ -427,17 +428,15 @@ void pcdcTask(void *pvParameter)
                 fsmSendEvent(&fsmHandle, EV_Precharge_Finished, portMAX_DELAY);
             } else if (rc == PCDC_ERROR) {
                 DEBUG_PRINT("Precharge Error\n");
-                openAllContactors();
+                discharge();
                 fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
             } else {
                 DEBUG_PRINT("Precharge Stopped\n");
-                openAllContactors();
+                discharge();
                 // TODO: Is there anything to do if the precharge gets stopped?
             }
 
         } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
-            sendDTC_WARNING_CONTACTOR_OPEN_IMPENDING();
-
             if (discharge() != PCDC_DONE) {
                 ERROR_PRINT("Failed to discharge\n");
                 openAllContactors();

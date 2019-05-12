@@ -24,12 +24,14 @@ uint32_t prechargeFinished(uint32_t event);
 uint32_t controlDoNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
 uint32_t handleFault(uint32_t event);
+uint32_t stopPrecharge(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_HV_Disable, EV_HV_Toggle, &startPrecharge },
     { STATE_Precharge, EV_Precharge_Finished, &prechargeFinished },
     { STATE_HV_Enable, EV_HV_Toggle, &startDischarge },
+    { STATE_Precharge, EV_HV_Toggle, &stopPrecharge },
     { STATE_Discharge, EV_Discharge_Finished, &dischargeFinished },
     { STATE_Precharge, EV_HV_Fault, &handleFault },
     { STATE_Discharge, EV_HV_Fault, &handleFault },
@@ -148,9 +150,9 @@ uint32_t stopDischarge()
     return STATE_HV_Enable;
 }
 
-void stopPrecharge()
+void sendStopPrecharge()
 {
-    DEBUG_PRINT("stopPrecharge\n");
+    DEBUG_PRINT("send notification to stopPrecharge\n");
     xTaskNotify(PCDCHandle, (1<<STOP_NOTIFICATION), eSetBits);
 }
 
@@ -180,7 +182,7 @@ uint32_t handleFault(uint32_t event)
                 // Only send stop if the precharge hasn't already failed
                 // Otherwise it's been stopped already
                 if (event != EV_PrechargeDischarge_Fail) {
-                    stopPrecharge();
+                    sendStopPrecharge();
                 }
             }
             break;
@@ -199,3 +201,12 @@ uint32_t handleFault(uint32_t event)
 
     return STATE_Failure_Fatal;
 }
+
+uint32_t stopPrecharge(uint32_t event)
+{
+    DEBUG_PRINT("Stopping precharge\n");
+    sendStopPrecharge();
+
+    return STATE_HV_Disable;
+}
+
