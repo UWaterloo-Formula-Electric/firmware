@@ -13,6 +13,22 @@
 
 #define SPI_TIMEOUT 15
 
+#define VOLTAGE_1_SCALE  (-0.0000558115F)
+#define VOLTAGE_1_OFFSET (19.659F)
+
+#define VOLTAGE_2_SCALE  (-0.0000555581F)
+#define VOLTAGE_2_OFFSET (21.9105)
+
+/*#define VOLTAGE_1_SCALE  (1)*/
+/*#define VOLTAGE_1_OFFSET (1)*/
+
+/*#define VOLTAGE_2_SCALE  (1)*/
+/*#define VOLTAGE_2_OFFSET (1)*/
+
+#define CURRENT_SCALE  (0.0000000057724621F)
+#define CURRENT_OFFSET (-0.002021)
+#define CURRENT_SHUNT_VAL_OHMS (3.48F)
+
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
     HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_RESET);
     HAL_StatusTypeDef status = HAL_SPI_Transmit(&HV_ADC_SPI_HANDLE, tdata, len, SPI_TIMEOUT);
@@ -49,7 +65,7 @@ uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
 }
 
 //return the data from the address
-int32_t adc_read(uint8_t addr){
+HAL_StatusTypeDef adc_read(uint8_t addr, uint32_t *dataOut){
   HAL_StatusTypeDef status;
   uint8_t rbuffer[4] = {0};
   uint8_t tbuffer[4] = {0};
@@ -64,7 +80,7 @@ int32_t adc_read(uint8_t addr){
 
   if (status != HAL_OK){
     ERROR_PRINT("---Error reading from ADC! Status code: %d\n", status);
-    return 0;
+    return HAL_ERROR;
   }
 
   /*DEBUG_PRINT("0: 0x%X, 1: 0x%X, 2: 0x%X\n", rbuffer[1], rbuffer[2], rbuffer[3]);*/
@@ -78,7 +94,9 @@ int32_t adc_read(uint8_t addr){
 
   data |= (int32_t)rbuffer[3] << 8;
 
-  return data >> 8;
+  (*dataOut) = data >> 8;
+
+  return HAL_OK;
 }
 
 //writes data to an address
@@ -104,16 +122,36 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
   return HAL_OK;
 }
 
-uint32_t adc_read_current(void) {
-  return adc_read(ADDR_CURRENT);
+HAL_StatusTypeDef adc_read_current(float *dataOut) {
+  uint32_t raw;
+  if (adc_read(ADDR_CURRENT, &raw) != HAL_OK) {
+    return HAL_ERROR;
+  }
+
+  (*dataOut)
+    = (CURRENT_SCALE * ((float)raw) + CURRENT_OFFSET) / (CURRENT_SHUNT_VAL_OHMS);
+
+  return HAL_OK;
 }
 
-uint32_t adc_read_v1(void) {
-  return adc_read(ADDR_V1);
+HAL_StatusTypeDef adc_read_v1(float *dataOut) {
+  uint32_t raw;
+  if (adc_read(ADDR_V1, &raw) != HAL_OK) {
+    return HAL_ERROR;
+  }
+
+  (*dataOut) = VOLTAGE_1_SCALE * ((float)raw) + VOLTAGE_1_OFFSET;
+  return HAL_OK;
 }
 
-uint32_t adc_read_v2(void) {
-  return adc_read(ADDR_V2);
+HAL_StatusTypeDef adc_read_v2(float *dataOut) {
+  uint32_t raw;
+  if (adc_read(ADDR_V2, &raw) != HAL_OK) {
+    return HAL_ERROR;
+  }
+
+  (*dataOut) = VOLTAGE_2_SCALE * ((float)raw) + VOLTAGE_2_OFFSET;
+  return HAL_OK;
 }
 
 HAL_StatusTypeDef hvadc_init()
