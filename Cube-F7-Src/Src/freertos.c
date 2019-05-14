@@ -86,6 +86,7 @@ osThreadId PCDCHandle;
 osThreadId BatteryTaskHandle;
 osThreadId sensorTaskNameHandle;
 osThreadId watchdogTaskNamHandle;
+osThreadId HVMeasureHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -100,6 +101,7 @@ extern void pcdcTask(void const * argument);
 extern void batteryTask(void const * argument);
 extern void sensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
+extern void HVMeasureTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -184,6 +186,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of watchdogTaskNam */
   osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 1000);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
+
+  /* definition and creation of HVMeasure */
+  osThreadDef(HVMeasure, HVMeasureTask, osPriorityRealtime, 0, 500);
+  HVMeasureHandle = osThreadCreate(osThread(HVMeasure), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

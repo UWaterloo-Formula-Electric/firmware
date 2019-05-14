@@ -713,6 +713,7 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         ERROR_PRINT("Failed to read cell voltages\n");
         return HAL_ERROR;
     }
+
     if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temperatures\n");
         return HAL_ERROR;
@@ -967,6 +968,15 @@ HAL_StatusTypeDef balanceTest()
 
     vTaskDelay(40000);
     if (batt_unset_balancing_all_cells() != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    if (batt_spi_wakeup(true) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+    if (batt_write_config() != HAL_OK)
+    {
         return HAL_ERROR;
     }
 

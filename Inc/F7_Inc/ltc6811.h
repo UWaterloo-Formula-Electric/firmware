@@ -43,6 +43,7 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
+HAL_StatusTypeDef batt_write_config();
 
 HAL_StatusTypeDef batt_init();
 HAL_StatusTypeDef balanceTest();
