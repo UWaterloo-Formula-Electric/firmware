@@ -11,8 +11,10 @@
 #include "prechargeDischarge.h"
 #include "bsp.h"
 #include "watchdog.h"
+#include "batteries.h"
 
 extern osThreadId PCDCHandle;
+extern osThreadId BatteryTaskHandle;
 
 FSM_Handle_Struct fsmHandle;
 
@@ -25,21 +27,34 @@ uint32_t controlDoNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
 uint32_t handleFault(uint32_t event);
 uint32_t stopPrecharge(uint32_t event);
+uint32_t enterChargeMode(uint32_t event);
+uint32_t startCharge(uint32_t event);
+uint32_t stopCharge(uint32_t event);
+uint32_t chargeDone(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
+
+    // Charge
+    { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
+    { STATE_Charge_Wait, EV_Charge_Start, &startCharge },
+    { STATE_Charging, EV_Charge_Stop, &stopCharge },
+    { STATE_Charging, EV_Charge_Done, &chargeDone },
+    { STATE_Charge_Wait, EV_Charge_Stop, &controlDoNothing },
+
+    // PCDC
     { STATE_HV_Disable, EV_HV_Toggle, &startPrecharge },
     { STATE_Precharge, EV_Precharge_Finished, &prechargeFinished },
     { STATE_HV_Enable, EV_HV_Toggle, &startDischarge },
     { STATE_Precharge, EV_HV_Toggle, &stopPrecharge },
     { STATE_Discharge, EV_Discharge_Finished, &dischargeFinished },
-    { STATE_Precharge, EV_HV_Fault, &handleFault },
-    { STATE_Discharge, EV_HV_Fault, &handleFault },
-    { STATE_Precharge, EV_PrechargeDischarge_Fail, &handleFault },
-    { STATE_Discharge, EV_PrechargeDischarge_Fail, &handleFault },
-    { STATE_HV_Enable, EV_HV_Fault, &handleFault },
-    { STATE_HV_Disable, EV_HV_Fault, &handleFault },
+
+    // Already in failure, do nothing
+    // Takes priority over rest of events
     { STATE_Failure_Fatal, EV_ANY, &controlDoNothing },
+    { STATE_ANY, EV_HV_Fault, &handleFault},
+    { STATE_ANY, EV_PrechargeDischarge_Fail, &handleFault },
+    { STATE_ANY, EV_Charge_Error, &handleFault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
@@ -210,3 +225,36 @@ uint32_t stopPrecharge(uint32_t event)
     return STATE_HV_Disable;
 }
 
+uint32_t enterChargeMode(uint32_t event)
+{
+    DEBUG_PRINT("Entering charge mode\n");
+
+    // Disable the car heartbeat, as we aren't connected to the car
+    disableHeartbeat();
+
+    return STATE_Charge_Wait;
+}
+
+uint32_t startCharge(uint32_t event)
+{
+    DEBUG_PRINT("Starting charge\n");
+    xTaskNotify(BatteryTaskHandle, (1<<CHARGE_START_NOTIFICATION), eSetBits);
+
+    return STATE_Charging;
+
+}
+uint32_t stopCharge(uint32_t event)
+{
+    DEBUG_PRINT("Stopping charge\n");
+    xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
+
+    // Stay in charging state until we receive charge done event
+    return STATE_Charging;
+}
+
+uint32_t chargeDone(uint32_t event)
+{
+    DEBUG_PRINT("Charge done/stopped\n");
+
+    return STATE_Charge_Wait;
+}

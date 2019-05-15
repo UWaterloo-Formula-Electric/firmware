@@ -11,6 +11,8 @@ typedef enum BMU_States_t {
     STATE_HV_Enable,
     STATE_Precharge,
     STATE_Discharge,
+    STATE_Charge_Wait, // In charge mode, waiting to start charge
+    STATE_Charging,
     STATE_Failure_Fatal,
     STATE_ANY, // Must be the last state
 } BMU_States_t;
@@ -22,6 +24,11 @@ typedef enum BMU_Events_t {
     EV_Discharge_Finished,
     EV_PrechargeDischarge_Fail,
     EV_HV_Fault,
+    EV_Enter_Charge_Mode,
+    EV_Charge_Start,
+    EV_Charge_Done,
+    EV_Charge_Error,
+    EV_Charge_Stop,
     EV_ANY, // Must be the last event
 } BMU_Events_t;
 

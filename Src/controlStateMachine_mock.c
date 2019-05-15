@@ -17,6 +17,7 @@ extern float VBus;
 extern float VBatt;
 extern float packVoltage;
 extern uint32_t brakeAndHVILVals[2];
+extern void CAN_Msg_ChargeCart_heartbeat_Callback();
 
 BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -315,6 +316,48 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t startChargeCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEvent(&fsmHandle, EV_Charge_Start, portMAX_DELAY);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t startChargeCommandDefinition =
+{
+    "startCharge",
+    "startCharge:\r\n  start charging\r\n",
+    startChargeCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t stopChargeCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopChargeCommandDefinition =
+{
+    "stopCharge",
+    "stopCharge:\r\n  stop charging\r\n",
+    stopChargeCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t chargeCartHeartbeatMockCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    CAN_Msg_ChargeCart_heartbeat_Callback();
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t chargeCartHeartbeatMockCommandDefinition =
+{
+    "ccHeartbeat",
+    "ccHeartbeat:\r\n  mock charge cart heartbeat receive\r\n",
+    chargeCartHeartbeatMockCommand,
+    0 /* Number of parameters */
+};
+
 BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -474,6 +517,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopChargeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&startChargeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

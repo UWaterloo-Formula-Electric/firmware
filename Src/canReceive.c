@@ -25,3 +25,16 @@ void DTC_Fatal_Callback(BoardIDs board)
 {
     fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
 }
+
+uint32_t lastChargeCartHeartbeat = 0;
+bool sentChargeStartEvent = false;
+
+void CAN_Msg_ChargeCart_heartbeat_Callback()
+{
+    if (!sentChargeStartEvent) {
+        fsmSendEventISR(&fsmHandle, EV_Enter_Charge_Mode);
+        sentChargeStartEvent = true;
+    }
+    lastChargeCartHeartbeat = xTaskGetTickCount();
+}
+
