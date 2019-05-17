@@ -5,12 +5,23 @@
 #include "state_machine.h"
 #include "controlStateMachine.h"
 
+#define IMD_SENSE_PIN_FAULT    GPIO_PIN_RESET
+#define IMD_SENSE_PIN_NO_FAULT GPIO_PIN_SET
+
+// Lowest freqency expected is 10 Hz, so set timeout to twice that period
+#define IMD_FREQ_MEAS_TIMEOUT_MS 200
+
 /* Captured Value */
-__IO uint32_t            meas_IC2_val = 0;
+volatile uint32_t            meas_IC2_val = 0;
+volatile uint32_t            meas_IC1_val = 0;
+
 /* Duty Cycle Value */
-__IO uint32_t            meas_duty_cycle = 0;
+volatile uint32_t            meas_duty_cycle = 0;
 /* Frequency Value */
-__IO uint32_t            meas_freq = 0;
+volatile uint32_t            meas_freq_mHz = 0;
+
+/* Last time we captured a pwm pulse */
+volatile uint32_t lastCaptureTimeTicks = 0;
 
 static void print_error(char err[]) {
   ERROR_PRINT("imd error: %s\n", err);
@@ -49,14 +60,19 @@ HAL_StatusTypeDef init_imd_measurement(void) {
 
   __HAL_TIM_SET_PRESCALER(&IMD_TIM_HANDLE, uwPrescalerValue);
 
+  /* Zero out values */
+  meas_IC2_val = 0;
+  meas_IC1_val = 0;
+
+  meas_duty_cycle = 0;
+  meas_freq_mHz = 0;
+
+  lastCaptureTimeTicks = 0;
+
   return HAL_OK;
 }
 
 HAL_StatusTypeDef begin_imd_measurement(void) {
-  meas_freq = 0;
-  meas_duty_cycle = 0;
-  meas_IC2_val = 0;
-
   /*##-4- Start the Input Capture in interrupt mode ##########################*/
   if (HAL_TIM_IC_Start_IT(&IMD_TIM_HANDLE, TIM_CHANNEL_2) != HAL_OK)
   {
@@ -92,33 +108,33 @@ HAL_StatusTypeDef stop_imd_measurement(void) {
 IMDMeasurements get_imd_measurements(void) {
   return (IMDMeasurements) {
     .meas_duty = meas_duty_cycle,
-    .meas_freq = meas_freq,
+    .meas_freq_mHz = meas_freq_mHz,
     .status = HAL_GPIO_ReadPin(IMD_SENSE_GPIO_Port, IMD_SENSE_Pin),
   };
 }
 
-IMDStatus _imd_status(uint32_t freq, uint32_t duty){
+IMDStatus _imd_status(uint32_t freq_mHz, uint32_t duty){
   IMDStatus status = IMDSTATUS_Invalid;
 
-  if ((freq > 9500) && (freq < 10500)){
+  if ((freq_mHz > 9500) && (freq_mHz < 10500)){
     if ((duty > 5) && (duty < 95)){
       status = IMDSTATUS_Normal;
     }
-  } else if ((freq > 19000) && (freq < 21000)){
+  } else if ((freq_mHz > 19000) && (freq_mHz < 21000)){
     if ((duty > 5) && (duty < 95)){
       status = IMDSTATUS_Undervoltage;
     }
-  } else if ((freq > 28500) && (freq < 31500)){
+  } else if ((freq_mHz > 28500) && (freq_mHz < 31500)){
     if ((duty > 5) && (duty < 10)){
       status = IMDSTATUS_SST_Good;
     } else if ((duty > 90) && (duty < 95)){
       status = IMDSTATUS_SST_Bad;
     }
-  }else if ((freq > 38000) && (freq < 42000)){
+  }else if ((freq_mHz > 38000) && (freq_mHz < 42000)){
     if ((duty > 47) && (duty < 53)){
       status = IMDSTATUS_Device_Error;
     }
-  }else if ((freq > 47500) && (freq < 52500)){
+  }else if ((freq_mHz > 47500) && (freq_mHz < 52500)){
     if ((duty > 47) && (duty < 53)){
       status = IMDSTATUS_Fault_Earth;
     }
@@ -127,8 +143,26 @@ IMDStatus _imd_status(uint32_t freq, uint32_t duty){
   return status;
 }
 
-IMDStatus return_imd_status(IMDMeasurements m) {
-  return _imd_status(m.meas_freq, m.meas_duty);
+
+IMDStatus get_imd_status() {
+  IMDMeasurements meas = get_imd_measurements();
+  IMDStatus status;
+
+  if (xTaskGetTickCount() - lastCaptureTimeTicks >= pdMS_TO_TICKS(IMD_FREQ_MEAS_TIMEOUT_MS)) {
+    // We're not getting pwm pulses anymore, so the frequency is 0 Hz
+    // This means a short has occured
+    status = IMDSTATUS_HV_Short;
+
+    return status;
+  }
+
+  if (meas.status == IMD_SENSE_PIN_FAULT) {
+    status = _imd_status(meas.meas_freq_mHz, meas.meas_duty);
+  } else {
+    status = IMDSTATUS_Normal;
+  }
+
+  return status;
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
@@ -142,51 +176,19 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       if (meas_IC2_val != 0)
       {
         /* Duty cycle computation */
-        meas_duty_cycle = ((HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1)) * 100) / meas_IC2_val;
+        meas_IC1_val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 
-        /* meas_freq computation */
-        meas_freq = (IMD_TIMER_TICK_FREQUENCY_HZ)  / meas_IC2_val;
+        meas_duty_cycle = (meas_IC1_val * 100) / meas_IC2_val;
+
+        /* meas_freq_mHz computation */
+        meas_freq_mHz = (IMD_TIMER_TICK_FREQUENCY_HZ*1000)  / meas_IC2_val;
+
+        lastCaptureTimeTicks = xTaskGetTickCountFromISR();
       }
       else
       {
         meas_duty_cycle = 0;
-        meas_freq = 0;
-      }
-
-      IMDStatus status = _imd_status(meas_freq, meas_duty_cycle);
-
-      switch (status) {
-        case IMDSTATUS_Normal:
-        case IMDSTATUS_SST_Good:
-          break;
-        case IMDSTATUS_Invalid:
-          ERROR_PRINT_ISR("Invalid IMD measurement\n");
-          break;
-        case IMDSTATUS_Undervoltage:
-          ERROR_PRINT_ISR("IMD Status: Undervoltage\n");
-          sendDTC_FATAL_IMD_Failure(status);
-          break;
-        case IMDSTATUS_SST_Bad:
-          ERROR_PRINT_ISR("IMD Status: SST_Bad\n");
-          sendDTC_FATAL_IMD_Failure(status);
-          break;
-        case IMDSTATUS_Device_Error:
-          ERROR_PRINT_ISR("IMD Status: Device Error\n");
-          sendDTC_FATAL_IMD_Failure(status);
-          break;
-        case IMDSTATUS_Fault_Earth:
-          ERROR_PRINT_ISR("IMD Status: Fault Earth\n");
-          sendDTC_FATAL_IMD_Failure(status);
-          break;
-      }
-
-      if (HAL_GPIO_ReadPin(IMD_SENSE_GPIO_Port, IMD_SENSE_Pin) != GPIO_PIN_SET) {
-        fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
-      }
-
-      if (begin_imd_measurement() != HAL_OK) {
-        ERROR_PRINT_ISR("Failed to start next IMD measurement\n");
-        fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+        meas_freq_mHz = 0;
       }
     }
   }

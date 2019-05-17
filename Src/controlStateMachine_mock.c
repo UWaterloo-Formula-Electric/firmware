@@ -12,6 +12,10 @@
 #include "filters.h"
 #include "sense.h"
 
+#if IS_BOARD_F7
+#include "imdDriver.h"
+#endif
+
 extern float IBus;
 extern float VBus;
 extern float VBatt;
@@ -463,6 +467,23 @@ static const CLI_Command_Definition_t setPCDCCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t IMDStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+#if IS_BOARD_F7
+    COMMAND_OUTPUT("IMD Status %d\n", get_imd_status());
+#else
+    COMMAND_OUTPUT("IMD Disabled (batt monitoring hardware disabled)\n");
+#endif
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t IMDStatusCommandDefinition =
+{
+    "imdStatus",
+    "imdStatus:\r\n  get the imd status\r\n",
+    IMDStatusCommand,
+    0 /* Number of parameters */
+};
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -526,6 +547,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&IMDStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

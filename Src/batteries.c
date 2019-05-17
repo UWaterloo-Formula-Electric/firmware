@@ -301,6 +301,18 @@ HAL_StatusTypeDef batteryStart()
 #endif
 }
 
+// Called if an error with batteries is detected
+void BatteryTaskError()
+{
+    // Suspend task for now
+    while (1) {
+        // Suspend this task while still updating watchdog
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+    }
+}
+
+
 void HVMeasureTask(void *pvParamaters)
 {
     if (hvadc_init() != HAL_OK)
@@ -318,6 +330,69 @@ void HVMeasureTask(void *pvParamaters)
         }
         vTaskDelay(HV_MEASURE_TASK_PERIOD_MS);
     }
+}
+
+void imdTask(void *pvParamaters)
+{
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   IMDStatus imdStatus;
+
+   if (begin_imd_measurement() != HAL_OK) {
+      ERROR_PRINT("Failed to start IMD measurement\n");
+      Error_Handler();
+   }
+
+   while (1) {
+      imdStatus =  get_imd_status();
+
+      switch (imdStatus) {
+         case IMDSTATUS_Normal:
+         case IMDSTATUS_SST_Good:
+            // All good
+            break;
+         case IMDSTATUS_Invalid:
+            ERROR_PRINT_ISR("Invalid IMD measurement\n");
+            break;
+         case IMDSTATUS_Undervoltage:
+            ERROR_PRINT_ISR("IMD Status: Undervoltage\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+         case IMDSTATUS_SST_Bad:
+            ERROR_PRINT_ISR("IMD Status: SST_Bad\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+         case IMDSTATUS_Device_Error:
+            ERROR_PRINT_ISR("IMD Status: Device Error\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+         case IMDSTATUS_Fault_Earth:
+            ERROR_PRINT_ISR("IMD Status: Fault Earth\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+         case IMDSTATUS_HV_Short:
+            ERROR_PRINT_ISR("IMD Status: fault hv short\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+         default:
+            ERROR_PRINT_ISR("Unkown IMD Status\n");
+            sendDTC_FATAL_IMD_Failure(imdStatus);
+            break;
+      }
+
+      if (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good))
+      {
+         // ERROR!!!
+         fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+         BatteryTaskError();
+      }
+
+      vTaskDelay(1000);
+   }
+#else
+   while (1) {
+      vTaskDelay(10000);
+   }
+#endif
 }
 
 HAL_StatusTypeDef startCharging()
@@ -422,17 +497,6 @@ float getSOCFromVoltage(float cellVoltage)
                               voltageToSOCLookup[lookupIndexInt+1]);
     }
     return soc;
-}
-
-// Called if an error with batteries is detected
-void BatteryTaskError()
-{
-    // Suspend task for now
-    while (1) {
-        // Suspend this task while still updating watchdog
-        watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-    }
 }
 
 // TODO: Add messages between charge cart and bmu
@@ -629,14 +693,6 @@ void batteryTask(void *pvParameter)
     {
         Error_Handler();
     }
-
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
-    // This runs in the background via interrupts
-    if (begin_imd_measurement() != HAL_OK)
-    {
-        Error_Handler();
-    }
-#endif
 
     if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
