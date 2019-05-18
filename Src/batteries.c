@@ -342,6 +342,15 @@ void imdTask(void *pvParamaters)
       Error_Handler();
    }
 
+   // Wait for IMD to startup
+   do {
+      imdStatus = get_imd_status();
+      vTaskDelay(100);
+   } while (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good));
+
+   // Notify control fsm that IMD is ready
+   fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
+
    while (1) {
       imdStatus =  get_imd_status();
 
@@ -389,6 +398,8 @@ void imdTask(void *pvParamaters)
       vTaskDelay(1000);
    }
 #else
+   // Notify control fsm that IMD is ready
+   fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
    while (1) {
       vTaskDelay(10000);
    }

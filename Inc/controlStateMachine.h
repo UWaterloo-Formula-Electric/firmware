@@ -7,6 +7,7 @@
 
 typedef enum BMU_States_t {
     STATE_Self_Check = 0,
+    STATE_Wait_System_Up,
     STATE_HV_Disable,
     STATE_HV_Enable,
     STATE_Precharge,
@@ -24,6 +25,7 @@ typedef enum BMU_Events_t {
     EV_Discharge_Finished,
     EV_PrechargeDischarge_Fail,
     EV_HV_Fault,
+    EV_IMD_Ready,
     EV_Enter_Charge_Mode,
     EV_Charge_Start,
     EV_Charge_Done,

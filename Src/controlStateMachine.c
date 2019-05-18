@@ -31,9 +31,11 @@ uint32_t enterChargeMode(uint32_t event);
 uint32_t startCharge(uint32_t event);
 uint32_t stopCharge(uint32_t event);
 uint32_t chargeDone(uint32_t event);
+uint32_t systemUpCheck(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
+    { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
 
     // Charge
     { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
@@ -103,10 +105,30 @@ HAL_StatusTypeDef startControl()
     return fsmSendEvent(&fsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
+uint32_t systemUpCheck(uint32_t event)
+{
+    static bool imdReady = false;
+
+    if (event == EV_IMD_Ready) {
+        DEBUG_PRINT("IMD Ready\n");
+        imdReady = true;
+    }
+
+    // Check all ready to start conditions
+    if (imdReady) {
+        DEBUG_PRINT("System up!\n");
+        return STATE_HV_Disable;
+    } else {
+        return STATE_Wait_System_Up;
+    }
+}
+
 uint32_t runSelftTests(uint32_t event)
 {
     // TODO: Run some tests
-    return STATE_HV_Disable;
+
+    DEBUG_PRINT("Self tests done, waiting for system to come up\n");
+    return STATE_Wait_System_Up;
 }
 
 uint32_t controlDoNothing(uint32_t event)
