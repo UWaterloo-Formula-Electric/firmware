@@ -1,9 +1,14 @@
 /*
  * In order for the watchdog to work, it needs to be enabled in CubeMX
  * The following parameters should be used, generating a WDG period of 20mS:
+ * F7, input is 32kHz:
  * prescaler: 4
  * Window Value: 4095 (to disable windowing)
  * Counter reload value: 160
+ * For F0, input is 40KHz, so use these parameters:
+ * prescaler: 4
+ * Window Value: 4095 (to disable windowing)
+ * Counter reload value: 200
  */
 
 #include "bsp.h"
@@ -189,7 +194,7 @@ void printWDResetState()
         sendDTC_FATAL_WatchdogReset();
         printf("Watchdog reset occured!!!\n");
     } else {
-        DEBUG_PRINT("Watchdog reset didn't occur\n");
+        printf("Watchdog reset didn't occur\n");
     }
 }
 
