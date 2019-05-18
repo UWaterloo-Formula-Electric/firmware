@@ -82,7 +82,6 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
         fWrite("#include \"stm32f0xx_hal.h\"", headerFileHandle);
 
     fWrite("#include \"FreeRTOS.h\"", headerFileHandle);
-    fWrite("#include \"queue.h\"", headerFileHandle);
     fWrite("#include \"canHeartbeat.h\"", headerFileHandle);
     fWrite("#include \"boardTypes.h\"", headerFileHandle);
     fWrite("", headerFileHandle)
@@ -326,9 +325,6 @@ def writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFi
             writeSignalReceivedFunction(signal, sourceFileHandle)
 
 def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHandle):
-    queueInitStrings = list()
-    dtcQueueSize = 5
-
     if len(dtcRxMessages) == 0:
         return
 
@@ -341,7 +337,7 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
 
 
 
-    # Now, create the struct and queue for all messages
+    # Now, create the struct
     for msg in dtcRxMessages:
         writeStructForMsg(msg, msg.name, sourceFileHandle)
 
@@ -349,15 +345,6 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
         for signal in getReceivedSignalsFromMessage(msg, nodeName):
             fWrite('    int {signal.name};'.format(**locals()), headerFileHandle)
         fWrite('}} {msg.name}_unpacked;'.format(**locals()), headerFileHandle)
-
-        # create Queue to store received DTC messages
-        queueName = 'queue{msg.name}'.format(**locals())
-        fWrite('extern QueueHandle_t {queueName};\n'.format(**locals()), headerFileHandle)
-        fWrite('QueueHandle_t {queueName};'.format(**locals()), sourceFileHandle)
-        queueInitStrings.append('{queueName} = xQueueCreate({dtcQueueSize}, sizeof({messageName}_unpacked)); if ({queueName} == NULL) return HAL_ERROR;'.format(queueName=queueName, messageName=msg.name, dtcQueueSize=str(dtcQueueSize)))
-
-    return queueInitStrings
-
 
 def getMultiplexerId(signal):
     if not signal.is_multiplexer:
@@ -599,7 +586,6 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         for signal in getReceivedSignalsFromMessage(msg, nodeName):
             fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
-        fWrite('            xQueueSendFromISR(queue{msgName}, &newDtc, NULL);'.format(msgName=msg.name), sourceFileHandle)
         fWrite('            DEBUG_PRINT_ISR("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
 
@@ -759,13 +745,10 @@ def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileH
 
     fWrite('}', sourceFileHandle)
 
-def writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle):
+def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
     fWrite('{prototype};'.format(prototype=prototype), headerFileHandle)
     fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
-    if queueInitStrings:
-        for string in queueInitStrings:
-            fWrite('    {string}'.format(string=string), sourceFileHandle)
 
     fWrite('    generate_CRC_lookup_table();', sourceFileHandle)
 
@@ -834,7 +817,7 @@ def main(argv):
     writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFileHandle)
 
     # print dtcRxMessages
-    queueInitStrings = writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHandle)
+    writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHandle)
 
     # print multiplexed Rx Messages
     writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFileHandle)
@@ -857,7 +840,7 @@ def main(argv):
 
     writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 
-    writeInitFunction(queueInitStrings, sourceFileHandle, headerFileHandle)
+    writeInitFunction(sourceFileHandle, headerFileHandle)
 
     writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle)
 
