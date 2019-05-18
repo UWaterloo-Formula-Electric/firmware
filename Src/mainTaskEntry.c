@@ -7,12 +7,22 @@
 #include "debug.h"
 #include "DCU_can.h"
 #include "userCan.h"
+#include "watchdog.h"
 
-#define EM_BUTTON_DEBOUNCE_MS 100
-#define HV_BUTTON_DEBOUNCE_MS 100
+#define EM_BUTTON_DEBOUNCE_MS 200
+#define HV_BUTTON_DEBOUNCE_MS 200
 
 #define EM_TOGGLE_BUTTON_EVENT 0x1
 #define HV_TOGGLE_BUTTON_EVENT 0x2
+
+#define MAIN_TASK_ID 1
+
+// The task just waits for buttons, so doesn't really need a period
+// Put one so it can work with the watchdog though
+// This is just the amount of time it will wait for events
+// It then refreshes the watchdog, and either handles events or goes back to
+// waiting
+#define MAIN_TASK_PERIOD 100
 
 // Defined in freertos.c for all board types
 extern osThreadId mainTaskHandle;
@@ -25,15 +35,16 @@ bool HV_ToggleHigh = false;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    /*DEBUG_PRINT_ISR("Callback\n");*/
 
     if (GPIO_Pin == EM_TOGGLE_BUTTON_PIN) {
-        /*DEBUG_PRINT("EM Toggle Pressed\n");*/
+        /*DEBUG_PRINT_ISR("EM Toggle Pressed\n");*/
         xTaskNotifyFromISR( mainTaskHandle,
                             EM_TOGGLE_BUTTON_EVENT,
                             eSetBits,
                             &xHigherPriorityTaskWoken );
     } else if (GPIO_Pin == HV_TOGGLE_BUTTON_PIN) {
-        /*DEBUG_PRINT("HV Toggle Pressed\n");*/
+        /*DEBUG_PRINT_ISR("HV Toggle Pressed\n");*/
         xTaskNotifyFromISR( mainTaskHandle,
                             HV_TOGGLE_BUTTON_EVENT,
                             eSetBits,
@@ -60,7 +71,7 @@ bool EM_TogglePressed() {
         HAL_GPIO_WritePin(EM_LED_GPIO_Port, EM_LED_Pin, EM_ToggleHigh);
         return true;
     } else {
-        DEBUG_PRINT("Debounced out EM Toggle!\n");
+        /*DEBUG_PRINT("Debounced out EM Toggle!\n");*/
         return false;
     }
 }
@@ -80,7 +91,7 @@ bool HV_TogglePressed() {
         HAL_GPIO_WritePin(HV_LED_GPIO_Port, HV_LED_Pin, HV_ToggleHigh);
         return true;
     } else {
-        DEBUG_PRINT("Debounced out HV Toggle!\n");
+        /*DEBUG_PRINT("Debounced out HV Toggle!\n");*/
         return false;
     }
 }
@@ -92,40 +103,65 @@ void mainTaskFunction(void const * argument)
     DEBUG_PRINT("Starting up!!\n");
     canStart(&CAN_HANDLE);
 
+    /*DEBUG_PRINT("Turning on LEDs\n");*/
+    /*HAL_GPIO_WritePin(EM_LED_GPIO_Port, EM_LED_Pin, GPIO_PIN_SET);*/
+    /*HAL_GPIO_WritePin(HV_LED_GPIO_Port, HV_LED_Pin, GPIO_PIN_SET);*/
+
+    /*while (1) {*/
+        /*bool emBtn, hvBtn;*/
+
+        /*hvBtn = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT, HV_TOGGLE_BUTTON_PIN);*/
+        /*emBtn = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT, EM_TOGGLE_BUTTON_PIN);*/
+
+        /*DEBUG_PRINT("EM: %d, HV %d\n", emBtn, hvBtn);*/
+
+        /*vTaskDelay(1000);*/
+    /*}*/
+
+    if (registerTaskToWatch(MAIN_TASK_ID, 2*pdMS_TO_TICKS(MAIN_TASK_PERIOD), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register main task with watchdog!\n");
+        Error_Handler();
+    }
+
     while (1) {
         xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
                          UINT32_MAX, /* Reset the notification value to 0 on exit. */
                          &buttonStatuses, /* Notified value pass out in
                                               buttonStatuses. */
-                         portMAX_DELAY );  /* Block indefinitely. */
+                         MAIN_TASK_PERIOD ); /* See comment on main task period */
 
 
-        DEBUG_PRINT("Got notify event %ld\n", buttonStatuses);
+        if (buttonStatuses != 0) {
+            /*DEBUG_PRINT("Got notify event %ld\n", buttonStatuses);*/
 
-        bool emToggleChange = 0, hvToggleChange = 0;
-        if (buttonStatuses & HV_TOGGLE_BUTTON_EVENT) {
-            hvToggleChange = HV_TogglePressed();
+            bool emToggleChange = 0, hvToggleChange = 0;
+            if (buttonStatuses & HV_TOGGLE_BUTTON_EVENT) {
+                hvToggleChange = HV_TogglePressed();
+            }
+
+            if (buttonStatuses & EM_TOGGLE_BUTTON_EVENT) {
+                emToggleChange = EM_TogglePressed();
+            }
+
+            if (hvToggleChange && emToggleChange) {
+                ButtonEMEnabled = 1;
+                ButtonHVEnabled = 1;
+                DEBUG_PRINT("Sending both changed\n");
+                sendCAN_DCU_buttonEvents();
+            } else if (hvToggleChange) {
+                ButtonEMEnabled = 0;
+                ButtonHVEnabled = 1;
+                DEBUG_PRINT("Sending hv changed\n");
+                sendCAN_DCU_buttonEvents();
+            } else if (emToggleChange) {
+                ButtonEMEnabled = 1;
+                ButtonHVEnabled = 0;
+                DEBUG_PRINT("Sending em changed\n");
+                sendCAN_DCU_buttonEvents();
+            }
         }
 
-        if (buttonStatuses & EM_TOGGLE_BUTTON_EVENT) {
-            emToggleChange = EM_TogglePressed();
-        }
-
-        if (hvToggleChange && emToggleChange) {
-            ButtonEMEnabled = 1;
-            ButtonHVEnabled = 1;
-            DEBUG_PRINT("Sending both changed\n");
-            sendCAN_DCU_buttonEvents();
-        } else if (hvToggleChange) {
-            ButtonEMEnabled = 0;
-            ButtonHVEnabled = 1;
-            DEBUG_PRINT("Sending hv changed\n");
-            sendCAN_DCU_buttonEvents();
-        } else if (emToggleChange) {
-            ButtonEMEnabled = 1;
-            ButtonHVEnabled = 0;
-            DEBUG_PRINT("Sending em changed\n");
-            sendCAN_DCU_buttonEvents();
-        }
+        watchdogTaskCheckIn(MAIN_TASK_ID);
     }
 }

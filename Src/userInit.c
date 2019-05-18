@@ -17,9 +17,21 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 // before freeRTOS initializes and starts up
 void userInit()
 {
+    /* Should be the first thing initialized, otherwise print will fail */
+    if (debugInit() != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (uartStartReceiving(&DEBUG_UART_HANDLE) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
     uartStartReceiving(&DEBUG_UART_HANDLE);
+
+    printf("User init done\n");
 }
 

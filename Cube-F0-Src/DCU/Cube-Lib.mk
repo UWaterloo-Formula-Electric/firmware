@@ -44,6 +44,7 @@ Src/freertos.c \
 Src/usart.c \
 Src/stm32f0xx_it.c \
 Src/stm32f0xx_hal_msp.c \
+Src/iwdg.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_can.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c \
@@ -61,6 +62,7 @@ Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash_ex.c \
+Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_iwdg.c \
 Src/system_stm32f0xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c \

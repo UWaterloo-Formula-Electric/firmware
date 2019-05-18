@@ -16,6 +16,7 @@
 // TODO: Set these to the right values
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan
+#define IWDG_HANDLE hiwdg
 #define STATS_TIM_HANDLE htim2
 //#define ERROR_LED_PIN LED_R_Pin
 //#define ERROR_LED_PORT LED_R_GPIO_Port

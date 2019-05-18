@@ -78,16 +78,49 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-osThreadId defaultTaskHandle;
+osThreadId mainTaskHandle;
+osThreadId watchdogTaskNamHandle;
+osThreadId printTaskNameHandle;
+osThreadId cliTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
    
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const * argument);
+void mainTaskFunction(void const * argument);
+extern void watchdogTask(void const * argument);
+extern void printTask(void const * argument);
+extern void cliTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+
+/* Hook prototypes */
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
+
+/* USER CODE BEGIN 1 */
+/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
+__weak void configureTimerForRunTimeStats(void)
+{
+
+}
+
+__weak unsigned long getRunTimeCounterValue(void)
+{
+return 0;
+}
+/* USER CODE END 1 */
+
+/* USER CODE BEGIN 4 */
+__weak void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+}
+/* USER CODE END 4 */
 
 /**
   * @brief  FreeRTOS initialization
@@ -112,9 +145,21 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of mainTask */
+  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+
+  /* definition and creation of watchdogTaskNam */
+  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 128);
+  watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
+
+  /* definition and creation of printTaskName */
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 128);
+  printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of cliTaskName */
+  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 256);
+  cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -125,23 +170,23 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_mainTaskFunction */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the mainTask thread.
   * @param  argument: Not used 
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_mainTaskFunction */
+__weak void mainTaskFunction(void const * argument)
 {
 
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN mainTaskFunction */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END mainTaskFunction */
 }
 
 /* Private application code --------------------------------------------------*/
