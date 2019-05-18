@@ -30,7 +30,14 @@
  * Send Function and Defines
  */
 #define UART_PRINT_TIMEOUT 100
+
+#if IS_BOARD_F7_FAMILY
+// We have more space on F7, so make this longer
 #define PRINT_QUEUE_LENGTH 15
+#elif IS_BOARD_F0_FAMILY
+#define PRINT_QUEUE_LENGTH 5
+#endif
+
 #define PRINT_QUEUE_STRING_SIZE 100
 #define PRINT_QUEUE_SEND_TIMEOUT_TICKS  10
 
