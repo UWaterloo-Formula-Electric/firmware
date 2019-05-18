@@ -52,6 +52,9 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
+BO_ 2147878658 VCU_EM_State: 1 VCU_F7
+ SG_ EM_State : 0|1@1+ (1,0) [0|0] ""  DCU
+
 BO_ 2147811079 DCU_Heartbeat: 1 DCU
  SG_ DCU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,PDU,BMU
 
@@ -68,7 +71,7 @@ BO_ 2148471297 BMU_BrakePressure: 4 BMU
  SG_ BrakePressureBMU : 0|32@1+ (0.1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2149973761 BMU_HV_Power_State: 1 BMU
- SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU
+ SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  DCU,VCU_BeagleBone,VCU_F7,PDU
 
 BO_ 2147746562 VCU_EM_Power_State_Request: 1 VCU_F7
  SG_ EM_Power_State_Request : 0|1@1+ (1,0) [0|0] ""  PDU
@@ -586,6 +589,7 @@ CM_ SG_ 2147483659 PRO_CAN_COUNT "PROCAN";
 CM_ SG_ 2147483659 PRO_CAN_RES "PROCAN";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
+VAL_ 2147878658 EM_State 1 "On" 0 "Off" ;
 VAL_ 2149973761 HV_Power_State 1 "On" 0 "Off" ;
 VAL_ 2147746562 EM_Power_State_Request 1 "On" 0 "Off" ;
 VAL_ 2147942147 StatusPowerVCU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
