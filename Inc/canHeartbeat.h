@@ -19,5 +19,7 @@ extern bool VCU_F7_heartbeatEnabled;
 HAL_StatusTypeDef sendHeartbeat();
 void heartbeatReceived(BoardIDs boardName);
 HAL_StatusTypeDef checkAllHeartbeats();
+void enableHeartbeat();
+void disableHeartbeat();
 
 #endif /* end of include guard: CANHEARTBEAT_H */

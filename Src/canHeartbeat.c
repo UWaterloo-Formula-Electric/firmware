@@ -60,6 +60,16 @@ bool BMU_heartbeatEnabled = true;
 bool VCU_F7_heartbeatEnabled = true;
 #endif
 
+void disableHeartbeat()
+{
+    heartbeatEnabled = false;
+}
+
+void enableHeartbeat()
+{
+    heartbeatEnabled = true;
+}
+
 HAL_StatusTypeDef checkAllHeartbeats()
 {
     if (heartbeatEnabled)
