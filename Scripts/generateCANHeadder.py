@@ -309,7 +309,7 @@ def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFi
         else:
             dataType = 'uint64_t'
 
-    fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
+    fWrite('volatile {dataType} {name} = 0;'.format(dataType=dataType, name=signal.name), sourceFileHandle)
     fWrite('extern volatile {dataType} {name};\n'.format(dataType=dataType, name=signal.name), headerFileHandle)
 
 def getReceivedSignalsFromMessage(msg, nodeName):
