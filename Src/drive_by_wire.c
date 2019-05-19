@@ -75,7 +75,7 @@ HAL_StatusTypeDef driveByWireInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(1, 5, true, &fsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(1, 50, true, &fsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -119,41 +119,47 @@ uint32_t EM_Enable(uint32_t event)
     bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
     float brakePressure = getBrakePressurePercent();
+    uint32_t state = STATE_EM_Enable;
 
     if (!bpsState) {
         DEBUG_PRINT("Failed to em enable, bps fault\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(0);
-        return STATE_EM_Disable;
-    }
-    if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+        state = STATE_EM_Disable;
+    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
         DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
         sendDTC_WARNING_EM_ENABLE_FAILED(1);
-        return STATE_EM_Disable;
-    }
-    if (!(throttleIsZero())) {
+        state = STATE_EM_Disable;
+    } else if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
-        return STATE_EM_Disable;
-    }
-    if (!isBrakePressed()) {
+        state = STATE_EM_Disable;
+    } else if (!isBrakePressed()) {
         DEBUG_PRINT("Failed to em enable, brake is not pressed\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(3);
-        return STATE_EM_Disable;
-    }
-    if (!hvEnable) {
+        state = STATE_EM_Disable;
+    } else if (!hvEnable) {
         sendDTC_WARNING_EM_ENABLE_FAILED(4);
         DEBUG_PRINT("Failed to em enable, not HV enabled\n");
-        return STATE_EM_Disable;
+        state = STATE_EM_Disable;
+    }
+
+    if (state != STATE_EM_Enable) {
+        EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
+        sendCAN_VCU_EM_State();
+        return state;
     }
 
     DEBUG_PRINT("Trans to em enable\n");
     if (MotorStart() != HAL_OK) {
         ERROR_PRINT("Failed to turn on motors\n");
         sendDTC_FATAL_EM_ENABLE_FAILED(5);
-        return STATE_Failure_Fatal;
+        state = STATE_Failure_Fatal;
     }
 
-    return STATE_EM_Enable;
+    EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
+    sendCAN_VCU_EM_State();
+
+    return state;
 }
 
 uint32_t EM_Fault(uint32_t event)
@@ -231,6 +237,9 @@ uint32_t EM_Fault(uint32_t event)
             ERROR_PRINT("Failed to stop motors\n");
             newState = STATE_Failure_Fatal;
         }
+
+        EM_State = EM_State_Off;
+        sendCAN_VCU_EM_State();
     }
 
     return newState;
