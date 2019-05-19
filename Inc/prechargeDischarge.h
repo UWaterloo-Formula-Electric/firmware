@@ -4,6 +4,7 @@
 
 #include "main.h"
 #include "freertos.h"
+#include "bsp.h"
 
 typedef enum PCDC_Notifications_t {
     PRECHARGE_NOTIFICATION,

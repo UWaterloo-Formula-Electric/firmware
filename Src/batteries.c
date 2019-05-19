@@ -315,10 +315,12 @@ void BatteryTaskError()
 
 void HVMeasureTask(void *pvParamaters)
 {
+#if IS_BOARD_F7
     if (hvadc_init() != HAL_OK)
     {
        ERROR_PRINT("Failed to init HV ADC\n");
     }
+#endif
 
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
@@ -426,9 +428,11 @@ HAL_StatusTypeDef stopCharging()
 
 HAL_StatusTypeDef stopBalance()
 {
+#if IS_BOARD_F7
     if (batt_unset_balancing_all_cells() != HAL_OK) {
         return HAL_ERROR;
     }
+#endif
 
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
     if (batt_write_config() != HAL_OK) {
@@ -442,6 +446,7 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
 HAL_StatusTypeDef pauseBalance()
 {
+#if IS_BOARD_F7
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (batt_is_cell_balancing(cell)) {
             isCellBalancing[cell] = true;
@@ -453,17 +458,20 @@ HAL_StatusTypeDef pauseBalance()
     if (stopBalance() != HAL_OK) {
         ERROR_PRINT("Failed to pause balance\n");
     }
+#endif
 
     return HAL_OK;
 }
 
 HAL_StatusTypeDef resumeBalance()
 {
+#if IS_BOARD_F7
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (isCellBalancing[cell]) {
             batt_balance_cell(cell);
         }
     }
+#endif
 
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
     if (batt_write_config() != HAL_OK) {
@@ -594,7 +602,9 @@ ChargeReturn balanceCharge()
 
                     if (cellSOC - minCellSOC > 1) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
+#if IS_BOARD_F7
                         batt_balance_cell(cell);
+#endif
                         balancingCells = true;
                     }
                 }
