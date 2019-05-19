@@ -59,6 +59,17 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
     }
 }
 
+#ifdef CHARGER_CAN_HANDLE
+HAL_StatusTypeDef sendCanMessageCharger(int id, int length, uint8_t *data)
+{
+#if IS_BOARD_F7_FAMILY
+    return F7_sendCanMessageCharger(id, length, data);
+#else
+#error Send can message charger not defined for this board type
+#endif
+}
+#endif
+
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data)
 {
     HAL_StatusTypeDef rc;

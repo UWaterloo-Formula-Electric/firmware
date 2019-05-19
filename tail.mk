@@ -140,6 +140,10 @@ else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
 
+ifeq ($(BOARD_NAME), BMU)
+   SRC += $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+endif
+
 #
 # add in driver sources
 SRC += $(LIB_C_SOURCES)
@@ -157,6 +161,10 @@ GEN_DIR = Gen
 GEN_FILES = $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c \
 	    $(GEN_INC_DIR)/$(BOARD_NAME)_can.h \
 	    $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h
+ifeq ($(BOARD_NAME), BMU)
+   GEN_FILES += $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+   GEN_FILES += $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h
+endif
 
 ###
 #
@@ -327,6 +335,10 @@ $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: $(CAN_FILES_GEN_SCRIPT) $(DBC_FILE)
 	@mkdir -p $(GEN_DIR)
 	$(CAN_FILES_GEN_SCRIPT) $(BOARD_NAME) $(F0_OR_F7)
+
+$(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+
+$(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h: $(DTC_FILES_GEN_SCRIPT) $(DTC_FILE)
 	@mkdir -p $(GEN_DIR)
