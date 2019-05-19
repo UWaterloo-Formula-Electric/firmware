@@ -4,6 +4,7 @@
 #include "usart.h"
 #include "freertos.h"
 #include "queue.h"
+#include "stdio.h"
 
 #ifdef DEBUG_ON
 #define DEBUG_PRINT(...) _DEBUG_PRINT(__VA_ARGS__)
