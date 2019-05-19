@@ -1,5 +1,7 @@
 #include "bsp.h"
 #include "debug.h"
+#include "freertos.h"
+#include "task.h"
 
 #define ADDR_CURRENT (0x00)
 #define ADDR_V1 (0x01)
@@ -165,6 +167,7 @@ HAL_StatusTypeDef hvadc_init()
       ERROR_PRINT("Error reading HV ADC status register\n");
       return HAL_ERROR;
     }
+    vTaskDelay(5);
   } while (status0 & (1<<RESET_ON_BIT));
 
   // Set up config register
