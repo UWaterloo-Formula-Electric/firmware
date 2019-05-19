@@ -82,6 +82,7 @@ osThreadId mainTaskHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
+osThreadId ledHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -92,6 +93,7 @@ void mainTaskFunction(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
+extern void ledTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -160,6 +162,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of cliTaskName */
   osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 256);
   cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
+
+  /* definition and creation of led */
+  osThreadDef(led, ledTask, osPriorityNormal, 0, 64);
+  ledHandle = osThreadCreate(osThread(led), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

@@ -4,6 +4,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "userCan.h"
+#include "DCU_can.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -31,6 +32,9 @@ void userInit()
       Error_Handler();
     }
     uartStartReceiving(&DEBUG_UART_HANDLE);
+
+    HV_Power_State = 0;
+    EM_State = 0;
 
     printf("User init done\n");
 }

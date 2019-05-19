@@ -32,6 +32,11 @@
 #define HV_LED_Pin HV_LED_EN_Pin
 #define HV_LED_GPIO_Port HV_LED_EN_GPIO_Port
 
+#define HV_LED_ON HAL_GPIO_WritePin(HV_LED_GPIO_Port, HV_LED_Pin, GPIO_PIN_SET);
+#define HV_LED_OFF HAL_GPIO_WritePin(HV_LED_GPIO_Port, HV_LED_Pin, GPIO_PIN_RESET);
+#define EM_LED_ON HAL_GPIO_WritePin(EM_LED_GPIO_Port, EM_LED_Pin, GPIO_PIN_SET);
+#define EM_LED_OFF HAL_GPIO_WritePin(EM_LED_GPIO_Port, EM_LED_Pin, GPIO_PIN_RESET);
+
 
 #define ERROR_LED_PIN LED_R_Pin
 #define ERROR_LED_PORT LED_R_GPIO_Port
@@ -57,6 +62,11 @@
 #define HV_LED_GPIO_Port LD2_GPIO_Port
 #define ERROR_LED_PIN LD2_Pin
 #define ERROR_LED_PORT LD2_GPIO_Port
+
+#define HV_LED_ON
+#define HV_LED_OFF
+#define EM_LED_ON
+#define EM_LED_OFF
 
 #else
 
