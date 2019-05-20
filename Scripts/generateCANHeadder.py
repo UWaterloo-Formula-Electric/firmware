@@ -686,7 +686,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
     return msgCallbackPrototypes
 
-def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters'):
+def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
     fWrite('void {functionName}(CAN_HandleTypeDef* canHandle);'.format(functionName=functionName), headerFileHandle)
     fWrite('__weak void {functionName}(CAN_HandleTypeDef* canHandle)\n{{'.format(functionName=functionName), sourceFileHandle)
     if boardType == 'F0':
@@ -719,7 +719,11 @@ def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileH
     fWrite('    }', sourceFileHandle)
 
     fWrite('\n    // Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
-    fWrite('    filterID = 0xFF<<8;', sourceFileHandle)
+    if isChargerDBC:
+        # Charger uses 0x50 as broadcast address
+        fWrite('    filterID = 0x5000;', sourceFileHandle)
+    else:
+        fWrite('    filterID = 0xFF<<8;', sourceFileHandle)
     fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
     fWrite('    filterMask = 0xFF00;', sourceFileHandle)
     fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
@@ -843,7 +847,7 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
     msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, heartbeatRxMessages, sourceFileHandle, headerFileHandle, isChargerDBC=isChargerDBC)
 
     if isChargerDBC:
-        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFiltersCharger')
+        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFiltersCharger', isChargerDBC=True)
     else:
         writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
 

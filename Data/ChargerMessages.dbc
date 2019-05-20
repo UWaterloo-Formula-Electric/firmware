@@ -38,7 +38,7 @@ VAL_TABLE_ NormalError 1 "Error" 0 "Normal" ;
 VAL_TABLE_ ChargeStartStop 1 "ChargeStart" 0 "ChargeStop" ;
 
 
-BO_ 2566869221 ChargeStatus: 5 Charger
+BO_ 2566869224 ChargeStatus: 8 Charger
  SG_ OutputVoltageLow : 8|8@1+ (1,0) [0|0] "raw"  BMU
  SG_ OutputCurrentLow : 24|8@1+ (1,0) [0|0] "raw"  BMU
  SG_ CommunicationState : 36|1@1+ (1,0) [0|0] ""  BMU
@@ -49,7 +49,7 @@ BO_ 2566869221 ChargeStatus: 5 Charger
  SG_ OutputVoltageHigh : 0|8@1+ (1,0) [0|0] "raw"  BMU
  SG_ OutputCurrentHigh : 16|8@1+ (1,0) [0|0] "raw"  BMU
 
-BO_ 2550595316 ChargerCommand: 5 BMU
+BO_ 2550589684 ChargerCommand: 8 BMU
  SG_ MaxChargeVoltageLow : 8|8@1+ (1,0) [0|0] "raw" Vector__XXX
  SG_ MaxChargeCurrentLow : 24|8@1+ (1,0) [0|0] "raw" Vector__XXX
  SG_ StartStopCharge : 32|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -125,12 +125,12 @@ BA_DEF_DEF_  "VFrameFormat" "J1939PG";
 BA_ "DBName" "ChargerMessages";
 BA_ "NmStationAddress" BU_ Charger 229;
 BA_ "NmStationAddress" BU_ BMU 244;
-BA_ "VFrameFormat" BO_ 2566869221 3;
-BA_ "VFrameFormat" BO_ 2550595316 3;
-VAL_ 2566869221 CommunicationState 1 "Error" 0 "Normal" ;
-VAL_ 2566869221 StartingState 1 "Error" 0 "Normal" ;
-VAL_ 2566869221 InputVoltageStatus 1 "Error" 0 "Normal" ;
-VAL_ 2566869221 OverTempActive 1 "Error" 0 "Normal" ;
-VAL_ 2566869221 HardwareFailure 1 "Error" 0 "Normal" ;
-VAL_ 2550595316 StartStopCharge 1 "ChargeStart" 0 "ChargeStop" ;
+BA_ "VFrameFormat" BO_ 2566869224 3;
+BA_ "VFrameFormat" BO_ 2550589684 3;
+VAL_ 2566869224 CommunicationState 1 "Error" 0 "Normal" ;
+VAL_ 2566869224 StartingState 1 "Error" 0 "Normal" ;
+VAL_ 2566869224 InputVoltageStatus 1 "Error" 0 "Normal" ;
+VAL_ 2566869224 OverTempActive 1 "Error" 0 "Normal" ;
+VAL_ 2566869224 HardwareFailure 1 "Error" 0 "Normal" ;
+VAL_ 2550589684 StartStopCharge 1 "ChargeStart" 0 "ChargeStop" ;
 

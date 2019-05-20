@@ -44,6 +44,12 @@ HAL_StatusTypeDef F7_canStart(CAN_HandleTypeDef *hcan)
         return HAL_ERROR;
     }
 
+    if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+    {
+        ERROR_PRINT("Error starting to listen for CAN msgs from FIFO0\n");
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }
 
@@ -61,12 +67,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 #ifdef CHARGER_CAN_HANDLE
     if (hcan == &CHARGER_CAN_HANDLE) {
         if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-            ERROR_PRINT_ISR("Failed to parse charge CAN message id %lu", RxHeader.ExtId);
+            ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);
         }
     } else {
 #endif
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+        ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);
     }
 #ifdef CHARGER_CAN_HANDLE
     }
@@ -87,12 +93,12 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 #ifdef CHARGER_CAN_HANDLE
     if (hcan == &CHARGER_CAN_HANDLE) {
         if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-            ERROR_PRINT_ISR("Failed to parse charge CAN message id %lu", RxHeader.ExtId);
+            ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);
         }
     } else {
 #endif
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+        ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);
     }
 #ifdef CHARGER_CAN_HANDLE
     }
