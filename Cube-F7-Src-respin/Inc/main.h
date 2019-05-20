@@ -130,6 +130,8 @@ void Error_Handler(void);
 #define BSPD_SENSE_GPIO_Port GPIOB
 #define HVIL_SENSE_Pin GPIO_PIN_12
 #define HVIL_SENSE_GPIO_Port GPIOB
+#define HVIL_EN_Pin GPIO_PIN_13
+#define HVIL_EN_GPIO_Port GPIOB
 #define FAN_Pin GPIO_PIN_14
 #define FAN_GPIO_Port GPIOB
 #define HVD_SENSE_Pin GPIO_PIN_8
