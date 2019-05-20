@@ -11,6 +11,7 @@
 #include "testData.h"
 #include "filters.h"
 #include "sense.h"
+#include "chargerControl.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -485,6 +486,41 @@ static const CLI_Command_Definition_t IMDStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t sendChargerCLICommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    DEBUG_PRINT("Sending charger command\n");
+    if (sendChargerCommand(30,1,1) != HAL_OK) {
+        DEBUG_PRINT("Failed to send charger command\n");
+    }
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t sendChargerCLICommandDefinition =
+{
+    "chargeCommand",
+    "chargeCommand:\r\n  send charge command to charger\r\n",
+    sendChargerCLICommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t chargerCanStartCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    DEBUG_PRINT("Starting charger CAN\n");
+
+    if (canStart(&CHARGER_CAN_HANDLE) != HAL_OK) {
+        ERROR_PRINT("Failed to start charger can\n");
+    }
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t chargerCanStartCommandDefinition =
+{
+    "canStartCharger",
+    "canStartCharger:\r\n  Start charger can\r\n",
+    chargerCanStartCommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -550,6 +586,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&IMDStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&sendChargerCLICommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&chargerCanStartCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
