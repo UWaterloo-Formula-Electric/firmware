@@ -271,7 +271,7 @@ uint32_t criticalFailure(uint32_t event)
 {
     DEBUG_PRINT("Critical Failure: Turning boards off\n");
     sendDTC_FATAL_BOARDS_OFF();
-    turnBoardsOff();
+    //turnBoardsOff();
     fsmSendEventUrgent(&motorFsmHandle, MTR_EV_Motor_Critical, 10 /* timeout */);
     fsmSendEventUrgent(&coolingFsmHandle, COOL_EV_Critical, 10 /* timeout */);
     return MN_STATE_Critical_Failure;
@@ -325,10 +325,10 @@ HAL_StatusTypeDef turnBoardsOn()
 HAL_StatusTypeDef turnBoardsOff()
 {
     DEBUG_PRINT("Turning boards off\n");
-    /*VCU_DISABLE;*/
-    /*DCU_DISABLE;*/
-    /*WSB_DISABLE;*/
-    /*BMU_DISABLE;*/
+    VCU_DISABLE;
+    DCU_DISABLE;
+    WSB_DISABLE;
+    BMU_DISABLE;
     return HAL_OK;
 }
 

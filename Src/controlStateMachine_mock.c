@@ -155,6 +155,26 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
         } else {
             VCU_DISABLE;
         }
+    } else if (STR_EQ(boardParam, "WSB", paramLen)) {
+        COMMAND_OUTPUT("Turning WSB %s\n", onOff?"on":"off");
+        if (onOff) {
+            WSB_ENABLE;
+        } else {
+            WSB_DISABLE;
+        }
+    } else if (STR_EQ(boardParam, "ALL", paramLen)) {
+        COMMAND_OUTPUT("Turning ALL %s\n", onOff?"on":"off");
+        if (onOff) {
+            BMU_ENABLE;
+            DCU_ENABLE;
+            VCU_ENABLE;
+            WSB_ENABLE;
+        } else {
+            BMU_DISABLE;
+            DCU_DISABLE;
+            VCU_DISABLE;
+            WSB_DISABLE;
+        }
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }
@@ -165,7 +185,7 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t channelEnableCommandDefinition =
 {
     "board",
-    "board <BMU|DCU|VCU_F7> <on|off>:\r\n  Turn on/off board\r\n",
+    "board <BMU|DCU|VCU_F7|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
     channelEnableCommand,
     2 /* Number of parameters */
 };
@@ -245,9 +265,15 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     printStates,
     0 /* Number of parameters */
 };
-BaseType_t testOuput(char *writeBuffer, size_t writeBufferLength,
+BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+    FAN_LEFT_ENABLE;
+    HAL_Delay(1000);
+    FAN_LEFT_DISABLE;
+    FAN_RIGHT_ENABLE;
+    HAL_Delay(1000);
+    FAN_RIGHT_DISABLE;
     PUMP_LEFT_ENABLE; 
     HAL_Delay(1000);
     PUMP_LEFT_DISABLE; 
@@ -260,13 +286,26 @@ BaseType_t testOuput(char *writeBuffer, size_t writeBufferLength,
     MC_RIGHT_ENABLE; 
     HAL_Delay(1000);
     MC_RIGHT_DISABLE; 
+    MC_RIGHT_ENABLE; 
+    HAL_Delay(1000);
+    MC_RIGHT_DISABLE; 
+    MC_RIGHT_ENABLE; 
+    HAL_Delay(1000);
+    MC_RIGHT_DISABLE; 
+    BRAKE_LIGHT_ENABLE;
+    HAL_Delay(1000);
+    BRAKE_LIGHT_DISABLE;
+    AUX_ENABLE;
+    HAL_Delay(1000);
+    AUX_DISABLE;
+
     return pdFALSE;
 }
-static const CLI_Command_Definition_t testOuputCommandDefinition =
+static const CLI_Command_Definition_t testOutputCommandDefinition =
 {
-    "testOuput",
-    "testOuput:\r\n  Cycle through each of the outputs in 1s intervals.\r\n",
-    testOuput,
+    "testOutput",
+    "testOutput:\r\n  Cycle through each of the outputs in 1s intervals.\r\n",
+    testOutput,
     0 /* Number of parameters */
 };
 
@@ -296,7 +335,7 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&setChannelCurrentCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&testOuputCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&testOutputCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&channelEnableCommandDefinition) != pdPASS) {
