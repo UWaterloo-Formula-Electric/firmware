@@ -26,6 +26,9 @@
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"
 
+
+
+#if BOARD_VERSION == 1
 #define STATS_TIM_HANDLE htim3
 #define DEBUG_UART_HANDLE huart3
 #define ADC_HANDLE hadc1
@@ -35,6 +38,28 @@
 #define DEBUG_LED_PORT LD2_GPIO_Port
 #define ERROR_LED_PIN LD3_Pin
 #define ERROR_LED_PORT LD3_GPIO_Port
+
+#define PP_5V0_ENABLE 	asm("NOP")
+#define PP_5V0_DISABLE	asm("NOP")
+#define PP_BB_ENABLE 	asm("NOP")
+#define PP_BB_DISABLE	asm("NOP")
+
+#elif BOARD_VERSION == 2
+#define STATS_TIM_HANDLE htim3
+#define DEBUG_UART_HANDLE huart3
+#define ADC_HANDLE hadc1
+#define CAN_HANDLE hcan1
+#define IWDG_HANDLE hiwdg
+#define DEBUG_LED_PIN LD2_Pin
+#define DEBUG_LED_PORT LD2_GPIO_Port
+#define ERROR_LED_PIN LD3_Pin
+#define ERROR_LED_PORT LD3_GPIO_Port
+
+#define PP_5V0_ENABLE 	HAL_GPIO_WritePin(PP_5V0_EN_Pin,PP_5V0_EN_GPIO_Port,GPIO_PIN_SET)
+#define PP_5V0_DISABLE	HAL_GPIO_WritePin(PP_5V0_EN_Pin,PP_5V0_EN_GPIO_Port,GPIO_PIN_RESET)
+#define PP_BB_ENABLE 	HAL_GPIO_WritePin(PP_BB_EN_Pin,PP_BB_EN_GPIO_Port,GPIO_PIN_SET)
+#define PP_BB_DISABLE	HAL_GPIO_WritePin(PP_BB_EN_Pin,PP_BB_EN_GPIO_Port,GPIO_PIN_RESET)
+#endif
 
 #else
 
