@@ -31,7 +31,6 @@ void userInit()
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
-    uartStartReceiving(&DEBUG_UART_HANDLE);
 
     HV_Power_State = 0;
     EM_State = 0;
