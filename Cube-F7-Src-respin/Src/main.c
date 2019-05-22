@@ -62,6 +62,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stdio.h"
 #include "generalErrorHandler.h"
 #include "watchdog.h"
 /* USER CODE END Includes */

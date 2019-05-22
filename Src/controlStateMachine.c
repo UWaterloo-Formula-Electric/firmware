@@ -429,8 +429,6 @@ uint32_t coolingCriticalFailure(uint32_t event) {
 
 uint32_t coolingOff(uint32_t event) {
     DEBUG_PRINT("Turning cooling off\n");
-    FAN_LEFT_DISABLE;
-    FAN_RIGHT_DISABLE;
     PUMP_LEFT_DISABLE;
     PUMP_RIGHT_DISABLE;
     return COOL_STATE_OFF;
@@ -438,8 +436,6 @@ uint32_t coolingOff(uint32_t event) {
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-    FAN_LEFT_ENABLE;
-    FAN_RIGHT_ENABLE;
     PUMP_LEFT_ENABLE;
     PUMP_RIGHT_ENABLE;
     return COOL_STATE_ON;
