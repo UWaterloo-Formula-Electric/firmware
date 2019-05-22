@@ -286,12 +286,6 @@ BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
     MC_RIGHT_ENABLE; 
     HAL_Delay(1000);
     MC_RIGHT_DISABLE; 
-    MC_RIGHT_ENABLE; 
-    HAL_Delay(1000);
-    MC_RIGHT_DISABLE; 
-    MC_RIGHT_ENABLE; 
-    HAL_Delay(1000);
-    MC_RIGHT_DISABLE; 
     BRAKE_LIGHT_ENABLE;
     HAL_Delay(1000);
     BRAKE_LIGHT_DISABLE;
