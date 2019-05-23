@@ -31,7 +31,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "errorHandler.h"
+#include "watchdog.h"
+#include "generalErrorHandler.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -77,7 +79,7 @@ __weak void userInit() {}
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  checkForWDReset();
   /* USER CODE END 1 */
   
 
@@ -109,6 +111,8 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   userInit();
+  printWDResetState();
+  handleWatchdogReset();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -201,7 +205,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  _handleError(file, line);
+  _handleError(__FILE__, __LINE__);
   /* USER CODE END Error_Handler_Debug */
 }
 
