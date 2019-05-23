@@ -44,6 +44,7 @@
 
 /* USER CODE BEGIN Includes */   	      
 /* Section where include file can be added */
+#include "main.h"
 /* USER CODE END Includes */ 
 
 /* Ensure stdint is only used by the compiler, and not the assembler. */

@@ -11,7 +11,7 @@
 # ------------------------------------------------
 
 
-THIS_MAKEFILE_PATH := $(CUBE_F7_VERSION_1_MAKEFILE_PATH)
+THIS_MAKEFILE_PATH := $(CUBE_F7_VERSION_2_MAKEFILE_PATH)
 ######################################
 # target
 ######################################
