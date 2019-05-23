@@ -3,7 +3,9 @@
 #include "BMU_charger_can.h"
 #include "userCan.h"
 #include "inttypes.h"
+#include <string.h>
 
+ChargerStatus mStatus = {0};
 
 HAL_StatusTypeDef chargerInit()
 {
@@ -56,6 +58,22 @@ void CAN_Msg_ChargeStatus_Callback()
    float currentFloat = current * 0.1;
    float voltageFloat = voltage * 0.1;
 
+   mStatus.current = currentFloat;
+   mStatus.voltage = voltageFloat;
+   mStatus.HWFail = HardwareFailure;
+   mStatus.OverTemp = OverTempActive;
+   mStatus.InputVoltageStatus = InputVoltageStatus;
+   mStatus.StartingStatus = StartingState;
+   mStatus.CommunicationState = CommunicationState;
+
+   if (HardwareFailure || OverTempActive || InputVoltageStatus || StartingState
+       || CommunicationState)
+   {
+      mStatus.OverallState = CHARGER_FAIL;
+   } else {
+      mStatus.OverallState = CHARGER_OK;
+   }
+
    DEBUG_PRINT_ISR("Current %f\n", currentFloat);
    DEBUG_PRINT_ISR("Voltage %f\n", voltageFloat);
    DEBUG_PRINT_ISR("HW Fail %u, OverTemp %u, InputVoltageStatus %u\n",
@@ -65,3 +83,29 @@ void CAN_Msg_ChargeStatus_Callback()
                    (uint16_t)StartingState, (uint16_t)CommunicationState);
    DEBUG_PRINT_ISR("\n\n");
 }
+
+HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut)
+{
+   if (statusOut == NULL) {
+      ERROR_PRINT("Got null charger status pointer\n");
+      return HAL_ERROR;
+   }
+
+   if (mStatus.OverallState != CHARGER_OK)
+   {
+      ERROR_PRINT_ISR("Charger State Fail\n");
+      DEBUG_PRINT_ISR("Current %f\n", mStatus.current);
+      DEBUG_PRINT_ISR("Voltage %f\n", mStatus.voltage);
+      DEBUG_PRINT_ISR("HW Fail %u, OverTemp %u, InputVoltageStatus %u\n",
+                      (uint16_t)mStatus.HWFail,
+                      (uint16_t)mStatus.OverTemp, (uint16_t)mStatus.InputVoltageStatus);
+      DEBUG_PRINT_ISR("StartingState %u, CommunicationState %u\n",
+                      (uint16_t)mStatus.StartingStatus, (uint16_t)mStatus.CommunicationState);
+      DEBUG_PRINT_ISR("\n\n");
+   }
+
+   memcpy(statusOut, &mStatus, sizeof(ChargerStatus));
+
+   return HAL_OK;
+}
+

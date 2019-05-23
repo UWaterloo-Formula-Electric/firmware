@@ -11,6 +11,7 @@
 #include "boardTypes.h"
 #include "watchdog.h"
 #include "canReceive.h"
+#include "chargerControl.h"
 
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_TASK_ID 2
@@ -38,6 +39,8 @@
 #define CELL_RELAXATION_TIME_MS (10)
 #define CHARGE_STOP_SOC (98.0)
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
+#define CHARGE_MAX_VOLTAGE 300
+#define CHARGE_MAX_CURRENT 10
 
 // This should be long enough so cells aren't constantly being toggled
 // between balance and not
@@ -412,16 +415,39 @@ HAL_StatusTypeDef startCharging()
 {
     DEBUG_PRINT("Starting charge\n");
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
-    CONT_CHARGE_CLOSE;
+    sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
 #endif
     return HAL_OK;
+}
+
+// Charger expects msgs every second, so keep sending this
+HAL_StatusTypeDef continueCharging()
+{
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+   ChargerStatus status;
+
+   sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
+
+   if (checkChargerStatus(&status) != HAL_OK) {
+      ERROR_PRINT("Failed to get charger status\n");
+      return HAL_ERROR;
+   }
+
+   if (status.OverallState != CHARGER_OK) {
+      ERROR_PRINT("Charger Fail\n");
+      sendDTC_FATAL_BMU_Charger_ERROR();
+      return HAL_ERROR;
+   }
+
+#endif
+   return HAL_OK;
 }
 
 HAL_StatusTypeDef stopCharging()
 {
     DEBUG_PRINT("stopping charge\n");
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
-    CONT_CHARGE_OPEN;
+    sendChargerCommand(0, 0, false /* stop charing */);
 #endif
     return HAL_OK;
 }
@@ -534,6 +560,16 @@ ChargeReturn balanceCharge()
     uint32_t dbwTaskNotifications;
 
     while (1) {
+       /*
+        * Need to send msg to charger every second to continue charging
+        */
+       if (!waitingForBalanceDone) {
+          if (continueCharging() != HAL_OK) {
+             ERROR_PRINT("Failed to send charge continue message\n");
+             BOUNDED_CONTINUE
+          }
+       }
+
         /*
          * Perform cell reading, need to pause any ongoing balance in order to
          * get good voltage readings
@@ -712,7 +748,7 @@ void batteryTask(void *pvParameter)
 
     if (batteryStart() != HAL_OK)
     {
-        Error_Handler();
+        BatteryTaskError();
     }
 
     if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)

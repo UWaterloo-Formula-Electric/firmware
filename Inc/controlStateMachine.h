@@ -12,7 +12,6 @@ typedef enum BMU_States_t {
     STATE_HV_Enable,
     STATE_Precharge,
     STATE_Discharge,
-    STATE_Charge_Wait, // In charge mode, waiting to start charge
     STATE_Charging,
     STATE_Failure_Fatal,
     STATE_ANY, // Must be the last state

@@ -39,10 +39,10 @@ Transition_t transitions[] = {
 
     // Charge
     { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
-    { STATE_Charge_Wait, EV_Charge_Start, &startCharge },
+    { STATE_HV_Enable, EV_Charge_Start, &startCharge },
     { STATE_Charging, EV_Charge_Stop, &stopCharge },
-    { STATE_Charging, EV_Charge_Done, &chargeDone },
-    { STATE_Charge_Wait, EV_Charge_Stop, &controlDoNothing },
+    { STATE_Charging, EV_Charge_Done, &chargeDone }, // Takes precedence over next transition
+    { STATE_ANY, EV_Charge_Stop, &controlDoNothing }, // Must be after charging charge stop
 
     // PCDC
     { STATE_HV_Disable, EV_HV_Toggle, &startPrecharge },
@@ -254,7 +254,7 @@ uint32_t enterChargeMode(uint32_t event)
     // Disable the car heartbeat, as we aren't connected to the car
     disableHeartbeat();
 
-    return STATE_Charge_Wait;
+    return STATE_HV_Disable;
 }
 
 uint32_t startCharge(uint32_t event)
@@ -278,5 +278,11 @@ uint32_t chargeDone(uint32_t event)
 {
     DEBUG_PRINT("Charge done/stopped\n");
 
-    return STATE_Charge_Wait;
+    if (fsmGetState(&fsmHandle) == STATE_Charging) {
+        return STATE_HV_Enable;
+    } else {
+        // Shouldn't happen
+        ERROR_PRINT("Got charge done event, but wasn't charging\n");
+        return STATE_HV_Disable;
+    }
 }
