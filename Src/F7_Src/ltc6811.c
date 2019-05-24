@@ -905,6 +905,20 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 
     return HAL_OK;
 }
+HAL_StatusTypeDef batt_stop_balance_cell(int cell)
+{
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
+    {
+        return HAL_ERROR;
+    }
+
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD);
+
+    batt_unset_balancing_cell(boardIdx, amsCellIdx);
+
+    return HAL_OK;
+}
 
 // Need to read config first
 bool batt_is_cell_balancing(int cell)
