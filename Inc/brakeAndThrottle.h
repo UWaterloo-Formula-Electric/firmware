@@ -19,8 +19,8 @@ typedef enum ADC_Indices_t {
 #elif BOARD_VERSION == 2
 
 typedef enum ADC_Indices_t {
-    THROTTLE_A_INDEX,
-    THROTTLE_B_INDEX = 0,
+    THROTTLE_A_INDEX = 0,
+    THROTTLE_B_INDEX,
     BRAKE_POS_INDEX,
     STEERING_INDEX,
     BRAKE_PRES_INDEX,

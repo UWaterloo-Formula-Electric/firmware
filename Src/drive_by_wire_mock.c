@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "VCU_F7_can.h"
 #include "brakeAndThrottle.h"
+#include "bsp.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -279,7 +280,45 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     "state",
     "state:\r\n  Output current state of state machine\r\n",
     printState,
-    0 /* Number of parameters */
+    0/* Number of parameters */
+};
+BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Turning BeagleBone %s\n", onOff?"on":"off");
+        if (onOff) {
+            PP_5V0_ENABLE;
+            HAL_Delay(100);
+            PP_BB_ENABLE;  
+        } else {
+            //TODO: send shutdown message to BB
+            PP_BB_DISABLE;
+            HAL_Delay(100);
+            PP_5V0_DISABLE;         
+        }
+
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t beagleBonePowerCommandDefinition =
+{
+    "BB",
+    "BB <on|off>:\r\n  sets the power state for the BeagleBone\r\n",
+    beagleBonePower,
+    1 /* Number of parameters */
 };
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -316,10 +355,14 @@ HAL_StatusTypeDef stateMachineMockInit()
     }
     if (FreeRTOS_CLIRegisterCommand(&getThrottleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
+    }    
+    if (FreeRTOS_CLIRegisterCommand(&beagleBonePowerCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getADCInputsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+
 
     return HAL_OK;
 }

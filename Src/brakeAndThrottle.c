@@ -33,6 +33,7 @@ uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
+    DEBUG_PRINT("Starting adc readings for %d channels\n", NUM_ADC_CHANNELS);
     if (HAL_ADC_Start_DMA(&ADC_HANDLE, brakeThrottleSteeringADCVals, NUM_ADC_CHANNELS) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
