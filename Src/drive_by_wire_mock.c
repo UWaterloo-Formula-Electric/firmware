@@ -145,11 +145,38 @@ BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                    /*brakeThrottleSteeringADCVals[3], brakeThrottleSteeringADCVals[4]);*/
     return pdFALSE;
 }
+
 static const CLI_Command_Definition_t getThrottleABCommandDefinition =
 {
     "getThrottleAB",
     "getThrottleAB:\r\n Get throttle pots A and B\r\n",
     getFakeThrottleAB,
+    0 /* Number of parameters */
+};
+
+BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    DEBUG_PRINT("Throttle A %u (ADC: %lu), B %u (ADC: %lu)\n",
+                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
+                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
+                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
+                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    DEBUG_PRINT("Brake Pos: %lu, brake pres: %lu, steering pos: %lu\n",
+                brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
+                brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX],
+                brakeThrottleSteeringADCVals[STEERING_INDEX]);
+
+    /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
+                   /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
+                   /*brakeThrottleSteeringADCVals[3], brakeThrottleSteeringADCVals[4]);*/
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getADCInputsCommandDefinition =
+{
+    "adcInputs",
+    "adcInputs:\r\n Get adc input values\r\n",
+    getADCInputs,
     0 /* Number of parameters */
 };
 
@@ -288,6 +315,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getThrottleCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getADCInputsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
