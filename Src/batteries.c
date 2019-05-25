@@ -172,7 +172,7 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
 #define MAX_ERROR_COUNT 3
 #define BOUNDED_CONTINUE \
     if ((++errorCounter) > MAX_ERROR_COUNT) { \
-        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500)); \
+        BatteryTaskError(); \
     } else { \
         watchdogTaskCheckIn(BATTERY_TASK_ID); \
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS)); \
@@ -308,6 +308,8 @@ HAL_StatusTypeDef batteryStart()
 void BatteryTaskError()
 {
     // Suspend task for now
+    ERROR_PRINT("Battery Error occured!\n");
+    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     while (1) {
         // Suspend this task while still updating watchdog
         watchdogTaskCheckIn(BATTERY_TASK_ID);
@@ -602,7 +604,6 @@ ChargeReturn balanceCharge()
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
             BatteryTaskError();
         }
 #endif
@@ -621,7 +622,6 @@ ChargeReturn balanceCharge()
                 ((float *)&TempCellMax), ((float *)&TempCellMin),
                 &packVoltage) != HAL_OK)
         {
-            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
             BatteryTaskError();
         }
 
@@ -809,7 +809,6 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
             BatteryTaskError();
         }
 #endif
@@ -825,7 +824,6 @@ void batteryTask(void *pvParameter)
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage) != HAL_OK)
         {
-            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
             BatteryTaskError();
         }
 
