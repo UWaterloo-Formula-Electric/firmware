@@ -12,6 +12,19 @@
 #include "canReceive.h"
 #include "brakeAndThrottle.h"
 #include "watchdog.h"
+#include "motorController.h"
+
+#define DRIVE_BY_WIRE_TASK_ID 1
+
+#define MC_STARTUP_TIME_MS           10
+#define MC_STOP_TIME_MS              10
+
+// While the motors are starting, increase the watchdog timeout to allow
+// delays to wait for motor controllers to start up
+#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS (MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS)
+#define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MC_STOP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS)
+
+#define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
 
 FSM_Handle_Struct fsmHandle;
 TimerHandle_t throttleUpdateTimer;
@@ -69,13 +82,15 @@ HAL_StatusTypeDef driveByWireInit()
     init.transitions = transitions;
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 5;
-    init.watchdogTaskId = 1;
+    init.watchdogTaskId = DRIVE_BY_WIRE_TASK_ID;
     if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init drive by wire fsm\n");
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(1, 50, true, &fsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(1, pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS),
+                            true, &fsmHandle) != HAL_OK)
+    {
         return HAL_ERROR;
     }
 
@@ -335,7 +350,16 @@ HAL_StatusTypeDef turnOffMotorControllers() {
 HAL_StatusTypeDef MotorStart()
 {
     DEBUG_PRINT("Starting motors\n");
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
+                              pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
+
     if (turnOnMotorControllers() != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS));
+    if (mcInit() != HAL_OK) {
+        ERROR_PRINT("Failed to start motor controllers\n");
         return HAL_ERROR;
     }
 
@@ -344,12 +368,22 @@ HAL_StatusTypeDef MotorStart()
         return HAL_ERROR;
     }
 
+
+    // Change back timeout
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
+                              pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
     return HAL_OK;
 }
 
 HAL_StatusTypeDef MotorStop()
 {
     DEBUG_PRINT("Stopping motors\n");
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
+
+    if (mcShutdown() != HAL_OK) {
+        ERROR_PRINT("Failed to shutdown motor controllers\n");
+        return HAL_ERROR;
+    }
 
     if (xTimerStop(throttleUpdateTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to stop throttle update timer\n");
@@ -360,5 +394,8 @@ HAL_StatusTypeDef MotorStop()
         return HAL_ERROR;
     }
 
+    // Change back timeout
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
+                              pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
     return HAL_OK;
 }

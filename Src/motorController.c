@@ -37,6 +37,7 @@ HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
     return sendCAN_SpeedLimitLeft();
 }
 
+// TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
     if (mcRightCommand(0x4) != HAL_OK) {
@@ -78,6 +79,21 @@ HAL_StatusTypeDef mcInit()
 
     if (mcLeftCommand(0x1) != HAL_OK) {
         ERROR_PRINT("Failed to send enable bridge command to MC Left");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef mcShutdown()
+{
+    if (mcLeftCommand(0x4) != HAL_OK) {
+        ERROR_PRINT("Failed to send init disable bridge command to MC Left");
+        return HAL_ERROR;
+    }
+
+    if (mcRightCommand(0x4) != HAL_OK) {
+        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
         return HAL_ERROR;
     }
 

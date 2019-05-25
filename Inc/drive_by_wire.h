@@ -6,7 +6,7 @@
 // Throttle poll time is linked to brake timeout and implausibilty timeout
 #define THROTTLE_POLL_TIME_MS 50
 
-#define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 10000 // TODO: Change to good value
+#define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 50 // TODO: Change to good value
 
 typedef enum VCU_States_t {
     STATE_Self_Check = 0,
