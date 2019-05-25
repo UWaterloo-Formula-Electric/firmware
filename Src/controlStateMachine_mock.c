@@ -42,8 +42,8 @@ BaseType_t getChannelsRaw(char *writeBuffer, size_t writeBufferLength,
 }
 static const CLI_Command_Definition_t getChannelsRawDefinition =
 {
-    "getChannelsRaw",
-    "getChannelsRaw:\r\n Print all channels raw adc values\r\n",
+    "adcRaw",
+    "adcRaw:\r\n Print all channels raw adc values\r\n",
     getChannelsRaw,
     0,
 };
