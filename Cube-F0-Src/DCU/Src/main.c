@@ -203,11 +203,11 @@ void SystemClock_Config(void)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-void Error_Handler(void)
+void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-_handleError(__FILE__, __LINE__);
+  _handleError(file, line);
 
 
   while(1)
