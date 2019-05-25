@@ -34,6 +34,20 @@ static const CLI_Command_Definition_t getChannelCurrentsCommandDefinition =
     0,
 };
 
+BaseType_t getChannelsRaw(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    printRawADCVals();
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getChannelsRawDefinition =
+{
+    "getChannelsRaw",
+    "getChannelsRaw:\r\n Print all channels raw adc values\r\n",
+    getChannelsRaw,
+    0,
+};
+
 BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -336,6 +350,9 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getChannelCurrentsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getChannelsRawDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

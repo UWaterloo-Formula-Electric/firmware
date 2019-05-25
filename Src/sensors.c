@@ -43,6 +43,17 @@ HAL_StatusTypeDef startADCConversions()
     return HAL_OK;
 }
 
+void printRawADCVals() {
+    for (int i=0; i < NUM_PDU_CHANNELS; i++) {
+        if (i == LV_Voltage) {
+            DEBUG_PRINT("Bus Voltage: %lu\n", ADC_Buffer[i]);
+        } else if (i == LV_Current) {
+            DEBUG_PRINT("Bus current: %lu\n", ADC_Buffer[i]);
+        } else {
+            DEBUG_PRINT("Channel %d: %lu\n", i, ADC_Buffer[i]);
+        }
+    }
+}
 float readCurrent(PDU_Channels_t channel)
 {
     uint32_t rawValue = ADC_Buffer[channel];

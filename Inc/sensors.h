@@ -50,6 +50,7 @@ typedef enum PDU_Channels_t {
 float readBusCurrent();
 float readBusVoltage();
 float readCurrent(PDU_Channels_t channel);
+void printRawADCVals();
 
 
 #endif /* end of include guard: SENSORS_H */
