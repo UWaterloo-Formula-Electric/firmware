@@ -78,6 +78,28 @@ HAL_StatusTypeDef registerTaskToWatch(uint32_t id, uint32_t timeoutTicks,
     return HAL_OK;
 }
 
+HAL_StatusTypeDef watchdogTaskChangeTimeout(uint32_t id, uint32_t timeoutTicks)
+{
+    if (id == 0) return HAL_ERROR;
+
+    TaskNode *node = tasksToWatchList;
+
+    while (node != NULL) {
+        if (node->id == id) {
+            node->timeoutTicks = timeoutTicks;
+            // Treat this as a checkin as well
+            // Otherwise changing timeout right before deadline might
+            // sitll cause a missed deadline
+            node->lastCheckInTicks = xTaskGetTickCount();
+            return HAL_OK;
+        }
+        node = node->next;
+    }
+
+    return HAL_ERROR;
+}
+
+
 HAL_StatusTypeDef watchdogTaskCheckIn(uint32_t id)
 {
     if (id == 0) return HAL_ERROR;

@@ -50,6 +50,7 @@ HAL_StatusTypeDef F0_canStart(CAN_HandleTypeDef *hcan)
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
+  HAL_StatusTypeDef rc = 0;
     if (hcan->pRxMsg->DLC != CAN_MESSAGE_DLC_INVALID) {
         hcan->pRxMsg->DLC = CAN_MESSAGE_DLC_INVALID;
 
@@ -68,7 +69,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
         }
 
-        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
+        rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
+        if (rc != HAL_OK) {
+            ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d\n", rc);
             Error_Handler();
         }
     } else {
@@ -89,7 +92,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
             ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
         }
 
-        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
+        rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO1);
+        if (rc != HAL_OK) {
+                      ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d\n", rc);
             Error_Handler();
         }
     }
@@ -136,7 +141,7 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 	// Deal with error
 
 	error = hcan->ErrorCode;
-        ERROR_PRINT_ISR("Error in CAN driver!!\n");
+        ERROR_PRINT_ISR("Error in CAN driver %lu!!\n", error);
 //#define HAL_CAN_ERROR_NONE              ((uint32_t)0x00000000)  /*!< No error             */
 //#define HAL_CAN_ERROR_EWG               ((uint32_t)0x00000001)  /*!< EWG error            */
 //#define HAL_CAN_ERROR_EPV               ((uint32_t)0x00000002)  /*!< EPV error            */
