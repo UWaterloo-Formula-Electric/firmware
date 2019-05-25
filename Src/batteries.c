@@ -17,6 +17,10 @@
 #define BATTERY_TASK_ID 2
 
 #define HV_MEASURE_TASK_PERIOD_MS 5
+#define HV_MEASURE_TASK_ID 4
+
+#define IMD_TASK_PERIOD_MS 1000
+#define IMD_TASK_ID 5
 
 #define ENABLE_IMD
 #define ENABLE_HV_MEASURE
@@ -330,6 +334,12 @@ void HVMeasureTask(void *pvParamaters)
     }
 #endif
 
+    if (registerTaskToWatch(HV_MEASURE_TASK_ID, 2*pdMS_TO_TICKS(HV_MEASURE_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to register hv measure task with watchdog!\n");
+        Error_Handler();
+    }
+
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to read bus voltages and current!\n");
@@ -338,6 +348,8 @@ void HVMeasureTask(void *pvParamaters)
         if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to publish bus voltages and current!\n");
         }
+
+        watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelay(HV_MEASURE_TASK_PERIOD_MS);
     }
 }
@@ -361,6 +373,11 @@ void imdTask(void *pvParamaters)
    // Notify control fsm that IMD is ready
    fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
 
+   if (registerTaskToWatch(IMD_TASK_ID, 2*pdMS_TO_TICKS(IMD_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+   {
+     ERROR_PRINT("Failed to register imd task with watchdog!\n");
+     Error_Handler();
+   }
    while (1) {
       imdStatus =  get_imd_status();
 
@@ -405,13 +422,14 @@ void imdTask(void *pvParamaters)
          BatteryTaskError();
       }
 
-      vTaskDelay(1000);
+      watchdogTaskCheckIn(IMD_TASK_ID);
+      vTaskDelay(IMD_TASK_PERIOD_MS);
    }
 #else
    // Notify control fsm that IMD is ready
    fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
    while (1) {
-      vTaskDelay(10000);
+      vTaskDelay(IMD_TASK_PERIOD_MS);
    }
 #endif
 }
