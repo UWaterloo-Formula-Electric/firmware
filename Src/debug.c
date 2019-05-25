@@ -353,6 +353,21 @@ static const CLI_Command_Definition_t statsListCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t resetCLICommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    NVIC_SystemReset();
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t resetCLICommandDefinition =
+{
+    "reset",
+    "reset:\r\n  Reset the processor\r\n",
+    resetCLICommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef debugInit()
 {
@@ -382,6 +397,9 @@ HAL_StatusTypeDef debugInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&resetCLICommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;
