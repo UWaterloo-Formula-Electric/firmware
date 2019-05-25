@@ -38,6 +38,7 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
 
 
 HAL_StatusTypeDef batt_balance_cell(int cell);
+HAL_StatusTypeDef batt_stop_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();

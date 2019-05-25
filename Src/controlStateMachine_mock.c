@@ -12,6 +12,7 @@
 #include "filters.h"
 #include "sense.h"
 #include "chargerControl.h"
+#include "batteries.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -521,6 +522,45 @@ static const CLI_Command_Definition_t chargerCanStartCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int cellIdx;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    sscanf(idxParam, "%u", &cellIdx);
+
+    if (cellIdx < 0 || cellIdx >= VOLTAGECELL_COUNT) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+        return pdFALSE;
+    }
+
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+        COMMAND_OUTPUT("Setting cell: %d to balance\n",cellIdx);
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+        COMMAND_OUTPUT("Setting cell: %d to not balance\n",cellIdx);
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+        return pdFALSE;
+    }
+    balance_cell(cellIdx, onOff);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t balanceCellCommandDefinition =
+{
+    "balanceCell",
+    "balanceCell <cell number> <on|off>:\r\n set the state of the balance ressistor for a specific cell\r\n",
+    balanceCellCommand,
+    2 /* Number of parameters */
+};
+
+
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -592,6 +632,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargerCanStartCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

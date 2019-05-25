@@ -507,6 +507,19 @@ HAL_StatusTypeDef resumeBalance()
 
     return HAL_OK;
 }
+HAL_StatusTypeDef balance_cell(int cell, bool set)
+{
+#if IS_BOARD_F7
+  if (set) batt_balance_cell(cell);
+  else batt_stop_balance_cell(cell);
+#endif
+#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("Failed to resume balance\n");
+    }
+#endif
+    return HAL_OK;
+}
 
 
 float map_range_float(float in, float low, float high, float low_out, float high_out) {
