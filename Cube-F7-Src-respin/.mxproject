@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=/Users/abondarenko/Documents/Formula_Electric/Firmware.nosync/2018_pdu/Cube-F7-Src-respin/Inc
+HeaderPath=/Users/djgood/code/wfe/2018_pdu/Cube-F7-Src-respin/Inc
 HeaderFiles=gpio.h;adc.h;can.h;FreeRTOSConfig.h;usart.h;stm32f7xx_it.h;stm32f7xx_hal_conf.h;main.h;dma.h;i2c.h;tim.h;iwdg.h;
-SourcePath=/Users/abondarenko/Documents/Formula_Electric/Firmware.nosync/2018_pdu/Cube-F7-Src-respin/Src
+SourcePath=/Users/djgood/code/wfe/2018_pdu/Cube-F7-Src-respin/Src
 SourceFiles=gpio.c;adc.c;can.c;freertos.c;usart.c;stm32f7xx_it.c;stm32f7xx_hal_msp.c;main.c;dma.c;i2c.c;tim.c;iwdg.c;
 
 [PreviousLibFiles]
