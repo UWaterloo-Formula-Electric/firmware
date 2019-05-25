@@ -87,7 +87,7 @@ void sensorTask(void *pvParameters)
         StateBatteryChargeLV=100;
         StateBatteryHealthLV=100;
         StateBatteryPowerLV=100;
-        VoltageBusLV= readBusVoltage();
+        VoltageBusLV= readBusVoltage() * 1000; // Bus voltage is sent as mV
         /*DEBUG_PRINT("Bus Voltage %f\n", readBusVoltage());*/
         if (sendCAN_PDU_batteryStatusLV() != HAL_OK)
         {
