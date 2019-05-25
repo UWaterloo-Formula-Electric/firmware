@@ -97,7 +97,11 @@ void mainTaskFunction(void const * argument)
     uint32_t notification;
 
     DEBUG_PRINT("Starting up!!\n");
-    canStart(&CAN_HANDLE);
+    if (canStart(&CAN_HANDLE) != HAL_OK) {
+        ERROR_PRINT("Failed to start can\n");
+        Error_Handler();
+    }
+
 
     if (registerTaskToWatch(MAIN_TASK_ID, 2*pdMS_TO_TICKS(MAIN_TASK_PERIOD), false, NULL) != HAL_OK)
     {
