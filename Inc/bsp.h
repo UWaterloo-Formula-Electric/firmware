@@ -7,6 +7,7 @@
 #include "tim.h"
 #include "iwdg.h"
 #include <stdbool.h>
+#include "usart.h"
 
 #if IS_BOARD_F7
 #include "stm32f7xx_hal.h"
