@@ -18,7 +18,10 @@
 
 #define HV_MEASURE_TASK_PERIOD_MS 5
 
-#define DISABLE_BATTERY_MONITORING_HARDWARE
+#define ENABLE_IMD
+#define ENABLE_HV_MEASURE
+#define ENABLE_AMS
+#define ENABLE_CHARGER
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
@@ -92,7 +95,7 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
    if (adc_read_current(IBus) != HAL_OK) {
       ERROR_PRINT("Error reading IBUS\n");
       return HAL_ERROR;
@@ -107,7 +110,7 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
    }
    return HAL_OK;
 
-#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_HV_MEASURE)
    // For nucleo, voltages and current can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -118,12 +121,12 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
 
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
    _Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");
    _Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");
 
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
-#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -139,11 +142,11 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
  */
 HAL_StatusTypeDef initVoltageAndTempArrays()
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
    // For F7 just zero out the array
    float initVoltage = 3.5;
    float initTemp = 0;
-#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    float initVoltage = LIMIT_OVERVOLTAGE - 0.1;
    float initTemp = CELL_OVERTEMP - 20;
 #else
@@ -293,9 +296,9 @@ float calculateStateOfCharge()
 
 HAL_StatusTypeDef batteryStart()
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
    return batt_init();
-#elif IS_BOARD_NUCLEO_F7 || defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
    return HAL_OK;
@@ -341,7 +344,7 @@ void HVMeasureTask(void *pvParamaters)
 
 void imdTask(void *pvParamaters)
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_IMD)
    IMDStatus imdStatus;
 
    if (begin_imd_measurement() != HAL_OK) {
@@ -416,7 +419,7 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef startCharging()
 {
     DEBUG_PRINT("Starting charge\n");
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_CHARGER)
     sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
 #endif
     return HAL_OK;
@@ -425,7 +428,7 @@ HAL_StatusTypeDef startCharging()
 // Charger expects msgs every second, so keep sending this
 HAL_StatusTypeDef continueCharging()
 {
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_CHARGER)
    ChargerStatus status;
 
    sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
@@ -448,7 +451,7 @@ HAL_StatusTypeDef continueCharging()
 HAL_StatusTypeDef stopCharging()
 {
     DEBUG_PRINT("stopping charge\n");
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_CHARGER)
     sendChargerCommand(0, 0, false /* stop charing */);
 #endif
     return HAL_OK;
@@ -462,7 +465,7 @@ HAL_StatusTypeDef stopBalance()
     }
 #endif
 
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
     if (batt_write_config() != HAL_OK) {
         return HAL_ERROR;
     }
@@ -501,7 +504,7 @@ HAL_StatusTypeDef resumeBalance()
     }
 #endif
 
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -515,7 +518,7 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   if (set) batt_balance_cell(cell);
   else batt_stop_balance_cell(cell);
 #endif
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -601,7 +604,7 @@ ChargeReturn balanceCharge()
             BOUNDED_CONTINUE
         }
 
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
@@ -660,7 +663,7 @@ ChargeReturn balanceCharge()
 
                 DEBUG_PRINT("\n\n\n");
 
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
                 if (batt_write_config() != HAL_OK)
                 {
@@ -806,7 +809,7 @@ void batteryTask(void *pvParameter)
             }
         }
 
-#if IS_BOARD_F7 && !defined(DISABLE_BATTERY_MONITORING_HARDWARE)
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
