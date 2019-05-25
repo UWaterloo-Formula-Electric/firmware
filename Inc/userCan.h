@@ -28,5 +28,8 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data);
 HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data);
+#ifdef CHARGER_CAN_HANDLE
+HAL_StatusTypeDef sendCanMessageCharger(int id, int length, uint8_t *data);
+#endif
 
 #endif /* USER_CAN_H_ */

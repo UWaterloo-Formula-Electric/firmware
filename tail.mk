@@ -26,10 +26,31 @@ ELF_FILE = $(BINARY_BASE_NAME).elf
 BIN_FILE = $(BINARY_BASE_NAME).bin
 MAP_FILE = $(BINARY_BASE_NAME).map
 
+# Set default version here, so not needed in makefile for single version boards
+BOARD_VERSION ?= 1
+
+#alias these for boards that only have one version
+CUBE_F7_VERSION_1_MAKEFILE_PATH ?= $(CUBE_F7_MAKEFILE_PATH)
+CUBE_NUCLEO_F7_VERSION_1_MAKEFILE_PATH ?= $(CUBE_NUCLEO_MAKEFILE_PATH)
+
 ifeq ($(BOARD_TYPE), NUCLEO_F7)
-	include $(CUBE_NUCLEO_MAKEFILE_PATH)/Cube-Lib.mk
+   ifeq ($(BOARD_VERSION), 2)
+      include $(CUBE_NUCLEO_F7_VERSION_2_MAKEFILE_PATH)/Cube-Lib.mk
+   else ifeq ($(BOARD_VERSION), 1)
+      include $(CUBE_NUCLEO_F7_VERSION_1_MAKEFILE_PATH)/Cube-Lib.mk
+   else
+      $(error "Unsupported Board version: $(BOARD_VERSION)")
+   endif
 else ifeq ($(BOARD_TYPE), F7)
-	include $(CUBE_F7_MAKEFILE_PATH)/Cube-Lib.mk
+   ifeq ($(BOARD_VERSION), 2)
+   $(info "Board v2 path: $(CUBE_F7_VERSION_2_MAKEFILE_PATH)")
+	include $(CUBE_F7_VERSION_2_MAKEFILE_PATH)/Cube-Lib.mk
+   else ifeq ($(BOARD_VERSION), 1)
+   $(info "Board v1 path: $(CUBE_F7_VERSION_1_MAKEFILE_PATH)")
+	include $(CUBE_F7_VERSION_1_MAKEFILE_PATH)/Cube-Lib.mk
+   else
+      $(error "Unsupported Board version: $(BOARD_VERSION)")
+   endif
 else ifeq ($(BOARD_TYPE), NUCLEO_F0)
 	include $(CUBE_NUCLEO_F0_MAKEFILE_PATH)/Cube-Lib.mk
 else ifeq ($(BOARD_TYPE), F0)
@@ -64,7 +85,7 @@ DEFINES := "STM32F072xB"
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
-DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_ID=ID_$(BOARD_NAME) BOARD_TYPE_$(BOARD_TYPE)=1 "USE_HAL_DRIVER"
+DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_ID=ID_$(BOARD_NAME) BOARD_TYPE_$(BOARD_TYPE)=1 "USE_HAL_DRIVER" BOARD_VERSION=$(BOARD_VERSION)
 DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
 #ifeq '$(strip $(BOARD_TYPE))' '$(strip NUCLEO_F7)'
@@ -140,6 +161,10 @@ else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
 
+ifeq ($(BOARD_NAME), BMU)
+   SRC += $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+endif
+
 #
 # add in driver sources
 SRC += $(LIB_C_SOURCES)
@@ -157,6 +182,10 @@ GEN_DIR = Gen
 GEN_FILES = $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c \
 	    $(GEN_INC_DIR)/$(BOARD_NAME)_can.h \
 	    $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h
+ifeq ($(BOARD_NAME), BMU)
+   GEN_FILES += $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+   GEN_FILES += $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h
+endif
 
 ###
 #
@@ -327,6 +356,10 @@ $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: $(CAN_FILES_GEN_SCRIPT) $(DBC_FILE)
 	@mkdir -p $(GEN_DIR)
 	$(CAN_FILES_GEN_SCRIPT) $(BOARD_NAME) $(F0_OR_F7)
+
+$(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
+
+$(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h: $(DTC_FILES_GEN_SCRIPT) $(DTC_FILE)
 	@mkdir -p $(GEN_DIR)

@@ -12,11 +12,17 @@
 #include "bsp.h"
 #include "freertos.h"
 #include "task.h"
+#ifdef CHARGER_CAN_HANDLE
+#include "BMU_charger_can.h"
+#endif
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
 HAL_StatusTypeDef F7_canInit(CAN_HandleTypeDef *hcan)
 {
+#ifdef CHARGER_CAN_HANDLE
+    configCANFiltersCharger(&CHARGER_CAN_HANDLE);
+#endif
     configCANFilters(hcan);
     if (HAL_OK != init_can_driver()) {
         return HAL_ERROR;
@@ -38,6 +44,12 @@ HAL_StatusTypeDef F7_canStart(CAN_HandleTypeDef *hcan)
         return HAL_ERROR;
     }
 
+    if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+    {
+        ERROR_PRINT("Error starting to listen for CAN msgs from FIFO0\n");
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }
 
@@ -52,9 +64,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         Error_Handler();
     }
 
+#ifdef CHARGER_CAN_HANDLE
+    if (hcan == &CHARGER_CAN_HANDLE) {
+        if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+            ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);
+        }
+    } else {
+#endif
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+        ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);
     }
+#ifdef CHARGER_CAN_HANDLE
+    }
+#endif
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -68,9 +90,19 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
         Error_Handler();
     }
 
+#ifdef CHARGER_CAN_HANDLE
+    if (hcan == &CHARGER_CAN_HANDLE) {
+        if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+            ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);
+        }
+    } else {
+#endif
     if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        ERROR_PRINT_ISR("Failed to parse CAN message id %lu", RxHeader.ExtId);
+        ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);
     }
+#ifdef CHARGER_CAN_HANDLE
+    }
+#endif
 }
 
 /*
@@ -120,9 +152,8 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
  *}
  */
 
-
-#define F7_CAN_SEND_TIMEOUT_MS 2
-HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
+HAL_StatusTypeDef F7_sendCanMessageBase(CAN_HandleTypeDef *hcan, int id,
+                                        int length, uint8_t *data)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
     CAN_TxHeaderTypeDef   TxHeader = {0};
@@ -144,12 +175,12 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     TxHeader.DLC = length;
     TxHeader.TransmitGlobalTime = DISABLE;
 
-    if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
+    if (HAL_CAN_GetTxMailboxesFreeLevel(hcan) == 0) {
         ERROR_PRINT("Can transmit failed, no free mailboxes\n");
         return HAL_ERROR;
     }
 
-    rc = HAL_CAN_AddTxMessage(&CAN_HANDLE, &TxHeader, data, &TxMailbox);
+    rc = HAL_CAN_AddTxMessage(hcan, &TxHeader, data, &TxMailbox);
     if (rc != HAL_OK)
     {
         ERROR_PRINT("CAN Transmit failed with rc %d\n", rc);
@@ -157,6 +188,19 @@ HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
     }
 
     return rc;
+}
+
+// For bmu, second CAN bus for charger
+#ifdef CHARGER_CAN_HANDLE
+HAL_StatusTypeDef F7_sendCanMessageCharger(int id, int length, uint8_t *data)
+{
+    return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data);
+}
+#endif
+
+HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
+{
+    return F7_sendCanMessageBase(&CAN_HANDLE, id, length, data);
 }
 
 uint32_t error = HAL_CAN_ERROR_NONE;
