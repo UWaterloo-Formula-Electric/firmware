@@ -11,5 +11,6 @@ HAL_StatusTypeDef watchdogTaskCheckIn(uint32_t id);
 void printWDResetState();
 void checkForWDReset();
 void handleWatchdogReset();
+HAL_StatusTypeDef watchdogRefresh();
 
 #endif /* end of include guard: WATCHDOG_H */

@@ -5,6 +5,7 @@
 #include "bsp.h"
 #include "string.h"
 #include "generalErrorHandler.h"
+#include "watchdog.h"
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
@@ -41,7 +42,10 @@ void _handleError(char *file, int line)
 
   if (resetUART() != HAL_OK) {
       // Can't really do anything else
-      while (1);
+    while(1)
+    {
+      watchdogRefresh();
+    }
   }
 
   HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringFile), strlen(errorStringFile), 1000);
@@ -50,7 +54,10 @@ void _handleError(char *file, int line)
   snprintf(lineNumberString, sizeof(lineNumberString), "%d\n", line);
   HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)lineNumberString), strlen(lineNumberString), 1000);
 
-  while(1);
+  while(1)
+  {
+    watchdogRefresh();
+  }
 #else
   // TODO: create production error handler
 #endif
