@@ -13,6 +13,4 @@
 #define c_assert(e) ((e) ? (0) : log_assert_violation(__FILE__,__LINE__,#e))
 int log_assert_violation(char *file, int line, char *condition);
 
-void _handleError(char *file, int line);
-
 #endif /* end of include guard: ERRORHANDLER_H */
