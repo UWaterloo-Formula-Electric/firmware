@@ -8,6 +8,7 @@
 HAL_StatusTypeDef registerTaskToWatch(uint32_t id, uint32_t timeoutTicks,
                                       bool isFsmTask, FSM_Handle_Struct *fsmHandle);
 HAL_StatusTypeDef watchdogTaskCheckIn(uint32_t id);
+HAL_StatusTypeDef watchdogTaskChangeTimeout(uint32_t id, uint32_t timeoutTicks);
 void printWDResetState();
 void checkForWDReset();
 void handleWatchdogReset();
