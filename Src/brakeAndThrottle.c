@@ -1,6 +1,7 @@
 #include "brakeAndThrottle.h"
 #include "debug.h"
 #include "motorController.h"
+#include "VCU_F7_can.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -205,6 +206,13 @@ HAL_StatusTypeDef outputThrottle() {
     float throttle;
 
     ThrottleStatus_t rc = getNewThrottle(&throttle);
+
+    // Update value to be sent over can
+    ThrottlePercent = throttle;
+    brakePressure = getBrakePressure();
+    SteeringAngle = getSteeringAngle();
+    sendCAN_VCU_Data();
+
     if (rc == THROTTLE_FAULT) {
         return HAL_ERROR;
     } else if (rc == THROTTLE_DISABLED) {
@@ -220,6 +228,10 @@ HAL_StatusTypeDef outputThrottle() {
 bool isBrakePressed()
 {
     DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());
+
+    // Update value to be sent over CAN
+    BrakePercent = getBrakePositionPercent();
+
     if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
         return true;
     } else {
@@ -245,8 +257,12 @@ bool checkBPSState() {
   return true;
 }
 
-int getBrakePressurePercent() {
+int getBrakePressure() {
   return brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] * BRAKE_PRESSURE_MULTIPLIER / BRAKE_PRESSURE_DIVIDER;
+}
+
+int getSteeringAngle() {
+  return brakeThrottleSteeringADCVals[STEERING_INDEX] * STEERING_MULTIPLIER / STEERING_DIVIDER;
 }
 
 

@@ -133,7 +133,7 @@ uint32_t EM_Enable(uint32_t event)
 {
     bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    float brakePressure = getBrakePressurePercent();
+    float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
     if (!bpsState) {

@@ -37,6 +37,9 @@ typedef enum ADC_Indices_t {
 
 #define BRAKE_PRESSURE_DIVIDER 4095
 #define BRAKE_PRESSURE_MULTIPLIER 100
+
+#define STEERING_DIVIDER 4095
+#define STEERING_MULTIPLIER 100
 /* End of CLI mock testing stuff */
 
 typedef enum ThrottleStatus_t {
@@ -49,8 +52,9 @@ bool isBrakePressed();
 HAL_StatusTypeDef outputThrottle();
 bool throttleIsZero();
 bool checkBPSState();
-int getBrakePressurePercent();
+int getBrakePressure();
 HAL_StatusTypeDef brakeAndThrottleStart();
+int getSteeringAngle();
 
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
