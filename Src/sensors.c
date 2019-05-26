@@ -95,21 +95,29 @@ void sensorTask(void *pvParameters)
 
     while (1)
     {
-        StateBatteryChargeLV=100;
-        StateBatteryHealthLV=100;
-        StateBatteryPowerLV=100;
-        VoltageBusLV= readBusVoltage() * 1000; // Bus voltage is sent as mV
-        /*DEBUG_PRINT("Bus Voltage %f\n", readBusVoltage());*/
-        if (sendCAN_PDU_batteryStatusLV() != HAL_OK)
+        /*
+         *StateBatteryChargeLV=100;
+         *StateBatteryHealthLV=100;
+         *StateBatteryPowerLV=100;
+         *VoltageBusLV= readBusVoltage() * 1000; // Bus voltage is sent as mV
+         *[>DEBUG_PRINT("Bus Voltage %f\n", readBusVoltage());<]
+         *if (sendCAN_PDU_batteryStatusLV() != HAL_OK)
+         *{
+         *    ERROR_PRINT("Failed to send battery status on can!\n");
+         *}
+         */
+
+        LV_Bus_Current = readBusCurrent();
+        VoltageBusLV = readBusVoltage();
+        if (sendCAN_LV_Bus_Measurements() != HAL_OK)
         {
-            ERROR_PRINT("Failed to send battery status on can!\n");
+            ERROR_PRINT("Failed to send bus measurements on can!\n");
         }
 
-
         // TODO: Enable this once the voltage scaling is fixed
-        /*if (readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {*/
-            /*fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 1000);*/
-        /*}*/
+        if (readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {
+            fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 1000);
+        }
 
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
             ERROR_PRINT("LV Current exceeded max value\n");
