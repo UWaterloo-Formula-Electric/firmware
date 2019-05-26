@@ -142,12 +142,12 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     return HAL_ERROR;
   }
 
-  DEBUG_PRINT("%ld, ", raw);
+  /*DEBUG_PRINT("%ld, ", raw);*/
 
   float shuntVoltage = CURRENT_SCALE * ((float)raw);
-  DEBUG_PRINT("%.12f, ", shuntVoltage);
+  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
   shuntVoltage += CURRENT_OFFSET;
-  DEBUG_PRINT("%.12f, ", shuntVoltage);
+  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
 
   if (fabs(shuntVoltage) > MAX_CURRENT_ADC_VOLTAGE) {
     ERROR_PRINT("IBus outside adc range!\n");
@@ -155,14 +155,14 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     return HAL_ERROR;
   }
 
-  //if (HITL_Precharge_Mode) {
+  if (HITL_Precharge_Mode) {
     shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_HITL);
-  //} else {
-  //  shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CAR);
-  //}
-  DEBUG_PRINT("%.12f\n", shuntVoltage);
+  } else {
+    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CAR);
+  }
+  /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
   (*dataOut) = shuntVoltage;
-  
+
   return HAL_OK;
 }
 
