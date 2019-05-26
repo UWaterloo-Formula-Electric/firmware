@@ -61,7 +61,7 @@ Transition_t motorTransitions[] = {
     { MTR_STATE_Motors_On, MTR_EV_Motor_Critical, &motorsOff },
     { MTR_STATE_Motors_Off, MTR_EV_Motor_Critical, &motorsOffCritical },
     { MTR_STATE_Critical, MTR_EV_ANY, &motorDoNothing },
-    { MTR_STATE_Motors_Off, MTR_EV_EM_DISABLE, &motorDoNothing },
+    { MTR_STATE_Motors_Off, MTR_EV_EM_DISABLE, &motorsOff },
     { MTR_STATE_Motors_On, MTR_EV_EM_ENABLE, &motorsOn },
     { MTR_STATE_ANY, MTR_EV_ANY, &MotorDefaultTransition}
 };
@@ -355,8 +355,10 @@ uint32_t motorsOff(uint32_t event)
 {
     DEBUG_PRINT("Turning motors off\n");
 
-    MC_LEFT_DISABLE;
-    MC_RIGHT_DISABLE;
+    if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_Off) {
+        MC_LEFT_DISABLE;
+        MC_RIGHT_DISABLE;
+    }
 
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_OFF;
