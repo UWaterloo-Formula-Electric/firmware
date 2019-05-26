@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "freertos.h"
 #include "task.h"
+#include "math.h"
 
 #define ADDR_CURRENT (0x00)
 #define ADDR_V1 (0x01)
@@ -15,6 +16,7 @@
 
 #define SPI_TIMEOUT 15
 
+// Voltage scale and offset convert to volts
 #define VOLTAGE_1_SCALE  (-0.0000558115F)
 #define VOLTAGE_1_OFFSET (19.659F)
 
@@ -27,9 +29,17 @@
 /*#define VOLTAGE_2_SCALE  (1)*/
 /*#define VOLTAGE_2_OFFSET (1)*/
 
+// Current scale and offset current to volts, then we use shunt val to get
+// current in amps
 #define CURRENT_SCALE  (0.0000000057724621F)
 #define CURRENT_OFFSET (-0.002021)
-#define CURRENT_SHUNT_VAL_OHMS (3.48F)
+#define CURRENT_SHUNT_VAL_OHMS_HITL (3.48F)
+#define CURRENT_SHUNT_VAL_OHMS_CAR (3.48F)
+
+#define MAX_CURRENT_ADC_VOLTAGE (0.03125F)
+
+// If we are on the hitl, there is a different current shunt resistor
+extern bool HITL_Precharge_Mode;
 
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
     HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_RESET);
@@ -117,7 +127,7 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
   status = adc_spi_tx(tbuffer, 2);
 
   if (status != HAL_OK){
-    printf("Error writing to HVADC!\n");
+    ERROR_PRINT("Error writing to HVADC!\n");
     return HAL_ERROR;
   }
 
@@ -130,8 +140,21 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     return HAL_ERROR;
   }
 
-  (*dataOut)
-    = (CURRENT_SCALE * ((float)raw) + CURRENT_OFFSET) / (CURRENT_SHUNT_VAL_OHMS);
+  float shuntVoltage = (CURRENT_SCALE * ((float)raw) + CURRENT_OFFSET);
+
+  if (fabs(shuntVoltage) > MAX_CURRENT_ADC_VOLTAGE) {
+    ERROR_PRINT("IBus outside adc range!\n");
+    *dataOut = 0;
+    return HAL_ERROR;
+  }
+
+  if (HITL_Precharge_Mode) {
+    (*dataOut)
+      = shuntVoltage / (CURRENT_SHUNT_VAL_OHMS_HITL);
+  } else {
+    (*dataOut)
+      = shuntVoltage / (CURRENT_SHUNT_VAL_OHMS_CAR);
+  }
 
   return HAL_OK;
 }
