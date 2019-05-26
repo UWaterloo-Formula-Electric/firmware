@@ -349,6 +349,11 @@ void HVMeasureTask(void *pvParamaters)
             ERROR_PRINT("Failed to publish bus voltages and current!\n");
         }
 
+
+        CurrentBusHV = IBus * 1000;
+        VoltageBusHV = VBus * 1000;
+        sendCAN_BMU_stateBusHV();
+
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelay(HV_MEASURE_TASK_PERIOD_MS);
     }
@@ -761,6 +766,25 @@ ChargeReturn balanceCharge()
            /*// Notify ourselves that we should stop charging*/
            /*xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);*/
         /*}*/
+
+        StateBatteryPowerHV = calculateStateOfPower();
+        StateBatteryChargeHV = calculateStateOfCharge();
+        StateBMS = fsmGetState(&fsmHandle);
+
+
+        /* This sends the following data, all of which get updated each time
+         * through the loop
+         * - State of Charge
+         * - State of Health (not yet implemented)
+         * - State of power
+         * - TempCellMax
+         * - TempCellMin
+         * - StateBMS
+         */
+        if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
+            ERROR_PRINT("Failed to send batter status HV\n");
+            BOUNDED_CONTINUE
+        }
 
         // Succesfully reach end of loop, update error counter to reflect that
         ERROR_COUNTER_SUCCESS();
