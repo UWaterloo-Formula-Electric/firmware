@@ -107,7 +107,7 @@ void sensorTask(void *pvParameters)
          *}
          */
 
-        LV_Bus_Current = readBusCurrent();
+        CurrentBusLV = readBusCurrent();
         VoltageBusLV = readBusVoltage();
         if (sendCAN_LV_Bus_Measurements() != HAL_OK)
         {
