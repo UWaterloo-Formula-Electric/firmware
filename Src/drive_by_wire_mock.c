@@ -9,6 +9,7 @@
 #include "VCU_F7_can.h"
 #include "brakeAndThrottle.h"
 #include "bsp.h"
+#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -321,6 +322,52 @@ static const CLI_Command_Definition_t beagleBonePowerCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * torqueMaxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
+
+    COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t torqueDemandMaxCommandDefinition =
+{
+    "maxTorque",
+    "maxTorque <maxTorque>:\r\n  Set max torque demand (Nm)\r\n",
+    torqueDemandMaxCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t speedLimitCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * speedMaxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    uint64_t speedLimitMax;
+    sscanf(speedMaxString, "%llu", &speedLimitMax);
+
+    SpeedLimitForwardLeft = speedLimitMax;
+    SpeedLimitReverseLeft = speedLimitMax;
+    SpeedLimitForwardRight = speedLimitMax;
+    SpeedLimitReverseRight = speedLimitMax;
+
+    COMMAND_OUTPUT("Setting max speed to %llu (rpm)\n", speedLimitMax);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t speedLimitCommandDefinition =
+{
+    "speedLimit",
+    "speedLimit <maxSpeed>:\r\n  Set max speed (rpm)\r\n",
+    speedLimitCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -360,6 +407,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getADCInputsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&torqueDemandMaxCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&speedLimitCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

@@ -10,6 +10,8 @@
 
 #define INVERTER_STARTUP_TIMEOUT 1000 // TODO: Chose a good value for this
 
+uint64_t maxTorqueDemand = 0;
+
 float min(float a, float b)
 {
     if (a < b) {
@@ -35,6 +37,17 @@ HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
     SpeedLimitForwardLeft = 0;
     SpeedLimitReverseLeft = 0;
     return sendCAN_SpeedLimitLeft();
+}
+
+HAL_StatusTypeDef initSpeedAndTorqueLimits()
+{
+    SpeedLimitForwardLeft = SPEED_LIMIT_DEFAULT;
+    SpeedLimitReverseLeft = SPEED_LIMIT_DEFAULT;
+    SpeedLimitForwardRight = SPEED_LIMIT_DEFAULT;
+    SpeedLimitReverseRight = SPEED_LIMIT_DEFAULT;
+    maxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+
+    return HAL_OK;
 }
 
 // TODO: Probably need to set speed limits after init
@@ -127,7 +140,7 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 {
     float minTorqueAvailable = min(TorqueAvailableDriveRight, TorqueAvailableDriveLeft);
 
-    float torqueDemand = map_range_float(throttle, 0, 100, 0, MAX_TORQUE_DEMAND);
+    float torqueDemand = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
 
     torqueDemand = limit(torqueDemand, 0, minTorqueAvailable);
 

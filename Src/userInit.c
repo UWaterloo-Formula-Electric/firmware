@@ -6,6 +6,7 @@
 #include "drive_by_wire.h"
 #include "userCan.h"
 #include "drive_by_wire_mock.h"
+#include "motorController.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -36,6 +37,10 @@ void userInit()
     }
 
     if (stateMachineMockInit() != HAL_OK) {
+      Error_Handler();
+    }
+
+    if (initSpeedAndTorqueLimits() != HAL_OK) {
       Error_Handler();
     }
 }
