@@ -107,8 +107,8 @@ void sensorTask(void *pvParameters)
          *}
          */
 
-        CurrentBusLV = readBusCurrent();
-        VoltageBusLV = readBusVoltage();
+        CurrentBusLV = readBusCurrent() * 1000;
+        VoltageBusLV = readBusVoltage() * 1000;
         if (sendCAN_LV_Bus_Measurements() != HAL_OK)
         {
             ERROR_PRINT("Failed to send bus measurements on can!\n");
