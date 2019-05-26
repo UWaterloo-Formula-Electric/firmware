@@ -52,6 +52,32 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_WSBRR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_ChargeCart : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
+BO_ 2575594096 AuxRight: 8 Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ActiveShortRight : 0|12@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2575593840 AuxLeft: 8 Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ActiveShortLeft : 0|12@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2575790704 DCLinkFbkRight: 8 Vector__XXX
+ SG_ DC_Link_Voltage_Right : 16|16@1+ (0.0625,0) [0|4095.9375] "" Vector__XXX
+ SG_ DC_Link_Current_Right : 0|16@1+ (0.0625,-128) [-128|3967.9375] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2575790448 DCLinkFbkLeft: 8 Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ DC_Link_Voltage_Left : 16|16@1+ (0.0625,0) [0|4095.9375] "" Vector__XXX
+ SG_ DC_Link_Current_Left : 0|16@1+ (0.0625,-128) [-128|3967.9375] "" Vector__XXX
+
 BO_ 2147878658 VCU_EM_State: 1 VCU_F7
  SG_ EM_State : 0|1@1+ (1,0) [0|0] ""  DCU
 
@@ -290,21 +316,21 @@ BO_ 29 VCU_VERSION: 8 VCU_F7
  SG_ VCU_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ VCU_Version_code : 8|56@1- (1,0) [0|0] ""  VCU_BeagleBone
 
-BO_ 2147483676 TempInverterRight: 8 MCRight
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ InverterAUTHSEEDRight : 36|12@1- (0.25,90) [-38|217.75] "C" Vector__XXX
- SG_ TempInverterRight : 24|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ TempInverterDeltaRight : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ StateInverterRight : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+BO_ 2575921776 TempInverterRight: 8 MCRight
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ InverterAUTHSEEDRight : 36|12@1+ (1,0) [0|4095] "" Vector__XXX
+ SG_ TempInverterRight : 24|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempInverterDeltaRight : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ StateInverterRight : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,VCU_F7
 
-BO_ 2147483675 TempMotorRight: 8 MCRight
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ TempMotorRight : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ TempMotorDeltaRight : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+BO_ 2575856240 TempMotorRight: 8 MCRight
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ TempMotorRight : 0|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempMotorDeltaRight : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2147483674 BusHVFeedbackRight: 8 MCRight
  SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
@@ -313,65 +339,65 @@ BO_ 2147483674 BusHVFeedbackRight: 8 MCRight
  SG_ VoltageHVBusInverterRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
  SG_ CurrentHVBusInverterRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
 
-BO_ 2147483673 SpeedFeedbackRight: 8 MCRight
- SG_ SpeedMotorRight : 0|16@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+BO_ 2575725168 SpeedFeedbackRight: 8 MCRight
+ SG_ SpeedMotorRight : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2147483672 TorqueFeedbackRight: 8 MCRight
- SG_ PRO_CAN_RES : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ TorqueEstimateRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
  SG_ TorqueAvailableDriveRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
  SG_ TorqueAvailableBrakingRight : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
 
-BO_ 2147483671 VoltageLimitRight: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ VoltageLimitLowInverterRight : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
- SG_ VoltageLimitHighInverterRight : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+BO_ 2575528560 VoltageLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ VoltageLimitLowInverterRight : 12|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCRight
+ SG_ VoltageLimitHighInverterRight : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCRight
 
-BO_ 2147483670 CurrentLimitRight: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ CurrentLimitDschrgInverterRight : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
- SG_ CurrentLimitChargeInverterRight : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+BO_ 2575463024 CurrentLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ CurrentLimitDschrgInverterRight : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCRight
+ SG_ CurrentLimitChargeInverterRight : 12|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCRight
 
-BO_ 2147483669 SpeedLimitRight: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ SpeedLimitReverseRight : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
- SG_ SpeedLimitForwardRight : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
- SG_ InverterCommandRight : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCRight
+BO_ 2575397488 SpeedLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ SpeedLimitReverseRight : 32|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCRight
+ SG_ SpeedLimitForwardRight : 16|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCRight
+ SG_ InverterCommandRight : 0|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCRight
 
-BO_ 2147483668 TorqueLimitRight: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ TorqueLimitDriveRight : 32|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
- SG_ TorqueLimitBrakingRight : 16|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
- SG_ TorqueDemandRight : 0|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCRight
+BO_ 2575331952 TorqueLimitRight: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ TorqueLimitDriveRight : 32|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCRight
+ SG_ TorqueLimitBrakingRight : 16|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCRight
+ SG_ TorqueDemandRight : 0|16@1+ (0.0625,-2048) [-2048|2047.9375] "NM"  VCU_BeagleBone,MCRight
 
-BO_ 2147483667 TempInverterLeft: 8 MCLeft
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ InverterAUTHSEEDLeft : 36|12@1- (0.25,90) [-38|217.75] "C" Vector__XXX
- SG_ TempInverterLeft : 24|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ TempInverterDeltaLeft : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ StateInverterLeft : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+BO_ 2575921520 TempInverterLeft: 8 MCLeft
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ InverterAUTHSEEDLeft : 36|12@1+ (1,0) [0|4095] "" Vector__XXX
+ SG_ TempInverterLeft : 24|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempInverterDeltaLeft : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ StateInverterLeft : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,VCU_F7
 
-BO_ 2147483666 TempMotorLeft: 8 MCLeft
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ TempMotorLeft : 0|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ TempMotorDeltaLeft : 12|12@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
+BO_ 2575855984 TempMotorLeft: 8 MCLeft
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ TempMotorLeft : 0|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
+ SG_ TempMotorDeltaLeft : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2147483665 BusHVFeedbackLeft: 8 MCLeft
  SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
@@ -380,49 +406,49 @@ BO_ 2147483665 BusHVFeedbackLeft: 8 MCLeft
  SG_ VoltageHVBusInverterLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,BMU
 
-BO_ 2147483664 SpeedFeedbackLeft: 8 MCLeft
- SG_ SpeedMotorLeft : 0|16@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
+BO_ 2575724912 SpeedFeedbackLeft: 8 MCLeft
+ SG_ SpeedMotorLeft : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2147483663 TorqueFeedbackLeft: 8 MCLeft
- SG_ PRO_CAN_RES : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 48|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
  SG_ TorqueEstimateLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
  SG_ TorqueAvailableDriveLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
  SG_ TorqueAvailableBrakingLeft : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
 
-BO_ 2147483662 VoltageLimitLeft: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ VoltageLimitLowInverterLeft : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
- SG_ VoltageLimitHighInverterLeft : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+BO_ 2575528304 VoltageLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ VoltageLimitLowInverterLeft : 12|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCLeft
+ SG_ VoltageLimitHighInverterLeft : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCLeft
 
-BO_ 2147483661 CurrentLimitLeft: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ CurrentLimitDschrgInverterLeft : 0|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
- SG_ CurrentLimitChargeInverterLeft : 12|12@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+BO_ 2575462768 CurrentLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ CurrentLimitDschrgInverterLeft : 0|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCLeft
+ SG_ CurrentLimitChargeInverterLeft : 12|12@1+ (1,0) [0|4095] ""  VCU_BeagleBone,MCLeft
 
-BO_ 2147483660 SpeedLimitLeft: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ SpeedLimitReverseLeft : 32|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
- SG_ SpeedLimitForwardLeft : 16|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
- SG_ InverterCommandLeft : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone,MCLeft
+BO_ 2575397232 SpeedLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ SpeedLimitReverseLeft : 32|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCLeft
+ SG_ SpeedLimitForwardLeft : 16|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCLeft
+ SG_ InverterCommandLeft : 0|16@1+ (1,0) [0|65535] ""  VCU_BeagleBone,MCLeft
 
-BO_ 2147483659 TorqueLimitLeft: 8 VCU_F7
- SG_ PRO_CAN_CRC : 56|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_COUNT : 52|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ PRO_CAN_RES : 48|4@1- (1,0) [0|0] "" Vector__XXX
- SG_ TorqueLimitDriveLeft : 32|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
- SG_ TorqueLimitBrakingLeft : 16|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
- SG_ TorqueDemandLeft : 0|16@1+ (1,0) [0|0] "NM"  VCU_BeagleBone,MCLeft
+BO_ 2575331696 TorqueLimitLeft: 8 VCU_F7
+ SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|15] "" Vector__XXX
+ SG_ TorqueLimitDriveLeft : 32|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCLeft
+ SG_ TorqueLimitBrakingLeft : 16|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCLeft
+ SG_ TorqueDemandLeft : 0|16@1+ (0.0625,-2048) [-2048|2047.9375] "NM"  VCU_BeagleBone,MCLeft
 
 BO_ 2147483658 WSBRR_WheelData: 8 WSBRR
  SG_ StrainZRightRear : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
@@ -515,78 +541,78 @@ CM_ BO_ 32 "VERSION";
 CM_ BO_ 31 "VERSION";
 CM_ BO_ 30 "VERSION";
 CM_ BO_ 29 "VERSION";
-CM_ BO_ 2147483676 "PROCAN";
-CM_ SG_ 2147483676 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483676 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483676 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483675 "PROCAN";
-CM_ SG_ 2147483675 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483675 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483675 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575921776 "PROCAN";
+CM_ SG_ 2575921776 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575921776 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575921776 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575856240 "PROCAN";
+CM_ SG_ 2575856240 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575856240 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575856240 PRO_CAN_RES "PROCAN";
 CM_ BO_ 2147483674 "PROCAN";
 CM_ SG_ 2147483674 PRO_CAN_CRC "PROCAN";
 CM_ SG_ 2147483674 PRO_CAN_COUNT "PROCAN";
 CM_ SG_ 2147483674 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483673 "PROCAN";
-CM_ SG_ 2147483673 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483673 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483673 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575725168 "PROCAN";
+CM_ SG_ 2575725168 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575725168 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575725168 PRO_CAN_RES "PROCAN";
 CM_ BO_ 2147483672 "PROCAN";
 CM_ SG_ 2147483672 PRO_CAN_RES "PROCAN";
 CM_ SG_ 2147483672 PRO_CAN_CRC "PROCAN";
 CM_ SG_ 2147483672 PRO_CAN_COUNT "PROCAN";
-CM_ BO_ 2147483671 "PROCAN";
-CM_ SG_ 2147483671 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483671 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483671 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483670 "PROCAN";
-CM_ SG_ 2147483670 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483670 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483670 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483669 "PROCAN";
-CM_ SG_ 2147483669 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483669 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483669 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483668 "PROCAN";
-CM_ SG_ 2147483668 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483668 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483668 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483667 "PROCAN";
-CM_ SG_ 2147483667 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483667 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483667 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483666 "PROCAN";
-CM_ SG_ 2147483666 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483666 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483666 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575528560 "PROCAN";
+CM_ SG_ 2575528560 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575528560 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575528560 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575463024 "PROCAN";
+CM_ SG_ 2575463024 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575463024 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575463024 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575397488 "PROCAN";
+CM_ SG_ 2575397488 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575397488 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575397488 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575331952 "PROCAN";
+CM_ SG_ 2575331952 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575331952 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575331952 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575921520 "PROCAN";
+CM_ SG_ 2575921520 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575921520 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575921520 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575855984 "PROCAN";
+CM_ SG_ 2575855984 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575855984 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575855984 PRO_CAN_RES "PROCAN";
 CM_ BO_ 2147483665 "PROCAN";
 CM_ SG_ 2147483665 PRO_CAN_CRC "PROCAN";
 CM_ SG_ 2147483665 PRO_CAN_COUNT "PROCAN";
 CM_ SG_ 2147483665 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483664 "PROCAN";
-CM_ SG_ 2147483664 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483664 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483664 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575724912 "PROCAN";
+CM_ SG_ 2575724912 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575724912 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575724912 PRO_CAN_RES "PROCAN";
 CM_ BO_ 2147483663 "PROCAN";
 CM_ SG_ 2147483663 PRO_CAN_RES "PROCAN";
 CM_ SG_ 2147483663 PRO_CAN_CRC "PROCAN";
 CM_ SG_ 2147483663 PRO_CAN_COUNT "PROCAN";
-CM_ BO_ 2147483662 "PROCAN";
-CM_ SG_ 2147483662 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483662 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483662 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483661 "PROCAN";
-CM_ SG_ 2147483661 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483661 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483661 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483660 "PROCAN";
-CM_ SG_ 2147483660 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483660 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483660 PRO_CAN_RES "PROCAN";
-CM_ BO_ 2147483659 "PROCAN";
-CM_ SG_ 2147483659 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 2147483659 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 2147483659 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575528304 "PROCAN";
+CM_ SG_ 2575528304 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575528304 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575528304 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575462768 "PROCAN";
+CM_ SG_ 2575462768 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575462768 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575462768 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575397232 "PROCAN";
+CM_ SG_ 2575397232 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575397232 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575397232 PRO_CAN_RES "PROCAN";
+CM_ BO_ 2575331696 "PROCAN";
+CM_ SG_ 2575331696 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 2575331696 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 2575331696 PRO_CAN_RES "PROCAN";
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
 VAL_ 2147878658 EM_State 1 "On" 0 "Off" ;
