@@ -54,6 +54,10 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ StateContactorPositive : 0|3@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateContactorNegative : 0|3@1- (1,0) [0|0] "" Vector__XXX
 
+BO_ 2148536835 LV_Bus_Measurements: 4 PDU
+ SG_ VoltageBusLV : 16|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+ SG_ LV_Bus_Current : 0|16@1+ (1,0) [0|0] "mA" Vector__XXX
+
 BO_ 2575594096 AuxRight: 8 Vector__XXX
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
