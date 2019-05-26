@@ -25,8 +25,8 @@
 
 #define ENABLE_IMD
 #define ENABLE_HV_MEASURE
-#define ENABLE_AMS
-#define ENABLE_CHARGER
+//#define ENABLE_AMS
+//#define ENABLE_CHARGER
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
