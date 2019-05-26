@@ -62,6 +62,7 @@ Transition_t motorTransitions[] = {
     { MTR_STATE_Motors_Off, MTR_EV_Motor_Critical, &motorsOffCritical },
     { MTR_STATE_Critical, MTR_EV_ANY, &motorDoNothing },
     { MTR_STATE_Motors_Off, MTR_EV_EM_DISABLE, &motorDoNothing },
+    { MTR_STATE_Motors_On, MTR_EV_EM_ENABLE, &motorDoNothing },
     { MTR_STATE_ANY, MTR_EV_ANY, &MotorDefaultTransition}
 };
 
