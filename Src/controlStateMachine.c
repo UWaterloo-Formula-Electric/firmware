@@ -62,7 +62,7 @@ Transition_t motorTransitions[] = {
     { MTR_STATE_Motors_Off, MTR_EV_Motor_Critical, &motorsOffCritical },
     { MTR_STATE_Critical, MTR_EV_ANY, &motorDoNothing },
     { MTR_STATE_Motors_Off, MTR_EV_EM_DISABLE, &motorDoNothing },
-    { MTR_STATE_Motors_On, MTR_EV_EM_ENABLE, &motorDoNothing },
+    { MTR_STATE_Motors_On, MTR_EV_EM_ENABLE, &motorsOn },
     { MTR_STATE_ANY, MTR_EV_ANY, &MotorDefaultTransition}
 };
 
@@ -336,9 +336,10 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-
-    MC_LEFT_ENABLE;
-    MC_RIGHT_ENABLE;
+    if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
+        MC_LEFT_ENABLE;
+        MC_RIGHT_ENABLE;
+    }
 
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
