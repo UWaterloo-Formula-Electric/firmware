@@ -17,5 +17,7 @@ extern QueueHandle_t VBattQueue;
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
+HAL_StatusTypeDef getPackVoltage(float *packVoltage);
+HAL_StatusTypeDef initPackVoltageQueue();
 
 #endif /* end of include guard: BATTERIES_H */

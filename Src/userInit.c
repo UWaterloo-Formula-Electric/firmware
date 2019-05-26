@@ -47,6 +47,9 @@ void userInit()
     if (initBusVoltagesAndCurrentQueues() != HAL_OK) {
         Error_Handler();
     }
+    if (initPackVoltageQueue() != HAL_OK) {
+        Error_Handler();
+    }
 #if IS_BOARD_F7
     if (init_imd_measurement() != HAL_OK) {
         Error_Handler();

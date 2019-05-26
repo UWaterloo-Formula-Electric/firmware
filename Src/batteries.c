@@ -66,6 +66,7 @@ extern osThreadId BatteryTaskHandle;
 QueueHandle_t IBusQueue;
 QueueHandle_t VBusQueue;
 QueueHandle_t VBattQueue;
+QueueHandle_t PackVoltageQueue;
 
 // Declared global for testing
 float VBus;
@@ -804,6 +805,36 @@ ChargeReturn balanceCharge()
     return CHARGE_DONE;
 }
 
+HAL_StatusTypeDef publishPackVoltage(float packVoltage)
+{
+   xQueueOverwrite(PackVoltageQueue, &packVoltage);
+
+   return HAL_OK;
+}
+
+HAL_StatusTypeDef getPackVoltage(float *packVoltage)
+{
+    if (xQueuePeek(PackVoltageQueue, packVoltage, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to receive IBus current from queue\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef initPackVoltageQueue()
+{
+   PackVoltageQueue = xQueueCreate(1, sizeof(float));
+
+   if (PackVoltageQueue == NULL) {
+      ERROR_PRINT("Failed to create pack voltage queue!\n");
+      return HAL_ERROR;
+   }
+
+   return HAL_OK;
+}
+
+
 void batteryTask(void *pvParameter)
 {
     if (initVoltageAndTempArrays() != HAL_OK)
@@ -811,10 +842,13 @@ void batteryTask(void *pvParameter)
        Error_Handler();
     }
 
+
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
     if (batteryStart() != HAL_OK)
     {
         BatteryTaskError();
     }
+#endif
 
     if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
@@ -865,10 +899,12 @@ void batteryTask(void *pvParameter)
         }
 #endif
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             BOUNDED_CONTINUE
         }
+#endif
 
 
         if (checkCellVoltagesAndTemps(
@@ -877,6 +913,11 @@ void batteryTask(void *pvParameter)
               &packVoltage) != HAL_OK)
         {
             BatteryTaskError();
+        }
+
+        if (publishPackVoltage(packVoltage) != HAL_OK) {
+            ERROR_PRINT("Failed to publish pack voltage\n");
+            BOUNDED_CONTINUE
         }
 
         StateBatteryPowerHV = calculateStateOfPower();

@@ -22,6 +22,8 @@ extern float IBus;
 extern float VBus;
 extern float VBatt;
 extern float packVoltage;
+extern bool HITL_Precharge_Mode;
+extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
 extern void CAN_Msg_ChargeCart_heartbeat_Callback();
 
@@ -560,6 +562,26 @@ static const CLI_Command_Definition_t balanceCellCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t hitlPrechargeModeCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *packVoltageString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(packVoltageString, "%f", &HITL_VPACK);
+
+    COMMAND_OUTPUT("HITL PC Mode, VPACK = %f\n", HITL_VPACK);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
+{
+    "hitlPC",
+    "hitlPC <VPACK>:\r\n enables hitl precharge mode, setting pack voltage\r\n",
+    hitlPrechargeModeCommand,
+    1 /* Number of parameters */
+};
+
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -635,6 +657,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&hitlPrechargeModeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
