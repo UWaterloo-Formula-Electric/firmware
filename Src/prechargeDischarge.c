@@ -339,10 +339,12 @@ Precharge_Discharge_Return_t precharge()
     float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
     minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
     DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-    if (maxIBus < minPrechargeCurrent) {
-        ERROR_PRINT("Didn't detect precharge current!\n");
-        ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-        return PCDC_ERROR;
+    if (!HITL_Precharge_Mode) {
+        if (maxIBus < minPrechargeCurrent) {
+            ERROR_PRINT("Didn't detect precharge current!\n");
+            ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
+            return PCDC_ERROR;
+        }
     }
 
     /*
@@ -386,9 +388,11 @@ Precharge_Discharge_Return_t precharge()
     minIBusSpike *= PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED;
 
     DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minIBusSpike);
-    if (maxIBus < minIBusSpike) {
-        ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-        return PCDC_ERROR;
+    if (!HITL_Precharge_Mode) {
+        if (maxIBus < minIBusSpike) {
+            ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
+            return PCDC_ERROR;
+        }
     }
 
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
