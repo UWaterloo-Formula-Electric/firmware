@@ -573,6 +573,7 @@ BaseType_t hitlPrechargeModeCommand(char *writeBuffer, size_t writeBufferLength,
     sscanf(packVoltageString, "%lu", &intVPack);
 
     HITL_VPACK = intVPack;
+    HITL_Precharge_Mode = true;
 
     COMMAND_OUTPUT("HITL PC Mode, VPACK = %f\n", HITL_VPACK);
     return pdFALSE;
