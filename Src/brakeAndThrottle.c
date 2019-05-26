@@ -68,7 +68,7 @@ bool throttleAndBrakePressedError = false;
 
 float getBrakePositionPercent()
 {
-    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * TPS_MULTPLIER / TPS_DIVISOR;
+    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_MULTIPLIER;
 }
 
 int map_range(int in, int low, int high, int low_out, int high_out) {
@@ -262,7 +262,8 @@ int getBrakePressure() {
 }
 
 int getSteeringAngle() {
-  return brakeThrottleSteeringADCVals[STEERING_INDEX] * STEERING_MULTIPLIER / STEERING_DIVIDER;
+  return (brakeThrottleSteeringADCVals[STEERING_INDEX] * STEERING_MULTIPLIER / STEERING_DIVIDER)
+     - STEERING_CENTRE_OFFSET_PERCENT;
 }
 
 

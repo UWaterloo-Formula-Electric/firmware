@@ -35,11 +35,16 @@ typedef enum ADC_Indices_t {
 #define TPS_DIVISOR 4095
 #define TPS_MAX 4095
 
+#define BRAKE_POSITION_DIVIDER 4095
+#define BRAKE_POSITION_MULTIPLIER 100
+
 #define BRAKE_PRESSURE_DIVIDER 4095
 #define BRAKE_PRESSURE_MULTIPLIER 100
 
 #define STEERING_DIVIDER 4095
 #define STEERING_MULTIPLIER 100
+#define STEERING_CENTRE_OFFSET_PERCENT 50
+
 /* End of CLI mock testing stuff */
 
 typedef enum ThrottleStatus_t {
