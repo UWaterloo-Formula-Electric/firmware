@@ -266,10 +266,8 @@ uint32_t EM_Update_Throttle(uint32_t event)
         ERROR_PRINT("Shouldn't be updating throttle when not in em enabled state\n");
         return fsmGetState(&fsmHandle);
     }
-    // TODO: Update Throttle
     DEBUG_PRINT("Updating throttle\n");
     if (outputThrottle() != HAL_OK) {
-        // TODO: Turn of motors
         ERROR_PRINT("Throttle update failed, trans to fatal\n");
         if (MotorStop() != HAL_OK) {
             ERROR_PRINT("Failed to stop motors\n");

@@ -4,6 +4,8 @@
 
 #include "bsp.h"
 
+#define MAX_TORQUE_DEMAND 100
+
 HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle);
 HAL_StatusTypeDef mcShutdown();

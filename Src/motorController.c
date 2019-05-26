@@ -112,11 +112,24 @@ float map_range_float(float in, float low, float high, float low_out, float high
     return (in - low) * out_range / in_range + low_out;
 }
 
+float limit(float in, float min, float max)
+{
+    if (in > max) {
+        in = max;
+    } else if (in < min) {
+        in = min;
+    }
+
+    return min;
+}
+
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 {
     float minTorqueAvailable = min(TorqueAvailableDriveRight, TorqueAvailableDriveLeft);
 
-    float torqueDemand = map_range_float(throttle, 0, 100, 0, minTorqueAvailable);
+    float torqueDemand = map_range_float(throttle, 0, 100, 0, MAX_TORQUE_DEMAND);
+
+    torqueDemand = limit(torqueDemand, 0, minTorqueAvailable);
 
     TorqueLimitDriveRight = TorqueAvailableDriveRight;
     TorqueLimitBrakingRight = 0; // TODO: What to do for braking torque

@@ -1,5 +1,6 @@
 #include "brakeAndThrottle.h"
 #include "debug.h"
+#include "motorController.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -210,8 +211,8 @@ HAL_StatusTypeDef outputThrottle() {
         DEBUG_PRINT("Throttle disabled due brake pressed\n");
     }
 
-    // TODO: Output throttle to MCs
     DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
+    sendThrottleValueToMCs(throttle);
 
     return HAL_OK;
 }
