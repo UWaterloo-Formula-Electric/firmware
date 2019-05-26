@@ -168,7 +168,7 @@ Precharge_Discharge_Return_t precharge()
                     packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    if (HITL_Precharge_Mode) {
+    if (!HITL_Precharge_Mode) {
         // This check will fail on the HITL
         if (VBatt < packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK) {
             ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
@@ -281,7 +281,7 @@ Precharge_Discharge_Return_t precharge()
                     packVoltage * PRECHARGE_STEP_3_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    if (HITL_Precharge_Mode) {
+    if (!HITL_Precharge_Mode) {
         // This check will fail on the HITL
         if (VBatt < packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK) {
             ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
