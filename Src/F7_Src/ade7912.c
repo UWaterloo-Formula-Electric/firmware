@@ -13,6 +13,8 @@
 
 #define ADDR_CFG (0x8)
 #define ADC_FREQ_2KHZ (0x20)
+#define ADC_FREQ_1KHZ (0x30)
+#define ADC_LOW_BW_ENABLE (0x80)
 
 #define SPI_TIMEOUT 15
 
@@ -194,7 +196,7 @@ HAL_StatusTypeDef hvadc_init()
   } while (status0 & (1<<RESET_ON_BIT));
 
   // Set up config register
-  uint8_t cfgWrite = ADC_FREQ_2KHZ;
+  uint8_t cfgWrite = ADC_LOW_BW_ENABLE | ADC_FREQ_1KHZ;
   if (adc_write(ADDR_CFG, cfgWrite) != HAL_OK)
   {
     ERROR_PRINT("Failed to config HV ADC\n");
