@@ -569,7 +569,10 @@ BaseType_t hitlPrechargeModeCommand(char *writeBuffer, size_t writeBufferLength,
 
     const char *packVoltageString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(packVoltageString, "%f", &HITL_VPACK);
+    uint32_t intVPack;
+    sscanf(packVoltageString, "%lu", &intVPack);
+
+    HITL_VPACK = intVPack;
 
     COMMAND_OUTPUT("HITL PC Mode, VPACK = %f\n", HITL_VPACK);
     return pdFALSE;
