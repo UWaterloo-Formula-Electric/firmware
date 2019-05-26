@@ -16,7 +16,7 @@
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_TASK_ID 2
 
-#define HV_MEASURE_TASK_PERIOD_MS 5
+#define HV_MEASURE_TASK_PERIOD_MS 1
 #define HV_MEASURE_TASK_ID 4
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 500
 
@@ -99,13 +99,29 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 #include "imdDriver.h"
 #endif
 
+
+#define IBUS_FILTER_ALPHA 0.24  // dT = 1ms, Fc=50Hz
+float filterIBus(float IBus)
+{
+  static float IBusOut = 0;
+
+  IBusOut = IBUS_FILTER_ALPHA*IBus + (1-IBUS_FILTER_ALPHA)*IBusOut;
+
+  return IBusOut;
+}
+
+
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   if (adc_read_current(IBus) != HAL_OK) {
+   float IBusTmp = 0;
+   if (adc_read_current(&IBusTmp) != HAL_OK) {
       ERROR_PRINT("Error reading IBUS\n");
       return HAL_ERROR;
    }
+
+   (*IBus) = filterIBus(IBusTmp);
+
    if (adc_read_v1(VBus) != HAL_OK) {
       ERROR_PRINT("Error reading VBUS\n");
       return HAL_ERROR;
@@ -343,6 +359,7 @@ void HVMeasureTask(void *pvParamaters)
     }
 
     uint32_t lastStateBusHVSend = 0;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to read bus voltages and current!\n");
@@ -363,7 +380,7 @@ void HVMeasureTask(void *pvParamaters)
         }
 
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
-        vTaskDelay(HV_MEASURE_TASK_PERIOD_MS);
+        vTaskDelayUntil(&xLastWakeTime, HV_MEASURE_TASK_PERIOD_MS);
     }
 }
 
