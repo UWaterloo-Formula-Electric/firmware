@@ -18,6 +18,7 @@
 
 #define HV_MEASURE_TASK_PERIOD_MS 5
 #define HV_MEASURE_TASK_ID 4
+#define STATE_BUS_HV_CAN_SEND_PERIOD_MS 500
 
 #define IMD_TASK_PERIOD_MS 1000
 #define IMD_TASK_ID 5
@@ -340,6 +341,7 @@ void HVMeasureTask(void *pvParamaters)
         Error_Handler();
     }
 
+    uint32_t lastStateBusHVSend = 0;
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to read bus voltages and current!\n");
@@ -350,9 +352,14 @@ void HVMeasureTask(void *pvParamaters)
         }
 
 
-        CurrentBusHV = IBus * 1000;
-        VoltageBusHV = VBus * 1000;
-        sendCAN_BMU_stateBusHV();
+        if (xTaskGetTickCount() - lastStateBusHVSend
+            > pdMS_TO_TICKS(STATE_BUS_HV_CAN_SEND_PERIOD_MS))
+        {
+            CurrentBusHV = IBus * 1000;
+            VoltageBusHV = VBus * 1000;
+            sendCAN_BMU_stateBusHV();
+            lastStateBusHVSend = xTaskGetTickCount();
+        }
 
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelay(HV_MEASURE_TASK_PERIOD_MS);
