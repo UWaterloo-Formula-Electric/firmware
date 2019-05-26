@@ -93,6 +93,9 @@ void sensorTask(void *pvParameters)
         Error_Handler();
     }
 
+    // Delay to allow adc readings to start
+    vTaskDelay(100);
+
     while (1)
     {
         /*
