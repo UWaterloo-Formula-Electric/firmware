@@ -433,11 +433,18 @@ Precharge_Discharge_Return_t discharge()
     DEBUG_PRINT("Opening contactors\n");
     openAllContactors();
 
+    DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
     uint32_t startTickCount = xTaskGetTickCount();
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
+
+        ERROR_PRINT("%lu,", xTaskGetTickCount());
+        ERROR_PRINT("%f,", VBus);
+        ERROR_PRINT("%f,", VBatt);
+        ERROR_PRINT("%f\n", IBus);
+
         if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_4_TIMEOUT) {
             ERROR_PRINT("Discharge timed out\n");
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
