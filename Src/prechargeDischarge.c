@@ -266,7 +266,7 @@ Precharge_Discharge_Return_t precharge()
         return PCDC_ERROR;
     }
 
-    DEBUG_PRINT("PC Step 2\n");
+    DEBUG_PRINT("PC Step 3\n");
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
     if (VBus > packVoltage * PRECHARGE_STEP_3_VBUS_MAX_PERCENT_VPACK)
@@ -303,19 +303,23 @@ Precharge_Discharge_Return_t precharge()
      * precharge closed, neg contactor closed, pos contactor open
      */
 
+    DEBUG_PRINT("PC Step 4\n");
+
     setPrechargeContactor(CONTACTOR_CLOSED);
     setNegContactor(CONTACTOR_CLOSED);
     setPosContactor(CONTACTOR_OPEN);
 
     float maxIBus = 0;
+    DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
     startTickCount = xTaskGetTickCount();
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
-        /*ERROR_PRINT("INFO: VBUS %f\n", VBus);*/
-        /*ERROR_PRINT("INFO: VBatt %f\n", VBatt);*/
-        /*ERROR_PRINT("INFO: IBus %f\n", IBus);*/
+        ERROR_PRINT("%lu", xTaskGetTickCount());
+        ERROR_PRINT("%f,", VBus);
+        ERROR_PRINT("%f,", VBatt);
+        ERROR_PRINT("%f\n", IBus);
         if (IBus > maxIBus) {
             maxIBus = IBus;
         }
@@ -363,13 +367,15 @@ Precharge_Discharge_Return_t precharge()
     setPosContactor(CONTACTOR_CLOSED);
 
     startTickCount = xTaskGetTickCount();
+    DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
-        /*ERROR_PRINT("INFO: VBUS %f\n", VBus);*/
-        /*ERROR_PRINT("INFO: VBatt %f\n", VBatt);*/
-        /*ERROR_PRINT("INFO: IBus %f\n", IBus);*/
+        ERROR_PRINT("%lu", xTaskGetTickCount());
+        ERROR_PRINT("%f,", VBus);
+        ERROR_PRINT("%f,", VBatt);
+        ERROR_PRINT("%f\n", IBus);
         if (IBus > maxIBus) {
             maxIBus = IBus;
         }
@@ -383,6 +389,8 @@ Precharge_Discharge_Return_t precharge()
             return PCDC_ERROR;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
+
+    DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount());
 
     float minIBusSpike = (packVoltage - step4EndVBus) / PRECHARGE_RESISTOR_OHMS;
     minIBusSpike *= PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED;
