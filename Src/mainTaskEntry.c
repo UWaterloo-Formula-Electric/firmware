@@ -35,6 +35,11 @@ bool HV_ToggleHigh = false;
 bool waitingForHVChange = false;
 bool waitingForEMChange = false;
 
+#define BUZZER_LENGTH_MS 1000
+TimerHandle_t buzzerSoundTimer;
+void buzzerTimerCallback(TimerHandle_t timer);
+bool buzzerTimerStarted = false;
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     /*DEBUG_PRINT_ISR("Callback\n");*/
@@ -102,6 +107,17 @@ void mainTaskFunction(void const * argument)
         Error_Handler();
     }
 
+    buzzerSoundTimer = xTimerCreate("BuzzerTimer",
+                                       pdMS_TO_TICKS(BUZZER_LENGTH_MS),
+                                       pdFALSE /* Auto Reload */,
+                                       0,
+                                       buzzerTimerCallback);
+
+    if (buzzerSoundTimer == NULL) {
+        ERROR_PRINT("Failed to create throttle timer\n");
+        Error_Handler();
+    }
+
 
     if (registerTaskToWatch(MAIN_TASK_ID, 2*pdMS_TO_TICKS(MAIN_TASK_PERIOD), false, NULL) != HAL_OK)
     {
@@ -149,13 +165,17 @@ void mainTaskFunction(void const * argument)
                 DEBUG_PRINT("Sending hv changed\n");
                 sendCAN_DCU_buttonEvents();
             } else if (emToggleChange) {
-                ButtonEMEnabled = 1;
-                ButtonHVEnabled = 0;
 
                 waitingForEMChange = true;
 
-                DEBUG_PRINT("Sending em changed\n");
-                sendCAN_DCU_buttonEvents();
+                if (!buzzerTimerStarted) {
+                    if (xTimerStart(buzzerSoundTimer, 100) != pdPASS) {
+                        ERROR_PRINT("Failed to start buzzer timer\n");
+                       continue;
+                    }
+                    buzzerTimerStarted = true;
+                    HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_SET);
+                }
             }
         } else if ((notification & (1<<HV_ENABLED_NOTIFICATION))
                    || (notification & (1<<HV_DISABLED_NOTIFICATION)))
@@ -169,4 +189,15 @@ void mainTaskFunction(void const * argument)
 
         watchdogTaskCheckIn(MAIN_TASK_ID);
     }
+}
+
+void buzzerTimerCallback(TimerHandle_t timer)
+{
+    buzzerTimerStarted = false;
+    HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_RESET);
+
+    ButtonEMEnabled = 1;
+    ButtonHVEnabled = 0;
+    DEBUG_PRINT("Sending em changed\n");
+    sendCAN_DCU_buttonEvents();
 }
