@@ -316,7 +316,7 @@ Precharge_Discharge_Return_t precharge()
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
-        ERROR_PRINT("%lu", xTaskGetTickCount());
+        ERROR_PRINT("%lu,", xTaskGetTickCount());
         ERROR_PRINT("%f,", VBus);
         ERROR_PRINT("%f,", VBatt);
         ERROR_PRINT("%f\n", IBus);
@@ -372,7 +372,7 @@ Precharge_Discharge_Return_t precharge()
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
-        ERROR_PRINT("%lu", xTaskGetTickCount());
+        ERROR_PRINT("%lu,", xTaskGetTickCount());
         ERROR_PRINT("%f,", VBus);
         ERROR_PRINT("%f,", VBatt);
         ERROR_PRINT("%f\n", IBus);
