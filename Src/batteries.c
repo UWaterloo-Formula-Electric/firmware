@@ -964,3 +964,18 @@ void batteryTask(void *pvParameter)
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }
+
+#define CAN_CELL_SEND_PERIOD 200
+void canSendCellTask(void *pvParameters)
+{
+  uint32_t cellIdxToSend = 0;
+  while (1) {
+    sendCAN_BMU_CellVoltage(cellIdxToSend);
+
+    // Move on to next cells
+    cellIdxToSend += 3;
+    cellIdxToSend = cellIdxToSend % 72;
+
+    vTaskDelay(CAN_CELL_SEND_PERIOD);
+  }
+}
