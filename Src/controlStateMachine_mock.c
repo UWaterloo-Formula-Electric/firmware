@@ -8,24 +8,6 @@
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
-// typedef enum PDU_Channels_t {
-//     Fan_Right_Channel, // Channel 2
-//     DCU_Channel, // Channel 3
-//     MC_Left_Channel, // Channel 4
-//     Pump_Left_Channel, // Channel 5
-//     Fan_Left_Channel, // Channel 6
-//     VCU_Channel, // Channel 7
-//     Telemetery_Channel, // Channel 8
-//     Fan_Batt_Channel, // Channel 9
-//     LV_Current, // Channel 10
-//     LV_Voltage, // Channel 11
-//     MC_Right_Channel, // Channel 12
-//     Pump_Right_Channel, // Channel 13
-//     BMU_Channel, // Channel 14
-//     WSB_Channel, // Channel 15
-//     NUM_PDU_CHANNELS
-// } PDU_Channels_t;
-
 BaseType_t getChannelCurrents(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -36,43 +18,8 @@ BaseType_t getChannelCurrents(char *writeBuffer, size_t writeBufferLength,
         } else if (i == LV_Current) {
             DEBUG_PRINT("Bus current: %f A\n", readBusCurrent());
             continue;
-        } else if (i == Fan_Right_Channel) {
-            DEBUG_PRINT("Fan_Right current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == DCU_Channel) {
-            DEBUG_PRINT("DCU current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == MC_Left_Channel) {
-            DEBUG_PRINT("MC_Left current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == Pump_Left_Channel) {
-            DEBUG_PRINT("Pump_Left current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == Fan_Left_Channel) {
-            DEBUG_PRINT("Fan_Left current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == VCU_Channel) {
-            DEBUG_PRINT("VCU current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == MC_Right_Channel) {
-            DEBUG_PRINT("MC_Right_Channel current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == Pump_Right_Channel) {
-            DEBUG_PRINT("Pump_Right_Channel current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == Pump_Right_Channel) {
-            DEBUG_PRINT("Pump_Right_Channel current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == BMU_Channel) {
-            DEBUG_PRINT("BMU_Channel current: %f A\n", readCurrent(i));
-            continue;
-        } else if (i == WSB_Channel) {
-            DEBUG_PRINT("WSB_Channel current: %f A\n", readCurrent(i));
-            continue;
         }
-
-
-        DEBUG_PRINT("Channel %i: %f A\n", i, readCurrent(i));
+        DEBUG_PRINT("Channel %s: %f A\n",channelNames[i], readCurrent(i));
     }
 
     return pdFALSE;

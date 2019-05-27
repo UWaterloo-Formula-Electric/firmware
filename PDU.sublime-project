@@ -12,7 +12,7 @@
 		},
 		{
 			"file_regex": "(.+[^:]):(\\d+):(\\d+): (?:fatal )?((?:error|warning): .+)$",
-			"name": "NUCLEO_F7_LOAD",
+			"name": "NUCLEO_F7_LOAD -j11",
 			"shell_cmd": "make load BOARD_TYPE=NUCLEO_F7",
 			"working_dir": "${project_path}",
 			    // Recognize ANSI colors in the output
@@ -49,7 +49,7 @@
 		{
 			"file_regex": "(.+[^:]):(\\d+):(\\d+): (?:fatal )?((?:error|warning): .+)$",
 			"name": "F7",
-			"shell_cmd": "make BOARD_TYPE=F7",
+			"shell_cmd": "make BOARD_TYPE=F7 -j11",
 			"working_dir": "${project_path}",
 			    // Recognize ANSI colors in the output
     		"target": "ansi_color_build",

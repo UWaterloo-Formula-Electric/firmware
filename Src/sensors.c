@@ -13,6 +13,24 @@
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
+
+
+
+const char *channelNames[] = {  "Fan Right",
+                            "DCU",
+                            "MC Left",
+                            "Pump Left",
+                            "Fan Left",
+                            "VCU",
+                            "Brake Light",
+                            "AUX",
+                            "LV",
+                            "LV",
+                            "MC Right",
+                            "Pump Right",
+                            "BMU",
+                            "WSB"};
+
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
@@ -50,7 +68,7 @@ void printRawADCVals() {
         } else if (i == LV_Current) {
             DEBUG_PRINT("Bus current: %lu\n", ADC_Buffer[i]);
         } else {
-            DEBUG_PRINT("Channel %d: %lu\n", i, ADC_Buffer[i]);
+            DEBUG_PRINT("Channel %d, %s: %lu\n", i,channelNames[i], ADC_Buffer[i]);
         }
     }
 }

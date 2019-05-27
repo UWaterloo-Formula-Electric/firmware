@@ -14,8 +14,8 @@ typedef enum PDU_Channels_t {
     Pump_Left_Channel, // Channel 5
     Fan_Left_Channel, // Channel 6
     VCU_Channel, // Channel 7
-    Telemetery_Channel, // Channel 8
-    Fan_Batt_Channel, // Channel 9
+    Brake_Light_Channel, // Channel 8
+    AUX_Channel, // Channel 9
     LV_Current, // Channel 10
     LV_Voltage, // Channel 11
     MC_Right_Channel, // Channel 12
@@ -25,10 +25,12 @@ typedef enum PDU_Channels_t {
     NUM_PDU_CHANNELS
 } PDU_Channels_t;
 
+const char *channelNames[NUM_PDU_CHANNELS];
+
 #define SENSOR_READ_PERIOD_MS 500
 
 /*
- * Sensor Valid Ranges
+ * Sensor Valid Range˙
  */
 
 // Low voltage Cuttoff
