@@ -32,11 +32,13 @@ uint32_t startCharge(uint32_t event);
 uint32_t stopCharge(uint32_t event);
 uint32_t chargeDone(uint32_t event);
 uint32_t systemUpCheck(uint32_t event);
+uint32_t systemNotReady(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
     { STATE_Wait_System_Up, EV_HVIL_Ready, &systemUpCheck },
+    { STATE_Wait_System_Up, EV_ANY, &systemNotReady },
 
     // Charge
     { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
@@ -292,4 +294,12 @@ uint32_t chargeDone(uint32_t event)
         ERROR_PRINT("Got charge done event, but wasn't charging\n");
         return STATE_HV_Disable;
     }
+}
+
+uint32_t systemNotReady(uint32_t event)
+{
+    ERROR_PRINT("Still waiting for system to be ready\n");
+    sendDTC_WARNING_BMU_SystemNotReady();
+
+    return STATE_Wait_System_Up;
 }
