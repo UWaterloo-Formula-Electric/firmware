@@ -7,6 +7,7 @@
 #include "drive_by_wire.h"
 
 #include "VCU_F7_can.h"
+#include "VCU_F7_dtc.h"
 
 #include "freertos.h"
 #include "task.h"
@@ -83,4 +84,15 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
 void CAN_Msg_BMU_BrakePedalValue_Callback()
 {
     lastBrakeValReceiveTimeTicks = xTaskGetTickCount();
+}
+
+void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
+    switch (DTC_CODE) {
+        case WARNING_CONTACTOR_OPEN_IMPENDING:
+            fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+            break;
+        default:
+            // Do nothing, other events handled by fatal callback
+            break;
+    }
 }
