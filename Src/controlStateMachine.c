@@ -36,6 +36,7 @@ uint32_t systemUpCheck(uint32_t event);
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
+    { STATE_Wait_System_Up, EV_HVIL_Ready, &systemUpCheck },
 
     // Charge
     { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
