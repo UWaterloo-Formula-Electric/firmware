@@ -126,12 +126,12 @@ void Error_Handler(void);
 #define BUT_3_GPIO_Port GPIOE
 #define BMGR_DCOKn_Pin GPIO_PIN_8
 #define BMGR_DCOKn_GPIO_Port GPIOA
-#define BMGR_GPIO1_Pin GPIO_PIN_9
-#define BMGR_GPIO1_GPIO_Port GPIOA
+#define BMGR_GPIO3_Pin GPIO_PIN_9
+#define BMGR_GPIO3_GPIO_Port GPIOA
 #define BMGR_GPIO2_Pin GPIO_PIN_10
 #define BMGR_GPIO2_GPIO_Port GPIOA
-#define BMGR_GPIO3_Pin GPIO_PIN_11
-#define BMGR_GPIO3_GPIO_Port GPIOA
+#define BMGR_GPIO1_Pin GPIO_PIN_11
+#define BMGR_GPIO1_GPIO_Port GPIOA
 #define BMGR_SHDN_Pin GPIO_PIN_12
 #define BMGR_SHDN_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13

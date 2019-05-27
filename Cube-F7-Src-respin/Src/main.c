@@ -54,7 +54,6 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
-#include "i2c.h"
 #include "iwdg.h"
 #include "tim.h"
 #include "usart.h"
@@ -133,7 +132,6 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_CAN3_Init();
-  MX_I2C2_Init();
   MX_UART4_Init();
   MX_TIM3_Init();
   MX_IWDG_Init();
@@ -211,9 +209,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_I2C2;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4;
   PeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
-  PeriphClkInitStruct.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();

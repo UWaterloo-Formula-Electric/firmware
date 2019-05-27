@@ -6,6 +6,7 @@
 #include "controlStateMachine.h"
 #include "userCan.h"
 #include "controlStateMachine_mock.h"
+#include "LTC4110.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -37,6 +38,13 @@ void userInit()
         ERROR_PRINT("Failed to init state machines!\n");
         Error_Handler();
     }
+
+        if (LTC4110Init() != HAL_OK) {
+        ERROR_PRINT("Failed to init LTC4110 driver!\n");
+        Error_Handler();
+    }
+
+    
 
     uartStartReceiving(&DEBUG_UART_HANDLE);
 }
