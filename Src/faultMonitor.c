@@ -43,6 +43,11 @@ void faultMonitorTask(void *pvParameters)
       {
          ERROR_PRINT("HVIL broke\n");
          fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+
+         while (1) {
+            watchdogTaskCheckIn(FAULT_TASK_ID);
+            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+         }
       }
 
       watchdogTaskCheckIn(FAULT_TASK_ID);
