@@ -47,7 +47,7 @@ BaseType_t printPowerStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 
-    COMMAND_OUTPUT("States:\n DC not present:%d\n", GET_DC_PRESNT);
+    COMMAND_OUTPUT("States:\n DC present:%d\n", GET_DC_PRESNT);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printPowerStatesCommandDefinition =
@@ -67,13 +67,3 @@ HAL_StatusTypeDef LTC4110Init()
 
     return HAL_OK;
 }
-
-
-
-
- // GET_CHARGE_STATUS 
- // GET_BATT_UV_STATUS
- // GET_CAL_CMPLT  
- // GET_DC_PRESNT  
- // DC_POWER_DISABLE 
- // DC_POWER_ENABLE 
