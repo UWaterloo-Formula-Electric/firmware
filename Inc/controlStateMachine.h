@@ -25,6 +25,7 @@ typedef enum BMU_Events_t {
     EV_PrechargeDischarge_Fail,
     EV_HV_Fault,
     EV_IMD_Ready,
+    EV_HVIL_Ready,
     EV_Enter_Charge_Mode,
     EV_Charge_Start,
     EV_Charge_Done,

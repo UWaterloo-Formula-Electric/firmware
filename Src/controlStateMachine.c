@@ -108,14 +108,20 @@ HAL_StatusTypeDef startControl()
 uint32_t systemUpCheck(uint32_t event)
 {
     static bool imdReady = false;
+    static bool hvilReady = false;
 
     if (event == EV_IMD_Ready) {
         DEBUG_PRINT("IMD Ready\n");
         imdReady = true;
     }
 
+    if (event == EV_HVIL_Ready) {
+        DEBUG_PRINT("HVIL Ready\n");
+        hvilReady = true;
+    }
+
     // Check all ready to start conditions
-    if (imdReady) {
+    if (imdReady && hvilReady) {
         DEBUG_PRINT("System up!\n");
         return STATE_HV_Disable;
     } else {

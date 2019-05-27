@@ -88,6 +88,7 @@ osThreadId sensorTaskNameHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId HVMeasureHandle;
 osThreadId IMDHandle;
+osThreadId FaultMonitorHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -104,6 +105,7 @@ extern void sensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void HVMeasureTask(void const * argument);
 extern void imdTask(void const * argument);
+extern void faultMonitorTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -200,6 +202,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of IMD */
   osThreadDef(IMD, imdTask, osPriorityHigh, 0, 500);
   IMDHandle = osThreadCreate(osThread(IMD), NULL);
+
+  /* definition and creation of FaultMonitor */
+  osThreadDef(FaultMonitor, faultMonitorTask, osPriorityHigh, 0, 1000);
+  FaultMonitorHandle = osThreadCreate(osThread(FaultMonitor), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
