@@ -33,6 +33,7 @@ uint32_t runSelftTests(uint32_t event);
 uint32_t EM_Enable(uint32_t event);
 uint32_t EM_Fault(uint32_t event);
 uint32_t EM_Update_Throttle(uint32_t event);
+uint32_t doNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
 
 void throttleTimerCallback(TimerHandle_t timer);
@@ -55,6 +56,7 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Poll, &EM_Update_Throttle },
+    { STATE_Failure_Fatal, EV_ANY, &doNothing },
     { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
@@ -413,4 +415,9 @@ HAL_StatusTypeDef MotorStop()
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
     return HAL_OK;
+}
+
+uint32_t doNothing(uint32_t event)
+{
+    return fsmGetState(&fsmHandle);
 }
