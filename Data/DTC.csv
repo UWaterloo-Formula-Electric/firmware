@@ -40,3 +40,4 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 39,VCU_F7_MissedHeartbeat,"BMU,PDU,DCU",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU heartbeat timeout
 40,BMU_Charger_ERROR,BMU,1,"DCU,PDU,VCU_F7,ChargeCart",NA,The charger reported an error while charging
 41,BMU_SystemNotReady,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",NA,"The BMU is waiting for the system to come up, and can't process the request yet"
+42,PDU_EM_EN_BLOCKED_DCDC_OFF,PDU,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,The PDU blocked EM enable request since DC-DC not on
