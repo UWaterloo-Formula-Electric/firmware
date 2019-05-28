@@ -165,10 +165,17 @@ uint32_t EM_Enable(uint32_t event)
     }
 
     DEBUG_PRINT("Trans to em enable\n");
-    if (MotorStart() != HAL_OK) {
+    HAL_StatusTypeDef rc;
+    rc = MotorStart();
+    if (rc != HAL_OK) {
         ERROR_PRINT("Failed to turn on motors\n");
-        sendDTC_FATAL_EM_ENABLE_FAILED(5);
-        state = STATE_Failure_Fatal;
+        if (rc == HAL_TIMEOUT) {
+            sendDTC_WARNING_EM_ENABLE_FAILED(5);
+            state = STATE_EM_Disable;
+        } else {
+            sendDTC_FATAL_EM_ENABLE_FAILED(6);
+            state = STATE_Failure_Fatal;
+        }
     }
 
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
@@ -305,13 +312,16 @@ HAL_StatusTypeDef turnOnMotorControllers() {
     sendCAN_VCU_EM_Power_State_Request();
 
     // Wait for PDU to turn on MCs
-    xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
+    BaseType_t rc = xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
                      UINT32_MAX, /* Reset the notification value to 0 on exit. */
                      &dbwTaskNotifications, /* Notified value pass out in
                                           dbwTaskNotifications. */
                      pdMS_TO_TICKS(MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS));  /* Timeout */
 
-    if (dbwTaskNotifications & (1<<NTFY_MCs_ON)) {
+    if (rc == pdFALSE) {
+        DEBUG_PRINT("Timed out waiting for mc on\n");
+        return HAL_TIMEOUT;
+    } else if (dbwTaskNotifications & (1<<NTFY_MCs_ON)) {
         DEBUG_PRINT("PDU has turned on MCs\n");
     } else {
         ERROR_PRINT("Got unexpected notification 0x%lX\n", dbwTaskNotifications);
@@ -328,14 +338,17 @@ HAL_StatusTypeDef turnOffMotorControllers() {
     EM_Power_State_Request = EM_Power_State_Request_Off;
     sendCAN_VCU_EM_Power_State_Request();
 
-    // Wait for PDU to turn on MCs
-    xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
+    // Wait for PDU to turn off MCs
+    BaseType_t rc = xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
                      UINT32_MAX, /* Reset the notification value to 0 on exit. */
                      &dbwTaskNotifications, /* Notified value pass out in
                                           dbwTaskNotifications. */
                      pdMS_TO_TICKS(MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS));  /* Timeout */
 
-    if (dbwTaskNotifications & (1<<NTFY_MCs_OFF)) {
+    if (rc == pdFALSE) {
+        DEBUG_PRINT("Timed out waiting for mc off\n");
+        return HAL_TIMEOUT;
+    } else if (dbwTaskNotifications & (1<<NTFY_MCs_OFF)) {
         DEBUG_PRINT("PDU has turned off MCs\n");
     } else {
         ERROR_PRINT("Got unexpected notification 0x%lX\n", dbwTaskNotifications);
@@ -347,23 +360,27 @@ HAL_StatusTypeDef turnOffMotorControllers() {
 
 HAL_StatusTypeDef MotorStart()
 {
+    HAL_StatusTypeDef rc;
+
     DEBUG_PRINT("Starting motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
 
-    if (turnOnMotorControllers() != HAL_OK) {
-        return HAL_ERROR;
+    rc = turnOnMotorControllers();
+    if (rc != HAL_OK) {
+        return rc;
     }
 
     vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS));
-    if (mcInit() != HAL_OK) {
+    rc = mcInit();
+    if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");
-        return HAL_ERROR;
+        return rc;
     }
 
     if (xTimerStart(throttleUpdateTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start throttle update timer\n");
-        return HAL_ERROR;
+        return HAL_TIMEOUT;
     }
 
 

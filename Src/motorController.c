@@ -73,7 +73,7 @@ HAL_StatusTypeDef mcInit()
 
     if (StateInverterRight != 0x18) {
         ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
-        return HAL_ERROR;
+        return HAL_TIMEOUT;
     }
 
     if (mcRightCommand(0x1) != HAL_OK) {
@@ -87,7 +87,7 @@ HAL_StatusTypeDef mcInit()
 
     if (StateInverterLeft != 0x18) {
         ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
-        return HAL_ERROR;
+        return HAL_TIMEOUT;
     }
 
     if (mcLeftCommand(0x1) != HAL_OK) {
