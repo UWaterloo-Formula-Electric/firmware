@@ -13,6 +13,7 @@
 
 void powerTask(void *pvParameters)
 {
+    bool DC_DC_state = false;
     if (registerTaskToWatch(5, 2*POWER_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register power task with watchdog!\n");
@@ -22,14 +23,13 @@ void powerTask(void *pvParameters)
     // Delay to allow system to turn on
     vTaskDelay(100);
 
-    bool lastDCState = GET_DC_PRESNT;
-    bool newDCState = GET_DC_PRESNT;
     while (1)
     {
-       
-        if (lastDCState != newDCState)
-        {
-            if (newDCState == GPIO_PIN_SET) 
+        bool newDCDCState = IS_DC_DC_ON;
+
+
+        if (newDCDCState != DC_DC_state) {
+            if (newDCDCState)
             {
                 DEBUG_PRINT("switched to DC to DC\n");
             }
@@ -37,33 +37,9 @@ void powerTask(void *pvParameters)
             {
                 DEBUG_PRINT("switched to DC to DC\n");
             }
+            DC_DC_state = newDCDCState;
         }
         watchdogTaskCheckIn(5);
         vTaskDelay(POWER_TASK_INTERVAL_MS);
     }
-}
-
-BaseType_t printPowerStates(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-
-    COMMAND_OUTPUT("States:\n DC present:%d\n", GET_DC_PRESNT);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t printPowerStatesCommandDefinition =
-{
-    "powerStates",
-    "powerStates:\r\n  Output current states of LTC4110\r\n",
-    printPowerStates,
-    0 /* Number of parameters */
-};
-
-
-HAL_StatusTypeDef LTC4110Init()
-{
-    if (FreeRTOS_CLIRegisterCommand(&printPowerStatesCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
 }

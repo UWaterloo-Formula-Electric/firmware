@@ -39,13 +39,6 @@ void userInit()
         Error_Handler();
     }
 
-        if (LTC4110Init() != HAL_OK) {
-        ERROR_PRINT("Failed to init LTC4110 driver!\n");
-        Error_Handler();
-    }
-
-    
-
     uartStartReceiving(&DEBUG_UART_HANDLE);
 }
 

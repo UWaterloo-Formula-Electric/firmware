@@ -45,8 +45,6 @@ Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
@@ -74,7 +72,6 @@ Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
 Src/gpio.c \
 Src/adc.c \
 Src/can.c \
-Src/i2c.c \
 Src/tim.c \
 Src/usart.c \
 Src/dma.c \

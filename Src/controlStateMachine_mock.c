@@ -315,6 +315,21 @@ static const CLI_Command_Definition_t testOutputCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t printPowerStates(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+
+    COMMAND_OUTPUT("States:\n DC present:%d\n", IS_DC_DC_ON);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t printPowerStatesCommandDefinition =
+{
+    "powerStates",
+    "powerStates:\r\n  Output current states of LTC4110\r\n",
+    printPowerStates,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&criticalCommandDefinition) != pdPASS) {
@@ -351,6 +366,9 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getChannelsRawDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&printPowerStatesCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
