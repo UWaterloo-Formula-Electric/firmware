@@ -7,14 +7,11 @@
 #include "boardTypes.h"
 
 void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
-    if (EM_Power_State_Request) {
+    if (EM_Power_State_Request == EM_Power_State_Request_On) {
         fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_ENABLE);
-    } else {
-        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
-    }
-    if (HV_Power_State == HV_Power_State_On) {
         fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_ENABLE);
     } else {
+        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
         fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_DISABLE);
     }
 }

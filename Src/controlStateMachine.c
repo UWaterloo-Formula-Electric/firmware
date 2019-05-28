@@ -75,6 +75,7 @@ Transition_t coolingTransitions[] = {
     { COOL_STATE_WAIT, COOL_EV_EM_DISABLE, &stopCoolingWait},
     { COOL_STATE_ON, COOL_EV_EM_DISABLE, &coolingOff},
     { COOL_STATE_ON, COOL_EV_Critical, &coolingCriticalFailure },
+    { COOL_STATE_ON, COOL_EV_EM_ENABLE, &coolingDoNothing },
     { COOL_STATE_OFF, COOL_EV_Critical, &coolingCriticalFailure },
     { COOL_STATE_WAIT, COOL_EV_Critical, &coolingCriticalFailure },
     { COOL_STATE_ANY, COOL_EV_LV_Cuttoff, &coolingLVCuttoff },
