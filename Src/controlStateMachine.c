@@ -209,6 +209,9 @@ uint32_t handleFault(uint32_t event)
 
     uint32_t currentState = fsmGetState(&fsmHandle);
 
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
     switch (currentState) {
         case STATE_HV_Disable:
             {
