@@ -35,7 +35,7 @@ void powerTask(void *pvParameters)
             }
             else
             {
-                DEBUG_PRINT("switched to DC to DC\n");
+                DEBUG_PRINT("Switched to battery\n");
             }
             DC_DC_state = newDCDCState;
         }
