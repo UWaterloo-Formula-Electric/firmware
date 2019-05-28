@@ -140,7 +140,6 @@ HAL_StatusTypeDef F0_sendCanMessage(int id, int length, uint8_t *data)
 uint32_t HAL_CAN_GetTxMailboxesFreeLevel(CAN_HandleTypeDef *hcan)
 {
   uint32_t freelevel = 0U;
-  HAL_CAN_StateTypeDef state = hcan->State;
 
   /* Check Tx Mailbox 0 status */
   if ((hcan->Instance->TSR & CAN_TSR_TME0) != 0U)
