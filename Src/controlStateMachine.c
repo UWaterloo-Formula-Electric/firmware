@@ -13,7 +13,7 @@
 #include "watchdog.h"
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
-#define COOLING_DELAY_TIME_MS 5000
+#define COOLING_DELAY_TIME_MS 1000
 
 FSM_Handle_Struct mainFsmHandle;
 FSM_Handle_Struct motorFsmHandle;
@@ -34,13 +34,14 @@ uint32_t MainDefaultTransition(uint32_t event);
 uint32_t MotorDefaultTransition(uint32_t event);
 uint32_t mainDoNothing(uint32_t event);
 uint32_t motorDoNothing(uint32_t event);
-uint32_t hvEnable(uint32_t event);
+uint32_t emEnable(uint32_t event);
 uint32_t coolingOn(uint32_t event);
 uint32_t coolingOff(uint32_t event);
 uint32_t coolingCriticalFailure(uint32_t event);
 uint32_t coolingLVCuttoff(uint32_t event);
 uint32_t coolingDoNothing(uint32_t event);
 uint32_t CoolDefaultTransition(uint32_t event);
+uint32_t stopCoolingWait(uint32_t event);
 void coolingDelayCallback(TimerHandle_t timer);
 void hvCriticalDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
@@ -67,11 +68,12 @@ Transition_t motorTransitions[] = {
 };
 
 Transition_t coolingTransitions[] = {
-    { COOL_STATE_OFF, COOL_EV_HV_ENABLE, &hvEnable},
+    { COOL_STATE_OFF, COOL_EV_EM_ENABLE, &emEnable},
     { COOL_STATE_OFF, COOL_EV_OVERTEMP_WARNING, &coolingOn},
     { COOL_STATE_WAIT, COOL_EV_OVERTEMP_WARNING, &coolingOn},
     { COOL_STATE_WAIT, COOL_EV_WAIT_ELAPSED, &coolingOn},
-    { COOL_STATE_ON, COOL_EV_HV_DISABLE, &coolingOff},
+    { COOL_STATE_WAIT, COOL_EV_EM_DISABLE, &stopCoolingWait},
+    { COOL_STATE_ON, COOL_EV_EM_DISABLE, &coolingOff},
     { COOL_STATE_ON, COOL_EV_Critical, &coolingCriticalFailure },
     { COOL_STATE_OFF, COOL_EV_Critical, &coolingCriticalFailure },
     { COOL_STATE_WAIT, COOL_EV_Critical, &coolingCriticalFailure },
@@ -336,19 +338,26 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
-        MC_LEFT_ENABLE;
-        MC_RIGHT_ENABLE;
-    }
+    if (IS_DC_DC_ON) {
+        if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
+            MC_LEFT_ENABLE;
+            MC_RIGHT_ENABLE;
+        }
 
-    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
-    StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
+        StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
+        StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
 
-    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
-        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
-        return motorsOff(MTR_EV_EM_DISABLE);
+        if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+            ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+            return motorsOff(MTR_EV_EM_DISABLE);
+        }
+        return MTR_STATE_Motors_On;
+    } else {
+        // Don't allow motors to turn on without DC-DC power
+        // Lack of response to VCU will cause timeout, and then can try again
+        sendDTC_WARNING_PDU_EM_EN_BLOCKED_DCDC_OFF();
+        return MTR_STATE_Motors_Off;
     }
-    return MTR_STATE_Motors_On;
 }
 
 uint32_t motorsOff(uint32_t event)
@@ -418,6 +427,7 @@ uint32_t coolingDoNothing(uint32_t event) {
 
 uint32_t coolingLVCuttoff(uint32_t event) {
     DEBUG_PRINT("LV Cuttoff: Turning cooling off\n");
+    coolingOff(event);
     return COOL_STATE_LV_Cuttoff;
 }
 uint32_t coolingCriticalFailure(uint32_t event) {
@@ -435,6 +445,8 @@ uint32_t coolingOff(uint32_t event) {
     DEBUG_PRINT("Turning cooling off\n");
     PUMP_LEFT_DISABLE;
     PUMP_RIGHT_DISABLE;
+    FAN_LEFT_DISABLE;
+    FAN_RIGHT_DISABLE;
     return COOL_STATE_OFF;
 }
 
@@ -442,16 +454,33 @@ uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
     PUMP_LEFT_ENABLE;
     PUMP_RIGHT_ENABLE;
+    FAN_LEFT_ENABLE;
+    FAN_RIGHT_ENABLE;
     return COOL_STATE_ON;
 }
 
-uint32_t hvEnable(uint32_t event) {
-    DEBUG_PRINT("HV Enable received\n");
-    if (xTimerStart(coolingDelayTimer, 100) != pdPASS) {
+uint32_t emEnable(uint32_t event) {
+    DEBUG_PRINT("EM Enable received\n");
+    if (IS_DC_DC_ON) {
+        if (xTimerStart(coolingDelayTimer, 100) != pdPASS) {
+            ERROR_PRINT("Failed to start coolingdelay timer\n");
+            coolingOn(COOL_EV_WAIT_ELAPSED);
+            return COOL_STATE_ON;
+        }
+    return COOL_STATE_WAIT;
+    } else {
+        DEBUG_PRINT("Not turning cooling on from em enable, DC-DC off\n");
+        return COOL_STATE_OFF;
+    }
+}
+
+uint32_t stopCoolingWait(uint32_t event)
+{
+    DEBUG_PRINT("Stopping cooling timer\n");
+    if (xTimerStop(coolingDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start coolingdelay timer\n");
-        coolingOn(COOL_EV_WAIT_ELAPSED);
-        return COOL_STATE_ON;
+        coolingOff(COOL_EV_WAIT_ELAPSED);
     }
 
-    return COOL_STATE_WAIT;
+    return COOL_STATE_OFF;
 }

@@ -233,9 +233,9 @@ BaseType_t mockHVEnableDisable(char *writeBuffer, size_t writeBufferLength,
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     if (STR_EQ(param, "enable", paramLen)) {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_ENABLE);
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_ENABLE);
     } else if (STR_EQ(param, "disable", paramLen)) {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_DISABLE);
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_DISABLE);
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }

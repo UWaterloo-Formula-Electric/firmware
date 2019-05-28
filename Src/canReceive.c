@@ -12,13 +12,10 @@ void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
     } else {
         fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
     }
-}
-
-void CAN_Msg_BMU_HV_Power_State_Callback() {
     if (HV_Power_State == HV_Power_State_On) {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_ENABLE);
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_ENABLE);
     } else {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_HV_DISABLE);
+        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_DISABLE);
     }
 }
 
@@ -28,9 +25,6 @@ void DTC_Fatal_Callback(BoardIDs board) {
 
 void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
     switch (DTC_CODE) {
-        case WARNING_CELL_TEMP_HIGH:
-            fsmSendEventISR(&coolingFsmHandle, COOL_EV_OVERTEMP_WARNING);
-            break;
         default:
             // Do nothing, other events handled by fatal callback
             break;
