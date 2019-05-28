@@ -135,6 +135,35 @@ HAL_StatusTypeDef F0_sendCanMessage(int id, int length, uint8_t *data)
   return rc;
 }
 
+// Implement this here, as F0 driver doesn't implement this (for our version at
+// least)
+uint32_t HAL_CAN_GetTxMailboxesFreeLevel(CAN_HandleTypeDef *hcan)
+{
+  uint32_t freelevel = 0U;
+  HAL_CAN_StateTypeDef state = hcan->State;
+
+  /* Check Tx Mailbox 0 status */
+  if ((hcan->Instance->TSR & CAN_TSR_TME0) != 0U)
+  {
+    freelevel++;
+  }
+
+  /* Check Tx Mailbox 1 status */
+  if ((hcan->Instance->TSR & CAN_TSR_TME1) != 0U)
+  {
+    freelevel++;
+  }
+
+  /* Check Tx Mailbox 2 status */
+  if ((hcan->Instance->TSR & CAN_TSR_TME2) != 0U)
+  {
+    freelevel++;
+  }
+
+  /* Return Tx Mailboxes free level */
+  return freelevel;
+}
+
 uint32_t error = HAL_CAN_ERROR_NONE;
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
