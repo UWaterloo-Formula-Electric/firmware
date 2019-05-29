@@ -193,11 +193,12 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
         case 2:
             sendQueueHandle = CAN_Priority2_Queue;
             break;
-        case 3:
+        case 6:
             sendQueueHandle = CAN_Priority3_Queue;
             break;
         default:
-            ERROR_PRINT("Unkown CAN message priority %d\n", priority);
+            DEBUG_PRINT("Unkown CAN message priority %d, id 0x%lX\n", priority, id);
+            sendQueueHandle = CAN_Priority3_Queue;
             return HAL_ERROR;
     }
 
