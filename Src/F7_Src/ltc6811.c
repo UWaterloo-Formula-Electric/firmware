@@ -561,7 +561,9 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
         for (int board = 0; board < NUM_BOARDS; board++) {
             for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg ++)
             {
-                size_t index = cvreg*CELL_VOLTAGE_SIZE_BYTES;
+                size_t registerIndex = cvreg*CELL_VOLTAGE_SIZE_BYTES;
+                size_t registerStartForBoard = board * (CELL_VOLTAGE_SIZE_BYTES * VOLTAGES_PER_BLOCK);
+                size_t index = registerIndex + registerStartForBoard;
                 size_t cellIdx = cvreg + board * CELLS_PER_BOARD + VOLTAGES_PER_BLOCK*block;
                 uint16_t temp = ((uint16_t) (adc_vals[(index + 1)] << 8 | adc_vals[index]));
                 cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
