@@ -127,7 +127,7 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 // 0: DTC
 // 1: Control Messages
 // 2: Status Messages
-// 3: Debug Messages
+// 6: Debug Messages
 // Depending on free mailboxes, can send certain types
 HAL_StatusTypeDef canSendCANMessage(uint32_t id, CAN_HandleTypeDef *hcan)
 {
@@ -162,6 +162,11 @@ HAL_StatusTypeDef canSendCANMessage(uint32_t id, CAN_HandleTypeDef *hcan)
     }
 }
 
+// There are 4 priority levels (from high priority (0) to low (3):
+// 0: DTC
+// 1: Control Messages
+// 2: Status Messages
+// 6: Debug Messages
 HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
 {
     if (length > 8) {
