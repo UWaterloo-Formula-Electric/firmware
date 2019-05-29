@@ -159,14 +159,21 @@ void watchdogTask(void *pvParameters)
                     {
                         watchdogSignalError(node->id);
                     }
+                    node->fsmCheckInRequestTimeTicks = curTick;
                 } else {
-                    if (node->lastCheckInTicks
-                        - node->fsmCheckInRequestTimeTicks > node->timeoutTicks)
-                    {
-                        watchdogSignalError(node->id);
+                    // Check if we received a response to the check in request
+                    if (node->lastCheckInTicks >= node->fsmCheckInRequestTimeTicks) {
+                        // Check if timeout occured
+                        if (node->lastCheckInTicks - node->fsmCheckInRequestTimeTicks > node->timeoutTicks) {
+                            watchdogSignalError(node->id);
+                        }
+                        node->fsmCheckInRequestTimeTicks = 0;
+                    } else {
+                        // We didn't receive a response, check timeout
+                        if (curTick - node->fsmCheckInRequestTimeTicks > node->timeoutTicks) {
+                            watchdogSignalError(node->id);
+                        }
                     }
-
-                    node->fsmCheckInRequestTimeTicks = 0;
                 }
             } else {
                 if (curTick - node->lastCheckInTicks > node->timeoutTicks) {
