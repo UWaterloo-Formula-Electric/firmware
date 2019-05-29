@@ -7,6 +7,7 @@
 #include "userCan.h"
 #include "drive_by_wire_mock.h"
 #include "motorController.h"
+#include "beaglebone.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -40,7 +41,11 @@ void userInit()
       Error_Handler();
     }
 
-    if (initSpeedAndTorqueLimits() != HAL_OK) {
+    if (initMotorControllerProcanSettings() != HAL_OK) {
+      Error_Handler();
+    }
+
+    if (beagleboneOff() != HAL_OK) {
       Error_Handler();
     }
 }

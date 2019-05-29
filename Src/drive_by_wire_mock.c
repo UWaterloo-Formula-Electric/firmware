@@ -10,6 +10,7 @@
 #include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "motorController.h"
+#include "beaglebone.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -300,17 +301,7 @@ BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
     }
 
     COMMAND_OUTPUT("Turning BeagleBone %s\n", onOff?"on":"off");
-        if (onOff) {
-            PP_5V0_ENABLE;
-            HAL_Delay(100);
-            PP_BB_ENABLE;  
-        } else {
-            //TODO: send shutdown message to BB
-            PP_BB_DISABLE;
-            HAL_Delay(100);
-            PP_5V0_DISABLE;         
-        }
-
+    beaglebonePower(onOff);
 
     return pdFALSE;
 }
@@ -328,7 +319,10 @@ BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
     BaseType_t paramLen;
     const char * torqueMaxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
+    uint64_t maxTorqueDemand;
     sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
+
+    setTorqueLimit(maxTorqueDemand);
 
     COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand);
 
@@ -351,10 +345,7 @@ BaseType_t speedLimitCommand(char *writeBuffer, size_t writeBufferLength,
     uint64_t speedLimitMax;
     sscanf(speedMaxString, "%llu", &speedLimitMax);
 
-    SpeedLimitForwardLeft = speedLimitMax;
-    SpeedLimitReverseLeft = speedLimitMax;
-    SpeedLimitForwardRight = speedLimitMax;
-    SpeedLimitReverseRight = speedLimitMax;
+    setForwardSpeedLimit(speedLimitMax);
 
     COMMAND_OUTPUT("Setting max speed to %llu (rpm)\n", speedLimitMax);
 

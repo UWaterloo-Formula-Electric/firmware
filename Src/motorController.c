@@ -3,6 +3,7 @@
 #include "VCU_f7_can.h"
 #include "debug.h"
 #include "task.h"
+#include "string.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
@@ -10,7 +11,8 @@
 
 #define INVERTER_STARTUP_TIMEOUT 1000 // TODO: Chose a good value for this
 
-uint64_t maxTorqueDemand = 0;
+MotorControllerProcanSettings mcLeftSettings = {0};
+MotorControllerProcanSettings mcRightSettings = {0};
 
 float min(float a, float b)
 {
@@ -24,28 +26,64 @@ float min(float a, float b)
 HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
 {
     InverterCommandRight = commandVal;
-    // TODO: What to set these too when sending the command
-    SpeedLimitForwardRight = 0;
-    SpeedLimitReverseRight = 0;
+    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
+    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
     return sendCAN_SpeedLimitRight();
 }
 
 HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
 {
     InverterCommandLeft = commandVal;
-    // TODO: What to set these too when sending the command
-    SpeedLimitForwardLeft = 0;
-    SpeedLimitReverseLeft = 0;
+    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
+    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
     return sendCAN_SpeedLimitLeft();
 }
 
-HAL_StatusTypeDef initSpeedAndTorqueLimits()
+HAL_StatusTypeDef initMotorControllerProcanSettings()
 {
-    SpeedLimitForwardLeft = SPEED_LIMIT_DEFAULT;
-    SpeedLimitReverseLeft = SPEED_LIMIT_DEFAULT;
-    SpeedLimitForwardRight = SPEED_LIMIT_DEFAULT;
-    SpeedLimitReverseRight = SPEED_LIMIT_DEFAULT;
-    maxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+    mcLeftSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
+    mcLeftSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
+    mcLeftSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
+    mcLeftSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
+    mcLeftSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
+    mcLeftSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
+    mcLeftSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
+    mcLeftSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
+    mcLeftSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+
+    mcRightSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
+    mcRightSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
+    mcRightSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
+    mcRightSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
+    mcRightSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
+    mcRightSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
+    mcRightSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
+    mcRightSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
+    mcRightSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings)
+{
+    memcpy(&mcLeftSettings, &settings, sizeof(settings));
+    memcpy(&mcRightSettings, &settings, sizeof(settings));
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef setForwardSpeedLimit(float limit)
+{
+    mcLeftSettings.ForwardSpeedLimit = limit;
+    mcRightSettings.ForwardSpeedLimit = limit;
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef setTorqueLimit(float limit)
+{
+    mcRightSettings.DriveTorqueLimit = limit;
+    mcLeftSettings.DriveTorqueLimit = limit;
 
     return HAL_OK;
 }
@@ -138,26 +176,75 @@ float limit(float in, float min, float max)
 
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 {
+    float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
+
     float minTorqueAvailable = min(TorqueAvailableDriveRight, TorqueAvailableDriveLeft);
 
     float torqueDemand = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
 
     torqueDemand = limit(torqueDemand, 0, minTorqueAvailable);
 
-    TorqueLimitDriveRight = TorqueAvailableDriveRight;
-    TorqueLimitBrakingRight = 0; // TODO: What to do for braking torque
+    TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
+    TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
     TorqueDemandRight = torqueDemand;
 
-    TorqueLimitDriveLeft = TorqueAvailableDriveLeft;
-    TorqueLimitBrakingRight = 0; // TODO: What to do for braking torque
+    TorqueLimitDriveLeft = mcLeftSettings.DriveTorqueLimit;
+    TorqueLimitBrakingLeft = mcLeftSettings.BrakingTorqueLimit;
     TorqueDemandLeft = torqueDemand;
+
+    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
+    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
+    InverterCommandRight = 0x1; // Keep sending enable bridge command
+
+    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
+    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
+    InverterCommandLeft = 0x1; // Keep sending enable bridge command
+
+    CurrentLimitDschrgInverterRight = mcRightSettings.DischargeCurrentLimit;
+    CurrentLimitChargeInverterRight = mcRightSettings.ChargeCurrentLimit;;
+
+    CurrentLimitDschrgInverterLeft = mcLeftSettings.DischargeCurrentLimit;
+    CurrentLimitChargeInverterLeft = mcLeftSettings.ChargeCurrentLimit;;
+
+    VoltageLimitHighInverterRight = mcRightSettings.HighVoltageLimit;
+    VoltageLimitLowInverterRight = mcRightSettings.LowVoltageLimit;;
+
+    VoltageLimitHighInverterLeft = mcLeftSettings.HighVoltageLimit;
+    VoltageLimitLowInverterLeft = mcLeftSettings.LowVoltageLimit;;
 
     if (sendCAN_TorqueLimitRight() != HAL_OK) {
         ERROR_PRINT("Failed to send torque limit right\n");
         return HAL_ERROR;
     }
     if (sendCAN_TorqueLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send torque limit right\n");
+        ERROR_PRINT("Failed to send torque limit left\n");
+        return HAL_ERROR;
+    }
+
+    if (sendCAN_SpeedLimitRight() != HAL_OK) {
+        ERROR_PRINT("Failed to send speed limit right\n");
+        return HAL_ERROR;
+    }
+    if (sendCAN_SpeedLimitLeft() != HAL_OK) {
+        ERROR_PRINT("Failed to send speed limit left\n");
+        return HAL_ERROR;
+    }
+
+    if (sendCAN_CurrentLimitRight() != HAL_OK) {
+        ERROR_PRINT("Failed to send current limit right\n");
+        return HAL_ERROR;
+    }
+    if (sendCAN_CurrentLimitLeft() != HAL_OK) {
+        ERROR_PRINT("Failed to send current limit left\n");
+        return HAL_ERROR;
+    }
+
+    if (sendCAN_VoltageLimitRight() != HAL_OK) {
+        ERROR_PRINT("Failed to send voltage limit right\n");
+        return HAL_ERROR;
+    }
+    if (sendCAN_VoltageLimitLeft() != HAL_OK) {
+        ERROR_PRINT("Failed to send voltage limit left\n");
         return HAL_ERROR;
     }
 
