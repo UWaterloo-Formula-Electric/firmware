@@ -439,7 +439,7 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
     }
 
     for (int board = 0; board < NUM_BOARDS; board++) {
-        int boardDataStartIdx = DATA_START_IDX + (PEC_SIZE*readSizePerBoard) * board;
+        int boardDataStartIdx = DATA_START_IDX + (PEC_SIZE+readSizePerBoard) * board;
         if (checkPEC(&(rxBuffer[boardDataStartIdx]), readSizePerBoard) != HAL_OK)
         {
             ERROR_PRINT("PEC mismatch\n");
