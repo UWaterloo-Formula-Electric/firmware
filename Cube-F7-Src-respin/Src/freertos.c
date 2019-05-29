@@ -90,6 +90,7 @@ osThreadId HVMeasureHandle;
 osThreadId IMDHandle;
 osThreadId FaultMonitorHandle;
 osThreadId canSendCellsHandle;
+osThreadId canSendTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -108,6 +109,7 @@ extern void HVMeasureTask(void const * argument);
 extern void imdTask(void const * argument);
 extern void faultMonitorTask(void const * argument);
 extern void canSendCellTask(void const * argument);
+extern void canTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -212,6 +214,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of canSendCells */
   osThreadDef(canSendCells, canSendCellTask, osPriorityNormal, 0, 1000);
   canSendCellsHandle = osThreadCreate(osThread(canSendCells), NULL);
+
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
