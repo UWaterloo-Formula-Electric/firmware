@@ -212,6 +212,10 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
     VoltageLimitHighInverterLeft = mcLeftSettings.HighVoltageLimit;
     VoltageLimitLowInverterLeft = mcLeftSettings.LowVoltageLimit;;
 
+    // Sevcon didn't explain what these are for, but said to set to 0
+    ActiveShortRight = 0;
+    ActiveShortRight = 0;
+
     if (sendCAN_TorqueLimitRight() != HAL_OK) {
         ERROR_PRINT("Failed to send torque limit right\n");
         return HAL_ERROR;
@@ -245,6 +249,15 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
     }
     if (sendCAN_VoltageLimitLeft() != HAL_OK) {
         ERROR_PRINT("Failed to send voltage limit left\n");
+        return HAL_ERROR;
+    }
+
+    if (sendCAN_AuxRight() != HAL_OK) {
+        ERROR_PRINT("Failed to send aux right\n");
+        return HAL_ERROR;
+    }
+    if (sendCAN_AuxLeft() != HAL_OK) {
+        ERROR_PRINT("Failed to send aux left\n");
         return HAL_ERROR;
     }
 
