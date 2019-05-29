@@ -75,13 +75,13 @@ BO_ 2282754562 VCU_Data: 5 VCU_F7
  SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ThrottlePercent : 0|8@1+ (1,0) [0|0] "percent" Vector__XXX
 
-BO_ 2240049776 AuxRight: 8 Vector__XXX
+BO_ 2240049776 AuxRight: 8 VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ActiveShortRight : 0|12@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 2240049520 AuxLeft: 8 Vector__XXX
+BO_ 2240049520 AuxLeft: 8 VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -541,12 +541,9 @@ CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
 CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
 CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
 CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
-CM_ SG_ 3221225472 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 3221225472 PRO_CAN_RES "PROCAN";
-CM_ SG_ 3221225472 PRO_CAN_CRC "PROCAN";
-CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCAN";
-CM_ SG_ 3221225472 PRO_CAN_RES "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_CRC "PROCANPROCAN";
+CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCANPROCAN";
+CM_ SG_ 3221225472 PRO_CAN_RES "PROCANPROCAN";
 CM_ BO_ 2550141444 "VERSION";
 CM_ BO_ 2550141441 "VERSION";
 CM_ BO_ 2550136839 "VERSION";
