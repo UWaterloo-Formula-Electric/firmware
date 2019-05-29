@@ -362,23 +362,23 @@ HAL_StatusTypeDef turnOffMotorControllers() {
 
 HAL_StatusTypeDef MotorStart()
 {
-    /*HAL_StatusTypeDef rc;*/
+    HAL_StatusTypeDef rc;
 
     DEBUG_PRINT("Starting motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
 
-    /*rc = turnOnMotorControllers();*/
-    /*if (rc != HAL_OK) {*/
-        /*return rc;*/
-    /*}*/
+    rc = turnOnMotorControllers();
+    if (rc != HAL_OK) {
+        return rc;
+    }
 
     vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS));
-    /*rc = mcInit();*/
-    /*if (rc != HAL_OK) {*/
-        /*ERROR_PRINT("Failed to start motor controllers\n");*/
-        /*return rc;*/
-    /*}*/
+    rc = mcInit();
+    if (rc != HAL_OK) {
+        ERROR_PRINT("Failed to start motor controllers\n");
+        return rc;
+    }
 
     if (xTimerStart(throttleUpdateTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start throttle update timer\n");
