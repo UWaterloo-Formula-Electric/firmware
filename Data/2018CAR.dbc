@@ -69,7 +69,7 @@ BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
  SG_ ChargeEN_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart
 
 BO_ 2227830532 ChargeCart_Heartbeat: 8 ChargeCart
- SG_ ChargeCart_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] "" Vector__XXX
+ SG_ ChargeCart_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  BMU
 
 BO_ 2551190019 LV_Bus_Measurements: 4 PDU
  SG_ CurrentBusLV : 16|16@1+ (1,0) [0|0] "mA" Vector__XXX
@@ -120,7 +120,7 @@ BO_ 2214919938 VCU_F7_Heartbeat: 1 VCU_F7
  SG_ VCU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  PDU,DCU,BMU
 
 BO_ 2214919937 BMU_Heartbeat: 1 BMU
- SG_ BMU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  VCU_F7,PDU,DCU
+ SG_ BMU_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  ChargeCart,VCU_F7,PDU,DCU
 
 BO_ 2282689025 BMU_BrakePressure: 4 BMU
  SG_ BrakePressureBMU : 0|32@1+ (0.1,0) [0|0] ""  VCU_BeagleBone
