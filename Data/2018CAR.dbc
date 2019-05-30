@@ -68,7 +68,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
 BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
  SG_ ChargeEN_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart
 
-BO_ 2227830532 ChargeCart_Heartbeat: 8 Vector__XXX
+BO_ 2227830532 ChargeCart_Heartbeat: 8 ChargeCart
  SG_ ChargeCart_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] "" Vector__XXX
 
 BO_ 2551190019 LV_Bus_Measurements: 4 PDU
