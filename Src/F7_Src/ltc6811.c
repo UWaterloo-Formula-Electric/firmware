@@ -205,7 +205,7 @@ static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 // There are acutally 13 temp channels on the board, but in software
 // we only use 12 for now
 uint8_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD+1] = {
-    0x5, 0x9, 0x1, 0xE, 0x6, 0xA, 0x2, 0x4, 0xC, 0x0, 0x8, 0xD, 0x3 };
+    0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x2, 0x3, 0x0, 0x1, 0xB, 0xC };
 
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
@@ -656,12 +656,18 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     {
         // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
         uint8_t gpioPins = thermistorChannelToMuxLookup[channel];
-        m_batt_config[board][0] = (gpioPins << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+        m_batt_config[board][0] = (1<<GPIO5_POS) | (gpioPins << GPIO1_POS) | REFON(1) | ADC_OPT(0);
     }
 
     if (batt_write_config() != HAL_OK)
     {
         ERROR_PRINT("Failed to setup mux for temp reading\n");
+        return HAL_ERROR;
+    }
+
+    delay_us(MUX_MEASURE_DELAY_US);
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
         return HAL_ERROR;
     }
 
