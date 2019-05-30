@@ -65,12 +65,6 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
-BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
- SG_ ChargeEN_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart
-
-BO_ 2227830532 ChargeCart_Heartbeat: 8 Vector__XXX
- SG_ ChargeCart_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] "" Vector__XXX
-
 BO_ 2551190019 LV_Bus_Measurements: 4 PDU
  SG_ CurrentBusLV : 16|16@1+ (1,0) [0|0] "mA" Vector__XXX
  SG_ VoltageBusLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
@@ -81,13 +75,13 @@ BO_ 2282754562 VCU_Data: 5 VCU_F7
  SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ThrottlePercent : 0|8@1+ (1,0) [0|0] "percent" Vector__XXX
 
-BO_ 2240049776 AuxRight: 8 VCU_F7
+BO_ 2240049776 AuxRight: 8 Vector__XXX
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ActiveShortRight : 0|12@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 2240049520 AuxLeft: 8 VCU_F7
+BO_ 2240049520 AuxLeft: 8 Vector__XXX
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -126,7 +120,7 @@ BO_ 2282689025 BMU_BrakePressure: 4 BMU
  SG_ BrakePressureBMU : 0|32@1+ (0.1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2217082625 BMU_HV_Power_State: 1 BMU
- SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart,DCU,VCU_BeagleBone,VCU_F7,PDU
+ SG_ HV_Power_State : 0|1@1+ (1,0) [0|0] ""  DCU,VCU_BeagleBone,VCU_F7,PDU
 
 BO_ 2214855426 VCU_EM_Power_State_Request: 1 VCU_F7
  SG_ EM_Power_State_Request : 0|1@1+ (1,0) [0|0] ""  PDU
@@ -157,7 +151,6 @@ BO_ 2147548932 ChargeCart_DTC: 6 ChargeCart
  SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
 
 BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
- SG_ ButtonHVEnabled : 2|1@1- (1,0) [0|0] "bool"  BMU
  SG_ ButtonChargeStop : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
 
@@ -548,9 +541,12 @@ CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
 CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
 CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
 CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
-CM_ SG_ 3221225472 PRO_CAN_CRC "PROCANPROCAN";
-CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCANPROCAN";
-CM_ SG_ 3221225472 PRO_CAN_RES "PROCANPROCAN";
+CM_ SG_ 3221225472 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_RES "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_CRC "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_COUNT "PROCAN";
+CM_ SG_ 3221225472 PRO_CAN_RES "PROCAN";
 CM_ BO_ 2550141444 "VERSION";
 CM_ BO_ 2550141441 "VERSION";
 CM_ BO_ 2550136839 "VERSION";
@@ -624,7 +620,6 @@ BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
 VAL_ 3221225472 StateContactorPositive 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
 VAL_ 3221225472 StateContactorNegative 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
-VAL_ 2226717697 ChargeEN_State 1 "On" 0 "Off" ;
 VAL_ 2214987522 EM_State 1 "On" 0 "Off" ;
 VAL_ 2217082625 HV_Power_State 1 "On" 0 "Off" ;
 VAL_ 2214855426 EM_Power_State_Request 1 "On" 0 "Off" ;
