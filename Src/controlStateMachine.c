@@ -53,6 +53,7 @@ Transition_t transitions[] = {
     { STATE_HV_Enable, EV_HV_Toggle, &startDischarge },
     { STATE_Precharge, EV_HV_Toggle, &stopPrecharge },
     { STATE_Discharge, EV_Discharge_Finished, &dischargeFinished },
+    { STATE_Discharge, EV_HV_Toggle, &controlDoNothing},
 
     // Already in failure, do nothing
     // Takes priority over rest of events

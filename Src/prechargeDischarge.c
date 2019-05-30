@@ -7,6 +7,15 @@
 #include "BMU_DTC.h"
 #include "batteries.h"
 
+typedef enum Precharge_Discharge_Return_t {
+    PCDC_DONE,
+    PCDC_STOPPED,
+    PCDC_ERROR
+} Precharge_Discharge_Return_t;
+
+
+Precharge_Discharge_Return_t discharge();
+
 HAL_StatusTypeDef pcdcInit()
 {
     DEBUG_PRINT("PCDC Init\n");
@@ -78,12 +87,6 @@ void openAllContactors()
     setPrechargeContactor(CONTACTOR_OPEN);
 }
 
-typedef enum Precharge_Discharge_Return_t {
-    PCDC_DONE,
-    PCDC_STOPPED,
-    PCDC_ERROR
-} Precharge_Discharge_Return_t;
-
 
 #define WAIT_FOR_NEXT_MEASURE_OR_STOP(MeasurePeriod, NotificationOut) \
     do { \
@@ -152,6 +155,14 @@ Precharge_Discharge_Return_t precharge()
 
     if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
         return PCDC_ERROR;
+    }
+
+    if (VBus > packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK)
+    {
+        DEBUG_PRINT("Already precharged, discharging\n");
+        if (discharge() != PCDC_DONE) {
+            return PCDC_ERROR;
+        }
     }
 
     DEBUG_PRINT("PC Step 1\n");

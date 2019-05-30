@@ -38,3 +38,15 @@ void CAN_Msg_ChargeCart_heartbeat_Callback()
     lastChargeCartHeartbeat = xTaskGetTickCount();
 }
 
+void CAN_Msg_ChargeCart_ButtonEvents_Callback()
+{
+    if (ButtonChargeStart) {
+        fsmSendEvent(&fsmHandle, EV_Charge_Start, portMAX_DELAY);
+    }
+    if (ButtonChargeStop) {
+        fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+    }
+    if (ButtonHVEnabled) {
+        fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
+    }
+}
