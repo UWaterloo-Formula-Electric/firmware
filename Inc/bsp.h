@@ -63,6 +63,7 @@
 #define IWDG_HANDLE hiwdg
 #define DELAY_TIMER htim9
 #define DELAY_TIMER_INSTANCE TIM9
+#define FAN_HANDLE htim12
 
 #else
 #error "Unsupported board version"
