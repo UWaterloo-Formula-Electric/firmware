@@ -603,6 +603,9 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         fWrite('        {', sourceFileHandle)
         txNode = msg.senders[0]
         fWrite('            heartbeatReceived(ID_{txNode});'.format(txNode=txNode), sourceFileHandle)
+        callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
+        fWrite('            {callback}();'.format(callback=callbackName), sourceFileHandle)
+        msgCallbackPrototypes.append('void {callback}()'.format(callback=callbackName))
         fWrite('            break;\n        }', sourceFileHandle)
 
     createdFatalCallback = False
