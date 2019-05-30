@@ -484,7 +484,7 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
                 if numSignalsPerMessage > 0 or signal.multiplexer_signal is None:
                     sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
                     strippedSignalName = getStrippedSignalName(signal.name)
-                    fWrite('    {structName}.{signalName}{signalNumber} = {sendFunction}(index);'.format(structName=structInstanceName, signalName=strippedSignalName, sendFunction=sendFunctionName, signalNumber=str(numSignalsPerMessage)), sourceFileHandle)
+                    fWrite('    {structName}.{signalName}{signalNumber} = {sendFunction}(index+{offset});'.format(structName=structInstanceName, signalName=strippedSignalName, sendFunction=sendFunctionName, signalNumber=str(numSignalsPerMessage), offset=str(numSignalsPerMessage-1)), sourceFileHandle)
                     numSignalsPerMessage -= 1
         elif proCAN:
             if not 'PRO_CAN' in signal.name:
