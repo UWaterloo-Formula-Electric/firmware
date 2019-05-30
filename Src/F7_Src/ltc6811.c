@@ -201,6 +201,12 @@
 // Configuration array
 static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
+// Convert from a channel to mux input to get that channel
+// There are acutally 13 temp channels on the board, but in software
+// we only use 12 for now
+uint8_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD+1] = {
+    0x5, 0x9, 0x1, 0xE, 0x6, 0xA, 0x2, 0x4, 0xC, 0x0, 0x8, 0xD, 0x3 };
+
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
@@ -614,21 +620,20 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 // input voltage is in 100uV
 // output temp is in degrees C
 float batt_convert_voltage_to_temp(uint16_t voltage) {
-    // directly using the formulae from 
-    // http://www.murata.com/~/media/webrenewal/support/library/catalog/products/thermistor/ntc/r44e.ashx
+    const float p1 = 7.8342;
+    const float p2 = -78.256;
+    const float p3 = 317.08;
+    const float p4 = -668.95;
+    const float p5 = 791.97;
+    const float p6 = -534.72;
+    const float p7 = 231.81;
+    const float p8 = -56.52;
 
-    const float r0 = 10e3;
-    const float t0 = 298.15;
-    const float B = 3380;
-    const float vt = 3.0;
-    float v = 0.0001 * (float) voltage;
-    if (vt == v) {
-        return NAN;
-    }
-    // http://www.wolframalpha.com/input/?i=rearrange+v+%3D+r%2F(r%2Br0)*v0+for+r
-    float r = r0 * v / (vt - v);
-    float temperature = 1./(logf(r/r0)/B + 1./t0) - 273.15f;
-    return temperature;
+    float x = voltage;
+
+    // Calculated from matlab
+    return p1*pow(x,7) + p2*pow(x,6) + p3*pow(x,5) + p4*pow(x,4)
+        + p5*pow(x,3) + p6*pow(x,2) + p7*x + p8;
 }
 
 HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
@@ -650,7 +655,8 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     for (int board = 0; board < NUM_BOARDS; board++)
     {
         // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-        m_batt_config[board][0] = (channel << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+        uint8_t gpioPins = thermistorChannelToMuxLookup[channel];
+        m_batt_config[board][0] = (gpioPins << GPIO1_POS) | REFON(1) | ADC_OPT(0);
     }
 
     if (batt_write_config() != HAL_OK)
@@ -689,9 +695,12 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     for (int board = 0; board < NUM_BOARDS; board++) {
         size_t cellIdx = board * CELLS_PER_BOARD + channel;
         // We only use one GPIO input to measure temperatures, so pick that out
-        uint16_t temp = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
-                                     | adc_vals[TEMP_ADC_IDX_LOW]));
-        cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(temp);
+        size_t boardStartIdx =
+            board * (AUX_BLOCK_SIZE);
+        uint16_t temp = ((uint16_t) (adc_vals[boardStartIdx + TEMP_ADC_IDX_HIGH] << 8
+                                     | adc_vals[boardStartIdx + TEMP_ADC_IDX_LOW]));
+        float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+        cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
     }
 
     return HAL_OK;
