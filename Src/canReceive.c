@@ -29,11 +29,13 @@ void DTC_Fatal_Callback(BoardIDs board)
 uint32_t lastChargeCartHeartbeat = 0;
 bool sentChargeStartEvent = false;
 
-void CAN_Msg_ChargeCart_heartbeat_Callback()
+void CAN_Msg_ChargeCart_Heartbeat_Callback()
 {
     if (!sentChargeStartEvent) {
-        fsmSendEventISR(&fsmHandle, EV_Enter_Charge_Mode);
-        sentChargeStartEvent = true;
+        if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+            fsmSendEventISR(&fsmHandle, EV_Enter_Charge_Mode);
+            sentChargeStartEvent = true;
+        }
     }
     lastChargeCartHeartbeat = xTaskGetTickCount();
 }
@@ -41,10 +43,10 @@ void CAN_Msg_ChargeCart_heartbeat_Callback()
 void CAN_Msg_ChargeCart_ButtonEvents_Callback()
 {
     if (ButtonChargeStart) {
-        fsmSendEvent(&fsmHandle, EV_Charge_Start, portMAX_DELAY);
+        fsmSendEventISR(&fsmHandle, EV_Charge_Start);
     }
     if (ButtonChargeStop) {
-        fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+        fsmSendEventISR(&fsmHandle, EV_Charge_Stop);
     }
     if (ButtonHVEnabled) {
         fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
