@@ -88,6 +88,7 @@ osThreadId cliHandle;
 osThreadId SensorHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId powerHandle;
+osThreadId canSendTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -103,6 +104,7 @@ extern void cliTask(void const * argument);
 extern void sensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void powerTask(void const * argument);
+extern void canTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -195,6 +197,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of power */
   osThreadDef(power, powerTask, osPriorityNormal, 0, 1000);
   powerHandle = osThreadCreate(osThread(power), NULL);
+
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
