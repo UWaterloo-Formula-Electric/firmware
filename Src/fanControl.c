@@ -4,14 +4,25 @@
 #include "batteries.h"
 #include "debug.h"
 
-#define FAN_OFF_TEMP 25
+#define FAN_OFF_TEMP 30
 // Fans need pwm of 25 kHz, so we set timer to have 10 MHz freq, and 400 period
+#define FAN_MAX_DUTY_PERCENT 1.0
+#define FAN_ON_DUTY_PERCENT 0.2
 #define FAN_PERIOD_COUNT 400
 #define FAN_TASK_PERIOD_MS 100
 
 uint32_t calculateFanPeriod()
 {
-   return map_range_float(TempCellMax, FAN_OFF_TEMP, CELL_MAX_TEMP_C, 0, FAN_PERIOD_COUNT);
+  // PWM Output is inverted from what we generate from PROC
+
+  if (TempCell[0] < FAN_OFF_TEMP) {
+    return FAN_PERIOD_COUNT;
+  }
+
+  return FAN_PERIOD_COUNT
+    - map_range_float(TempCell[0], FAN_OFF_TEMP, CELL_MAX_TEMP_C,
+                      FAN_PERIOD_COUNT*FAN_ON_DUTY_PERCENT,
+                      FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT);
 }
 
 HAL_StatusTypeDef fanInit()
@@ -29,8 +40,8 @@ HAL_StatusTypeDef fanInit()
 
 HAL_StatusTypeDef setFan()
 {
-   /*int duty = calculateFanPeriod();*/
-   int duty = 200;
+   int duty = calculateFanPeriod();
+   DEBUG_PRINT("Temp %f, Duty %d\n", TempCell[0], duty);
 
     __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
 

@@ -577,9 +577,9 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
 
 float map_range_float(float in, float low, float high, float low_out, float high_out) {
     if (in < low) {
-        in = low;
+        return low_out;
     } else if (in > high) {
-        in = high;
+        return high_out;
     }
     float in_range = high - low;
     float out_range = high_out - low_out;
