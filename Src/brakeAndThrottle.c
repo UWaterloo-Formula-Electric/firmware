@@ -207,12 +207,6 @@ HAL_StatusTypeDef outputThrottle() {
 
     ThrottleStatus_t rc = getNewThrottle(&throttle);
 
-    // Update value to be sent over can
-    ThrottlePercent = throttle;
-    brakePressure = getBrakePressure();
-    SteeringAngle = getSteeringAngle();
-    sendCAN_VCU_Data();
-
     if (rc == THROTTLE_FAULT) {
         return HAL_ERROR;
     } else if (rc == THROTTLE_DISABLED) {
@@ -228,9 +222,6 @@ HAL_StatusTypeDef outputThrottle() {
 bool isBrakePressed()
 {
     DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());
-
-    // Update value to be sent over CAN
-    BrakePercent = getBrakePositionPercent();
 
     if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
         return true;
@@ -276,4 +267,19 @@ HAL_StatusTypeDef brakeAndThrottleStart()
     }
 
     return HAL_OK;
+}
+
+void canPublishTask(void *pvParameters)
+{
+  while (1) {
+    // Update value to be sent over can
+    ThrottlePercent = getThrottlePositionPercent();
+    brakePressure = getBrakePressure();
+    SteeringAngle = getSteeringAngle();
+    BrakePercent = getBrakePositionPercent();
+
+    sendCAN_VCU_Data();
+
+    vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
+  }
 }
