@@ -55,6 +55,7 @@ osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId canSendTaskHandle;
+osThreadId canPublishHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -67,6 +68,7 @@ extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void canTask(void const * argument);
+extern void canPublishTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -147,6 +149,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of canSendTask */
   osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+
+  /* definition and creation of canPublish */
+  osThreadDef(canPublish, canPublishTask, osPriorityNormal, 0, 1000);
+  canPublishHandle = osThreadCreate(osThread(canPublish), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
