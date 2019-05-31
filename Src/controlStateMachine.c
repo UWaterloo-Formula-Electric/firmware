@@ -12,6 +12,7 @@
 #include "bsp.h"
 #include "watchdog.h"
 #include "batteries.h"
+#include "chargerControl.h"
 
 extern osThreadId PCDCHandle;
 extern osThreadId BatteryTaskHandle;
@@ -266,6 +267,10 @@ uint32_t enterChargeMode(uint32_t event)
 
     // Disable the car heartbeat, as we aren't connected to the car
     disableHeartbeat();
+
+    if (chargerInit() != HAL_OK) {
+        ERROR_PRINT("Failed to init charger\n");
+    }
 
     return STATE_HV_Disable;
 }
