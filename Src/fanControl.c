@@ -41,7 +41,6 @@ HAL_StatusTypeDef fanInit()
 HAL_StatusTypeDef setFan()
 {
    int duty = calculateFanPeriod();
-   DEBUG_PRINT("Temp %f, Duty %d\n", TempCell[0], duty);
 
     __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
 
