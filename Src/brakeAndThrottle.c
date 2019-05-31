@@ -29,6 +29,8 @@
 #define MAX_THROTTLE_DEADZONE (0)
 /*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
+#define VCU_DATA_PUBLISH_TIME_MS 500
+
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 
@@ -271,9 +273,11 @@ HAL_StatusTypeDef brakeAndThrottleStart()
 
 void canPublishTask(void *pvParameters)
 {
+  float throttle;
   while (1) {
     // Update value to be sent over can
-    ThrottlePercent = getThrottlePositionPercent();
+    getThrottlePositionPercent(&throttle);
+    ThrottlePercent = throttle;
     brakePressure = getBrakePressure();
     SteeringAngle = getSteeringAngle();
     BrakePercent = getBrakePositionPercent();
