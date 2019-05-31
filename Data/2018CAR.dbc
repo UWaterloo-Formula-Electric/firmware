@@ -75,10 +75,10 @@ BO_ 2551190019 LV_Bus_Measurements: 4 PDU
  SG_ CurrentBusLV : 16|16@1+ (1,0) [0|0] "mA" Vector__XXX
  SG_ VoltageBusLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
-BO_ 2282754562 VCU_Data: 5 VCU_F7
+BO_ 2282750722 VCU_Data: 5 VCU_F7
  SG_ brakePressure : 16|16@1- (1,0) [0|0] "" Vector__XXX
  SG_ SteeringAngle : 32|8@1- (1,0) [0|0] "degrees" Vector__XXX
- SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ BrakePercent : 8|8@1+ (1,0) [0|0] ""  PDU
  SG_ ThrottlePercent : 0|8@1+ (1,0) [0|0] "percent" Vector__XXX
 
 BO_ 2240049776 AuxRight: 8 VCU_F7
