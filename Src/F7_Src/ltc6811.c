@@ -619,7 +619,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 
 // input voltage is in 100uV
 // output temp is in degrees C
-float batt_convert_voltage_to_temp(uint16_t voltage) {
+float batt_convert_voltage_to_temp(float voltage) {
     const float p1 = 7.8342;
     const float p2 = -78.256;
     const float p3 = 317.08;
@@ -632,8 +632,10 @@ float batt_convert_voltage_to_temp(uint16_t voltage) {
     float x = voltage;
 
     // Calculated from matlab
-    return p1*pow(x,7) + p2*pow(x,6) + p3*pow(x,5) + p4*pow(x,4)
+    float output = p1*pow(x,7) + p2*pow(x,6) + p3*pow(x,5) + p4*pow(x,4)
         + p5*pow(x,3) + p6*pow(x,2) + p7*x + p8;
+
+    return output;
 }
 
 HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
