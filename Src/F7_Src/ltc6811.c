@@ -22,6 +22,7 @@
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 #define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
+#define MUX_MEASURE_DELAY_US  1 // Time for Mux to switch
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
