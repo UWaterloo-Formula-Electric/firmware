@@ -334,6 +334,7 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
+    AMS_CONT_OPEN;
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     while (1) {
         // Suspend this task while still updating watchdog
@@ -352,7 +353,7 @@ void HVMeasureTask(void *pvParamaters)
     }
 #endif
 
-    if (registerTaskToWatch(HV_MEASURE_TASK_ID, 2*pdMS_TO_TICKS(HV_MEASURE_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(HV_MEASURE_TASK_ID, 5*pdMS_TO_TICKS(HV_MEASURE_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register hv measure task with watchdog!\n");
         Error_Handler();
@@ -645,7 +646,16 @@ ChargeReturn balanceCharge()
             ERROR_PRINT("Failed to pause balance!\n");
             BOUNDED_CONTINUE
         }
-        vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
+
+        // Check in before delay
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        if (CELL_RELAXATION_TIME_MS >= BATTERY_TASK_PERIOD_MS) {
+            ERROR_PRINT("Cell relaxation time %d > task period %d",
+                        CELL_RELAXATION_TIME_MS, BATTERY_TASK_PERIOD_MS);
+            BatteryTaskError();
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
+        }
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
@@ -784,13 +794,13 @@ ChargeReturn balanceCharge()
         /*
          * Check if we are still connected to charge cart
          */
-        /*if (xTaskGetTickCount() - lastChargeCartHeartbeat*/
-            /*> CHARGE_CART_HEARTBEAT_MAX_PERIOD)*/
-        /*{*/
-           /*ERROR_PRINT("Charge cart not responding\n");*/
-           /*// Notify ourselves that we should stop charging*/
-           /*xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);*/
-        /*}*/
+        if (xTaskGetTickCount() - lastChargeCartHeartbeat
+            > CHARGE_CART_HEARTBEAT_MAX_PERIOD)
+        {
+           ERROR_PRINT("Charge cart not responding\n");
+           // Notify ourselves that we should stop charging
+           xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
+        }
 
         StateBatteryPowerHV = calculateStateOfPower();
         StateBatteryChargeHV = calculateStateOfCharge();
@@ -888,6 +898,8 @@ void batteryTask(void *pvParameter)
 
         if (rc == pdTRUE) {
             if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION)) {
+                ChargeEN_State = ChargeEN_State_On;
+                sendCAN_BMU_ChargeEN_State();
                 ChargeReturn chargeRc = balanceCharge();
                 if (chargeRc == CHARGE_ERROR) {
                     ERROR_PRINT("Failed to balance charge\n");
@@ -902,6 +914,8 @@ void batteryTask(void *pvParameter)
                     ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
                     fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                 }
+                ChargeEN_State = ChargeEN_State_Off;
+                sendCAN_BMU_ChargeEN_State();
             } else if (dbwTaskNotifications & (1<<CHARGE_STOP_NOTIFICATION)) {
                 DEBUG_PRINT("Received charge stop, but not charging\n");
             } else {
