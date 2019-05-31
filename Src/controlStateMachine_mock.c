@@ -25,7 +25,6 @@ extern float packVoltage;
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
-extern void CAN_Msg_ChargeCart_heartbeat_Callback();
 
 BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -355,7 +354,7 @@ static const CLI_Command_Definition_t stopChargeCommandDefinition =
 BaseType_t chargeCartHeartbeatMockCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    CAN_Msg_ChargeCart_heartbeat_Callback();
+    CAN_Msg_ChargeCart_Heartbeat_Callback();
     return pdFALSE;
 }
 static const CLI_Command_Definition_t chargeCartHeartbeatMockCommandDefinition =
