@@ -13,6 +13,8 @@ uint32_t lastBMU_Heartbeat_ticks = 0;
 uint32_t lastPDU_Heartbeat_ticks = 0;
 uint32_t lastDCU_Heartbeat_ticks = 0;
 uint32_t lastVCU_F7_Heartbeat_ticks = 0;
+// For now, we don't use this, since BMU does its own checking of the heartbeat
+uint32_t lastChargeCart_Heartbeat_ticks = 0;
 
 void heartbeatReceived(BoardIDs board)
 {
@@ -37,10 +39,18 @@ void heartbeatReceived(BoardIDs board)
                 lastVCU_F7_Heartbeat_ticks = xTaskGetTickCount();
                 break;
             }
-
+        case ID_ChargeCart:
+            {
+                lastChargeCart_Heartbeat_ticks = xTaskGetTickCount();
+                break;
+            }
         default:
             {
-                ERROR_PRINT("Received heartbeat from unexpected board\n");
+                if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+                    ERROR_PRINT("Received heartbeat from unexpected board\n");
+                } else {
+                    printf("Received heartbeat from unexpected board\n");
+                }
                 break;
             }
     }
