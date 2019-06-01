@@ -188,8 +188,8 @@ void watchdogTask(void *pvParameters)
             node = node->next;
         }
 
-        if (checkAllHeartbeats() != HAL_OK) {
-            if (!signaledError) {
+        if (!signaledError) {
+            if (checkAllHeartbeats() != HAL_OK) {
                 // checkAllHeartbeats sends DTC, so don't need to do it here
                 ERROR_PRINT("Heartbeat missed!\n");
                 Error_Handler();
