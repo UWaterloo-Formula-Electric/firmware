@@ -189,25 +189,45 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
    return HAL_OK;
 }
 
+// Called if an error with batteries is detected
+void BatteryTaskError()
+{
+    // Suspend task for now
+    ERROR_PRINT("Battery Error occured!\n");
+    AMS_CONT_OPEN;
+    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    while (1) {
+        // Suspend this task while still updating watchdog
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+    }
+}
+
+
 /*
  * This task will retry its readings MAX_ERROR_COUNT times, then fail and send
  * error event
  * TODO: ensure this is max 500 ms
  */
 #define MAX_ERROR_COUNT 3
-#define BOUNDED_CONTINUE \
-    if ((++errorCounter) > MAX_ERROR_COUNT) { \
-        BatteryTaskError(); \
-    } else { \
-        watchdogTaskCheckIn(BATTERY_TASK_ID); \
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS)); \
-        continue; \
-    } \
+uint32_t errorCounter = 0;
+bool boundedContinue()
+{
+    if ((++errorCounter) > MAX_ERROR_COUNT) {
+        BatteryTaskError();
+        return false;
+    } else {
+        DEBUG_PRINT("Error counter %d\n", (int)errorCounter);
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        return true;
+    }
+}
 
 // Call on a succesful run through main loop
 #define ERROR_COUNTER_SUCCESS() \
     do { \
-        errorCounter--; \
+        if (errorCounter > 0) {errorCounter--;} \
     } while (0)
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
@@ -328,21 +348,6 @@ HAL_StatusTypeDef batteryStart()
 #error Unsupported board type
 #endif
 }
-
-// Called if an error with batteries is detected
-void BatteryTaskError()
-{
-    // Suspend task for now
-    ERROR_PRINT("Battery Error occured!\n");
-    AMS_CONT_OPEN;
-    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
-    while (1) {
-        // Suspend this task while still updating watchdog
-        watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-    }
-}
-
 
 void HVMeasureTask(void *pvParamaters)
 {
@@ -616,8 +621,6 @@ float getSOCFromVoltage(float cellVoltage)
 // TODO: Add messages between charge cart and bmu
 ChargeReturn balanceCharge()
 {
-    uint32_t errorCounter = 0;
-
     // Start charge
     if (startCharging() != HAL_OK) {
         return CHARGE_ERROR;
@@ -635,7 +638,7 @@ ChargeReturn balanceCharge()
        if (!waitingForBalanceDone) {
           if (continueCharging() != HAL_OK) {
              ERROR_PRINT("Failed to send charge continue message\n");
-             BOUNDED_CONTINUE
+             if (boundedContinue()) { continue; }
           }
        }
 
@@ -646,7 +649,7 @@ ChargeReturn balanceCharge()
          */
         if (pauseBalance() != HAL_OK) {
             ERROR_PRINT("Failed to pause balance!\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 
         // Check in before delay
@@ -661,7 +664,7 @@ ChargeReturn balanceCharge()
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
@@ -673,7 +676,7 @@ ChargeReturn balanceCharge()
 
         if (resumeBalance() != HAL_OK) {
             ERROR_PRINT("Failed to pause balance!\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 
 
@@ -738,7 +741,7 @@ ChargeReturn balanceCharge()
 
             if (stopBalance() != HAL_OK) {
                 ERROR_PRINT("Failed to stop balance\n");
-                BOUNDED_CONTINUE
+                if (boundedContinue()) { continue; }
             }
         }
 
@@ -820,7 +823,7 @@ ChargeReturn balanceCharge()
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send batter status HV\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 
         // Succesfully reach end of loop, update error counter to reflect that
@@ -885,7 +888,6 @@ void batteryTask(void *pvParameter)
         Error_Handler();
     }
 
-    int errorCounter = 0;
     uint32_t dbwTaskNotifications;
     while (1)
     {
@@ -935,7 +937,7 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 #endif
 
@@ -950,7 +952,7 @@ void batteryTask(void *pvParameter)
 
         if (publishPackVoltage(packVoltage) != HAL_OK) {
             ERROR_PRINT("Failed to publish pack voltage\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; }
         }
 
         StateBatteryPowerHV = calculateStateOfPower();
@@ -969,7 +971,7 @@ void batteryTask(void *pvParameter)
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send batter status HV\n");
-            BOUNDED_CONTINUE
+            if (boundedContinue()) { continue; } 
         }
 
         // Succesfully reach end of loop, update error counter to reflect that
