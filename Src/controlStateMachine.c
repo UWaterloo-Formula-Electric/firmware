@@ -178,6 +178,8 @@ uint32_t dischargeFinished(uint32_t event)
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 
+    DC_DC_OFF;
+
     return STATE_HV_Disable;
 }
 
@@ -187,6 +189,8 @@ uint32_t prechargeFinished(uint32_t event)
 
     HV_Power_State = HV_Power_State_On;
     sendCAN_BMU_HV_Power_State();
+
+    DC_DC_ON;
 
     return STATE_HV_Enable;
 }
@@ -213,6 +217,8 @@ uint32_t handleFault(uint32_t event)
 
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
 
     switch (currentState) {
         case STATE_HV_Disable:
