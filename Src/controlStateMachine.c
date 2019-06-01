@@ -103,7 +103,7 @@ HAL_StatusTypeDef motorControlInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(3, 5, true, &motorFsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(3, 50, true, &motorFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
