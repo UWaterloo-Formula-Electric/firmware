@@ -56,19 +56,11 @@ void heartbeatReceived(BoardIDs board)
     }
 }
 
-#ifndef PRODUCTION_ERROR_HANDLING
-bool heartbeatEnabled = false;
-bool DCU_heartbeatEnabled = false;
-bool PDU_heartbeatEnabled = false;
-bool BMU_heartbeatEnabled = false;
-bool VCU_F7_heartbeatEnabled = false;
-#else
 bool heartbeatEnabled = true;
 bool DCU_heartbeatEnabled = true;
 bool PDU_heartbeatEnabled = true;
 bool BMU_heartbeatEnabled = true;
 bool VCU_F7_heartbeatEnabled = true;
-#endif
 
 void disableHeartbeat()
 {
