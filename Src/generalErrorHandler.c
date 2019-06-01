@@ -29,6 +29,9 @@ HAL_StatusTypeDef resetUART()
     return HAL_OK;
 }
 
+// Flag to ensure we only trigger error handling once
+bool errorOccured = false;
+
 void _handleError(char *file, int line)
 {
 #ifndef PRODUCTION_ERROR_HANDLING
@@ -61,11 +64,15 @@ void _handleError(char *file, int line)
     watchdogRefresh();
   }
 #else
-  HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
+  if (!errorOccured) {
+    HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
 
-  SEND_FATAL_DTC();
+    SEND_FATAL_DTC();
 
-  // Trigger whatever error handling this board has
-  DTC_Fatal_Callback(BOARD_ID);
+    // Trigger whatever error handling this board has
+    DTC_Fatal_Callback(BOARD_ID);
+
+    errorOccured = true;
+  }
 #endif
 }
