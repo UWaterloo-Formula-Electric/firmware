@@ -621,20 +621,21 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 // input voltage is in 100uV
 // output temp is in degrees C
 float batt_convert_voltage_to_temp(float voltage) {
-    const float p1 = 7.8342;
-    const float p2 = -78.256;
-    const float p3 = 317.08;
-    const float p4 = -668.95;
-    const float p5 = 791.97;
-    const float p6 = -534.72;
-    const float p7 = 231.81;
-    const float p8 = -56.52;
+    const float p1 = 0.059396;
+    const float p2 = -0.97375;
+    const float p3 = 6.1723;
+    const float p4 = -18.021;
+    const float p5 = 18.173;
+    const float p6 = 25.992;
+    const float p7 = -86.629;
+    const float p8 = 104.01;
+    const float p9 = -52.782;
 
     float x = voltage;
 
     // Calculated from matlab
-    float output = p1*pow(x,7) + p2*pow(x,6) + p3*pow(x,5) + p4*pow(x,4)
-        + p5*pow(x,3) + p6*pow(x,2) + p7*x + p8;
+    float output = p1*pow(x,8) + p2*pow(x,7) + p3*pow(x,6) + p4*pow(x,5)
+        + p5*pow(x,4) + p6*pow(x,3) + p7*pow(x,2) + p8*x + p9;
 
     return output;
 }
