@@ -29,7 +29,7 @@
 #define MAX_THROTTLE_DEADZONE (0)
 /*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
-#define VCU_DATA_PUBLISH_TIME_MS 500
+#define VCU_DATA_PUBLISH_TIME_MS 200
 
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
@@ -37,7 +37,7 @@ uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
-    DEBUG_PRINT("Starting adc readings for %d channels\n", NUM_ADC_CHANNELS);
+    /*DEBUG_PRINT("Starting adc readings for %d channels\n", NUM_ADC_CHANNELS);*/
     if (HAL_ADC_Start_DMA(&ADC_HANDLE, brakeThrottleSteeringADCVals, NUM_ADC_CHANNELS) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
@@ -70,7 +70,7 @@ bool throttleAndBrakePressedError = false;
 
 float getBrakePositionPercent()
 {
-    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_MULTIPLIER;
+    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_DIVIDER;
 }
 
 int map_range(int in, int low, int high, int low_out, int high_out) {
@@ -154,7 +154,7 @@ bool getThrottlePositionPercent(float *throttleOut)
         ERROR_PRINT("implausible pedal! difference: %ld %%\r\n", throttle1_percent - throttle2_percent);
         return false;
     } else {
-        DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);
+        /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
         throttle = (throttle1_percent + throttle2_percent) / 2;
     }
 
@@ -215,7 +215,7 @@ HAL_StatusTypeDef outputThrottle() {
         DEBUG_PRINT("Throttle disabled due brake pressed\n");
     }
 
-    DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
+    /*DEBUG_PRINT("Setting MC throttles to %f\n", throttle);*/
     sendThrottleValueToMCs(throttle);
 
     return HAL_OK;
@@ -223,7 +223,7 @@ HAL_StatusTypeDef outputThrottle() {
 
 bool isBrakePressed()
 {
-    DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());
+    /*DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());*/
 
     if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_VAL_PERCENT) {
         return true;
@@ -282,8 +282,9 @@ void canPublishTask(void *pvParameters)
     SteeringAngle = getSteeringAngle();
     BrakePercent = getBrakePositionPercent();
 
-    sendCAN_VCU_Data();
-
+    if (sendCAN_VCU_Data() != HAL_OK) {
+      ERROR_PRINT("Failed to send vcu can data\n");
+    }
     vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
   }
 }
