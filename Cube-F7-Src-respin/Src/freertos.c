@@ -171,11 +171,11 @@ void MX_FREERTOS_Init(void) {
   mainControlHandle = osThreadCreate(osThread(mainControl), NULL);
 
   /* definition and creation of motorControl */
-  osThreadDef(motorControl, motorControlTask, osPriorityNormal, 0, 1000);
+  osThreadDef(motorControl, motorControlTask, osPriorityHigh, 0, 1000);
   motorControlHandle = osThreadCreate(osThread(motorControl), NULL);
 
   /* definition and creation of coolingControl */
-  osThreadDef(coolingControl, coolingControlTask, osPriorityNormal, 0, 1000);
+  osThreadDef(coolingControl, coolingControlTask, osPriorityHigh, 0, 1000);
   coolingControlHandle = osThreadCreate(osThread(coolingControl), NULL);
 
   /* definition and creation of printTaskName */
@@ -195,7 +195,7 @@ void MX_FREERTOS_Init(void) {
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* definition and creation of power */
-  osThreadDef(power, powerTask, osPriorityNormal, 0, 1000);
+  osThreadDef(power, powerTask, osPriorityHigh, 0, 1000);
   powerHandle = osThreadCreate(osThread(power), NULL);
 
   /* definition and creation of canSendTask */
