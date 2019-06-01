@@ -18,6 +18,7 @@ typedef struct ChargerStatus {
     bool  OverallState;
 } ChargerStatus;
 
+HAL_StatusTypeDef startChargerCommunication(float maxVoltage, float maxCurrent, uint32_t watchdogTaskId);
 HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool startCharging);
 HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut);
 HAL_StatusTypeDef chargerInit();

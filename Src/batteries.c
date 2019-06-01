@@ -469,7 +469,9 @@ HAL_StatusTypeDef startCharging()
 {
     DEBUG_PRINT("Starting charge\n");
 #if IS_BOARD_F7 && defined(ENABLE_CHARGER)
-    sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
+    return startChargerCommunication(CHARGE_MAX_VOLTAGE,
+                                     CHARGE_MAX_CURRENT, BATTERY_TASK_ID);
+
 #endif
     return HAL_OK;
 }
@@ -697,18 +699,18 @@ ChargeReturn balanceCharge()
             {
                 balancingCells = false;
 
-                DEBUG_PRINT("Starting balance\n");
-                DEBUG_PRINT("Voltages:\n");
-                for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
-                    DEBUG_PRINT("%d: %f,", cell, VoltageCell[cell]);
-                }
-                DEBUG_PRINT("\n");
+                /*DEBUG_PRINT("Starting balance\n");*/
+                /*DEBUG_PRINT("Voltages:\n");*/
+                /*for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {*/
+                    /*DEBUG_PRINT("%d: %f,", cell, VoltageCell[cell]);*/
+                /*}*/
+                /*DEBUG_PRINT("\n");*/
                 DEBUG_PRINT("Voltage min %f, max %f\n\n", VoltageCellMin, VoltageCellMax);
                 float minCellSOC = getSOCFromVoltage(VoltageCellMin);
 
                 for (int cell=0; cell<VOLTAGECELL_COUNT; cell++) {
                     float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
-                    DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);
+                    /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
                     if (cellSOC - minCellSOC > 1) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
