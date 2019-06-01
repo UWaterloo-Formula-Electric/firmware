@@ -154,7 +154,7 @@ void MX_FREERTOS_Init(void) {
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of watchdogTaskNam */
-  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 128);
+  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* definition and creation of printTaskName */
