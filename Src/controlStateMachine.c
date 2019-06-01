@@ -139,7 +139,7 @@ HAL_StatusTypeDef coolingControlInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(2, 5, true, &coolingFsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(2, 50, true, &coolingFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -175,7 +175,7 @@ HAL_StatusTypeDef maincontrolInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(1, 5, true, &mainFsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(1, 50, true, &mainFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
