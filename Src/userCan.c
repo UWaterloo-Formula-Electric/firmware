@@ -57,6 +57,7 @@ SemaphoreHandle_t CAN_Msg_Semaphore;
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
 volatile bool canStarted = false;
+volatile bool chargerCanStarted = false;
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
@@ -108,6 +109,15 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 {
+#ifdef CHARGER_CAN_HANDLE
+    if (hcan == &CHARGER_CAN_HANDLE) {
+        if (!chargerCanStarted) {
+        canStarted = true;
+        return F7_canStart(hcan);
+        }
+    }
+#endif
+
     if (!canStarted) {
         canStarted = true;
 #if IS_BOARD_F7_FAMILY

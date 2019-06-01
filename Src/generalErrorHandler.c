@@ -11,6 +11,8 @@
 
 #define SEND_FATAL_DTC CAT(sendDTC_FATAL_, CAT(BOARD_NAME, _ERROR))
 
+#define PRODUCTION_ERROR_HANDLING
+
 // Reset the debug uart
 // This is done to clear the UART in case it is being used by the debug task,
 // that way we can send an error message
@@ -26,6 +28,9 @@ HAL_StatusTypeDef resetUART()
 
     return HAL_OK;
 }
+
+// Flag to ensure we only trigger error handling once
+bool errorOccured = false;
 
 void _handleError(char *file, int line)
 {
@@ -59,6 +64,15 @@ void _handleError(char *file, int line)
     watchdogRefresh();
   }
 #else
-  // TODO: create production error handler
+  if (!errorOccured) {
+    HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
+
+    SEND_FATAL_DTC();
+
+    // Trigger whatever error handling this board has
+    DTC_Fatal_Callback(BOARD_ID);
+
+    errorOccured = true;
+  }
 #endif
 }
