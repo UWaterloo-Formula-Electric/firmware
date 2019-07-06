@@ -78,6 +78,24 @@ float packVoltage;
 bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
 bool warningSentForCellTemp[TEMPCELL_COUNT];
 
+bool isTempCellWorking[TEMPCELL_COUNT] = {
+/*
+ * 0    1       2      3      4      5      6      7     8      9      10    11
+ */
+// Board 1
+true , true , true , false, true , true , true , true , true , true , false, false,
+// Board 2
+true , true , true , false, true , true , true , true , true , true , false, false,
+// Board 3
+true , true , false, false, true , false, false, true , true , false, true , true ,
+// Board 4
+false, false, false, false, false, false, false, false, false, false, false, false,
+// Board 5
+false, true , true , false, false, false, false, true , true , true , false, false,
+// Board 6
+false, false, false, false, false, false, false, false, false, false, false, false,
+};
+
 #define NUM_SOC_LOOKUP_VALS 101
 float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -194,7 +212,9 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
+#if IS_BOARD_F7
     AMS_CONT_OPEN;
+#endif
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     while (1) {
         // Suspend this task while still updating watchdog
@@ -298,6 +318,8 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    for (int i=0; i < TEMPCELL_COUNT; i++)
    {
       measure = TempCell[i];
+
+      if (!isTempCellWorking[i]) { continue; }
 
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
