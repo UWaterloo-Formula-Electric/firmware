@@ -12,7 +12,7 @@
 #include "stdbool.h"
 #include "errorHandler.h"
 #include "debug.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE

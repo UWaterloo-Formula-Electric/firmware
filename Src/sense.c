@@ -2,7 +2,7 @@
 #include "bsp.h"
 #include "BMU_can.h"
 #include "debug.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "watchdog.h"
 

@@ -3,7 +3,7 @@
 #define PRECHARGEDISCHARGE_H
 
 #include "main.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "bsp.h"
 
 typedef enum PCDC_Notifications_t {

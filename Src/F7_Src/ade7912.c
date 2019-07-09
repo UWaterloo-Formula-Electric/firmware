@@ -1,6 +1,6 @@
 #include "bsp.h"
 #include "debug.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
 

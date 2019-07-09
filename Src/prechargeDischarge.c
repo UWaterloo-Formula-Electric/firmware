@@ -1,7 +1,7 @@
 #include "prechargeDischarge.h"
 #include "controlStateMachine.h"
 #include "debug.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
 #include "BMU_DTC.h"

@@ -1,6 +1,6 @@
 #include "batteries.h"
 
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"
 #include "controlStateMachine.h"

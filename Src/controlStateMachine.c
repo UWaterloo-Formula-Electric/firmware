@@ -1,7 +1,7 @@
 #include "controlStateMachine.h"
 #include "stm32f7xx_hal.h"
 #include "stdbool.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
 #include "debug.h"

@@ -2,7 +2,7 @@
 
 #define BATTERIES_H
 
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "queue.h"
 #include "bsp.h"
 

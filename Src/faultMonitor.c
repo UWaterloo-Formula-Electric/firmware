@@ -2,7 +2,7 @@
 #include "controlStateMachine.h"
 #include "debug.h"
 #include "watchdog.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
