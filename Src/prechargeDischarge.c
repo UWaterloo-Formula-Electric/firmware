@@ -4,7 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
-#include "BMU_DTC.h"
+#include "BMU_dtc.h"
 #include "batteries.h"
 
 typedef enum Precharge_Discharge_Return_t {
