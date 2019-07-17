@@ -13,6 +13,7 @@
 #include "sense.h"
 #include "chargerControl.h"
 #include "batteries.h"
+#include "faultMonitor.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -585,6 +586,22 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t hvilStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    COMMAND_OUTPUT("HVIL State %s\n", getHVIL_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t hvilStatusCommandDefinition =
+{
+    "hvilStatus",
+    "hvilStatus:\r\n get HVIL status\r\n",
+    hvilStatusCommand,
+    0 /* Number of parameters */
+};
+
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -663,6 +680,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hitlPrechargeModeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&hvilStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

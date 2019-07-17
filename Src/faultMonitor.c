@@ -20,6 +20,11 @@ HAL_StatusTypeDef HVIL_Control(bool enable)
    return HAL_OK;
 }
 
+bool getHVIL_Status()
+{
+   return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
+}
+
 void faultMonitorTask(void *pvParameters)
 {
 
