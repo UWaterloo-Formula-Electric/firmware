@@ -589,8 +589,6 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
 BaseType_t hvilStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    BaseType_t paramLen;
-
     COMMAND_OUTPUT("HVIL State %s\n", getHVIL_Status()?"OK":"Fault");
     return pdFALSE;
 }
