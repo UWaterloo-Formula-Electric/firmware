@@ -45,7 +45,7 @@ void faultMonitorTask(void *pvParameters)
       vTaskDelay(10);
    } while (!getIL_Status());
 
-   fsmSendEvent(&fsmHandle, EV_HVIL_Ready, portMAX_DELAY);
+   fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
    if (registerTaskToWatch(FAULT_TASK_ID, 2*pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
    {

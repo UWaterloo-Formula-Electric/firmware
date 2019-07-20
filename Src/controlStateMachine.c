@@ -40,7 +40,7 @@ uint32_t systemNotReady(uint32_t event);
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
-    { STATE_Wait_System_Up, EV_HVIL_Ready, &systemUpCheck },
+    { STATE_Wait_System_Up, EV_FaultMonitorReady, &systemUpCheck },
     { STATE_Wait_System_Up, EV_ANY, &systemNotReady },
 
     // Charge
@@ -115,20 +115,20 @@ HAL_StatusTypeDef startControl()
 uint32_t systemUpCheck(uint32_t event)
 {
     static bool imdReady = false;
-    static bool hvilReady = false;
+    static bool faultMonitorReady = false;
 
     if (event == EV_IMD_Ready) {
         DEBUG_PRINT("IMD Ready\n");
         imdReady = true;
     }
 
-    if (event == EV_HVIL_Ready) {
-        DEBUG_PRINT("HVIL Ready\n");
-        hvilReady = true;
+    if (event == EV_FaultMonitorReady) {
+        DEBUG_PRINT("Fault monitor ready\n");
+        faultMonitorReady = true;
     }
 
     // Check all ready to start conditions
-    if (imdReady && hvilReady) {
+    if (imdReady && faultMonitorReady) {
         DEBUG_PRINT("System up!\n");
         return STATE_HV_Disable;
     } else {

@@ -7,5 +7,6 @@
 
 HAL_StatusTypeDef HVIL_Control(bool enable);
 bool getHVIL_Status();
+bool getIL_Status();
 
 #endif /* end of include guard: FAULTMONITOR_H */

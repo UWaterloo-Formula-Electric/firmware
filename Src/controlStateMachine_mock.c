@@ -600,6 +600,20 @@ static const CLI_Command_Definition_t hvilStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t ilStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("IL State %s\n", getIL_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t ilStatusCommandDefinition =
+{
+    "ilStatus",
+    "ilStatus:\r\n get IL status\r\n",
+    ilStatusCommand,
+    0 /* Number of parameters */
+};
+
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -681,6 +695,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hvilStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&ilStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
