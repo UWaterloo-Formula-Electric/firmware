@@ -13,6 +13,12 @@ typedef enum Precharge_Discharge_Return_t {
     PCDC_ERROR
 } Precharge_Discharge_Return_t;
 
+typedef enum Precharge_Type_t {
+    PC_MotorControllers,
+    PC_Charger,
+    PC_NumTypes,
+} Precharge_Type_t;
+
 
 Precharge_Discharge_Return_t discharge();
 
@@ -116,10 +122,21 @@ HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 // Set by CLI to modify precharge so it succeeds on HITL
 bool HITL_Precharge_Mode = false;
 float HITL_VPACK = 0;
-Precharge_Discharge_Return_t precharge()
+
+// Perform precharge
+// PC_MotorControllers precharges into motor controllers, so assumes a high
+// capacitance and therefore precharge current
+// PC_Charger precharges into the charger, so assumes a low capacitance and
+// therefore negligible current
+Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 {
     float VBatt, VBus, IBus;
     uint32_t dbwTaskNotifications;
+
+    if (prechargeType >= PC_NumTypes) {
+        ERROR_PRINT("Invalid precharge type %d\n", prechargeType);
+        return PCDC_ERROR;
+    }
 
     float packVoltage;
     if (HITL_Precharge_Mode) {
@@ -351,14 +368,16 @@ Precharge_Discharge_Return_t precharge()
     ERROR_PRINT("INFO: VBatt %f\n", VBatt);
     ERROR_PRINT("INFO: IBus %f\n", IBus);
 
-    float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
-    minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
-    DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-    if (!HITL_Precharge_Mode) {
-        if (maxIBus < minPrechargeCurrent) {
-            ERROR_PRINT("Didn't detect precharge current!\n");
-            ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-            return PCDC_ERROR;
+    if (PC_MotorControllers) {
+        float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
+        minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
+        DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
+        if (!HITL_Precharge_Mode) {
+            if (maxIBus < minPrechargeCurrent) {
+                ERROR_PRINT("Didn't detect precharge current!\n");
+                ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
+                return PCDC_ERROR;
+            }
         }
     }
 
@@ -403,14 +422,16 @@ Precharge_Discharge_Return_t precharge()
 
     DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount());
 
-    float minIBusSpike = (packVoltage - step4EndVBus) / PRECHARGE_RESISTOR_OHMS;
-    minIBusSpike *= PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED;
+    if (PC_MotorControllers) {
+        float minIBusSpike = (packVoltage - step4EndVBus) / PRECHARGE_RESISTOR_OHMS;
+        minIBusSpike *= PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED;
 
-    DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minIBusSpike);
-    if (!HITL_Precharge_Mode) {
-        if (maxIBus < minIBusSpike) {
-            ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-            return PCDC_ERROR;
+        DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minIBusSpike);
+        if (!HITL_Precharge_Mode) {
+            if (maxIBus < minIBusSpike) {
+                ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
+                return PCDC_ERROR;
+            }
         }
     }
 
@@ -498,9 +519,18 @@ void pcdcTask(void *pvParameter)
 
             DEBUG_PRINT("Skipping precharge/discharge due to stop\n");
 
-        } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION)) {
+        } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER) ||
+                   dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
             DEBUG_PRINT("Starting precharge\n");
-            rc = precharge();
+
+            if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
+                rc = precharge(PC_MotorControllers);
+            } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER)) {
+                rc = precharge(PC_Charger);
+            } else {
+                ERROR_PRINT("Unknown precharge type!");
+                rc = PCDC_ERROR;
+            }
 
             if (rc == PCDC_DONE) {
                 DEBUG_PRINT("Precharge done\n");

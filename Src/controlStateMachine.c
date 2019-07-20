@@ -19,6 +19,8 @@ extern osThreadId BatteryTaskHandle;
 
 FSM_Handle_Struct fsmHandle;
 
+bool gChargeMode;
+
 uint32_t runSelftTests(uint32_t event);
 uint32_t startPrecharge(uint32_t event);
 uint32_t startDischarge(uint32_t event);
@@ -139,6 +141,10 @@ uint32_t runSelftTests(uint32_t event)
     // TODO: Run some tests
 
     DEBUG_PRINT("Self tests done, waiting for system to come up\n");
+
+    // On startup, we aren't in charge mode until otherwise notified
+    gChargeMode = false;
+
     return STATE_Wait_System_Up;
 }
 
@@ -160,7 +166,12 @@ uint32_t startPrecharge(uint32_t event)
 {
     DEBUG_PRINT("starting precharge\n");
 
-    xTaskNotify(PCDCHandle, (1<<PRECHARGE_NOTIFICATION), eSetBits);
+    if (gChargeMode) {
+        xTaskNotify(PCDCHandle, (1<<PRECHARGE_NOTIFICATION_CHARGER), eSetBits);
+    } else {
+        xTaskNotify(PCDCHandle, (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS), eSetBits);
+    }
+
     return STATE_Precharge;
 }
 
@@ -277,6 +288,8 @@ uint32_t enterChargeMode(uint32_t event)
     if (chargerInit() != HAL_OK) {
         ERROR_PRINT("Failed to init charger\n");
     }
+
+    gChargeMode = true;
 
     return STATE_HV_Disable;
 }
