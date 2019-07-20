@@ -25,6 +25,11 @@ bool getHVIL_Status()
    return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
 }
 
+bool getIL_Status()
+{
+   return (HAL_GPIO_ReadPin(IL_SENSE_GPIO_Port, IL_SENSE_Pin) == GPIO_PIN_SET);
+}
+
 void faultMonitorTask(void *pvParameters)
 {
 
@@ -33,7 +38,12 @@ void faultMonitorTask(void *pvParameters)
    DEBUG_PRINT("Waiting for HVIL to start\n");
    do {
       vTaskDelay(10);
-   } while (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_RESET);
+   } while (!getHVIL_Status());
+
+   DEBUG_PRINT("Waiting for IL OK\n");
+   do {
+      vTaskDelay(10);
+   } while (!getIL_Status());
 
    fsmSendEvent(&fsmHandle, EV_HVIL_Ready, portMAX_DELAY);
 
@@ -44,7 +54,18 @@ void faultMonitorTask(void *pvParameters)
    }
    while (1)
    {
-      if (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_RESET)
+      if (!getHVIL_Status())
+      {
+         ERROR_PRINT("HVIL broke\n");
+         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+
+         while (1) {
+            watchdogTaskCheckIn(FAULT_TASK_ID);
+            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+         }
+      }
+
+      if (!getIL_Status())
       {
          ERROR_PRINT("HVIL broke\n");
          fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
