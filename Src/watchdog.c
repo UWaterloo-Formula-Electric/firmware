@@ -13,7 +13,7 @@
 
 #include "bsp.h"
 #include "watchdog.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
 #include "userCan.h"
@@ -33,6 +33,8 @@ typedef struct TaskNode {
 #define WATCHDOGTASK_PERIOD_TICKS 5
 
 TaskNode *tasksToWatchList = NULL;
+
+bool signaledError = false;
 
 /*
  * Register a task to be monitored by the watchdog
@@ -124,9 +126,12 @@ HAL_StatusTypeDef watchdogRefresh()
 
 void watchdogSignalError(uint32_t id)
 {
-    ERROR_PRINT("Watchdog error for task id %lu\n", id);
-    sendDTC_FATAL_WatchdogTaskMissedCheckIn();
-    Error_Handler();
+    if (!signaledError) {
+        ERROR_PRINT("Watchdog error for task id %lu\n", id);
+        sendDTC_FATAL_WatchdogTaskMissedCheckIn();
+        Error_Handler();
+        signaledError = true;
+    }
 }
 
 HAL_StatusTypeDef watchdogSendEventToFSM(FSM_Handle_Struct *fsmHandle)
@@ -183,10 +188,13 @@ void watchdogTask(void *pvParameters)
             node = node->next;
         }
 
-        if (checkAllHeartbeats() != HAL_OK) {
-            // checkAllHeartbeats sends DTC, so don't need to do it here
-            ERROR_PRINT("Heartbeat missed!\n");
-            Error_Handler();
+        if (!signaledError) {
+            if (checkAllHeartbeats() != HAL_OK) {
+                // checkAllHeartbeats sends DTC, so don't need to do it here
+                ERROR_PRINT("Heartbeat missed!\n");
+                Error_Handler();
+                signaledError = true;
+            }
         }
 
         watchdogRefresh();

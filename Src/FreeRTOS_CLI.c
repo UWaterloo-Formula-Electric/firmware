@@ -45,7 +45,7 @@
 #include <stdint.h>
 
 /* FreeRTOS includes. */
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 /* Utils includes. */

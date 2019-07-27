@@ -72,7 +72,30 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
         rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
         if (rc != HAL_OK) {
             ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d\n", rc);
-            Error_Handler();
+            ERROR_PRINT_ISR("Parsed msg id 0x%lX, received on FIFO0\n", hcan->pRxMsg->ExtId);
+            if (rc == HAL_BUSY) {
+                switch(hcan->State)
+                {
+                    case(HAL_CAN_STATE_BUSY_TX_RX0):
+                        hcan->State = HAL_CAN_STATE_BUSY_TX;
+                        break;
+                    case(HAL_CAN_STATE_BUSY_RX0_RX1):
+                        hcan->State = HAL_CAN_STATE_BUSY_RX1;
+                        break;
+                    case(HAL_CAN_STATE_BUSY_TX_RX0_RX1):
+                        hcan->State = HAL_CAN_STATE_BUSY_TX_RX1;
+                        break;
+                    default: /* HAL_CAN_STATE_BUSY_RX0 */
+                        hcan->State = HAL_CAN_STATE_READY;
+                        break;
+                }
+                rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
+                if (rc != HAL_OK) {
+                    ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d\n", rc);
+                }
+            }
+
+            /*Error_Handler();*/
         }
     } else {
         hcan->pRx1Msg->DLC = CAN_MESSAGE_DLC_INVALID;
@@ -94,8 +117,10 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 
         rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO1);
         if (rc != HAL_OK) {
-                      ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d\n", rc);
-            Error_Handler();
+            ERROR_PRINT_ISR("Failed to start new CAN receive IT, rc: %d, state = %d\n", rc,
+                            hcan->State);
+            ERROR_PRINT_ISR("Parsed msg id 0x%lX, received on FIFO1\n", hcan->pRxMsg->ExtId);
+            /*Error_Handler();*/
         }
     }
 }

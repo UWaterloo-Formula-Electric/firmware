@@ -10,7 +10,7 @@
 
 #include "bsp.h"
 #include "stdbool.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 // This allows automatically including the autogen can header file for the

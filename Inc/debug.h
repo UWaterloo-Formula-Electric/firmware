@@ -2,7 +2,7 @@
 #define __DEBUG_H
 #include "bsp.h"
 #include "usart.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "queue.h"
 #include "stdio.h"
 
