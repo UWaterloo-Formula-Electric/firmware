@@ -132,7 +132,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 {
     float VBatt, VBus, IBus;
     uint32_t dbwTaskNotifications;
-
+    DEBUG_PRINT("precharge type %d\n", prechargeType); 
     if (prechargeType >= PC_NumTypes) {
         ERROR_PRINT("Invalid precharge type %d\n", prechargeType);
         return PCDC_ERROR;
@@ -149,6 +149,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("Failed to get pack voltage for precharge from queue\n");
             return PCDC_ERROR;
         }
+        DEBUG_PRINT("pack voltage %f\n", packVoltage); 
     }
 
     /*
@@ -196,14 +197,14 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    if (!HITL_Precharge_Mode) {
+    /*if (!HITL_Precharge_Mode) {
         // This check will fail on the HITL
         if (VBatt < packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK) {
             ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
                         packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK);
             return PCDC_ERROR;
         }
-    }
+    }*/
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
         ERROR_PRINT("ERROR: VBatt %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);
@@ -309,14 +310,14 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_3_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    if (!HITL_Precharge_Mode) {
+    /*if (!HITL_Precharge_Mode) {
         // This check will fail on the HITL
         if (VBatt < packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK) {
             ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
                         packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK);
             return PCDC_ERROR;
         }
-    }
+    }*/
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_3_CURRENT_MAX) {
         ERROR_PRINT("ERROR: VBatt %f > %f\n", IBus, PRECHARGE_STEP_3_CURRENT_MAX);
