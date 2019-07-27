@@ -290,7 +290,6 @@ uint32_t enterChargeMode(uint32_t event)
     }
 
     gChargeMode = true;
-    //gChargeMode = false; 
 
     return STATE_HV_Disable;
 }
