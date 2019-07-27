@@ -129,10 +129,6 @@ uint32_t systemUpCheck(uint32_t event)
 
     // Check all ready to start conditions
     if (imdReady && faultMonitorReady) {
-    	DEBUG_PRINT("il pin state %d\n", HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15)); 
-    	DEBUG_PRINT("hvd pin state %d\n", HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_8));
-    	DEBUG_PRINT("tsms pin state %d\n", HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_7));  
-    	DEBUG_PRINT("bspd pin state %d\n", HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11));
         DEBUG_PRINT("System up!\n");
         return STATE_HV_Disable;
     } else {
