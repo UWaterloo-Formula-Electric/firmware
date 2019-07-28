@@ -14,10 +14,10 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2000)
-#define THROTT_B_LOW (590)
+#define THROTT_A_LOW (1985)
+#define THROTT_B_LOW (638)
 
-#define THROTT_A_HIGH (2340)
+#define THROTT_A_HIGH (2310)
 #define THROTT_B_HIGH (965)
 
 /*#define THROTT_A_LOW (0xd44)*/
@@ -91,7 +91,7 @@ bool is_throttle1_in_range(uint32_t throttle) {
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
-  return throttle <= THROTT_B_HIGH && throttle >= THROTT_B_LOW - MAX_THROTTLE_DEADZONE;
+  return throttle <= THROTT_B_HIGH && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
 }
 
 uint16_t calculate_throttle_percent1(uint16_t tps_value)
@@ -275,18 +275,18 @@ HAL_StatusTypeDef brakeAndThrottleStart()
 
 void canPublishTask(void *pvParameters)
 {
-  float throttle;
+  //float throttle;
   while (1) {
     // Update value to be sent over can
-    getThrottlePositionPercent(&throttle);
-    ThrottlePercent = throttle;
-    brakePressure = getBrakePressure();
-    SteeringAngle = getSteeringAngle();
-    BrakePercent = getBrakePositionPercent();
+    //getThrottlePositionPercent(&throttle);
+    //ThrottlePercent = throttle;
+    //brakePressure = getBrakePressure();
+    //SteeringAngle = getSteeringAngle();
+    //BrakePercent = getBrakePositionPercent();
 
-    if (sendCAN_VCU_Data() != HAL_OK) {
-      ERROR_PRINT("Failed to send vcu can data\n");
-    }
+    //if (sendCAN_VCU_Data() != HAL_OK) {
+    //  ERROR_PRINT("Failed to send vcu can data\n");
+    //}
     vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
   }
 }
