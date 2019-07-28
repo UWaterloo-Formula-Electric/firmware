@@ -3,7 +3,7 @@
 #define BRAKEANDTHROTTLE_H
 
 #include "bsp.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 
 #if BOARD_VERSION == 1
 /* Only declared public for use in CLI for mock testing */

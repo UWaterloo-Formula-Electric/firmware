@@ -2,7 +2,7 @@
 #include "stm32f7xx_hal.h"
 #include "drive_by_wire_mock.h"
 #include "stdbool.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
 #include "state_machine.h"
