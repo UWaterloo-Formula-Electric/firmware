@@ -14,10 +14,10 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2340)
+#define THROTT_A_LOW (2000)
 #define THROTT_B_LOW (590)
 
-#define THROTT_A_HIGH (2000)
+#define THROTT_A_HIGH (2340)
 #define THROTT_B_HIGH (1000)
 
 /*#define THROTT_A_LOW (0xd44)*/
@@ -95,7 +95,8 @@ bool is_throttle2_in_range(uint32_t throttle) {
 
 uint16_t calculate_throttle_percent1(uint16_t tps_value)
 {
-    return map_range(tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    // Throttle A is inverted
+    return 100 - map_range(tps_value, THROTT_A_LOW, THROTT_A_HIGH,
       0, 100);
 }
 
