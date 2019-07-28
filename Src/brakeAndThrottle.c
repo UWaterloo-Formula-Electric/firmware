@@ -26,7 +26,8 @@
 /*#define THROTT_A_HIGH (0xf08)*/
 /*#define THROTT_B_HIGH (0x71f)*/
 
-#define MAX_THROTTLE_DEADZONE (0)
+#define MAX_THROTTLE_A_DEADZONE (70)
+#define MAX_THROTTLE_B_DEADZONE (70)
 /*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
 #define VCU_DATA_PUBLISH_TIME_MS 200
@@ -86,7 +87,7 @@ int map_range(int in, int low, int high, int low_out, int high_out) {
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
-  return throttle <= THROTT_A_HIGH && throttle >= THROTT_A_LOW - MAX_THROTTLE_DEADZONE;
+  return throttle <= THROTT_A_HIGH+MAX_THROTTLE_A_DEADZONE && throttle >= THROTT_A_LOW;
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
