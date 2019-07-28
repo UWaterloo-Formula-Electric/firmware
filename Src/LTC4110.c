@@ -1,6 +1,6 @@
 #include "LTC4110.h"
 #include "bsp.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "state_machine.h"
 #include "controlStateMachine.h"

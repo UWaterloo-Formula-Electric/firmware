@@ -2,7 +2,7 @@
 #include "stm32f7xx_hal.h"
 #include "controlStateMachine_mock.h"
 #include "stdbool.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
 #include "state_machine.h"
@@ -321,7 +321,8 @@ HAL_StatusTypeDef turnBoardsOn()
 
     VCU_ENABLE;
     DCU_ENABLE;
-    WSB_ENABLE;
+    /*WSB_ENABLE;*/
+    WSB_DISABLE;
     BMU_ENABLE;
     return HAL_OK;
 }
