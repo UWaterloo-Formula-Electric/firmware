@@ -66,3 +66,10 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data)
     }
 }
 
+void DTC_Fatal_Callback(BoardIDs board)
+{
+	ERROR_PRINT_ISR("DTC fatal received");
+	while (1) {
+		// Trigger watchdog reset
+	}
+}
