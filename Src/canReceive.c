@@ -7,7 +7,7 @@
 
 #include "DCU_can.h"
 
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "DCU_dtc.h"
 

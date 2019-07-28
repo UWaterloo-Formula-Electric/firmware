@@ -2,7 +2,7 @@
 #include "mainTaskEntry.h"
 #include "canReceive.h"
 
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
 
