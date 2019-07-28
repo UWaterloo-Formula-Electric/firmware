@@ -18,7 +18,7 @@
 #define THROTT_B_LOW (590)
 
 #define THROTT_A_HIGH (2340)
-#define THROTT_B_HIGH (1000)
+#define THROTT_B_HIGH (965)
 
 /*#define THROTT_A_LOW (0xd44)*/
 /*#define THROTT_B_LOW (0x5d2)*/
