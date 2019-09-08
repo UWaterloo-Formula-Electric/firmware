@@ -26,7 +26,8 @@
 #define ENABLE_IMD
 #define ENABLE_HV_MEASURE
 #define ENABLE_AMS
-//#define ENABLE_CHARGER
+#define ENABLE_CHARGER
+/*#define ENABLE_BALANCE*/
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
@@ -48,7 +49,7 @@
 #define CHARGE_STOP_SOC (98.0)
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
 #define CHARGE_MAX_VOLTAGE 300
-#define CHARGE_MAX_CURRENT 10
+#define CHARGE_MAX_CURRENT 3
 
 // This should be long enough so cells aren't constantly being toggled
 // between balance and not
@@ -537,13 +538,13 @@ HAL_StatusTypeDef stopCharging()
 
 HAL_StatusTypeDef stopBalance()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && ENABLE_BALANCE
     if (batt_unset_balancing_all_cells() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
     if (batt_write_config() != HAL_OK) {
         return HAL_ERROR;
     }
@@ -555,7 +556,7 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
 HAL_StatusTypeDef pauseBalance()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && ENABLE_BALANCE
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (batt_is_cell_balancing(cell)) {
             isCellBalancing[cell] = true;
@@ -574,7 +575,7 @@ HAL_StatusTypeDef pauseBalance()
 
 HAL_StatusTypeDef resumeBalance()
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && ENABLE_BALANCE
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (isCellBalancing[cell]) {
             batt_balance_cell(cell);
@@ -582,7 +583,7 @@ HAL_StatusTypeDef resumeBalance()
     }
 #endif
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -592,11 +593,11 @@ HAL_StatusTypeDef resumeBalance()
 }
 HAL_StatusTypeDef balance_cell(int cell, bool set)
 {
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && ENABLE_BALANCE
   if (set) batt_balance_cell(cell);
   else batt_stop_balance_cell(cell);
 #endif
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -738,7 +739,7 @@ ChargeReturn balanceCharge()
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
                     if (cellSOC - minCellSOC > 1) {
-                        DEBUG_PRINT("Balancing cell %d\n", cell);
+                        /*DEBUG_PRINT("Balancing cell %d\n", cell);*/
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
 #endif
@@ -821,13 +822,15 @@ ChargeReturn balanceCharge()
         /*
          * Check if we are still connected to charge cart
          */
-        if (xTaskGetTickCount() - lastChargeCartHeartbeat
-            > CHARGE_CART_HEARTBEAT_MAX_PERIOD)
-        {
-           ERROR_PRINT("Charge cart not responding\n");
-           // Notify ourselves that we should stop charging
-           xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
-        }
+        /*
+         *if (xTaskGetTickCount() - lastChargeCartHeartbeat
+         *    > CHARGE_CART_HEARTBEAT_MAX_PERIOD)
+         *{
+         *   ERROR_PRINT("Charge cart not responding\n");
+         *   // Notify ourselves that we should stop charging
+         *   xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
+         *}
+         */
 
         StateBatteryPowerHV = calculateStateOfPower();
         StateBatteryChargeHV = calculateStateOfCharge();

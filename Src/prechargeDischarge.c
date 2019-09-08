@@ -7,6 +7,8 @@
 #include "BMU_dtc.h"
 #include "batteries.h"
 
+#define ENABLE_PRECHARGE_DISCHARGE
+
 typedef enum Precharge_Discharge_Return_t {
     PCDC_DONE,
     PCDC_STOPPED,
@@ -509,9 +511,17 @@ void pcdcTask(void *pvParameter)
             DEBUG_PRINT("Starting precharge\n");
 
             if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
+#ifdef ENABLE_PRECHARGE_DISCHARGE
                 rc = precharge(PC_MotorControllers);
+#else
+                rc = PCDC_DONE;
+#endif
             } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER)) {
+#ifdef ENABLE_PRECHARGE_DISCHARGE
                 rc = precharge(PC_Charger);
+#else
+                rc = PCDC_DONE;
+#endif
             } else {
                 ERROR_PRINT("Unknown precharge type!");
                 rc = PCDC_ERROR;
@@ -522,16 +532,26 @@ void pcdcTask(void *pvParameter)
                 fsmSendEvent(&fsmHandle, EV_Precharge_Finished, portMAX_DELAY);
             } else if (rc == PCDC_ERROR) {
                 DEBUG_PRINT("Precharge Error\n");
+#ifdef ENABLE_PRECHARGE_DISCHARGE
                 discharge();
+#endif
                 fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
             } else {
                 DEBUG_PRINT("Precharge Stopped\n");
+#ifdef ENABLE_PRECHARGE_DISCHARGE
                 discharge();
+#endif
                 // TODO: Is there anything to do if the precharge gets stopped?
             }
 
         } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
-            if (discharge() != PCDC_DONE) {
+#ifdef ENABLE_PRECHARGE_DISCHARGE
+            rc = discharge();
+#else
+            rc = PCDC_DONE;
+#endif
+
+            if (rc != PCDC_DONE) {
                 ERROR_PRINT("Failed to discharge\n");
                 openAllContactors();
                 fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);

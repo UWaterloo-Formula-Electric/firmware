@@ -8,6 +8,8 @@
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
 
+#define ENABLE_IL_CHECKS
+
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {
    if (enable)
@@ -18,6 +20,21 @@ HAL_StatusTypeDef HVIL_Control(bool enable)
    }
 
    return HAL_OK;
+}
+
+bool getBSPD_Status()
+{
+   return (HAL_GPIO_ReadPin(BSPD_SENSE_GPIO_Port, BSPD_SENSE_Pin) == GPIO_PIN_SET);
+}
+
+bool getTSMS_Status()
+{
+   return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
+}
+
+bool getHVD_Status()
+{
+   return (HAL_GPIO_ReadPin(HVD_SENSE_GPIO_Port, HVD_SENSE_Pin) == GPIO_PIN_SET);
 }
 
 bool getHVIL_Status()
@@ -33,6 +50,8 @@ bool getIL_Status()
 void faultMonitorTask(void *pvParameters)
 {
 
+#ifdef ENABLE_IL_CHECKS
+
    HVIL_Control(true);
 
    DEBUG_PRINT("Waiting for HVIL to start\n");
@@ -40,10 +59,14 @@ void faultMonitorTask(void *pvParameters)
       vTaskDelay(10);
    } while (!getHVIL_Status());
 
+   DEBUG_PRINT("HVIL Started\n");
+
    DEBUG_PRINT("Waiting for IL OK\n");
    do {
       vTaskDelay(10);
    } while (!getIL_Status());
+
+   DEBUG_PRINT("IL Started\n");
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
@@ -79,4 +102,14 @@ void faultMonitorTask(void *pvParameters)
       watchdogTaskCheckIn(FAULT_TASK_ID);
       vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
    }
+
+#else
+
+   fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
+
+   while (1) {
+      vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+   }
+
+#endif
 }

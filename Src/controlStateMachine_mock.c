@@ -614,7 +614,47 @@ static const CLI_Command_Definition_t ilStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t bspdStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("BSPD State %s\n", getBSPD_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t bspdStatusCommandDefinition =
+{
+    "bspdStatus",
+    "bspdStatus:\r\n get bspd status\r\n",
+    bspdStatusCommand,
+    0 /* Number of parameters */
+};
 
+BaseType_t tsmsStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("tsms State %s\n", getTSMS_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t tsmsStatusCommandDefinition =
+{
+    "tsmsStatus",
+    "tsmsStatus:\r\n get tsms status\r\n",
+    tsmsStatusCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t hvdStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("hvd State %s\n", getHVD_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t hvdStatusCommandDefinition =
+{
+    "hvdStatus",
+    "hvdStatus:\r\n get hvd status\r\n",
+    hvdStatusCommand,
+    0 /* Number of parameters */
+};
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -698,6 +738,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&ilStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bspdStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&tsmsStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&hvdStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

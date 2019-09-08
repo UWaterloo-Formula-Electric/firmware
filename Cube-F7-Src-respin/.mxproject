@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=Z:/Documents/Waterloo/WFE/Code/2018_bmu/Cube-F7-Src-respin/Inc
+HeaderPath=Z:/Documents/Waterloo/WFE/Code.nosync/2018_bmu-2/Cube-F7-Src-respin/Inc
 HeaderFiles=gpio.h;adc.h;can.h;dma.h;FreeRTOSConfig.h;spi.h;tim.h;usart.h;stm32f7xx_it.h;stm32f7xx_hal_conf.h;main.h;iwdg.h;
-SourcePath=Z:/Documents/Waterloo/WFE/Code/2018_bmu/Cube-F7-Src-respin/Src
+SourcePath=Z:/Documents/Waterloo/WFE/Code.nosync/2018_bmu-2/Cube-F7-Src-respin/Src
 SourceFiles=gpio.c;adc.c;can.c;dma.c;freertos.c;spi.c;tim.c;usart.c;stm32f7xx_it.c;stm32f7xx_hal_msp.c;stm32f7xx_hal_timebase_tim.c;main.c;iwdg.c;
 
 [PreviousLibFiles]
