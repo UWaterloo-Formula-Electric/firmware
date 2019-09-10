@@ -656,6 +656,20 @@ static const CLI_Command_Definition_t hvdStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t ilBRBStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("brb IL State %s\n", getIL_BRB_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t ilBRBStatusCommandDefinition =
+{
+    "ilBRBStatus",
+    "ilBRBStatus:\r\n get the status of the IL in to the BMU from the BRBs\r\n",
+    ilBRBStatusCommand,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     IBus = 0;
@@ -749,6 +763,8 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&hvdStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&ilBRBStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }

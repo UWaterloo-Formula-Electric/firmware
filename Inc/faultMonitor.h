@@ -11,5 +11,6 @@ bool getIL_Status();
 bool getBSPD_Status();
 bool getTSMS_Status();
 bool getHVD_Status();
+bool getIL_BRB_Status();
 
 #endif /* end of include guard: FAULTMONITOR_H */

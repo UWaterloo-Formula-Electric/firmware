@@ -42,9 +42,16 @@ bool getHVIL_Status()
    return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
 }
 
-bool getIL_Status()
+// IL in to the BMU
+bool getIL_BRB_Status()
 {
    return (HAL_GPIO_ReadPin(IL_SENSE_GPIO_Port, IL_SENSE_Pin) == GPIO_PIN_SET);
+}
+
+// IL in to the BMU
+bool getIL_Status()
+{
+   return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
 }
 
 void faultMonitorTask(void *pvParameters)
