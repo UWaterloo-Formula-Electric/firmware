@@ -27,7 +27,7 @@
 #define ENABLE_HV_MEASURE
 #define ENABLE_AMS
 #define ENABLE_CHARGER
-/*#define ENABLE_BALANCE*/
+#define ENABLE_BALANCE
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
@@ -48,8 +48,7 @@
 #define CELL_RELAXATION_TIME_MS (10)
 #define CHARGE_STOP_SOC (98.0)
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
-#define CHARGE_MAX_VOLTAGE 300
-#define CHARGE_MAX_CURRENT 3
+#define CHARGE_DEFAULT_MAX_CURRENT 5
 
 // This should be long enough so cells aren't constantly being toggled
 // between balance and not
@@ -75,6 +74,9 @@ float VBatt;
 float IBus;
 float packVoltage;
 
+
+float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
+float maxChargeVoltage = LIMIT_OVERVOLTAGE * VOLTAGECELL_COUNT;
 
 bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
 bool warningSentForCellTemp[TEMPCELL_COUNT];
@@ -493,12 +495,25 @@ void imdTask(void *pvParamaters)
 #endif
 }
 
+HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent)
+{
+  // Range check, arbitrary max that probable will never need to be changed
+  if (maxCurrent <= 0 || maxCurrent >= 100)
+  {
+    return HAL_ERROR;
+  }
+
+  maxChargeCurrent = maxCurrent;
+
+  return HAL_OK;
+}
+
 HAL_StatusTypeDef startCharging()
 {
     DEBUG_PRINT("Starting charge\n");
 #if IS_BOARD_F7 && defined(ENABLE_CHARGER)
-    return startChargerCommunication(CHARGE_MAX_VOLTAGE,
-                                     CHARGE_MAX_CURRENT, BATTERY_TASK_ID);
+    return startChargerCommunication(maxChargeVoltage,
+                                     maxChargeCurrent, BATTERY_TASK_ID);
 
 #endif
     return HAL_OK;
@@ -510,7 +525,7 @@ HAL_StatusTypeDef continueCharging()
 #if IS_BOARD_F7 && defined(ENABLE_CHARGER)
    ChargerStatus status;
 
-   sendChargerCommand(CHARGE_MAX_VOLTAGE, CHARGE_MAX_CURRENT, true /* start charing */);
+   sendChargerCommand(maxChargeVoltage, maxChargeCurrent, true /* start charing */);
 
    if (checkChargerStatus(&status) != HAL_OK) {
       ERROR_PRINT("Failed to get charger status\n");
@@ -538,13 +553,13 @@ HAL_StatusTypeDef stopCharging()
 
 HAL_StatusTypeDef stopBalance()
 {
-#if IS_BOARD_F7 && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_BALANCE)
     if (batt_unset_balancing_all_cells() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
     if (batt_write_config() != HAL_OK) {
         return HAL_ERROR;
     }
@@ -556,7 +571,7 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
 HAL_StatusTypeDef pauseBalance()
 {
-#if IS_BOARD_F7 && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_BALANCE)
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (batt_is_cell_balancing(cell)) {
             isCellBalancing[cell] = true;
@@ -575,7 +590,7 @@ HAL_StatusTypeDef pauseBalance()
 
 HAL_StatusTypeDef resumeBalance()
 {
-#if IS_BOARD_F7 && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_BALANCE)
     for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
         if (isCellBalancing[cell]) {
             batt_balance_cell(cell);
@@ -583,7 +598,7 @@ HAL_StatusTypeDef resumeBalance()
     }
 #endif
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -593,11 +608,11 @@ HAL_StatusTypeDef resumeBalance()
 }
 HAL_StatusTypeDef balance_cell(int cell, bool set)
 {
-#if IS_BOARD_F7 && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_BALANCE)
   if (set) batt_balance_cell(cell);
   else batt_stop_balance_cell(cell);
 #endif
-#if IS_BOARD_F7 && defined(ENABLE_AMS) && ENABLE_BALANCE
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Failed to resume balance\n");
     }
@@ -731,11 +746,13 @@ ChargeReturn balanceCharge()
                     /*DEBUG_PRINT("%d: %f,", cell, VoltageCell[cell]);*/
                 /*}*/
                 /*DEBUG_PRINT("\n");*/
-                DEBUG_PRINT("Voltage min %f, max %f\n\n", VoltageCellMin, VoltageCellMax);
                 float minCellSOC = getSOCFromVoltage(VoltageCellMin);
+                float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
+                DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
 
                 for (int cell=0; cell<VOLTAGECELL_COUNT; cell++) {
                     float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
+                    watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
                     if (cellSOC - minCellSOC > 1) {
@@ -744,6 +761,8 @@ ChargeReturn balanceCharge()
                         batt_balance_cell(cell);
 #endif
                         balancingCells = true;
+                    } else {
+                      DEBUG_PRINT("Not balancing cell %d\n", cell);
                     }
                 }
 

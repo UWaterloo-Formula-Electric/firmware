@@ -28,5 +28,6 @@ HAL_StatusTypeDef balance_cell(int cell, bool set);
 HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueue();
 float map_range_float(float in, float low, float high, float low_out, float high_out);
+HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
 
 #endif /* end of include guard: BATTERIES_H */

@@ -324,6 +324,31 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t maxChargeCurrentCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float current;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(param, "%f", &current);
+
+    COMMAND_OUTPUT("setting max charge current %f\n", current);
+    if (setMaxChargeCurrent(current) != HAL_OK) {
+        ERROR_PRINT("Failed to set max charge current\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t maxChargeCurrentCommandDefinition =
+{
+    "maxChargeCurrent",
+    "maxChargeCurrent <current>:\r\n  set the max current the charger will output\r\n",
+    maxChargeCurrentCommand,
+    1 /* Number of parameters */
+};
+
 BaseType_t startChargeCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -728,6 +753,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&startChargeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&maxChargeCurrentCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {

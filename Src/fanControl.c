@@ -3,6 +3,8 @@
 #include "BMU_can.h"
 #include "batteries.h"
 #include "debug.h"
+#include "controlStateMachine.h"
+#include "state_machine.h"
 
 #define FAN_OFF_TEMP 30
 // Fans need pwm of 25 kHz, so we set timer to have 10 MHz freq, and 400 period
@@ -14,6 +16,12 @@
 uint32_t calculateFanPeriod()
 {
   // PWM Output is inverted from what we generate from PROC
+
+  // Full fan while charging
+  if (fsmGetState(&fsmHandle) == STATE_Charging) {
+    /*DEBUG_PRINT("Charging fans\n");*/
+    return FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
+  }
 
   if (TempCellMax < FAN_OFF_TEMP) {
     return FAN_PERIOD_COUNT;
