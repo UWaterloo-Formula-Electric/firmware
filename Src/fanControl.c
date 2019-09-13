@@ -20,7 +20,7 @@ uint32_t calculateFanPeriod()
   // Full fan while charging
   if (fsmGetState(&fsmHandle) == STATE_Charging) {
     /*DEBUG_PRINT("Charging fans\n");*/
-    return FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
+    return FAN_PERIOD_COUNT - FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
   }
 
   if (TempCellMax < FAN_OFF_TEMP) {
