@@ -777,65 +777,78 @@ float float_abs(float x)
     }
 }
 
+void addCellVoltages(float *cell_voltages, float *cell_voltages_average)
+{
+    for (int i = 0; i < CELLS_PER_BOARD * NUM_BOARDS; i++) {
+        cell_voltages_average[i] += cell_voltages[i];
+    }
+}
+
+void divideCellVoltages(float *cell_voltages_average, unsigned int num_readings)
+{
+    for (int i = 0; i < CELLS_PER_BOARD * NUM_BOARDS; i++) {
+        cell_voltages_average[i] /= num_readings;
+    }
+}
+
+// Arrays to use with open wire test
+float cell_voltages_single_reading[CELLS_PER_BOARD * NUM_BOARDS];
+
+// Perform open wire test cell voltage reading, either pullup or pulldown
+// Average num_readings voltages to account for noise
+HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullup,
+                                                unsigned int num_readings)
+{
+    if (num_readings <= 0) {
+        return HAL_ERROR;
+    }
+
+    for (int i = 0; i < num_readings; i++) {
+        if (batt_spi_wakeup(false /* not sleeping*/)) {
+            return HAL_ERROR;
+        }
+
+        if (sendADOWCMD(pullup)) {
+            return HAL_ERROR;
+        }
+
+        vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+        delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+        if (batt_spi_wakeup(false /* not sleeping*/))
+        {
+            return HAL_ERROR;
+        }
+
+        if (batt_readBackCellVoltage(cell_voltages_single_reading) != HAL_OK)
+        {
+            return HAL_ERROR;
+        }
+
+        addCellVoltages(cell_voltages_single_reading, cell_voltages);
+    }
+
+    divideCellVoltages(cell_voltages, num_readings);
+
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef checkForOpenCircuit()
 {
-    float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS];
-    float cell_voltages_pulldown[CELLS_PER_BOARD * NUM_BOARDS];
+    // Perform averaging of multiple voltage readings to account for potential
+    // bad connections to AMS boards that causes noise
+    float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS] = {0};
+    float cell_voltages_pulldown[CELLS_PER_BOARD * NUM_BOARDS] = {0};
 
-    if (batt_spi_wakeup(false /* not sleeping*/)) {
-        return HAL_ERROR;
-    }
-
-    if (sendADOWCMD(1 /*pullup*/)) {
-        return HAL_ERROR;
-    }
-
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-    if (batt_spi_wakeup(false /* not sleeping*/))
+    if (performOpenCircuitTestReading(cell_voltages_pullup, true /* pullup */,
+                                      NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
+        != HAL_OK)
     {
         return HAL_ERROR;
     }
 
-    if (sendADOWCMD(1 /*pullup*/)) {
-        return HAL_ERROR;
-    }
-
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-
-    if (batt_readBackCellVoltage(cell_voltages_pullup) != HAL_OK)
-    {
-        return HAL_ERROR;
-    }
-
-    if (sendADOWCMD(0 /*pulldown*/)) {
-        return HAL_ERROR;
-    }
-
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-
-    if (sendADOWCMD(0 /*pulldown*/)) {
-        return HAL_ERROR;
-    }
-
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-
-    if (batt_readBackCellVoltage(cell_voltages_pulldown) != HAL_OK)
+    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pullup */,
+                                      NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
+        != HAL_OK)
     {
         return HAL_ERROR;
     }

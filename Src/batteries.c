@@ -165,8 +165,8 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
+   _Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");
+   _Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");
 
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
@@ -276,6 +276,25 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
    return HAL_OK;
 }
 
+// For a 10-90 rise time of 1 sec, set the bandwidth to 0.35 Hz
+// See: https://www.edn.com/electronics-blogs/bogatin-s-rules-of-thumb/4424573/Rule-of-Thumb--1--The-bandwidth-of-a-signal-from-its-rise-time
+// This cuttoff, with a sampling frequency of 100 ms gives an alpha of 0.18
+#define CELL_VOLTAGE_FILTER_ALPHA 0.18
+// This takes an array of the instantaneous cell volages, and filters them on
+// an ongoing basis using the cellVoltagesFiltered array
+void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
+{
+  for (int i = 0; i < VOLTAGECELL_COUNT; i++) {
+    cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
+                              + (1-IBUS_FILTER_ALPHA)*cellVoltagesFiltered[i];
+  }
+}
+
+// For check cell voltages, a filtered version is needed to eliminate noise due
+// to bad contact with AMS boards
+// This array is used to store the filtered voltages
+float cellVoltagesFiltered[VOLTAGECELL_COUNT];
+
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage)
 {
    HAL_StatusTypeDef rc = HAL_OK;
@@ -286,6 +305,8 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    *maxTemp = -100; // Cells shouldn't get this cold right??
    *minTemp = CELL_OVERTEMP;
    *packVoltage = 0;
+
+   filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
    for (int i=0; i < VOLTAGECELL_COUNT; i++)
    {

@@ -15,6 +15,9 @@
 #define CELLS_PER_BOARD             12  // Number of valid cells per board, starting from the most negative terminal
 #define THERMISTORS_PER_BOARD       12   // Number of thermistors attached to each AMS, starting from A0
 
+// Average 4 readings for both pullup and pulldown in open wire test
+#define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 4
+
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
 #define NUM_TEMP_CELLS              (NUM_BOARDS*THERMISTORS_PER_BOARD)
