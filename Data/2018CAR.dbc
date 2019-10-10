@@ -513,10 +513,10 @@ BO_ 2281967617 BMU_batteryStatusHV: 8 BMU
  SG_ StateBatteryChargeHV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone,DCU,VCU_F7
 
 BO_ 2282754561 BMU_stateBusHV: 8 BMU
- SG_ CurrentBusHV : 48|16@1+ (0.1,0) [0|0] "mA" Vector__XXX
+ SG_ CurrentBusHV : 48|16@1+ (0.01,0) [0|0] "A" Vector__XXX
  SG_ VoltageCellMin : 32|16@1+ (0.1,0) [0|0] "V" Vector__XXX
  SG_ VoltageCellMax : 16|16@1+ (0.1,0) [0|0] "V" Vector__XXX
- SG_ VoltageBusHV : 0|16@1+ (0.1,0) [0|0] "mV"  VCU_BeagleBone,VCU_F7
+ SG_ VoltageBusHV : 0|16@1+ (0.01,0) [0|0] "V"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214596611 PDU_DCDC_Status: 8 PDU
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
