@@ -695,6 +695,45 @@ static const CLI_Command_Definition_t ilBRBStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t sendCellCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    int cellIdx;
+    sscanf(cellIdxString, "%d", &cellIdx);
+
+    setSendOnlyOneCell(cellIdx);
+
+    COMMAND_OUTPUT("Sending cell %d over CAN\n", cellIdx);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t sendCellCommandDefinition =
+{
+    "sendCell",
+    "sendCell <cellIdx>:\r\n Send over CAN one group of 3 cells (not all)\r\n",
+    sendCellCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t stopSendCellCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    clearSendOnlyOneCell();
+
+    COMMAND_OUTPUT("Stopping sending only one cell group over CAN\n");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopSendCellCommandDefinition =
+{
+    "stopSendCell",
+    "stopSendCell <cellIdx>:\r\n Send over CAN all cells\r\n",
+    stopSendCellCommand,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     IBus = 0;
@@ -792,6 +831,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&ilBRBStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&sendCellCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopSendCellCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;

@@ -131,7 +131,6 @@ float filterIBus(float IBus)
   return IBusOut;
 }
 
-
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
@@ -425,8 +424,8 @@ void HVMeasureTask(void *pvParamaters)
         if (xTaskGetTickCount() - lastStateBusHVSend
             > pdMS_TO_TICKS(STATE_BUS_HV_CAN_SEND_PERIOD_MS))
         {
-            CurrentBusHV = IBus * 1000;
-            VoltageBusHV = VBus * 1000;
+            CurrentBusHV = IBus;
+            VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
             lastStateBusHVSend = xTaskGetTickCount();
         }
@@ -777,7 +776,7 @@ ChargeReturn balanceCharge()
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
                     if (cellSOC - minCellSOC > 1) {
-                        /*DEBUG_PRINT("Balancing cell %d\n", cell);*/
+                        DEBUG_PRINT("Balancing cell %d\n", cell);
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
 #endif
@@ -1048,18 +1047,43 @@ void batteryTask(void *pvParameter)
     }
 }
 
-#define CAN_CELL_SEND_PERIOD 100
+#define CAN_CELL_SEND_PERIOD_MS 40
+
+// Use this to repeatedly send the cell voltage and temperature for a specific
+// cell
+bool sendOneCellVoltAndTemp = false;
+int cellToSend;
+
+void setSendOnlyOneCell(int cellIdx)
+{
+  sendOneCellVoltAndTemp = true;
+  cellToSend = cellIdx;
+}
+
+void clearSendOnlyOneCell()
+{
+  sendOneCellVoltAndTemp = false;
+}
+
 void canSendCellTask(void *pvParameters)
 {
   uint32_t cellIdxToSend = 0;
+
   while (1) {
+    if (sendOneCellVoltAndTemp) {
+      // The cell index for sending should be a multiple of 3, as the cells are
+      // sent in groups of 3
+      cellIdxToSend = cellToSend - (cellToSend % 3);
+    }
+
     sendCAN_BMU_CellVoltage(cellIdxToSend);
     sendCAN_BMU_CellTemp(cellIdxToSend);
 
     // Move on to next cells
+    // 3 Cells per CAN message
     cellIdxToSend += 3;
     cellIdxToSend = cellIdxToSend % VOLTAGECELL_COUNT;
 
-    vTaskDelay(CAN_CELL_SEND_PERIOD);
+    vTaskDelay(pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
   }
 }
