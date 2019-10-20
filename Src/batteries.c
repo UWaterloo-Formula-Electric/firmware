@@ -40,7 +40,6 @@
 #define CELL_DCR (0.01)
 #define CELL_HEAT_CAPACITY (1034.2) //kj/kg•k
 #define CELL_MASS (0.496)
-#define CELL_MAX_TEMP_C (60.0)
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
 #define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
 
@@ -378,7 +377,7 @@ float calculateStateOfPower()
 
 float calculateStateOfCharge()
 {
-    return (100000 * (VoltageCellMax - LIMIT_LOWVOLTAGE)) / (LIMIT_HIGHVOLTAGE - LIMIT_LOWVOLTAGE);
+    return 100 *((VoltageCellMax - LIMIT_LOWVOLTAGE) / (LIMIT_HIGHVOLTAGE - LIMIT_LOWVOLTAGE));
 }
 
 HAL_StatusTypeDef batteryStart()

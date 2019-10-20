@@ -112,11 +112,31 @@ HAL_StatusTypeDef startControl()
     return fsmSendEvent(&fsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
+
+// Bool to record when receive events the various systems are ready
+bool imdReady = false;
+bool faultMonitorReady = false;
+
+/**
+ * @brief Checks if the system is ready to run
+ * Checks components of the IL to make sure the system is ready to run
+ * @return @BMU_SystemUpFail
+ */
+BMU_SystemUpFail isSystemReady()
+{
+    if (imdReady && faultMonitorReady) {
+        return BMU_NO_FAIL;
+    } else if (!imdReady) {
+        return IMD_FAIL;
+    } else if (!faultMonitorReady) {
+        return IL_HVIL_FAIL;
+    } else {
+        return UNKOWN_FAIL;
+    }
+}
+
 uint32_t systemUpCheck(uint32_t event)
 {
-    static bool imdReady = false;
-    static bool faultMonitorReady = false;
-
     if (event == EV_IMD_Ready) {
         DEBUG_PRINT("IMD Ready\n");
         imdReady = true;
@@ -128,7 +148,7 @@ uint32_t systemUpCheck(uint32_t event)
     }
 
     // Check all ready to start conditions
-    if (imdReady && faultMonitorReady) {
+    if (isSystemReady() == BMU_NO_FAIL) {
         DEBUG_PRINT("System up!\n");
         return STATE_HV_Disable;
     } else {
@@ -327,7 +347,7 @@ uint32_t chargeDone(uint32_t event)
 uint32_t systemNotReady(uint32_t event)
 {
     ERROR_PRINT("Still waiting for system to be ready\n");
-    sendDTC_WARNING_BMU_SystemNotReady();
+    sendDTC_WARNING_BMU_SystemNotReady(isSystemReady());
 
     return STATE_Wait_System_Up;
 }

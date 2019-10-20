@@ -34,6 +34,13 @@ typedef enum BMU_Events_t {
     EV_ANY, // Must be the last event
 } BMU_Events_t;
 
+typedef enum BMU_SystemUpFail {
+    BMU_NO_FAIL,
+    IMD_FAIL,
+    IL_HVIL_FAIL,
+    UNKOWN_FAIL,
+} BMU_SystemUpFail;
+
 extern FSM_Handle_Struct fsmHandle;
 
 HAL_StatusTypeDef controlInit(void);
