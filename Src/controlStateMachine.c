@@ -321,7 +321,7 @@ HAL_StatusTypeDef turnBoardsOn()
 
     VCU_ENABLE;
     DCU_ENABLE;
-    /*WSB_ENABLE;*/
+    WSB_ENABLE;
     WSB_DISABLE;
     BMU_ENABLE;
     return HAL_OK;
@@ -340,7 +340,7 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (IS_DC_DC_ON) {
+    if (true) {
         if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
             MC_LEFT_ENABLE;
             MC_RIGHT_ENABLE;
@@ -454,16 +454,16 @@ uint32_t coolingOff(uint32_t event) {
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-    PUMP_LEFT_ENABLE;
-    PUMP_RIGHT_ENABLE;
-    FAN_LEFT_ENABLE;
-    FAN_RIGHT_ENABLE;
+    /*PUMP_LEFT_ENABLE;*/
+    /*PUMP_RIGHT_ENABLE;*/
+    /*FAN_LEFT_ENABLE;*/
+    /*FAN_RIGHT_ENABLE;*/
     return COOL_STATE_ON;
 }
 
 uint32_t emEnable(uint32_t event) {
     DEBUG_PRINT("EM Enable received\n");
-    if (IS_DC_DC_ON) {
+    if (true) {
         if (xTimerStart(coolingDelayTimer, 100) != pdPASS) {
             ERROR_PRINT("Failed to start coolingdelay timer\n");
             coolingOn(COOL_EV_WAIT_ELAPSED);

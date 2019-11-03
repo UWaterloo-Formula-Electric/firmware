@@ -13,7 +13,7 @@
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
-
+/*#define ENABLE_LV_CUTTOFF*/
 
 
 const char *channelNames[] = {  "Fan Right",
@@ -135,10 +135,12 @@ void sensorTask(void *pvParameters)
             ERROR_PRINT("Failed to send bus measurements on can!\n");
         }
 
+#ifdef ENABLE_LV_CUTTOFF
         // TODO: Enable this once the voltage scaling is fixed
         if (readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {
             fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 1000);
         }
+#endif
 
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
             ERROR_PRINT("LV Current exceeded max value\n");
