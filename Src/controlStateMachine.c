@@ -322,7 +322,6 @@ HAL_StatusTypeDef turnBoardsOn()
     VCU_ENABLE;
     DCU_ENABLE;
     WSB_ENABLE;
-    WSB_DISABLE;
     BMU_ENABLE;
     return HAL_OK;
 }
