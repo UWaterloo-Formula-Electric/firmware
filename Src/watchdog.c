@@ -142,7 +142,9 @@ HAL_StatusTypeDef watchdogSendEventToFSM(FSM_Handle_Struct *fsmHandle)
 void watchdogTask(void *pvParameters)
 {
     TaskNode *node = NULL;
+#if !BOARD_IS_WSB(BOARD_ID)
     uint32_t lastHeartbeatTick = 0;
+#endif
 
     if (canStart(&CAN_HANDLE) != HAL_OK)
     {
@@ -151,7 +153,9 @@ void watchdogTask(void *pvParameters)
     }
 
     // Send heartbeat on startup so it gets sent ASAP
+#if !BOARD_IS_WSB(BOARD_ID)
     sendHeartbeat();
+#endif
 
     while (1) {
         node = tasksToWatchList;
@@ -188,6 +192,7 @@ void watchdogTask(void *pvParameters)
             node = node->next;
         }
 
+#if !BOARD_IS_WSB(BOARD_ID)
         if (!signaledError) {
             if (checkAllHeartbeats() != HAL_OK) {
                 // checkAllHeartbeats sends DTC, so don't need to do it here
@@ -196,13 +201,16 @@ void watchdogTask(void *pvParameters)
                 signaledError = true;
             }
         }
+#endif
 
         watchdogRefresh();
 
+#if !BOARD_IS_WSB(BOARD_ID)
         if (curTick - lastHeartbeatTick >= HEARTBEAT_PERIOD_TICKS) {
             sendHeartbeat();
             lastHeartbeatTick = curTick;
         }
+#endif
 
         vTaskDelay(WATCHDOGTASK_PERIOD_TICKS);
     }

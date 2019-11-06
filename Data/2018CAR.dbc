@@ -65,6 +65,11 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
+BO_ 2147548936 WSBFL_DTC: 6 WSBFL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBFR,WSBRR,WSBRL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL
+
 BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
  SG_ ChargeEN_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart
 
@@ -132,29 +137,29 @@ BO_ 2214855426 VCU_EM_Power_State_Request: 1 VCU_F7
  SG_ EM_Power_State_Request : 0|1@1+ (1,0) [0|0] ""  PDU
 
 BO_ 2147548931 PDU_DTC: 6 PDU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
 
 BO_ 2147548935 DCU_DTC: 6 DCU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
 
 BO_ 2147548930 VCU_F7_DTC: 6 VCU_F7
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
 
 BO_ 2147548929 BMU_DTC: 6 BMU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
 
 BO_ 2147548932 ChargeCart_DTC: 6 ChargeCart
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
 
 BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonHVEnabled : 2|1@1- (1,0) [0|0] "bool"  BMU
