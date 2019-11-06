@@ -1,0 +1,3 @@
+[submodule "common-all"]
+	path = common-all
+	url = git@bitbucket.org:waterloohybrid/common-all.git
