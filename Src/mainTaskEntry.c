@@ -19,9 +19,10 @@ void mainTaskFunction(void const * argument)
         Error_Handler();
     }
 
+    DEBUG_PRINT("Started Up");
 
     while (1) {
-        HAL_GPIO_TogglePin(ERROR_LED_PORT, ERROR_LED_PIN);
+        HAL_GPIO_TogglePin(DEBUG_LED_PORT, DEBUG_LED_PIN);
 
         watchdogTaskCheckIn(MAIN_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(MAIN_TASK_PERIOD_MS));
