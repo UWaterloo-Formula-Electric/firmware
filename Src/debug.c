@@ -181,6 +181,7 @@ static const CLI_Command_Definition_t heapCommandDefinition =
 BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+#if !BOARD_IS_WSB(BOARD_ID)
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
@@ -193,6 +194,9 @@ BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }
+#else
+    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+#endif
 
     return pdFALSE;
 }
@@ -208,6 +212,7 @@ static const CLI_Command_Definition_t generalHeartbeatCommandDefinition =
 BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+#if !BOARD_IS_WSB(BOARD_ID)
     BaseType_t paramLen;
     const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
 
@@ -238,6 +243,9 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }
+#else
+    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+#endif
 
     return pdFALSE;
 }
