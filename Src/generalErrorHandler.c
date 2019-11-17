@@ -10,6 +10,7 @@
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
 #define SEND_FATAL_DTC CAT(sendDTC_FATAL_, CAT(BOARD_NAME, _ERROR))
+#define SEND_CRITICAL_DTC CAT(sendDTC_CRITICAL_, CAT(BOARD_NAME, _ERROR))
 
 #define PRODUCTION_ERROR_HANDLING
 
@@ -67,7 +68,11 @@ void _handleError(char *file, int line)
   if (!errorOccured) {
     HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
 
+#if !BOARD_IS_WSB(BOARD_ID)
     SEND_FATAL_DTC();
+#else
+    SEND_CRITICAL_DTC();
+#endif
 
     // Trigger whatever error handling this board has
     DTC_Fatal_Callback(BOARD_ID);
