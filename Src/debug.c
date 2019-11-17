@@ -250,6 +250,21 @@ static const CLI_Command_Definition_t boardHeartbeatCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t boardHeartbeatInfoCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    printHeartbeatStatus();
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t boardHeartbeatInfoCommandDefinition =
+{
+    "heartbeatInfo",
+    "heartbeatInfo:\r\n  Display heartbeat info\r\n",
+    boardHeartbeatInfoCommand,
+    0 /* Number of parameters */
+};
+
 
 #define TASK_LIST_NUM_BYTES_PER_TASK 50
 char *taskListBuffer = NULL; // A buffer to store taskList string in,
@@ -400,6 +415,9 @@ HAL_StatusTypeDef debugInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&resetCLICommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatInfoCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;
