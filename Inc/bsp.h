@@ -9,6 +9,7 @@
 #include "stdbool.h"
 #include "iwdg.h"
 
+//#define BOARD_DISABLE_CAN
 
 #if IS_BOARD_F0
 #include "stm32f0xx_hal.h"
