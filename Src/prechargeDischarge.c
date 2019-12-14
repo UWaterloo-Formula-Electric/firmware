@@ -201,7 +201,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     }
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
-        ERROR_PRINT("ERROR: VBatt %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);
+        ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);
         return PCDC_ERROR;
     }
 
@@ -306,7 +306,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     }
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_3_CURRENT_MAX) {
-        ERROR_PRINT("ERROR: VBatt %f > %f\n", IBus, PRECHARGE_STEP_3_CURRENT_MAX);
+        ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_3_CURRENT_MAX);
         return PCDC_ERROR;
     }
 

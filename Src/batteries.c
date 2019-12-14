@@ -14,6 +14,7 @@
 #include "chargerControl.h"
 
 #define BATTERY_TASK_PERIOD_MS 100
+#define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
 #define HV_MEASURE_TASK_PERIOD_MS 1
@@ -44,7 +45,7 @@
 #define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
 
 #define BALANCE_START_VOLTAGE (3.5F)
-#define CELL_RELAXATION_TIME_MS (10)
+#define CELL_RELAXATION_TIME_MS (1000)
 #define CHARGE_STOP_SOC (98.0)
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
 #define CHARGE_DEFAULT_MAX_CURRENT 5
@@ -711,9 +712,9 @@ ChargeReturn balanceCharge()
 
         // Check in before delay
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        if (CELL_RELAXATION_TIME_MS >= BATTERY_TASK_PERIOD_MS) {
+        if (CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS) {
             ERROR_PRINT("Cell relaxation time %d > task period %d",
-                        CELL_RELAXATION_TIME_MS, BATTERY_TASK_PERIOD_MS);
+                        CELL_RELAXATION_TIME_MS, BATTERY_CHARGE_TASK_PERIOD_MS);
             BatteryTaskError();
         } else {
             vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
@@ -782,6 +783,7 @@ ChargeReturn balanceCharge()
                         balancingCells = true;
                     } else {
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
+                      batt_stop_balance_cell(cell);
                     }
                 }
 
@@ -894,7 +896,7 @@ ChargeReturn balanceCharge()
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_CHARGE_TASK_PERIOD_MS));
     }
 
     return CHARGE_DONE;
@@ -967,19 +969,32 @@ void batteryTask(void *pvParameter)
             if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION)) {
                 ChargeEN_State = ChargeEN_State_On;
                 sendCAN_BMU_ChargeEN_State();
-                ChargeReturn chargeRc = balanceCharge();
-                if (chargeRc == CHARGE_ERROR) {
-                    ERROR_PRINT("Failed to balance charge\n");
-                    fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
-                } else if (chargeRc == CHARGE_DONE) {
-                    DEBUG_PRINT("Finished charge\n");
-                    fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
-                } else if (chargeRc == CHARGE_STOPPED) {
-                    DEBUG_PRINT("Stopped charge\n");
-                    fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
+                if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
+                                                        BATTERY_CHARGE_TASK_PERIOD_MS))
+                {
+                    ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
                 } else {
-                    ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
-                    fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
+                    ChargeReturn chargeRc = balanceCharge();
+
+                    if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
+                                                            BATTERY_TASK_PERIOD_MS))
+                    {
+                        ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
+                    }
+
+                    if (chargeRc == CHARGE_ERROR) {
+                        ERROR_PRINT("Failed to balance charge\n");
+                        fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
+                    } else if (chargeRc == CHARGE_DONE) {
+                        DEBUG_PRINT("Finished charge\n");
+                        fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
+                    } else if (chargeRc == CHARGE_STOPPED) {
+                        DEBUG_PRINT("Stopped charge\n");
+                        fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
+                    } else {
+                        ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
+                        fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
+                    }
                 }
                 ChargeEN_State = ChargeEN_State_Off;
                 sendCAN_BMU_ChargeEN_State();
