@@ -93,6 +93,12 @@ HAL_StatusTypeDef watchdogTaskChangeTimeout(uint32_t id, uint32_t timeoutTicks)
             // Otherwise changing timeout right before deadline might
             // sitll cause a missed deadline
             node->lastCheckInTicks = xTaskGetTickCount();
+
+            // Cause another check in request to be sent, also to ensure reset
+            // of deadline on change of timeout
+            if (node->isFsmTask) {
+                node->fsmCheckInRequestTimeTicks = 0;
+            }
             return HAL_OK;
         }
         node = node->next;
