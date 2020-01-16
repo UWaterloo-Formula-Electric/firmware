@@ -21,5 +21,6 @@ void heartbeatReceived(BoardIDs boardName);
 HAL_StatusTypeDef checkAllHeartbeats();
 void enableHeartbeat();
 void disableHeartbeat();
+void printHeartbeatStatus();
 
 #endif /* end of include guard: CANHEARTBEAT_H */

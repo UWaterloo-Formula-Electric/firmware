@@ -13,6 +13,8 @@ uint32_t lastBMU_Heartbeat_ticks = 0;
 uint32_t lastPDU_Heartbeat_ticks = 0;
 uint32_t lastDCU_Heartbeat_ticks = 0;
 uint32_t lastVCU_F7_Heartbeat_ticks = 0;
+// For now, we don't use this, since BMU does its own checking of the heartbeat
+uint32_t lastChargeCart_Heartbeat_ticks = 0;
 
 void heartbeatReceived(BoardIDs board)
 {
@@ -37,28 +39,28 @@ void heartbeatReceived(BoardIDs board)
                 lastVCU_F7_Heartbeat_ticks = xTaskGetTickCount();
                 break;
             }
-
+        case ID_ChargeCart:
+            {
+                lastChargeCart_Heartbeat_ticks = xTaskGetTickCount();
+                break;
+            }
         default:
             {
-                ERROR_PRINT("Received heartbeat from unexpected board\n");
+                if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+                    ERROR_PRINT("Received heartbeat from unexpected board\n");
+                } else {
+                    printf("Received heartbeat from unexpected board\n");
+                }
                 break;
             }
     }
 }
 
-#ifndef PRODUCTION_ERROR_HANDLING
-bool heartbeatEnabled = false;
-bool DCU_heartbeatEnabled = false;
-bool PDU_heartbeatEnabled = false;
-bool BMU_heartbeatEnabled = false;
-bool VCU_F7_heartbeatEnabled = false;
-#else
 bool heartbeatEnabled = true;
 bool DCU_heartbeatEnabled = true;
 bool PDU_heartbeatEnabled = true;
 bool BMU_heartbeatEnabled = true;
 bool VCU_F7_heartbeatEnabled = true;
-#endif
 
 void disableHeartbeat()
 {
@@ -122,4 +124,16 @@ HAL_StatusTypeDef checkAllHeartbeats()
     }
 
     return HAL_OK;
+}
+
+
+void printHeartbeatStatus()
+{
+    DEBUG_PRINT("HeartbeatStatus:\n");
+    DEBUG_PRINT("Current Tick: %lu\n", xTaskGetTickCount());
+    DEBUG_PRINT("Board\tLastReceived (ticks)\n");
+    DEBUG_PRINT("PDU\t%lu\n", lastPDU_Heartbeat_ticks);
+    DEBUG_PRINT("DCU\t%lu\n", lastDCU_Heartbeat_ticks);
+    DEBUG_PRINT("BMU\t%lu\n", lastBMU_Heartbeat_ticks);
+    DEBUG_PRINT("VCU_F7\t%lu\n", lastVCU_F7_Heartbeat_ticks);
 }

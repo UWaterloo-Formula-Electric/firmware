@@ -11,7 +11,7 @@
 #include "debug.h"
 #include "bsp.h"
 #include "boardTypes.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
 #include "semphr.h"
@@ -57,9 +57,13 @@ SemaphoreHandle_t CAN_Msg_Semaphore;
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
 
 volatile bool canStarted = false;
+volatile bool chargerCanStarted = false;
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
 {
+#ifdef BOARD_DISABLE_CAN
+    return HAL_OK;
+#else
 #if IS_BOARD_F7_FAMILY
     if (F7_canInit(hcan) != HAL_OK) {
         return HAL_ERROR;
@@ -104,10 +108,23 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
     }
 
     return HAL_OK;
+#endif
 }
 
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
 {
+#ifdef BOARD_DISABLE_CAN
+    return HAL_OK;
+#else
+#ifdef CHARGER_CAN_HANDLE
+    if (hcan == &CHARGER_CAN_HANDLE) {
+        if (!chargerCanStarted) {
+        canStarted = true;
+        return F7_canStart(hcan);
+        }
+    }
+#endif
+
     if (!canStarted) {
         canStarted = true;
 #if IS_BOARD_F7_FAMILY
@@ -120,6 +137,7 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
     } else {
         return HAL_OK;
     }
+#endif
 }
 
 // Are we allowed to send this CAN message now?
@@ -169,6 +187,9 @@ HAL_StatusTypeDef canSendCANMessage(uint32_t id, CAN_HandleTypeDef *hcan)
 // 6: Debug Messages
 HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
 {
+#ifdef BOARD_DISABLE_CAN
+    return HAL_OK;
+#else
     if (length > 8) {
         ERROR_PRINT("Attempt to send CAN message longer than 8 bytes\n");
         return HAL_ERROR;
@@ -221,16 +242,21 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
     }
 
     return HAL_OK;
+#endif
 }
 
 
 #ifdef CHARGER_CAN_HANDLE
 HAL_StatusTypeDef sendCanMessageCharger(uint32_t id, int length, uint8_t *data)
 {
+#ifdef BOARD_DISABLE_CAN
+    return HAL_OK;
+#else
 #if IS_BOARD_F7_FAMILY
     return F7_sendCanMessageCharger(id, length, data);
 #else
 #error Send can message charger not defined for this board type
+#endif
 #endif
 }
 #endif
@@ -251,18 +277,27 @@ HAL_StatusTypeDef sendCanMessageInternal(uint32_t id, int length, uint8_t *data)
 
 HAL_StatusTypeDef sendDTCMessage(uint32_t dtcCode, int severity, uint64_t data)
 {
+#ifdef BOARD_DISABLE_CAN
+    return HAL_OK;
+#else
     DTC_Data = (float)data;
     DTC_Severity = (float)severity;
     DTC_CODE = (float)dtcCode;
     return DTC_SEND_FUNCTION();
+#endif
 }
 
 
 void canTask(void *pvParameters)
 {
+#ifndef BOARD_DISABLE_CAN
     CAN_Message msg;
+#endif
 
     while (1) {
+#ifdef BOARD_DISABLE_CAN
+        vTaskDelay(10000);
+#else
         if (xSemaphoreTake(CAN_Msg_Semaphore, portMAX_DELAY) != pdTRUE) {
             ERROR_PRINT("Error taking CAN msg semaphore\n");
             vTaskDelay(10);
@@ -323,6 +358,7 @@ void canTask(void *pvParameters)
             }
             continue;
         }
+#endif
     }
 }
 

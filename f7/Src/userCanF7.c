@@ -10,7 +10,7 @@
 #include "can.h"
 #include "debug.h"
 #include "bsp.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #ifdef CHARGER_CAN_HANDLE
 #include "BMU_charger_can.h"

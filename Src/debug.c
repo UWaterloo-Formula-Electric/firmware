@@ -181,6 +181,7 @@ static const CLI_Command_Definition_t heapCommandDefinition =
 BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+#if !BOARD_IS_WSB(BOARD_ID)
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
@@ -193,6 +194,9 @@ BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }
+#else
+    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+#endif
 
     return pdFALSE;
 }
@@ -208,6 +212,7 @@ static const CLI_Command_Definition_t generalHeartbeatCommandDefinition =
 BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+#if !BOARD_IS_WSB(BOARD_ID)
     BaseType_t paramLen;
     const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
 
@@ -238,6 +243,9 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else {
         COMMAND_OUTPUT("Unkown parameter\n");
     }
+#else
+    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+#endif
 
     return pdFALSE;
 }
@@ -248,6 +256,21 @@ static const CLI_Command_Definition_t boardHeartbeatCommandDefinition =
     "heartbeatForBoard <BMU|PDU|DCU|VCU_F7> <on|off>:\r\n  Turn on/off CAN heartbeat for a board\r\n",
     boardHeartbeatCommand,
     2 /* Number of parameters */
+};
+
+BaseType_t boardHeartbeatInfoCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    printHeartbeatStatus();
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t boardHeartbeatInfoCommandDefinition =
+{
+    "heartbeatInfo",
+    "heartbeatInfo:\r\n  Display heartbeat info\r\n",
+    boardHeartbeatInfoCommand,
+    0 /* Number of parameters */
 };
 
 
@@ -400,6 +423,9 @@ HAL_StatusTypeDef debugInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&resetCLICommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatInfoCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;

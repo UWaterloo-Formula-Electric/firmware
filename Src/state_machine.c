@@ -1,6 +1,6 @@
 #include "state_machine.h"
 #include "bsp.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "queue.h"
 #include "string.h"
 #include "debug.h"

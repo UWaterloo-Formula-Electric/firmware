@@ -1,44 +1,48 @@
-DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
-1,CELL_VOLTAGE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is low
-2,CELL_VOLTAGE_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
-3,CELL_VOLTAGE_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high
-4,CELL_VOLTAGE_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
-5,CELL_TEMP_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high
-6,CELL_TEMP_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical
-7,CONTACTOR_OPEN_IMPENDING,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,BMS is opening contactors
-8,CONTACTOR_WELDED_SHUT_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor is welded shut
-9,CONTACTOR_WELDED_SHUT_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor is welded shut
-10,CONTACTOR_COIL_FAILURE_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor coil has faild open
-11,CONTACTOR_COIL_FAILURE_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor coil has faild open
-12,CONTACTOR_PRECHARGE_STUCK_ON,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck closed
-13,CONTACTOR_PRECHARGE_STUCK_OFF,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck open
-14,CONTACTOR_PRECHARGE_RESISTOR_SHORT,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed open
-15,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short
-16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: brake not pressed, 4: not hv enabled, 5: Motors failed to start)"
-17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: brake not pressed, 4: not hv enabled, 5: Motors failed to start)"
-18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is about to turn off the boards after a short delay"
-19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards"
-20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay"
-21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU
-22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-24, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-25, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-26, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured
-27, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
-28, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
-29, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU Can Timeout occured
-30, Throtte_Failure,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Throttle implausibility occured
-31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The precharge process failed during step #data
-32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The discharge process failed during step #data
-33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,The IMD detected a fault. Value is of enum IMDStatus in imdDriver.h
-34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7,DCU,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,"The watchdog task detected that a task missed its checkin time, a watchdog reset is about to happen for the board"
-35,WatchdogReset,"BMU,PDU,VCU_F7,DCU,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,A watchdog reset occurred
-36,DCU_MissedHeartbeat,"BMU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
-37,BMU_MissedHeartbeat,"DCU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
-38,PDU_MissedHeartbeat,"BMU,DCU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
-39,VCU_F7_MissedHeartbeat,"BMU,PDU,DCU,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
-40,BMU_Charger_ERROR,BMU,1,"DCU,PDU,VCU_F7,ChargeCart",NA,The charger reported an error while charging
-41,BMU_SystemNotReady,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",NA,"The BMU is waiting for the system to come up, and can't process the request yet"
-42,PDU_EM_EN_BLOCKED_DCDC_OFF,PDU,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,The PDU blocked EM enable request since DC-DC not on
-43,ChargeCart_ERROR,ChargeCart,1,BMU,NA,An unkown error occured
+DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE,
+1,CELL_VOLTAGE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is low,
+2,CELL_VOLTAGE_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical,
+3,CELL_VOLTAGE_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high,
+4,CELL_VOLTAGE_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical,
+5,CELL_TEMP_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is high,
+6,CELL_TEMP_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,The #data is Critical,
+7,CONTACTOR_OPEN_IMPENDING,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,BMS is opening contactors,
+8,CONTACTOR_WELDED_SHUT_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor is welded shut,
+9,CONTACTOR_WELDED_SHUT_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor is welded shut,
+10,CONTACTOR_COIL_FAILURE_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The positive contactor coil has faild open,
+11,CONTACTOR_COIL_FAILURE_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The negative contactor coil has faild open,
+12,CONTACTOR_PRECHARGE_STUCK_ON,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck closed,
+13,CONTACTOR_PRECHARGE_STUCK_OFF,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge relay is stuck open,
+14,CONTACTOR_PRECHARGE_RESISTOR_SHORT,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed open,
+15,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,The precharge resistor has failed short,
+16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: brake not pressed, 4: not hv enabled, 5: Motors failed to start)",
+17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"The vcu failed to em enable for reason #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: brake not pressed, 4: not hv enabled, 5: Motors failed to start)",
+18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is about to turn off the boards after a short delay",
+19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"A critical failure occurred, PDU is turning off the boards",
+20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach,  PDU is about to turn off the boards after a short delay",
+21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,A HV Critical failure has been detected by the PDU,
+22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured,
+23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured,
+24, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured,
+25, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured,
+26, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,An unkown error occured,
+27, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure,
+28, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure,
+29, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU Can Timeout occured,
+30, Throtte_Failure,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Throttle implausibility occured,
+31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The precharge process failed during step #data,
+32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,The discharge process failed during step #data,
+33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,The IMD detected a fault. Value is of enum IMDStatus in imdDriver.h,
+34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,"The watchdog task detected that a task missed its checkin time, a watchdog reset is about to happen for the board",
+35,WatchdogReset,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,A watchdog reset occurred,
+36,DCU_MissedHeartbeat,"BMU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout,
+37,BMU_MissedHeartbeat,"DCU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout,
+38,PDU_MissedHeartbeat,"BMU,DCU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout,
+39,VCU_F7_MissedHeartbeat,"BMU,PDU,DCU,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout,
+40,BMU_Charger_ERROR,BMU,1,"DCU,PDU,VCU_F7,ChargeCart",NA,The charger reported an error while charging,
+41,BMU_SystemNotReady,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Reason,"The BMU is waiting for the system to come up, and can't process the request yet (Reasons: 1: IMD_FAIL, 2: IL_HVIL_FAIL)"
+42,PDU_EM_EN_BLOCKED_DCDC_OFF,PDU,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,The PDU blocked EM enable request since DC-DC not on,
+43,ChargeCart_ERROR,ChargeCart,1,BMU,NA,An unkown error occured,
+44,WSBFL_ERROR,WSBFL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured,
+45,WSBFR_ERROR,WSBFR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured,
+46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured,
+47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured,
