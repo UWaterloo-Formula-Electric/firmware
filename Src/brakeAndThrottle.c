@@ -71,7 +71,8 @@ bool throttleAndBrakePressedError = false;
 
 float getBrakePositionPercent()
 {
-    return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_DIVIDER;
+    /*return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_DIVIDER;*/
+    return 0.0;
 }
 
 int map_range(int in, int low, int high, int low_out, int high_out) {
@@ -217,7 +218,11 @@ HAL_StatusTypeDef outputThrottle() {
         DEBUG_PRINT("Throttle disabled due brake pressed\n");
     }
 
-    /*DEBUG_PRINT("Setting MC throttles to %f\n", throttle);*/
+    static uint64_t count = 0;
+    count++;
+    if (count % 20 == 0) {
+      DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
+    }
     sendThrottleValueToMCs(throttle);
 
     return HAL_OK;

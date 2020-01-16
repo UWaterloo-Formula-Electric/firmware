@@ -16,13 +16,10 @@
 
 #define DRIVE_BY_WIRE_TASK_ID 1
 
-#define MC_STARTUP_TIME_MS           10
-#define MC_STOP_TIME_MS              10
-
 // While the motors are starting, increase the watchdog timeout to allow
 // delays to wait for motor controllers to start up
-#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS (MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS)
-#define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MC_STOP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS)
+#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS (INVERTER_ON_TIMEOUT_MS + MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
+#define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 100)
 
 #define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
 
@@ -275,7 +272,6 @@ uint32_t EM_Update_Throttle(uint32_t event)
         ERROR_PRINT("Shouldn't be updating throttle when not in em enabled state\n");
         return fsmGetState(&fsmHandle);
     }
-    DEBUG_PRINT("Updating throttle\n");
     if (outputThrottle() != HAL_OK) {
         ERROR_PRINT("Throttle update failed, trans to fatal\n");
         if (MotorStop() != HAL_OK) {
@@ -389,6 +385,9 @@ HAL_StatusTypeDef MotorStart()
     // Change back timeout
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
+
+    DEBUG_PRINT("MCs started up\n");
+
     return HAL_OK;
 }
 

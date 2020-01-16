@@ -135,6 +135,25 @@ static const CLI_Command_Definition_t getThrottleCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t getBrake(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    float brake = getBrakePositionPercent();
+    COMMAND_OUTPUT("Brake %f\n", brake);
+
+    /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
+                   /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
+                   /*brakeThrottleSteeringADCVals[3], brakeThrottleSteeringADCVals[4]);*/
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getBrakeCommandDefinition =
+{
+    "getBrake",
+    "getBrake:\r\n Get brake position\r\n",
+    getBrake,
+    0 /* Number of parameters */
+};
+
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -429,6 +448,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&mcInitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getBrakeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

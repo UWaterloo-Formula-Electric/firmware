@@ -60,6 +60,7 @@ bool checkBPSState();
 int getBrakePressure();
 HAL_StatusTypeDef brakeAndThrottleStart();
 int getSteeringAngle();
+float getBrakePositionPercent();
 
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);

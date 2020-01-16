@@ -7,6 +7,8 @@
 #define THROTTLE_POLL_TIME_MS 50
 
 #define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 1000 // TODO: Change to good value
+#define MC_STARTUP_TIME_MS           1000
+#define INVERTER_ON_TIMEOUT_MS       10000
 
 typedef enum VCU_States_t {
     STATE_Self_Check = 0,

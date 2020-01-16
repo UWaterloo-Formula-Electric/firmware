@@ -5,6 +5,7 @@
 #include "task.h"
 #include "string.h"
 #include "inttypes.h"
+#include "drive_by_wire.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
@@ -130,9 +131,8 @@ HAL_StatusTypeDef mcInit()
     while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT_MS &&
            (StateInverterLeft & INVERTER_STATE_MASK) != 0x18)
     {
-        DEBUG_PRINT("StateInverterLeft is: 0x%X\n", (unsigned int)(StateInverterLeft & INVERTER_STATE_MASK));
-
-        vTaskDelay(1000);
+        sendThrottleValueToMCs(0);
+        vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
     if ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18) {
@@ -190,11 +190,13 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 {
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    float minTorqueAvailable = min(TorqueAvailableDriveRight, TorqueAvailableDriveLeft);
-
     float torqueDemand = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
 
-    torqueDemand = limit(torqueDemand, 0, minTorqueAvailable);
+    static uint64_t count2 = 0;
+    count2++;
+    if (count2 % 20 == 0) {
+        DEBUG_PRINT("Torque demand %f\n", torqueDemand);
+    }
 
     TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
     TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
