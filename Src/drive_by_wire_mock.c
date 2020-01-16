@@ -11,6 +11,7 @@
 #include "bsp.h"
 #include "motorController.h"
 #include "beaglebone.h"
+#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -359,6 +360,27 @@ static const CLI_Command_Definition_t speedLimitCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t mcInitCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    HAL_StatusTypeDef rc = mcInit();
+    if (rc != HAL_OK) {
+        ERROR_PRINT("Failed to start motor controllers\n");
+        return rc;
+    }
+
+    COMMAND_OUTPUT("MCs Inited\n");
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t mcInitCommandDefinition =
+{
+    "mcInit",
+    "mcInit :\r\n  Set max speed (rpm)\r\n",
+    mcInitCommand,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -404,6 +426,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&speedLimitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&mcInitCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

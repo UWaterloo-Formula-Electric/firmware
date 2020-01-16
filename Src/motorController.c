@@ -4,12 +4,13 @@
 #include "debug.h"
 #include "task.h"
 #include "string.h"
+#include "inttypes.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
-#define INVERTER_STARTUP_TIMEOUT 1000 // TODO: Chose a good value for this
+#define INVERTER_STATE_MASK 0x3F
 
 MotorControllerProcanSettings mcLeftSettings = {0};
 MotorControllerProcanSettings mcRightSettings = {0};
@@ -25,7 +26,8 @@ float min(float a, float b)
 
 HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
 {
-    InverterCommandRight = commandVal;
+    mcRightSettings.InverterCommand = commandVal;
+    InverterCommandRight = mcRightSettings.InverterCommand;
     SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
     SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
     return sendCAN_SpeedLimitRight();
@@ -33,7 +35,8 @@ HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
 
 HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
 {
-    InverterCommandLeft = commandVal;
+    mcLeftSettings.InverterCommand = commandVal;
+    InverterCommandLeft = mcLeftSettings.InverterCommand;
     SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
     SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
     return sendCAN_SpeedLimitLeft();
@@ -41,6 +44,7 @@ HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
 
 HAL_StatusTypeDef initMotorControllerProcanSettings()
 {
+    mcLeftSettings.InverterCommand = 0;
     mcLeftSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
     mcLeftSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
     mcLeftSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
@@ -51,6 +55,7 @@ HAL_StatusTypeDef initMotorControllerProcanSettings()
     mcLeftSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
     mcLeftSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
 
+    mcRightSettings.InverterCommand = 0;
     mcRightSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
     mcRightSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
     mcRightSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
@@ -91,40 +96,47 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
-    if (mcRightCommand(0x4) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
-        return HAL_ERROR;
-    }
+    /*if (mcRightCommand(0x4) != HAL_OK) {*/
+        /*ERROR_PRINT("Failed to send init disable bridge command to MC Right");*/
+        /*return HAL_ERROR;*/
+    /*}*/
 
     if (mcLeftCommand(0x4) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
         return HAL_ERROR;
     }
 
+    DEBUG_PRINT("Waiting for MC to complete startup checks\n");
+
     // TODO: Do we need to check the voltage values from the MC, or are the BMU
     // startup checks sufficient?
 
 
     uint32_t startTick = xTaskGetTickCount();
-    while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT &&
-           StateInverterRight != 0x18);
+    /*while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT_MS &&*/
+           /*StateInverterRight != 0x18);*/
 
-    if (StateInverterRight != 0x18) {
-        ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
-        return HAL_TIMEOUT;
-    }
+    /*if (StateInverterRight != 0x18) {*/
+        /*ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");*/
+        /*return HAL_TIMEOUT;*/
+    /*}*/
 
-    if (mcRightCommand(0x1) != HAL_OK) {
-        ERROR_PRINT("Failed to send enable bridge command to MC Right");
-        return HAL_ERROR;
-    }
+    /*if (mcRightCommand(0x1) != HAL_OK) {*/
+        /*ERROR_PRINT("Failed to send enable bridge command to MC Right");*/
+        /*return HAL_ERROR;*/
+    /*}*/
 
     startTick = xTaskGetTickCount();
-    while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT &&
-           StateInverterLeft != 0x18);
+    while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT_MS &&
+           (StateInverterLeft & INVERTER_STATE_MASK) != 0x18)
+    {
+        DEBUG_PRINT("StateInverterLeft is: 0x%X\n", (unsigned int)(StateInverterLeft & INVERTER_STATE_MASK));
 
-    if (StateInverterLeft != 0x18) {
-        ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
+        vTaskDelay(1000);
+    }
+
+    if ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18) {
+        ERROR_PRINT("Timeout waiting for MC Left to be ready to turn on\n");
         return HAL_TIMEOUT;
     }
 
@@ -143,10 +155,10 @@ HAL_StatusTypeDef mcShutdown()
         return HAL_ERROR;
     }
 
-    if (mcRightCommand(0x4) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
-        return HAL_ERROR;
-    }
+    /*if (mcRightCommand(0x4) != HAL_OK) {*/
+        /*ERROR_PRINT("Failed to send init disable bridge command to MC Right");*/
+        /*return HAL_ERROR;*/
+    /*}*/
 
     return HAL_OK;
 }
@@ -194,11 +206,11 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 
     SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
     SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
-    InverterCommandRight = 0x1; // Keep sending enable bridge command
+    InverterCommandRight = mcRightSettings.InverterCommand; // Keep sending enable bridge command
 
     SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
     SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
-    InverterCommandLeft = 0x1; // Keep sending enable bridge command
+    InverterCommandLeft = mcLeftSettings.InverterCommand; // Keep sending enable bridge command
 
     CurrentLimitDschrgInverterRight = mcRightSettings.DischargeCurrentLimit;
     CurrentLimitChargeInverterRight = mcRightSettings.ChargeCurrentLimit;;
