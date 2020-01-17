@@ -128,7 +128,7 @@ HAL_StatusTypeDef mcInit()
     /*}*/
 
     startTick = xTaskGetTickCount();
-    while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT_MS &&
+    while (xTaskGetTickCount() - startTick < INVERTER_ON_TIMEOUT_MS &&
            (StateInverterLeft & INVERTER_STATE_MASK) != 0x18)
     {
         sendThrottleValueToMCs(0);

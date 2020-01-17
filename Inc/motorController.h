@@ -13,7 +13,6 @@
 #define HIGH_VOLTAGE_LIMIT_DEFAULT 400
 #define LOW_VOLTAGE_LIMIT_DEFAULT 200
 
-#define INVERTER_STARTUP_TIMEOUT_MS 10000 // TODO: Chose a good value for this
 #define INVERTER_STOP_TIMEOUT_MS    10000 // TODO: Chose a good value for this
 
 typedef struct MotorControllerProcanSettings {
