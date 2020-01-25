@@ -1,7 +1,7 @@
 #ifndef __STATE_MACHINE_H
 #define __STATE_MACHINE_H
 #include "bsp.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "queue.h"
 
 // To use this state machine framework, implement an enum of states, an enum of
@@ -19,6 +19,8 @@ typedef struct {
                               // new state
 } Transition_t;
 
+#define WATCHDOG_REQUEST_EVENT_NUM UINT32_MAX
+
 typedef struct {
     uint32_t maxStateNum;
     uint32_t maxEventNum;
@@ -28,6 +30,7 @@ typedef struct {
     uint32_t EV_ANY;
     Transition_t *transitions;
     uint32_t eventQueueLength;
+    uint32_t watchdogTaskId;
 } FSM_Init_Struct;
 
 typedef struct {

@@ -10,7 +10,7 @@
 
 #include "bsp.h"
 #include "stdbool.h"
-#include "freertos.h"
+#include "FreeRTOS.h"
 #include "task.h"
 
 // This allows automatically including the autogen can header file for the
@@ -22,16 +22,14 @@
 // Use like: #include AUTOGEN_HEADER_NAME(BOARD_NAME), where BOARD_NAME is
 // defined in the makefile
 #define AUTOGEN_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _can.h))
+#define AUTOGEN_DTC_HEADER_NAME(boardName) STRINGIZE(CAT(boardName, _dtc.h))
 
 HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan);
-HAL_StatusTypeDef sendCanMessage(int id, int length, uint8_t *data);
-HAL_StatusTypeDef sendCanMessageUrgent(int id, int length, uint8_t *data);
-HAL_StatusTypeDef sendDTCMessage(int dtcCode, int severity, uint64_t data);
-void canTask(const void *pvParameters);
-void setCanTaskHandle(TaskHandle_t handle);
-//bool sendCanMessage(const uint16_t id, const uint8_t *data, const uint8_t length);
-//bool sendCanMessageTimeoutMs(const uint16_t id, const uint8_t *data,
-                             //const uint8_t length, const uint32_t timeout);
+HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data);
+HAL_StatusTypeDef sendDTCMessage(uint32_t dtcCode, int severity, uint64_t data);
+#ifdef CHARGER_CAN_HANDLE
+HAL_StatusTypeDef sendCanMessageCharger(uint32_t id, int length, uint8_t *data);
+#endif
 
 #endif /* USER_CAN_H_ */
