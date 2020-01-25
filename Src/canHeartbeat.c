@@ -129,3 +129,15 @@ HAL_StatusTypeDef checkAllHeartbeats()
 
     return HAL_OK;
 }
+
+
+void printHeartbeatStatus()
+{
+    DEBUG_PRINT("HeartbeatStatus:\n");
+    DEBUG_PRINT("Current Tick: %lu\n", xTaskGetTickCount());
+    DEBUG_PRINT("Board\tLastReceived (ticks)\n");
+    DEBUG_PRINT("PDU\t%lu\n", lastPDU_Heartbeat_ticks);
+    DEBUG_PRINT("DCU\t%lu\n", lastDCU_Heartbeat_ticks);
+    DEBUG_PRINT("BMU\t%lu\n", lastBMU_Heartbeat_ticks);
+    DEBUG_PRINT("VCU_F7\t%lu\n", lastVCU_F7_Heartbeat_ticks);
+}

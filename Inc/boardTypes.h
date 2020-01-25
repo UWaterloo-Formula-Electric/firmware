@@ -46,6 +46,12 @@ extern const BoardTypes_t boardType;
 #define ID_Charger       14
 #define ID_Computer      15
 
+#define BOARD_IS_WSB(ID) \
+    ((ID) == ID_WSBFL || \
+     (ID) == ID_WSBFR || \
+     (ID) == ID_WSBRL || \
+     (ID) == ID_WSBRR)
+
 typedef uint32_t BoardIDs;
 
 #endif // __BOARD_TYPES_H

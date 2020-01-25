@@ -559,7 +559,7 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=True, numSignalsPerMessage=numSignalsPerMessage, isChargerMsg=chargerMsg)
 
 def writeProCanSpecialVariables(msg, sourceFileHandle):
-    fWrite('int {msgName}_PRO_CAN_SEED = 127;'.format(msgName=msg.name), sourceFileHandle)
+    fWrite('int {msgName}_PRO_CAN_SEED = 0;'.format(msgName=msg.name), sourceFileHandle)
     fWrite('int {msgName}_PRO_CAN_COUNT = 0;'.format(msgName=msg.name), sourceFileHandle)
 
 def writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
@@ -680,7 +680,8 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
     fWrite("""
         default:
         {
-            return -1;
+            // Ignore unkown messages
+            break;
         }
     }
 
