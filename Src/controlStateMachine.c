@@ -58,6 +58,9 @@ Transition_t transitions[] = {
     { STATE_Discharge, EV_Discharge_Finished, &dischargeFinished },
     { STATE_Discharge, EV_HV_Toggle, &controlDoNothing},
 
+    // When not hv disabled, ignore charge mode message
+    { STATE_ANY, EV_Enter_Charge_Mode, &controlDoNothing },
+
     // Already in failure, do nothing
     // Takes priority over rest of events
     { STATE_Failure_Fatal, EV_ANY, &controlDoNothing },
@@ -178,8 +181,8 @@ uint32_t DefaultTransition(uint32_t event)
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&fsmHandle), event);
 
-    sendDTC_FATAL_BMU_ERROR();
-    return handleFault(EV_HV_Fault);
+    sendDTC_WARNING_BMU_UNKOWN_EVENT_STATE_COMBO(event);
+    return fsmGetState(&fsmHandle);
 }
 
 uint32_t startPrecharge(uint32_t event)
