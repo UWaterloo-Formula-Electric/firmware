@@ -97,7 +97,7 @@ void faultMonitorTask(void *pvParameters)
 
       if (!getIL_Status())
       {
-         ERROR_PRINT("HVIL broke\n");
+         ERROR_PRINT("IL broke\n");
          fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 
          while (1) {
