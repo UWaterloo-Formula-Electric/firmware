@@ -1,6 +1,5 @@
 VERSION "1"
 
-
 NS_ : 
 	NS_DESC_
 	CM_
@@ -92,7 +91,7 @@ BO_ 2240049776 AuxRight: 8 VCU_F7
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ActiveShortRight : 0|12@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 2240049520 AuxLeft: 8 VCU_F7
+BO_ 2241097986 AuxLeft: 8 VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
