@@ -20,6 +20,9 @@
 #define THROTT_A_HIGH (2284)
 #define THROTT_B_HIGH (965)
 
+#define BRAKE_POS_LOW (2058)
+#define BRAKE_POS_HIGH (2250)
+
 /*#define THROTT_A_LOW (0xd44)*/
 /*#define THROTT_B_LOW (0x5d2)*/
 
@@ -69,12 +72,6 @@ HAL_StatusTypeDef startADCConversions()
 // Flag set if throttle and brake pressed at same time
 bool throttleAndBrakePressedError = false;
 
-float getBrakePositionPercent()
-{
-    /*return ((float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]) * BRAKE_POSITION_MULTIPLIER / BRAKE_POSITION_DIVIDER;*/
-    return 0.0;
-}
-
 int map_range(int in, int low, int high, int low_out, int high_out) {
     if (in < low) {
         in = low;
@@ -85,6 +82,12 @@ int map_range(int in, int low, int high, int low_out, int high_out) {
     int out_range = high_out - low_out;
 
     return (in - low) * out_range / in_range + low_out;
+}
+
+float getBrakePositionPercent()
+{
+    return 100 - map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
+                           BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
