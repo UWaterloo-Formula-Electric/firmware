@@ -66,7 +66,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 
         if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
         {
-            ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
+            /*ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);*/
         }
 
         rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO0);
@@ -112,7 +112,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 
         if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
         {
-            ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);
+            /*ERROR_PRINT_ISR("Failed to parse CAN message id %lu", hcan->pRxMsg->ExtId);*/
         }
 
         rc = HAL_CAN_Receive_IT(hcan, CAN_FIFO1);
