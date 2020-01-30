@@ -210,9 +210,6 @@ void _Error_Handler(char *file, int line)
   _handleError(file, line);
 
 
-  while(1)
-  {
-  }
   /* USER CODE END Error_Handler_Debug */
 }
 
