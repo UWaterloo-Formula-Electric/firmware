@@ -135,6 +135,22 @@ static const CLI_Command_Definition_t getThrottleCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t getSteering(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    float steeringAngle = getSteeringAngle();
+    COMMAND_OUTPUT("Steering Angle: %f degrees\n", steeringAngle);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getSteeringCommandDefinition =
+{
+    "getSteering",
+    "getSteering:\r\n Get steering angle in degrees\r\n",
+    getSteering,
+    0 /* Number of parameters */
+};
+
 BaseType_t getBrake(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -451,6 +467,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getBrakeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

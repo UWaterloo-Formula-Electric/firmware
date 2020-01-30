@@ -23,6 +23,11 @@
 #define BRAKE_POS_LOW (2058)
 #define BRAKE_POS_HIGH (2250)
 
+#define STEERING_POT_LOW (1040)
+#define STEERING_POT_CENTER (2122)
+#define STEERING_SCALE_DIVIDER ((STEERING_POT_CENTER-STEERING_POT_LOW)/(90))
+#define STEERING_POT_OFFSET (STEERING_POT_CENTER)
+
 /*#define THROTT_A_LOW (0xd44)*/
 /*#define THROTT_B_LOW (0x5d2)*/
 
@@ -265,8 +270,9 @@ int getBrakePressure() {
 }
 
 int getSteeringAngle() {
-  return (brakeThrottleSteeringADCVals[STEERING_INDEX] * STEERING_MULTIPLIER / STEERING_DIVIDER)
-     - STEERING_CENTRE_OFFSET_PERCENT;
+  int steeringPotVal = brakeThrottleSteeringADCVals[STEERING_INDEX];
+
+  return -1 *(steeringPotVal - STEERING_POT_OFFSET) / STEERING_SCALE_DIVIDER;
 }
 
 
