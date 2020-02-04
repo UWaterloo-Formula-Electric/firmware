@@ -47,3 +47,5 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured
 47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,An unkown error occured
 48,BMU_UNKOWN_EVENT_STATE_COMBO,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Event,The BMU received an event for which it doesn't have a registered transition in the current state
+49,BrakeWhileThrottleError_Disabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Max throttle while brake pressed reached, throttle disabled as per EV.3.4 (FSAE)"
+50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throttle reached reset point after BrakeWhileThrottle Error, Throttle Re engaged as per EV.3.4(FSAE)"
