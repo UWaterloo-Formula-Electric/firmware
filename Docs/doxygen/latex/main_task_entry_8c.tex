@@ -1,0 +1,117 @@
+\hypertarget{main_task_entry_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+dcu/\+Src/main\+Task\+Entry.c File Reference}
+\label{main_task_entry_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/mainTaskEntry.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/mainTaskEntry.c}}
+
+
+Main file for D\+CU code.  
+
+
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}cmsis\+\_\+os.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}stdbool.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}bsp.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}D\+C\+U\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}user\+Can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}watchdog.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}main\+Task\+Entry.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}can\+Receive.\+h\char`\"{}}\newline
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a33db5a37ede873711cc25ab91e3e8865}\label{main_task_entry_8c_a33db5a37ede873711cc25ab91e3e8865}} 
+\#define {\bfseries E\+M\+\_\+\+B\+U\+T\+T\+O\+N\+\_\+\+D\+E\+B\+O\+U\+N\+C\+E\+\_\+\+MS}~200
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a744dfa9a61279e3ab6b17aa269e0e3d1}\label{main_task_entry_8c_a744dfa9a61279e3ab6b17aa269e0e3d1}} 
+\#define {\bfseries H\+V\+\_\+\+B\+U\+T\+T\+O\+N\+\_\+\+D\+E\+B\+O\+U\+N\+C\+E\+\_\+\+MS}~200
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_aad448bfccb179de3e5426a9db01fc089}\label{main_task_entry_8c_aad448bfccb179de3e5426a9db01fc089}} 
+\#define {\bfseries M\+A\+I\+N\+\_\+\+T\+A\+S\+K\+\_\+\+ID}~1
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a527036fb13ba15ae108f436f1001e5a5}\label{main_task_entry_8c_a527036fb13ba15ae108f436f1001e5a5}} 
+\#define {\bfseries M\+A\+I\+N\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+OD}~100
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a1ec6b36e6bf5ef4d627d17d476a76bd6}\label{main_task_entry_8c_a1ec6b36e6bf5ef4d627d17d476a76bd6}} 
+\#define {\bfseries B\+U\+Z\+Z\+E\+R\+\_\+\+L\+E\+N\+G\+T\+H\+\_\+\+MS}~1000
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_aecf876aa40dd306bf201092f595ca870}\label{main_task_entry_8c_aecf876aa40dd306bf201092f595ca870}} 
+void {\bfseries buzzer\+Timer\+Callback} (Timer\+Handle\+\_\+t timer)
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a0cd91fd3a9608559c2a87a8ba6cba55f}\label{main_task_entry_8c_a0cd91fd3a9608559c2a87a8ba6cba55f}} 
+void {\bfseries H\+A\+L\+\_\+\+G\+P\+I\+O\+\_\+\+E\+X\+T\+I\+\_\+\+Callback} (uint16\+\_\+t G\+P\+I\+O\+\_\+\+Pin)
+\item 
+bool \mbox{\hyperlink{main_task_entry_8c_a99986ca5edeab17e632935397704f83a}{E\+M\+\_\+\+Toggle\+Pressed}} ()
+\item 
+bool \mbox{\hyperlink{main_task_entry_8c_a805cbf756032c3ed1d0e1c728bcc8ab5}{H\+V\+\_\+\+Toggle\+Pressed}} ()
+\item 
+void \mbox{\hyperlink{main_task_entry_8c_a20136212c4555e49ec96f1d556b29a30}{main\+Task\+Function}} (void const $\ast$argument)
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_aea4c933c4d34a27e045f95e1579dcc6c}\label{main_task_entry_8c_aea4c933c4d34a27e045f95e1579dcc6c}} 
+os\+Thread\+Id {\bfseries main\+Task\+Handle}
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_aad4b568757e125ee2bf034c575c1f6ba}\label{main_task_entry_8c_aad4b568757e125ee2bf034c575c1f6ba}} 
+uint32\+\_\+t {\bfseries last\+E\+M\+\_\+\+Toggle\+\_\+\+Ticks} = 0
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_ad074ca17fb293cbb8a61aba4a9b936e8}\label{main_task_entry_8c_ad074ca17fb293cbb8a61aba4a9b936e8}} 
+uint32\+\_\+t {\bfseries last\+H\+V\+\_\+\+Toggle\+\_\+\+Ticks} = 0
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_aec432c9a2e035175009705e9bfe346e4}\label{main_task_entry_8c_aec432c9a2e035175009705e9bfe346e4}} 
+bool {\bfseries E\+M\+\_\+\+Toggle\+High} = false
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_ace30d13cc1c81d8cadbc5e0f362dffbe}\label{main_task_entry_8c_ace30d13cc1c81d8cadbc5e0f362dffbe}} 
+bool {\bfseries H\+V\+\_\+\+Toggle\+High} = false
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a39d3e9df8662e532a210363d71745c8b}\label{main_task_entry_8c_a39d3e9df8662e532a210363d71745c8b}} 
+bool {\bfseries waiting\+For\+H\+V\+Change} = false
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a52475f6dcc8f75a19ac51b80b9be9654}\label{main_task_entry_8c_a52475f6dcc8f75a19ac51b80b9be9654}} 
+bool {\bfseries waiting\+For\+E\+M\+Change} = false
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_a575e37f9ef389c16dfa656202dbdd2ac}\label{main_task_entry_8c_a575e37f9ef389c16dfa656202dbdd2ac}} 
+Timer\+Handle\+\_\+t {\bfseries buzzer\+Sound\+Timer}
+\item 
+\mbox{\Hypertarget{main_task_entry_8c_ae8de838f132406a543fbf7e20dae52cc}\label{main_task_entry_8c_ae8de838f132406a543fbf7e20dae52cc}} 
+bool {\bfseries buzzer\+Timer\+Started} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main file for D\+CU code. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews
+\end{DoxyAuthor}
+This file contains the main logic for the D\+CU code. Contains main\+Task\+Function, which is the entry point for the main task. Handles checking for button presses and sending out C\+AN messages signalling the buttons have been pressed. 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{main_task_entry_8c_a99986ca5edeab17e632935397704f83a}\label{main_task_entry_8c_a99986ca5edeab17e632935397704f83a}} 
+\index{mainTaskEntry.c@{mainTaskEntry.c}!EM\_TogglePressed@{EM\_TogglePressed}}
+\index{EM\_TogglePressed@{EM\_TogglePressed}!mainTaskEntry.c@{mainTaskEntry.c}}
+\doxysubsubsection{\texorpdfstring{EM\_TogglePressed()}{EM\_TogglePressed()}}
+{\footnotesize\ttfamily bool E\+M\+\_\+\+Toggle\+Pressed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Handle press of EM Toggle Button \begin{DoxyReturn}{Returns}
+true if change in EM Toggle state 
+\end{DoxyReturn}
+\mbox{\Hypertarget{main_task_entry_8c_a805cbf756032c3ed1d0e1c728bcc8ab5}\label{main_task_entry_8c_a805cbf756032c3ed1d0e1c728bcc8ab5}} 
+\index{mainTaskEntry.c@{mainTaskEntry.c}!HV\_TogglePressed@{HV\_TogglePressed}}
+\index{HV\_TogglePressed@{HV\_TogglePressed}!mainTaskEntry.c@{mainTaskEntry.c}}
+\doxysubsubsection{\texorpdfstring{HV\_TogglePressed()}{HV\_TogglePressed()}}
+{\footnotesize\ttfamily bool H\+V\+\_\+\+Toggle\+Pressed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Handle press of EM Toggle Button \begin{DoxyReturn}{Returns}
+true if change in HV Toggle state 
+\end{DoxyReturn}
+\mbox{\Hypertarget{main_task_entry_8c_a20136212c4555e49ec96f1d556b29a30}\label{main_task_entry_8c_a20136212c4555e49ec96f1d556b29a30}} 
+\index{mainTaskEntry.c@{mainTaskEntry.c}!mainTaskFunction@{mainTaskFunction}}
+\index{mainTaskFunction@{mainTaskFunction}!mainTaskEntry.c@{mainTaskEntry.c}}
+\doxysubsubsection{\texorpdfstring{mainTaskFunction()}{mainTaskFunction()}}
+{\footnotesize\ttfamily void main\+Task\+Function (\begin{DoxyParamCaption}\item[{void const $\ast$}]{argument }\end{DoxyParamCaption})}
+
+Task function for main D\+CU task 

@@ -1,0 +1,80 @@
+\hypertarget{can_receive_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+dcu/\+Src/can\+Receive.c File Reference}
+\label{can_receive_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/canReceive.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/canReceive.c}}
+
+
+Module containing callback functions for receiving C\+AN messages.  
+
+
+{\ttfamily \#include \char`\"{}can\+Receive.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}user\+Can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}bsp.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}main\+Task\+Entry.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}D\+C\+U\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}cmsis\+\_\+os.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}D\+C\+U\+\_\+dtc.\+h\char`\"{}}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{can_receive_8c_a9def53513bb23c63119a6199a91f942e}{get\+H\+V\+State}} ()
+\item 
+bool \mbox{\hyperlink{can_receive_8c_a8815dfd50caddd4f3b6b3d2cca2f4599}{get\+E\+M\+State}} ()
+\item 
+void \mbox{\hyperlink{can_receive_8c_a0bce7d19c0d99e3a9f6e700a8510f640}{C\+A\+N\+\_\+\+Msg\+\_\+\+B\+M\+U\+\_\+\+H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{can_receive_8c_ad4730e32ab1df86863d1a6e4a0ddcaf5}{C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+E\+M\+\_\+\+State\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{can_receive_8c_a05c019b0d0965ee28efbc3752d5206e4}{C\+A\+N\+\_\+\+Msg\+\_\+\+B\+M\+U\+\_\+\+D\+T\+C\+\_\+\+Callback}} (int D\+T\+C\+\_\+\+C\+O\+DE, int D\+T\+C\+\_\+\+Severity, int D\+T\+C\+\_\+\+Data)
+\item 
+\mbox{\Hypertarget{can_receive_8c_a32d4d470cc461096834497b4f6650378}\label{can_receive_8c_a32d4d470cc461096834497b4f6650378}} 
+void {\bfseries D\+T\+C\+\_\+\+Fatal\+\_\+\+Callback} (Board\+I\+Ds board)
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{can_receive_8c_aea4c933c4d34a27e045f95e1579dcc6c}\label{can_receive_8c_aea4c933c4d34a27e045f95e1579dcc6c}} 
+os\+Thread\+Id {\bfseries main\+Task\+Handle}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Module containing callback functions for receiving C\+AN messages. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews
+\end{DoxyAuthor}
+Contains callback functions for receiving C\+AN messages. Tracks HV and EM enabled states. Receives I\+MD and A\+MS Faults for I\+MD and A\+MS fault lights 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{can_receive_8c_a05c019b0d0965ee28efbc3752d5206e4}\label{can_receive_8c_a05c019b0d0965ee28efbc3752d5206e4}} 
+\index{canReceive.c@{canReceive.c}!CAN\_Msg\_BMU\_DTC\_Callback@{CAN\_Msg\_BMU\_DTC\_Callback}}
+\index{CAN\_Msg\_BMU\_DTC\_Callback@{CAN\_Msg\_BMU\_DTC\_Callback}!canReceive.c@{canReceive.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_BMU\_DTC\_Callback()}{CAN\_Msg\_BMU\_DTC\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+B\+M\+U\+\_\+\+D\+T\+C\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{int}]{D\+T\+C\+\_\+\+C\+O\+DE,  }\item[{int}]{D\+T\+C\+\_\+\+Severity,  }\item[{int}]{D\+T\+C\+\_\+\+Data }\end{DoxyParamCaption})}
+
+B\+MU D\+TC callback. Used to turn on I\+MD and A\+MS fault lights when A\+MS or I\+MD fault is received \mbox{\Hypertarget{can_receive_8c_a0bce7d19c0d99e3a9f6e700a8510f640}\label{can_receive_8c_a0bce7d19c0d99e3a9f6e700a8510f640}} 
+\index{canReceive.c@{canReceive.c}!CAN\_Msg\_BMU\_HV\_Power\_State\_Callback@{CAN\_Msg\_BMU\_HV\_Power\_State\_Callback}}
+\index{CAN\_Msg\_BMU\_HV\_Power\_State\_Callback@{CAN\_Msg\_BMU\_HV\_Power\_State\_Callback}!canReceive.c@{canReceive.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_BMU\_HV\_Power\_State\_Callback()}{CAN\_Msg\_BMU\_HV\_Power\_State\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+B\+M\+U\+\_\+\+H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+B\+MU Power state C\+AN message callback. Signals to the main task the HV power state has changed \mbox{\Hypertarget{can_receive_8c_ad4730e32ab1df86863d1a6e4a0ddcaf5}\label{can_receive_8c_ad4730e32ab1df86863d1a6e4a0ddcaf5}} 
+\index{canReceive.c@{canReceive.c}!CAN\_Msg\_VCU\_EM\_State\_Callback@{CAN\_Msg\_VCU\_EM\_State\_Callback}}
+\index{CAN\_Msg\_VCU\_EM\_State\_Callback@{CAN\_Msg\_VCU\_EM\_State\_Callback}!canReceive.c@{canReceive.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_VCU\_EM\_State\_Callback()}{CAN\_Msg\_VCU\_EM\_State\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+E\+M\+\_\+\+State\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+EM power state C\+AN message callback. Signals to the main task that the EM enabled state has changed \mbox{\Hypertarget{can_receive_8c_a8815dfd50caddd4f3b6b3d2cca2f4599}\label{can_receive_8c_a8815dfd50caddd4f3b6b3d2cca2f4599}} 
+\index{canReceive.c@{canReceive.c}!getEMState@{getEMState}}
+\index{getEMState@{getEMState}!canReceive.c@{canReceive.c}}
+\doxysubsubsection{\texorpdfstring{getEMState()}{getEMState()}}
+{\footnotesize\ttfamily bool get\+E\+M\+State (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Get current EM enabled state, updated from V\+CU C\+AN messages \mbox{\Hypertarget{can_receive_8c_a9def53513bb23c63119a6199a91f942e}\label{can_receive_8c_a9def53513bb23c63119a6199a91f942e}} 
+\index{canReceive.c@{canReceive.c}!getHVState@{getHVState}}
+\index{getHVState@{getHVState}!canReceive.c@{canReceive.c}}
+\doxysubsubsection{\texorpdfstring{getHVState()}{getHVState()}}
+{\footnotesize\ttfamily bool get\+H\+V\+State (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Get current HV power state, updated from B\+MU C\+AN messages 

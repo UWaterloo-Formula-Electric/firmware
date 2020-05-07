@@ -1,3 +1,15 @@
+/**
+  *****************************************************************************
+  * @file    userInit.c
+  * @author  Richard Matthews
+  * @brief   Initialization before RTOS starts
+  * @details Contains the userInit function, which is called before the RTOS
+  * starts to allow the user to initialize modules or other things that must be
+  * done before the RTOS starts
+  *
+  ******************************************************************************
+  */
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -6,6 +18,9 @@
 #include "userCan.h"
 #include "DCU_can.h"
 
+/**
+ * Called by FreeRTOS on stack overflow
+ */
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
 {
@@ -14,8 +29,11 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 }
 
 
-// This is declared with weak linkage in all Cube main.c files, and called
-// before freeRTOS initializes and starts up
+/**
+ * Perform initialization before RTOS starts
+ * This is declared with weak linkage in all Cube main.c files, and called
+ * before freeRTOS initializes and starts up
+ */
 void userInit()
 {
     /* Should be the first thing initialized, otherwise print will fail */

@@ -1,0 +1,46 @@
+\hypertarget{led_task_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+dcu/\+Src/led\+Task.c File Reference}
+\label{led_task_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/ledTask.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_dcu/Src/ledTask.c}}
+
+
+Module to control L\+E\+Ds on dashboard.  
+
+
+{\ttfamily \#include \char`\"{}bsp.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}main\+Task\+Entry.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}can\+Receive.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{led_task_8c_a32ba32599dea5b8f8bbc14eef24679ef}\label{led_task_8c_a32ba32599dea5b8f8bbc14eef24679ef}} 
+\#define {\bfseries L\+E\+D\+\_\+\+B\+L\+I\+N\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}~500
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{led_task_8c_a0e9abc4adafb917c6af448aca6042e96}{led\+Task}} (void $\ast$pv\+Parameters)
+\begin{DoxyCompactList}\small\item\em Task function for led task. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Module to control L\+E\+Ds on dashboard. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews
+\end{DoxyAuthor}
+Contains the led\+Task function, which is the entry to the task controlling the dashboard L\+E\+Ds. This task communicates with the main\+Task to blink the L\+E\+Ds when changing H\+V/\+EM state, and turning the L\+E\+Ds on when HV or EM enabled 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{led_task_8c_a0e9abc4adafb917c6af448aca6042e96}\label{led_task_8c_a0e9abc4adafb917c6af448aca6042e96}} 
+\index{ledTask.c@{ledTask.c}!ledTask@{ledTask}}
+\index{ledTask@{ledTask}!ledTask.c@{ledTask.c}}
+\doxysubsubsection{\texorpdfstring{ledTask()}{ledTask()}}
+{\footnotesize\ttfamily void led\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Parameters }\end{DoxyParamCaption})}
+
+
+
+Task function for led task. 
+
+Led\+Task function, which is the entry to the task controlling the dashboard L\+E\+Ds. This task communicates with the main\+Task to blink the L\+E\+Ds when changing H\+V/\+EM state, and turning the L\+E\+Ds on when HV or EM enabled 

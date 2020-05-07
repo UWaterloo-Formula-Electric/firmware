@@ -1,3 +1,16 @@
+/**
+  *****************************************************************************
+  * @file    mainTaskEntry.c
+  * @author  Richard Matthews
+  * @brief   Main file for DCU code
+  * @details This file contains the main logic for the DCU code. Contains
+  *          mainTaskFunction, which is the entry point for the main task. Handles
+  *          checking for button presses and sending out CAN messages signalling the
+  *          buttons have been pressed.
+  *
+  *****************************************************************************
+  */
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
@@ -63,8 +76,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
-// Handle press of EM Toggle Button
-// return true if change in EM Toggle state
+/**
+ * Handle press of EM Toggle Button
+ * @return true if change in EM Toggle state
+ */
 bool EM_TogglePressed() {
     if (xTaskGetTickCount() - lastEM_Toggle_Ticks
         >= pdMS_TO_TICKS(EM_BUTTON_DEBOUNCE_MS)) {
@@ -80,8 +95,10 @@ bool EM_TogglePressed() {
     }
 }
 
-// Handle press of EM Toggle Button
-// return true if change in HV Toggle state
+/**
+ * Handle press of EM Toggle Button
+ * @return true if change in HV Toggle state
+ */
 bool HV_TogglePressed() {
     if (xTaskGetTickCount() - lastHV_Toggle_Ticks
         >= pdMS_TO_TICKS(HV_BUTTON_DEBOUNCE_MS)) {
@@ -97,6 +114,9 @@ bool HV_TogglePressed() {
     }
 }
 
+/**
+ * Task function for main DCU task
+ */
 void mainTaskFunction(void const * argument)
 {
     uint32_t notification;

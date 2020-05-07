@@ -1,3 +1,15 @@
+/**
+  *****************************************************************************
+  * @file    ledTask.c
+  * @author  Richard Matthews
+  * @brief   Module to control LEDs on dashboard
+  * @details Contains the ledTask function, which is the entry to the task
+  * controlling the dashboard LEDs. This task communicates with the mainTask to
+  * blink the LEDs when changing HV/EM state, and turning the LEDs on when HV
+  * or EM enabled
+  *
+  *****************************************************************************
+  */
 #include "bsp.h"
 #include "mainTaskEntry.h"
 #include "canReceive.h"
@@ -8,6 +20,12 @@
 
 #define LED_BLINK_PERIOD_MS 500
 
+/**
+ * @brief Task function for led task
+ * @details LedTask function, which is the entry to the task controlling the
+ * dashboard LEDs. This task communicates with the mainTask to blink the LEDs
+ * when changing HV/EM state, and turning the LEDs on when HV or EM enabled
+ */
 void ledTask(void *pvParameters)
 {
     while (1)
