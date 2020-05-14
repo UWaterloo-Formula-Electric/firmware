@@ -73,9 +73,6 @@ void _Error_Handler(char *file, int line);
 //#define Error_Handler() junk
 /* USER CODE END EM */
 
-/* Exported functions prototypes ---------------------------------------------*/
-//void Error_Handler(void);
-
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

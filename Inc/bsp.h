@@ -46,6 +46,9 @@
 #define ERROR_LED_PIN LED_R_Pin
 #define ERROR_LED_PORT LED_R_GPIO_Port
 
+#define BUZZER_ON HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_SET);
+#define BUZZER_OFF HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_RESET);
+
 #elif IS_BOARD_NUCLEO_F0
 #include "stm32f0xx_hal.h"
 
@@ -72,6 +75,12 @@
 #define HV_LED_OFF
 #define EM_LED_ON
 #define EM_LED_OFF
+
+#define IMD_FAIL_LED_ON
+#define AMS_FAIL_LED_ON
+
+#define BUZZER_ON
+#define BUZZER_OFF
 
 #else
 
