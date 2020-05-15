@@ -194,7 +194,7 @@ void mainTaskFunction(void const * argument)
                        continue;
                     }
                     buzzerTimerStarted = true;
-                    HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_SET);
+                    BUZZER_ON
                 }
             }
         } else if ((notification & (1<<HV_ENABLED_NOTIFICATION))
@@ -214,7 +214,7 @@ void mainTaskFunction(void const * argument)
 void buzzerTimerCallback(TimerHandle_t timer)
 {
     buzzerTimerStarted = false;
-    HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_RESET);
+    BUZZER_OFF
 
     ButtonEMEnabled = 1;
     ButtonHVEnabled = 0;
