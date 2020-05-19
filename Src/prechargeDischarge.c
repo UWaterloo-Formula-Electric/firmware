@@ -30,36 +30,6 @@ HAL_StatusTypeDef pcdcInit()
     return HAL_OK;
 }
 
-HAL_StatusTypeDef getIBus(float *IBus)
-{
-    if (xQueuePeek(IBusQueue, IBus, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive IBus current from queue\n");
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
-}
-
-HAL_StatusTypeDef getVBatt(float *VBatt)
-{
-    if (xQueuePeek(VBattQueue, VBatt, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive VBatt voltage from queue\n");
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
-}
-
-HAL_StatusTypeDef getVBus(float * VBus)
-{
-    if (xQueuePeek(VBusQueue, VBus, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive VBus voltage from queue\n");
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
-}
-
 typedef enum ContactorState_t {
     CONTACTOR_CLOSED = GPIO_PIN_RESET,
     CONTACTOR_OPEN = GPIO_PIN_SET,

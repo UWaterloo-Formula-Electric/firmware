@@ -1,0 +1,180 @@
+\hypertarget{group___biquad_cascade_d_f2_t}{}\doxysection{Biquad Cascade I\+IR Filters Using a Direct Form II Transposed Structure}
+\label{group___biquad_cascade_d_f2_t}\index{Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure@{Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure}}
+
+
+~\newline
+  
+
+
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+L\+O\+W\+\_\+\+O\+P\+T\+I\+M\+I\+Z\+A\+T\+I\+O\+N\+\_\+\+E\+N\+T\+ER void \mbox{\hyperlink{group___biquad_cascade_d_f2_t_ga114f373fbc16a314e9f293c7c7649c7f}{arm\+\_\+biquad\+\_\+cascade\+\_\+df2\+T\+\_\+f32}} (const \mbox{\hyperlink{structarm__biquad__cascade__df2_t__instance__f32}{arm\+\_\+biquad\+\_\+cascade\+\_\+df2\+T\+\_\+instance\+\_\+f32}} $\ast$S, float32\+\_\+t $\ast$p\+Src, float32\+\_\+t $\ast$p\+Dst, uint32\+\_\+t block\+Size)
+\begin{DoxyCompactList}\small\item\em Processing function for the floating-\/point transposed direct form II Biquad cascade filter. ~\newline
+ \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+~\newline
+ 
+
+~\newline
+ This set of functions implements arbitrary order recursive (I\+IR) filters using a transposed direct form II structure. ~\newline
+ The filters are implemented as a cascade of second order Biquad sections. ~\newline
+ These functions provide a slight memory savings as compared to the direct form I Biquad filter functions. ~\newline
+ Only floating-\/point data is supported. ~\newline
+
+
+This function operate on blocks of input and output data and each call to the function ~\newline
+ processes {\ttfamily block\+Size} samples through the filter. ~\newline
+ {\ttfamily p\+Src} points to the array of input data and ~\newline
+ {\ttfamily p\+Dst} points to the array of output data. ~\newline
+ Both arrays contain {\ttfamily block\+Size} values. ~\newline
+
+
+\begin{DoxyParagraph}{Algorithm }
+~\newline
+ Each Biquad stage implements a second order filter using the difference equation\+: ~\newline
+ 
+\begin{DoxyPre}       
+   y[n] = b0 * x[n] + d1       
+   d1 = b1 * x[n] + a1 * y[n] + d2       
+   d2 = b2 * x[n] + a2 * y[n]       
+\end{DoxyPre}
+ ~\newline
+
+\end{DoxyParagraph}
+where d1 and d2 represent the two state values. ~\newline
+
+
+\begin{DoxyParagraph}{}
+~\newline
+ A Biquad filter using a transposed Direct Form II structure is shown below. ~\newline
+  ~\newline
+ Coefficients {\ttfamily b0, b1, and b2 } multiply the input signal {\ttfamily x\mbox{[}n\mbox{]}} and are referred to as the feedforward coefficients. ~\newline
+ Coefficients {\ttfamily a1} and {\ttfamily a2} multiply the output signal {\ttfamily y\mbox{[}n\mbox{]}} and are referred to as the feedback coefficients. ~\newline
+ Pay careful attention to the sign of the feedback coefficients. ~\newline
+ Some design tools flip the sign of the feedback coefficients\+: ~\newline
+ 
+\begin{DoxyPre}       
+   y[n] = b0 * x[n] + d1;       
+   d1 = b1 * x[n] -\/ a1 * y[n] + d2;       
+   d2 = b2 * x[n] -\/ a2 * y[n];       
+\end{DoxyPre}
+ ~\newline
+
+\end{DoxyParagraph}
+In this case the feedback coefficients {\ttfamily a1} and {\ttfamily a2} must be negated when used with the C\+M\+S\+IS D\+SP Library. ~\newline
+
+
+\begin{DoxyParagraph}{}
+~\newline
+ Higher order filters are realized as a cascade of second order sections. ~\newline
+ {\ttfamily num\+Stages} refers to the number of second order stages used. ~\newline
+ For example, an 8th order filter would be realized with {\ttfamily num\+Stages=4} second order stages. ~\newline
+ A 9th order filter would be realized with {\ttfamily num\+Stages=5} second order stages with the ~\newline
+ coefficients for one of the stages configured as a first order filter ({\ttfamily b2=0} and {\ttfamily a2=0}). ~\newline
+
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{}
+~\newline
+ {\ttfamily p\+State} points to the state variable array. ~\newline
+ Each Biquad stage has 2 state variables {\ttfamily d1} and {\ttfamily d2}. ~\newline
+ The state variables are arranged in the {\ttfamily p\+State} array as\+: ~\newline
+ 
+\begin{DoxyPre}       
+    \{d11, d12, d21, d22, ...\}       
+\end{DoxyPre}
+ ~\newline
+
+\end{DoxyParagraph}
+where {\ttfamily d1x} refers to the state variables for the first Biquad and ~\newline
+ {\ttfamily d2x} refers to the state variables for the second Biquad. ~\newline
+ The state array has a total length of {\ttfamily 2$\ast$num\+Stages} values. ~\newline
+ The state variables are updated after each block of data is processed; the coefficients are untouched. ~\newline
+
+
+\begin{DoxyParagraph}{}
+~\newline
+ The C\+M\+S\+IS library contains Biquad filters in both Direct Form I and transposed Direct Form II. ~\newline
+ The advantage of the Direct Form I structure is that it is numerically more robust for fixed-\/point data types. ~\newline
+ That is why the Direct Form I structure supports Q15 and Q31 data types. ~\newline
+ The transposed Direct Form II structure, on the other hand, requires a wide dynamic range for the state variables {\ttfamily d1} and {\ttfamily d2}. ~\newline
+ Because of this, the C\+M\+S\+IS library only has a floating-\/point version of the Direct Form II Biquad. ~\newline
+ The advantage of the Direct Form II Biquad is that it requires half the number of state variables, 2 rather than 4, per Biquad stage. ~\newline
+
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Instance Structure }
+~\newline
+ The coefficients and state variables for a filter are stored together in an instance data structure. ~\newline
+ A separate instance structure must be defined for each filter. ~\newline
+ Coefficient arrays may be shared among several instances while state variable arrays cannot be shared. ~\newline
+
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{Init Functions }
+~\newline
+ There is also an associated initialization function. ~\newline
+ The initialization function performs following operations\+: ~\newline
+
+\begin{DoxyItemize}
+\item Sets the values of the internal structure fields. ~\newline
+
+\item Zeros out the values in the state buffer. ~\newline
+ To do this manually without calling the init function, assign the follow subfields of the instance structure\+: num\+Stages, p\+Coeffs, p\+State. Also set all of the values in p\+State to zero.
+\end{DoxyItemize}
+\end{DoxyParagraph}
+\begin{DoxyParagraph}{}
+~\newline
+ Use of the initialization function is optional. ~\newline
+ However, if the initialization function is used, then the instance structure cannot be placed into a const data section. ~\newline
+ To place an instance structure into a const data section, the instance structure must be manually initialized. ~\newline
+ Set the values in the state buffer to zeros before static initialization. ~\newline
+ For example, to statically initialize the instance structure use ~\newline
+ 
+\begin{DoxyPre}       
+    \mbox{\hyperlink{structarm__biquad__cascade__df2_t__instance__f32}{arm\_biquad\_cascade\_df2T\_instance\_f32}} S1 = \{numStages, pState, pCoeffs\};       
+\end{DoxyPre}
+ ~\newline
+
+\end{DoxyParagraph}
+where {\ttfamily num\+Stages} is the number of Biquad stages in the filter; {\ttfamily p\+State} is the address of the state buffer. ~\newline
+ {\ttfamily p\+Coeffs} is the address of the coefficient buffer; ~\newline
+
+
+~\newline
+
+
+~\newline
+ 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{group___biquad_cascade_d_f2_t_ga114f373fbc16a314e9f293c7c7649c7f}\label{group___biquad_cascade_d_f2_t_ga114f373fbc16a314e9f293c7c7649c7f}} 
+\index{Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure@{Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure}!arm\_biquad\_cascade\_df2T\_f32@{arm\_biquad\_cascade\_df2T\_f32}}
+\index{arm\_biquad\_cascade\_df2T\_f32@{arm\_biquad\_cascade\_df2T\_f32}!Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure@{Biquad Cascade IIR Filters Using a Direct Form II Transposed Structure}}
+\doxysubsubsection{\texorpdfstring{arm\_biquad\_cascade\_df2T\_f32()}{arm\_biquad\_cascade\_df2T\_f32()}}
+{\footnotesize\ttfamily L\+O\+W\+\_\+\+O\+P\+T\+I\+M\+I\+Z\+A\+T\+I\+O\+N\+\_\+\+E\+N\+T\+ER void arm\+\_\+biquad\+\_\+cascade\+\_\+df2\+T\+\_\+f32 (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structarm__biquad__cascade__df2_t__instance__f32}{arm\+\_\+biquad\+\_\+cascade\+\_\+df2\+T\+\_\+instance\+\_\+f32}} $\ast$}]{S,  }\item[{float32\+\_\+t $\ast$}]{p\+Src,  }\item[{float32\+\_\+t $\ast$}]{p\+Dst,  }\item[{uint32\+\_\+t}]{block\+Size }\end{DoxyParamCaption})}
+
+
+
+Processing function for the floating-\/point transposed direct form II Biquad cascade filter. ~\newline
+ 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em $\ast$S} & points to an instance of the filter data structure. ~\newline
+ \\
+\hline
+\mbox{\texttt{ in}}  & {\em $\ast$p\+Src} & points to the block of input data. ~\newline
+ \\
+\hline
+\mbox{\texttt{ out}}  & {\em $\ast$p\+Dst} & points to the block of output data ~\newline
+ \\
+\hline
+\mbox{\texttt{ in}}  & {\em block\+Size} & number of samples to process. ~\newline
+ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+none. ~\newline
+ 
+\end{DoxyReturn}

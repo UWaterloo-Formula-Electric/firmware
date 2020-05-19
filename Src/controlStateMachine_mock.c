@@ -19,10 +19,6 @@
 #include "imdDriver.h"
 #endif
 
-extern float IBus;
-extern float VBus;
-extern float VBatt;
-extern float packVoltage;
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
@@ -106,6 +102,13 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
     _Static_assert(VOLTAGECELL_COUNT == TEMPCELL_COUNT, "Length of array for cell voltages doens't match array for cell temps");
 
     static int cellIdx = -5;
+
+    float IBus, VBus, VBatt, packVoltage;
+
+    getIBus(&IBus);
+    getVBus(&VBus);
+    getVBatt(&VBatt);
+    getPackVoltage(&packVoltage);
 
     if (cellIdx == -5) {
         COMMAND_OUTPUT("IBUS\tVBUS\tVBATT\r\n");
@@ -228,8 +231,11 @@ BaseType_t setVBatt(char *writeBuffer, size_t writeBufferLength,
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
+    float VBatt;
     sscanf(param, "%f", &VBatt);
     COMMAND_OUTPUT("Setting VBatt %f\n", VBatt);
+
+    cliSetVBatt(VBatt);
 
     return pdFALSE;
 }
@@ -246,9 +252,11 @@ BaseType_t setVBus(char *writeBuffer, size_t writeBufferLength,
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
+    float VBus;
     sscanf(param, "%f", &VBus);
     COMMAND_OUTPUT("Setting VBus %f\n", VBus);
 
+    cliSetVBus(VBus);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t vBusCommandDefinition =
@@ -263,13 +271,14 @@ BaseType_t setIBus(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
-    float current;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
+    float current;
     sscanf(param, "%f", &current);
 
     COMMAND_OUTPUT("setting bus current %f\n", current);
-    IBus = current;
+
+    cliSetIBus(current);
 
     return pdFALSE;
 }
@@ -736,10 +745,10 @@ static const CLI_Command_Definition_t stopSendCellCommandDefinition =
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
-    IBus = 0;
-    VBatt = 0;
+    cliSetVBatt(0);
+    cliSetVBus(0);
+    cliSetIBus(0);
 
-    VBus = 0;
     if (FreeRTOS_CLIRegisterCommand(&printHVMeasurementsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

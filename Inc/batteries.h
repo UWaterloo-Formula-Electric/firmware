@@ -14,9 +14,9 @@ typedef enum Charge_Notifications_t {
     CHARGE_STOP_NOTIFICATION,
 } Charge_Notifications_t;
 
-extern QueueHandle_t IBusQueue;
-extern QueueHandle_t VBusQueue;
-extern QueueHandle_t VBattQueue;
+HAL_StatusTypeDef getIBus(float *IBus);
+HAL_StatusTypeDef getVBatt(float *VBatt);
+HAL_StatusTypeDef getVBus(float * VBus);
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
@@ -26,5 +26,8 @@ float map_range_float(float in, float low, float high, float low_out, float high
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
 void setSendOnlyOneCell(int cellIdx);
 void clearSendOnlyOneCell();
+HAL_StatusTypeDef cliSetVBatt(float VBatt);
+HAL_StatusTypeDef cliSetVBus(float VBus);
+HAL_StatusTypeDef cliSetIBus(float IBus);
 
 #endif /* end of include guard: BATTERIES_H */

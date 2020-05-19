@@ -68,9 +68,4 @@ typedef enum PCDC_Notifications_t {
 #define PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK (0.98F)
 #define PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED (0.8F)
 
-/* only used for testing in cli */
-HAL_StatusTypeDef getIBus(float *IBus);
-HAL_StatusTypeDef getVBatt(float *VBatt);
-HAL_StatusTypeDef getVBus(float * VBus);
-
 #endif /* end of include guard: PRECHARGEDISCHARGE_H */
