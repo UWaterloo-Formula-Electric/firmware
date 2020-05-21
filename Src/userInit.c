@@ -1,3 +1,14 @@
+/**
+  *****************************************************************************
+  * @file    userInit.c
+  * @author  Richard Matthews
+  * @brief   Initialization before RTOS starts
+  * @details Contains the userInit function, which is called before the RTOS
+  * starts to allow the user to initialize modules or other things that must be
+  * done before the RTOS starts
+  ******************************************************************************
+  */
+
 #include "FreeRTOS.h"
 #include "task.h"
 

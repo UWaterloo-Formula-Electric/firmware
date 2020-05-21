@@ -1,3 +1,11 @@
+/**
+  *****************************************************************************
+  * @file    errorHandler.c
+  * @author  Richard Matthews
+  * @brief   Contains assert failure logging function
+  *****************************************************************************
+  */
+
 #include "errorHandler.h"
 #include "main.h"
 #include "FreeRTOS.h"

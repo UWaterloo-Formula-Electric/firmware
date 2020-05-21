@@ -1,6 +1,29 @@
 var searchData=
 [
-  ['readbusvoltagesandcurrents_84',['readBusVoltagesAndCurrents',['../batteries_8c.html#a4d72951e5a03e396bb864b5c45bda0f0',1,'batteries.c']]],
-  ['readcellvoltagesandtemps_85',['readCellVoltagesAndTemps',['../batteries_8c.html#a36a3c81e474331b59839cb2f565c7704',1,'batteries.c']]],
-  ['resumebalance_86',['resumeBalance',['../batteries_8c.html#a82969943d42e6067b966c64c61196dcd',1,'batteries.c']]]
+  ['m_5fbatt_5fconfig_505',['m_batt_config',['../ltc6811_8c.html#a17c01ab55b91a7581e804a97aeb553c6',1,'ltc6811.c']]],
+  ['maintaskentry_2ec_506',['mainTaskEntry.c',['../main_task_entry_8c.html',1,'']]],
+  ['maintaskfunction_507',['mainTaskFunction',['../main_task_entry_8c.html#a20136212c4555e49ec96f1d556b29a30',1,'mainTaskEntry.c']]],
+  ['map_5frange_5ffloat_508',['map_range_float',['../batteries_8c.html#aed5d06c4a55e40673204ceacf2fde819',1,'map_range_float(float in, float low, float high, float low_out, float high_out):&#160;batteries.c'],['../batteries_8h.html#aed5d06c4a55e40673204ceacf2fde819',1,'map_range_float(float in, float low, float high, float low_out, float high_out):&#160;batteries.c']]],
+  ['max_5fcurrent_5fadc_5fvoltage_509',['MAX_CURRENT_ADC_VOLTAGE',['../ade7912_8c.html#a443622cfebffbc87bc846ee3ff096d22',1,'ade7912.c']]],
+  ['max_5ferror_5fcount_510',['MAX_ERROR_COUNT',['../batteries_8c.html#ad4389fd57fbbb4a3c70d7a626285eaa0',1,'batteries.c']]],
+  ['maxchargecurrent_511',['maxChargeCurrent',['../batteries_8c.html#a098ac94ec41c0b74569366cf7660c680',1,'batteries.c']]],
+  ['maxchargecurrentcommand_512',['maxChargeCurrentCommand',['../control_state_machine__mock_8c.html#a56cc0ce9d03dc53af6b0adf600b8610c',1,'controlStateMachine_mock.c']]],
+  ['maxchargecurrentcommanddefinition_513',['maxChargeCurrentCommandDefinition',['../control_state_machine__mock_8c.html#a423f53b8bfe4027dc2f6fc176c44495a',1,'controlStateMachine_mock.c']]],
+  ['maxchargecurrenthigh_514',['MaxChargeCurrentHigh',['../struct_charger_command.html#ab5dfb861f2f443c3a8f29259a16ac983',1,'ChargerCommand::MaxChargeCurrentHigh()'],['../_b_m_u__charger__can_8h.html#a9c911785c096eaa6042624aa4dee289f',1,'MaxChargeCurrentHigh():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a9c911785c096eaa6042624aa4dee289f',1,'MaxChargeCurrentHigh():&#160;BMU_charger_can.c']]],
+  ['maxchargecurrenthighsending_515',['MaxChargeCurrentHighSending',['../_b_m_u__charger__can_8c.html#acd8b3ae6e7b109bda6eb39b1c3bb587d',1,'BMU_charger_can.c']]],
+  ['maxchargecurrentlow_516',['MaxChargeCurrentLow',['../struct_charger_command.html#a7faed1cfd1ceb0e509d689eff373ba6e',1,'ChargerCommand::MaxChargeCurrentLow()'],['../_b_m_u__charger__can_8h.html#ac7f73e4b286b298a9b7a21f54749e067',1,'MaxChargeCurrentLow():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#ac7f73e4b286b298a9b7a21f54749e067',1,'MaxChargeCurrentLow():&#160;BMU_charger_can.c']]],
+  ['maxchargecurrentlowsending_517',['MaxChargeCurrentLowSending',['../_b_m_u__charger__can_8c.html#a830d3215e831c9651237cc0e7b494c8e',1,'BMU_charger_can.c']]],
+  ['maxchargevoltage_518',['maxChargeVoltage',['../batteries_8c.html#a1e19984c8df58b545da1c8f8b5547acd',1,'batteries.c']]],
+  ['maxchargevoltagehigh_519',['MaxChargeVoltageHigh',['../struct_charger_command.html#a65089c08c46ae8d74cdea2c5042e34ed',1,'ChargerCommand::MaxChargeVoltageHigh()'],['../_b_m_u__charger__can_8h.html#a640a9f6e35ee90f130f2b461414007a9',1,'MaxChargeVoltageHigh():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a640a9f6e35ee90f130f2b461414007a9',1,'MaxChargeVoltageHigh():&#160;BMU_charger_can.c']]],
+  ['maxchargevoltagehighsending_520',['MaxChargeVoltageHighSending',['../_b_m_u__charger__can_8c.html#a801381da95855eddaf3a02490e2f1929',1,'BMU_charger_can.c']]],
+  ['maxchargevoltagelow_521',['MaxChargeVoltageLow',['../struct_charger_command.html#a10ebf6cb1e128c07d1fd870e6d76d0c1',1,'ChargerCommand::MaxChargeVoltageLow()'],['../_b_m_u__charger__can_8h.html#afb35270abdcce65934e26426c5ead622',1,'MaxChargeVoltageLow():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#afb35270abdcce65934e26426c5ead622',1,'MaxChargeVoltageLow():&#160;BMU_charger_can.c']]],
+  ['maxchargevoltagelowsending_522',['MaxChargeVoltageLowSending',['../_b_m_u__charger__can_8c.html#a4dec07f9486294bef6c03189395f26eb',1,'BMU_charger_can.c']]],
+  ['meas_5fduty_523',['meas_duty',['../struct_i_m_d_measurements.html#ac57e91e0a5f2a89d20ab2de23dd49b92',1,'IMDMeasurements']]],
+  ['meas_5fduty_5fcycle_524',['meas_duty_cycle',['../imd_driver_8c.html#a2f62b9d23e2baf44cf78109e27289a22',1,'imdDriver.c']]],
+  ['meas_5ffreq_5fmhz_525',['meas_freq_mHz',['../struct_i_m_d_measurements.html#ad0230e8af7027ae725ee8b649221eeaf',1,'IMDMeasurements::meas_freq_mHz()'],['../imd_driver_8c.html#adfbfd73fa35cf39e4b29bf320b58abb7',1,'meas_freq_mHz():&#160;imdDriver.c']]],
+  ['meas_5fic1_5fval_526',['meas_IC1_val',['../imd_driver_8c.html#aa10b9b26d734a2ce24fac2f5c7540bac',1,'imdDriver.c']]],
+  ['meas_5fic2_5fval_527',['meas_IC2_val',['../imd_driver_8c.html#adff46a5e26f9ece00b19c43e77d737e2',1,'imdDriver.c']]],
+  ['min_5fprecharge_5fpercent_5fideal_5fcurrent_528',['MIN_PRECHARGE_PERCENT_IDEAL_CURRENT',['../precharge_discharge_8h.html#aa7847a4d49179cab0795d89f6794dbf8',1,'prechargeDischarge.h']]],
+  ['mstatus_529',['mStatus',['../charger_control_8c.html#ac708c1923fe83a48c44f9ef4290f8f00',1,'chargerControl.c']]],
+  ['mux_5fmeasure_5fdelay_5fus_530',['MUX_MEASURE_DELAY_US',['../ltc6811_8c.html#a31f5ceb2d1dfbb6c878af7e9cf0aa9a8',1,'ltc6811.c']]]
 ];

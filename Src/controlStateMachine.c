@@ -1,3 +1,13 @@
+/**
+  *****************************************************************************
+  * @file    controlStateMachine.c
+  * @author  Richard Matthews
+  * @brief   State machine controlling BMU's high level logic
+  * @details State machine logic, including transition array, and transition
+  * function. See confluence for more details
+  ******************************************************************************
+  */
+
 #include "controlStateMachine.h"
 #include "stm32f7xx_hal.h"
 #include "stdbool.h"

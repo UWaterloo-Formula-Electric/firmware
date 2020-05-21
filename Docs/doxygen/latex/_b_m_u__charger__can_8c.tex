@@ -1,0 +1,437 @@
+\hypertarget{_b_m_u__charger__can_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Gen/\+Src/\+B\+M\+U\+\_\+charger\+\_\+can.c File Reference}
+\label{_b_m_u__charger__can_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Gen/Src/BMU\_charger\_can.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Gen/Src/BMU\_charger\_can.c}}
+{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+charger\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}C\+R\+C\+\_\+\+C\+A\+L\+C.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}user\+Can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+dtc.\+h\char`\"{}}\newline
+Include dependency graph for B\+M\+U\+\_\+charger\+\_\+can.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_charge_status}{Charge\+Status}}
+\item 
+struct \mbox{\hyperlink{struct_charger_command}{Charger\+Command}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_b_m_u__charger__can_8c_a7f4cdd8eca16168bde376aff76d537d8}{C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+A\+D\+D\+R\+E\+SS}}~0x\+F4
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_a1338693d2ae9f27fd27032679dae5e8a}{Output\+Voltage\+High\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_afca2daa10f58134ff810828c98c99bb1}{Output\+Voltage\+Low\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_ab801f9c67dff6656ffdb0641d2d565a9}{Output\+Current\+High\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_a55c12479455ea5852ed33fdaf6a26c8d}{Output\+Current\+Low\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_a8d5f3d20e924d698f71f8c56594838b3}{Hardware\+Failure\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_a175e3b02dde42f3df0e7b1af1fe8895b}{Over\+Temp\+Active\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_a03b4237131fdefd355cf5eba6d0cba01}{Input\+Voltage\+Status\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_ae819cc1382732684b975af1585284a9e}{Starting\+State\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+void \mbox{\hyperlink{_b_m_u__charger__can_8c_af72b7a2ff0e7d990d81d90abbc335704}{Communication\+State\+Received}} (uint64\+\_\+t new\+Value)
+\item 
+uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a801381da95855eddaf3a02490e2f1929}{Max\+Charge\+Voltage\+High\+Sending}} ()
+\item 
+uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a4dec07f9486294bef6c03189395f26eb}{Max\+Charge\+Voltage\+Low\+Sending}} ()
+\item 
+uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_acd8b3ae6e7b109bda6eb39b1c3bb587d}{Max\+Charge\+Current\+High\+Sending}} ()
+\item 
+uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a830d3215e831c9651237cc0e7b494c8e}{Max\+Charge\+Current\+Low\+Sending}} ()
+\item 
+uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a2c1b47a8d4f9dfcf2ede4c3e93d531a7}{Start\+Stop\+Charge\+Sending}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__charger__can_8c_aed1361c90fff728fcdda8e010dc39a7b}{send\+C\+A\+N\+\_\+\+Charger\+Command}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__charger__can_8c_a9f324b258a0b16e322cf8def314ac70c}{parse\+Charger\+C\+A\+N\+Data}} (int id, void $\ast$\mbox{\hyperlink{test_data_8h_a5d10129875ef349da481af7e0f1f37b2}{data}})
+\item 
+\+\_\+\+\_\+weak void \mbox{\hyperlink{_b_m_u__charger__can_8c_aa3ae7ecf2744ea12d8197a04eba9c9c7}{config\+C\+A\+N\+Filters\+Charger}} (C\+A\+N\+\_\+\+Handle\+Type\+Def $\ast$can\+Handle)
+\item 
+\+\_\+\+\_\+weak void \mbox{\hyperlink{_b_m_u__charger__can_8c_a4af34ab8528c9db996b21ecbfe19aae2}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Status\+\_\+\+Callback}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{_b_m_u__charger__can_8c_af8a3fbca761236300a26bfe9e2f45dbf}{Charger\+D\+B\+C\+Version}} = 1
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a98066fa05b75fc3cd8e7d57de00f851f}{Output\+Voltage\+High}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a647d08ce1da1dba4f8682dbbe721af67}{Output\+Voltage\+Low}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a011e8181d9f12a04aa85fce6fd52742c}{Output\+Current\+High}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a0008370371cfbb3c75deb975bd78a659}{Output\+Current\+Low}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_aa41b91c791a5e1e6baf270c7cf8d20a0}{Hardware\+Failure}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_ae54187164942dbe935f60b5bd5f10e8f}{Over\+Temp\+Active}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_ac4fbf41944da02ee25d6a97722b49760}{Input\+Voltage\+Status}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a40420b18609b8274cf6a5cc6ee1ce110}{Starting\+State}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a56ae81d26d21f964d4808ef4a7895d48}{Communication\+State}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a640a9f6e35ee90f130f2b461414007a9}{Max\+Charge\+Voltage\+High}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_afb35270abdcce65934e26426c5ead622}{Max\+Charge\+Voltage\+Low}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_a9c911785c096eaa6042624aa4dee289f}{Max\+Charge\+Current\+High}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_ac7f73e4b286b298a9b7a21f54749e067}{Max\+Charge\+Current\+Low}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__charger__can_8c_ac233701f80341a1e986254383a406cac}{Start\+Stop\+Charge}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a7f4cdd8eca16168bde376aff76d537d8}\label{_b_m_u__charger__can_8c_a7f4cdd8eca16168bde376aff76d537d8}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!CAN\_NODE\_ADDRESS@{CAN\_NODE\_ADDRESS}}
+\index{CAN\_NODE\_ADDRESS@{CAN\_NODE\_ADDRESS}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_NODE\_ADDRESS}{CAN\_NODE\_ADDRESS}}
+{\footnotesize\ttfamily \#define C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+A\+D\+D\+R\+E\+SS~0x\+F4}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a4af34ab8528c9db996b21ecbfe19aae2}\label{_b_m_u__charger__can_8c_a4af34ab8528c9db996b21ecbfe19aae2}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!CAN\_Msg\_ChargeStatus\_Callback@{CAN\_Msg\_ChargeStatus\_Callback}}
+\index{CAN\_Msg\_ChargeStatus\_Callback@{CAN\_Msg\_ChargeStatus\_Callback}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeStatus\_Callback()}{CAN\_Msg\_ChargeStatus\_Callback()}}
+{\footnotesize\ttfamily \+\_\+\+\_\+weak void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Status\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a4af34ab8528c9db996b21ecbfe19aae2_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_af72b7a2ff0e7d990d81d90abbc335704}\label{_b_m_u__charger__can_8c_af72b7a2ff0e7d990d81d90abbc335704}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!CommunicationStateReceived@{CommunicationStateReceived}}
+\index{CommunicationStateReceived@{CommunicationStateReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{CommunicationStateReceived()}{CommunicationStateReceived()}}
+{\footnotesize\ttfamily void Communication\+State\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_af72b7a2ff0e7d990d81d90abbc335704_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_aa3ae7ecf2744ea12d8197a04eba9c9c7}\label{_b_m_u__charger__can_8c_aa3ae7ecf2744ea12d8197a04eba9c9c7}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!configCANFiltersCharger@{configCANFiltersCharger}}
+\index{configCANFiltersCharger@{configCANFiltersCharger}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{configCANFiltersCharger()}{configCANFiltersCharger()}}
+{\footnotesize\ttfamily \+\_\+\+\_\+weak void config\+C\+A\+N\+Filters\+Charger (\begin{DoxyParamCaption}\item[{C\+A\+N\+\_\+\+Handle\+Type\+Def $\ast$}]{can\+Handle }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a8d5f3d20e924d698f71f8c56594838b3}\label{_b_m_u__charger__can_8c_a8d5f3d20e924d698f71f8c56594838b3}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!HardwareFailureReceived@{HardwareFailureReceived}}
+\index{HardwareFailureReceived@{HardwareFailureReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{HardwareFailureReceived()}{HardwareFailureReceived()}}
+{\footnotesize\ttfamily void Hardware\+Failure\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a8d5f3d20e924d698f71f8c56594838b3_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a03b4237131fdefd355cf5eba6d0cba01}\label{_b_m_u__charger__can_8c_a03b4237131fdefd355cf5eba6d0cba01}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!InputVoltageStatusReceived@{InputVoltageStatusReceived}}
+\index{InputVoltageStatusReceived@{InputVoltageStatusReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{InputVoltageStatusReceived()}{InputVoltageStatusReceived()}}
+{\footnotesize\ttfamily void Input\+Voltage\+Status\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a03b4237131fdefd355cf5eba6d0cba01_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_acd8b3ae6e7b109bda6eb39b1c3bb587d}\label{_b_m_u__charger__can_8c_acd8b3ae6e7b109bda6eb39b1c3bb587d}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeCurrentHighSending@{MaxChargeCurrentHighSending}}
+\index{MaxChargeCurrentHighSending@{MaxChargeCurrentHighSending}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeCurrentHighSending()}{MaxChargeCurrentHighSending()}}
+{\footnotesize\ttfamily uint64\+\_\+t Max\+Charge\+Current\+High\+Sending (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_acd8b3ae6e7b109bda6eb39b1c3bb587d_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a830d3215e831c9651237cc0e7b494c8e}\label{_b_m_u__charger__can_8c_a830d3215e831c9651237cc0e7b494c8e}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeCurrentLowSending@{MaxChargeCurrentLowSending}}
+\index{MaxChargeCurrentLowSending@{MaxChargeCurrentLowSending}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeCurrentLowSending()}{MaxChargeCurrentLowSending()}}
+{\footnotesize\ttfamily uint64\+\_\+t Max\+Charge\+Current\+Low\+Sending (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a830d3215e831c9651237cc0e7b494c8e_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a801381da95855eddaf3a02490e2f1929}\label{_b_m_u__charger__can_8c_a801381da95855eddaf3a02490e2f1929}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeVoltageHighSending@{MaxChargeVoltageHighSending}}
+\index{MaxChargeVoltageHighSending@{MaxChargeVoltageHighSending}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeVoltageHighSending()}{MaxChargeVoltageHighSending()}}
+{\footnotesize\ttfamily uint64\+\_\+t Max\+Charge\+Voltage\+High\+Sending (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a801381da95855eddaf3a02490e2f1929_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a4dec07f9486294bef6c03189395f26eb}\label{_b_m_u__charger__can_8c_a4dec07f9486294bef6c03189395f26eb}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeVoltageLowSending@{MaxChargeVoltageLowSending}}
+\index{MaxChargeVoltageLowSending@{MaxChargeVoltageLowSending}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeVoltageLowSending()}{MaxChargeVoltageLowSending()}}
+{\footnotesize\ttfamily uint64\+\_\+t Max\+Charge\+Voltage\+Low\+Sending (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a4dec07f9486294bef6c03189395f26eb_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ab801f9c67dff6656ffdb0641d2d565a9}\label{_b_m_u__charger__can_8c_ab801f9c67dff6656ffdb0641d2d565a9}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputCurrentHighReceived@{OutputCurrentHighReceived}}
+\index{OutputCurrentHighReceived@{OutputCurrentHighReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputCurrentHighReceived()}{OutputCurrentHighReceived()}}
+{\footnotesize\ttfamily void Output\+Current\+High\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_ab801f9c67dff6656ffdb0641d2d565a9_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a55c12479455ea5852ed33fdaf6a26c8d}\label{_b_m_u__charger__can_8c_a55c12479455ea5852ed33fdaf6a26c8d}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputCurrentLowReceived@{OutputCurrentLowReceived}}
+\index{OutputCurrentLowReceived@{OutputCurrentLowReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputCurrentLowReceived()}{OutputCurrentLowReceived()}}
+{\footnotesize\ttfamily void Output\+Current\+Low\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a55c12479455ea5852ed33fdaf6a26c8d_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a1338693d2ae9f27fd27032679dae5e8a}\label{_b_m_u__charger__can_8c_a1338693d2ae9f27fd27032679dae5e8a}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputVoltageHighReceived@{OutputVoltageHighReceived}}
+\index{OutputVoltageHighReceived@{OutputVoltageHighReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputVoltageHighReceived()}{OutputVoltageHighReceived()}}
+{\footnotesize\ttfamily void Output\+Voltage\+High\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a1338693d2ae9f27fd27032679dae5e8a_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_afca2daa10f58134ff810828c98c99bb1}\label{_b_m_u__charger__can_8c_afca2daa10f58134ff810828c98c99bb1}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputVoltageLowReceived@{OutputVoltageLowReceived}}
+\index{OutputVoltageLowReceived@{OutputVoltageLowReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputVoltageLowReceived()}{OutputVoltageLowReceived()}}
+{\footnotesize\ttfamily void Output\+Voltage\+Low\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_afca2daa10f58134ff810828c98c99bb1_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a175e3b02dde42f3df0e7b1af1fe8895b}\label{_b_m_u__charger__can_8c_a175e3b02dde42f3df0e7b1af1fe8895b}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OverTempActiveReceived@{OverTempActiveReceived}}
+\index{OverTempActiveReceived@{OverTempActiveReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OverTempActiveReceived()}{OverTempActiveReceived()}}
+{\footnotesize\ttfamily void Over\+Temp\+Active\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a175e3b02dde42f3df0e7b1af1fe8895b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a9f324b258a0b16e322cf8def314ac70c}\label{_b_m_u__charger__can_8c_a9f324b258a0b16e322cf8def314ac70c}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!parseChargerCANData@{parseChargerCANData}}
+\index{parseChargerCANData@{parseChargerCANData}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{parseChargerCANData()}{parseChargerCANData()}}
+{\footnotesize\ttfamily int parse\+Charger\+C\+A\+N\+Data (\begin{DoxyParamCaption}\item[{int}]{id,  }\item[{void $\ast$}]{data }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a9f324b258a0b16e322cf8def314ac70c_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_aed1361c90fff728fcdda8e010dc39a7b}\label{_b_m_u__charger__can_8c_aed1361c90fff728fcdda8e010dc39a7b}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!sendCAN\_ChargerCommand@{sendCAN\_ChargerCommand}}
+\index{sendCAN\_ChargerCommand@{sendCAN\_ChargerCommand}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_ChargerCommand()}{sendCAN\_ChargerCommand()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+Charger\+Command (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_aed1361c90fff728fcdda8e010dc39a7b_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_aed1361c90fff728fcdda8e010dc39a7b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ae819cc1382732684b975af1585284a9e}\label{_b_m_u__charger__can_8c_ae819cc1382732684b975af1585284a9e}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!StartingStateReceived@{StartingStateReceived}}
+\index{StartingStateReceived@{StartingStateReceived}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{StartingStateReceived()}{StartingStateReceived()}}
+{\footnotesize\ttfamily void Starting\+State\+Received (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{new\+Value }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=349pt]{_b_m_u__charger__can_8c_ae819cc1382732684b975af1585284a9e_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a2c1b47a8d4f9dfcf2ede4c3e93d531a7}\label{_b_m_u__charger__can_8c_a2c1b47a8d4f9dfcf2ede4c3e93d531a7}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!StartStopChargeSending@{StartStopChargeSending}}
+\index{StartStopChargeSending@{StartStopChargeSending}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{StartStopChargeSending()}{StartStopChargeSending()}}
+{\footnotesize\ttfamily uint64\+\_\+t Start\+Stop\+Charge\+Sending (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__charger__can_8c_a2c1b47a8d4f9dfcf2ede4c3e93d531a7_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_af8a3fbca761236300a26bfe9e2f45dbf}\label{_b_m_u__charger__can_8c_af8a3fbca761236300a26bfe9e2f45dbf}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!ChargerDBCVersion@{ChargerDBCVersion}}
+\index{ChargerDBCVersion@{ChargerDBCVersion}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{ChargerDBCVersion}{ChargerDBCVersion}}
+{\footnotesize\ttfamily int Charger\+D\+B\+C\+Version = 1}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a56ae81d26d21f964d4808ef4a7895d48}\label{_b_m_u__charger__can_8c_a56ae81d26d21f964d4808ef4a7895d48}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!CommunicationState@{CommunicationState}}
+\index{CommunicationState@{CommunicationState}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{CommunicationState}{CommunicationState}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Communication\+State}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_aa41b91c791a5e1e6baf270c7cf8d20a0}\label{_b_m_u__charger__can_8c_aa41b91c791a5e1e6baf270c7cf8d20a0}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!HardwareFailure@{HardwareFailure}}
+\index{HardwareFailure@{HardwareFailure}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{HardwareFailure}{HardwareFailure}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Hardware\+Failure}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ac4fbf41944da02ee25d6a97722b49760}\label{_b_m_u__charger__can_8c_ac4fbf41944da02ee25d6a97722b49760}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!InputVoltageStatus@{InputVoltageStatus}}
+\index{InputVoltageStatus@{InputVoltageStatus}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{InputVoltageStatus}{InputVoltageStatus}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Input\+Voltage\+Status}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a9c911785c096eaa6042624aa4dee289f}\label{_b_m_u__charger__can_8c_a9c911785c096eaa6042624aa4dee289f}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeCurrentHigh@{MaxChargeCurrentHigh}}
+\index{MaxChargeCurrentHigh@{MaxChargeCurrentHigh}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeCurrentHigh}{MaxChargeCurrentHigh}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Max\+Charge\+Current\+High}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ac7f73e4b286b298a9b7a21f54749e067}\label{_b_m_u__charger__can_8c_ac7f73e4b286b298a9b7a21f54749e067}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeCurrentLow@{MaxChargeCurrentLow}}
+\index{MaxChargeCurrentLow@{MaxChargeCurrentLow}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeCurrentLow}{MaxChargeCurrentLow}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Max\+Charge\+Current\+Low}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a640a9f6e35ee90f130f2b461414007a9}\label{_b_m_u__charger__can_8c_a640a9f6e35ee90f130f2b461414007a9}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeVoltageHigh@{MaxChargeVoltageHigh}}
+\index{MaxChargeVoltageHigh@{MaxChargeVoltageHigh}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeVoltageHigh}{MaxChargeVoltageHigh}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Max\+Charge\+Voltage\+High}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_afb35270abdcce65934e26426c5ead622}\label{_b_m_u__charger__can_8c_afb35270abdcce65934e26426c5ead622}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!MaxChargeVoltageLow@{MaxChargeVoltageLow}}
+\index{MaxChargeVoltageLow@{MaxChargeVoltageLow}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{MaxChargeVoltageLow}{MaxChargeVoltageLow}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Max\+Charge\+Voltage\+Low}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a011e8181d9f12a04aa85fce6fd52742c}\label{_b_m_u__charger__can_8c_a011e8181d9f12a04aa85fce6fd52742c}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputCurrentHigh@{OutputCurrentHigh}}
+\index{OutputCurrentHigh@{OutputCurrentHigh}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputCurrentHigh}{OutputCurrentHigh}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Output\+Current\+High}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a0008370371cfbb3c75deb975bd78a659}\label{_b_m_u__charger__can_8c_a0008370371cfbb3c75deb975bd78a659}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputCurrentLow@{OutputCurrentLow}}
+\index{OutputCurrentLow@{OutputCurrentLow}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputCurrentLow}{OutputCurrentLow}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Output\+Current\+Low}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a98066fa05b75fc3cd8e7d57de00f851f}\label{_b_m_u__charger__can_8c_a98066fa05b75fc3cd8e7d57de00f851f}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputVoltageHigh@{OutputVoltageHigh}}
+\index{OutputVoltageHigh@{OutputVoltageHigh}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputVoltageHigh}{OutputVoltageHigh}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Output\+Voltage\+High}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a647d08ce1da1dba4f8682dbbe721af67}\label{_b_m_u__charger__can_8c_a647d08ce1da1dba4f8682dbbe721af67}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OutputVoltageLow@{OutputVoltageLow}}
+\index{OutputVoltageLow@{OutputVoltageLow}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OutputVoltageLow}{OutputVoltageLow}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Output\+Voltage\+Low}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ae54187164942dbe935f60b5bd5f10e8f}\label{_b_m_u__charger__can_8c_ae54187164942dbe935f60b5bd5f10e8f}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!OverTempActive@{OverTempActive}}
+\index{OverTempActive@{OverTempActive}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{OverTempActive}{OverTempActive}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Over\+Temp\+Active}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_a40420b18609b8274cf6a5cc6ee1ce110}\label{_b_m_u__charger__can_8c_a40420b18609b8274cf6a5cc6ee1ce110}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!StartingState@{StartingState}}
+\index{StartingState@{StartingState}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{StartingState}{StartingState}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Starting\+State}
+
+\mbox{\Hypertarget{_b_m_u__charger__can_8c_ac233701f80341a1e986254383a406cac}\label{_b_m_u__charger__can_8c_ac233701f80341a1e986254383a406cac}} 
+\index{BMU\_charger\_can.c@{BMU\_charger\_can.c}!StartStopCharge@{StartStopCharge}}
+\index{StartStopCharge@{StartStopCharge}!BMU\_charger\_can.c@{BMU\_charger\_can.c}}
+\doxysubsubsection{\texorpdfstring{StartStopCharge}{StartStopCharge}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Start\+Stop\+Charge}
+

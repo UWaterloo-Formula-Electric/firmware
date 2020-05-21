@@ -1,3 +1,12 @@
+/**
+  *****************************************************************************
+  * @file    mainTaskEntry.c
+  * @author  Richard Matthews
+  * @brief   Module containing main task, which is the default task for all
+  * boards. It currently blinks the debug LED to indicate the firmware is running
+  *****************************************************************************
+  */
+
 #include "FreeRTOS.h"
 #include "task.h"
 

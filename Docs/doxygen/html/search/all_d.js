@@ -1,8 +1,10 @@
 var searchData=
 [
-  ['setmaxchargecurrent_87',['setMaxChargeCurrent',['../batteries_8c.html#aacf3b5ff9648b813208cb6f91b370fef',1,'batteries.c']]],
-  ['setsendonlyonecell_88',['setSendOnlyOneCell',['../batteries_8c.html#acd55a62448b408952283c28d12dd4c1d',1,'batteries.c']]],
-  ['startcharging_89',['startCharging',['../batteries_8c.html#a43ea41cc1c21bd36b3622076e20b596c',1,'batteries.c']]],
-  ['stopbalance_90',['stopBalance',['../batteries_8c.html#ad54912c48ac30fc66796b2aeca58cea7',1,'batteries.c']]],
-  ['stopcharging_91',['stopCharging',['../batteries_8c.html#a5cf6c235603af078c2dc841ae579f3b5',1,'batteries.c']]]
+  ['num_5fboards_531',['NUM_BOARDS',['../ltc6811_8h.html#adb2886a91809c5e19f4c24af6fde3289',1,'ltc6811.h']]],
+  ['num_5fopen_5fwire_5ftest_5fvoltage_5freadings_532',['NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS',['../ltc6811_8h.html#a448169e90849fb230a7e9169c4f67fb8',1,'ltc6811.h']]],
+  ['num_5fsections_533',['NUM_SECTIONS',['../iir__fs200__pass10__stop60__apass1__astop80_8h.html#a6974c83481090ea7dd3b9dc08f32ef1f',1,'NUM_SECTIONS():&#160;iir_fs200_pass10_stop60_apass1_astop80.h'],['../iir__fs200__pass80__stop90__apass1__astop80_8h.html#a6974c83481090ea7dd3b9dc08f32ef1f',1,'NUM_SECTIONS():&#160;iir_fs200_pass80_stop90_apass1_astop80.h']]],
+  ['num_5fsoc_5flookup_5fvals_534',['NUM_SOC_LOOKUP_VALS',['../batteries_8c.html#a4ec6365ec832a79d6e0633c4f49b3b55',1,'batteries.c']]],
+  ['num_5ftemp_5fcells_535',['NUM_TEMP_CELLS',['../ltc6811_8h.html#ab5a48a7f949fef839952d1bc797c7c72',1,'ltc6811.h']]],
+  ['num_5fvoltage_5fcells_536',['NUM_VOLTAGE_CELLS',['../ltc6811_8h.html#a20a74a503d0c5c1327fe44389097ba8d',1,'ltc6811.h']]],
+  ['numstages_537',['numStages',['../structarm__biquad__cascade__df2_t__instance__f32.html#a4d17958c33c3d0a905f974bac50f033f',1,'arm_biquad_cascade_df2T_instance_f32']]]
 ];

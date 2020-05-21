@@ -1,0 +1,903 @@
+\hypertarget{_b_m_u__can_8h}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Gen/\+Inc/\+B\+M\+U\+\_\+can.h File Reference}
+\label{_b_m_u__can_8h}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Gen/Inc/BMU\_can.h@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Gen/Inc/BMU\_can.h}}
+{\ttfamily \#include \char`\"{}stm32f7xx\+\_\+hal.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}can\+Heartbeat.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}board\+Types.\+h\char`\"{}}\newline
+Include dependency graph for B\+M\+U\+\_\+can.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_p_d_u___d_t_c__unpacked}{P\+D\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+struct \mbox{\hyperlink{struct_d_c_u___d_t_c__unpacked}{D\+C\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+struct \mbox{\hyperlink{struct_v_c_u___f7___d_t_c__unpacked}{V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+struct \mbox{\hyperlink{struct_charge_cart___d_t_c__unpacked}{Charge\+Cart\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{_b_m_u__can_8h_a7f4cdd8eca16168bde376aff76d537d8}{C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+A\+D\+D\+R\+E\+SS}}~1
+\item 
+\#define \mbox{\hyperlink{_b_m_u__can_8h_ae217eb8b715e7bde2ad67c3b8bdcc953}{C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+M\+E\+S\+S\+A\+G\+E\+\_\+\+G\+R\+O\+U\+P\+\_\+1}}
+\item 
+\#define \mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}~(72)
+\item 
+\#define \mbox{\hyperlink{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}{T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}~(72)
+\end{DoxyCompactItemize}
+\doxysubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \mbox{\hyperlink{struct_p_d_u___d_t_c__unpacked}{P\+D\+U\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{_b_m_u__can_8h_a63bd33c5f99f67f5d616af9107678b61}{P\+D\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+typedef struct \mbox{\hyperlink{struct_d_c_u___d_t_c__unpacked}{D\+C\+U\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{_b_m_u__can_8h_aac1015050c364264dfdd9f57bdb90888}{D\+C\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+typedef struct \mbox{\hyperlink{struct_v_c_u___f7___d_t_c__unpacked}{V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{_b_m_u__can_8h_a8ea849032f2121396ec96c0d559a78c4}{V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\item 
+typedef struct \mbox{\hyperlink{struct_charge_cart___d_t_c__unpacked}{Charge\+Cart\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{_b_m_u__can_8h_a143bee9186ba43fd1b287f6790b8430a}{Charge\+Cart\+\_\+\+D\+T\+C\+\_\+unpacked}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+Values}} \{ \mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a3c1c7c1247f1c37190ebb472de5dbde0}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+Error}} = 3, 
+\mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2ac0e0dddcea47e5e7c796c9a7d7e21567}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+On}} = 2, 
+\mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a1798d6f4cd7106dbd0e26712d478e8d4}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+Off}} = 1, 
+\mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2abd7128ecd640619849e1055a799f83fb}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+Invalid}} = 0
+ \}
+\item 
+enum \mbox{\hyperlink{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13}{Charge\+E\+N\+\_\+\+State\+\_\+\+Values}} \{ \mbox{\hyperlink{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a0abd85691c20838d309acf057644e85d}{Charge\+E\+N\+\_\+\+State\+\_\+\+On}} = 1, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a18797d3343fbb1c96fccaf14896aac16}{Charge\+E\+N\+\_\+\+State\+\_\+\+Off}} = 0
+ \}
+\item 
+enum \mbox{\hyperlink{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8e}{H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Values}} \{ \mbox{\hyperlink{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8ea99dd43f9791fd739831c9e47eceb4f03}{H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+On}} = 1, 
+\mbox{\hyperlink{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8eaaa5e8b3a42d2d7ccd684ef33c2615dfa}{H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Off}} = 0
+ \}
+\item 
+enum \mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550a}{State\+B\+M\+S\+\_\+\+Values}} \{ \newline
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaed8d1e66ada97fdb130fd8467aafbd75}{State\+B\+M\+S\+\_\+\+Failure\+\_\+\+Fatal}} = 7, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa36ad078b1463d9beefe4de4b085f9dbf}{State\+B\+M\+S\+\_\+\+Charging}} = 6, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa5b09f95ffbe820880f15c63697280501}{State\+B\+M\+S\+\_\+\+Discharge}} = 5, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa95f27be8c9dfe3ed44669ef1a9ee6ee6}{State\+B\+M\+S\+\_\+\+Precharge}} = 4, 
+\newline
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaf332371d2623a84b6f3eb94c8490ef90}{State\+B\+M\+S\+\_\+\+H\+V\+\_\+\+Enable}} = 3, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaeb7b94a38e4e678a3bfef3810a1987a7}{State\+B\+M\+S\+\_\+\+H\+V\+\_\+\+Disable}} = 2, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa40894164467d79187bde556c964e227d}{State\+B\+M\+S\+\_\+\+Wait\+\_\+\+System\+\_\+\+Up}} = 1, 
+\mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aacb3108f576616779531ecf9df9fabefb}{State\+B\+M\+S\+\_\+\+Self\+\_\+\+Check}} = 0
+ \}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a1af9d44d6482bda6199e7ddcf818c44b}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Charge\+E\+N\+\_\+\+State}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_af307e86ece6b6ab53c7f714659969efd}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Heartbeat}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a663b1926f040f6c64e2fc3a739911355}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Brake\+Pressure}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_aeebeab19729fbb641a5dd11d1076cdd7}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+H\+V\+\_\+\+Power\+\_\+\+State}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a545d5c820a23d33a576f175db02e2976}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+V\+E\+R\+S\+I\+ON}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a712375084a1c0ecc1fc21516574e5624}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+state\+Battery\+HV}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_ad57fbcfdfc9c7cb21469a803077961e4}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+battery\+Status\+HV}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a6e17ca7fed9637a18fc11e407a3684a3}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+state\+Bus\+HV}} ()
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_ae309db13bbff550dfaf95e405920c262}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+D\+TC}} ()
+\item 
+uint8\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a7eae5a05a1b60320a2ef3b7b767a33fa}{B\+M\+U\+\_\+\+Cell\+Voltage\+Index\+To\+Mux\+Select}} (int index)
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a6fb8cd081045bb5774818d1505f67df6}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Cell\+Voltage}} (int index)
+\item 
+uint8\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a0121f001f557553d39e331426469ad72}{B\+M\+U\+\_\+\+Cell\+Temp\+Index\+To\+Mux\+Select}} (int index)
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a9dbd675bf640a1a7f94d04e46428dce8}{send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Cell\+Temp}} (int index)
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a61ca4db08ab63fa3c84a227bf8727f9e}{parse\+C\+A\+N\+Data}} (int id, void $\ast$\mbox{\hyperlink{test_data_8h_a5d10129875ef349da481af7e0f1f37b2}{data}})
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_af3bf3ff66e0804fdce6133c5424d28c5}{config\+C\+A\+N\+Filters}} (C\+A\+N\+\_\+\+Handle\+Type\+Def $\ast$can\+Handle)
+\item 
+int \mbox{\hyperlink{_b_m_u__can_8h_a0c0bd728633ddaf54f51ae1c5f2f85ad}{init\+\_\+can\+\_\+driver}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a2c5b63da0152dd1e7437ac43de488613}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Button\+Events\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a2615be7cca510569731173760bbe8f7c}{C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+button\+Events\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a8c68b3a9a339098052d8af451ab03ad7}{C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+D\+C\+D\+C\+\_\+\+Status\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a74c581cf269fb33a9c4f51aee0813da1}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Heartbeat\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_ad512f9e1fad99df74509ee66de996652}{C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+\+Heartbeat\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_ad6cd60bf955873221619d4830e755439}{C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+Heartbeat\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a34d275348044192a7088e4844748bfbc}{C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+F7\+\_\+\+Heartbeat\+\_\+\+Callback}} ()
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_ad58e0b3cfcb507f667661941014edd37}{C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+D\+T\+C\+\_\+\+Callback}} (int \mbox{\hyperlink{_b_m_u__can_8c_a08dd7614c34b00f2e9f1c0af2fbd7332}{D\+T\+C\+\_\+\+C\+O\+DE}}, int \mbox{\hyperlink{_b_m_u__can_8c_abd17513092c6eadc53cd73b725f9b8ed}{D\+T\+C\+\_\+\+Severity}}, int \mbox{\hyperlink{_b_m_u__can_8c_a74126080863714bf66dc6cfbee637e96}{D\+T\+C\+\_\+\+Data}})
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a32d4d470cc461096834497b4f6650378}{D\+T\+C\+\_\+\+Fatal\+\_\+\+Callback}} (Board\+I\+Ds board)
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_af4f9c2c4764fd0ccb34f24efa81ddccb}{C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+\+D\+T\+C\+\_\+\+Callback}} (int \mbox{\hyperlink{_b_m_u__can_8c_a08dd7614c34b00f2e9f1c0af2fbd7332}{D\+T\+C\+\_\+\+C\+O\+DE}}, int \mbox{\hyperlink{_b_m_u__can_8c_abd17513092c6eadc53cd73b725f9b8ed}{D\+T\+C\+\_\+\+Severity}}, int \mbox{\hyperlink{_b_m_u__can_8c_a74126080863714bf66dc6cfbee637e96}{D\+T\+C\+\_\+\+Data}})
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a4e005c403304fd7b3573b8f16441f5ea}{C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+\+Callback}} (int \mbox{\hyperlink{_b_m_u__can_8c_a08dd7614c34b00f2e9f1c0af2fbd7332}{D\+T\+C\+\_\+\+C\+O\+DE}}, int \mbox{\hyperlink{_b_m_u__can_8c_abd17513092c6eadc53cd73b725f9b8ed}{D\+T\+C\+\_\+\+Severity}}, int \mbox{\hyperlink{_b_m_u__can_8c_a74126080863714bf66dc6cfbee637e96}{D\+T\+C\+\_\+\+Data}})
+\item 
+void \mbox{\hyperlink{_b_m_u__can_8h_a53aca74d03a37507ecb82cc11704a89a}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+D\+T\+C\+\_\+\+Callback}} (int \mbox{\hyperlink{_b_m_u__can_8c_a08dd7614c34b00f2e9f1c0af2fbd7332}{D\+T\+C\+\_\+\+C\+O\+DE}}, int \mbox{\hyperlink{_b_m_u__can_8c_abd17513092c6eadc53cd73b725f9b8ed}{D\+T\+C\+\_\+\+Severity}}, int \mbox{\hyperlink{_b_m_u__can_8c_a74126080863714bf66dc6cfbee637e96}{D\+T\+C\+\_\+\+Data}})
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a36e9488ab772533ec2b914fee05c255c}{Button\+Charge\+Start}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_acb82ad4dfc7a9477da61a8790a344bea}{Button\+Charge\+Stop}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_accb1e31a8cd319fa694f54e0ac88164b}{Button\+H\+V\+Enabled}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a5cf83307b924d357aa310355f530830b}{Status\+\_\+\+D\+C\+DC}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a54d651f22ba8164e46e3c7fbe98798be}{Charge\+E\+N\+\_\+\+State}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a4cd09029222a047a73fec89be7225697}{B\+M\+U\+\_\+\+Heartbeat\+\_\+dummydata}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a9d750c96d072542249295b64baabfec4}{Brake\+Pressure\+B\+MU}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a4f1b287b6f2f1a94b3e34182ba551f18}{H\+V\+\_\+\+Power\+\_\+\+State}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a2ee3fc3085b62da5f3fce0a06b98fae9}{Voltage\+Battery\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_adee49a7c9ec3cb548e063a6d82261353}{Current\+D\+C\+Battery\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a5b2c7db12d6c0e67f683e9ab514b05e0}{Power\+Battery\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a79909b8df91fbf3a360053c3839b59f6}{State\+Battery\+Charge\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a716789500bc738ce4251839f5bd9f63b}{State\+Battery\+Health\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_aa332c6a38d37e207cecec60f603afa6a}{State\+Battery\+Power\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_ab3f81232bfb3c8215ad973c0781c3769}{Temp\+Cell\+Max}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a81551e79d7b8b0467063b34bf0747afd}{Temp\+Cell\+Min}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a0dc102e7a4e4a098c02f257aadb42e6d}{State\+B\+MS}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a4dce5a8de02b14c58af2815c1274a714}{Voltage\+Bus\+HV}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a07f7a2e617d400c48741b5eca5b9270b}{Voltage\+Cell\+Max}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a085733007ae33ca049b2a702ef4e918d}{Voltage\+Cell\+Min}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_ae58dbb1d044426f34b5ffde1609771d8}{Current\+Bus\+HV}}
+\item 
+volatile uint64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a08dd7614c34b00f2e9f1c0af2fbd7332}{D\+T\+C\+\_\+\+C\+O\+DE}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_abd17513092c6eadc53cd73b725f9b8ed}{D\+T\+C\+\_\+\+Severity}}
+\item 
+volatile int64\+\_\+t \mbox{\hyperlink{_b_m_u__can_8h_a74126080863714bf66dc6cfbee637e96}{D\+T\+C\+\_\+\+Data}}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_aff3ed22f4d3445bf990c48d55c2a36fa}{Voltage\+Cell}} \mbox{[}72\mbox{]}
+\item 
+volatile float \mbox{\hyperlink{_b_m_u__can_8h_a273a741e79e695ba948c94bbc1cd274f}{Temp\+Cell}} \mbox{[}72\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{_b_m_u__can_8h_a7f4cdd8eca16168bde376aff76d537d8}\label{_b_m_u__can_8h_a7f4cdd8eca16168bde376aff76d537d8}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_NODE\_ADDRESS@{CAN\_NODE\_ADDRESS}}
+\index{CAN\_NODE\_ADDRESS@{CAN\_NODE\_ADDRESS}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_NODE\_ADDRESS}{CAN\_NODE\_ADDRESS}}
+{\footnotesize\ttfamily \#define C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+A\+D\+D\+R\+E\+SS~1}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_ae217eb8b715e7bde2ad67c3b8bdcc953}\label{_b_m_u__can_8h_ae217eb8b715e7bde2ad67c3b8bdcc953}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_NODE\_MESSAGE\_GROUP\_1@{CAN\_NODE\_MESSAGE\_GROUP\_1}}
+\index{CAN\_NODE\_MESSAGE\_GROUP\_1@{CAN\_NODE\_MESSAGE\_GROUP\_1}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_NODE\_MESSAGE\_GROUP\_1}{CAN\_NODE\_MESSAGE\_GROUP\_1}}
+{\footnotesize\ttfamily \#define C\+A\+N\+\_\+\+N\+O\+D\+E\+\_\+\+M\+E\+S\+S\+A\+G\+E\+\_\+\+G\+R\+O\+U\+P\+\_\+1}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}\label{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}} 
+\index{BMU\_can.h@{BMU\_can.h}!TEMPCELL\_COUNT@{TEMPCELL\_COUNT}}
+\index{TEMPCELL\_COUNT@{TEMPCELL\_COUNT}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{TEMPCELL\_COUNT}{TEMPCELL\_COUNT}}
+{\footnotesize\ttfamily \#define T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT~(72)}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}\label{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}} 
+\index{BMU\_can.h@{BMU\_can.h}!VOLTAGECELL\_COUNT@{VOLTAGECELL\_COUNT}}
+\index{VOLTAGECELL\_COUNT@{VOLTAGECELL\_COUNT}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VOLTAGECELL\_COUNT}{VOLTAGECELL\_COUNT}}
+{\footnotesize\ttfamily \#define V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT~(72)}
+
+
+
+\doxysubsection{Typedef Documentation}
+\mbox{\Hypertarget{_b_m_u__can_8h_a143bee9186ba43fd1b287f6790b8430a}\label{_b_m_u__can_8h_a143bee9186ba43fd1b287f6790b8430a}} 
+\index{BMU\_can.h@{BMU\_can.h}!ChargeCart\_DTC\_unpacked@{ChargeCart\_DTC\_unpacked}}
+\index{ChargeCart\_DTC\_unpacked@{ChargeCart\_DTC\_unpacked}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ChargeCart\_DTC\_unpacked}{ChargeCart\_DTC\_unpacked}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{struct_charge_cart___d_t_c__unpacked}{Charge\+Cart\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{struct_charge_cart___d_t_c__unpacked}{Charge\+Cart\+\_\+\+D\+T\+C\+\_\+unpacked}}}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_aac1015050c364264dfdd9f57bdb90888}\label{_b_m_u__can_8h_aac1015050c364264dfdd9f57bdb90888}} 
+\index{BMU\_can.h@{BMU\_can.h}!DCU\_DTC\_unpacked@{DCU\_DTC\_unpacked}}
+\index{DCU\_DTC\_unpacked@{DCU\_DTC\_unpacked}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{DCU\_DTC\_unpacked}{DCU\_DTC\_unpacked}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{struct_d_c_u___d_t_c__unpacked}{D\+C\+U\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{struct_d_c_u___d_t_c__unpacked}{D\+C\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a63bd33c5f99f67f5d616af9107678b61}\label{_b_m_u__can_8h_a63bd33c5f99f67f5d616af9107678b61}} 
+\index{BMU\_can.h@{BMU\_can.h}!PDU\_DTC\_unpacked@{PDU\_DTC\_unpacked}}
+\index{PDU\_DTC\_unpacked@{PDU\_DTC\_unpacked}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{PDU\_DTC\_unpacked}{PDU\_DTC\_unpacked}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{struct_p_d_u___d_t_c__unpacked}{P\+D\+U\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{struct_p_d_u___d_t_c__unpacked}{P\+D\+U\+\_\+\+D\+T\+C\+\_\+unpacked}}}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a8ea849032f2121396ec96c0d559a78c4}\label{_b_m_u__can_8h_a8ea849032f2121396ec96c0d559a78c4}} 
+\index{BMU\_can.h@{BMU\_can.h}!VCU\_F7\_DTC\_unpacked@{VCU\_F7\_DTC\_unpacked}}
+\index{VCU\_F7\_DTC\_unpacked@{VCU\_F7\_DTC\_unpacked}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VCU\_F7\_DTC\_unpacked}{VCU\_F7\_DTC\_unpacked}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{struct_v_c_u___f7___d_t_c__unpacked}{V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+unpacked}} \mbox{\hyperlink{struct_v_c_u___f7___d_t_c__unpacked}{V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+unpacked}}}
+
+
+
+\doxysubsection{Enumeration Type Documentation}
+\mbox{\Hypertarget{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13}\label{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13}} 
+\index{BMU\_can.h@{BMU\_can.h}!ChargeEN\_State\_Values@{ChargeEN\_State\_Values}}
+\index{ChargeEN\_State\_Values@{ChargeEN\_State\_Values}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ChargeEN\_State\_Values}{ChargeEN\_State\_Values}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13}{Charge\+E\+N\+\_\+\+State\+\_\+\+Values}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ChargeEN\_State\_On@{ChargeEN\_State\_On}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!ChargeEN\_State\_On@{ChargeEN\_State\_On}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a0abd85691c20838d309acf057644e85d}\label{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a0abd85691c20838d309acf057644e85d}} 
+Charge\+E\+N\+\_\+\+State\+\_\+\+On&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{ChargeEN\_State\_Off@{ChargeEN\_State\_Off}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!ChargeEN\_State\_Off@{ChargeEN\_State\_Off}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a18797d3343fbb1c96fccaf14896aac16}\label{_b_m_u__can_8h_a89b3f1a85d2aff405f4b8e9ab7420f13a18797d3343fbb1c96fccaf14896aac16}} 
+Charge\+E\+N\+\_\+\+State\+\_\+\+Off&\\
+\hline
+
+\end{DoxyEnumFields}
+\mbox{\Hypertarget{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8e}\label{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8e}} 
+\index{BMU\_can.h@{BMU\_can.h}!HV\_Power\_State\_Values@{HV\_Power\_State\_Values}}
+\index{HV\_Power\_State\_Values@{HV\_Power\_State\_Values}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{HV\_Power\_State\_Values}{HV\_Power\_State\_Values}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8e}{H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Values}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{HV\_Power\_State\_On@{HV\_Power\_State\_On}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!HV\_Power\_State\_On@{HV\_Power\_State\_On}}}\mbox{\Hypertarget{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8ea99dd43f9791fd739831c9e47eceb4f03}\label{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8ea99dd43f9791fd739831c9e47eceb4f03}} 
+H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+On&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{HV\_Power\_State\_Off@{HV\_Power\_State\_Off}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!HV\_Power\_State\_Off@{HV\_Power\_State\_Off}}}\mbox{\Hypertarget{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8eaaa5e8b3a42d2d7ccd684ef33c2615dfa}\label{_b_m_u__can_8h_a92b5de6377b4108cf71844df56aa2c8eaaa5e8b3a42d2d7ccd684ef33c2615dfa}} 
+H\+V\+\_\+\+Power\+\_\+\+State\+\_\+\+Off&\\
+\hline
+
+\end{DoxyEnumFields}
+\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550a}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550a}} 
+\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Values@{StateBMS\_Values}}
+\index{StateBMS\_Values@{StateBMS\_Values}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{StateBMS\_Values}{StateBMS\_Values}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550a}{State\+B\+M\+S\+\_\+\+Values}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Failure\_Fatal@{StateBMS\_Failure\_Fatal}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Failure\_Fatal@{StateBMS\_Failure\_Fatal}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaed8d1e66ada97fdb130fd8467aafbd75}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaed8d1e66ada97fdb130fd8467aafbd75}} 
+State\+B\+M\+S\+\_\+\+Failure\+\_\+\+Fatal&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Charging@{StateBMS\_Charging}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Charging@{StateBMS\_Charging}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa36ad078b1463d9beefe4de4b085f9dbf}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa36ad078b1463d9beefe4de4b085f9dbf}} 
+State\+B\+M\+S\+\_\+\+Charging&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Discharge@{StateBMS\_Discharge}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Discharge@{StateBMS\_Discharge}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa5b09f95ffbe820880f15c63697280501}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa5b09f95ffbe820880f15c63697280501}} 
+State\+B\+M\+S\+\_\+\+Discharge&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Precharge@{StateBMS\_Precharge}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Precharge@{StateBMS\_Precharge}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa95f27be8c9dfe3ed44669ef1a9ee6ee6}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa95f27be8c9dfe3ed44669ef1a9ee6ee6}} 
+State\+B\+M\+S\+\_\+\+Precharge&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_HV\_Enable@{StateBMS\_HV\_Enable}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_HV\_Enable@{StateBMS\_HV\_Enable}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaf332371d2623a84b6f3eb94c8490ef90}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaf332371d2623a84b6f3eb94c8490ef90}} 
+State\+B\+M\+S\+\_\+\+H\+V\+\_\+\+Enable&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_HV\_Disable@{StateBMS\_HV\_Disable}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_HV\_Disable@{StateBMS\_HV\_Disable}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaeb7b94a38e4e678a3bfef3810a1987a7}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aaeb7b94a38e4e678a3bfef3810a1987a7}} 
+State\+B\+M\+S\+\_\+\+H\+V\+\_\+\+Disable&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Wait\_System\_Up@{StateBMS\_Wait\_System\_Up}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Wait\_System\_Up@{StateBMS\_Wait\_System\_Up}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa40894164467d79187bde556c964e227d}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aa40894164467d79187bde556c964e227d}} 
+State\+B\+M\+S\+\_\+\+Wait\+\_\+\+System\+\_\+\+Up&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{StateBMS\_Self\_Check@{StateBMS\_Self\_Check}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!StateBMS\_Self\_Check@{StateBMS\_Self\_Check}}}\mbox{\Hypertarget{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aacb3108f576616779531ecf9df9fabefb}\label{_b_m_u__can_8h_a89e53906f3c3136323de1263afdf550aacb3108f576616779531ecf9df9fabefb}} 
+State\+B\+M\+S\+\_\+\+Self\+\_\+\+Check&\\
+\hline
+
+\end{DoxyEnumFields}
+\mbox{\Hypertarget{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2}\label{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2}} 
+\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC\_Values@{Status\_DCDC\_Values}}
+\index{Status\_DCDC\_Values@{Status\_DCDC\_Values}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{Status\_DCDC\_Values}{Status\_DCDC\_Values}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2}{Status\+\_\+\+D\+C\+D\+C\+\_\+\+Values}}}
+
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Status\_DCDC\_Error@{Status\_DCDC\_Error}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC\_Error@{Status\_DCDC\_Error}}}\mbox{\Hypertarget{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a3c1c7c1247f1c37190ebb472de5dbde0}\label{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a3c1c7c1247f1c37190ebb472de5dbde0}} 
+Status\+\_\+\+D\+C\+D\+C\+\_\+\+Error&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Status\_DCDC\_On@{Status\_DCDC\_On}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC\_On@{Status\_DCDC\_On}}}\mbox{\Hypertarget{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2ac0e0dddcea47e5e7c796c9a7d7e21567}\label{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2ac0e0dddcea47e5e7c796c9a7d7e21567}} 
+Status\+\_\+\+D\+C\+D\+C\+\_\+\+On&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Status\_DCDC\_Off@{Status\_DCDC\_Off}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC\_Off@{Status\_DCDC\_Off}}}\mbox{\Hypertarget{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a1798d6f4cd7106dbd0e26712d478e8d4}\label{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2a1798d6f4cd7106dbd0e26712d478e8d4}} 
+Status\+\_\+\+D\+C\+D\+C\+\_\+\+Off&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Status\_DCDC\_Invalid@{Status\_DCDC\_Invalid}!BMU\_can.h@{BMU\_can.h}}\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC\_Invalid@{Status\_DCDC\_Invalid}}}\mbox{\Hypertarget{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2abd7128ecd640619849e1055a799f83fb}\label{_b_m_u__can_8h_a63e256d08938c7bed1e7ba54ed6926e2abd7128ecd640619849e1055a799f83fb}} 
+Status\+\_\+\+D\+C\+D\+C\+\_\+\+Invalid&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{_b_m_u__can_8h_a0121f001f557553d39e331426469ad72}\label{_b_m_u__can_8h_a0121f001f557553d39e331426469ad72}} 
+\index{BMU\_can.h@{BMU\_can.h}!BMU\_CellTempIndexToMuxSelect@{BMU\_CellTempIndexToMuxSelect}}
+\index{BMU\_CellTempIndexToMuxSelect@{BMU\_CellTempIndexToMuxSelect}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{BMU\_CellTempIndexToMuxSelect()}{BMU\_CellTempIndexToMuxSelect()}}
+{\footnotesize\ttfamily uint8\+\_\+t B\+M\+U\+\_\+\+Cell\+Temp\+Index\+To\+Mux\+Select (\begin{DoxyParamCaption}\item[{int}]{index }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a0121f001f557553d39e331426469ad72_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a7eae5a05a1b60320a2ef3b7b767a33fa}\label{_b_m_u__can_8h_a7eae5a05a1b60320a2ef3b7b767a33fa}} 
+\index{BMU\_can.h@{BMU\_can.h}!BMU\_CellVoltageIndexToMuxSelect@{BMU\_CellVoltageIndexToMuxSelect}}
+\index{BMU\_CellVoltageIndexToMuxSelect@{BMU\_CellVoltageIndexToMuxSelect}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{BMU\_CellVoltageIndexToMuxSelect()}{BMU\_CellVoltageIndexToMuxSelect()}}
+{\footnotesize\ttfamily uint8\+\_\+t B\+M\+U\+\_\+\+Cell\+Voltage\+Index\+To\+Mux\+Select (\begin{DoxyParamCaption}\item[{int}]{index }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a7eae5a05a1b60320a2ef3b7b767a33fa_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a2c5b63da0152dd1e7437ac43de488613}\label{_b_m_u__can_8h_a2c5b63da0152dd1e7437ac43de488613}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback@{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback}}
+\index{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback@{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback()}{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Button\+Events\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=324pt]{_b_m_u__can_8h_a2c5b63da0152dd1e7437ac43de488613_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a53aca74d03a37507ecb82cc11704a89a}\label{_b_m_u__can_8h_a53aca74d03a37507ecb82cc11704a89a}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_ChargeCart\_DTC\_Callback@{CAN\_Msg\_ChargeCart\_DTC\_Callback}}
+\index{CAN\_Msg\_ChargeCart\_DTC\_Callback@{CAN\_Msg\_ChargeCart\_DTC\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeCart\_DTC\_Callback()}{CAN\_Msg\_ChargeCart\_DTC\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+D\+T\+C\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{int}]{D\+T\+C\+\_\+\+C\+O\+DE,  }\item[{int}]{D\+T\+C\+\_\+\+Severity,  }\item[{int}]{D\+T\+C\+\_\+\+Data }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=317pt]{_b_m_u__can_8h_a53aca74d03a37507ecb82cc11704a89a_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a74c581cf269fb33a9c4f51aee0813da1}\label{_b_m_u__can_8h_a74c581cf269fb33a9c4f51aee0813da1}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_ChargeCart\_Heartbeat\_Callback@{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback}}
+\index{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback@{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback()}{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Heartbeat\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a74c581cf269fb33a9c4f51aee0813da1_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a2615be7cca510569731173760bbe8f7c}\label{_b_m_u__can_8h_a2615be7cca510569731173760bbe8f7c}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_DCU\_buttonEvents\_Callback@{CAN\_Msg\_DCU\_buttonEvents\_Callback}}
+\index{CAN\_Msg\_DCU\_buttonEvents\_Callback@{CAN\_Msg\_DCU\_buttonEvents\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_DCU\_buttonEvents\_Callback()}{CAN\_Msg\_DCU\_buttonEvents\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+button\+Events\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a2615be7cca510569731173760bbe8f7c_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_af4f9c2c4764fd0ccb34f24efa81ddccb}\label{_b_m_u__can_8h_af4f9c2c4764fd0ccb34f24efa81ddccb}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_DCU\_DTC\_Callback@{CAN\_Msg\_DCU\_DTC\_Callback}}
+\index{CAN\_Msg\_DCU\_DTC\_Callback@{CAN\_Msg\_DCU\_DTC\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_DCU\_DTC\_Callback()}{CAN\_Msg\_DCU\_DTC\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+\+D\+T\+C\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{int}]{D\+T\+C\+\_\+\+C\+O\+DE,  }\item[{int}]{D\+T\+C\+\_\+\+Severity,  }\item[{int}]{D\+T\+C\+\_\+\+Data }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_af4f9c2c4764fd0ccb34f24efa81ddccb_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_ad512f9e1fad99df74509ee66de996652}\label{_b_m_u__can_8h_ad512f9e1fad99df74509ee66de996652}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_DCU\_Heartbeat\_Callback@{CAN\_Msg\_DCU\_Heartbeat\_Callback}}
+\index{CAN\_Msg\_DCU\_Heartbeat\_Callback@{CAN\_Msg\_DCU\_Heartbeat\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_DCU\_Heartbeat\_Callback()}{CAN\_Msg\_DCU\_Heartbeat\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+\+Heartbeat\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=337pt]{_b_m_u__can_8h_ad512f9e1fad99df74509ee66de996652_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a8c68b3a9a339098052d8af451ab03ad7}\label{_b_m_u__can_8h_a8c68b3a9a339098052d8af451ab03ad7}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_PDU\_DCDC\_Status\_Callback@{CAN\_Msg\_PDU\_DCDC\_Status\_Callback}}
+\index{CAN\_Msg\_PDU\_DCDC\_Status\_Callback@{CAN\_Msg\_PDU\_DCDC\_Status\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_PDU\_DCDC\_Status\_Callback()}{CAN\_Msg\_PDU\_DCDC\_Status\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+D\+C\+D\+C\+\_\+\+Status\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a8c68b3a9a339098052d8af451ab03ad7_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_ad58e0b3cfcb507f667661941014edd37}\label{_b_m_u__can_8h_ad58e0b3cfcb507f667661941014edd37}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_PDU\_DTC\_Callback@{CAN\_Msg\_PDU\_DTC\_Callback}}
+\index{CAN\_Msg\_PDU\_DTC\_Callback@{CAN\_Msg\_PDU\_DTC\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_PDU\_DTC\_Callback()}{CAN\_Msg\_PDU\_DTC\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+D\+T\+C\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{int}]{D\+T\+C\+\_\+\+C\+O\+DE,  }\item[{int}]{D\+T\+C\+\_\+\+Severity,  }\item[{int}]{D\+T\+C\+\_\+\+Data }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_ad58e0b3cfcb507f667661941014edd37_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_ad6cd60bf955873221619d4830e755439}\label{_b_m_u__can_8h_ad6cd60bf955873221619d4830e755439}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_PDU\_Heartbeat\_Callback@{CAN\_Msg\_PDU\_Heartbeat\_Callback}}
+\index{CAN\_Msg\_PDU\_Heartbeat\_Callback@{CAN\_Msg\_PDU\_Heartbeat\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_PDU\_Heartbeat\_Callback()}{CAN\_Msg\_PDU\_Heartbeat\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+P\+D\+U\+\_\+\+Heartbeat\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=336pt]{_b_m_u__can_8h_ad6cd60bf955873221619d4830e755439_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a4e005c403304fd7b3573b8f16441f5ea}\label{_b_m_u__can_8h_a4e005c403304fd7b3573b8f16441f5ea}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_VCU\_F7\_DTC\_Callback@{CAN\_Msg\_VCU\_F7\_DTC\_Callback}}
+\index{CAN\_Msg\_VCU\_F7\_DTC\_Callback@{CAN\_Msg\_VCU\_F7\_DTC\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_VCU\_F7\_DTC\_Callback()}{CAN\_Msg\_VCU\_F7\_DTC\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+F7\+\_\+\+D\+T\+C\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{int}]{D\+T\+C\+\_\+\+C\+O\+DE,  }\item[{int}]{D\+T\+C\+\_\+\+Severity,  }\item[{int}]{D\+T\+C\+\_\+\+Data }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=331pt]{_b_m_u__can_8h_a4e005c403304fd7b3573b8f16441f5ea_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a34d275348044192a7088e4844748bfbc}\label{_b_m_u__can_8h_a34d275348044192a7088e4844748bfbc}} 
+\index{BMU\_can.h@{BMU\_can.h}!CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback@{CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback}}
+\index{CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback@{CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback()}{CAN\_Msg\_VCU\_F7\_Heartbeat\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+V\+C\+U\+\_\+\+F7\+\_\+\+Heartbeat\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a34d275348044192a7088e4844748bfbc_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_af3bf3ff66e0804fdce6133c5424d28c5}\label{_b_m_u__can_8h_af3bf3ff66e0804fdce6133c5424d28c5}} 
+\index{BMU\_can.h@{BMU\_can.h}!configCANFilters@{configCANFilters}}
+\index{configCANFilters@{configCANFilters}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{configCANFilters()}{configCANFilters()}}
+{\footnotesize\ttfamily void config\+C\+A\+N\+Filters (\begin{DoxyParamCaption}\item[{C\+A\+N\+\_\+\+Handle\+Type\+Def $\ast$}]{can\+Handle }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a32d4d470cc461096834497b4f6650378}\label{_b_m_u__can_8h_a32d4d470cc461096834497b4f6650378}} 
+\index{BMU\_can.h@{BMU\_can.h}!DTC\_Fatal\_Callback@{DTC\_Fatal\_Callback}}
+\index{DTC\_Fatal\_Callback@{DTC\_Fatal\_Callback}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{DTC\_Fatal\_Callback()}{DTC\_Fatal\_Callback()}}
+{\footnotesize\ttfamily void D\+T\+C\+\_\+\+Fatal\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{Board\+I\+Ds}]{board }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=307pt]{_b_m_u__can_8h_a32d4d470cc461096834497b4f6650378_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a0c0bd728633ddaf54f51ae1c5f2f85ad}\label{_b_m_u__can_8h_a0c0bd728633ddaf54f51ae1c5f2f85ad}} 
+\index{BMU\_can.h@{BMU\_can.h}!init\_can\_driver@{init\_can\_driver}}
+\index{init\_can\_driver@{init\_can\_driver}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{init\_can\_driver()}{init\_can\_driver()}}
+{\footnotesize\ttfamily int init\+\_\+can\+\_\+driver (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a61ca4db08ab63fa3c84a227bf8727f9e}\label{_b_m_u__can_8h_a61ca4db08ab63fa3c84a227bf8727f9e}} 
+\index{BMU\_can.h@{BMU\_can.h}!parseCANData@{parseCANData}}
+\index{parseCANData@{parseCANData}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{parseCANData()}{parseCANData()}}
+{\footnotesize\ttfamily int parse\+C\+A\+N\+Data (\begin{DoxyParamCaption}\item[{int}]{id,  }\item[{void $\ast$}]{data }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{_b_m_u__can_8h_a61ca4db08ab63fa3c84a227bf8727f9e_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_ad57fbcfdfc9c7cb21469a803077961e4}\label{_b_m_u__can_8h_ad57fbcfdfc9c7cb21469a803077961e4}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_batteryStatusHV@{sendCAN\_BMU\_batteryStatusHV}}
+\index{sendCAN\_BMU\_batteryStatusHV@{sendCAN\_BMU\_batteryStatusHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_batteryStatusHV()}{sendCAN\_BMU\_batteryStatusHV()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+battery\+Status\+HV (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_ad57fbcfdfc9c7cb21469a803077961e4_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_ad57fbcfdfc9c7cb21469a803077961e4_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a663b1926f040f6c64e2fc3a739911355}\label{_b_m_u__can_8h_a663b1926f040f6c64e2fc3a739911355}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_BrakePressure@{sendCAN\_BMU\_BrakePressure}}
+\index{sendCAN\_BMU\_BrakePressure@{sendCAN\_BMU\_BrakePressure}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_BrakePressure()}{sendCAN\_BMU\_BrakePressure()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Brake\+Pressure (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a663b1926f040f6c64e2fc3a739911355_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=340pt]{_b_m_u__can_8h_a663b1926f040f6c64e2fc3a739911355_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a9dbd675bf640a1a7f94d04e46428dce8}\label{_b_m_u__can_8h_a9dbd675bf640a1a7f94d04e46428dce8}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_CellTemp@{sendCAN\_BMU\_CellTemp}}
+\index{sendCAN\_BMU\_CellTemp@{sendCAN\_BMU\_CellTemp}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_CellTemp()}{sendCAN\_BMU\_CellTemp()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Cell\+Temp (\begin{DoxyParamCaption}\item[{int}]{index }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a9dbd675bf640a1a7f94d04e46428dce8_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=343pt]{_b_m_u__can_8h_a9dbd675bf640a1a7f94d04e46428dce8_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a6fb8cd081045bb5774818d1505f67df6}\label{_b_m_u__can_8h_a6fb8cd081045bb5774818d1505f67df6}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_CellVoltage@{sendCAN\_BMU\_CellVoltage}}
+\index{sendCAN\_BMU\_CellVoltage@{sendCAN\_BMU\_CellVoltage}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_CellVoltage()}{sendCAN\_BMU\_CellVoltage()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Cell\+Voltage (\begin{DoxyParamCaption}\item[{int}]{index }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a6fb8cd081045bb5774818d1505f67df6_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a6fb8cd081045bb5774818d1505f67df6_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a1af9d44d6482bda6199e7ddcf818c44b}\label{_b_m_u__can_8h_a1af9d44d6482bda6199e7ddcf818c44b}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_ChargeEN\_State@{sendCAN\_BMU\_ChargeEN\_State}}
+\index{sendCAN\_BMU\_ChargeEN\_State@{sendCAN\_BMU\_ChargeEN\_State}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_ChargeEN\_State()}{sendCAN\_BMU\_ChargeEN\_State()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Charge\+E\+N\+\_\+\+State (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a1af9d44d6482bda6199e7ddcf818c44b_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=322pt]{_b_m_u__can_8h_a1af9d44d6482bda6199e7ddcf818c44b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_ae309db13bbff550dfaf95e405920c262}\label{_b_m_u__can_8h_ae309db13bbff550dfaf95e405920c262}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_DTC@{sendCAN\_BMU\_DTC}}
+\index{sendCAN\_BMU\_DTC@{sendCAN\_BMU\_DTC}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_DTC()}{sendCAN\_BMU\_DTC()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+D\+TC (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=343pt]{_b_m_u__can_8h_ae309db13bbff550dfaf95e405920c262_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_af307e86ece6b6ab53c7f714659969efd}\label{_b_m_u__can_8h_af307e86ece6b6ab53c7f714659969efd}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_Heartbeat@{sendCAN\_BMU\_Heartbeat}}
+\index{sendCAN\_BMU\_Heartbeat@{sendCAN\_BMU\_Heartbeat}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_Heartbeat()}{sendCAN\_BMU\_Heartbeat()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+Heartbeat (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_af307e86ece6b6ab53c7f714659969efd_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_aeebeab19729fbb641a5dd11d1076cdd7}\label{_b_m_u__can_8h_aeebeab19729fbb641a5dd11d1076cdd7}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_HV\_Power\_State@{sendCAN\_BMU\_HV\_Power\_State}}
+\index{sendCAN\_BMU\_HV\_Power\_State@{sendCAN\_BMU\_HV\_Power\_State}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_HV\_Power\_State()}{sendCAN\_BMU\_HV\_Power\_State()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+H\+V\+\_\+\+Power\+\_\+\+State (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_aeebeab19729fbb641a5dd11d1076cdd7_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_aeebeab19729fbb641a5dd11d1076cdd7_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a712375084a1c0ecc1fc21516574e5624}\label{_b_m_u__can_8h_a712375084a1c0ecc1fc21516574e5624}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_stateBatteryHV@{sendCAN\_BMU\_stateBatteryHV}}
+\index{sendCAN\_BMU\_stateBatteryHV@{sendCAN\_BMU\_stateBatteryHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_stateBatteryHV()}{sendCAN\_BMU\_stateBatteryHV()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+state\+Battery\+HV (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a712375084a1c0ecc1fc21516574e5624_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a6e17ca7fed9637a18fc11e407a3684a3}\label{_b_m_u__can_8h_a6e17ca7fed9637a18fc11e407a3684a3}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_stateBusHV@{sendCAN\_BMU\_stateBusHV}}
+\index{sendCAN\_BMU\_stateBusHV@{sendCAN\_BMU\_stateBusHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_stateBusHV()}{sendCAN\_BMU\_stateBusHV()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+state\+Bus\+HV (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a6e17ca7fed9637a18fc11e407a3684a3_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{_b_m_u__can_8h_a6e17ca7fed9637a18fc11e407a3684a3_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{_b_m_u__can_8h_a545d5c820a23d33a576f175db02e2976}\label{_b_m_u__can_8h_a545d5c820a23d33a576f175db02e2976}} 
+\index{BMU\_can.h@{BMU\_can.h}!sendCAN\_BMU\_VERSION@{sendCAN\_BMU\_VERSION}}
+\index{sendCAN\_BMU\_VERSION@{sendCAN\_BMU\_VERSION}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{sendCAN\_BMU\_VERSION()}{sendCAN\_BMU\_VERSION()}}
+{\footnotesize\ttfamily int send\+C\+A\+N\+\_\+\+B\+M\+U\+\_\+\+V\+E\+R\+S\+I\+ON (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{_b_m_u__can_8h_a4cd09029222a047a73fec89be7225697}\label{_b_m_u__can_8h_a4cd09029222a047a73fec89be7225697}} 
+\index{BMU\_can.h@{BMU\_can.h}!BMU\_Heartbeat\_dummydata@{BMU\_Heartbeat\_dummydata}}
+\index{BMU\_Heartbeat\_dummydata@{BMU\_Heartbeat\_dummydata}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{BMU\_Heartbeat\_dummydata}{BMU\_Heartbeat\_dummydata}}
+{\footnotesize\ttfamily volatile int64\+\_\+t B\+M\+U\+\_\+\+Heartbeat\+\_\+dummydata}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a9d750c96d072542249295b64baabfec4}\label{_b_m_u__can_8h_a9d750c96d072542249295b64baabfec4}} 
+\index{BMU\_can.h@{BMU\_can.h}!BrakePressureBMU@{BrakePressureBMU}}
+\index{BrakePressureBMU@{BrakePressureBMU}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{BrakePressureBMU}{BrakePressureBMU}}
+{\footnotesize\ttfamily volatile float Brake\+Pressure\+B\+MU}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a36e9488ab772533ec2b914fee05c255c}\label{_b_m_u__can_8h_a36e9488ab772533ec2b914fee05c255c}} 
+\index{BMU\_can.h@{BMU\_can.h}!ButtonChargeStart@{ButtonChargeStart}}
+\index{ButtonChargeStart@{ButtonChargeStart}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ButtonChargeStart}{ButtonChargeStart}}
+{\footnotesize\ttfamily volatile int64\+\_\+t Button\+Charge\+Start}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_acb82ad4dfc7a9477da61a8790a344bea}\label{_b_m_u__can_8h_acb82ad4dfc7a9477da61a8790a344bea}} 
+\index{BMU\_can.h@{BMU\_can.h}!ButtonChargeStop@{ButtonChargeStop}}
+\index{ButtonChargeStop@{ButtonChargeStop}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ButtonChargeStop}{ButtonChargeStop}}
+{\footnotesize\ttfamily volatile int64\+\_\+t Button\+Charge\+Stop}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_accb1e31a8cd319fa694f54e0ac88164b}\label{_b_m_u__can_8h_accb1e31a8cd319fa694f54e0ac88164b}} 
+\index{BMU\_can.h@{BMU\_can.h}!ButtonHVEnabled@{ButtonHVEnabled}}
+\index{ButtonHVEnabled@{ButtonHVEnabled}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ButtonHVEnabled}{ButtonHVEnabled}}
+{\footnotesize\ttfamily volatile int64\+\_\+t Button\+H\+V\+Enabled}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a54d651f22ba8164e46e3c7fbe98798be}\label{_b_m_u__can_8h_a54d651f22ba8164e46e3c7fbe98798be}} 
+\index{BMU\_can.h@{BMU\_can.h}!ChargeEN\_State@{ChargeEN\_State}}
+\index{ChargeEN\_State@{ChargeEN\_State}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{ChargeEN\_State}{ChargeEN\_State}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Charge\+E\+N\+\_\+\+State}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_ae58dbb1d044426f34b5ffde1609771d8}\label{_b_m_u__can_8h_ae58dbb1d044426f34b5ffde1609771d8}} 
+\index{BMU\_can.h@{BMU\_can.h}!CurrentBusHV@{CurrentBusHV}}
+\index{CurrentBusHV@{CurrentBusHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CurrentBusHV}{CurrentBusHV}}
+{\footnotesize\ttfamily volatile float Current\+Bus\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_adee49a7c9ec3cb548e063a6d82261353}\label{_b_m_u__can_8h_adee49a7c9ec3cb548e063a6d82261353}} 
+\index{BMU\_can.h@{BMU\_can.h}!CurrentDCBatteryHV@{CurrentDCBatteryHV}}
+\index{CurrentDCBatteryHV@{CurrentDCBatteryHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{CurrentDCBatteryHV}{CurrentDCBatteryHV}}
+{\footnotesize\ttfamily volatile float Current\+D\+C\+Battery\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a08dd7614c34b00f2e9f1c0af2fbd7332}\label{_b_m_u__can_8h_a08dd7614c34b00f2e9f1c0af2fbd7332}} 
+\index{BMU\_can.h@{BMU\_can.h}!DTC\_CODE@{DTC\_CODE}}
+\index{DTC\_CODE@{DTC\_CODE}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{DTC\_CODE}{DTC\_CODE}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t D\+T\+C\+\_\+\+C\+O\+DE}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a74126080863714bf66dc6cfbee637e96}\label{_b_m_u__can_8h_a74126080863714bf66dc6cfbee637e96}} 
+\index{BMU\_can.h@{BMU\_can.h}!DTC\_Data@{DTC\_Data}}
+\index{DTC\_Data@{DTC\_Data}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{DTC\_Data}{DTC\_Data}}
+{\footnotesize\ttfamily volatile int64\+\_\+t D\+T\+C\+\_\+\+Data}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_abd17513092c6eadc53cd73b725f9b8ed}\label{_b_m_u__can_8h_abd17513092c6eadc53cd73b725f9b8ed}} 
+\index{BMU\_can.h@{BMU\_can.h}!DTC\_Severity@{DTC\_Severity}}
+\index{DTC\_Severity@{DTC\_Severity}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{DTC\_Severity}{DTC\_Severity}}
+{\footnotesize\ttfamily volatile int64\+\_\+t D\+T\+C\+\_\+\+Severity}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a4f1b287b6f2f1a94b3e34182ba551f18}\label{_b_m_u__can_8h_a4f1b287b6f2f1a94b3e34182ba551f18}} 
+\index{BMU\_can.h@{BMU\_can.h}!HV\_Power\_State@{HV\_Power\_State}}
+\index{HV\_Power\_State@{HV\_Power\_State}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{HV\_Power\_State}{HV\_Power\_State}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t H\+V\+\_\+\+Power\+\_\+\+State}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a5b2c7db12d6c0e67f683e9ab514b05e0}\label{_b_m_u__can_8h_a5b2c7db12d6c0e67f683e9ab514b05e0}} 
+\index{BMU\_can.h@{BMU\_can.h}!PowerBatteryHV@{PowerBatteryHV}}
+\index{PowerBatteryHV@{PowerBatteryHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{PowerBatteryHV}{PowerBatteryHV}}
+{\footnotesize\ttfamily volatile float Power\+Battery\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a79909b8df91fbf3a360053c3839b59f6}\label{_b_m_u__can_8h_a79909b8df91fbf3a360053c3839b59f6}} 
+\index{BMU\_can.h@{BMU\_can.h}!StateBatteryChargeHV@{StateBatteryChargeHV}}
+\index{StateBatteryChargeHV@{StateBatteryChargeHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{StateBatteryChargeHV}{StateBatteryChargeHV}}
+{\footnotesize\ttfamily volatile float State\+Battery\+Charge\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a716789500bc738ce4251839f5bd9f63b}\label{_b_m_u__can_8h_a716789500bc738ce4251839f5bd9f63b}} 
+\index{BMU\_can.h@{BMU\_can.h}!StateBatteryHealthHV@{StateBatteryHealthHV}}
+\index{StateBatteryHealthHV@{StateBatteryHealthHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{StateBatteryHealthHV}{StateBatteryHealthHV}}
+{\footnotesize\ttfamily volatile float State\+Battery\+Health\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_aa332c6a38d37e207cecec60f603afa6a}\label{_b_m_u__can_8h_aa332c6a38d37e207cecec60f603afa6a}} 
+\index{BMU\_can.h@{BMU\_can.h}!StateBatteryPowerHV@{StateBatteryPowerHV}}
+\index{StateBatteryPowerHV@{StateBatteryPowerHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{StateBatteryPowerHV}{StateBatteryPowerHV}}
+{\footnotesize\ttfamily volatile float State\+Battery\+Power\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a0dc102e7a4e4a098c02f257aadb42e6d}\label{_b_m_u__can_8h_a0dc102e7a4e4a098c02f257aadb42e6d}} 
+\index{BMU\_can.h@{BMU\_can.h}!StateBMS@{StateBMS}}
+\index{StateBMS@{StateBMS}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{StateBMS}{StateBMS}}
+{\footnotesize\ttfamily volatile int64\+\_\+t State\+B\+MS}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a5cf83307b924d357aa310355f530830b}\label{_b_m_u__can_8h_a5cf83307b924d357aa310355f530830b}} 
+\index{BMU\_can.h@{BMU\_can.h}!Status\_DCDC@{Status\_DCDC}}
+\index{Status\_DCDC@{Status\_DCDC}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{Status\_DCDC}{Status\_DCDC}}
+{\footnotesize\ttfamily volatile int64\+\_\+t Status\+\_\+\+D\+C\+DC}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a273a741e79e695ba948c94bbc1cd274f}\label{_b_m_u__can_8h_a273a741e79e695ba948c94bbc1cd274f}} 
+\index{BMU\_can.h@{BMU\_can.h}!TempCell@{TempCell}}
+\index{TempCell@{TempCell}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{TempCell}{TempCell}}
+{\footnotesize\ttfamily volatile float Temp\+Cell\mbox{[}72\mbox{]}}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_ab3f81232bfb3c8215ad973c0781c3769}\label{_b_m_u__can_8h_ab3f81232bfb3c8215ad973c0781c3769}} 
+\index{BMU\_can.h@{BMU\_can.h}!TempCellMax@{TempCellMax}}
+\index{TempCellMax@{TempCellMax}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{TempCellMax}{TempCellMax}}
+{\footnotesize\ttfamily volatile float Temp\+Cell\+Max}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a81551e79d7b8b0467063b34bf0747afd}\label{_b_m_u__can_8h_a81551e79d7b8b0467063b34bf0747afd}} 
+\index{BMU\_can.h@{BMU\_can.h}!TempCellMin@{TempCellMin}}
+\index{TempCellMin@{TempCellMin}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{TempCellMin}{TempCellMin}}
+{\footnotesize\ttfamily volatile float Temp\+Cell\+Min}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a2ee3fc3085b62da5f3fce0a06b98fae9}\label{_b_m_u__can_8h_a2ee3fc3085b62da5f3fce0a06b98fae9}} 
+\index{BMU\_can.h@{BMU\_can.h}!VoltageBatteryHV@{VoltageBatteryHV}}
+\index{VoltageBatteryHV@{VoltageBatteryHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VoltageBatteryHV}{VoltageBatteryHV}}
+{\footnotesize\ttfamily volatile uint64\+\_\+t Voltage\+Battery\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a4dce5a8de02b14c58af2815c1274a714}\label{_b_m_u__can_8h_a4dce5a8de02b14c58af2815c1274a714}} 
+\index{BMU\_can.h@{BMU\_can.h}!VoltageBusHV@{VoltageBusHV}}
+\index{VoltageBusHV@{VoltageBusHV}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VoltageBusHV}{VoltageBusHV}}
+{\footnotesize\ttfamily volatile float Voltage\+Bus\+HV}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_aff3ed22f4d3445bf990c48d55c2a36fa}\label{_b_m_u__can_8h_aff3ed22f4d3445bf990c48d55c2a36fa}} 
+\index{BMU\_can.h@{BMU\_can.h}!VoltageCell@{VoltageCell}}
+\index{VoltageCell@{VoltageCell}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VoltageCell}{VoltageCell}}
+{\footnotesize\ttfamily volatile float Voltage\+Cell\mbox{[}72\mbox{]}}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a07f7a2e617d400c48741b5eca5b9270b}\label{_b_m_u__can_8h_a07f7a2e617d400c48741b5eca5b9270b}} 
+\index{BMU\_can.h@{BMU\_can.h}!VoltageCellMax@{VoltageCellMax}}
+\index{VoltageCellMax@{VoltageCellMax}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VoltageCellMax}{VoltageCellMax}}
+{\footnotesize\ttfamily volatile float Voltage\+Cell\+Max}
+
+\mbox{\Hypertarget{_b_m_u__can_8h_a085733007ae33ca049b2a702ef4e918d}\label{_b_m_u__can_8h_a085733007ae33ca049b2a702ef4e918d}} 
+\index{BMU\_can.h@{BMU\_can.h}!VoltageCellMin@{VoltageCellMin}}
+\index{VoltageCellMin@{VoltageCellMin}!BMU\_can.h@{BMU\_can.h}}
+\doxysubsubsection{\texorpdfstring{VoltageCellMin}{VoltageCellMin}}
+{\footnotesize\ttfamily volatile float Voltage\+Cell\+Min}
+

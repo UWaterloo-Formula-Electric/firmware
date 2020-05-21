@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['getibus_146',['getIBus',['../batteries_8c.html#a0ee7fbdeb8e2e8413b4fc77ba59223d5',1,'batteries.c']]],
-  ['getpackvoltage_147',['getPackVoltage',['../batteries_8c.html#ab07aef73f633627b5a1a78e40f15961f',1,'batteries.c']]],
-  ['getsocfromvoltage_148',['getSOCFromVoltage',['../batteries_8c.html#a3d41850a2fe8400978c4f68163d726be',1,'batteries.c']]],
-  ['getvbatt_149',['getVBatt',['../batteries_8c.html#aff30116cb629c2efdad61c2ccaec0c36',1,'batteries.c']]],
-  ['getvbus_150',['getVBus',['../batteries_8c.html#a6fbf3bf910348af26a580fc418f89f5e',1,'batteries.c']]]
+  ['enterchargemode_1048',['enterChargeMode',['../control_state_machine_8c.html#aec0bbf23130028c099e9ceb26f24b917',1,'controlStateMachine.c']]],
+  ['error_5fcounter_5fsuccess_1049',['ERROR_COUNTER_SUCCESS',['../batteries_8c.html#acd3cd9ec15fdceb68c5516f59552605c',1,'batteries.c']]]
 ];

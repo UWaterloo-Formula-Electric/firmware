@@ -1,0 +1,184 @@
+\hypertarget{fault_monitor_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/fault\+Monitor.c File Reference}
+\label{fault_monitor_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/faultMonitor.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/faultMonitor.c}}
+
+
+Module monitoring status of IL and H\+V\+IL.  
+
+
+{\ttfamily \#include \char`\"{}fault\+Monitor.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}watchdog.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
+Include dependency graph for fault\+Monitor.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{fault_monitor_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{fault_monitor_8c_a3853a9d9be97651040e1c70262ef85fd}{F\+A\+U\+L\+T\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+OD}}~100
+\item 
+\#define \mbox{\hyperlink{fault_monitor_8c_a1d29ad9e4f46673a5ef5536d33dec3de}{F\+A\+U\+L\+T\+\_\+\+T\+A\+S\+K\+\_\+\+ID}}~6
+\item 
+\#define \mbox{\hyperlink{fault_monitor_8c_aa4214768ba6e53b3823b5ddb90fdafb5}{E\+N\+A\+B\+L\+E\+\_\+\+I\+L\+\_\+\+C\+H\+E\+C\+KS}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{fault_monitor_8c_aa5066394b10bb9930ceba8abcecf830d}{H\+V\+I\+L\+\_\+\+Control}} (bool enable)
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_a69aa89769ae98ccf0c43df9aae9013bd}{get\+B\+S\+P\+D\+\_\+\+Status}} ()
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_abc1628692d90286486606a3ee8ab8850}{get\+T\+S\+M\+S\+\_\+\+Status}} ()
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_a8972c089c2848e0b9a198c29ea66ff0c}{get\+H\+V\+D\+\_\+\+Status}} ()
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_a7ee0d344baf653c63e93e47fab0eecc4}{get\+H\+V\+I\+L\+\_\+\+Status}} ()
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_af5168c6ba8d43dc50aeabe5983acadf2}{get\+I\+L\+\_\+\+B\+R\+B\+\_\+\+Status}} ()
+\item 
+bool \mbox{\hyperlink{fault_monitor_8c_adee9c4bbc8e5687d0d014abc2feabaf0}{get\+I\+L\+\_\+\+Status}} ()
+\item 
+void \mbox{\hyperlink{fault_monitor_8c_a7fc5d95e7a8d6e81caf8dbbdebcd47bf}{fault\+Monitor\+Task}} (void $\ast$pv\+Parameters)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Module monitoring status of IL and H\+V\+IL. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews
+\end{DoxyAuthor}
+Contains fault monitor task which monitors the status of the interlock loop (IL) and high voltage interlock loop (H\+V\+IL) and reports an error when either breaks. Also contains functions for getting the status of various points along the IL. 
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{fault_monitor_8c_aa4214768ba6e53b3823b5ddb90fdafb5}\label{fault_monitor_8c_aa4214768ba6e53b3823b5ddb90fdafb5}} 
+\index{faultMonitor.c@{faultMonitor.c}!ENABLE\_IL\_CHECKS@{ENABLE\_IL\_CHECKS}}
+\index{ENABLE\_IL\_CHECKS@{ENABLE\_IL\_CHECKS}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{ENABLE\_IL\_CHECKS}{ENABLE\_IL\_CHECKS}}
+{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+I\+L\+\_\+\+C\+H\+E\+C\+KS}
+
+\mbox{\Hypertarget{fault_monitor_8c_a3853a9d9be97651040e1c70262ef85fd}\label{fault_monitor_8c_a3853a9d9be97651040e1c70262ef85fd}} 
+\index{faultMonitor.c@{faultMonitor.c}!FAULT\_MEASURE\_TASK\_PERIOD@{FAULT\_MEASURE\_TASK\_PERIOD}}
+\index{FAULT\_MEASURE\_TASK\_PERIOD@{FAULT\_MEASURE\_TASK\_PERIOD}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{FAULT\_MEASURE\_TASK\_PERIOD}{FAULT\_MEASURE\_TASK\_PERIOD}}
+{\footnotesize\ttfamily \#define F\+A\+U\+L\+T\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+OD~100}
+
+\mbox{\Hypertarget{fault_monitor_8c_a1d29ad9e4f46673a5ef5536d33dec3de}\label{fault_monitor_8c_a1d29ad9e4f46673a5ef5536d33dec3de}} 
+\index{faultMonitor.c@{faultMonitor.c}!FAULT\_TASK\_ID@{FAULT\_TASK\_ID}}
+\index{FAULT\_TASK\_ID@{FAULT\_TASK\_ID}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{FAULT\_TASK\_ID}{FAULT\_TASK\_ID}}
+{\footnotesize\ttfamily \#define F\+A\+U\+L\+T\+\_\+\+T\+A\+S\+K\+\_\+\+ID~6}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{fault_monitor_8c_a7fc5d95e7a8d6e81caf8dbbdebcd47bf}\label{fault_monitor_8c_a7fc5d95e7a8d6e81caf8dbbdebcd47bf}} 
+\index{faultMonitor.c@{faultMonitor.c}!faultMonitorTask@{faultMonitorTask}}
+\index{faultMonitorTask@{faultMonitorTask}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{faultMonitorTask()}{faultMonitorTask()}}
+{\footnotesize\ttfamily void fault\+Monitor\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Parameters }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=291pt]{fault_monitor_8c_a7fc5d95e7a8d6e81caf8dbbdebcd47bf_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_a69aa89769ae98ccf0c43df9aae9013bd}\label{fault_monitor_8c_a69aa89769ae98ccf0c43df9aae9013bd}} 
+\index{faultMonitor.c@{faultMonitor.c}!getBSPD\_Status@{getBSPD\_Status}}
+\index{getBSPD\_Status@{getBSPD\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getBSPD\_Status()}{getBSPD\_Status()}}
+{\footnotesize\ttfamily bool get\+B\+S\+P\+D\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=319pt]{fault_monitor_8c_a69aa89769ae98ccf0c43df9aae9013bd_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_a8972c089c2848e0b9a198c29ea66ff0c}\label{fault_monitor_8c_a8972c089c2848e0b9a198c29ea66ff0c}} 
+\index{faultMonitor.c@{faultMonitor.c}!getHVD\_Status@{getHVD\_Status}}
+\index{getHVD\_Status@{getHVD\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getHVD\_Status()}{getHVD\_Status()}}
+{\footnotesize\ttfamily bool get\+H\+V\+D\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=308pt]{fault_monitor_8c_a8972c089c2848e0b9a198c29ea66ff0c_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_a7ee0d344baf653c63e93e47fab0eecc4}\label{fault_monitor_8c_a7ee0d344baf653c63e93e47fab0eecc4}} 
+\index{faultMonitor.c@{faultMonitor.c}!getHVIL\_Status@{getHVIL\_Status}}
+\index{getHVIL\_Status@{getHVIL\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getHVIL\_Status()}{getHVIL\_Status()}}
+{\footnotesize\ttfamily bool get\+H\+V\+I\+L\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=307pt]{fault_monitor_8c_a7ee0d344baf653c63e93e47fab0eecc4_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_af5168c6ba8d43dc50aeabe5983acadf2}\label{fault_monitor_8c_af5168c6ba8d43dc50aeabe5983acadf2}} 
+\index{faultMonitor.c@{faultMonitor.c}!getIL\_BRB\_Status@{getIL\_BRB\_Status}}
+\index{getIL\_BRB\_Status@{getIL\_BRB\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getIL\_BRB\_Status()}{getIL\_BRB\_Status()}}
+{\footnotesize\ttfamily bool get\+I\+L\+\_\+\+B\+R\+B\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=330pt]{fault_monitor_8c_af5168c6ba8d43dc50aeabe5983acadf2_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_adee9c4bbc8e5687d0d014abc2feabaf0}\label{fault_monitor_8c_adee9c4bbc8e5687d0d014abc2feabaf0}} 
+\index{faultMonitor.c@{faultMonitor.c}!getIL\_Status@{getIL\_Status}}
+\index{getIL\_Status@{getIL\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getIL\_Status()}{getIL\_Status()}}
+{\footnotesize\ttfamily bool get\+I\+L\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=283pt]{fault_monitor_8c_adee9c4bbc8e5687d0d014abc2feabaf0_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_abc1628692d90286486606a3ee8ab8850}\label{fault_monitor_8c_abc1628692d90286486606a3ee8ab8850}} 
+\index{faultMonitor.c@{faultMonitor.c}!getTSMS\_Status@{getTSMS\_Status}}
+\index{getTSMS\_Status@{getTSMS\_Status}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{getTSMS\_Status()}{getTSMS\_Status()}}
+{\footnotesize\ttfamily bool get\+T\+S\+M\+S\+\_\+\+Status (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=320pt]{fault_monitor_8c_abc1628692d90286486606a3ee8ab8850_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{fault_monitor_8c_aa5066394b10bb9930ceba8abcecf830d}\label{fault_monitor_8c_aa5066394b10bb9930ceba8abcecf830d}} 
+\index{faultMonitor.c@{faultMonitor.c}!HVIL\_Control@{HVIL\_Control}}
+\index{HVIL\_Control@{HVIL\_Control}!faultMonitor.c@{faultMonitor.c}}
+\doxysubsubsection{\texorpdfstring{HVIL\_Control()}{HVIL\_Control()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def H\+V\+I\+L\+\_\+\+Control (\begin{DoxyParamCaption}\item[{bool}]{enable }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=281pt]{fault_monitor_8c_aa5066394b10bb9930ceba8abcecf830d_icgraph}
+\end{center}
+\end{figure}

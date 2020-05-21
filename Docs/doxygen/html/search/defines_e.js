@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['rdauxa_5fbyte0_1687',['RDAUXA_BYTE0',['../ltc6811_8c.html#a749015788b2c11c11627cb1897ef92c0',1,'ltc6811.c']]],
+  ['rdauxa_5fbyte1_1688',['RDAUXA_BYTE1',['../ltc6811_8c.html#a4b51efa2dd74bef85406b3a3988ff4c3',1,'ltc6811.c']]],
+  ['rdauxb_5fbyte0_1689',['RDAUXB_BYTE0',['../ltc6811_8c.html#a5b304f75669b27132e98c1eae134b932',1,'ltc6811.c']]],
+  ['rdauxb_5fbyte1_1690',['RDAUXB_BYTE1',['../ltc6811_8c.html#a01646d6c1b761b6eed7d38b5fd2d338f',1,'ltc6811.c']]],
+  ['rdcfg_5fbyte0_1691',['RDCFG_BYTE0',['../ltc6811_8c.html#aa6a613651822dcd9933f5a4b4ebecb08',1,'ltc6811.c']]],
+  ['rdcfg_5fbyte1_1692',['RDCFG_BYTE1',['../ltc6811_8c.html#a298b2361cb5c43322d85d16796cf8f75',1,'ltc6811.c']]],
+  ['rdcva_5fbyte0_1693',['RDCVA_BYTE0',['../ltc6811_8c.html#a793be63d04d305bd406a543e80574979',1,'ltc6811.c']]],
+  ['rdcva_5fbyte1_1694',['RDCVA_BYTE1',['../ltc6811_8c.html#afe84e95baa5b77cfe3393fae2820003d',1,'ltc6811.c']]],
+  ['rdcvb_5fbyte0_1695',['RDCVB_BYTE0',['../ltc6811_8c.html#ad24e68619a0ec4a98ce4cd4c5fc3f637',1,'ltc6811.c']]],
+  ['rdcvb_5fbyte1_1696',['RDCVB_BYTE1',['../ltc6811_8c.html#aa690a5a8c3f6bf4328195f8a423a4b1a',1,'ltc6811.c']]],
+  ['rdcvc_5fbyte0_1697',['RDCVC_BYTE0',['../ltc6811_8c.html#a857a1e5d9b95e253397e363745914f43',1,'ltc6811.c']]],
+  ['rdcvc_5fbyte1_1698',['RDCVC_BYTE1',['../ltc6811_8c.html#ae5dc0a874fe988941bd2321ea314568c',1,'ltc6811.c']]],
+  ['rdcvd_5fbyte0_1699',['RDCVD_BYTE0',['../ltc6811_8c.html#a431483204ffb2d0c830b237dbd77e42a',1,'ltc6811.c']]],
+  ['rdcvd_5fbyte1_1700',['RDCVD_BYTE1',['../ltc6811_8c.html#a50f91f64964103907bda95ec7675935d',1,'ltc6811.c']]],
+  ['rdstatb_5fbyte0_1701',['RDSTATB_BYTE0',['../ltc6811_8c.html#a3e5244ac37d8ef245881c2bb41f44d79',1,'ltc6811.c']]],
+  ['rdstatb_5fbyte1_1702',['RDSTATB_BYTE1',['../ltc6811_8c.html#a136adfa4c3cf79fec2779dfd1006f27b',1,'ltc6811.c']]],
+  ['refon_1703',['REFON',['../ltc6811_8c.html#a2bef9dc3d18fc1dcc9ad3875bda0f331',1,'ltc6811.c']]],
+  ['reset_5fon_5fbit_1704',['RESET_ON_BIT',['../ade7912_8c.html#a105654aac863a992946fe5d438e73c4e',1,'ade7912.c']]]
+];

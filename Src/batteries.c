@@ -1343,7 +1343,7 @@ ChargeReturn balanceCharge()
 
         // Succesfully reach end of loop, update error counter to reflect that
         ERROR_COUNTER_SUCCESS();
-        /*!!! Change the check in in bounded continue as well if you change
+        /* !!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(BATTERY_CHARGE_TASK_PERIOD_MS));

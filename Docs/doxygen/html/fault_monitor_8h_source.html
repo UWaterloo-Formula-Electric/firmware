@@ -70,23 +70,31 @@ $(function() {
 <div class="title">faultMonitor.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef FAULTMONITOR_H</span></div>
+<a href="fault_monitor_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef FAULTMONITOR_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define FAULTMONITOR_H</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; </div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;bsp.h&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="bsp_8h.html">bsp.h</a>&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;HAL_StatusTypeDef HVIL_Control(<span class="keywordtype">bool</span> enable);</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="keywordtype">bool</span> getHVIL_Status();</div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keywordtype">bool</span> getIL_Status();</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keywordtype">bool</span> getBSPD_Status();</div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="keywordtype">bool</span> getTSMS_Status();</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="keywordtype">bool</span> getHVD_Status();</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keywordtype">bool</span> getIL_BRB_Status();</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;HAL_StatusTypeDef <a class="code" href="fault_monitor_8h.html#aa5066394b10bb9930ceba8abcecf830d">HVIL_Control</a>(<span class="keywordtype">bool</span> enable);</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#a7ee0d344baf653c63e93e47fab0eecc4">getHVIL_Status</a>();</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#adee9c4bbc8e5687d0d014abc2feabaf0">getIL_Status</a>();</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#a69aa89769ae98ccf0c43df9aae9013bd">getBSPD_Status</a>();</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#abc1628692d90286486606a3ee8ab8850">getTSMS_Status</a>();</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#a8972c089c2848e0b9a198c29ea66ff0c">getHVD_Status</a>();</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="fault_monitor_8h.html#af5168c6ba8d43dc50aeabe5983acadf2">getIL_BRB_Status</a>();</div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160; </div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#endif </span><span class="comment">/* end of include guard: FAULTMONITOR_H */</span><span class="preprocessor"></span></div>
 </div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="afault_monitor_8h_html_a69aa89769ae98ccf0c43df9aae9013bd"><div class="ttname"><a href="fault_monitor_8h.html#a69aa89769ae98ccf0c43df9aae9013bd">getBSPD_Status</a></div><div class="ttdeci">bool getBSPD_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:37</div></div>
+<div class="ttc" id="afault_monitor_8h_html_af5168c6ba8d43dc50aeabe5983acadf2"><div class="ttname"><a href="fault_monitor_8h.html#af5168c6ba8d43dc50aeabe5983acadf2">getIL_BRB_Status</a></div><div class="ttdeci">bool getIL_BRB_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:58</div></div>
+<div class="ttc" id="afault_monitor_8h_html_adee9c4bbc8e5687d0d014abc2feabaf0"><div class="ttname"><a href="fault_monitor_8h.html#adee9c4bbc8e5687d0d014abc2feabaf0">getIL_Status</a></div><div class="ttdeci">bool getIL_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:64</div></div>
+<div class="ttc" id="afault_monitor_8h_html_aa5066394b10bb9930ceba8abcecf830d"><div class="ttname"><a href="fault_monitor_8h.html#aa5066394b10bb9930ceba8abcecf830d">HVIL_Control</a></div><div class="ttdeci">HAL_StatusTypeDef HVIL_Control(bool enable)</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:25</div></div>
+<div class="ttc" id="afault_monitor_8h_html_a8972c089c2848e0b9a198c29ea66ff0c"><div class="ttname"><a href="fault_monitor_8h.html#a8972c089c2848e0b9a198c29ea66ff0c">getHVD_Status</a></div><div class="ttdeci">bool getHVD_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:47</div></div>
+<div class="ttc" id="afault_monitor_8h_html_a7ee0d344baf653c63e93e47fab0eecc4"><div class="ttname"><a href="fault_monitor_8h.html#a7ee0d344baf653c63e93e47fab0eecc4">getHVIL_Status</a></div><div class="ttdeci">bool getHVIL_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:52</div></div>
+<div class="ttc" id="afault_monitor_8h_html_abc1628692d90286486606a3ee8ab8850"><div class="ttname"><a href="fault_monitor_8h.html#abc1628692d90286486606a3ee8ab8850">getTSMS_Status</a></div><div class="ttdeci">bool getTSMS_Status()</div><div class="ttdef"><b>Definition:</b> faultMonitor.c:42</div></div>
+<div class="ttc" id="absp_8h_html"><div class="ttname"><a href="bsp_8h.html">bsp.h</a></div><div class="ttdoc">Board support package (BSP) header file.</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

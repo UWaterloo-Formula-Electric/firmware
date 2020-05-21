@@ -1,3 +1,18 @@
+/**
+  *****************************************************************************
+  * @file    prechargeDischarge.c
+  * @author  Richard Matthews
+  * @brief   Controls the precharge and dishcarge procedures of the HV bus
+  * @details The precharge and discharge procedure is repsonsible for safely
+  * connecting and disconnecting the HV battery pack from the motor
+  * controllers. It is controlled by the precharge discharge task (pcdcTask).
+  * The main control state machine initiates precharge and discharge by sending
+  * a notification to the pcdcTask, and discharge is initiated by the state
+  * machine in the case of errors.
+  *
+  *****************************************************************************
+  */
+
 #include "prechargeDischarge.h"
 #include "controlStateMachine.h"
 #include "debug.h"
@@ -9,15 +24,23 @@
 
 #define ENABLE_PRECHARGE_DISCHARGE
 
+/**
+ * Return types for precharge and discharge functions
+ */
 typedef enum Precharge_Discharge_Return_t {
-    PCDC_DONE,
-    PCDC_STOPPED,
-    PCDC_ERROR
+    PCDC_DONE, ///< Precharge/Discharge completed
+    PCDC_STOPPED, ///< Precharge/Discharge stopped succesfully (as requested by task notification)
+    PCDC_ERROR ///< Error occured during Precharge/Discharge
 } Precharge_Discharge_Return_t;
 
+/**
+ * Type of precharge to perform. This changes the checks performed during
+ * precharge, due to different capacitance of motor controllers and chargers.
+ * See BMU confluence for more details
+ */
 typedef enum Precharge_Type_t {
-    PC_MotorControllers,
-    PC_Charger,
+    PC_MotorControllers, ///< Precharge motor controllers
+    PC_Charger, ///< Precharge charger
     PC_NumTypes,
 } Precharge_Type_t;
 
@@ -30,11 +53,19 @@ HAL_StatusTypeDef pcdcInit()
     return HAL_OK;
 }
 
+/**
+ * Enum to translate between contactor open/closed and GPIO pin state
+ */
 typedef enum ContactorState_t {
     CONTACTOR_CLOSED = GPIO_PIN_RESET,
     CONTACTOR_OPEN = GPIO_PIN_SET,
 } ContactorState_t;
 
+/**
+ * @brief Control negative contactor
+ *
+ * @param state The state to set contactor to
+ */
 void setNegContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s negative contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
@@ -42,6 +73,11 @@ void setNegContactor(ContactorState_t state)
     else if (state == CONTACTOR_OPEN) CONT_NEG_OPEN;
 }
 
+/**
+ * @brief Control positive contactor
+ *
+ * @param state The state to set contactor to
+ */
 void setPosContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s positive contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
@@ -50,6 +86,12 @@ void setPosContactor(ContactorState_t state)
     else if (state == CONTACTOR_OPEN) CONT_POS_OPEN;
 }
 
+/**
+ * @brief Control precharge discharge contactor
+ *
+ * @param state The state to set contactor to. Note for PCDC contactor closed
+ * means precharge mode, open means discharge mode
+ */
 void setPrechargeContactor(ContactorState_t state)
 {
     DEBUG_PRINT("%s precharge contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
@@ -58,6 +100,9 @@ void setPrechargeContactor(ContactorState_t state)
     else if (state == CONTACTOR_OPEN) PCDC_DC;
 }
 
+/**
+ * @brief Opens all contactors (safe state)
+ */
 void openAllContactors()
 {
     setPosContactor(CONTACTOR_OPEN);
@@ -66,6 +111,13 @@ void openAllContactors()
 }
 
 
+/**
+ * @brief Delay measure period, and interrupt delay if receive notification
+ *
+ * @param MeasurePeriod The period to delay for
+ * @param NotificationOut The returned notification value
+ *
+ */
 #define WAIT_FOR_NEXT_MEASURE_OR_STOP(MeasurePeriod, NotificationOut) \
     do { \
         NotificationOut = 0; /* Set to zero, in case no notifaction received */ \
@@ -76,6 +128,18 @@ void openAllContactors()
     } while(0)
 
 
+/**
+ * @brief Update HV Bus measurements
+ *
+ * @param[out] VBus pointer to float to store HV Bus voltage measurement in
+ * volts
+ * @param[out] VBatt pointer to float to store HV Battery voltage measurement in
+ * volts
+ * @param[out] IBus pointer to float to store HV Bus current measurement in
+ * amps
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 {
     if (getVBatt(VBatt) != HAL_OK) {
@@ -95,16 +159,26 @@ HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 bool HITL_Precharge_Mode = false;
 float HITL_VPACK = 0;
 
-// Perform precharge
 // PC_MotorControllers precharges into motor controllers, so assumes a high
 // capacitance and therefore precharge current
 // PC_Charger precharges into the charger, so assumes a low capacitance and
 // therefore negligible current
+/**
+ * @brief Perform precharge. If succesful, bus voltage will equal battery
+ * voltage.
+ *
+ * @param prechargeType @ref PC_MotorControllers precharges into motor controllers,
+ * so assumes a high capacitance and therefore precharge current. @ref PC_Charger
+ * precharges into the charger, so assumes a low capacitance and therefore
+ * negligible current
+ *
+ * @return @ref Precharge_Discharge_Return_t
+ */
 Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 {
     float VBatt, VBus, IBus;
     uint32_t dbwTaskNotifications;
-    DEBUG_PRINT("precharge type %d\n", prechargeType); 
+    DEBUG_PRINT("precharge type %d\n", prechargeType);
     if (prechargeType >= PC_NumTypes) {
         ERROR_PRINT("Invalid precharge type %d\n", prechargeType);
         return PCDC_ERROR;
@@ -121,7 +195,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("Failed to get pack voltage for precharge from queue\n");
             return PCDC_ERROR;
         }
-        DEBUG_PRINT("pack voltage %f\n", packVoltage); 
+        DEBUG_PRINT("pack voltage %f\n", packVoltage);
     }
 
     /*
@@ -400,6 +474,15 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     return PCDC_DONE;
 }
 
+/**
+ * @brief Discharges HV Bus. Opens contactors which connects in discharge
+ * resistor to discharge bus voltage. This function sends out a warning DTC,
+ * then waits (with timeout) for bus current to go to zero before opening
+ * contactors. This attempts to avoid opening contactors under load which can
+ * cause arcing/welding of contactors (very bad).
+ *
+ * @return @ref Precharge_Discharge_Return_t
+ */
 Precharge_Discharge_Return_t discharge()
 {
     sendDTC_WARNING_CONTACTOR_OPEN_IMPENDING();
@@ -454,6 +537,11 @@ Precharge_Discharge_Return_t discharge()
     return PCDC_DONE;
 }
 
+/**
+ * @brief Task to control precharge and discharge. Receives notifications from
+ * the control state machine to either precharge/discharge or stop precharge.
+ *
+ */
 void pcdcTask(void *pvParameter)
 {
     uint32_t dbwTaskNotifications;

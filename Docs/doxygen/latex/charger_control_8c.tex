@@ -1,0 +1,153 @@
+\hypertarget{charger_control_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/charger\+Control.c File Reference}
+\label{charger_control_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/chargerControl.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/chargerControl.c}}
+
+
+Module containing functions for controlling the battery charger.  
+
+
+{\ttfamily \#include \char`\"{}charger\+Control.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+charger\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}user\+Can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}inttypes.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}watchdog.\+h\char`\"{}}\newline
+Include dependency graph for charger\+Control.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{charger_control_8c_a4f34f269d235a59b6b7beb281a05da0b}{C\+H\+A\+R\+G\+E\+R\+\_\+\+C\+O\+M\+M\+\_\+\+S\+T\+A\+R\+T\+\_\+\+T\+I\+M\+E\+O\+U\+T\+\_\+\+MS}}~3000
+\item 
+\#define \mbox{\hyperlink{charger_control_8c_ad98c25dab6291051ee84191d798e563d}{C\+H\+A\+R\+G\+E\+R\+\_\+\+C\+O\+M\+M\+\_\+\+S\+T\+A\+R\+T\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~100
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{charger_control_8c_ae663cfa2e1710018e30b04d65c75cb2e}{charger\+Init}} ()
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{charger_control_8c_a5a2d967359b16e33f7e6631942424a62}{start\+Charger\+Communication}} (float max\+Voltage, float max\+Current, uint32\+\_\+t watchdog\+Task\+Id)
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{charger_control_8c_a7be8905ea1fecd563a161d1479f42812}{send\+Charger\+Command}} (float max\+Voltage, float max\+Current, bool \mbox{\hyperlink{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c}{start\+Charging}})
+\item 
+void \mbox{\hyperlink{charger_control_8c_aaa63ddc9fe2a004cad10529547206d10}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Status\+\_\+\+Callback}} ()
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{charger_control_8c_a3924dbd41d109e69d729fefb4eae394f}{check\+Charger\+Status}} (\mbox{\hyperlink{struct_charger_status}{Charger\+Status}} $\ast$status\+Out)
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{struct_charger_status}{Charger\+Status}} \mbox{\hyperlink{charger_control_8c_ac708c1923fe83a48c44f9ef4290f8f00}{m\+Status}} = \{0\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Module containing functions for controlling the battery charger. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews
+\end{DoxyAuthor}
+The B\+MU communicates with the charger over a C\+AN bus (seperate from the car C\+AN bus). The B\+MU sends a message specifying max current and voltage for the charger, and receives feedback messages 
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{charger_control_8c_ad98c25dab6291051ee84191d798e563d}\label{charger_control_8c_ad98c25dab6291051ee84191d798e563d}} 
+\index{chargerControl.c@{chargerControl.c}!CHARGER\_COMM\_START\_SEND\_PERIOD\_MS@{CHARGER\_COMM\_START\_SEND\_PERIOD\_MS}}
+\index{CHARGER\_COMM\_START\_SEND\_PERIOD\_MS@{CHARGER\_COMM\_START\_SEND\_PERIOD\_MS}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{CHARGER\_COMM\_START\_SEND\_PERIOD\_MS}{CHARGER\_COMM\_START\_SEND\_PERIOD\_MS}}
+{\footnotesize\ttfamily \#define C\+H\+A\+R\+G\+E\+R\+\_\+\+C\+O\+M\+M\+\_\+\+S\+T\+A\+R\+T\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~100}
+
+\mbox{\Hypertarget{charger_control_8c_a4f34f269d235a59b6b7beb281a05da0b}\label{charger_control_8c_a4f34f269d235a59b6b7beb281a05da0b}} 
+\index{chargerControl.c@{chargerControl.c}!CHARGER\_COMM\_START\_TIMEOUT\_MS@{CHARGER\_COMM\_START\_TIMEOUT\_MS}}
+\index{CHARGER\_COMM\_START\_TIMEOUT\_MS@{CHARGER\_COMM\_START\_TIMEOUT\_MS}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{CHARGER\_COMM\_START\_TIMEOUT\_MS}{CHARGER\_COMM\_START\_TIMEOUT\_MS}}
+{\footnotesize\ttfamily \#define C\+H\+A\+R\+G\+E\+R\+\_\+\+C\+O\+M\+M\+\_\+\+S\+T\+A\+R\+T\+\_\+\+T\+I\+M\+E\+O\+U\+T\+\_\+\+MS~3000}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{charger_control_8c_aaa63ddc9fe2a004cad10529547206d10}\label{charger_control_8c_aaa63ddc9fe2a004cad10529547206d10}} 
+\index{chargerControl.c@{chargerControl.c}!CAN\_Msg\_ChargeStatus\_Callback@{CAN\_Msg\_ChargeStatus\_Callback}}
+\index{CAN\_Msg\_ChargeStatus\_Callback@{CAN\_Msg\_ChargeStatus\_Callback}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeStatus\_Callback()}{CAN\_Msg\_ChargeStatus\_Callback()}}
+{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Status\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{charger_control_8c_ae663cfa2e1710018e30b04d65c75cb2e}\label{charger_control_8c_ae663cfa2e1710018e30b04d65c75cb2e}} 
+\index{chargerControl.c@{chargerControl.c}!chargerInit@{chargerInit}}
+\index{chargerInit@{chargerInit}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{chargerInit()}{chargerInit()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def charger\+Init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=272pt]{charger_control_8c_ae663cfa2e1710018e30b04d65c75cb2e_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{charger_control_8c_a3924dbd41d109e69d729fefb4eae394f}\label{charger_control_8c_a3924dbd41d109e69d729fefb4eae394f}} 
+\index{chargerControl.c@{chargerControl.c}!checkChargerStatus@{checkChargerStatus}}
+\index{checkChargerStatus@{checkChargerStatus}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{checkChargerStatus()}{checkChargerStatus()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def check\+Charger\+Status (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{struct_charger_status}{Charger\+Status}} $\ast$}]{status\+Out }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c_a3924dbd41d109e69d729fefb4eae394f_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{charger_control_8c_a7be8905ea1fecd563a161d1479f42812}\label{charger_control_8c_a7be8905ea1fecd563a161d1479f42812}} 
+\index{chargerControl.c@{chargerControl.c}!sendChargerCommand@{sendChargerCommand}}
+\index{sendChargerCommand@{sendChargerCommand}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{sendChargerCommand()}{sendChargerCommand()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def send\+Charger\+Command (\begin{DoxyParamCaption}\item[{float}]{max\+Voltage,  }\item[{float}]{max\+Current,  }\item[{bool}]{start\+Charging }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c_a7be8905ea1fecd563a161d1479f42812_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c_a7be8905ea1fecd563a161d1479f42812_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{charger_control_8c_a5a2d967359b16e33f7e6631942424a62}\label{charger_control_8c_a5a2d967359b16e33f7e6631942424a62}} 
+\index{chargerControl.c@{chargerControl.c}!startChargerCommunication@{startChargerCommunication}}
+\index{startChargerCommunication@{startChargerCommunication}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{startChargerCommunication()}{startChargerCommunication()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def start\+Charger\+Communication (\begin{DoxyParamCaption}\item[{float}]{max\+Voltage,  }\item[{float}]{max\+Current,  }\item[{uint32\+\_\+t}]{watchdog\+Task\+Id }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c_a5a2d967359b16e33f7e6631942424a62_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{charger_control_8c_a5a2d967359b16e33f7e6631942424a62_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{charger_control_8c_ac708c1923fe83a48c44f9ef4290f8f00}\label{charger_control_8c_ac708c1923fe83a48c44f9ef4290f8f00}} 
+\index{chargerControl.c@{chargerControl.c}!mStatus@{mStatus}}
+\index{mStatus@{mStatus}!chargerControl.c@{chargerControl.c}}
+\doxysubsubsection{\texorpdfstring{mStatus}{mStatus}}
+{\footnotesize\ttfamily \mbox{\hyperlink{struct_charger_status}{Charger\+Status}} m\+Status = \{0\}}
+

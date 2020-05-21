@@ -1,3 +1,17 @@
+/**
+  *****************************************************************************
+  * @file    imdDriver.c
+  * @author  Richard Matthews
+  * @brief   Module containing functions to read IMD status
+  * @details The IMD (Bender IR155-3203/3204) is an insulation monitoring
+  * device which monitors the resistance between the HV Bus and the chassis
+  * ground. It reports a fault if the insulation drop below a certain value.
+  * The IMD communicates with the BMU through a gpio pin indicating a boolean
+  * fault status (OK or FAIL) and a PWM signal indicating the fault type.
+  *
+  ******************************************************************************
+  */
+
 #include "imdDriver.h"
 #include "bsp.h"
 #include "debug.h"

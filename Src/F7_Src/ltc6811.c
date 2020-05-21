@@ -1,11 +1,17 @@
-/*
- * ltc6811.c
- *
- *  Created on: May 2, 2019
- *      Author: Richard Matthews
- *
- *  Copyright @ 2019 Waterloo Formula Electric
- */
+/**
+  *****************************************************************************
+  * @file    ltc6811.c
+  * @author  Richard Matthews
+  * @brief   Module for communicating with ltc6811 chips on the AMS boards
+  * @details The ltc6811 chips are battery monitoring chips, with one on each
+  * AMS board connected to 12 battery cells. The chips measure the voltage and
+  * temperature of the cells. They communicate with the BMU over isoSPI (an
+  * electrically isolated SPI interface). This file implements a driver for
+  * communicating with the ltc6811 chips
+  *
+  ******************************************************************************
+  */
+
 #include "ltc6811.h"
 #include "bsp.h"
 #include "math.h"

@@ -1,3 +1,14 @@
+/**
+  *****************************************************************************
+  * @file    chargerControl.c
+  * @author  Richard Matthews
+  * @brief   Module containing functions for controlling the battery charger.
+  * @details The BMU communicates with the charger over a CAN bus (seperate
+  * from the car CAN bus). The BMU sends a message specifying max current and
+  * voltage for the charger, and receives feedback messages
+  ******************************************************************************
+  */
+
 #include "chargerControl.h"
 #include "debug.h"
 #include "BMU_charger_can.h"

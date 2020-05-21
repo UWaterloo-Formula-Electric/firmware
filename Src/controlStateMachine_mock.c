@@ -1,3 +1,13 @@
+/**
+  *****************************************************************************
+  * @file    controlStateMachine_mock.c
+  * @author  Richard Matthews
+  * @brief   Module containing CLI commands for the BMU
+  * @details This file contains implementations of all the BMU specific CLI
+  * commands availabe on the BMU command line interface (CLI).
+  ******************************************************************************
+  */
+
 #include "controlStateMachine_mock.h"
 #include "debug.h"
 #include "string.h"

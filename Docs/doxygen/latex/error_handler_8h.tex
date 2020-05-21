@@ -1,0 +1,45 @@
+\hypertarget{error_handler_8h}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Inc/error\+Handler.h File Reference}
+\label{error_handler_8h}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Inc/errorHandler.h@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Inc/errorHandler.h}}
+{\ttfamily \#include \char`\"{}main.\+h\char`\"{}}\newline
+Include dependency graph for error\+Handler.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=233pt]{error_handler_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{error_handler_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{error_handler_8h_a5c385be64231e8b19076ec92fb0c915b}{c\+\_\+assert}}(e)~((e) ? (0) \+: \mbox{\hyperlink{error_handler_8h_a2fb14cadd6fb792172ebcebf3fa5c3fb}{log\+\_\+assert\+\_\+violation}}(\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+,\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+,\#e))
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{error_handler_8h_a2fb14cadd6fb792172ebcebf3fa5c3fb}{log\+\_\+assert\+\_\+violation}} (char $\ast$file, int line, char $\ast$condition)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{error_handler_8h_a5c385be64231e8b19076ec92fb0c915b}\label{error_handler_8h_a5c385be64231e8b19076ec92fb0c915b}} 
+\index{errorHandler.h@{errorHandler.h}!c\_assert@{c\_assert}}
+\index{c\_assert@{c\_assert}!errorHandler.h@{errorHandler.h}}
+\doxysubsubsection{\texorpdfstring{c\_assert}{c\_assert}}
+{\footnotesize\ttfamily \#define c\+\_\+assert(\begin{DoxyParamCaption}\item[{}]{e }\end{DoxyParamCaption})~((e) ? (0) \+: \mbox{\hyperlink{error_handler_8h_a2fb14cadd6fb792172ebcebf3fa5c3fb}{log\+\_\+assert\+\_\+violation}}(\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+,\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+,\#e))}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{error_handler_8h_a2fb14cadd6fb792172ebcebf3fa5c3fb}\label{error_handler_8h_a2fb14cadd6fb792172ebcebf3fa5c3fb}} 
+\index{errorHandler.h@{errorHandler.h}!log\_assert\_violation@{log\_assert\_violation}}
+\index{log\_assert\_violation@{log\_assert\_violation}!errorHandler.h@{errorHandler.h}}
+\doxysubsubsection{\texorpdfstring{log\_assert\_violation()}{log\_assert\_violation()}}
+{\footnotesize\ttfamily int log\+\_\+assert\+\_\+violation (\begin{DoxyParamCaption}\item[{char $\ast$}]{file,  }\item[{int}]{line,  }\item[{char $\ast$}]{condition }\end{DoxyParamCaption})}
+

@@ -1,3 +1,15 @@
+/**
+  *****************************************************************************
+  * @file    faultMonitor.c
+  * @author  Richard Matthews
+  * @brief   Module monitoring status of IL and HVIL
+  * @details Contains fault monitor task which monitors the status of the
+  * interlock loop (IL) and high voltage interlock loop (HVIL) and reports an
+  * error when either breaks. Also contains functions for getting the status of
+  * various points along the IL.
+  ******************************************************************************
+  */
+
 #include "faultMonitor.h"
 #include "controlStateMachine.h"
 #include "debug.h"

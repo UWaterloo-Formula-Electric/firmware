@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['numstages_74',['numStages',['../structarm__biquad__cascade__df2_t__instance__f32.html#a4d17958c33c3d0a905f974bac50f033f',1,'arm_biquad_cascade_df2T_instance_f32']]]
+  ['junk_5fsize_487',['JUNK_SIZE',['../ltc6811_8c.html#ad20232d08327b5fd77fa6618a48127ef',1,'ltc6811.c']]]
 ];

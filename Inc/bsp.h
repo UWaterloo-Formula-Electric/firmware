@@ -1,3 +1,16 @@
+/**
+  *****************************************************************************
+  * @file    bsp.h
+  * @author  Richard Matthews
+  * @brief   Board support package (BSP) header file.
+  * @details This header file is a simple BSP, specifying which hardware to use
+  * on different build targets. Instead of directly refering to hardware in
+  * source code, create a define here and use that, then ensure the define
+  * exists for each build target it applies to.
+  *
+  ******************************************************************************
+  */
+
 #ifndef __BSP_H
 #define __BSP_H
 

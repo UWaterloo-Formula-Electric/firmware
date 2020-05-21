@@ -1,3 +1,12 @@
+/**
+  *****************************************************************************
+  * @file    sense.c
+  * @author  Richard Matthews
+  * @brief   Module containing task to monitor ADC values, mainly the rear
+  * brake pressure
+  *****************************************************************************
+  */
+
 #include "sense.h"
 #include "bsp.h"
 #include "BMU_can.h"

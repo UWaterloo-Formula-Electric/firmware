@@ -1,3 +1,15 @@
+/**
+  *****************************************************************************
+  * @file    fanControl.c
+  * @author  Richard Matthews
+  * @brief   Module controlling battery pack fans.
+  * @details The battery pack contains an array of fans to cool the battery.
+  * The BMU controls the fans based on the temperature of the battery cells,
+  * turning them on as the cells heat up and increasing the fan speed
+  * proportional to temeprature.
+  ******************************************************************************
+  */
+
 #include "bsp.h"
 #include "fanControl.h"
 #include "BMU_can.h"

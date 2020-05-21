@@ -1,0 +1,93 @@
+\hypertarget{sense_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/sense.c File Reference}
+\label{sense_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/sense.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/sense.c}}
+
+
+Module containing task to monitor A\+DC values, mainly the rear brake pressure.  
+
+
+{\ttfamily \#include \char`\"{}sense.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}bsp.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}watchdog.\+h\char`\"{}}\newline
+Include dependency graph for sense.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{sense_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{sense_8c_a967385fe8dfde820263c537f10db12a0}{S\+E\+N\+S\+O\+R\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+OD}}~1000
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{sense_8c_a3a7c6605025b918a85b0b9629934b7fa}{sensor\+Task\+Init}} ()
+\item 
+void \mbox{\hyperlink{sense_8c_a217451a0ec75f826e5a2933c3268c7c2}{sensor\+Task}} (void $\ast$pv\+Parameters)
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+volatile uint32\+\_\+t \mbox{\hyperlink{sense_8c_a22926229678665e9fe369790c1f534c4}{brake\+And\+H\+V\+I\+L\+Vals}} \mbox{[}2\mbox{]} = \{0\}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Module containing task to monitor A\+DC values, mainly the rear brake pressure. 
+
+\begin{DoxyAuthor}{Author}
+Richard Matthews 
+\end{DoxyAuthor}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{sense_8c_a967385fe8dfde820263c537f10db12a0}\label{sense_8c_a967385fe8dfde820263c537f10db12a0}} 
+\index{sense.c@{sense.c}!SENSOR\_TASK\_PERIOD@{SENSOR\_TASK\_PERIOD}}
+\index{SENSOR\_TASK\_PERIOD@{SENSOR\_TASK\_PERIOD}!sense.c@{sense.c}}
+\doxysubsubsection{\texorpdfstring{SENSOR\_TASK\_PERIOD}{SENSOR\_TASK\_PERIOD}}
+{\footnotesize\ttfamily \#define S\+E\+N\+S\+O\+R\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+OD~1000}
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{sense_8c_a217451a0ec75f826e5a2933c3268c7c2}\label{sense_8c_a217451a0ec75f826e5a2933c3268c7c2}} 
+\index{sense.c@{sense.c}!sensorTask@{sensorTask}}
+\index{sensorTask@{sensorTask}!sense.c@{sense.c}}
+\doxysubsubsection{\texorpdfstring{sensorTask()}{sensorTask()}}
+{\footnotesize\ttfamily void sensor\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Parameters }\end{DoxyParamCaption})}
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{sense_8c_a217451a0ec75f826e5a2933c3268c7c2_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{sense_8c_a3a7c6605025b918a85b0b9629934b7fa}\label{sense_8c_a3a7c6605025b918a85b0b9629934b7fa}} 
+\index{sense.c@{sense.c}!sensorTaskInit@{sensorTaskInit}}
+\index{sensorTaskInit@{sensorTaskInit}!sense.c@{sense.c}}
+\doxysubsubsection{\texorpdfstring{sensorTaskInit()}{sensorTaskInit()}}
+{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def sensor\+Task\+Init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=263pt]{sense_8c_a3a7c6605025b918a85b0b9629934b7fa_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Variable Documentation}
+\mbox{\Hypertarget{sense_8c_a22926229678665e9fe369790c1f534c4}\label{sense_8c_a22926229678665e9fe369790c1f534c4}} 
+\index{sense.c@{sense.c}!brakeAndHVILVals@{brakeAndHVILVals}}
+\index{brakeAndHVILVals@{brakeAndHVILVals}!sense.c@{sense.c}}
+\doxysubsubsection{\texorpdfstring{brakeAndHVILVals}{brakeAndHVILVals}}
+{\footnotesize\ttfamily volatile uint32\+\_\+t brake\+And\+H\+V\+I\+L\+Vals\mbox{[}2\mbox{]} = \{0\}}
+

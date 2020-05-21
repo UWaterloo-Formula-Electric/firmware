@@ -1,3 +1,13 @@
+/**
+  *****************************************************************************
+  * @file    canReceive.c
+  * @author  Richard Matthews
+  * @brief   Module containing callback functions for receiving CAN messages
+  * @details Receives DCU HV toggle button press, charge cart messages, and
+  * DTCs
+  *****************************************************************************
+  */
+
 #include "canReceive.h"
 
 #include "userCan.h"

@@ -1,9 +1,13 @@
 var searchData=
 [
-  ['can_5fcell_5fsend_5fperiod_5fms_190',['CAN_CELL_SEND_PERIOD_MS',['../batteries_8c.html#ab75dbcd7e0a59fc3d1fc3715de87544a',1,'batteries.c']]],
-  ['cell_5frelaxation_5ftime_5fms_191',['CELL_RELAXATION_TIME_MS',['../batteries_8c.html#ae7647190367a5af57c404c325ede1e56',1,'batteries.c']]],
-  ['cell_5fvoltage_5ffilter_5falpha_192',['CELL_VOLTAGE_FILTER_ALPHA',['../batteries_8c.html#a9b3fe58b53cbf8d5fbc53709ed5a278b',1,'batteries.c']]],
-  ['charge_5fcart_5fheartbeat_5fmax_5fperiod_193',['CHARGE_CART_HEARTBEAT_MAX_PERIOD',['../batteries_8c.html#a3840db84d2eaac3f4fe59941e21ff410',1,'batteries.c']]],
-  ['charge_5fdefault_5fmax_5fcurrent_194',['CHARGE_DEFAULT_MAX_CURRENT',['../batteries_8c.html#a68aaf77b085834ea0c03a6ab2e2910f6',1,'batteries.c']]],
-  ['charge_5fstop_5fsoc_195',['CHARGE_STOP_SOC',['../batteries_8c.html#a1c3f97f617827a946894da14b7e6e4d4',1,'batteries.c']]]
+  ['balance_5frecheck_5fperiod_5fms_1558',['BALANCE_RECHECK_PERIOD_MS',['../batteries_8c.html#aaa9233fe54ffd66274a5dd46390b36e5',1,'batteries.c']]],
+  ['balance_5fstart_5fvoltage_1559',['BALANCE_START_VOLTAGE',['../batteries_8c.html#ad5819e811f281911c5854f40cf58960f',1,'batteries.c']]],
+  ['batt_5fconfig_5fsize_1560',['BATT_CONFIG_SIZE',['../ltc6811_8c.html#af74939cf4177382dbc4b6d063eaf95ad',1,'ltc6811.c']]],
+  ['batt_5fconversion_5ftime_1561',['BATT_CONVERSION_TIME',['../ltc6811_8c.html#acad099d2d71f1ab68957e8b83efb73d1',1,'ltc6811.c']]],
+  ['battery_5fcharge_5ftask_5fperiod_5fms_1562',['BATTERY_CHARGE_TASK_PERIOD_MS',['../batteries_8c.html#a6d5ce7bfac0354a10a78a45aa0ebaacf',1,'batteries.c']]],
+  ['battery_5ftask_5fid_1563',['BATTERY_TASK_ID',['../batteries_8c.html#aeb85d8df3b9f6218cb677ccd44760cd4',1,'batteries.c']]],
+  ['battery_5ftask_5fperiod_5fms_1564',['BATTERY_TASK_PERIOD_MS',['../batteries_8c.html#a62b353ffb0e0f9735e0c6a32712e85b2',1,'batteries.c']]],
+  ['bits_5fper_5fbyte_1565',['BITS_PER_BYTE',['../ltc6811_8c.html#a369ecd38b3ab077fc235f892354bb46f',1,'ltc6811.c']]],
+  ['brake_5fadc_5fchannel_1566',['BRAKE_ADC_CHANNEL',['../sense_8h.html#a078bb31f8df9b4582832da162a79aa1c',1,'sense.h']]],
+  ['brake_5fadc_5fdivider_1567',['BRAKE_ADC_DIVIDER',['../sense_8h.html#a6270ad07ece7c487ad390e6000b14d34',1,'sense.h']]]
 ];

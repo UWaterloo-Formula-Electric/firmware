@@ -1,3 +1,15 @@
+/**
+  *****************************************************************************
+  * @file    ade7912.c
+  * @author  Richard Matthews
+  * @brief   Function to read HV ADC.
+  * @details Functions to read the HV ADC. The HV ADC measures the HV bus
+  * current, HV bus voltage, and HV battery voltage. The HV ADC is connected to
+  * the BMU over SPI.
+  *
+  ******************************************************************************
+  */
+
 #include "bsp.h"
 #include "debug.h"
 #include "FreeRTOS.h"
