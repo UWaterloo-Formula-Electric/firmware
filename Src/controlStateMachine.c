@@ -56,6 +56,7 @@ Transition_t mainTransitions[] = {
     { MN_STATE_Boards_On,  MN_EV_HV_CriticalFailure, &criticalFailureWarning },
     { MN_STATE_Warning_Critical, MN_EV_CriticalDelayElapsed, &criticalFailure },
     { MN_STATE_Boards_On, MN_EV_LV_Cuttoff, &lvCuttoff },
+    { MN_STATE_LV_Shutting_Down, MN_EV_LV_Shutdown, &lvShutdown },
     { MN_STATE_Critical_Failure, MN_EV_ANY, &mainDoNothing },
     { MN_STATE_Warning_Critical, MN_EV_ANY, &mainDoNothing },
     { MN_STATE_ANY, MN_EV_ANY, &MainDefaultTransition}
@@ -440,9 +441,9 @@ void coolingDelayCallback(TimerHandle_t timer)
     }
 }
 void lvShutdownDelayCallback(TimerHandle_t timer){
-    if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 10 /* timeout */) != HAL_OK) {
+    if (fsmSendEventUrgent(&mainFsmHandle, MN_STATE_LV_Shutting_Down, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process lv shutdown delay elapsed event\n");
-        lvShutdown(MN_EV_LV_Cuttoff);
+        lvShutdown(MN_STATE_LV_Shutting_Down);
     }
 
 }
