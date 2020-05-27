@@ -306,9 +306,9 @@ uint32_t startLVCuttoffDelay()
     if (xTimerStart(lvShutdownDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start lv shutdown delay timer\n");
         lvShutdown(MN_EV_LV_Cuttoff);
+        return MN_STATE_Boards_Off;
     }
-
-    return MN_STATE_Boards_Off;
+    return MN_STATE_LV_Shutting_Down;
 }
 
 
