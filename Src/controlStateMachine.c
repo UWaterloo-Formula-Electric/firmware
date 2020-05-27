@@ -41,6 +41,8 @@ uint32_t coolingOn(uint32_t event);
 uint32_t coolingOff(uint32_t event);
 uint32_t coolingCriticalFailure(uint32_t event);
 uint32_t coolingLVCuttoff(uint32_t event);
+uint32_t startLVCuttoffDelay();
+uint32_t lvShutdown(uint32_t event);
 uint32_t coolingDoNothing(uint32_t event);
 uint32_t CoolDefaultTransition(uint32_t event);
 uint32_t stopCoolingWait(uint32_t event);
