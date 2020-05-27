@@ -259,8 +259,6 @@ HAL_StatusTypeDef startControl()
 
 uint32_t startCriticalFailureDelay()
 {
-    sendDTC_FATAL_BOARDS_TURNING_OFF();
-
     if (xTimerStart(criticalDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start critical delay timer\n");
         criticalFailure(MN_EV_CriticalDelayElapsed);
@@ -297,6 +295,7 @@ uint32_t lvCuttoff(uint32_t event)
 uint32_t startLVCuttoffDelay()
 {
     sendDTC_FATAL_LV_CUTTOFF_BOARDS_OFF();
+
     if (xTimerStart(lvShutdownDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start lv shutdown delay timer\n");
         lvShutdown(MN_EV_LV_Cuttoff);
@@ -309,7 +308,7 @@ uint32_t startLVCuttoffDelay()
 uint32_t lvShutdown(uint32_t event){
     DEBUG_PRINT("LV Shutdown: Turning Boards Off\n");
     turnBoardsOff();
-
+    return MN_STATE_Boards_On;
 }
 
 uint32_t runSelftTests(uint32_t event)
