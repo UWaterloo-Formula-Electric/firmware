@@ -170,7 +170,11 @@ HAL_StatusTypeDef maincontrolInit()
                                        pdFALSE /* Auto Reload */,
                                        0,
                                        lvShutdownDelayCallback);
+    if(lvShutdownDelayTimer == NULL){
+        ERROR_PRINT("Failed to create software timer\n");
+        return HAL_ERROR;
 
+    }
     init.maxStateNum = MN_STATE_ANY;
     init.maxEventNum = MN_EV_ANY;
     init.sizeofEventEnumType = sizeof(MAIN_PDU_Events_t);
@@ -303,14 +307,14 @@ uint32_t startLVCuttoffDelay()
         lvShutdown(MN_EV_LV_Cuttoff);
     }
 
-    return MN_STATE_Boards_On;
+    return MN_STATE_Boards_Off;
 }
 
 
 uint32_t lvShutdown(uint32_t event){
     DEBUG_PRINT("LV Shutdown: Turning Boards Off\n");
     turnBoardsOff();
-    return MN_STATE_Boards_On;
+    return MN_STATE_Boards_Off;
 }
 
 uint32_t runSelftTests(uint32_t event)
@@ -438,7 +442,7 @@ void coolingDelayCallback(TimerHandle_t timer)
 void lvShutdownDelayCallback(TimerHandle_t timer){
     if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Cuttoff, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process lv shutdown delay elapsed event\n");
-        lvCuttoff(MN_EV_LV_Cuttoff);
+        lvShutdown(MN_EV_LV_Cuttoff);
     }
 
 }
