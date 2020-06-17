@@ -1,7 +1,7 @@
 #include "bsp.h"
 
 CRC_HandleTypeDef crc_handle;
-uint32_t const BUFFER_SIZE = (uint32_t)(6);
+const uint32_t BUFFER_SIZE = (uint32_t)(6);
 
 uint8_t calculate_base_CRC( uint8_t * data_bytes )
 {
