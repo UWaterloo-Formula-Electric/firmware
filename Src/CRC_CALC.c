@@ -1,31 +1,24 @@
 #include "bsp.h"
 
-uint8_t autosar_crc_lookup_table[256];
+CRC_HandleTypeDef crc_handle;
+uint32_t buffer_size = (uint32_t)(6);
+
 uint8_t calculate_base_CRC( uint8_t * data_bytes )
 {
-    uint8_t crc = 0xff;
-    uint8_t index = 0;
-    for (int i = 0; i < 6; i++)
-    {
-        index =(uint8_t)( data_bytes[i] ^ crc );
-        crc =(uint8_t)( autosar_crc_lookup_table[index] );
-    }
-    return (uint8_t)( crc ^ 0xff );
+    uint8_t crc_value = (uint8_t)HAL_CRC_Calculate(&crc_handle, (uint32_t*)(data_bytes), buffer_size);
+    return (crc_value ^ 0xff);
 }
-void generate_CRC_lookup_table()
+
+void config_crc_handle()
 {
-    uint8_t top_bit = 128;
-    uint8_t procan_CRC_Poly = 0x2f;
-    for (int i = 0; i < 256; i++)
+    crc_handle.Instance = CRC;
+    crc_handle.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_DISABLE;
+    crc_handle.Init.GeneratingPolynomial = 0x2f;
+    crc_handle.Init.CRCLength = CRC_POLYLENGTH_8B;
+    crc_handle.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+    
+    if (HAL_CRC_Init(&crc_handle) != HAL_OK)
     {
-        uint8_t remainder = (uint8_t)i;
-        for(int j=0; j<8; j++)
-        {
-            if ((remainder & top_bit) != 0)
-                remainder = (uint8_t)((remainder << 1) ^procan_CRC_Poly);
-            else
-                remainder = (uint8_t)(remainder << 1);
-		}
-        autosar_crc_lookup_table[i] = remainder;
+        Error_Handler();
     }
 }
