@@ -787,7 +787,7 @@ def writeInitFunction(sourceFileHandle, headerFileHandle):
     fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
     
     fWrite('    __HAL_RCC_CRC_CLK_ENABLE();', sourceFileHandle)
-    fWrite('    config_crc_handle();', sourceFileHandle)
+    fWrite('    init_crc_handle();', sourceFileHandle)
     
     fWrite('    return HAL_OK;', sourceFileHandle)
     fWrite('}', sourceFileHandle)
