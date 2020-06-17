@@ -785,8 +785,10 @@ def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
     fWrite('{prototype};'.format(prototype=prototype), headerFileHandle)
     fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
+    
     fWrite('    __HAL_RCC_CRC_CLK_ENABLE();', sourceFileHandle)
     fWrite('    config_crc_handle();', sourceFileHandle)
+    
     fWrite('    return HAL_OK;', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
