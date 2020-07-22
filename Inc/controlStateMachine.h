@@ -16,5 +16,6 @@ typedef enum DCU_Events_t {
     EV_CAN_Recieve,
     EV_Any,
 } DCU_Events_t;
+FSM_Handle_Struct DCUFsmHandle;
 
 #endif

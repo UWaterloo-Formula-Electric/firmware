@@ -11,7 +11,6 @@
 #include "watchdog.h"
 #include "canReceive.h"
 #include "controlStateMachine.h"
-#include "state_machine.h"
 
 #define EM_BUTTON_DEBOUNCE_MS 200
 #define HV_BUTTON_DEBOUNCE_MS 200
@@ -33,16 +32,16 @@ bool buzzerTimerStarted = false;
 
 uint32_t toggleOnHV(uint32_t event);
 uint32_t toggleOnEM(uint32_t event);
-uint32_t hvEnable(uint32_t event);
-uint32_t emEnable(uint32_t event);
-
-FSM_Handle_Struct DCUFsmHandle;
+uint32_t hvControl(uint32_t event);
+uint32_t emControl(uint32_t event);
+HAL_StatusTypeDef fsmInit();
+void mainTaskFunction(void const * argument);
 
 Transition_t transitions[] = {
     {STATE_HV_Disable,EV_HV_Toggle, &toggleOnHV},
-    {STATE_HV_Toggle, EV_CAN_Recieve, &hvEnable},
+    {STATE_HV_Toggle, EV_CAN_Recieve, &hvControl},
     {STATE_HV_Enable, EV_EM_Toggle, &toggleOnEM},
-    {STATE_EM_Toggle, EV_CAN_Recieve,&emEnable},
+    {STATE_EM_Toggle, EV_CAN_Recieve,&emControl},
     {STATE_EM_Enable, EV_EM_Toggle,},
     {STATE_HV_Enable, EV_HV_Toggle,}
 }
@@ -65,13 +64,25 @@ uint32_t toggleOnEM(uint32_t event){
 
     return STATE_EM_Toggle;
 }
-uint32_t hvEnable(uint32_t event){
-    DEBUG_PRINT("HV Enabled");
-    return STATE_HV_Enable;
+uint32_t hvControl(uint32_t event){
+    if(getHVState() == HV_Power_State_On){
+        DEBUG_PRINT("HV Enabled");
+        return STATE_HV_Enable;
+    }
+    else{
+        DEBUG_PRINT("HV Disabled");
+        return STATE_HV_Disable;
+    }
 }
-uint32_t emEnable(uint32_t event){
-    DEBUG_PRINT("EM Enabled");
-    return STATE_EM_Enable;
+uint32_t emControl(uint32_t event){
+    if(getEMState() == EM_Power_State_On){
+        DEBUG_PRINT("EM Enabled");
+        return STATE_EM_Enable;
+    }
+    else{
+        DEBUG_PRINT("EM Disabled");
+        return STATE_HV_Enable;
+    }
 }
 HAL_StatusTypeDef fsmInit(){
     FSM_Init_Struct init;
@@ -119,15 +130,9 @@ void mainTaskFunction(void const * argument){
     }
     fsmTaskFunction(&DCUFsmHandle);
     for(;;);
-
 }
 void buzzerTimerCallback(TimerHandle_t timer)
 {
     buzzerTimerStarted = false;
     BUZZER_OFF
-
-    ButtonEMEnabled = 1;
-    ButtonHVEnabled = 0;
-    DEBUG_PRINT("Sending em changed\n");
-    sendCAN_DCU_buttonEvents();
 }
