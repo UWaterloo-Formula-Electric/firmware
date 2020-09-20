@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
@@ -858,7 +859,7 @@ def main(argv):
         print('Error: no target specified or no boardtype specified')
         sys.exit(1)
 
-    print 'Generating CAN source and header files for Board: {nodeName}, Type: {boardType}'.format(nodeName=nodeName, boardType=boardType)
+    print('Generating CAN source and header files for Board: {nodeName}, Type: {boardType}'.format(nodeName=nodeName, boardType=boardType))
 
     if not (boardType == 'F0' or boardType == 'F7'):
         print("ERROR: Specifiy either F0 or F7 for boardtype")
