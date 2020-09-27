@@ -13,7 +13,7 @@
 #include "userCan.h"
 #include "bsp.h"
 #include "debug.h"
-#include "mainTaskEntry.h"
+#include "controlStateMachine.h"
 
 #include "DCU_can.h"
 
@@ -45,17 +45,7 @@ bool getEMState()
  */
 void CAN_Msg_BMU_HV_Power_State_Callback()
 {
-    if (HV_Power_State == HV_Power_State_On) {
-        xTaskNotifyFromISR( mainTaskHandle,
-                            (1<<HV_ENABLED_NOTIFICATION),
-                            eSetBits,
-                            NULL );
-    } else {
-        xTaskNotifyFromISR( mainTaskHandle,
-                            (1<<HV_DISABLED_NOTIFICATION),
-                            eSetBits,
-                            NULL );
-    }
+    fsmSendEventISR(&DCUFsmHandle,EV_CAN_Recieve);
 }
 
 /**
@@ -64,17 +54,7 @@ void CAN_Msg_BMU_HV_Power_State_Callback()
  */
 void CAN_Msg_VCU_EM_State_Callback()
 {
-    if (EM_State == HV_Power_State_On) {
-        xTaskNotifyFromISR( mainTaskHandle,
-                            (1<<EM_ENABLED_NOTIFICATION),
-                            eSetBits,
-                            NULL );
-    } else {
-        xTaskNotifyFromISR( mainTaskHandle,
-                            (1<<EM_DISABLED_NOTIFICATION),
-                            eSetBits,
-                            NULL );
-    }
+    fsmSendEventISR(&DCUFsmHandle,EV_CAN_Recieve);
 }
 
 /**

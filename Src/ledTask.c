@@ -17,7 +17,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
-
+#include "controlStateMachine.h"
 #define LED_BLINK_PERIOD_MS 500
 
 /**
@@ -30,26 +30,29 @@ void ledTask(void *pvParameters)
 {
     while (1)
     {
-        if (waitingForHVChange) {
-            HAL_GPIO_TogglePin(HV_LED_GPIO_Port, HV_LED_Pin);
-        } else {
-            if (getHVState()) {
-                HV_LED_ON
-            } else {
-                HV_LED_OFF
-            }
+        switch(fsmGetState(&DCUFsmHandle)){
+            case STATE_HV_Disable:
+                HV_LED_OFF;
+                EM_LED_OFF;
+                break;
+            case STATE_HV_Toggle:
+                HAL_GPIO_TogglePin(HV_LED_GPIO_Port, HV_LED_Pin);
+                EM_LED_OFF;
+                break;
+            case STATE_HV_Enable:
+                HV_LED_ON;
+                EM_LED_OFF;
+                break;
+            case STATE_EM_Toggle:
+                HV_LED_ON;
+                HAL_GPIO_TogglePin(EM_LED_GPIO_Port, EM_LED_Pin);
+                break;
+            case STATE_EM_Enable:
+                HV_LED_ON;
+                EM_LED_ON;
+            default:
+                break;
         }
-
-        if (waitingForEMChange) {
-            HAL_GPIO_TogglePin(EM_LED_GPIO_Port, EM_LED_Pin);
-        } else {
-            if (getEMState()) {
-                EM_LED_ON
-            } else {
-                EM_LED_OFF
-            }
-        }
-
         vTaskDelay(pdMS_TO_TICKS(LED_BLINK_PERIOD_MS));
     }
 }

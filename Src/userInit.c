@@ -17,7 +17,7 @@
 #include "debug.h"
 #include "userCan.h"
 #include "DCU_can.h"
-
+#include "controlStateMachine.h"
 /**
  * Called by FreeRTOS on stack overflow
  */
@@ -47,7 +47,10 @@ void userInit()
     }
 
     if (canInit(&CAN_HANDLE) != HAL_OK) {
-      Error_Handler();
+        Error_Handler();
+    }
+    if(dcuFsmInit() != HAL_OK){
+        Error_Handler();
     }
 
     HV_Power_State = 0;
