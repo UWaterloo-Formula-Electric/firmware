@@ -144,7 +144,7 @@ void mainTaskFunction(void const * argument){
     }
 
 
-    if (registerTaskToWatch(MAIN_TASK_ID, 5*pdMS_TO_TICKS(MAIN_TASK_PERIOD), false, &DCUFsmHandle) != HAL_OK)
+    if (registerTaskToWatch(MAIN_TASK_ID, 5*pdMS_TO_TICKS(MAIN_TASK_PERIOD), true, &DCUFsmHandle) != HAL_OK)
     {
         ERROR_PRINT("Failed to register main task with watchdog!\n");
         Error_Handler();
