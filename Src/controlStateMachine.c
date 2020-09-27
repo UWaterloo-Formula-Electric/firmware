@@ -303,7 +303,7 @@ uint32_t startLVCuttoffDelay()
 {
     sendDTC_FATAL_LV_CUTTOFF_BOARDS_OFF();
 
-    if (xTimerStart(lvShutdownDelayTimer, 100) != pdPASS) {
+    if (xTimerStart(lvShutdownDelayTimer, 1000) != pdPASS) {
         ERROR_PRINT("Failed to start lv shutdown delay timer\n");
         lvShutdown(MN_EV_LV_Cuttoff);
         return MN_STATE_Boards_Off;
@@ -441,7 +441,7 @@ void coolingDelayCallback(TimerHandle_t timer)
     }
 }
 void lvShutdownDelayCallback(TimerHandle_t timer){
-    if (fsmSendEventUrgent(&mainFsmHandle, MN_STATE_LV_Shutting_Down, 10 /* timeout */) != HAL_OK) {
+    if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Shutdown, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process lv shutdown delay elapsed event\n");
         lvShutdown(MN_STATE_LV_Shutting_Down);
     }
