@@ -1,0 +1,12 @@
+# WFE Buildroot External Configuration Tree
+
+Run Buildroot with this configuration:
+
+```
+make BR2_EXTERNAL=<relative_path_to_this_folder> beaglebone_wfe_defconfig
+```
+
+Dependencies:
+```
+sudo apt install -y git build-essential wget cpio unzip rsync bc libncurses5-dev screen
+```
