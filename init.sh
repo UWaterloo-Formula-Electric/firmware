@@ -20,4 +20,4 @@ else
 	echo "Error: Did not clone Buildroot as a repo. Look above for errors."
 fi
 
-make -C $BR_FOLDER BR2_EXTERNAL=.. O=.. beaglebone_wfe_defconfig
+make -C $BR_FOLDER BR2_EXTERNAL=.. O=$(pwd) beaglebone_wfe_defconfig
