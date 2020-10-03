@@ -2,6 +2,7 @@
 buildroot-*.*/
 build/
 host/
+target/
 
 Makefile
 .br2-external*
