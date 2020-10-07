@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -30,9 +30,9 @@
 
 /* USER CODE END 1 */
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -59,7 +59,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(BMGR_SHDN_GPIO_Port, BMGR_SHDN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, AUX_EN_Pin|BRAKE_LIGHT_EN_Pin|WSB_EN_Pin|BMU_EN_Pin 
+  HAL_GPIO_WritePin(GPIOD, AUX_EN_Pin|BRAKE_LIGHT_EN_Pin|WSB_EN_Pin|BMU_EN_Pin
                           |VCU_EN_Pin|FAN_LEFT_EN_Pin|PUMP_LEFT_EN_Pin|MC_LEFT_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -111,9 +111,9 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BMGR_SHDN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PDPin PDPin PDPin PDPin 
+  /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin PDPin PDPin PDPin */
-  GPIO_InitStruct.Pin = AUX_EN_Pin|BRAKE_LIGHT_EN_Pin|WSB_EN_Pin|BMU_EN_Pin 
+  GPIO_InitStruct.Pin = AUX_EN_Pin|BRAKE_LIGHT_EN_Pin|WSB_EN_Pin|BMU_EN_Pin
                           |VCU_EN_Pin|FAN_LEFT_EN_Pin|PUMP_LEFT_EN_Pin|MC_LEFT_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
