@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * Copyright (c) 2019 STMicroelectronics International N.V. 
+  * Copyright (c) 2020 STMicroelectronics International N.V. 
   * All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -52,6 +52,7 @@
 #include "cmsis_os.h"
 #include "adc.h"
 #include "can.h"
+#include "crc.h"
 #include "dma.h"
 #include "iwdg.h"
 #include "tim.h"
@@ -120,6 +121,7 @@ int main(void)
   MX_ADC1_Init();
   MX_IWDG_Init();
   MX_TIM6_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   /* USER CODE END 2 */
