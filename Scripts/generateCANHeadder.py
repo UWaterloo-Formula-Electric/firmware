@@ -771,9 +771,6 @@ def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
     fWrite('{prototype};'.format(prototype=prototype), headerFileHandle)
     fWrite('{prototype} {{'.format(prototype=prototype), sourceFileHandle)
-
-    fWrite('    generate_CRC_lookup_table();', sourceFileHandle)
-
     fWrite('    return HAL_OK;', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
