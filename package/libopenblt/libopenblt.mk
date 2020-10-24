@@ -12,7 +12,7 @@ LIBOPENBLT_DEPENDENCIES = libusb libsocketcan
 
 define LIBOPENBLT_INSTALL_TARGET_CMDS
     $(INSTALL) -D -m 0755 $(@D)/build/libopenblt.so $(TARGET_DIR)/usr/lib
-enddef
+endef
 
 $(eval $(cmake-package))
 
