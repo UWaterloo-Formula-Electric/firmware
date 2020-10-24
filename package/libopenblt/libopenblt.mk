@@ -6,7 +6,7 @@
 
 LIBOPENBLT_VERSION = 1.3.4
 LIBOPENBLT_SOURCE = openblt_v011000.tar.gz
-LIBOPENBLT_SITE = https://github.com/feaser/openblt
+LIBOPENBLT_SITE = https://github.com/feaser/openblt/archive
 LIBOPENBLT_INSTALL_TARGET = YES
 LIBOPENBLT_DEPENDENCIES = libusb libsocketcan
 
