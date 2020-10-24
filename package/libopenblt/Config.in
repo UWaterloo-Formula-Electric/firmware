@@ -1,0 +1,12 @@
+config BR2_PACKAGE_LIBOPENBLT
+    bool "libopenblt"
+    select BR2_PACKAGE_LIBUSB
+    select BR2_PACKAGE_LIBSOCKETCAN
+      help
+        LibOpenBLT is a host library for the OpenBLT bootloader. Its purpose
+        is to allow quick and easy creation of programs that can connect to
+        and perform firmware updates on a microcontroller that runs the
+        OpenBLT bootloader.
+
+        https://www.feaser.com/openblt/doku.php?id=manual:libopenblt
+
