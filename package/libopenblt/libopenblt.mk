@@ -10,6 +10,8 @@ LIBOPENBLT_SITE = https://github.com/feaser/openblt/archive
 LIBOPENBLT_INSTALL_TARGET = YES
 LIBOPENBLT_DEPENDENCIES = libusb libsocketcan
 
+LIBFOO_SUBDIR = Host/Source/LibOpenBLT/
+
 define LIBOPENBLT_INSTALL_TARGET_CMDS
     $(INSTALL) -D -m 0755 $(@D)/build/libopenblt.so $(TARGET_DIR)/usr/lib
 endef
