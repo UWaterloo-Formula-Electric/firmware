@@ -64,11 +64,11 @@
 
 // Cell Low and High Voltages, in volts (floating point)
 #define LIMIT_OVERVOLTAGE 4.2F
-#define LIMIT_HIGHVOLTAGE 4.2F // TODO: Not sure what this should be
-#define LIMIT_LOWVOLTAGE 3.0F // TODO: Not sure what this should be
-#define LIMIT_UNDERVOLTAGE 3.0F
+#define LIMIT_HIGHVOLTAGE 4.1F 
+#define LIMIT_LOWVOLTAGE 2.5F
+#define LIMIT_UNDERVOLTAGE 2.5F
 #define LIMIT_LOWVOLTAGE_WARNING 3.2F
-
+#define LIMIT_LOWVOLTAGE_WARNING_SLOPE -0.0043125F
 // TODO: Update these values for new cells
 #define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
 #define CELL_DCR (0.01)
@@ -77,6 +77,8 @@
 
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C) // Maximum allowable cell temperature
 #define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10) // Temp at which warning sent
+#define CELL_UNDERTEMP 5
+#define CELL_UNDERTEMP_WARNING 15
 
 /*
  * Charging constants
@@ -720,7 +722,12 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 {
    HAL_StatusTypeDef rc = HAL_OK;
    float measure;
-
+   float currentReading;
+   if(getIBus(&currentReading) != HAL_OK){
+       ERROR_PRINT("Cannot read current from bus!!");
+       sendDTC_FATAL_BMU_ERROR();
+       return HAL_ERROR;
+   } 
    *maxVoltage = 0;
    *minVoltage = LIMIT_OVERVOLTAGE;
    *maxTemp = -100; // Cells shouldn't get this cold right??
@@ -742,7 +749,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
-      } else if (measure < LIMIT_LOWVOLTAGE_WARNING) {
+      } else if (measure < LIMIT_LOWVOLTAGE_WARNING - LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading)) {
          if (!warningSentForCellVoltage[i]) {
             ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure);
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -777,6 +784,12 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             sendDTC_WARNING_CELL_TEMP_HIGH(i);
             warningSentForCellTemp[i] = true;
          }
+      } else if(measure < CELL_UNDERTEMP){
+          // TODO: Determine if we need to send DTC
+          // Do we need to send DTC for undertemps?
+         ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+      } else if(measure < CELL_UNDERTEMP_WARNING){
+         ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
       } else if (warningSentForCellTemp[i] == true) {
          warningSentForCellTemp[i] = false;
       }

@@ -7,7 +7,7 @@
 #include "bsp.h"
 
 // Used by FAN Control to determine when to turn on fans
-#define CELL_MAX_TEMP_C (60.0)
+#define CELL_MAX_TEMP_C (55.0)
 
 typedef enum Charge_Notifications_t {
     CHARGE_START_NOTIFICATION,
