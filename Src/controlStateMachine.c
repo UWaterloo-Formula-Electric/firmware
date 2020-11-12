@@ -13,6 +13,7 @@
 #include "watchdog.h"
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
+#define LV_SHUTDOWN_DELAY_TIME_MS 1000
 #define COOLING_DELAY_TIME_MS 1000
 
 FSM_Handle_Struct mainFsmHandle;
@@ -20,6 +21,7 @@ FSM_Handle_Struct motorFsmHandle;
 FSM_Handle_Struct coolingFsmHandle;
 TimerHandle_t criticalDelayTimer;
 TimerHandle_t coolingDelayTimer;
+TimerHandle_t lvShutdownDelayTimer;
 
 HAL_StatusTypeDef turnBoardsOn();
 HAL_StatusTypeDef turnBoardsOff();
@@ -39,11 +41,14 @@ uint32_t coolingOn(uint32_t event);
 uint32_t coolingOff(uint32_t event);
 uint32_t coolingCriticalFailure(uint32_t event);
 uint32_t coolingLVCuttoff(uint32_t event);
+uint32_t startLVCuttoffDelay();
+uint32_t lvShutdown(uint32_t event);
 uint32_t coolingDoNothing(uint32_t event);
 uint32_t CoolDefaultTransition(uint32_t event);
 uint32_t stopCoolingWait(uint32_t event);
 void coolingDelayCallback(TimerHandle_t timer);
 void hvCriticalDelayCallback(TimerHandle_t timer);
+void lvShutdownDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
 
 Transition_t mainTransitions[] = {
@@ -51,6 +56,7 @@ Transition_t mainTransitions[] = {
     { MN_STATE_Boards_On,  MN_EV_HV_CriticalFailure, &criticalFailureWarning },
     { MN_STATE_Warning_Critical, MN_EV_CriticalDelayElapsed, &criticalFailure },
     { MN_STATE_Boards_On, MN_EV_LV_Cuttoff, &lvCuttoff },
+    { MN_STATE_LV_Shutting_Down, MN_EV_LV_Shutdown, &lvShutdown },
     { MN_STATE_Critical_Failure, MN_EV_ANY, &mainDoNothing },
     { MN_STATE_Warning_Critical, MN_EV_ANY, &mainDoNothing },
     { MN_STATE_ANY, MN_EV_ANY, &MainDefaultTransition}
@@ -120,7 +126,6 @@ HAL_StatusTypeDef coolingControlInit()
                                        pdFALSE /* Auto Reload */,
                                        0,
                                        coolingDelayCallback);
-
     if (coolingDelayTimer == NULL) {
         ERROR_PRINT("Failed to create software timer\n");
         return HAL_ERROR;
@@ -161,7 +166,16 @@ HAL_StatusTypeDef maincontrolInit()
         ERROR_PRINT("Failed to create software timer\n");
         return HAL_ERROR;
     }
+    lvShutdownDelayTimer = xTimerCreate("LV_SHUTDOWN_DELAY",
+                                       pdMS_TO_TICKS(LV_SHUTDOWN_DELAY_TIME_MS),
+                                       pdFALSE /* Auto Reload */,
+                                       0,
+                                       lvShutdownDelayCallback);
+    if(lvShutdownDelayTimer == NULL){
+        ERROR_PRINT("Failed to create software timer\n");
+        return HAL_ERROR;
 
+    }
     init.maxStateNum = MN_STATE_ANY;
     init.maxEventNum = MN_EV_ANY;
     init.sizeofEventEnumType = sizeof(MAIN_PDU_Events_t);
@@ -252,8 +266,6 @@ HAL_StatusTypeDef startControl()
 
 uint32_t startCriticalFailureDelay()
 {
-    sendDTC_FATAL_BOARDS_TURNING_OFF();
-
     if (xTimerStart(criticalDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start critical delay timer\n");
         criticalFailure(MN_EV_CriticalDelayElapsed);
@@ -273,9 +285,7 @@ uint32_t criticalFailureWarning(uint32_t event)
 
 uint32_t criticalFailure(uint32_t event)
 {
-    DEBUG_PRINT("Critical Failure: Turning boards off\n");
-    sendDTC_FATAL_BOARDS_OFF();
-    //turnBoardsOff();
+    DEBUG_PRINT("Critical Failure: Boards will remain on\n");
     fsmSendEventUrgent(&motorFsmHandle, MTR_EV_Motor_Critical, 10 /* timeout */);
     fsmSendEventUrgent(&coolingFsmHandle, COOL_EV_Critical, 10 /* timeout */);
     return MN_STATE_Critical_Failure;
@@ -283,13 +293,29 @@ uint32_t criticalFailure(uint32_t event)
 
 uint32_t lvCuttoff(uint32_t event)
 {
-    DEBUG_PRINT("LV Cuttoff, going to critical failure\n");
-    sendDTC_FATAL_LV_CUTTOFF_BOARDS_OFF();
-
+    DEBUG_PRINT("LV Cuttoff, beginning to shutoff boards\n");
     // Cooling needs to handle LV Cuttoff differently than HV Critical, as for
     // critical it can keep cooling on, but for lv cuttoff it needs to turn off
     fsmSendEventUrgent(&coolingFsmHandle, COOL_EV_LV_Cuttoff, 10 /* timeout */);
-    return startCriticalFailureDelay();
+    return startLVCuttoffDelay();
+}
+uint32_t startLVCuttoffDelay()
+{
+    sendDTC_FATAL_LV_CUTTOFF_BOARDS_OFF();
+
+    if (xTimerStart(lvShutdownDelayTimer, 1000) != pdPASS) {
+        ERROR_PRINT("Failed to start lv shutdown delay timer\n");
+        lvShutdown(MN_EV_LV_Cuttoff);
+        return MN_STATE_Boards_Off;
+    }
+    return MN_STATE_LV_Shutting_Down;
+}
+
+
+uint32_t lvShutdown(uint32_t event){
+    DEBUG_PRINT("LV Shutdown: Turning Boards Off\n");
+    turnBoardsOff();
+    return MN_STATE_Boards_Off;
 }
 
 uint32_t runSelftTests(uint32_t event)
@@ -414,7 +440,13 @@ void coolingDelayCallback(TimerHandle_t timer)
         coolingCriticalFailure(COOL_EV_WAIT_ELAPSED);
     }
 }
+void lvShutdownDelayCallback(TimerHandle_t timer){
+    if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_LV_Shutdown, 10 /* timeout */) != HAL_OK) {
+        ERROR_PRINT("Failed to process lv shutdown delay elapsed event\n");
+        lvShutdown(MN_STATE_LV_Shutting_Down);
+    }
 
+}
 uint32_t CoolDefaultTransition(uint32_t event) {
     ERROR_PRINT("Cooling FSM: No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&coolingFsmHandle), event);
