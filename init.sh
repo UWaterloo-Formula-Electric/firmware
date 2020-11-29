@@ -24,11 +24,12 @@ fi
 # After downloading the right version, apply some patches that are not
 # yet merged to the stable branch we want to use
 
-PATCHES=$(ls board/wfe/beaglebone/patches/buildroot/*.patch)
+PATCHES=$(ls $(pwd)/board/wfe/beaglebone/patches/buildroot/*.patch)
+
 for PATCH in $PATCHES
 do
     echo "Processing $PATCH... "
-    patch -d$BR_FOLDER -p1 < "$PATCH"
+    git -C $BR_FOLDER am "$PATCH"
     STATUS=$?
     if [ ! $STATUS ]
     then
@@ -39,6 +40,7 @@ do
 done
 
 echo "Patching $BR_FOLDER succeeded."
+
 
 # Load the out-of-tree build configuration and the default defconfig
 # we wish to use
