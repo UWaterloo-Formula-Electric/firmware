@@ -3,6 +3,8 @@ buildroot-*.*/
 build/
 host/
 target/
+images/
+staging
 
 Makefile
 .br2-external*
