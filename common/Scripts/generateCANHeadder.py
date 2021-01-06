@@ -90,6 +90,25 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
     templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
     fWrite(templateOutput,headerFileHandle)
 
+    templateData["includeDefineName"] = includeDefineName
+    if boardType == 'F7':
+        boardTypeInclude = "stm32f7xx_hal.h"
+    else:
+        boardTypeInclude = "stm32f0xx_hal.h"
+    heartbeatInclude = ''
+    if not isChargerDBC:
+        heartbeatInclude = "#include \"canHeartbeat.h\""
+    #fWrite("#include \"boardTypes.h\"", headerFileHandle)
+    #fWrite("", headerFileHandle)
+    templateData = {
+        "includeDefineName": includeDefineName,
+        "boardTypeInclude": boardTypeInclude,
+        "heartbeatInclude": heartbeatInclude,
+    }
+    templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
+    #print(templateOutput)
+    fWrite(templateOutput,headerFileHandle)
+
 
 def writeEndIncludeGuard(sourceFileHandle, headerFileHandle):
     fWrite(canTemplater.load("END_SOURCE"), sourceFileHandle)
@@ -278,15 +297,30 @@ def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFi
 
     dataType = dataTypeFromSignal(signal)
 
+    fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
+    fWrite('extern volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), headerFileHandle)
     
     # Write a semaphore for both RX and TX
-    templateData = {
-        "dataType": dataType,
-        "name": signal.name
-    }
-    fWrite(canTemplater.load("SIGNAL_VAR_DECL_HEADER",templateData), headerFileHandle)
-    fWrite(canTemplater.load("SIGNAL_VAR_DECL_SOURCE",templateData), sourceFileHandle)
+    fWrite('SemaphoreHandle_t {name}_mutex = NULL;'.format(name=signal.name), sourceFileHandle)
+    fWrite('extern SemaphoreHandle_t {name}_mutex;'.format(name=signal.name), headerFileHandle)
 
+    # Add whitespace for readability
+    fWrite('', headerFileHandle)
+
+def writeSignalAccessFunction(signal, sourceFileHandle, headerFileHandle):
+    dataType = dataTypeFromSignal(signal)
+
+    #Header Declaration
+    fWrite('extern {dataType} readCAN_{name}();'.format(dataType=dataType, name=signal.name), headerFileHandle)
+
+    #Implementation
+    functionTemplate = """{dataType} readCAN_{name}(){{
+        
+}}\n"""
+    fWrite(fnTemplate.format(dataType=dataType, name=signal.name), sourceFileHandle)
+
+
+    return
 
 def dataTypeFromSignal(signal):
     dataType = 'float'
