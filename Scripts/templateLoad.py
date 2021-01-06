@@ -4,7 +4,12 @@ class FSAETemplater:
     # Format:
     #   fileKey: path
     TEMPLATE_MAP = {
-        "INCLUDE_HEADERS_BEGIN": "templates/include_headers_begin.txt"
+        "INCLUDE_HEADERS_BEGIN": "templates/include_headers_begin.txt",
+        "INCLUDE_SOURCE_BEGIN": "templates/include_source_begin.txt",
+        "END_HEADER": "templates/end_header.txt",
+        "END_SOURCE": "templates/end_source.txt",
+        "DBC_GIT_SOURCE": "templates/DBC_git_to_source.txt",
+        "SIGNAL_RECIEVED_FUNC": "templates/signal_recieved_function.txt",
     }
 
     def __init__(self):

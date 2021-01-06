@@ -1,0 +1,7 @@
+//PDU autogen can source
+// *** Do not modify by hand
+#include "PDU_charger_can.h"
+#include "CRC_CALC.h"
+#include "userCan.h"
+#include "debug.h"
+#include "PDU_dtc.h"
