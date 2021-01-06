@@ -82,6 +82,7 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
         includeDefineName = '__{nodeName}_charger_can_H'.format(nodeName=nodeName)
     else:
         includeDefineName = '__{nodeName}_can_H'.format(nodeName=nodeName)
+<<<<<<< HEAD:common/Scripts/generateCANHeadder.py
     templateData = {
         "includeDefineName": includeDefineName,
         "boardTypeInclude": "stm32f7xx_hal.h" if boardType == 'F7' else "stm32f0xx_hal.h",
@@ -100,13 +101,14 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
         heartbeatInclude = "#include \"canHeartbeat.h\""
     #fWrite("#include \"boardTypes.h\"", headerFileHandle)
     #fWrite("", headerFileHandle)
+=======
+>>>>>>> Added more Templates:Scripts/generateCANHeadder.py
     templateData = {
         "includeDefineName": includeDefineName,
-        "boardTypeInclude": boardTypeInclude,
-        "heartbeatInclude": heartbeatInclude,
+        "boardTypeInclude": "stm32f7xx_hal.h" if boardType == 'F7' else "stm32f0xx_hal.h",
+        "heartbeatInclude": "#include \"canHeartbeat.h\"" if not isChargerDBC else '',
     }
     templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
-    #print(templateOutput)
     fWrite(templateOutput,headerFileHandle)
 
 
@@ -241,7 +243,11 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
 
     templateData = {
         "returnType": "void" if (multiplexed or not dtc) else "int",
+<<<<<<< HEAD:common/Scripts/generateCANHeadder.py
         "signalName": variableName,
+=======
+        "signalName": signal.name if variableName == '' else variableName,
+>>>>>>> Added more Templates:Scripts/generateCANHeadder.py
         "indexOpt": "int index, " if multiplexed else "",
         "inputSign": "" if signal.is_signed else "u",
         "dataTypeOutput": dataTypeOutput,
@@ -249,7 +255,11 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
         "offset": signal.offset,
         "finalStatement": finalStatement,
     }
+<<<<<<< HEAD:common/Scripts/generateCANHeadder.py
     fWrite(canTemplater.load("SIGNAL_RECEIVED_FUNC",templateData), fileHandle)
+=======
+    fWrite(canTemplater.load("SIGNAL_RECIEVED_FUNC",templateData), fileHandle)
+>>>>>>> Added more Templates:Scripts/generateCANHeadder.py
 
 def getSignalSendingFunctionName(signal, multiplexed):
     signalName = signal.name
@@ -833,6 +843,7 @@ class TestObj(dict):
     def __getattr__(self,name):
         return self[name]
 
+<<<<<<< HEAD:common/Scripts/generateCANHeadder.py
 def test():
     #Test generate templates
     headerFile = open('templates/outputs/headerFileIncludeGuard.txt', "w+")
@@ -890,3 +901,27 @@ def test():
 if __name__ == '__main__':
     main(sys.argv[1:])
     #test()
+=======
+if __name__ == '__main__':
+    #main(sys.argv[1:])
+    headerFile = open('templates/outputs/headerFileIncludeGuard.txt', "w+")
+    writeHeaderFileIncludeGuardAndIncludes('F7',headerFile,'PDU',True)
+
+    headerFile = open('templates/outputs/headerFileEnd.txt', "w+")
+    sourceFile = open('templates/outputs/sourceFileEnd.txt', "w+")
+    writeEndIncludeGuard(sourceFile, headerFile)
+
+    sourceFile = open('templates/outputs/sourceFileInclude.txt','w+')
+    writeSourceFileIncludes("PDU",sourceFile,True)
+
+
+    sourceFile = open('templates/outputs/sourceDBCVersionGit.txt','w+')
+    db = TestObj(version='4')
+    writeDBCVersionAndGitCommitToSourceFile("fd3414",db,sourceFile, False)
+
+    sourceFile = open('templates/outputs/sourceFunctionRecieved.txt','w+')
+    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10)
+    writeSignalReceivedFunction(signal,sourceFile,'ping',False,True)
+
+    
+>>>>>>> Added more Templates:Scripts/generateCANHeadder.py
