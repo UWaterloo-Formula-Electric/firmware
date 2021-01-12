@@ -1,0 +1,2 @@
+volatile ${dataType} ${name};
+SemaphoreHandle_t ${name}_mutex = NULL;

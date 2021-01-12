@@ -10,6 +10,13 @@ class FSAETemplater:
         "END_SOURCE": "templates/end_source.txt",
         "DBC_GIT_SOURCE": "templates/DBC_git_to_source.txt",
         "SIGNAL_RECIEVED_FUNC": "templates/signal_recieved_function.txt",
+        "SIGNAL_SENDING_FUNC": "templates/signal_sending_function.txt",
+        "SIGNAL_VAR_DECL_HEADER": "templates/signal_variable_and_declaration_header.txt",
+        "SIGNAL_VAR_DECL_SOURCE": "templates/signal_variable_and_declaration_source.txt",
+        "INDEX_TO_MUX_HEADER": "templates/index_to_mux_header.txt",
+        "INDEX_TO_MUX_SOURCE": "templates/index_to_mux_source.txt",
+        "MUX_TO_INDEX_HEADER": "templates/mux_to_index_header.txt",
+        "MUX_TO_INDEX_SOURCE": "templates/mux_to_index_source.txt",
     }
 
     def __init__(self):

@@ -1,0 +1,4 @@
+uint8_t myMsgIndexToMuxSelect(int index)
+{
+    return (uint8_t) index / 23;
+}
