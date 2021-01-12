@@ -1,0 +1,2 @@
+volatile float Ping;
+SemaphoreHandle_t Ping_mutex = NULL;

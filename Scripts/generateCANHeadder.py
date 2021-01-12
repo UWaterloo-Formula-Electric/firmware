@@ -239,40 +239,23 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
     if checkForDuplicateSignalSend(signal):
         return
 
-    dataType = 'float'
+    sendDataType = 'float'
     if signal.scale == 1:
         if signal.is_signed:
-            dataType = 'int64_t'
+            sendDataType = 'int64_t'
         else:
-            dataType = 'uint64_t'
+            sendDataType = 'uint64_t'
+    templateData = {
+        "returnDataType": 'int64_t' if signal.is_signed else 'uint64_t',
+        "signalName": variableName if variableName != '' else signal.name,
+        "sendDataType": sendDataType,
+        "params": "int index" if multiplexed else "",
+        "optIndex": "[index]" if multiplexed else "",
+        "scaler": signal.scale,
+        "offset": signal.offset,
+    }
+    fWrite(canTemplater.load("SIGNAL_SENDING_FUNC",templateData), fileHandle)
 
-    functionTemplate = ''
-    if not multiplexed:
-        functionTemplate = """{dataTypeReturn} {signalName}Sending()
-{{
-    {dataType} sendValue = {signalName};
-    sendValue -= {offset};
-    sendValue /= {scaler};
-    return sendValue;
-}}\n"""
-    else:
-        functionTemplate = """{dataTypeReturn} {signalName}Sending(int index)
-{{
-    {dataType} sendValue = {signalName}[index];
-    sendValue -= {offset};
-    sendValue /= {scaler};
-    return sendValue;
-}}\n"""
-
-    if signal.is_signed:
-      dataTypeReturn = 'int64_t'
-    else:
-      dataTypeReturn = 'uint64_t'
-
-    if variableName == '':
-        variableName = signal.name
-    function = functionTemplate.format(signalName=variableName,dataType=dataType, dataTypeReturn=dataTypeReturn, scaler=signal.scale, offset=signal.offset)
-    fWrite(function, fileHandle)
 
 def writeValueTableEnum(signal, headerFileHandle):
     if signal.choices is not None:
@@ -290,30 +273,15 @@ def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFi
 
     dataType = dataTypeFromSignal(signal)
 
-    fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
-    fWrite('extern volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), headerFileHandle)
     
     # Write a semaphore for both RX and TX
-    fWrite('SemaphoreHandle_t {name}_mutex = NULL;'.format(name=signal.name), sourceFileHandle)
-    fWrite('extern SemaphoreHandle_t {name}_mutex;'.format(name=signal.name), headerFileHandle)
+    templateData = {
+        "dataType": dataType,
+        "name": signal.name
+    }
+    fWrite(canTemplater.load("SIGNAL_VAR_DECL_HEADER",templateData), headerFileHandle)
+    fWrite(canTemplater.load("SIGNAL_VAR_DECL_SOURCE",templateData), sourceFileHandle)
 
-    # Add whitespace for readability
-    fWrite('', headerFileHandle)
-
-def writeSignalAccessFunction(signal, sourceFileHandle, headerFileHandle):
-    dataType = dataTypeFromSignal(signal)
-
-    #Header Declaration
-    fWrite('extern {dataType} readCAN_{name}();'.format(dataType=dataType, name=signal.name), headerFileHandle)
-
-    #Implementation
-    functionTemplate = """{dataType} readCAN_{name}(){{
-        
-}}\n"""
-    fWrite(fnTemplate.format(dataType=dataType, name=signal.name), sourceFileHandle)
-
-
-    return
 
 def dataTypeFromSignal(signal):
     dataType = 'float'
@@ -324,8 +292,6 @@ def dataTypeFromSignal(signal):
             dataType = 'uint64_t'
     return dataType
 
-    fWrite('volatile {dataType} {name};'.format(dataType=dataType, name=signal.name), sourceFileHandle)
-    fWrite('extern volatile {dataType} {name};\n'.format(dataType=dataType, name=signal.name), headerFileHandle)
 
 def getReceivedSignalsFromMessage(msg, nodeName):
     return [signal for signal in msg.signals if nodeName in signal.receivers]
@@ -402,30 +368,21 @@ def getMultiplexedMsgInfo(msg):
     return (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal)
 
 def writeIndexToMuxFunction(msgName, numSignalsPerMessage, sourceFileHandle, headerFileHandle):
-    prototypeTemplate = "uint8_t {name}IndexToMuxSelect( int index )"
-    sourceTemplate = """{prototype} {{
-    return (uint8_t) index / {numSignalsPerMessage};
-}}
-"""
-    prototype = prototypeTemplate.format(name=msgName)
-    fWrite("{prototype};".format(prototype=prototype), headerFileHandle)
-    fWrite(sourceTemplate.format(prototype=prototype, numSignalsPerMessage=numSignalsPerMessage), sourceFileHandle)
+    templateData = {
+        "name": msgName,
+        "numSignalsPerMessage": numSignalsPerMessage
+    }
+    fWrite(canTemplater.load("INDEX_TO_MUX_HEADER",templateData), headerFileHandle)
+    fWrite(canTemplater.load("INDEX_TO_MUX_SOURCE",templateData), sourceFileHandle)
 
 def writeMuxToIndexFunction(msgName, numSignals, numSignalsPerMessage, sourceFileHandle, headerFileHandle):
-    prototypeTemplate = "uint8_t {name}MuxSelectToIndex( int muxSelect, int offset )"
-    sourceTemplate = """{prototype} {{
-    int index =  muxSelect * {numSignalsPerMessage} + offset;
-    if (index >= {numSignals}) {{
-        index = {numSignals} - 1;
-    }}
-
-    return index;
-}}
-"""
-
-    prototype = prototypeTemplate.format(name=msgName)
-    fWrite("{prototype};".format(prototype=prototype), headerFileHandle)
-    fWrite(sourceTemplate.format(prototype=prototype, numSignalsPerMessage=numSignalsPerMessage, numSignals=numSignals), sourceFileHandle)
+    templateData = {
+        "name": msgName,
+        "numSignals": numSignals,
+        "numSignalsPerMessage": numSignalsPerMessage,
+    }
+    fWrite(canTemplater.load("MUX_TO_INDEX_HEADER",templateData), headerFileHandle)
+    fWrite(canTemplater.load("MUX_TO_INDEX_SOURCE",templateData), sourceFileHandle)
 
 def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFileHandle):
     for msg in multiplexedRxMessages:
@@ -896,6 +853,8 @@ class TestObj(dict):
 
 if __name__ == '__main__':
     #main(sys.argv[1:])
+
+    #Test generate templates
     headerFile = open('templates/outputs/headerFileIncludeGuard.txt', "w+")
     writeHeaderFileIncludeGuardAndIncludes('F7',headerFile,'PDU',True)
 
@@ -915,4 +874,19 @@ if __name__ == '__main__':
     signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10)
     writeSignalReceivedFunction(signal,sourceFile,'ping',False,True)
 
-    
+    sourceFile = open('templates/outputs/sourceFunctionSending.txt','w+')
+    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10)
+    writeSignalSendingFunction(signal,sourceFile,'',False)
+
+    sourceFile = open('templates/outputs/sourceSignalVarDecl.txt','w+')
+    headerFile = open('templates/outputs/headerSignalVarDecl.txt','w+')
+    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10,choices=None)
+    writeSignalVariableAndVariableDeclaration(signal,sourceFile,headerFile)
+
+    sourceFile = open('templates/outputs/sourceIndexToMux.txt','w+')
+    headerFile = open('templates/outputs/headerIndexToMux.txt','w+')
+    writeIndexToMuxFunction("myMsg",23,sourceFile,headerFile)
+
+    sourceFile = open('templates/outputs/sourceMuxToIndex.txt','w+')
+    headerFile = open('templates/outputs/headerMuxToIndex.txt','w+')
+    writeMuxToIndexFunction("myMsg",3,7,sourceFile,headerFile)
