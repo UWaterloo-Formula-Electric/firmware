@@ -200,7 +200,9 @@ def writeStructForMsg(msg, structName, fileHandle):
 def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
     if checkForDuplicateSignalReceive(signal):
         return
-
+    if variableName == '':
+        variableName = signal.name
+    
     dataTypeOutput = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -217,7 +219,7 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
 
     templateData = {
         "returnType": "void" if (multiplexed or not dtc) else "int",
-        "signalName": signal.name if variableName == '' else variableName,
+        "signalName": variableName,
         "indexOpt": "int index, " if multiplexed else "",
         "inputSign": "" if signal.is_signed else "u",
         "dataTypeOutput": dataTypeOutput,
@@ -225,7 +227,7 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
         "offset": signal.offset,
         "finalStatement": finalStatement,
     }
-    fWrite(canTemplater.load("SIGNAL_RECIEVED_FUNC",templateData), fileHandle)
+    fWrite(canTemplater.load("SIGNAL_RECEIVED_FUNC",templateData), fileHandle)
 
 def getSignalSendingFunctionName(signal, multiplexed):
     signalName = signal.name
@@ -386,13 +388,18 @@ def writeMuxToIndexFunction(msgName, numSignals, numSignalsPerMessage, sourceFil
 
 def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFileHandle):
     for msg in multiplexedRxMessages:
-        fWrite('// Struct and signal receive functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
+
 
         (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal) = getMultiplexedMsgInfo(msg)
-
-        fWrite('volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), sourceFileHandle)
-        fWrite('extern volatile {dataType} {name}[{count}];'.format(dataType=dataType, name=strippedSignalName, count=numSignals), headerFileHandle)
-        fWrite('#define {name}_COUNT ({count})'.format(name=strippedSignalName.upper(), count=numSignals), headerFileHandle)
+        templateData = {
+            "msgName" : msg.name,
+            "dataType": dataType,
+            "signalName": strippedSignalName,
+            "signalNameUpper": strippedSignalName.upper(),
+            "count": numSignals,
+        }
+        fWrite(canTemplater.load("MULTIPLEX_RX_HEADER",templateData), headerFileHandle)
+        fWrite(canTemplater.load("MULTIPLEX_RX_SOURCE",templateData), sourceFileHandle)
 
         writeSignalReceivedFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
         # write the signal receive function for the multiplexer signal. Set multiplexed to false since this signal isn't multiplexed
@@ -464,17 +471,14 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
     fWrite('}', sourceFileHandle)
 
 def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
-    fWrite('int sendCAN_{name}();\n'.format(name=msg.name), headerFileHandle)
-    fWrite('int sendCAN_{name}() {{'.format(name=msg.name), sourceFileHandle)
-    structInstanceName = 'new_{name}'.format(name=msg.name)
-    fWrite('    struct {structName} {instanceName};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
+    templateData = {
+        "name": msg.name,
+        "id": msg.frame_id,
+        "len": msg.length,
+    }
+    fWrite(canTemplater.load("VERSION_SEND_HEADER",templateData), headerFileHandle)
+    fWrite(canTemplater.load("VERSION_SEND_SOURCE",templateData), sourceFileHandle)
 
-    fWrite('    {structName}.DBC = DBCVersion;'.format(structName=structInstanceName), sourceFileHandle)
-    for i in range(0,7):
-        fWrite('    {structName}.git{i} = gitCommit[{i}];'.format(structName=structInstanceName, i=i), sourceFileHandle)
-
-    fWrite('    return sendCanMessage({id}, {len}, (uint8_t *)&{structName});'.format(id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
-    fWrite('}', sourceFileHandle)
 
 def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
     for msg in normalTxMessages:
@@ -648,80 +652,23 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
     return msgCallbackPrototypes
 
 def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
-    fWrite('void {functionName}(CAN_HandleTypeDef* canHandle);'.format(functionName=functionName), headerFileHandle)
-    fWrite('__weak void {functionName}(CAN_HandleTypeDef* canHandle)\n{{'.format(functionName=functionName), sourceFileHandle)
-    fWrite('    CAN_FilterTypeDef  sFilterConfig;', sourceFileHandle)
-    fWrite('    // Filter msgs to this nodes Id to fifo 0', sourceFileHandle)
-    fWrite('    uint32_t filterID = CAN_NODE_ADDRESS<<8;', sourceFileHandle)
-    fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
-    fWrite('    uint32_t filterMask = 0xFF00;', sourceFileHandle)
-    fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterBank = 0;', sourceFileHandle)
-    # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
-    fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
-    fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
-    fWrite('    {', sourceFileHandle)
-    fWrite('      Error_Handler();', sourceFileHandle)
-    fWrite('    }', sourceFileHandle)
-
-    fWrite('\n    // Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
-    if isChargerDBC:
-        # Charger uses 0x50 as broadcast address
-        fWrite('    filterID = 0x5000;', sourceFileHandle)
-    else:
-        fWrite('    filterID = 0xFF<<8;', sourceFileHandle)
-    fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
-    fWrite('    filterMask = 0xFF00;', sourceFileHandle)
-    fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-    fWrite('    sFilterConfig.FilterBank = 1;', sourceFileHandle)
-    # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
-    fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
-    fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
-    fWrite('    {', sourceFileHandle)
-    fWrite('      Error_Handler();', sourceFileHandle)
-    fWrite('    }', sourceFileHandle)
-
+    templateHolder = ""
     i = 1
     for messageGroup in messageGroups:
         i = i + 1
-        fWrite('\n    // Filter msgs to the broadcast Id to fifo 0', sourceFileHandle)
-        fWrite('    filterID = {msgGrp}<<12;'.format(msgGrp=messageGroup), sourceFileHandle)
-        fWrite('    filterID = filterID << 3; // Filter ID is left aligned to 32 bits', sourceFileHandle)
-        fWrite('    filterMask = 0xFF00;', sourceFileHandle)
-        fWrite('    filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterIdLow = (filterID & 0xFFFF);', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterFIFOAssignment = 0;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterActivation = ENABLE;', sourceFileHandle)
-        fWrite('    sFilterConfig.FilterBank = {msgGrpNmbr};\n'.format(msgGrpNmbr=i), sourceFileHandle)
-        # From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
-        fWrite('    sFilterConfig.SlaveStartFilterBank = 0;\n', sourceFileHandle) # TODO: Verify this is the correct config
-        fWrite('    if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)', sourceFileHandle)
-        fWrite('    {', sourceFileHandle)
-        fWrite('      Error_Handler();', sourceFileHandle)
-        fWrite('    }', sourceFileHandle)
+        templateData = {
+            "msgGrp": messageGroup,
+            "msgGrpNmbr": i,
+        }
+        templateHolder = templateHolder + canTemplater.load("SETUP_CAN_FILTERS_PARTIAL",templateData)
 
-    fWrite('}', sourceFileHandle)
+    finalTemplateData = {
+        "filterID": '0x5000;' if isChargerDBC else '0xFF<<8;',
+        "functionName": functionName,
+        "extraMessageTemplate": templateHolder,
+    }
+    fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER",finalTemplateData), headerFileHandle)
+    fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE",finalTemplateData), sourceFileHandle)
 
 def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
@@ -851,9 +798,7 @@ class TestObj(dict):
     def __getattr__(self,name):
         return self[name]
 
-if __name__ == '__main__':
-    #main(sys.argv[1:])
-
+def test():
     #Test generate templates
     headerFile = open('templates/outputs/headerFileIncludeGuard.txt', "w+")
     writeHeaderFileIncludeGuardAndIncludes('F7',headerFile,'PDU',True)
@@ -890,3 +835,23 @@ if __name__ == '__main__':
     sourceFile = open('templates/outputs/sourceMuxToIndex.txt','w+')
     headerFile = open('templates/outputs/headerMuxToIndex.txt','w+')
     writeMuxToIndexFunction("myMsg",3,7,sourceFile,headerFile)
+
+    #Not tested rn as it needs access to CAN DB
+    #writeMultiplexedRxMessages()
+    
+    message = TestObj(name="Ping",frame_id='5',length=24)
+    sourceFile = open('templates/outputs/sourceSendVersion.txt','w+')
+    headerFile = open('templates/outputs/headerSendVersion.txt','w+')
+    writeVersionSendFunction(message,sourceFile,headerFile)
+
+    sourceFile = open('templates/outputs/sourceCANFilters.txt','w+')
+    headerFile = open('templates/outputs/headerCANFilters.txt','w+')
+    messageGroups = [
+        "0xFFFF",
+        "0x0000",
+        "0xF0F1"
+    ]
+    writeSetupCanFilters("F7",messageGroups,sourceFile,headerFile)
+if __name__ == '__main__':
+    main(sys.argv[1:])
+    #test()

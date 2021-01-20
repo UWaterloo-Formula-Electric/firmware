@@ -1,4 +1,4 @@
-${returnType} ${signalName}Recieved(${indexOpt}${inputSign}int64_t newValue)
+${returnType} ${signalName}Received(${indexOpt}${inputSign}int64_t newValue)
 {
     ${dataTypeOutput} outValue = newValue;
     outValue *= ${scaler};
