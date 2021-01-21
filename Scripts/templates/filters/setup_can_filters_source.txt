@@ -36,8 +36,8 @@ __weak void ${functionName}(CAN_HandleTypeDef* canHandle)
     sFilterConfig.FilterIdLow = (filterID & 0xFFFF);
     sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;
     sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);
-    sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;
-    sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);
+
+
     sFilterConfig.FilterFIFOAssignment = 0;
     sFilterConfig.FilterActivation = ENABLE;
     sFilterConfig.FilterBank = 1;
