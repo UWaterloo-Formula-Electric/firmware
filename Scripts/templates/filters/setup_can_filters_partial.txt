@@ -1,6 +1,6 @@
     
     // Filter msgs to the broadcast Id to fifo 0
-    filterID = ${msgGrp}<<12
+    filterID = ${msgGrp}<<12;
     filterID = filterID << 3; // Filter ID is left aligned to 32 bits
     filterMask = 0xFF00;
     filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits
