@@ -86,7 +86,22 @@ void faultMonitorTask(void *pvParameters)
    } while (!getIL_Status());
 
    DEBUG_PRINT("IL Started\n");
-
+   
+   //Checking status of each IL
+   for  (int count=0, count<3, count++) {
+      if count == 0 {
+          sense = getIL_BRB_Status()
+      } else if count == 1 {
+          sense = getBSPD_Status()
+      } else if count == 2 {
+          sense = getHVD_Status()
+      } // else if count == 3 {
+      //    sense = 
+      if sense == false {
+           vTaskDelay(10)
+       }
+   }
+    
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
    if (registerTaskToWatch(FAULT_TASK_ID, 2*pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
