@@ -1,7 +1,0 @@
-uint64_t PingSending()
-{
-    float sendValue = Ping;
-    sendValue -= 10;
-    sendValue /= 2;
-    return sendValue;
-}

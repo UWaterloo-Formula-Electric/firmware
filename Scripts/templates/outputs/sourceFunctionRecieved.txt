@@ -1,8 +1,0 @@
-int pingRecieved(uint64_t newValue)
-{
-    float outValue = newValue;
-    outValue *= 2;
-    outValue += 10;
-    return outValue;
-}
-

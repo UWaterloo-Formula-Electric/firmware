@@ -1,2 +1,0 @@
-extern volatile float Ping;
-extern SemaphoreHandle_t Ping_mutex;
