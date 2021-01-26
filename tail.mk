@@ -123,7 +123,7 @@ LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
-
+LINKER_FLAGS += -z muldefs
 #DEBUG_FLAGS=-g -O2
 #COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
 #ASSEMBLER_FLAGS=$(COMMON_FLAGS) -x assembler-with-cpp
