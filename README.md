@@ -6,15 +6,16 @@
 .
 ├── Cube-F7-Src/                # Legacy autogen CubeMX HAL
 ├── Cube-F7-Src-respin/         # Current autogen CubeMX HAL
-├── Src/                        # WFE board-specifc source code 
-├── Inc/                        # WFE board-specifc source headers
+├── Cube-Nucleo-Src/            # Nucleo autogen CubeMX HAL
+├── Src/                        # WFE board-specific source code
+├── Inc/                        # WFE board-specific source headers
 ├── common-all/                 # Source code shared among boards
 ├── Makefile                    # GNU Make build script
-└── README.md                   # You are here 
+└── README.md                   # You are here
 
 ```
 
-## Downloading the Code to your System 
+## Downloading the Code to your System
 
 You can clone this repository using git by pressing the button above that says
 "clone". This will give you a command that you can copy into you terminal to
@@ -36,7 +37,7 @@ beginning:
 git clone --recurse-submodule <git_repo_address>
 ```
 
-## Building the Code 
+## Building the Code
 
 We use the [GNU make](https://www.gnu.org/software/make/manual/make.html) program to build our code.
 You can start a build by running `make all` or just `make`.
