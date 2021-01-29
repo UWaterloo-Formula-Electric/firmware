@@ -313,19 +313,20 @@ class QueueThread(threading.Thread):
             self.queue_data.push("dtc_message_payload", payload)
             sleep(2)
             
+class DashboardRunner:
 
-if __name__ == "__main__":
-    # Start thread in background to collect data
-    data = QueueData()
-    queue_thread = QueueThread(data)
-    queue_thread.daemon = True
-    queue_thread.start()
+    def run(self):
+        # Start thread in background to collect data
+        data = QueueData()
+        queue_thread = QueueThread(data)
+        queue_thread.daemon = True
+        queue_thread.start()
 
-    app = QApplication(sys.argv)
+        app = QApplication(sys.argv)
 
-    Dashboard(app, data)
+        Dashboard(app, data)
 
-    # run application until user closes it
-    sys.exit(app.exec_())
+        # run application until user closes it
+        sys.exit(app.exec_())
 
 

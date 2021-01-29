@@ -14,23 +14,23 @@ logging.getLogger().setLevel(logging.INFO)
 
 class Database(QueueDataSubscriber):
 
-    DEFAULT_PATH = '/tmp/wfe-data/'
+    DEFAULT_DB_PATH = '/tmp/wfe-data/'
 
     INSERT = "INSERT INTO {} VALUES ({})"
-    DEFAULT_DBC = "common-all/Data/2018CAR.dbc"
+    DEFAULT_DBC = os.path.join(path, "../common-all/Data/2018CAR.dbc")
 
     def __init__(self, custom_name=None):
         super(Database, self).__init__()
         self.subscribe_to_packet_type('')
 
         date = datetime.today().strftime('%Y-%m-%d')
-        if not os.path.exists(self.DEFAULT_PATH):
-            os.makedirs(self.DEFAULT_PATH)
+        if not os.path.exists(self.DEFAULT_DB_PATH):
+            os.makedirs(self.DEFAULT_DB_PATH)
 
         if custom_name:
-            db_name = self.DEFAULT_PATH + custom_name
+            db_name = self.DEFAULT_DB_PATH + custom_name
         else:
-            db_name = self.DEFAULT_PATH + 'can_data-{}.db'.format(date)
+            db_name = self.DEFAULT_DB_PATH + 'can_data-{}.db'.format(date)
 
         tw = TableWriter(db_name)
         tw.parse_dbc(self.DEFAULT_DBC)

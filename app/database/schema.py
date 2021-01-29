@@ -4,7 +4,7 @@ import sqlite3
 class TableWriter:
 
     CREATE_TABLE = "CREATE TABLE {} ({})"
-    DEFAULT_DBC = "common-all/Data/2018CAR.dbc"
+    DEFAULT_DBC = "../common-all/Data/2018CAR.dbc"
 
     def __init__(self, sqlite_db):
         self.conn = sqlite3.connect(sqlite_db)
