@@ -1,20 +1,12 @@
 var searchData=
 [
-  ['openallcontactors_538',['openAllContactors',['../precharge_discharge_8c.html#a31e37b4f44b11e182256bff5c25df2ac',1,'prechargeDischarge.c']]],
-  ['output_539',['output',['../control_state_machine__mock_8c.html#a4b7a793b6ae8a2c4f7f5f2ce3758668d',1,'controlStateMachine_mock.c']]],
-  ['outputcurrenthigh_540',['OutputCurrentHigh',['../struct_charge_status.html#a31b3620be53181b7ac6ee9517d82e6bd',1,'ChargeStatus::OutputCurrentHigh()'],['../_b_m_u__charger__can_8h.html#a011e8181d9f12a04aa85fce6fd52742c',1,'OutputCurrentHigh():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a011e8181d9f12a04aa85fce6fd52742c',1,'OutputCurrentHigh():&#160;BMU_charger_can.c']]],
-  ['outputcurrenthighreceived_541',['OutputCurrentHighReceived',['../_b_m_u__charger__can_8c.html#ab801f9c67dff6656ffdb0641d2d565a9',1,'BMU_charger_can.c']]],
-  ['outputcurrentlow_542',['OutputCurrentLow',['../struct_charge_status.html#a744a9f79ce747067f115ef87805ce31b',1,'ChargeStatus::OutputCurrentLow()'],['../_b_m_u__charger__can_8h.html#a0008370371cfbb3c75deb975bd78a659',1,'OutputCurrentLow():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a0008370371cfbb3c75deb975bd78a659',1,'OutputCurrentLow():&#160;BMU_charger_can.c']]],
-  ['outputcurrentlowreceived_543',['OutputCurrentLowReceived',['../_b_m_u__charger__can_8c.html#a55c12479455ea5852ed33fdaf6a26c8d',1,'BMU_charger_can.c']]],
-  ['outputvoltagehigh_544',['OutputVoltageHigh',['../struct_charge_status.html#ab0c0773b3d4655e062fbff746760be57',1,'ChargeStatus::OutputVoltageHigh()'],['../_b_m_u__charger__can_8h.html#a98066fa05b75fc3cd8e7d57de00f851f',1,'OutputVoltageHigh():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a98066fa05b75fc3cd8e7d57de00f851f',1,'OutputVoltageHigh():&#160;BMU_charger_can.c']]],
-  ['outputvoltagehighreceived_545',['OutputVoltageHighReceived',['../_b_m_u__charger__can_8c.html#a1338693d2ae9f27fd27032679dae5e8a',1,'BMU_charger_can.c']]],
-  ['outputvoltagelow_546',['OutputVoltageLow',['../struct_charge_status.html#a4933d44e6dd384010a08e80b72ca19f0',1,'ChargeStatus::OutputVoltageLow()'],['../_b_m_u__charger__can_8h.html#a647d08ce1da1dba4f8682dbbe721af67',1,'OutputVoltageLow():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#a647d08ce1da1dba4f8682dbbe721af67',1,'OutputVoltageLow():&#160;BMU_charger_can.c']]],
-  ['outputvoltagelowreceived_547',['OutputVoltageLowReceived',['../_b_m_u__charger__can_8c.html#afca2daa10f58134ff810828c98c99bb1',1,'BMU_charger_can.c']]],
-  ['overallstate_548',['OverallState',['../struct_charger_status.html#a6138a5dd5afb99e46bd1940228720497',1,'ChargerStatus']]],
-  ['overtemp_549',['OverTemp',['../struct_charger_status.html#ae02a91e722a8e72a09235c50d8b2d813',1,'ChargerStatus']]],
-  ['overtempactive_550',['OverTempActive',['../struct_charge_status.html#a05d900ce549c566f03fa0fae19688644',1,'ChargeStatus::OverTempActive()'],['../_b_m_u__charger__can_8h.html#ae54187164942dbe935f60b5bd5f10e8f',1,'OverTempActive():&#160;BMU_charger_can.c'],['../_b_m_u__charger__can_8c.html#ae54187164942dbe935f60b5bd5f10e8f',1,'OverTempActive():&#160;BMU_charger_can.c']]],
-  ['overtempactive_5ferror_551',['OverTempActive_Error',['../_b_m_u__charger__can_8h.html#a44536824d5ed8c3244c4d78e84aee5f0ad01bd37d71242d667d89afc4f7e6f78c',1,'BMU_charger_can.h']]],
-  ['overtempactive_5fnormal_552',['OverTempActive_Normal',['../_b_m_u__charger__can_8h.html#a44536824d5ed8c3244c4d78e84aee5f0ab2f5eca106ef6dd37cf63282d7bad0b8',1,'BMU_charger_can.h']]],
-  ['overtempactive_5fvalues_553',['OverTempActive_Values',['../_b_m_u__charger__can_8h.html#a44536824d5ed8c3244c4d78e84aee5f0',1,'BMU_charger_can.h']]],
-  ['overtempactivereceived_554',['OverTempActiveReceived',['../_b_m_u__charger__can_8c.html#a175e3b02dde42f3df0e7b1af1fe8895b',1,'BMU_charger_can.c']]]
+  ['sense_2ec_85',['sense.c',['../sense_8c.html',1,'']]],
+  ['setmaxchargecurrent_86',['setMaxChargeCurrent',['../batteries_8c.html#aacf3b5ff9648b813208cb6f91b370fef',1,'batteries.c']]],
+  ['setnegcontactor_87',['setNegContactor',['../precharge_discharge_8c.html#abff2f24b02adb053c98e9dab39e4bf8c',1,'prechargeDischarge.c']]],
+  ['setposcontactor_88',['setPosContactor',['../precharge_discharge_8c.html#a1cf8d9e41ce57c21a0cb0c8c3ed63dbc',1,'prechargeDischarge.c']]],
+  ['setprechargecontactor_89',['setPrechargeContactor',['../precharge_discharge_8c.html#ae515fc0cfdab37834fe7288670ee1c9f',1,'prechargeDischarge.c']]],
+  ['setsendonlyonecell_90',['setSendOnlyOneCell',['../batteries_8c.html#acd55a62448b408952283c28d12dd4c1d',1,'batteries.c']]],
+  ['startcharging_91',['startCharging',['../batteries_8c.html#a43ea41cc1c21bd36b3622076e20b596c',1,'batteries.c']]],
+  ['stopbalance_92',['stopBalance',['../batteries_8c.html#ad54912c48ac30fc66796b2aeca58cea7',1,'batteries.c']]],
+  ['stopcharging_93',['stopCharging',['../batteries_8c.html#a5cf6c235603af078c2dc841ae579f3b5',1,'batteries.c']]]
 ];

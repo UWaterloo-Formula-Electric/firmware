@@ -1,8 +1,8 @@
-\hypertarget{can_receive_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/can\+Receive.c File Reference}
-\label{can_receive_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/canReceive.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/canReceive.c}}
+\hypertarget{can_receive_8c}{}\doxysection{/\+Users/djgood/\+WFE/firmware/2018\+\_\+bmu/\+Src/can\+Receive.c File Reference}
+\label{can_receive_8c}\index{/Users/djgood/WFE/firmware/2018\_bmu/Src/canReceive.c@{/Users/djgood/WFE/firmware/2018\_bmu/Src/canReceive.c}}
 
 
-Module containing callback functions for receiving C\+AN messages.  
+Module containing callback functions for receiving CAN messages.  
 
 
 {\ttfamily \#include \char`\"{}can\+Receive.\+h\char`\"{}}\newline
@@ -11,89 +11,40 @@ Module containing callback functions for receiving C\+AN messages.
 {\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}board\+Types.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+can.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+RTOS.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}cmsis\+\_\+os.\+h\char`\"{}}\newline
-Include dependency graph for can\+Receive.\+c\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{can_receive_8c__incl}
-\end{center}
-\end{figure}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-void \mbox{\hyperlink{can_receive_8c_a2615be7cca510569731173760bbe8f7c}{C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+button\+Events\+\_\+\+Callback}} ()
+\mbox{\Hypertarget{can_receive_8c_a2615be7cca510569731173760bbe8f7c}\label{can_receive_8c_a2615be7cca510569731173760bbe8f7c}} 
+void {\bfseries CAN\+\_\+\+Msg\+\_\+\+DCU\+\_\+button\+Events\+\_\+\+Callback} ()
 \item 
-void \mbox{\hyperlink{can_receive_8c_a32d4d470cc461096834497b4f6650378}{D\+T\+C\+\_\+\+Fatal\+\_\+\+Callback}} (Board\+I\+Ds board)
+\mbox{\Hypertarget{can_receive_8c_a32d4d470cc461096834497b4f6650378}\label{can_receive_8c_a32d4d470cc461096834497b4f6650378}} 
+void {\bfseries DTC\+\_\+\+Fatal\+\_\+\+Callback} (Board\+IDs board)
 \item 
-void \mbox{\hyperlink{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Heartbeat\+\_\+\+Callback}} ()
+\mbox{\Hypertarget{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1}\label{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1}} 
+void {\bfseries CAN\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Heartbeat\+\_\+\+Callback} ()
 \item 
-void \mbox{\hyperlink{can_receive_8c_a2c5b63da0152dd1e7437ac43de488613}{C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Button\+Events\+\_\+\+Callback}} ()
+\mbox{\Hypertarget{can_receive_8c_a2c5b63da0152dd1e7437ac43de488613}\label{can_receive_8c_a2c5b63da0152dd1e7437ac43de488613}} 
+void {\bfseries CAN\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Button\+Events\+\_\+\+Callback} ()
 \end{DoxyCompactItemize}
 \doxysubsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-uint32\+\_\+t \mbox{\hyperlink{can_receive_8c_a62f387701f4bbc91eee5eca1a6c7e7ee}{last\+Charge\+Cart\+Heartbeat}} = 0
+\mbox{\Hypertarget{can_receive_8c_a62f387701f4bbc91eee5eca1a6c7e7ee}\label{can_receive_8c_a62f387701f4bbc91eee5eca1a6c7e7ee}} 
+uint32\+\_\+t {\bfseries last\+Charge\+Cart\+Heartbeat} = 0
 \item 
-bool \mbox{\hyperlink{can_receive_8c_a892dfcbc517c88780956a1599cbf9257}{sent\+Charge\+Start\+Event}} = false
+\mbox{\Hypertarget{can_receive_8c_a892dfcbc517c88780956a1599cbf9257}\label{can_receive_8c_a892dfcbc517c88780956a1599cbf9257}} 
+bool {\bfseries sent\+Charge\+Start\+Event} = false
 \end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
-Module containing callback functions for receiving C\+AN messages. 
+Module containing callback functions for receiving CAN messages. 
 
 \begin{DoxyAuthor}{Author}
 Richard Matthews
 \end{DoxyAuthor}
-Receives D\+CU HV toggle button press, charge cart messages, and D\+T\+Cs 
-
-\doxysubsection{Function Documentation}
-\mbox{\Hypertarget{can_receive_8c_a2c5b63da0152dd1e7437ac43de488613}\label{can_receive_8c_a2c5b63da0152dd1e7437ac43de488613}} 
-\index{canReceive.c@{canReceive.c}!CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback@{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback}}
-\index{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback@{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback()}{CAN\_Msg\_ChargeCart\_ButtonEvents\_Callback()}}
-{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Button\+Events\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1}\label{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1}} 
-\index{canReceive.c@{canReceive.c}!CAN\_Msg\_ChargeCart\_Heartbeat\_Callback@{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback}}
-\index{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback@{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback()}{CAN\_Msg\_ChargeCart\_Heartbeat\_Callback()}}
-{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+Charge\+Cart\+\_\+\+Heartbeat\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{can_receive_8c_a74c581cf269fb33a9c4f51aee0813da1_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{can_receive_8c_a2615be7cca510569731173760bbe8f7c}\label{can_receive_8c_a2615be7cca510569731173760bbe8f7c}} 
-\index{canReceive.c@{canReceive.c}!CAN\_Msg\_DCU\_buttonEvents\_Callback@{CAN\_Msg\_DCU\_buttonEvents\_Callback}}
-\index{CAN\_Msg\_DCU\_buttonEvents\_Callback@{CAN\_Msg\_DCU\_buttonEvents\_Callback}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{CAN\_Msg\_DCU\_buttonEvents\_Callback()}{CAN\_Msg\_DCU\_buttonEvents\_Callback()}}
-{\footnotesize\ttfamily void C\+A\+N\+\_\+\+Msg\+\_\+\+D\+C\+U\+\_\+button\+Events\+\_\+\+Callback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{can_receive_8c_a32d4d470cc461096834497b4f6650378}\label{can_receive_8c_a32d4d470cc461096834497b4f6650378}} 
-\index{canReceive.c@{canReceive.c}!DTC\_Fatal\_Callback@{DTC\_Fatal\_Callback}}
-\index{DTC\_Fatal\_Callback@{DTC\_Fatal\_Callback}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{DTC\_Fatal\_Callback()}{DTC\_Fatal\_Callback()}}
-{\footnotesize\ttfamily void D\+T\+C\+\_\+\+Fatal\+\_\+\+Callback (\begin{DoxyParamCaption}\item[{Board\+I\+Ds}]{board }\end{DoxyParamCaption})}
-
-
-
-\doxysubsection{Variable Documentation}
-\mbox{\Hypertarget{can_receive_8c_a62f387701f4bbc91eee5eca1a6c7e7ee}\label{can_receive_8c_a62f387701f4bbc91eee5eca1a6c7e7ee}} 
-\index{canReceive.c@{canReceive.c}!lastChargeCartHeartbeat@{lastChargeCartHeartbeat}}
-\index{lastChargeCartHeartbeat@{lastChargeCartHeartbeat}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{lastChargeCartHeartbeat}{lastChargeCartHeartbeat}}
-{\footnotesize\ttfamily uint32\+\_\+t last\+Charge\+Cart\+Heartbeat = 0}
-
-\mbox{\Hypertarget{can_receive_8c_a892dfcbc517c88780956a1599cbf9257}\label{can_receive_8c_a892dfcbc517c88780956a1599cbf9257}} 
-\index{canReceive.c@{canReceive.c}!sentChargeStartEvent@{sentChargeStartEvent}}
-\index{sentChargeStartEvent@{sentChargeStartEvent}!canReceive.c@{canReceive.c}}
-\doxysubsubsection{\texorpdfstring{sentChargeStartEvent}{sentChargeStartEvent}}
-{\footnotesize\ttfamily bool sent\+Charge\+Start\+Event = false}
-
+Receives DCU HV toggle button press, charge cart messages, and DTCs 

@@ -1,103 +1,128 @@
-\hypertarget{batteries_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/batteries.c File Reference}
-\label{batteries_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/batteries.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/batteries.c}}
+\hypertarget{batteries_8c}{}\doxysection{/\+Users/djgood/\+WFE/firmware/2018\+\_\+bmu/\+Src/batteries.c File Reference}
+\label{batteries_8c}\index{/Users/djgood/WFE/firmware/2018\_bmu/Src/batteries.c@{/Users/djgood/WFE/firmware/2018\_bmu/Src/batteries.c}}
 
 
-Battery Monitoring, Charging, HV Bus Sense, I\+MD monitor.  
+Battery Monitoring, Charging, HV Bus Sense, IMD monitor.  
 
 
 {\ttfamily \#include \char`\"{}batteries.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+RTOS.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}cmsis\+\_\+os.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}math.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+can.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+dtc.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+dtc.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}board\+Types.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}watchdog.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}can\+Receive.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}charger\+Control.\+h\char`\"{}}\newline
-Include dependency graph for batteries.\+c\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c__incl}
-\end{center}
-\end{figure}
 \doxysubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_aadfade60a9946687e6a1a4a24b70fb4c}{E\+N\+A\+B\+L\+E\+\_\+\+I\+MD}}
+\mbox{\Hypertarget{batteries_8c_aadfade60a9946687e6a1a4a24b70fb4c}\label{batteries_8c_aadfade60a9946687e6a1a4a24b70fb4c}} 
+\#define {\bfseries ENABLE\+\_\+\+IMD}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_aa31c40ba22e94296395602249e2b25eb}{E\+N\+A\+B\+L\+E\+\_\+\+H\+V\+\_\+\+M\+E\+A\+S\+U\+RE}}
+\mbox{\Hypertarget{batteries_8c_aa31c40ba22e94296395602249e2b25eb}\label{batteries_8c_aa31c40ba22e94296395602249e2b25eb}} 
+\#define {\bfseries ENABLE\+\_\+\+HV\+\_\+\+MEASURE}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a2828019bbccc5743ed8275fc9a4fe1a3}{E\+N\+A\+B\+L\+E\+\_\+\+A\+MS}}
+\mbox{\Hypertarget{batteries_8c_a2828019bbccc5743ed8275fc9a4fe1a3}\label{batteries_8c_a2828019bbccc5743ed8275fc9a4fe1a3}} 
+\#define {\bfseries ENABLE\+\_\+\+AMS}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a9fea424f5555dcbb0ba5c1e4871e855f}{E\+N\+A\+B\+L\+E\+\_\+\+C\+H\+A\+R\+G\+ER}}
+\mbox{\Hypertarget{batteries_8c_a9fea424f5555dcbb0ba5c1e4871e855f}\label{batteries_8c_a9fea424f5555dcbb0ba5c1e4871e855f}} 
+\#define {\bfseries ENABLE\+\_\+\+CHARGER}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a8ba2127550d368f846692fdcf3ca095f}{E\+N\+A\+B\+L\+E\+\_\+\+B\+A\+L\+A\+N\+CE}}
+\mbox{\Hypertarget{batteries_8c_a8ba2127550d368f846692fdcf3ca095f}\label{batteries_8c_a8ba2127550d368f846692fdcf3ca095f}} 
+\#define {\bfseries ENABLE\+\_\+\+BALANCE}
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a62b353ffb0e0f9735e0c6a32712e85b2}{B\+A\+T\+T\+E\+R\+Y\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~100
+\mbox{\Hypertarget{batteries_8c_a62b353ffb0e0f9735e0c6a32712e85b2}\label{batteries_8c_a62b353ffb0e0f9735e0c6a32712e85b2}} 
+\#define {\bfseries BATTERY\+\_\+\+TASK\+\_\+\+PERIOD\+\_\+\+MS}~100
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a6d5ce7bfac0354a10a78a45aa0ebaacf}{B\+A\+T\+T\+E\+R\+Y\+\_\+\+C\+H\+A\+R\+G\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~2000
+\mbox{\Hypertarget{batteries_8c_a6d5ce7bfac0354a10a78a45aa0ebaacf}\label{batteries_8c_a6d5ce7bfac0354a10a78a45aa0ebaacf}} 
+\#define {\bfseries BATTERY\+\_\+\+CHARGE\+\_\+\+TASK\+\_\+\+PERIOD\+\_\+\+MS}~2000
 \item 
-\#define \mbox{\hyperlink{batteries_8c_aeb85d8df3b9f6218cb677ccd44760cd4}{B\+A\+T\+T\+E\+R\+Y\+\_\+\+T\+A\+S\+K\+\_\+\+ID}}~2
+\mbox{\Hypertarget{batteries_8c_aeb85d8df3b9f6218cb677ccd44760cd4}\label{batteries_8c_aeb85d8df3b9f6218cb677ccd44760cd4}} 
+\#define {\bfseries BATTERY\+\_\+\+TASK\+\_\+\+ID}~2
 \item 
-\#define \mbox{\hyperlink{batteries_8c_aa4b530cc846953d732a4582912f703d2}{L\+I\+M\+I\+T\+\_\+\+O\+V\+E\+R\+V\+O\+L\+T\+A\+GE}}~4.\+2F
+\mbox{\Hypertarget{batteries_8c_aa4b530cc846953d732a4582912f703d2}\label{batteries_8c_aa4b530cc846953d732a4582912f703d2}} 
+\#define {\bfseries LIMIT\+\_\+\+OVERVOLTAGE}~4.\+2F
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a582698c135482c98c6911f0bdbf8d1ad}{L\+I\+M\+I\+T\+\_\+\+H\+I\+G\+H\+V\+O\+L\+T\+A\+GE}}~4.\+2F
+\mbox{\Hypertarget{batteries_8c_a582698c135482c98c6911f0bdbf8d1ad}\label{batteries_8c_a582698c135482c98c6911f0bdbf8d1ad}} 
+\#define {\bfseries LIMIT\+\_\+\+HIGHVOLTAGE}~4.\+2F
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a2f9e0b5026ad096458f1bdcc559cfab7}{L\+I\+M\+I\+T\+\_\+\+L\+O\+W\+V\+O\+L\+T\+A\+GE}}~3.\+0F
+\mbox{\Hypertarget{batteries_8c_a2f9e0b5026ad096458f1bdcc559cfab7}\label{batteries_8c_a2f9e0b5026ad096458f1bdcc559cfab7}} 
+\#define {\bfseries LIMIT\+\_\+\+LOWVOLTAGE}~3.\+0F
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a6136cb9cd8ceabce6e9fdda8cb05c3bd}{L\+I\+M\+I\+T\+\_\+\+U\+N\+D\+E\+R\+V\+O\+L\+T\+A\+GE}}~3.\+0F
+\mbox{\Hypertarget{batteries_8c_a6136cb9cd8ceabce6e9fdda8cb05c3bd}\label{batteries_8c_a6136cb9cd8ceabce6e9fdda8cb05c3bd}} 
+\#define {\bfseries LIMIT\+\_\+\+UNDERVOLTAGE}~3.\+0F
 \item 
-\#define \mbox{\hyperlink{batteries_8c_ab4cdc344852b65658b9d24c04473f26d}{L\+I\+M\+I\+T\+\_\+\+L\+O\+W\+V\+O\+L\+T\+A\+G\+E\+\_\+\+W\+A\+R\+N\+I\+NG}}~3.\+2F
+\mbox{\Hypertarget{batteries_8c_ab4cdc344852b65658b9d24c04473f26d}\label{batteries_8c_ab4cdc344852b65658b9d24c04473f26d}} 
+\#define {\bfseries LIMIT\+\_\+\+LOWVOLTAGE\+\_\+\+WARNING}~3.\+2F
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a374bf63b81c93c7d9e76601f46b9f184}{C\+E\+L\+L\+\_\+\+T\+I\+M\+E\+\_\+\+T\+O\+\_\+\+F\+A\+I\+L\+U\+R\+E\+\_\+\+A\+L\+L\+O\+W\+A\+B\+LE}}~(6.\+0)
+\mbox{\Hypertarget{batteries_8c_a374bf63b81c93c7d9e76601f46b9f184}\label{batteries_8c_a374bf63b81c93c7d9e76601f46b9f184}} 
+\#define {\bfseries CELL\+\_\+\+TIME\+\_\+\+TO\+\_\+\+FAILURE\+\_\+\+ALLOWABLE}~(6.\+0)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_ace79b123d44fbbb7d6b78e0e9fa98930}{C\+E\+L\+L\+\_\+\+D\+CR}}~(0.\+01)
+\mbox{\Hypertarget{batteries_8c_ace79b123d44fbbb7d6b78e0e9fa98930}\label{batteries_8c_ace79b123d44fbbb7d6b78e0e9fa98930}} 
+\#define {\bfseries CELL\+\_\+\+DCR}~(0.\+01)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a16227ae24d95ceebf83b650ccdb0dfa4}{C\+E\+L\+L\+\_\+\+H\+E\+A\+T\+\_\+\+C\+A\+P\+A\+C\+I\+TY}}~(1034.\+2)
+\mbox{\Hypertarget{batteries_8c_a16227ae24d95ceebf83b650ccdb0dfa4}\label{batteries_8c_a16227ae24d95ceebf83b650ccdb0dfa4}} 
+\#define {\bfseries CELL\+\_\+\+HEAT\+\_\+\+CAPACITY}~(1034.\+2)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a8fec377e4c098c8c294afce44c6c69d0}{C\+E\+L\+L\+\_\+\+M\+A\+SS}}~(0.\+496)
+\mbox{\Hypertarget{batteries_8c_a8fec377e4c098c8c294afce44c6c69d0}\label{batteries_8c_a8fec377e4c098c8c294afce44c6c69d0}} 
+\#define {\bfseries CELL\+\_\+\+MASS}~(0.\+496)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_aa72653c5b21b8d21a14cdba38e71c6eb}{C\+E\+L\+L\+\_\+\+O\+V\+E\+R\+T\+E\+MP}}~(\mbox{\hyperlink{batteries_8h_aca152be2322f2c62c655e2a234c88fd3}{C\+E\+L\+L\+\_\+\+M\+A\+X\+\_\+\+T\+E\+M\+P\+\_\+C}})
+\mbox{\Hypertarget{batteries_8c_aa72653c5b21b8d21a14cdba38e71c6eb}\label{batteries_8c_aa72653c5b21b8d21a14cdba38e71c6eb}} 
+\#define {\bfseries CELL\+\_\+\+OVERTEMP}~(CELL\+\_\+\+MAX\+\_\+\+TEMP\+\_\+C)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a8531f997baa2780a823499e18bdebec3}{C\+E\+L\+L\+\_\+\+O\+V\+E\+R\+T\+E\+M\+P\+\_\+\+W\+A\+R\+N\+I\+NG}}~(\mbox{\hyperlink{batteries_8h_aca152be2322f2c62c655e2a234c88fd3}{C\+E\+L\+L\+\_\+\+M\+A\+X\+\_\+\+T\+E\+M\+P\+\_\+C}} -\/ 10)
+\mbox{\Hypertarget{batteries_8c_a8531f997baa2780a823499e18bdebec3}\label{batteries_8c_a8531f997baa2780a823499e18bdebec3}} 
+\#define {\bfseries CELL\+\_\+\+OVERTEMP\+\_\+\+WARNING}~(CELL\+\_\+\+MAX\+\_\+\+TEMP\+\_\+C -\/ 10)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_ad5819e811f281911c5854f40cf58960f}{B\+A\+L\+A\+N\+C\+E\+\_\+\+S\+T\+A\+R\+T\+\_\+\+V\+O\+L\+T\+A\+GE}}~(3.\+5F)
+\mbox{\Hypertarget{batteries_8c_ad5819e811f281911c5854f40cf58960f}\label{batteries_8c_ad5819e811f281911c5854f40cf58960f}} 
+\#define \mbox{\hyperlink{batteries_8c_ad5819e811f281911c5854f40cf58960f}{BALANCE\+\_\+\+START\+\_\+\+VOLTAGE}}~(3.\+5F)
 \begin{DoxyCompactList}\small\item\em Block balancing below this cell voltage. \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_ae7647190367a5af57c404c325ede1e56}{C\+E\+L\+L\+\_\+\+R\+E\+L\+A\+X\+A\+T\+I\+O\+N\+\_\+\+T\+I\+M\+E\+\_\+\+MS}}~(1000)
+\mbox{\Hypertarget{batteries_8c_ae7647190367a5af57c404c325ede1e56}\label{batteries_8c_ae7647190367a5af57c404c325ede1e56}} 
+\#define \mbox{\hyperlink{batteries_8c_ae7647190367a5af57c404c325ede1e56}{CELL\+\_\+\+RELAXATION\+\_\+\+TIME\+\_\+\+MS}}~(1000)
 \begin{DoxyCompactList}\small\item\em Pause balancing for this length when reading cell voltages to get good readings. \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}{C\+H\+A\+R\+G\+E\+\_\+\+S\+T\+O\+P\+\_\+\+S\+OC}}~(98.\+0)
+\mbox{\Hypertarget{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}\label{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}} 
+\#define \mbox{\hyperlink{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}{CHARGE\+\_\+\+STOP\+\_\+\+SOC}}~(98.\+0)
 \begin{DoxyCompactList}\small\item\em SoC to stop charging at (of the cell with lowest SoC) \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_a3840db84d2eaac3f4fe59941e21ff410}{C\+H\+A\+R\+G\+E\+\_\+\+C\+A\+R\+T\+\_\+\+H\+E\+A\+R\+T\+B\+E\+A\+T\+\_\+\+M\+A\+X\+\_\+\+P\+E\+R\+I\+OD}}~(1000)
+\#define \mbox{\hyperlink{batteries_8c_a3840db84d2eaac3f4fe59941e21ff410}{CHARGE\+\_\+\+CART\+\_\+\+HEARTBEAT\+\_\+\+MAX\+\_\+\+PERIOD}}~(1000)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}{C\+H\+A\+R\+G\+E\+\_\+\+D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+A\+X\+\_\+\+C\+U\+R\+R\+E\+NT}}~5
+\mbox{\Hypertarget{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}\label{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}} 
+\#define \mbox{\hyperlink{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}{CHARGE\+\_\+\+DEFAULT\+\_\+\+MAX\+\_\+\+CURRENT}}~5
 \begin{DoxyCompactList}\small\item\em Default charging current limit (Amps) \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_aaa9233fe54ffd66274a5dd46390b36e5}{B\+A\+L\+A\+N\+C\+E\+\_\+\+R\+E\+C\+H\+E\+C\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~(3000)
+\#define \mbox{\hyperlink{batteries_8c_aaa9233fe54ffd66274a5dd46390b36e5}{BALANCE\+\_\+\+RECHECK\+\_\+\+PERIOD\+\_\+\+MS}}~(3000)
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}{N\+U\+M\+\_\+\+S\+O\+C\+\_\+\+L\+O\+O\+K\+U\+P\+\_\+\+V\+A\+LS}}~101
+\mbox{\Hypertarget{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}\label{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}} 
+\#define {\bfseries NUM\+\_\+\+SOC\+\_\+\+LOOKUP\+\_\+\+VALS}~101
 \item 
-\#define \mbox{\hyperlink{batteries_8c_affc1e4ab7cea9fe57082528ac006cc50}{H\+V\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~1
+\mbox{\Hypertarget{batteries_8c_affc1e4ab7cea9fe57082528ac006cc50}\label{batteries_8c_affc1e4ab7cea9fe57082528ac006cc50}} 
+\#define {\bfseries HV\+\_\+\+MEASURE\+\_\+\+TASK\+\_\+\+PERIOD\+\_\+\+MS}~1
 \item 
-\#define \mbox{\hyperlink{batteries_8c_ab4536de5261b4bd382b10d69f857dbe3}{H\+V\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+ID}}~4
+\mbox{\Hypertarget{batteries_8c_ab4536de5261b4bd382b10d69f857dbe3}\label{batteries_8c_ab4536de5261b4bd382b10d69f857dbe3}} 
+\#define {\bfseries HV\+\_\+\+MEASURE\+\_\+\+TASK\+\_\+\+ID}~4
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a0fc9cbf2e0173158d4cd0536059a272f}{S\+T\+A\+T\+E\+\_\+\+B\+U\+S\+\_\+\+H\+V\+\_\+\+C\+A\+N\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~500
+\mbox{\Hypertarget{batteries_8c_a0fc9cbf2e0173158d4cd0536059a272f}\label{batteries_8c_a0fc9cbf2e0173158d4cd0536059a272f}} 
+\#define {\bfseries STATE\+\_\+\+BUS\+\_\+\+HV\+\_\+\+CAN\+\_\+\+SEND\+\_\+\+PERIOD\+\_\+\+MS}~500
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a918bb56d5d536252807bb42ab03b3728}{I\+M\+D\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~1000
+\mbox{\Hypertarget{batteries_8c_a918bb56d5d536252807bb42ab03b3728}\label{batteries_8c_a918bb56d5d536252807bb42ab03b3728}} 
+\#define {\bfseries IMD\+\_\+\+TASK\+\_\+\+PERIOD\+\_\+\+MS}~1000
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a5a2f513c66eeae901bf7536957487e74}{I\+M\+D\+\_\+\+T\+A\+S\+K\+\_\+\+ID}}~5
+\mbox{\Hypertarget{batteries_8c_a5a2f513c66eeae901bf7536957487e74}\label{batteries_8c_a5a2f513c66eeae901bf7536957487e74}} 
+\#define {\bfseries IMD\+\_\+\+TASK\+\_\+\+ID}~5
 \item 
-\#define \mbox{\hyperlink{batteries_8c_a1951643638039378eccc6e0ffef18a22}{I\+B\+U\+S\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+\+A\+L\+P\+HA}}~0.\+24
+\mbox{\Hypertarget{batteries_8c_a1951643638039378eccc6e0ffef18a22}\label{batteries_8c_a1951643638039378eccc6e0ffef18a22}} 
+\#define \mbox{\hyperlink{batteries_8c_a1951643638039378eccc6e0ffef18a22}{IBUS\+\_\+\+FILTER\+\_\+\+ALPHA}}~0.\+24
 \begin{DoxyCompactList}\small\item\em Filter constant for HV Bus current low pass filter Designed around 1 ms sample period and 50 Hz cuttoff. See the wikipedia page for the calculation\+: \href{https://en.wikipedia.org/wiki/Low-pass_filter\#Simple_infinite_impulse_response_filter}{\texttt{ https\+://en.\+wikipedia.\+org/wiki/\+Low-\/pass\+\_\+filter\#\+Simple\+\_\+infinite\+\_\+impulse\+\_\+response\+\_\+filter}}. \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}{M\+A\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+NT}}~3
+\mbox{\Hypertarget{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}\label{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}} 
+\#define \mbox{\hyperlink{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}{MAX\+\_\+\+ERROR\+\_\+\+COUNT}}~3
 \begin{DoxyCompactList}\small\item\em Maximum number of errors battery task can encounter before reporting error. \end{DoxyCompactList}\item 
-\#define \mbox{\hyperlink{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}{C\+E\+L\+L\+\_\+\+V\+O\+L\+T\+A\+G\+E\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+\+A\+L\+P\+HA}}~0.\+18
+\#define \mbox{\hyperlink{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}{CELL\+\_\+\+VOLTAGE\+\_\+\+FILTER\+\_\+\+ALPHA}}~0.\+18
 \item 
-\#define \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{C\+A\+N\+\_\+\+C\+E\+L\+L\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~40
-\begin{DoxyCompactList}\small\item\em The period to send cell voltage and temperature C\+AN messages. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\mbox{\Hypertarget{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}\label{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}} 
+\#define \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{CAN\+\_\+\+CELL\+\_\+\+SEND\+\_\+\+PERIOD\+\_\+\+MS}}~40
+\begin{DoxyCompactList}\small\item\em The period to send cell voltage and temperature CAN messages. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Typedefs}
 \begin{DoxyCompactItemize}
 \item 
@@ -106,143 +131,158 @@ typedef enum \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1}{Ch
 \doxysubsection*{Enumerations}
 \begin{DoxyCompactItemize}
 \item 
-enum \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1}{Charge\+Return}} \{ \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1a0abf13e2a7d6435eb5b31d33abeadad7}{C\+H\+A\+R\+G\+E\+\_\+\+D\+O\+NE}}, 
-\mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1a3db9c119e634b77566daafdde61b29f1}{C\+H\+A\+R\+G\+E\+\_\+\+S\+T\+O\+P\+P\+ED}}, 
-\mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1ad0605183af862ee76169e8b41c7fd927}{C\+H\+A\+R\+G\+E\+\_\+\+E\+R\+R\+OR}}
+enum \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1}{Charge\+Return}} \{ \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1a0abf13e2a7d6435eb5b31d33abeadad7}{CHARGE\+\_\+\+DONE}}
+, \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1a3db9c119e634b77566daafdde61b29f1}{CHARGE\+\_\+\+STOPPED}}
+, \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1ad0605183af862ee76169e8b41c7fd927}{CHARGE\+\_\+\+ERROR}}
  \}
 \end{DoxyCompactItemize}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-float \mbox{\hyperlink{batteries_8c_a1300d8fea84c20d3945380460f61f81d}{filter\+I\+Bus}} (float I\+Bus)
+float \mbox{\hyperlink{batteries_8c_a1300d8fea84c20d3945380460f61f81d}{filter\+IBus}} (float IBus)
 \begin{DoxyCompactList}\small\item\em Low pass filters the HV Bus current measurement. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}{init\+Bus\+Voltages\+And\+Current\+Queues}} ()
+\mbox{\Hypertarget{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}\label{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}} 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}{init\+Bus\+Voltages\+And\+Current\+Queues}} ()
 \begin{DoxyCompactList}\small\item\em Creates queues for HV Bus measurements Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent data is in the queue and read from the queue. Queues use Amps and Volts for units. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a37d4140213dc1708776032fc935e0b39}{publish\+Bus\+Voltages\+And\+Current}} (float $\ast$p\+I\+Bus, float $\ast$p\+V\+Bus, float $\ast$p\+V\+Batt)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a37d4140213dc1708776032fc935e0b39}{publish\+Bus\+Voltages\+And\+Current}} (float $\ast$p\+IBus, float $\ast$p\+VBus, float $\ast$p\+VBatt)
 \begin{DoxyCompactList}\small\item\em Publishes the most recent HV Bus measurements to queues for other tasks to read from Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent data is in the queue and read from the queue. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0}{read\+Bus\+Voltages\+And\+Currents}} (float $\ast$I\+Bus, float $\ast$V\+Bus, float $\ast$V\+Batt)
-\begin{DoxyCompactList}\small\item\em Measures HV voltages and currents using the HV A\+DC. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a0ee7fbdeb8e2e8413b4fc77ba59223d5}{get\+I\+Bus}} (float $\ast$I\+Bus)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0}{read\+Bus\+Voltages\+And\+Currents}} (float $\ast$IBus, float $\ast$VBus, float $\ast$VBatt)
+\begin{DoxyCompactList}\small\item\em Measures HV voltages and currents using the HV ADC. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a0ee7fbdeb8e2e8413b4fc77ba59223d5}{get\+IBus}} (float $\ast$IBus)
 \begin{DoxyCompactList}\small\item\em Get the most recent bus current reading. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aff30116cb629c2efdad61c2ccaec0c36}{get\+V\+Batt}} (float $\ast$V\+Batt)
-\begin{DoxyCompactList}\small\item\em Get the most recent battery voltage reading (from the HV A\+DC). Note\+: this is only equal to the battery voltage when both contactors are closed. to get the battery voltage in all times, use \mbox{\hyperlink{batteries_8h_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}}. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a6fbf3bf910348af26a580fc418f89f5e}{get\+V\+Bus}} (float $\ast$V\+Bus)
-\begin{DoxyCompactList}\small\item\em Get the most recent HV Bus voltage reading (from the HV A\+DC) \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a6e1bc0d2209bd309c4db0a06009a339a}{cli\+Set\+V\+Batt}} (float V\+Batt)
-\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the V\+Batt reading. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a2ab7e555695e672e38894f394a31a3ef}{cli\+Set\+V\+Bus}} (float V\+Bus)
-\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the V\+Bus reading. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a19d5fb02c3547746d76a121bf9f10807}{cli\+Set\+I\+Bus}} (float I\+Bus)
-\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the I\+Bus reading. \end{DoxyCompactList}\item 
-void \mbox{\hyperlink{batteries_8c_a1ef8191389452a8f21cb2d02b20cba29}{H\+V\+Measure\+Task}} (void $\ast$pv\+Paramaters)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aff30116cb629c2efdad61c2ccaec0c36}{get\+VBatt}} (float $\ast$VBatt)
+\begin{DoxyCompactList}\small\item\em Get the most recent battery voltage reading (from the HV ADC). Note\+: this is only equal to the battery voltage when both contactors are closed. to get the battery voltage in all times, use \mbox{\hyperlink{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}}. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a6fbf3bf910348af26a580fc418f89f5e}{get\+VBus}} (float $\ast$VBus)
+\begin{DoxyCompactList}\small\item\em Get the most recent HV Bus voltage reading (from the HV ADC) \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a6e1bc0d2209bd309c4db0a06009a339a}{cli\+Set\+VBatt}} (float VBatt)
+\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the VBatt reading. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a2ab7e555695e672e38894f394a31a3ef}{cli\+Set\+VBus}} (float VBus)
+\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the VBus reading. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a19d5fb02c3547746d76a121bf9f10807}{cli\+Set\+IBus}} (float IBus)
+\begin{DoxyCompactList}\small\item\em For nucleo testing, allows setting a dummy value for the IBus reading. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{batteries_8c_a1ef8191389452a8f21cb2d02b20cba29}{HVMeasure\+Task}} (void $\ast$pv\+Paramaters)
 \item 
+\mbox{\Hypertarget{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9}\label{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9}} 
 void \mbox{\hyperlink{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9}{imd\+Task}} (void $\ast$pv\+Paramaters)
-\begin{DoxyCompactList}\small\item\em Monitors the Insulation Monitoring Device (I\+MD). Raises error if I\+MD reports fault. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a36a3c81e474331b59839cb2f565c7704}{read\+Cell\+Voltages\+And\+Temps}} ()
-\begin{DoxyCompactList}\small\item\em Reads the cell voltages and temperatures from the A\+MS boards. The battery temperature and cell voltages are stored in the global arrays which are also used for sending them over C\+AN. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}{init\+Voltage\+And\+Temp\+Arrays}} ()
+\begin{DoxyCompactList}\small\item\em Monitors the Insulation Monitoring Device (IMD). Raises error if IMD reports fault. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a36a3c81e474331b59839cb2f565c7704}{read\+Cell\+Voltages\+And\+Temps}} ()
+\begin{DoxyCompactList}\small\item\em Reads the cell voltages and temperatures from the AMS boards. The battery temperature and cell voltages are stored in the global arrays which are also used for sending them over CAN. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}\label{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}} 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}{init\+Voltage\+And\+Temp\+Arrays}} ()
 \begin{DoxyCompactList}\small\item\em This functions sets all cell voltages and temps to known values. This is necessary for testing on Nucleo so it doesn\textquotesingle{}t immediately error before the user can manually set the Voltages and Temperatures. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b}\label{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b}} 
 void \mbox{\hyperlink{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b}{Battery\+Task\+Error}} ()
 \begin{DoxyCompactList}\small\item\em Called if an error with batteries is detected. Raises error and stops battery task execution (without tripping watchdog) \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c}{bounded\+Continue}} ()
-\begin{DoxyCompactList}\small\item\em Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed M\+A\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+NT times, then fail and send error event. T\+O\+DO\+: ensure this is max 500 ms to meet rules for cell reading times. \end{DoxyCompactList}\item 
-void \mbox{\hyperlink{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}{E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+N\+T\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS}} ()
+\begin{DoxyCompactList}\small\item\em Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed MAX\+\_\+\+ERROR\+\_\+\+COUNT times, then fail and send error event. TODO\+: ensure this is max 500 ms to meet rules for cell reading times. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}\label{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}} 
+void \mbox{\hyperlink{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}{ERROR\+\_\+\+COUNTER\+\_\+\+SUCCESS}} ()
 \begin{DoxyCompactList}\small\item\em Call on a succesful run through main loop. Decrements error counter on succesful run through main loop. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{batteries_8c_ae1d79ed043eedc99cbc01f7c59ce369e}{filter\+Cell\+Voltages}} (float $\ast$cell\+Voltages, float $\ast$\mbox{\hyperlink{batteries_8c_afa99b901194e86a7784f6213f9420089}{cell\+Voltages\+Filtered}})
-\begin{DoxyCompactList}\small\item\em This takes an array of the instantaneous cell volages, and filters them on an ongoing basis using the cell\+Voltages\+Filtered array. For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due to bad contact with A\+MS boards. The hypothesis is that the pogo pins make bad contact with the ams boards when the motors spin, thus the need for filtering. This hasn\textquotesingle{}t been proven however, but the filtering fixed the errors we saw before (info up to date as of May 2020) NB\+: Filter voltages shouldn\textquotesingle{}t be sent over C\+AN, only used with error checking. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a7090234402b08bb512cf5db06702c9f0}{check\+Cell\+Voltages\+And\+Temps}} (float $\ast$max\+Voltage, float $\ast$min\+Voltage, float $\ast$max\+Temp, float $\ast$min\+Temp, float $\ast$pack\+Voltage)
+\begin{DoxyCompactList}\small\item\em This takes an array of the instantaneous cell volages, and filters them on an ongoing basis using the cell\+Voltages\+Filtered array. For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due to bad contact with AMS boards. The hypothesis is that the pogo pins make bad contact with the ams boards when the motors spin, thus the need for filtering. This hasn\textquotesingle{}t been proven however, but the filtering fixed the errors we saw before (info up to date as of May 2020) NB\+: Filter voltages shouldn\textquotesingle{}t be sent over CAN, only used with error checking. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a7090234402b08bb512cf5db06702c9f0}{check\+Cell\+Voltages\+And\+Temps}} (float $\ast$max\+Voltage, float $\ast$min\+Voltage, float $\ast$max\+Temp, float $\ast$min\+Temp, float $\ast$pack\+Voltage)
 \begin{DoxyCompactList}\small\item\em Checks cell voltages and temperatures to ensure they are within safe limits, as well as sending out warnings when the values get close to their limits and updating max/min voltages/temps and calculated pack voltage NB\+: This skips checking temperatures of cells specified as having faulty measurements in \mbox{\hyperlink{batteries_8c_a4bb357024aa0bb23dcfba57009d3f836}{is\+Temp\+Cell\+Working}} array. \end{DoxyCompactList}\item 
 float \mbox{\hyperlink{batteries_8c_a6b2f1ad817d75d1c5c590814371b5062}{calculate\+State\+Of\+Power}} ()
-\begin{DoxyCompactList}\small\item\em Calculates the state of power of the battery pack. T\+O\+DO\+: this calculation is from 2017, so should be updated for the 2020 pack. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Calculates the state of power of the battery pack. TODO\+: this calculation is from 2017, so should be updated for the 2020 pack. \end{DoxyCompactList}\item 
 float \mbox{\hyperlink{batteries_8c_a7b0e95f68b412d5d5e9620ffbae8750d}{calculate\+State\+Of\+Charge}} ()
 \begin{DoxyCompactList}\small\item\em Calculates the state of charge of the battery pack. This is a measure of how much capacity the pack has left on its current charge. Currently its implemented as a simple ratio of min cell voltage versus safe limits. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aeb2f305c6977c16734384de553edfa73}{battery\+Start}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aeb2f305c6977c16734384de553edfa73}{battery\+Start}} ()
 \begin{DoxyCompactList}\small\item\em Initializes the battery task. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_afa698a16023626be583ce5082c76f5ec}{publish\+Pack\+Voltage}} (float pack\+Voltage)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_afa698a16023626be583ce5082c76f5ec}{publish\+Pack\+Voltage}} (float pack\+Voltage)
 \begin{DoxyCompactList}\small\item\em Publishes the current pack voltage value to the queue for other tasks to read from. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}} (float $\ast$pack\+Voltage)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}} (float $\ast$pack\+Voltage)
 \begin{DoxyCompactList}\small\item\em Gets the current pack voltage. This returns the pack voltage as calculated by summing all the cell voltages. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a92932081ca58208175ca6c4e0971f06d}{init\+Pack\+Voltage\+Queue}} ()
-\begin{DoxyCompactList}\small\item\em Creates the pack voltage queue. Needs to be called before R\+T\+OS starts. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aacf3b5ff9648b813208cb6f91b370fef}{set\+Max\+Charge\+Current}} (float max\+Current)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a92932081ca58208175ca6c4e0971f06d}{init\+Pack\+Voltage\+Queue}} ()
+\begin{DoxyCompactList}\small\item\em Creates the pack voltage queue. Needs to be called before RTOS starts. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aacf3b5ff9648b813208cb6f91b370fef}{set\+Max\+Charge\+Current}} (float max\+Current)
 \begin{DoxyCompactList}\small\item\em Sets the maximum current for the charger. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c}{start\+Charging}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c}{start\+Charging}} ()
 \begin{DoxyCompactList}\small\item\em Sends the maximum charge current and voltage to the charger and waits for the charger to start charging. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6}{continue\+Charging}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6}{continue\+Charging}} ()
 \begin{DoxyCompactList}\small\item\em Sends messages to the charger. The charger expects a message every second so this needs to be repeatedly called during charging. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5}{stop\+Charging}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5}{stop\+Charging}} ()
 \begin{DoxyCompactList}\small\item\em Sends a command to the charger to stop charging. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7}{stop\+Balance}} ()
-\begin{DoxyCompactList}\small\item\em Stops all cells balancing by sending command to A\+MS boards. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aa04706789e98d82797970064b10dd0c9}{pause\+Balance}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7}{stop\+Balance}} ()
+\begin{DoxyCompactList}\small\item\em Stops all cells balancing by sending command to AMS boards. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aa04706789e98d82797970064b10dd0c9}{pause\+Balance}} ()
 \begin{DoxyCompactList}\small\item\em Stops all cells balancing, but stores which cells were balancing to allowing resuming of balance for cells that were balancing. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a82969943d42e6067b966c64c61196dcd}{resume\+Balance}} ()
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_a82969943d42e6067b966c64c61196dcd}{resume\+Balance}} ()
 \begin{DoxyCompactList}\small\item\em Resumes balancing after call to \mbox{\hyperlink{batteries_8c_aa04706789e98d82797970064b10dd0c9}{pause\+Balance}}. \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aaacb3ffbd5367bbde01d4e8120fdbea0}{balance\+\_\+cell}} (int cell, bool set)
-\begin{DoxyCompactList}\small\item\em Control the balance state of an individual cell. NB\+: this is inneficient if balancing multiple cells, as he entire balance config is sent to the A\+MS boards every time this is called. Instead, use the lower level batt\+\_\+balance\+\_\+cell/batt\+\_\+stop\+\_\+balance\+\_\+cell to change state for all cells, then call batt\+\_\+write\+\_\+config to send the new balance config. \end{DoxyCompactList}\item 
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{batteries_8c_aaacb3ffbd5367bbde01d4e8120fdbea0}{balance\+\_\+cell}} (int cell, bool set)
+\begin{DoxyCompactList}\small\item\em Control the balance state of an individual cell. NB\+: this is inneficient if balancing multiple cells, as he entire balance config is sent to the AMS boards every time this is called. Instead, use the lower level batt\+\_\+balance\+\_\+cell/batt\+\_\+stop\+\_\+balance\+\_\+cell to change state for all cells, then call batt\+\_\+write\+\_\+config to send the new balance config. \end{DoxyCompactList}\item 
 float \mbox{\hyperlink{batteries_8c_aed5d06c4a55e40673204ceacf2fde819}{map\+\_\+range\+\_\+float}} (float in, float low, float high, float low\+\_\+out, float high\+\_\+out)
 \begin{DoxyCompactList}\small\item\em Maps a value from one range to another in a linear manner. \end{DoxyCompactList}\item 
-float \mbox{\hyperlink{batteries_8c_a3d41850a2fe8400978c4f68163d726be}{get\+S\+O\+C\+From\+Voltage}} (float cell\+Voltage)
+float \mbox{\hyperlink{batteries_8c_a3d41850a2fe8400978c4f68163d726be}{get\+SOCFrom\+Voltage}} (float cell\+Voltage)
 \begin{DoxyCompactList}\small\item\em Calculates the SoC of a cell from the cell\textquotesingle{}s voltage. \end{DoxyCompactList}\item 
 \mbox{\hyperlink{batteries_8c_a2f80b01711da374b25803fa818de09b1}{Charge\+Return}} \mbox{\hyperlink{batteries_8c_a9144cd162ceec3e710baea6601149b43}{balance\+Charge}} ()
-\begin{DoxyCompactList}\small\item\em Performs balance charging. For more info, see the B\+MU page on confluence. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Performs balance charging. For more info, see the BMU page on confluence. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{batteries_8c_a3364449b5cc8a93c89985f5d9fa2984b}{battery\+Task}} (void $\ast$pv\+Parameter)
 \begin{DoxyCompactList}\small\item\em Task to monitor cell voltages and temperatures, as well as perform balance charging. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{batteries_8c_acd55a62448b408952283c28d12dd4c1d}{set\+Send\+Only\+One\+Cell}} (int cell\+Idx)
-\begin{DoxyCompactList}\small\item\em Repeatedly send the cell voltage and temperature for a specific cell. This is instead of the normal behaviour which cycles through all the cells sending a message every \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{C\+A\+N\+\_\+\+C\+E\+L\+L\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}. Useful for battery testing to monitor a cell at higher frequency. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Repeatedly send the cell voltage and temperature for a specific cell. This is instead of the normal behaviour which cycles through all the cells sending a message every \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{CAN\+\_\+\+CELL\+\_\+\+SEND\+\_\+\+PERIOD\+\_\+\+MS}}. Useful for battery testing to monitor a cell at higher frequency. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_ade4720060f19979c4071eae3fb08ff92}\label{batteries_8c_ade4720060f19979c4071eae3fb08ff92}} 
 void \mbox{\hyperlink{batteries_8c_ade4720060f19979c4071eae3fb08ff92}{clear\+Send\+Only\+One\+Cell}} ()
-\begin{DoxyCompactList}\small\item\em Stop sending only one cell repeatedly, and go back to sending all cells over C\+AN. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Stop sending only one cell repeatedly, and go back to sending all cells over CAN. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43}\label{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43}} 
 void \mbox{\hyperlink{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43}{can\+Send\+Cell\+Task}} (void $\ast$pv\+Parameters)
-\begin{DoxyCompactList}\small\item\em Sends the cell voltages and temperatures over C\+AN. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Sends the cell voltages and temperatures over CAN. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-os\+Thread\+Id \mbox{\hyperlink{batteries_8c_aa95731d4ff40893bc5d4c80cc0fa055f}{Battery\+Task\+Handle}}
+\mbox{\Hypertarget{batteries_8c_aa95731d4ff40893bc5d4c80cc0fa055f}\label{batteries_8c_aa95731d4ff40893bc5d4c80cc0fa055f}} 
+os\+Thread\+Id {\bfseries Battery\+Task\+Handle}
 \item 
-float \mbox{\hyperlink{batteries_8c_a098ac94ec41c0b74569366cf7660c680}{max\+Charge\+Current}} = \mbox{\hyperlink{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}{C\+H\+A\+R\+G\+E\+\_\+\+D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+A\+X\+\_\+\+C\+U\+R\+R\+E\+NT}}
+\mbox{\Hypertarget{batteries_8c_a098ac94ec41c0b74569366cf7660c680}\label{batteries_8c_a098ac94ec41c0b74569366cf7660c680}} 
+float \mbox{\hyperlink{batteries_8c_a098ac94ec41c0b74569366cf7660c680}{max\+Charge\+Current}} = \mbox{\hyperlink{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}{CHARGE\+\_\+\+DEFAULT\+\_\+\+MAX\+\_\+\+CURRENT}}
 \begin{DoxyCompactList}\small\item\em Charging current limit. \end{DoxyCompactList}\item 
-float \mbox{\hyperlink{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}{max\+Charge\+Voltage}} = \mbox{\hyperlink{batteries_8c_aa4b530cc846953d732a4582912f703d2}{L\+I\+M\+I\+T\+\_\+\+O\+V\+E\+R\+V\+O\+L\+T\+A\+GE}} $\ast$ \mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}
+float \mbox{\hyperlink{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}{max\+Charge\+Voltage}} = LIMIT\+\_\+\+OVERVOLTAGE $\ast$ VOLTAGECELL\+\_\+\+COUNT
 \item 
-bool \mbox{\hyperlink{batteries_8c_afeb7e3ce5be75e8a7d03ae9bbc3c2150}{warning\+Sent\+For\+Cell\+Voltage}} \mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}
+bool \mbox{\hyperlink{batteries_8c_afeb7e3ce5be75e8a7d03ae9bbc3c2150}{warning\+Sent\+For\+Cell\+Voltage}} \mbox{[}VOLTAGECELL\+\_\+\+COUNT\mbox{]}
 \item 
-bool \mbox{\hyperlink{batteries_8c_a61bd11f0a0377192a9a1950e18664728}{warning\+Sent\+For\+Cell\+Temp}} \mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}{T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}
+bool \mbox{\hyperlink{batteries_8c_a61bd11f0a0377192a9a1950e18664728}{warning\+Sent\+For\+Cell\+Temp}} \mbox{[}TEMPCELL\+\_\+\+COUNT\mbox{]}
 \item 
-bool \mbox{\hyperlink{batteries_8c_a4bb357024aa0bb23dcfba57009d3f836}{is\+Temp\+Cell\+Working}} \mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}{T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}
+bool \mbox{\hyperlink{batteries_8c_a4bb357024aa0bb23dcfba57009d3f836}{is\+Temp\+Cell\+Working}} \mbox{[}TEMPCELL\+\_\+\+COUNT\mbox{]}
 \item 
-float \mbox{\hyperlink{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}{voltage\+To\+S\+O\+C\+Lookup}} \mbox{[}\mbox{\hyperlink{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}{N\+U\+M\+\_\+\+S\+O\+C\+\_\+\+L\+O\+O\+K\+U\+P\+\_\+\+V\+A\+LS}}\mbox{]}
+float \mbox{\hyperlink{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}{voltage\+To\+SOCLookup}} \mbox{[}NUM\+\_\+\+SOC\+\_\+\+LOOKUP\+\_\+\+VALS\mbox{]}
 \item 
-Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_a141159dacb84bda6d1ce0a156c258177}{I\+Bus\+Queue}}
+\mbox{\Hypertarget{batteries_8c_a141159dacb84bda6d1ce0a156c258177}\label{batteries_8c_a141159dacb84bda6d1ce0a156c258177}} 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_a141159dacb84bda6d1ce0a156c258177}{IBus\+Queue}}
 \begin{DoxyCompactList}\small\item\em Queue holding most recent bus current measurement. \end{DoxyCompactList}\item 
-Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_abafdcf601bccb3238fcb8534b517d130}{V\+Bus\+Queue}}
+\mbox{\Hypertarget{batteries_8c_abafdcf601bccb3238fcb8534b517d130}\label{batteries_8c_abafdcf601bccb3238fcb8534b517d130}} 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_abafdcf601bccb3238fcb8534b517d130}{VBus\+Queue}}
 \begin{DoxyCompactList}\small\item\em Queue holding most recent bus volage measurement. \end{DoxyCompactList}\item 
-Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}{V\+Batt\+Queue}}
+\mbox{\Hypertarget{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}\label{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}} 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}{VBatt\+Queue}}
 \begin{DoxyCompactList}\small\item\em Queue holding most recent battery voltage measurement. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{batteries_8c_a17c95138c88cf1a7a64a0dd006730b6c}\label{batteries_8c_a17c95138c88cf1a7a64a0dd006730b6c}} 
 Queue\+Handle\+\_\+t \mbox{\hyperlink{batteries_8c_a17c95138c88cf1a7a64a0dd006730b6c}{Pack\+Voltage\+Queue}}
 \begin{DoxyCompactList}\small\item\em Queue holding most recent battery voltage (calculated from sum of cell voltages) measurement. \end{DoxyCompactList}\item 
-static uint32\+\_\+t \mbox{\hyperlink{batteries_8c_af01c96d690887303a5e5d5432739801a}{error\+Counter}} = 0
-\item 
-float \mbox{\hyperlink{batteries_8c_afa99b901194e86a7784f6213f9420089}{cell\+Voltages\+Filtered}} \mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}
+\mbox{\Hypertarget{batteries_8c_afa99b901194e86a7784f6213f9420089}\label{batteries_8c_afa99b901194e86a7784f6213f9420089}} 
+float \mbox{\hyperlink{batteries_8c_afa99b901194e86a7784f6213f9420089}{cell\+Voltages\+Filtered}} \mbox{[}VOLTAGECELL\+\_\+\+COUNT\mbox{]}
 \begin{DoxyCompactList}\small\item\em Array is used to store the filtered voltages. \end{DoxyCompactList}\item 
-bool \mbox{\hyperlink{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}{is\+Cell\+Balancing}} \mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]} = \{0\}
+\mbox{\Hypertarget{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}\label{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}} 
+bool \mbox{\hyperlink{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}{is\+Cell\+Balancing}} \mbox{[}VOLTAGECELL\+\_\+\+COUNT\mbox{]} = \{0\}
 \begin{DoxyCompactList}\small\item\em Array to store if a cell is balancing. \end{DoxyCompactList}\item 
-bool \mbox{\hyperlink{batteries_8c_a08165bcd985456a8bb4f39d29b0132d8}{send\+One\+Cell\+Volt\+And\+Temp}} = false
+\mbox{\Hypertarget{batteries_8c_a08165bcd985456a8bb4f39d29b0132d8}\label{batteries_8c_a08165bcd985456a8bb4f39d29b0132d8}} 
+bool {\bfseries send\+One\+Cell\+Volt\+And\+Temp} = false
 \item 
-int \mbox{\hyperlink{batteries_8c_a45eac5b187ae199e0de1fa376e2024b3}{cell\+To\+Send}}
+\mbox{\Hypertarget{batteries_8c_a45eac5b187ae199e0de1fa376e2024b3}\label{batteries_8c_a45eac5b187ae199e0de1fa376e2024b3}} 
+int {\bfseries cell\+To\+Send}
 \end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
-Battery Monitoring, Charging, HV Bus Sense, I\+MD monitor. 
+Battery Monitoring, Charging, HV Bus Sense, IMD monitor. 
 
 \begin{DoxyAuthor}{Author}
 Richard Matthews
 \end{DoxyAuthor}
 This file contains a number of tasks and related functions\+:
 \begin{DoxyItemize}
-\item Battery Monitoring and Charging (battery\+Task)\+: Monitors the voltage and temperature of all cells by communicating with the A\+MS boards, performs balance charging and communicates with the charger over C\+AN
-\item HV Bus Sense (H\+V\+Measure\+Task)\+: Measures the voltage and current on the HV Bus as well as the HV battery pack voltage
-\item I\+MD Monitoring (imd\+Task)\+: Measures the signals from the insulation monitoring device (I\+MD) to check for insulation faults
-\item can\+Send\+Cell\+Task\+: Sends the cell voltage and temperatures over C\+AN using the multiplexed C\+AN messages 
+\item Battery Monitoring and Charging (battery\+Task)\+: Monitors the voltage and temperature of all cells by communicating with the AMS boards, performs balance charging and communicates with the charger over CAN
+\item HV Bus Sense (HVMeasure\+Task)\+: Measures the voltage and current on the HV Bus as well as the HV battery pack voltage
+\item IMD Monitoring (imd\+Task)\+: Measures the signals from the insulation monitoring device (IMD) to check for insulation faults
+\item can\+Send\+Cell\+Task\+: Sends the cell voltage and temperatures over CAN using the multiplexed CAN messages 
 \end{DoxyItemize}
 
 \doxysubsection{Macro Definition Documentation}
@@ -250,241 +290,21 @@ This file contains a number of tasks and related functions\+:
 \index{batteries.c@{batteries.c}!BALANCE\_RECHECK\_PERIOD\_MS@{BALANCE\_RECHECK\_PERIOD\_MS}}
 \index{BALANCE\_RECHECK\_PERIOD\_MS@{BALANCE\_RECHECK\_PERIOD\_MS}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{BALANCE\_RECHECK\_PERIOD\_MS}{BALANCE\_RECHECK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define B\+A\+L\+A\+N\+C\+E\+\_\+\+R\+E\+C\+H\+E\+C\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~(3000)}
+{\footnotesize\ttfamily \#define BALANCE\+\_\+\+RECHECK\+\_\+\+PERIOD\+\_\+\+MS~(3000)}
 
-Period at which cell So\+Cs are checked to determine which cells to balance. This should be long enough so cells aren\textquotesingle{}t constantly being toggled between balance and not \mbox{\Hypertarget{batteries_8c_ad5819e811f281911c5854f40cf58960f}\label{batteries_8c_ad5819e811f281911c5854f40cf58960f}} 
-\index{batteries.c@{batteries.c}!BALANCE\_START\_VOLTAGE@{BALANCE\_START\_VOLTAGE}}
-\index{BALANCE\_START\_VOLTAGE@{BALANCE\_START\_VOLTAGE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BALANCE\_START\_VOLTAGE}{BALANCE\_START\_VOLTAGE}}
-{\footnotesize\ttfamily \#define B\+A\+L\+A\+N\+C\+E\+\_\+\+S\+T\+A\+R\+T\+\_\+\+V\+O\+L\+T\+A\+GE~(3.\+5F)}
-
-
-
-Block balancing below this cell voltage. 
-
-\mbox{\Hypertarget{batteries_8c_a6d5ce7bfac0354a10a78a45aa0ebaacf}\label{batteries_8c_a6d5ce7bfac0354a10a78a45aa0ebaacf}} 
-\index{batteries.c@{batteries.c}!BATTERY\_CHARGE\_TASK\_PERIOD\_MS@{BATTERY\_CHARGE\_TASK\_PERIOD\_MS}}
-\index{BATTERY\_CHARGE\_TASK\_PERIOD\_MS@{BATTERY\_CHARGE\_TASK\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BATTERY\_CHARGE\_TASK\_PERIOD\_MS}{BATTERY\_CHARGE\_TASK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define B\+A\+T\+T\+E\+R\+Y\+\_\+\+C\+H\+A\+R\+G\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~2000}
-
-\mbox{\Hypertarget{batteries_8c_aeb85d8df3b9f6218cb677ccd44760cd4}\label{batteries_8c_aeb85d8df3b9f6218cb677ccd44760cd4}} 
-\index{batteries.c@{batteries.c}!BATTERY\_TASK\_ID@{BATTERY\_TASK\_ID}}
-\index{BATTERY\_TASK\_ID@{BATTERY\_TASK\_ID}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BATTERY\_TASK\_ID}{BATTERY\_TASK\_ID}}
-{\footnotesize\ttfamily \#define B\+A\+T\+T\+E\+R\+Y\+\_\+\+T\+A\+S\+K\+\_\+\+ID~2}
-
-\mbox{\Hypertarget{batteries_8c_a62b353ffb0e0f9735e0c6a32712e85b2}\label{batteries_8c_a62b353ffb0e0f9735e0c6a32712e85b2}} 
-\index{batteries.c@{batteries.c}!BATTERY\_TASK\_PERIOD\_MS@{BATTERY\_TASK\_PERIOD\_MS}}
-\index{BATTERY\_TASK\_PERIOD\_MS@{BATTERY\_TASK\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BATTERY\_TASK\_PERIOD\_MS}{BATTERY\_TASK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define B\+A\+T\+T\+E\+R\+Y\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~100}
-
-\mbox{\Hypertarget{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}\label{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}} 
-\index{batteries.c@{batteries.c}!CAN\_CELL\_SEND\_PERIOD\_MS@{CAN\_CELL\_SEND\_PERIOD\_MS}}
-\index{CAN\_CELL\_SEND\_PERIOD\_MS@{CAN\_CELL\_SEND\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CAN\_CELL\_SEND\_PERIOD\_MS}{CAN\_CELL\_SEND\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define C\+A\+N\+\_\+\+C\+E\+L\+L\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~40}
-
-
-
-The period to send cell voltage and temperature C\+AN messages. 
-
-\mbox{\Hypertarget{batteries_8c_ace79b123d44fbbb7d6b78e0e9fa98930}\label{batteries_8c_ace79b123d44fbbb7d6b78e0e9fa98930}} 
-\index{batteries.c@{batteries.c}!CELL\_DCR@{CELL\_DCR}}
-\index{CELL\_DCR@{CELL\_DCR}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_DCR}{CELL\_DCR}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+D\+CR~(0.\+01)}
-
-\mbox{\Hypertarget{batteries_8c_a16227ae24d95ceebf83b650ccdb0dfa4}\label{batteries_8c_a16227ae24d95ceebf83b650ccdb0dfa4}} 
-\index{batteries.c@{batteries.c}!CELL\_HEAT\_CAPACITY@{CELL\_HEAT\_CAPACITY}}
-\index{CELL\_HEAT\_CAPACITY@{CELL\_HEAT\_CAPACITY}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_HEAT\_CAPACITY}{CELL\_HEAT\_CAPACITY}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+H\+E\+A\+T\+\_\+\+C\+A\+P\+A\+C\+I\+TY~(1034.\+2)}
-
-\mbox{\Hypertarget{batteries_8c_a8fec377e4c098c8c294afce44c6c69d0}\label{batteries_8c_a8fec377e4c098c8c294afce44c6c69d0}} 
-\index{batteries.c@{batteries.c}!CELL\_MASS@{CELL\_MASS}}
-\index{CELL\_MASS@{CELL\_MASS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_MASS}{CELL\_MASS}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+M\+A\+SS~(0.\+496)}
-
-\mbox{\Hypertarget{batteries_8c_aa72653c5b21b8d21a14cdba38e71c6eb}\label{batteries_8c_aa72653c5b21b8d21a14cdba38e71c6eb}} 
-\index{batteries.c@{batteries.c}!CELL\_OVERTEMP@{CELL\_OVERTEMP}}
-\index{CELL\_OVERTEMP@{CELL\_OVERTEMP}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_OVERTEMP}{CELL\_OVERTEMP}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+O\+V\+E\+R\+T\+E\+MP~(\mbox{\hyperlink{batteries_8h_aca152be2322f2c62c655e2a234c88fd3}{C\+E\+L\+L\+\_\+\+M\+A\+X\+\_\+\+T\+E\+M\+P\+\_\+C}})}
-
-\mbox{\Hypertarget{batteries_8c_a8531f997baa2780a823499e18bdebec3}\label{batteries_8c_a8531f997baa2780a823499e18bdebec3}} 
-\index{batteries.c@{batteries.c}!CELL\_OVERTEMP\_WARNING@{CELL\_OVERTEMP\_WARNING}}
-\index{CELL\_OVERTEMP\_WARNING@{CELL\_OVERTEMP\_WARNING}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_OVERTEMP\_WARNING}{CELL\_OVERTEMP\_WARNING}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+O\+V\+E\+R\+T\+E\+M\+P\+\_\+\+W\+A\+R\+N\+I\+NG~(\mbox{\hyperlink{batteries_8h_aca152be2322f2c62c655e2a234c88fd3}{C\+E\+L\+L\+\_\+\+M\+A\+X\+\_\+\+T\+E\+M\+P\+\_\+C}} -\/ 10)}
-
-\mbox{\Hypertarget{batteries_8c_ae7647190367a5af57c404c325ede1e56}\label{batteries_8c_ae7647190367a5af57c404c325ede1e56}} 
-\index{batteries.c@{batteries.c}!CELL\_RELAXATION\_TIME\_MS@{CELL\_RELAXATION\_TIME\_MS}}
-\index{CELL\_RELAXATION\_TIME\_MS@{CELL\_RELAXATION\_TIME\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_RELAXATION\_TIME\_MS}{CELL\_RELAXATION\_TIME\_MS}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+R\+E\+L\+A\+X\+A\+T\+I\+O\+N\+\_\+\+T\+I\+M\+E\+\_\+\+MS~(1000)}
-
-
-
-Pause balancing for this length when reading cell voltages to get good readings. 
-
-\mbox{\Hypertarget{batteries_8c_a374bf63b81c93c7d9e76601f46b9f184}\label{batteries_8c_a374bf63b81c93c7d9e76601f46b9f184}} 
-\index{batteries.c@{batteries.c}!CELL\_TIME\_TO\_FAILURE\_ALLOWABLE@{CELL\_TIME\_TO\_FAILURE\_ALLOWABLE}}
-\index{CELL\_TIME\_TO\_FAILURE\_ALLOWABLE@{CELL\_TIME\_TO\_FAILURE\_ALLOWABLE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CELL\_TIME\_TO\_FAILURE\_ALLOWABLE}{CELL\_TIME\_TO\_FAILURE\_ALLOWABLE}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+T\+I\+M\+E\+\_\+\+T\+O\+\_\+\+F\+A\+I\+L\+U\+R\+E\+\_\+\+A\+L\+L\+O\+W\+A\+B\+LE~(6.\+0)}
-
-\mbox{\Hypertarget{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}\label{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}} 
+Period at which cell So\+Cs are checked to determine which cells to balance. This should be long enough so cells aren\textquotesingle{}t constantly being toggled between balance and not \mbox{\Hypertarget{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}\label{batteries_8c_a9b3fe58b53cbf8d5fbc53709ed5a278b}} 
 \index{batteries.c@{batteries.c}!CELL\_VOLTAGE\_FILTER\_ALPHA@{CELL\_VOLTAGE\_FILTER\_ALPHA}}
 \index{CELL\_VOLTAGE\_FILTER\_ALPHA@{CELL\_VOLTAGE\_FILTER\_ALPHA}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{CELL\_VOLTAGE\_FILTER\_ALPHA}{CELL\_VOLTAGE\_FILTER\_ALPHA}}
-{\footnotesize\ttfamily \#define C\+E\+L\+L\+\_\+\+V\+O\+L\+T\+A\+G\+E\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+\+A\+L\+P\+HA~0.\+18}
+{\footnotesize\ttfamily \#define CELL\+\_\+\+VOLTAGE\+\_\+\+FILTER\+\_\+\+ALPHA~0.\+18}
 
 Alpha value for cell voltage filter For a 10-\/90 rise time of 1 sec, set the bandwidth to 0.\+35 Hz See\+: \href{https://www.edn.com/electronics-blogs/bogatin-s-rules-of-thumb/4424573/Rule-of-Thumb&ndash;1&ndash;The-bandwidth-of-a-signal-from-its-rise-time}{\texttt{ https\+://www.\+edn.\+com/electronics-\/blogs/bogatin-\/s-\/rules-\/of-\/thumb/4424573/\+Rule-\/of-\/\+Thumb--1--\+The-\/bandwidth-\/of-\/a-\/signal-\/from-\/its-\/rise-\/time}} This cuttoff, with a sampling frequency of 100 ms gives an alpha of 0.\+18 See the wikipedia page for the alpha calculation\+: \href{https://en.wikipedia.org/wiki/Low-pass_filter\#Simple_infinite_impulse_response_filter}{\texttt{ https\+://en.\+wikipedia.\+org/wiki/\+Low-\/pass\+\_\+filter\#\+Simple\+\_\+infinite\+\_\+impulse\+\_\+response\+\_\+filter}} \mbox{\Hypertarget{batteries_8c_a3840db84d2eaac3f4fe59941e21ff410}\label{batteries_8c_a3840db84d2eaac3f4fe59941e21ff410}} 
 \index{batteries.c@{batteries.c}!CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD@{CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD}}
 \index{CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD@{CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD}{CHARGE\_CART\_HEARTBEAT\_MAX\_PERIOD}}
-{\footnotesize\ttfamily \#define C\+H\+A\+R\+G\+E\+\_\+\+C\+A\+R\+T\+\_\+\+H\+E\+A\+R\+T\+B\+E\+A\+T\+\_\+\+M\+A\+X\+\_\+\+P\+E\+R\+I\+OD~(1000)}
+{\footnotesize\ttfamily \#define CHARGE\+\_\+\+CART\+\_\+\+HEARTBEAT\+\_\+\+MAX\+\_\+\+PERIOD~(1000)}
 
-If using charge cart heartbeat, this heartbeat timeout. NB\+: We are phasing out use of charge cart as a board with a microcontroller \mbox{\Hypertarget{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}\label{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}} 
-\index{batteries.c@{batteries.c}!CHARGE\_DEFAULT\_MAX\_CURRENT@{CHARGE\_DEFAULT\_MAX\_CURRENT}}
-\index{CHARGE\_DEFAULT\_MAX\_CURRENT@{CHARGE\_DEFAULT\_MAX\_CURRENT}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CHARGE\_DEFAULT\_MAX\_CURRENT}{CHARGE\_DEFAULT\_MAX\_CURRENT}}
-{\footnotesize\ttfamily \#define C\+H\+A\+R\+G\+E\+\_\+\+D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+A\+X\+\_\+\+C\+U\+R\+R\+E\+NT~5}
-
-
-
-Default charging current limit (Amps) 
-
-\mbox{\Hypertarget{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}\label{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}} 
-\index{batteries.c@{batteries.c}!CHARGE\_STOP\_SOC@{CHARGE\_STOP\_SOC}}
-\index{CHARGE\_STOP\_SOC@{CHARGE\_STOP\_SOC}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{CHARGE\_STOP\_SOC}{CHARGE\_STOP\_SOC}}
-{\footnotesize\ttfamily \#define C\+H\+A\+R\+G\+E\+\_\+\+S\+T\+O\+P\+\_\+\+S\+OC~(98.\+0)}
-
-
-
-SoC to stop charging at (of the cell with lowest SoC) 
-
-\mbox{\Hypertarget{batteries_8c_a2828019bbccc5743ed8275fc9a4fe1a3}\label{batteries_8c_a2828019bbccc5743ed8275fc9a4fe1a3}} 
-\index{batteries.c@{batteries.c}!ENABLE\_AMS@{ENABLE\_AMS}}
-\index{ENABLE\_AMS@{ENABLE\_AMS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_AMS}{ENABLE\_AMS}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+A\+MS}
-
-\mbox{\Hypertarget{batteries_8c_a8ba2127550d368f846692fdcf3ca095f}\label{batteries_8c_a8ba2127550d368f846692fdcf3ca095f}} 
-\index{batteries.c@{batteries.c}!ENABLE\_BALANCE@{ENABLE\_BALANCE}}
-\index{ENABLE\_BALANCE@{ENABLE\_BALANCE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_BALANCE}{ENABLE\_BALANCE}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+B\+A\+L\+A\+N\+CE}
-
-\mbox{\Hypertarget{batteries_8c_a9fea424f5555dcbb0ba5c1e4871e855f}\label{batteries_8c_a9fea424f5555dcbb0ba5c1e4871e855f}} 
-\index{batteries.c@{batteries.c}!ENABLE\_CHARGER@{ENABLE\_CHARGER}}
-\index{ENABLE\_CHARGER@{ENABLE\_CHARGER}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_CHARGER}{ENABLE\_CHARGER}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+C\+H\+A\+R\+G\+ER}
-
-\mbox{\Hypertarget{batteries_8c_aa31c40ba22e94296395602249e2b25eb}\label{batteries_8c_aa31c40ba22e94296395602249e2b25eb}} 
-\index{batteries.c@{batteries.c}!ENABLE\_HV\_MEASURE@{ENABLE\_HV\_MEASURE}}
-\index{ENABLE\_HV\_MEASURE@{ENABLE\_HV\_MEASURE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_HV\_MEASURE}{ENABLE\_HV\_MEASURE}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+H\+V\+\_\+\+M\+E\+A\+S\+U\+RE}
-
-\mbox{\Hypertarget{batteries_8c_aadfade60a9946687e6a1a4a24b70fb4c}\label{batteries_8c_aadfade60a9946687e6a1a4a24b70fb4c}} 
-\index{batteries.c@{batteries.c}!ENABLE\_IMD@{ENABLE\_IMD}}
-\index{ENABLE\_IMD@{ENABLE\_IMD}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_IMD}{ENABLE\_IMD}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+I\+MD}
-
-\mbox{\Hypertarget{batteries_8c_ab4536de5261b4bd382b10d69f857dbe3}\label{batteries_8c_ab4536de5261b4bd382b10d69f857dbe3}} 
-\index{batteries.c@{batteries.c}!HV\_MEASURE\_TASK\_ID@{HV\_MEASURE\_TASK\_ID}}
-\index{HV\_MEASURE\_TASK\_ID@{HV\_MEASURE\_TASK\_ID}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{HV\_MEASURE\_TASK\_ID}{HV\_MEASURE\_TASK\_ID}}
-{\footnotesize\ttfamily \#define H\+V\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+ID~4}
-
-\mbox{\Hypertarget{batteries_8c_affc1e4ab7cea9fe57082528ac006cc50}\label{batteries_8c_affc1e4ab7cea9fe57082528ac006cc50}} 
-\index{batteries.c@{batteries.c}!HV\_MEASURE\_TASK\_PERIOD\_MS@{HV\_MEASURE\_TASK\_PERIOD\_MS}}
-\index{HV\_MEASURE\_TASK\_PERIOD\_MS@{HV\_MEASURE\_TASK\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{HV\_MEASURE\_TASK\_PERIOD\_MS}{HV\_MEASURE\_TASK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define H\+V\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~1}
-
-\mbox{\Hypertarget{batteries_8c_a1951643638039378eccc6e0ffef18a22}\label{batteries_8c_a1951643638039378eccc6e0ffef18a22}} 
-\index{batteries.c@{batteries.c}!IBUS\_FILTER\_ALPHA@{IBUS\_FILTER\_ALPHA}}
-\index{IBUS\_FILTER\_ALPHA@{IBUS\_FILTER\_ALPHA}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{IBUS\_FILTER\_ALPHA}{IBUS\_FILTER\_ALPHA}}
-{\footnotesize\ttfamily \#define I\+B\+U\+S\+\_\+\+F\+I\+L\+T\+E\+R\+\_\+\+A\+L\+P\+HA~0.\+24}
-
-
-
-Filter constant for HV Bus current low pass filter Designed around 1 ms sample period and 50 Hz cuttoff. See the wikipedia page for the calculation\+: \href{https://en.wikipedia.org/wiki/Low-pass_filter\#Simple_infinite_impulse_response_filter}{\texttt{ https\+://en.\+wikipedia.\+org/wiki/\+Low-\/pass\+\_\+filter\#\+Simple\+\_\+infinite\+\_\+impulse\+\_\+response\+\_\+filter}}. 
-
-\mbox{\Hypertarget{batteries_8c_a5a2f513c66eeae901bf7536957487e74}\label{batteries_8c_a5a2f513c66eeae901bf7536957487e74}} 
-\index{batteries.c@{batteries.c}!IMD\_TASK\_ID@{IMD\_TASK\_ID}}
-\index{IMD\_TASK\_ID@{IMD\_TASK\_ID}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{IMD\_TASK\_ID}{IMD\_TASK\_ID}}
-{\footnotesize\ttfamily \#define I\+M\+D\+\_\+\+T\+A\+S\+K\+\_\+\+ID~5}
-
-\mbox{\Hypertarget{batteries_8c_a918bb56d5d536252807bb42ab03b3728}\label{batteries_8c_a918bb56d5d536252807bb42ab03b3728}} 
-\index{batteries.c@{batteries.c}!IMD\_TASK\_PERIOD\_MS@{IMD\_TASK\_PERIOD\_MS}}
-\index{IMD\_TASK\_PERIOD\_MS@{IMD\_TASK\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{IMD\_TASK\_PERIOD\_MS}{IMD\_TASK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define I\+M\+D\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~1000}
-
-\mbox{\Hypertarget{batteries_8c_a582698c135482c98c6911f0bdbf8d1ad}\label{batteries_8c_a582698c135482c98c6911f0bdbf8d1ad}} 
-\index{batteries.c@{batteries.c}!LIMIT\_HIGHVOLTAGE@{LIMIT\_HIGHVOLTAGE}}
-\index{LIMIT\_HIGHVOLTAGE@{LIMIT\_HIGHVOLTAGE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{LIMIT\_HIGHVOLTAGE}{LIMIT\_HIGHVOLTAGE}}
-{\footnotesize\ttfamily \#define L\+I\+M\+I\+T\+\_\+\+H\+I\+G\+H\+V\+O\+L\+T\+A\+GE~4.\+2F}
-
-\mbox{\Hypertarget{batteries_8c_a2f9e0b5026ad096458f1bdcc559cfab7}\label{batteries_8c_a2f9e0b5026ad096458f1bdcc559cfab7}} 
-\index{batteries.c@{batteries.c}!LIMIT\_LOWVOLTAGE@{LIMIT\_LOWVOLTAGE}}
-\index{LIMIT\_LOWVOLTAGE@{LIMIT\_LOWVOLTAGE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{LIMIT\_LOWVOLTAGE}{LIMIT\_LOWVOLTAGE}}
-{\footnotesize\ttfamily \#define L\+I\+M\+I\+T\+\_\+\+L\+O\+W\+V\+O\+L\+T\+A\+GE~3.\+0F}
-
-\mbox{\Hypertarget{batteries_8c_ab4cdc344852b65658b9d24c04473f26d}\label{batteries_8c_ab4cdc344852b65658b9d24c04473f26d}} 
-\index{batteries.c@{batteries.c}!LIMIT\_LOWVOLTAGE\_WARNING@{LIMIT\_LOWVOLTAGE\_WARNING}}
-\index{LIMIT\_LOWVOLTAGE\_WARNING@{LIMIT\_LOWVOLTAGE\_WARNING}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{LIMIT\_LOWVOLTAGE\_WARNING}{LIMIT\_LOWVOLTAGE\_WARNING}}
-{\footnotesize\ttfamily \#define L\+I\+M\+I\+T\+\_\+\+L\+O\+W\+V\+O\+L\+T\+A\+G\+E\+\_\+\+W\+A\+R\+N\+I\+NG~3.\+2F}
-
-\mbox{\Hypertarget{batteries_8c_aa4b530cc846953d732a4582912f703d2}\label{batteries_8c_aa4b530cc846953d732a4582912f703d2}} 
-\index{batteries.c@{batteries.c}!LIMIT\_OVERVOLTAGE@{LIMIT\_OVERVOLTAGE}}
-\index{LIMIT\_OVERVOLTAGE@{LIMIT\_OVERVOLTAGE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{LIMIT\_OVERVOLTAGE}{LIMIT\_OVERVOLTAGE}}
-{\footnotesize\ttfamily \#define L\+I\+M\+I\+T\+\_\+\+O\+V\+E\+R\+V\+O\+L\+T\+A\+GE~4.\+2F}
-
-\mbox{\Hypertarget{batteries_8c_a6136cb9cd8ceabce6e9fdda8cb05c3bd}\label{batteries_8c_a6136cb9cd8ceabce6e9fdda8cb05c3bd}} 
-\index{batteries.c@{batteries.c}!LIMIT\_UNDERVOLTAGE@{LIMIT\_UNDERVOLTAGE}}
-\index{LIMIT\_UNDERVOLTAGE@{LIMIT\_UNDERVOLTAGE}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{LIMIT\_UNDERVOLTAGE}{LIMIT\_UNDERVOLTAGE}}
-{\footnotesize\ttfamily \#define L\+I\+M\+I\+T\+\_\+\+U\+N\+D\+E\+R\+V\+O\+L\+T\+A\+GE~3.\+0F}
-
-\mbox{\Hypertarget{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}\label{batteries_8c_ad4389fd57fbbb4a3c70d7a626285eaa0}} 
-\index{batteries.c@{batteries.c}!MAX\_ERROR\_COUNT@{MAX\_ERROR\_COUNT}}
-\index{MAX\_ERROR\_COUNT@{MAX\_ERROR\_COUNT}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{MAX\_ERROR\_COUNT}{MAX\_ERROR\_COUNT}}
-{\footnotesize\ttfamily \#define M\+A\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+NT~3}
-
-
-
-Maximum number of errors battery task can encounter before reporting error. 
-
-\mbox{\Hypertarget{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}\label{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}} 
-\index{batteries.c@{batteries.c}!NUM\_SOC\_LOOKUP\_VALS@{NUM\_SOC\_LOOKUP\_VALS}}
-\index{NUM\_SOC\_LOOKUP\_VALS@{NUM\_SOC\_LOOKUP\_VALS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{NUM\_SOC\_LOOKUP\_VALS}{NUM\_SOC\_LOOKUP\_VALS}}
-{\footnotesize\ttfamily \#define N\+U\+M\+\_\+\+S\+O\+C\+\_\+\+L\+O\+O\+K\+U\+P\+\_\+\+V\+A\+LS~101}
-
-\mbox{\Hypertarget{batteries_8c_a0fc9cbf2e0173158d4cd0536059a272f}\label{batteries_8c_a0fc9cbf2e0173158d4cd0536059a272f}} 
-\index{batteries.c@{batteries.c}!STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS@{STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS}}
-\index{STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS@{STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS}{STATE\_BUS\_HV\_CAN\_SEND\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define S\+T\+A\+T\+E\+\_\+\+B\+U\+S\+\_\+\+H\+V\+\_\+\+C\+A\+N\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~500}
-
-
+If using charge cart heartbeat, this heartbeat timeout. NB\+: We are phasing out use of charge cart as a board with a microcontroller 
 
 \doxysubsection{Typedef Documentation}
 \mbox{\Hypertarget{batteries_8c_a57d972b2a0b68887bd7afab4c1d2553f}\label{batteries_8c_a57d972b2a0b68887bd7afab4c1d2553f}} 
@@ -504,15 +324,15 @@ Return of balance charge function
 
 Return of balance charge function \begin{DoxyEnumFields}{Enumerator}
 \raisebox{\heightof{T}}[0pt][0pt]{\index{CHARGE\_DONE@{CHARGE\_DONE}!batteries.c@{batteries.c}}\index{batteries.c@{batteries.c}!CHARGE\_DONE@{CHARGE\_DONE}}}\mbox{\Hypertarget{batteries_8c_a2f80b01711da374b25803fa818de09b1a0abf13e2a7d6435eb5b31d33abeadad7}\label{batteries_8c_a2f80b01711da374b25803fa818de09b1a0abf13e2a7d6435eb5b31d33abeadad7}} 
-C\+H\+A\+R\+G\+E\+\_\+\+D\+O\+NE&Charging finished, cells reached fully charged. \\
+CHARGE\+\_\+\+DONE&Charging finished, cells reached fully charged. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{CHARGE\_STOPPED@{CHARGE\_STOPPED}!batteries.c@{batteries.c}}\index{batteries.c@{batteries.c}!CHARGE\_STOPPED@{CHARGE\_STOPPED}}}\mbox{\Hypertarget{batteries_8c_a2f80b01711da374b25803fa818de09b1a3db9c119e634b77566daafdde61b29f1}\label{batteries_8c_a2f80b01711da374b25803fa818de09b1a3db9c119e634b77566daafdde61b29f1}} 
-C\+H\+A\+R\+G\+E\+\_\+\+S\+T\+O\+P\+P\+ED&Charging was stopped as requested, cells not fully charged. \\
+CHARGE\+\_\+\+STOPPED&Charging was stopped as requested, cells not fully charged. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{CHARGE\_ERROR@{CHARGE\_ERROR}!batteries.c@{batteries.c}}\index{batteries.c@{batteries.c}!CHARGE\_ERROR@{CHARGE\_ERROR}}}\mbox{\Hypertarget{batteries_8c_a2f80b01711da374b25803fa818de09b1ad0605183af862ee76169e8b41c7fd927}\label{batteries_8c_a2f80b01711da374b25803fa818de09b1ad0605183af862ee76169e8b41c7fd927}} 
-C\+H\+A\+R\+G\+E\+\_\+\+E\+R\+R\+OR&Error occured stopping charging, cells not fully charged. \\
+CHARGE\+\_\+\+ERROR&Error occured stopping charging, cells not fully charged. \\
 \hline
 
 \end{DoxyEnumFields}
@@ -523,11 +343,11 @@ C\+H\+A\+R\+G\+E\+\_\+\+E\+R\+R\+OR&Error occured stopping charging, cells not f
 \index{batteries.c@{batteries.c}!balance\_cell@{balance\_cell}}
 \index{balance\_cell@{balance\_cell}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{balance\_cell()}{balance\_cell()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def balance\+\_\+cell (\begin{DoxyParamCaption}\item[{int}]{cell,  }\item[{bool}]{set }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def balance\+\_\+cell (\begin{DoxyParamCaption}\item[{int}]{cell,  }\item[{bool}]{set }\end{DoxyParamCaption})}
 
 
 
-Control the balance state of an individual cell. NB\+: this is inneficient if balancing multiple cells, as he entire balance config is sent to the A\+MS boards every time this is called. Instead, use the lower level batt\+\_\+balance\+\_\+cell/batt\+\_\+stop\+\_\+balance\+\_\+cell to change state for all cells, then call batt\+\_\+write\+\_\+config to send the new balance config. 
+Control the balance state of an individual cell. NB\+: this is inneficient if balancing multiple cells, as he entire balance config is sent to the AMS boards every time this is called. Instead, use the lower level batt\+\_\+balance\+\_\+cell/batt\+\_\+stop\+\_\+balance\+\_\+cell to change state for all cells, then call batt\+\_\+write\+\_\+config to send the new balance config. 
 
 
 \begin{DoxyParams}{Parameters}
@@ -537,22 +357,8 @@ Control the balance state of an individual cell. NB\+: this is inneficient if ba
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aaacb3ffbd5367bbde01d4e8120fdbea0_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=300pt]{batteries_8c_aaacb3ffbd5367bbde01d4e8120fdbea0_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a9144cd162ceec3e710baea6601149b43}\label{batteries_8c_a9144cd162ceec3e710baea6601149b43}} 
 \index{batteries.c@{batteries.c}!balanceCharge@{balanceCharge}}
 \index{balanceCharge@{balanceCharge}!batteries.c@{batteries.c}}
@@ -561,52 +367,24 @@ Here is the caller graph for this function\+:\nopagebreak
 
 
 
-Performs balance charging. For more info, see the B\+MU page on confluence. 
+Performs balance charging. For more info, see the BMU page on confluence. 
 
 \begin{DoxyReturn}{Returns}
 \mbox{\hyperlink{batteries_8c_a57d972b2a0b68887bd7afab4c1d2553f}{Charge\+Return}} 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a9144cd162ceec3e710baea6601149b43_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=266pt]{batteries_8c_a9144cd162ceec3e710baea6601149b43_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_aeb2f305c6977c16734384de553edfa73}\label{batteries_8c_aeb2f305c6977c16734384de553edfa73}} 
 \index{batteries.c@{batteries.c}!batteryStart@{batteryStart}}
 \index{batteryStart@{batteryStart}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{batteryStart()}{batteryStart()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def battery\+Start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def battery\+Start (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Initializes the battery task. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aeb2f305c6977c16734384de553edfa73_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=252pt]{batteries_8c_aeb2f305c6977c16734384de553edfa73_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a3364449b5cc8a93c89985f5d9fa2984b}\label{batteries_8c_a3364449b5cc8a93c89985f5d9fa2984b}} 
 \index{batteries.c@{batteries.c}!batteryTask@{batteryTask}}
 \index{batteryTask@{batteryTask}!batteries.c@{batteries.c}}
@@ -617,31 +395,7 @@ Here is the caller graph for this function\+:\nopagebreak
 
 Task to monitor cell voltages and temperatures, as well as perform balance charging. 
 
-!! Change the check in in bounded continue as well if you change thisHere is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a3364449b5cc8a93c89985f5d9fa2984b_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b}\label{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b}} 
-\index{batteries.c@{batteries.c}!BatteryTaskError@{BatteryTaskError}}
-\index{BatteryTaskError@{BatteryTaskError}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BatteryTaskError()}{BatteryTaskError()}}
-{\footnotesize\ttfamily void Battery\+Task\+Error (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-Called if an error with batteries is detected. Raises error and stops battery task execution (without tripping watchdog) 
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ad7b6a3fe5ae01ef7695d9c36da0f832b_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c}\label{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c}} 
+!! Change the check in in bounded continue as well if you change this\mbox{\Hypertarget{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c}\label{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c}} 
 \index{batteries.c@{batteries.c}!boundedContinue@{boundedContinue}}
 \index{boundedContinue@{boundedContinue}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{boundedContinue()}{boundedContinue()}}
@@ -649,25 +403,11 @@ Here is the caller graph for this function\+:\nopagebreak
 
 
 
-Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed M\+A\+X\+\_\+\+E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+NT times, then fail and send error event. T\+O\+DO\+: ensure this is max 500 ms to meet rules for cell reading times. 
+Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed MAX\+\_\+\+ERROR\+\_\+\+COUNT times, then fail and send error event. TODO\+: ensure this is max 500 ms to meet rules for cell reading times. 
 
 \begin{DoxyReturn}{Returns}
 true if error\+Counter is below or equal to max error count, false otherwise 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=298pt]{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a796b02ffebbe6ba22dca62df11bcb05c_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a7b0e95f68b412d5d5e9620ffbae8750d}\label{batteries_8c_a7b0e95f68b412d5d5e9620ffbae8750d}} 
 \index{batteries.c@{batteries.c}!calculateStateOfCharge@{calculateStateOfCharge}}
 \index{calculateStateOfCharge@{calculateStateOfCharge}!batteries.c@{batteries.c}}
@@ -681,13 +421,6 @@ Calculates the state of charge of the battery pack. This is a measure of how muc
 \begin{DoxyReturn}{Returns}
 State of Charge (percent) 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a7b0e95f68b412d5d5e9620ffbae8750d_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a6b2f1ad817d75d1c5c590814371b5062}\label{batteries_8c_a6b2f1ad817d75d1c5c590814371b5062}} 
 \index{batteries.c@{batteries.c}!calculateStateOfPower@{calculateStateOfPower}}
 \index{calculateStateOfPower@{calculateStateOfPower}!batteries.c@{batteries.c}}
@@ -696,40 +429,16 @@ Here is the caller graph for this function\+:\nopagebreak
 
 
 
-Calculates the state of power of the battery pack. T\+O\+DO\+: this calculation is from 2017, so should be updated for the 2020 pack. 
+Calculates the state of power of the battery pack. TODO\+: this calculation is from 2017, so should be updated for the 2020 pack. 
 
 \begin{DoxyReturn}{Returns}
 The state of power of the battery pack (in Watts?) 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a6b2f1ad817d75d1c5c590814371b5062_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43}\label{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43}} 
-\index{batteries.c@{batteries.c}!canSendCellTask@{canSendCellTask}}
-\index{canSendCellTask@{canSendCellTask}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{canSendCellTask()}{canSendCellTask()}}
-{\footnotesize\ttfamily void can\+Send\+Cell\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Parameters }\end{DoxyParamCaption})}
-
-
-
-Sends the cell voltages and temperatures over C\+AN. 
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a445bbbf2332f3c63a4bfcddf4b78ff43_cgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a7090234402b08bb512cf5db06702c9f0}\label{batteries_8c_a7090234402b08bb512cf5db06702c9f0}} 
 \index{batteries.c@{batteries.c}!checkCellVoltagesAndTemps@{checkCellVoltagesAndTemps}}
 \index{checkCellVoltagesAndTemps@{checkCellVoltagesAndTemps}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{checkCellVoltagesAndTemps()}{checkCellVoltagesAndTemps()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def check\+Cell\+Voltages\+And\+Temps (\begin{DoxyParamCaption}\item[{float $\ast$}]{max\+Voltage,  }\item[{float $\ast$}]{min\+Voltage,  }\item[{float $\ast$}]{max\+Temp,  }\item[{float $\ast$}]{min\+Temp,  }\item[{float $\ast$}]{pack\+Voltage }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def check\+Cell\+Voltages\+And\+Temps (\begin{DoxyParamCaption}\item[{float $\ast$}]{max\+Voltage,  }\item[{float $\ast$}]{min\+Voltage,  }\item[{float $\ast$}]{max\+Temp,  }\item[{float $\ast$}]{min\+Temp,  }\item[{float $\ast$}]{pack\+Voltage }\end{DoxyParamCaption})}
 
 
 
@@ -749,158 +458,75 @@ Checks cell voltages and temperatures to ensure they are within safe limits, as 
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a7090234402b08bb512cf5db06702c9f0_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a7090234402b08bb512cf5db06702c9f0_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_ade4720060f19979c4071eae3fb08ff92}\label{batteries_8c_ade4720060f19979c4071eae3fb08ff92}} 
-\index{batteries.c@{batteries.c}!clearSendOnlyOneCell@{clearSendOnlyOneCell}}
-\index{clearSendOnlyOneCell@{clearSendOnlyOneCell}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{clearSendOnlyOneCell()}{clearSendOnlyOneCell()}}
-{\footnotesize\ttfamily void clear\+Send\+Only\+One\+Cell (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-Stop sending only one cell repeatedly, and go back to sending all cells over C\+AN. 
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ade4720060f19979c4071eae3fb08ff92_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a19d5fb02c3547746d76a121bf9f10807}\label{batteries_8c_a19d5fb02c3547746d76a121bf9f10807}} 
 \index{batteries.c@{batteries.c}!cliSetIBus@{cliSetIBus}}
 \index{cliSetIBus@{cliSetIBus}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{cliSetIBus()}{cliSetIBus()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def cli\+Set\+I\+Bus (\begin{DoxyParamCaption}\item[{float}]{I\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def cli\+Set\+IBus (\begin{DoxyParamCaption}\item[{float}]{IBus }\end{DoxyParamCaption})}
 
 
 
-For nucleo testing, allows setting a dummy value for the I\+Bus reading. 
+For nucleo testing, allows setting a dummy value for the IBus reading. 
 
 
 \begin{DoxyParams}{Parameters}
-{\em I\+Bus} & The value to set for I\+Bus, in volts\\
+{\em IBus} & The value to set for IBus, in volts\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a19d5fb02c3547746d76a121bf9f10807_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a6e1bc0d2209bd309c4db0a06009a339a}\label{batteries_8c_a6e1bc0d2209bd309c4db0a06009a339a}} 
 \index{batteries.c@{batteries.c}!cliSetVBatt@{cliSetVBatt}}
 \index{cliSetVBatt@{cliSetVBatt}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{cliSetVBatt()}{cliSetVBatt()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def cli\+Set\+V\+Batt (\begin{DoxyParamCaption}\item[{float}]{V\+Batt }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def cli\+Set\+VBatt (\begin{DoxyParamCaption}\item[{float}]{VBatt }\end{DoxyParamCaption})}
 
 
 
-For nucleo testing, allows setting a dummy value for the V\+Batt reading. 
+For nucleo testing, allows setting a dummy value for the VBatt reading. 
 
 
 \begin{DoxyParams}{Parameters}
-{\em V\+Batt} & The value to set for V\+Batt, in volts\\
+{\em VBatt} & The value to set for VBatt, in volts\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a6e1bc0d2209bd309c4db0a06009a339a_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a2ab7e555695e672e38894f394a31a3ef}\label{batteries_8c_a2ab7e555695e672e38894f394a31a3ef}} 
 \index{batteries.c@{batteries.c}!cliSetVBus@{cliSetVBus}}
 \index{cliSetVBus@{cliSetVBus}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{cliSetVBus()}{cliSetVBus()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def cli\+Set\+V\+Bus (\begin{DoxyParamCaption}\item[{float}]{V\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def cli\+Set\+VBus (\begin{DoxyParamCaption}\item[{float}]{VBus }\end{DoxyParamCaption})}
 
 
 
-For nucleo testing, allows setting a dummy value for the V\+Bus reading. 
+For nucleo testing, allows setting a dummy value for the VBus reading. 
 
 
 \begin{DoxyParams}{Parameters}
-{\em V\+Bus} & The value to set for V\+Bus, in volts\\
+{\em VBus} & The value to set for VBus, in volts\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a2ab7e555695e672e38894f394a31a3ef_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6}\label{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6}} 
 \index{batteries.c@{batteries.c}!continueCharging@{continueCharging}}
 \index{continueCharging@{continueCharging}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{continueCharging()}{continueCharging()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def continue\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def continue\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Sends messages to the charger. The charger expects a message every second so this needs to be repeatedly called during charging. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a533907b25f7b1dbb355151d336ed9ff6_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}\label{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c}} 
-\index{batteries.c@{batteries.c}!ERROR\_COUNTER\_SUCCESS@{ERROR\_COUNTER\_SUCCESS}}
-\index{ERROR\_COUNTER\_SUCCESS@{ERROR\_COUNTER\_SUCCESS}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{ERROR\_COUNTER\_SUCCESS()}{ERROR\_COUNTER\_SUCCESS()}}
-{\footnotesize\ttfamily void E\+R\+R\+O\+R\+\_\+\+C\+O\+U\+N\+T\+E\+R\+\_\+\+S\+U\+C\+C\+E\+SS (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-Call on a succesful run through main loop. Decrements error counter on succesful run through main loop. 
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_acd3cd9ec15fdceb68c5516f59552605c_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_ae1d79ed043eedc99cbc01f7c59ce369e}\label{batteries_8c_ae1d79ed043eedc99cbc01f7c59ce369e}} 
 \index{batteries.c@{batteries.c}!filterCellVoltages@{filterCellVoltages}}
 \index{filterCellVoltages@{filterCellVoltages}!batteries.c@{batteries.c}}
@@ -909,7 +535,7 @@ Here is the caller graph for this function\+:\nopagebreak
 
 
 
-This takes an array of the instantaneous cell volages, and filters them on an ongoing basis using the cell\+Voltages\+Filtered array. For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due to bad contact with A\+MS boards. The hypothesis is that the pogo pins make bad contact with the ams boards when the motors spin, thus the need for filtering. This hasn\textquotesingle{}t been proven however, but the filtering fixed the errors we saw before (info up to date as of May 2020) NB\+: Filter voltages shouldn\textquotesingle{}t be sent over C\+AN, only used with error checking. 
+This takes an array of the instantaneous cell volages, and filters them on an ongoing basis using the cell\+Voltages\+Filtered array. For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due to bad contact with AMS boards. The hypothesis is that the pogo pins make bad contact with the ams boards when the motors spin, thus the need for filtering. This hasn\textquotesingle{}t been proven however, but the filtering fixed the errors we saw before (info up to date as of May 2020) NB\+: Filter voltages shouldn\textquotesingle{}t be sent over CAN, only used with error checking. 
 
 
 \begin{DoxyParams}[1]{Parameters}
@@ -918,18 +544,11 @@ This takes an array of the instantaneous cell volages, and filters them on an on
 \mbox{\texttt{ out}}  & {\em cell\+Voltages\+Filtered} & filtered cell voltage readings \\
 \hline
 \end{DoxyParams}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ae1d79ed043eedc99cbc01f7c59ce369e_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a1300d8fea84c20d3945380460f61f81d}\label{batteries_8c_a1300d8fea84c20d3945380460f61f81d}} 
 \index{batteries.c@{batteries.c}!filterIBus@{filterIBus}}
 \index{filterIBus@{filterIBus}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{filterIBus()}{filterIBus()}}
-{\footnotesize\ttfamily float filter\+I\+Bus (\begin{DoxyParamCaption}\item[{float}]{I\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily float filter\+IBus (\begin{DoxyParamCaption}\item[{float}]{IBus }\end{DoxyParamCaption})}
 
 
 
@@ -937,24 +556,17 @@ Low pass filters the HV Bus current measurement.
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\texttt{ in}}  & {\em I\+Bus} & the measured HV Bus current \\
+\mbox{\texttt{ in}}  & {\em IBus} & the measured HV Bus current \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 The filtered HV Bus current 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a1300d8fea84c20d3945380460f61f81d_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a0ee7fbdeb8e2e8413b4fc77ba59223d5}\label{batteries_8c_a0ee7fbdeb8e2e8413b4fc77ba59223d5}} 
 \index{batteries.c@{batteries.c}!getIBus@{getIBus}}
 \index{getIBus@{getIBus}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{getIBus()}{getIBus()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def get\+I\+Bus (\begin{DoxyParamCaption}\item[{float $\ast$}]{I\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def get\+IBus (\begin{DoxyParamCaption}\item[{float $\ast$}]{IBus }\end{DoxyParamCaption})}
 
 
 
@@ -962,25 +574,17 @@ Get the most recent bus current reading.
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\texttt{ out}}  & {\em I\+Bus} & pointer to a float to store the I\+Bus reading, in amps\\
+\mbox{\texttt{ out}}  & {\em IBus} & pointer to a float to store the IBus reading, in amps\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a0ee7fbdeb8e2e8413b4fc77ba59223d5_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}\label{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}} 
 \index{batteries.c@{batteries.c}!getPackVoltage@{getPackVoltage}}
 \index{getPackVoltage@{getPackVoltage}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{getPackVoltage()}{getPackVoltage()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def get\+Pack\+Voltage (\begin{DoxyParamCaption}\item[{float $\ast$}]{pack\+Voltage }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def get\+Pack\+Voltage (\begin{DoxyParamCaption}\item[{float $\ast$}]{pack\+Voltage }\end{DoxyParamCaption})}
 
 
 
@@ -992,21 +596,13 @@ Gets the current pack voltage. This returns the pack voltage as calculated by su
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+De 
+HAL\+\_\+\+Status\+Type\+De 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ab07aef73f633627b5a1a78e40f15961f_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a3d41850a2fe8400978c4f68163d726be}\label{batteries_8c_a3d41850a2fe8400978c4f68163d726be}} 
 \index{batteries.c@{batteries.c}!getSOCFromVoltage@{getSOCFromVoltage}}
 \index{getSOCFromVoltage@{getSOCFromVoltage}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{getSOCFromVoltage()}{getSOCFromVoltage()}}
-{\footnotesize\ttfamily float get\+S\+O\+C\+From\+Voltage (\begin{DoxyParamCaption}\item[{float}]{cell\+Voltage }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily float get\+SOCFrom\+Voltage (\begin{DoxyParamCaption}\item[{float}]{cell\+Voltage }\end{DoxyParamCaption})}
 
 
 
@@ -1020,156 +616,61 @@ Calculates the SoC of a cell from the cell\textquotesingle{}s voltage.
 \begin{DoxyReturn}{Returns}
 the SoC of the cell in percent (0-\/100) 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=312pt]{batteries_8c_a3d41850a2fe8400978c4f68163d726be_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a3d41850a2fe8400978c4f68163d726be_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_aff30116cb629c2efdad61c2ccaec0c36}\label{batteries_8c_aff30116cb629c2efdad61c2ccaec0c36}} 
 \index{batteries.c@{batteries.c}!getVBatt@{getVBatt}}
 \index{getVBatt@{getVBatt}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{getVBatt()}{getVBatt()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def get\+V\+Batt (\begin{DoxyParamCaption}\item[{float $\ast$}]{V\+Batt }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def get\+VBatt (\begin{DoxyParamCaption}\item[{float $\ast$}]{VBatt }\end{DoxyParamCaption})}
 
 
 
-Get the most recent battery voltage reading (from the HV A\+DC). Note\+: this is only equal to the battery voltage when both contactors are closed. to get the battery voltage in all times, use \mbox{\hyperlink{batteries_8h_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}}. 
+Get the most recent battery voltage reading (from the HV ADC). Note\+: this is only equal to the battery voltage when both contactors are closed. to get the battery voltage in all times, use \mbox{\hyperlink{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}}. 
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\texttt{ out}}  & {\em pointer} & to a float to store the V\+Batt reading, in volts\\
+\mbox{\texttt{ out}}  & {\em pointer} & to a float to store the VBatt reading, in volts\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aff30116cb629c2efdad61c2ccaec0c36_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a6fbf3bf910348af26a580fc418f89f5e}\label{batteries_8c_a6fbf3bf910348af26a580fc418f89f5e}} 
 \index{batteries.c@{batteries.c}!getVBus@{getVBus}}
 \index{getVBus@{getVBus}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{getVBus()}{getVBus()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def get\+V\+Bus (\begin{DoxyParamCaption}\item[{float $\ast$}]{V\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def get\+VBus (\begin{DoxyParamCaption}\item[{float $\ast$}]{VBus }\end{DoxyParamCaption})}
 
 
 
-Get the most recent HV Bus voltage reading (from the HV A\+DC) 
+Get the most recent HV Bus voltage reading (from the HV ADC) 
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\texttt{ out}}  & {\em pointer} & to a float to store the V\+Bus reading, in volts\\
+\mbox{\texttt{ out}}  & {\em pointer} & to a float to store the VBus reading, in volts\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a6fbf3bf910348af26a580fc418f89f5e_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a1ef8191389452a8f21cb2d02b20cba29}\label{batteries_8c_a1ef8191389452a8f21cb2d02b20cba29}} 
 \index{batteries.c@{batteries.c}!HVMeasureTask@{HVMeasureTask}}
 \index{HVMeasureTask@{HVMeasureTask}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{HVMeasureTask()}{HVMeasureTask()}}
-{\footnotesize\ttfamily void H\+V\+Measure\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Paramaters }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily void HVMeasure\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Paramaters }\end{DoxyParamCaption})}
 
-Measures the voltage and current on the HV Bus as well as the HV battery pack voltage. Note that the HV battery pack voltage (V\+Batt) is only equal to the actual pack voltage in ceraint contactor states, see precharge\+Discharge procedure on confluence for more info. Instead, use \mbox{\hyperlink{batteries_8h_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}} which bases it measurement on the sum of cell voltages Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a1ef8191389452a8f21cb2d02b20cba29_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9}\label{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9}} 
-\index{batteries.c@{batteries.c}!imdTask@{imdTask}}
-\index{imdTask@{imdTask}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{imdTask()}{imdTask()}}
-{\footnotesize\ttfamily void imd\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Paramaters }\end{DoxyParamCaption})}
-
-
-
-Monitors the Insulation Monitoring Device (I\+MD). Raises error if I\+MD reports fault. 
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a1f0375c4fc87fa9cfd8fbc1c5fcd33c9_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}\label{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47}} 
-\index{batteries.c@{batteries.c}!initBusVoltagesAndCurrentQueues@{initBusVoltagesAndCurrentQueues}}
-\index{initBusVoltagesAndCurrentQueues@{initBusVoltagesAndCurrentQueues}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{initBusVoltagesAndCurrentQueues()}{initBusVoltagesAndCurrentQueues()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def init\+Bus\+Voltages\+And\+Current\+Queues (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-Creates queues for HV Bus measurements Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent data is in the queue and read from the queue. Queues use Amps and Volts for units. 
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=299pt]{batteries_8c_a951b2aac55838c4b1abd243f38e2ca47_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a92932081ca58208175ca6c4e0971f06d}\label{batteries_8c_a92932081ca58208175ca6c4e0971f06d}} 
+Measures the voltage and current on the HV Bus as well as the HV battery pack voltage. Note that the HV battery pack voltage (VBatt) is only equal to the actual pack voltage in ceraint contactor states, see precharge\+Discharge procedure on confluence for more info. Instead, use \mbox{\hyperlink{batteries_8c_ab07aef73f633627b5a1a78e40f15961f}{get\+Pack\+Voltage}} which bases it measurement on the sum of cell voltages \mbox{\Hypertarget{batteries_8c_a92932081ca58208175ca6c4e0971f06d}\label{batteries_8c_a92932081ca58208175ca6c4e0971f06d}} 
 \index{batteries.c@{batteries.c}!initPackVoltageQueue@{initPackVoltageQueue}}
 \index{initPackVoltageQueue@{initPackVoltageQueue}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{initPackVoltageQueue()}{initPackVoltageQueue()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def init\+Pack\+Voltage\+Queue (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def init\+Pack\+Voltage\+Queue (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
-Creates the pack voltage queue. Needs to be called before R\+T\+OS starts. 
+Creates the pack voltage queue. Needs to be called before RTOS starts. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=278pt]{batteries_8c_a92932081ca58208175ca6c4e0971f06d_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}\label{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca}} 
-\index{batteries.c@{batteries.c}!initVoltageAndTempArrays@{initVoltageAndTempArrays}}
-\index{initVoltageAndTempArrays@{initVoltageAndTempArrays}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{initVoltageAndTempArrays()}{initVoltageAndTempArrays()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def init\+Voltage\+And\+Temp\+Arrays (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-This functions sets all cell voltages and temps to known values. This is necessary for testing on Nucleo so it doesn\textquotesingle{}t immediately error before the user can manually set the Voltages and Temperatures. 
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=316pt]{batteries_8c_a34364371025450fc6bc3f0d86df0e5ca_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_aed5d06c4a55e40673204ceacf2fde819}\label{batteries_8c_aed5d06c4a55e40673204ceacf2fde819}} 
 \index{batteries.c@{batteries.c}!map\_range\_float@{map\_range\_float}}
 \index{map\_range\_float@{map\_range\_float}!batteries.c@{batteries.c}}
@@ -1196,45 +697,24 @@ Maps a value from one range to another in a linear manner.
 \begin{DoxyReturn}{Returns}
 in value mapped to out range 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aed5d06c4a55e40673204ceacf2fde819_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_aa04706789e98d82797970064b10dd0c9}\label{batteries_8c_aa04706789e98d82797970064b10dd0c9}} 
 \index{batteries.c@{batteries.c}!pauseBalance@{pauseBalance}}
 \index{pauseBalance@{pauseBalance}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{pauseBalance()}{pauseBalance()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def pause\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def pause\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Stops all cells balancing, but stores which cells were balancing to allowing resuming of balance for cells that were balancing. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aa04706789e98d82797970064b10dd0c9_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aa04706789e98d82797970064b10dd0c9_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a37d4140213dc1708776032fc935e0b39}\label{batteries_8c_a37d4140213dc1708776032fc935e0b39}} 
 \index{batteries.c@{batteries.c}!publishBusVoltagesAndCurrent@{publishBusVoltagesAndCurrent}}
 \index{publishBusVoltagesAndCurrent@{publishBusVoltagesAndCurrent}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{publishBusVoltagesAndCurrent()}{publishBusVoltagesAndCurrent()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def publish\+Bus\+Voltages\+And\+Current (\begin{DoxyParamCaption}\item[{float $\ast$}]{p\+I\+Bus,  }\item[{float $\ast$}]{p\+V\+Bus,  }\item[{float $\ast$}]{p\+V\+Batt }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def publish\+Bus\+Voltages\+And\+Current (\begin{DoxyParamCaption}\item[{float $\ast$}]{p\+IBus,  }\item[{float $\ast$}]{p\+VBus,  }\item[{float $\ast$}]{p\+VBatt }\end{DoxyParamCaption})}
 
 
 
@@ -1250,20 +730,13 @@ Publishes the most recent HV Bus measurements to queues for other tasks to read 
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a37d4140213dc1708776032fc935e0b39_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_afa698a16023626be583ce5082c76f5ec}\label{batteries_8c_afa698a16023626be583ce5082c76f5ec}} 
 \index{batteries.c@{batteries.c}!publishPackVoltage@{publishPackVoltage}}
 \index{publishPackVoltage@{publishPackVoltage}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{publishPackVoltage()}{publishPackVoltage()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def publish\+Pack\+Voltage (\begin{DoxyParamCaption}\item[{float}]{pack\+Voltage }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def publish\+Pack\+Voltage (\begin{DoxyParamCaption}\item[{float}]{pack\+Voltage }\end{DoxyParamCaption})}
 
 
 
@@ -1275,24 +748,17 @@ Publishes the current pack voltage value to the queue for other tasks to read fr
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_afa698a16023626be583ce5082c76f5ec_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0}\label{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0}} 
 \index{batteries.c@{batteries.c}!readBusVoltagesAndCurrents@{readBusVoltagesAndCurrents}}
 \index{readBusVoltagesAndCurrents@{readBusVoltagesAndCurrents}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{readBusVoltagesAndCurrents()}{readBusVoltagesAndCurrents()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def read\+Bus\+Voltages\+And\+Currents (\begin{DoxyParamCaption}\item[{float $\ast$}]{I\+Bus,  }\item[{float $\ast$}]{V\+Bus,  }\item[{float $\ast$}]{V\+Batt }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def read\+Bus\+Voltages\+And\+Currents (\begin{DoxyParamCaption}\item[{float $\ast$}]{IBus,  }\item[{float $\ast$}]{VBus,  }\item[{float $\ast$}]{VBatt }\end{DoxyParamCaption})}
 
 
 
-Measures HV voltages and currents using the HV A\+DC. 
+Measures HV voltages and currents using the HV ADC. 
 
 
 \begin{DoxyParams}[1]{Parameters}
@@ -1304,81 +770,39 @@ Measures HV voltages and currents using the HV A\+DC.
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a4d72951e5a03e396bb864b5c45bda0f0_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a36a3c81e474331b59839cb2f565c7704}\label{batteries_8c_a36a3c81e474331b59839cb2f565c7704}} 
 \index{batteries.c@{batteries.c}!readCellVoltagesAndTemps@{readCellVoltagesAndTemps}}
 \index{readCellVoltagesAndTemps@{readCellVoltagesAndTemps}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{readCellVoltagesAndTemps()}{readCellVoltagesAndTemps()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def read\+Cell\+Voltages\+And\+Temps (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def read\+Cell\+Voltages\+And\+Temps (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
-Reads the cell voltages and temperatures from the A\+MS boards. The battery temperature and cell voltages are stored in the global arrays which are also used for sending them over C\+AN. 
+Reads the cell voltages and temperatures from the AMS boards. The battery temperature and cell voltages are stored in the global arrays which are also used for sending them over CAN. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a36a3c81e474331b59839cb2f565c7704_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a36a3c81e474331b59839cb2f565c7704_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a82969943d42e6067b966c64c61196dcd}\label{batteries_8c_a82969943d42e6067b966c64c61196dcd}} 
 \index{batteries.c@{batteries.c}!resumeBalance@{resumeBalance}}
 \index{resumeBalance@{resumeBalance}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{resumeBalance()}{resumeBalance()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def resume\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def resume\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Resumes balancing after call to \mbox{\hyperlink{batteries_8c_aa04706789e98d82797970064b10dd0c9}{pause\+Balance}}. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a82969943d42e6067b966c64c61196dcd_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a82969943d42e6067b966c64c61196dcd_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_aacf3b5ff9648b813208cb6f91b370fef}\label{batteries_8c_aacf3b5ff9648b813208cb6f91b370fef}} 
 \index{batteries.c@{batteries.c}!setMaxChargeCurrent@{setMaxChargeCurrent}}
 \index{setMaxChargeCurrent@{setMaxChargeCurrent}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{setMaxChargeCurrent()}{setMaxChargeCurrent()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def set\+Max\+Charge\+Current (\begin{DoxyParamCaption}\item[{float}]{max\+Current }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def set\+Max\+Charge\+Current (\begin{DoxyParamCaption}\item[{float}]{max\+Current }\end{DoxyParamCaption})}
 
 
 
@@ -1390,15 +814,8 @@ Sets the maximum current for the charger.
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_aacf3b5ff9648b813208cb6f91b370fef_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_acd55a62448b408952283c28d12dd4c1d}\label{batteries_8c_acd55a62448b408952283c28d12dd4c1d}} 
 \index{batteries.c@{batteries.c}!setSendOnlyOneCell@{setSendOnlyOneCell}}
 \index{setSendOnlyOneCell@{setSendOnlyOneCell}!batteries.c@{batteries.c}}
@@ -1407,157 +824,60 @@ Here is the caller graph for this function\+:\nopagebreak
 
 
 
-Repeatedly send the cell voltage and temperature for a specific cell. This is instead of the normal behaviour which cycles through all the cells sending a message every \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{C\+A\+N\+\_\+\+C\+E\+L\+L\+\_\+\+S\+E\+N\+D\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}. Useful for battery testing to monitor a cell at higher frequency. 
+Repeatedly send the cell voltage and temperature for a specific cell. This is instead of the normal behaviour which cycles through all the cells sending a message every \mbox{\hyperlink{batteries_8c_ab75dbcd7e0a59fc3d1fc3715de87544a}{CAN\+\_\+\+CELL\+\_\+\+SEND\+\_\+\+PERIOD\+\_\+\+MS}}. Useful for battery testing to monitor a cell at higher frequency. 
 
 
 \begin{DoxyParams}{Parameters}
 {\em cell\+Idx} & The cell to repeatedly send (note, this uses firmwares 0 based indexing, instead of electricals 1 based indexing of cell numbers) \\
 \hline
 \end{DoxyParams}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=324pt]{batteries_8c_acd55a62448b408952283c28d12dd4c1d_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c}\label{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c}} 
 \index{batteries.c@{batteries.c}!startCharging@{startCharging}}
 \index{startCharging@{startCharging}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{startCharging()}{startCharging()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def start\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def start\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Sends the maximum charge current and voltage to the charger and waits for the charger to start charging. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a43ea41cc1c21bd36b3622076e20b596c_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7}\label{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7}} 
 \index{batteries.c@{batteries.c}!stopBalance@{stopBalance}}
 \index{stopBalance@{stopBalance}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{stopBalance()}{stopBalance()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def stop\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def stop\+Balance (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
-Stops all cells balancing by sending command to A\+MS boards. 
+Stops all cells balancing by sending command to AMS boards. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_ad54912c48ac30fc66796b2aeca58cea7_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5}\label{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5}} 
 \index{batteries.c@{batteries.c}!stopCharging@{stopCharging}}
 \index{stopCharging@{stopCharging}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{stopCharging()}{stopCharging()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def stop\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def stop\+Charging (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
 
 
 Sends a command to the charger to stop charging. 
 
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{batteries_8c_a5cf6c235603af078c2dc841ae579f3b5_icgraph}
-\end{center}
-\end{figure}
 
 
 \doxysubsection{Variable Documentation}
-\mbox{\Hypertarget{batteries_8c_aa95731d4ff40893bc5d4c80cc0fa055f}\label{batteries_8c_aa95731d4ff40893bc5d4c80cc0fa055f}} 
-\index{batteries.c@{batteries.c}!BatteryTaskHandle@{BatteryTaskHandle}}
-\index{BatteryTaskHandle@{BatteryTaskHandle}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{BatteryTaskHandle}{BatteryTaskHandle}}
-{\footnotesize\ttfamily os\+Thread\+Id Battery\+Task\+Handle}
-
-\mbox{\Hypertarget{batteries_8c_a45eac5b187ae199e0de1fa376e2024b3}\label{batteries_8c_a45eac5b187ae199e0de1fa376e2024b3}} 
-\index{batteries.c@{batteries.c}!cellToSend@{cellToSend}}
-\index{cellToSend@{cellToSend}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{cellToSend}{cellToSend}}
-{\footnotesize\ttfamily int cell\+To\+Send}
-
-\mbox{\Hypertarget{batteries_8c_afa99b901194e86a7784f6213f9420089}\label{batteries_8c_afa99b901194e86a7784f6213f9420089}} 
-\index{batteries.c@{batteries.c}!cellVoltagesFiltered@{cellVoltagesFiltered}}
-\index{cellVoltagesFiltered@{cellVoltagesFiltered}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{cellVoltagesFiltered}{cellVoltagesFiltered}}
-{\footnotesize\ttfamily float cell\+Voltages\+Filtered\mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}}
-
-
-
-Array is used to store the filtered voltages. 
-
-\mbox{\Hypertarget{batteries_8c_af01c96d690887303a5e5d5432739801a}\label{batteries_8c_af01c96d690887303a5e5d5432739801a}} 
-\index{batteries.c@{batteries.c}!errorCounter@{errorCounter}}
-\index{errorCounter@{errorCounter}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{errorCounter}{errorCounter}}
-{\footnotesize\ttfamily uint32\+\_\+t error\+Counter = 0\hspace{0.3cm}{\ttfamily [static]}}
-
-\mbox{\Hypertarget{batteries_8c_a141159dacb84bda6d1ce0a156c258177}\label{batteries_8c_a141159dacb84bda6d1ce0a156c258177}} 
-\index{batteries.c@{batteries.c}!IBusQueue@{IBusQueue}}
-\index{IBusQueue@{IBusQueue}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{IBusQueue}{IBusQueue}}
-{\footnotesize\ttfamily Queue\+Handle\+\_\+t I\+Bus\+Queue}
-
-
-
-Queue holding most recent bus current measurement. 
-
-\mbox{\Hypertarget{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}\label{batteries_8c_a58c53a03f6ed59b66477d9ff778a7ec1}} 
-\index{batteries.c@{batteries.c}!isCellBalancing@{isCellBalancing}}
-\index{isCellBalancing@{isCellBalancing}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{isCellBalancing}{isCellBalancing}}
-{\footnotesize\ttfamily bool is\+Cell\+Balancing\mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]} = \{0\}}
-
-
-
-Array to store if a cell is balancing. 
-
 \mbox{\Hypertarget{batteries_8c_a4bb357024aa0bb23dcfba57009d3f836}\label{batteries_8c_a4bb357024aa0bb23dcfba57009d3f836}} 
 \index{batteries.c@{batteries.c}!isTempCellWorking@{isTempCellWorking}}
 \index{isTempCellWorking@{isTempCellWorking}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{isTempCellWorking}{isTempCellWorking}}
-{\footnotesize\ttfamily bool is\+Temp\+Cell\+Working\mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}{T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}}
+{\footnotesize\ttfamily bool is\+Temp\+Cell\+Working\mbox{[}TEMPCELL\+\_\+\+COUNT\mbox{]}}
 
 {\bfseries Initial value\+:}
 \begin{DoxyCode}{0}
@@ -1574,67 +894,21 @@ Array to store if a cell is balancing.
 \DoxyCodeLine{}
 \DoxyCodeLine{\textcolor{keyword}{false}, true , true , \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, true , true , true , \textcolor{keyword}{false}, \textcolor{keyword}{false},}
 \DoxyCodeLine{}
-\DoxyCodeLine{\textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false},}
+\DoxyCodeLine{}
 \DoxyCodeLine{\}}
 
 \end{DoxyCode}
-Since some thermistors don\textquotesingle{}t give accurate readings (as of June 2020 not sure why, but maybe due to bad mechanical connections) this array specifies which temperature readings are working. The working readings are the only ones checked to ensure they are within safe limits and to determine min and max temperatures. \mbox{\Hypertarget{batteries_8c_a098ac94ec41c0b74569366cf7660c680}\label{batteries_8c_a098ac94ec41c0b74569366cf7660c680}} 
-\index{batteries.c@{batteries.c}!maxChargeCurrent@{maxChargeCurrent}}
-\index{maxChargeCurrent@{maxChargeCurrent}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{maxChargeCurrent}{maxChargeCurrent}}
-{\footnotesize\ttfamily float max\+Charge\+Current = \mbox{\hyperlink{batteries_8c_a68aaf77b085834ea0c03a6ab2e2910f6}{C\+H\+A\+R\+G\+E\+\_\+\+D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+A\+X\+\_\+\+C\+U\+R\+R\+E\+NT}}}
-
-
-
-Charging current limit. 
-
-\mbox{\Hypertarget{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}\label{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}} 
+Since some thermistors don\textquotesingle{}t give accurate readings (as of June 2020 not sure why, but maybe due to bad mechanical connections) this array specifies which temperature readings are working. The working readings are the only ones checked to ensure they are within safe limits and to determine min and max temperatures. \mbox{\Hypertarget{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}\label{batteries_8c_a1e19984c8df58b545da1c8f8b5547acd}} 
 \index{batteries.c@{batteries.c}!maxChargeVoltage@{maxChargeVoltage}}
 \index{maxChargeVoltage@{maxChargeVoltage}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{maxChargeVoltage}{maxChargeVoltage}}
-{\footnotesize\ttfamily float max\+Charge\+Voltage = \mbox{\hyperlink{batteries_8c_aa4b530cc846953d732a4582912f703d2}{L\+I\+M\+I\+T\+\_\+\+O\+V\+E\+R\+V\+O\+L\+T\+A\+GE}} $\ast$ \mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}}
+{\footnotesize\ttfamily float max\+Charge\+Voltage = LIMIT\+\_\+\+OVERVOLTAGE $\ast$ VOLTAGECELL\+\_\+\+COUNT}
 
-Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by \mbox{\hyperlink{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}{C\+H\+A\+R\+G\+E\+\_\+\+S\+T\+O\+P\+\_\+\+S\+OC}} \mbox{\Hypertarget{batteries_8c_a17c95138c88cf1a7a64a0dd006730b6c}\label{batteries_8c_a17c95138c88cf1a7a64a0dd006730b6c}} 
-\index{batteries.c@{batteries.c}!PackVoltageQueue@{PackVoltageQueue}}
-\index{PackVoltageQueue@{PackVoltageQueue}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{PackVoltageQueue}{PackVoltageQueue}}
-{\footnotesize\ttfamily Queue\+Handle\+\_\+t Pack\+Voltage\+Queue}
-
-
-
-Queue holding most recent battery voltage (calculated from sum of cell voltages) measurement. 
-
-\mbox{\Hypertarget{batteries_8c_a08165bcd985456a8bb4f39d29b0132d8}\label{batteries_8c_a08165bcd985456a8bb4f39d29b0132d8}} 
-\index{batteries.c@{batteries.c}!sendOneCellVoltAndTemp@{sendOneCellVoltAndTemp}}
-\index{sendOneCellVoltAndTemp@{sendOneCellVoltAndTemp}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{sendOneCellVoltAndTemp}{sendOneCellVoltAndTemp}}
-{\footnotesize\ttfamily bool send\+One\+Cell\+Volt\+And\+Temp = false}
-
-\mbox{\Hypertarget{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}\label{batteries_8c_ad64f368c4f439a41338c59c0c4b685e2}} 
-\index{batteries.c@{batteries.c}!VBattQueue@{VBattQueue}}
-\index{VBattQueue@{VBattQueue}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{VBattQueue}{VBattQueue}}
-{\footnotesize\ttfamily Queue\+Handle\+\_\+t V\+Batt\+Queue}
-
-
-
-Queue holding most recent battery voltage measurement. 
-
-\mbox{\Hypertarget{batteries_8c_abafdcf601bccb3238fcb8534b517d130}\label{batteries_8c_abafdcf601bccb3238fcb8534b517d130}} 
-\index{batteries.c@{batteries.c}!VBusQueue@{VBusQueue}}
-\index{VBusQueue@{VBusQueue}!batteries.c@{batteries.c}}
-\doxysubsubsection{\texorpdfstring{VBusQueue}{VBusQueue}}
-{\footnotesize\ttfamily Queue\+Handle\+\_\+t V\+Bus\+Queue}
-
-
-
-Queue holding most recent bus volage measurement. 
-
-\mbox{\Hypertarget{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}\label{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}} 
+Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by \mbox{\hyperlink{batteries_8c_a1c3f97f617827a946894da14b7e6e4d4}{CHARGE\+\_\+\+STOP\+\_\+\+SOC}} \mbox{\Hypertarget{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}\label{batteries_8c_ab483cabe57068f7e0fd4bcaee6c1fb59}} 
 \index{batteries.c@{batteries.c}!voltageToSOCLookup@{voltageToSOCLookup}}
 \index{voltageToSOCLookup@{voltageToSOCLookup}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{voltageToSOCLookup}{voltageToSOCLookup}}
-{\footnotesize\ttfamily float voltage\+To\+S\+O\+C\+Lookup\mbox{[}\mbox{\hyperlink{batteries_8c_a4ec6365ec832a79d6e0633c4f49b3b55}{N\+U\+M\+\_\+\+S\+O\+C\+\_\+\+L\+O\+O\+K\+U\+P\+\_\+\+V\+A\+LS}}\mbox{]}}
+{\footnotesize\ttfamily float voltage\+To\+SOCLookup\mbox{[}NUM\+\_\+\+SOC\+\_\+\+LOOKUP\+\_\+\+VALS\mbox{]}}
 
 {\bfseries Initial value\+:}
 \begin{DoxyCode}{0}
@@ -1647,16 +921,16 @@ Queue holding most recent bus volage measurement.
 \DoxyCodeLine{\}}
 
 \end{DoxyCode}
-Lookup table to convert cell voltage to cell state of charge. See B\+MU confluence page for more info \mbox{\Hypertarget{batteries_8c_a61bd11f0a0377192a9a1950e18664728}\label{batteries_8c_a61bd11f0a0377192a9a1950e18664728}} 
+Lookup table to convert cell voltage to cell state of charge. See BMU confluence page for more info \mbox{\Hypertarget{batteries_8c_a61bd11f0a0377192a9a1950e18664728}\label{batteries_8c_a61bd11f0a0377192a9a1950e18664728}} 
 \index{batteries.c@{batteries.c}!warningSentForCellTemp@{warningSentForCellTemp}}
 \index{warningSentForCellTemp@{warningSentForCellTemp}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{warningSentForCellTemp}{warningSentForCellTemp}}
-{\footnotesize\ttfamily bool warning\+Sent\+For\+Cell\+Temp\mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_aa1408c5c3cd5903a4d88611eabf5ce4c}{T\+E\+M\+P\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}}
+{\footnotesize\ttfamily bool warning\+Sent\+For\+Cell\+Temp\mbox{[}TEMPCELL\+\_\+\+COUNT\mbox{]}}
 
 Set to true if we\textquotesingle{}ve already sent a high temperature warning for this cell to stop repeated warnings being sent. Reset to false on init or when cell voltage increases above high temperature warning limit \mbox{\Hypertarget{batteries_8c_afeb7e3ce5be75e8a7d03ae9bbc3c2150}\label{batteries_8c_afeb7e3ce5be75e8a7d03ae9bbc3c2150}} 
 \index{batteries.c@{batteries.c}!warningSentForCellVoltage@{warningSentForCellVoltage}}
 \index{warningSentForCellVoltage@{warningSentForCellVoltage}!batteries.c@{batteries.c}}
 \doxysubsubsection{\texorpdfstring{warningSentForCellVoltage}{warningSentForCellVoltage}}
-{\footnotesize\ttfamily bool warning\+Sent\+For\+Cell\+Voltage\mbox{[}\mbox{\hyperlink{_b_m_u__can_8h_ab438e1bff44c116778101ab624f3359f}{V\+O\+L\+T\+A\+G\+E\+C\+E\+L\+L\+\_\+\+C\+O\+U\+NT}}\mbox{]}}
+{\footnotesize\ttfamily bool warning\+Sent\+For\+Cell\+Voltage\mbox{[}VOLTAGECELL\+\_\+\+COUNT\mbox{]}}
 
 Set to true if we\textquotesingle{}ve already sent a low voltage warning for this cell to stop repeated warnings being sent. Reset to false on init or when cell voltage increases above low voltage warning limit 

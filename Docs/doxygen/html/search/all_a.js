@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['junk_5fsize_487',['JUNK_SIZE',['../ltc6811_8c.html#ad20232d08327b5fd77fa6618a48127ef',1,'ltc6811.c']]]
+  ['maintaskentry_2ec_62',['mainTaskEntry.c',['../main_task_entry_8c.html',1,'']]],
+  ['map_5frange_5ffloat_63',['map_range_float',['../batteries_8c.html#aed5d06c4a55e40673204ceacf2fde819',1,'batteries.c']]],
+  ['max_5ferror_5fcount_64',['MAX_ERROR_COUNT',['../batteries_8c.html#ad4389fd57fbbb4a3c70d7a626285eaa0',1,'batteries.c']]],
+  ['maxchargecurrent_65',['maxChargeCurrent',['../batteries_8c.html#a098ac94ec41c0b74569366cf7660c680',1,'batteries.c']]],
+  ['maxchargevoltage_66',['maxChargeVoltage',['../batteries_8c.html#a1e19984c8df58b545da1c8f8b5547acd',1,'batteries.c']]]
 ];

@@ -1,24 +1,5 @@
 var searchData=
 [
-  ['adax_5fbyte0_1537',['ADAX_BYTE0',['../ltc6811_8c.html#a65bf27833f88e8627f2e8cd8c06cce25',1,'ltc6811.c']]],
-  ['adax_5fbyte1_1538',['ADAX_BYTE1',['../ltc6811_8c.html#ad3332b5fb30f398e6f212b56da197de4',1,'ltc6811.c']]],
-  ['adc_5ffreq_5f1khz_1539',['ADC_FREQ_1KHZ',['../ade7912_8c.html#addeb6c35c00c7d64b75f4804ab2b1ab5',1,'ade7912.c']]],
-  ['adc_5ffreq_5f2khz_1540',['ADC_FREQ_2KHZ',['../ade7912_8c.html#a6cded5f4eb0131bdaae4acaeb102e8ce',1,'ade7912.c']]],
-  ['adc_5flow_5fbw_5fenable_1541',['ADC_LOW_BW_ENABLE',['../ade7912_8c.html#a0290304422f9f948bda5c2ac59546633',1,'ade7912.c']]],
-  ['adc_5fopt_1542',['ADC_OPT',['../ltc6811_8c.html#a50cd7bdbfc3378829fbef7a1e648c0ef',1,'ltc6811.c']]],
-  ['adcv_5fbyte0_1543',['ADCV_BYTE0',['../ltc6811_8c.html#aa2757a8e26fe2cda11c5eb72354b5742',1,'ltc6811.c']]],
-  ['adcv_5fbyte1_1544',['ADCV_BYTE1',['../ltc6811_8c.html#ae07b0ca1bb7477d7dba78dd79dd05cdc',1,'ltc6811.c']]],
-  ['adcvax_5fbyte0_1545',['ADCVAX_BYTE0',['../ltc6811_8c.html#a71697a4afd8d150b17310c55a4237884',1,'ltc6811.c']]],
-  ['adcvax_5fbyte1_1546',['ADCVAX_BYTE1',['../ltc6811_8c.html#af88d3c50cc0a27227530bf48f742ef23',1,'ltc6811.c']]],
-  ['addr_5fcfg_1547',['ADDR_CFG',['../ade7912_8c.html#aed6ad170917d19293c3e0ca3fcdc3393',1,'ade7912.c']]],
-  ['addr_5fcurrent_1548',['ADDR_CURRENT',['../ade7912_8c.html#adb3cf7c79cf13df77296deec51efb00f',1,'ade7912.c']]],
-  ['addr_5fstatus0_1549',['ADDR_STATUS0',['../ade7912_8c.html#a18051ad9f296b2f52f41246943525329',1,'ade7912.c']]],
-  ['addr_5fv1_1550',['ADDR_V1',['../ade7912_8c.html#a8bf86ec2d18eaeefe49328466df2d37f',1,'ade7912.c']]],
-  ['addr_5fv2_1551',['ADDR_V2',['../ade7912_8c.html#a875c21c5eb9006ccf675bde3cf956402',1,'ade7912.c']]],
-  ['address_1552',['ADDRESS',['../ltc6811_8c.html#a280feb883e9d4a7edcc69c8bcb9f38f2',1,'ltc6811.c']]],
-  ['adow_5fbyte0_1553',['ADOW_BYTE0',['../ltc6811_8c.html#af602cf72ebcd8fecc7551bebbd2b1609',1,'ltc6811.c']]],
-  ['adow_5fbyte1_1554',['ADOW_BYTE1',['../ltc6811_8c.html#adad2a21ee7dfe52fd5e161415fe65332',1,'ltc6811.c']]],
-  ['arm_5fmath_5fcm7_1555',['ARM_MATH_CM7',['../arm__biquad__cascade__df2_t__f32_8h.html#af84c052503eafbc6b05a19ef079e0dea',1,'arm_biquad_cascade_df2T_f32.h']]],
-  ['assignbit_1556',['ASSIGNBIT',['../ltc6811_8c.html#a6bf534c4792f6eb7686963ae7737923d',1,'ltc6811.c']]],
-  ['aux_5fblock_5fsize_1557',['AUX_BLOCK_SIZE',['../ltc6811_8c.html#ac4b9c36ba3e73f44bbf3c77ef99efd9d',1,'ltc6811.c']]]
+  ['balance_5frecheck_5fperiod_5fms_197',['BALANCE_RECHECK_PERIOD_MS',['../batteries_8c.html#aaa9233fe54ffd66274a5dd46390b36e5',1,'batteries.c']]],
+  ['balance_5fstart_5fvoltage_198',['BALANCE_START_VOLTAGE',['../batteries_8c.html#ad5819e811f281911c5854f40cf58960f',1,'batteries.c']]]
 ];

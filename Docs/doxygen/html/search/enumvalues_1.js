@@ -1,24 +1,8 @@
 var searchData=
 [
-  ['charge_5fdone_1394',['CHARGE_DONE',['../batteries_8c.html#a2f80b01711da374b25803fa818de09b1a0abf13e2a7d6435eb5b31d33abeadad7',1,'batteries.c']]],
-  ['charge_5ferror_1395',['CHARGE_ERROR',['../batteries_8c.html#a2f80b01711da374b25803fa818de09b1ad0605183af862ee76169e8b41c7fd927',1,'batteries.c']]],
-  ['charge_5fstart_5fnotification_1396',['CHARGE_START_NOTIFICATION',['../batteries_8h.html#aa5cc81ab95f71f17129ffd163d038c6eaa00db7f1f8038fc1f7b12f36c4b29bcd',1,'batteries.h']]],
-  ['charge_5fstop_5fnotification_1397',['CHARGE_STOP_NOTIFICATION',['../batteries_8h.html#aa5cc81ab95f71f17129ffd163d038c6ea183c1400a97f7c19bd0dc48b0486c440',1,'batteries.h']]],
-  ['charge_5fstopped_1398',['CHARGE_STOPPED',['../batteries_8c.html#a2f80b01711da374b25803fa818de09b1a3db9c119e634b77566daafdde61b29f1',1,'batteries.c']]],
-  ['chargeen_5fstate_5foff_1399',['ChargeEN_State_Off',['../_b_m_u__can_8h.html#a89b3f1a85d2aff405f4b8e9ab7420f13a18797d3343fbb1c96fccaf14896aac16',1,'BMU_can.h']]],
-  ['chargeen_5fstate_5fon_1400',['ChargeEN_State_On',['../_b_m_u__can_8h.html#a89b3f1a85d2aff405f4b8e9ab7420f13a0abd85691c20838d309acf057644e85d',1,'BMU_can.h']]],
-  ['communicationstate_5ferror_1401',['CommunicationState_Error',['../_b_m_u__charger__can_8h.html#adc542b4d8e91d261134ab413cf841ee0acd10e3039d8911a42d5476061ff5937b',1,'BMU_charger_can.h']]],
-  ['communicationstate_5fnormal_1402',['CommunicationState_Normal',['../_b_m_u__charger__can_8h.html#adc542b4d8e91d261134ab413cf841ee0abeaf42b501b2bf4f810fb19ed0781460',1,'BMU_charger_can.h']]],
-  ['contactor_5fclosed_1403',['CONTACTOR_CLOSED',['../precharge_discharge_8c.html#a25149a5b048ac873c80edeabc0e1ace7a3f1a7d70a2aab523bed3023d4e2620cb',1,'prechargeDischarge.c']]],
-  ['contactor_5fopen_1404',['CONTACTOR_OPEN',['../precharge_discharge_8c.html#a25149a5b048ac873c80edeabc0e1ace7a2b30177bc521d6b4303e990208a5280f',1,'prechargeDischarge.c']]],
-  ['critical_5fbps_5ffail_1405',['CRITICAL_BPS_FAIL',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a3312e7cd4a8617704a0a76acaa7625c7',1,'BMU_dtc.h']]],
-  ['critical_5fbrake_5fpressure_5ffail_1406',['CRITICAL_Brake_Pressure_FAIL',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0abca8482c5089392ba91c33e13ba5dde0',1,'BMU_dtc.h']]],
-  ['critical_5fcell_5ftemp_5fhigh_1407',['CRITICAL_CELL_TEMP_HIGH',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a0bfb6176bc8f2a6bb6bc05f5f3346f84',1,'BMU_dtc.h']]],
-  ['critical_5fcell_5fvoltage_5fhigh_1408',['CRITICAL_CELL_VOLTAGE_HIGH',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a7c118aa53c373208990ee9cb4490bece',1,'BMU_dtc.h']]],
-  ['critical_5fcell_5fvoltage_5flow_1409',['CRITICAL_CELL_VOLTAGE_LOW',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a1dc758bb8165d416014720c5c360a7ab',1,'BMU_dtc.h']]],
-  ['critical_5fthrotte_5ffailure_1410',['CRITICAL_Throtte_Failure',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0ab2748e6328459457405c9320945b7d18',1,'BMU_dtc.h']]],
-  ['critical_5fwsbfl_5ferror_1411',['CRITICAL_WSBFL_ERROR',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a1c32d8eab11d80464f359e93e936bf0e',1,'BMU_dtc.h']]],
-  ['critical_5fwsbfr_5ferror_1412',['CRITICAL_WSBFR_ERROR',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a3be607e8cf564851722a9370c9658b85',1,'BMU_dtc.h']]],
-  ['critical_5fwsbrl_5ferror_1413',['CRITICAL_WSBRL_ERROR',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0aa06370273f952f70e545e3f30db159c6',1,'BMU_dtc.h']]],
-  ['critical_5fwsbrr_5ferror_1414',['CRITICAL_WSBRR_ERROR',['../_b_m_u__dtc_8h.html#a60836ef8d46a0e0314c461fd4d5d78e0a4ae2c006f1b26266009bd2d687261ca1',1,'BMU_dtc.h']]]
+  ['pc_5fcharger_192',['PC_Charger',['../precharge_discharge_8c.html#a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f',1,'prechargeDischarge.c']]],
+  ['pc_5fmotorcontrollers_193',['PC_MotorControllers',['../precharge_discharge_8c.html#a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da',1,'prechargeDischarge.c']]],
+  ['pcdc_5fdone_194',['PCDC_DONE',['../precharge_discharge_8c.html#aea79df947f854aa51fdc586c2c8d97f5a9e16b164a3957bef4ef78271f7017d8b',1,'prechargeDischarge.c']]],
+  ['pcdc_5ferror_195',['PCDC_ERROR',['../precharge_discharge_8c.html#aea79df947f854aa51fdc586c2c8d97f5a788f6ccccc3a6334cd4eca279b25ecbc',1,'prechargeDischarge.c']]],
+  ['pcdc_5fstopped_196',['PCDC_STOPPED',['../precharge_discharge_8c.html#aea79df947f854aa51fdc586c2c8d97f5a59acc94908f41ef74bec78bba4cb0aa7',1,'prechargeDischarge.c']]]
 ];

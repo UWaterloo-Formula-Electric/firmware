@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['openallcontactors_1103',['openAllContactors',['../precharge_discharge_8c.html#a31e37b4f44b11e182256bff5c25df2ac',1,'prechargeDischarge.c']]],
-  ['outputcurrenthighreceived_1104',['OutputCurrentHighReceived',['../_b_m_u__charger__can_8c.html#ab801f9c67dff6656ffdb0641d2d565a9',1,'BMU_charger_can.c']]],
-  ['outputcurrentlowreceived_1105',['OutputCurrentLowReceived',['../_b_m_u__charger__can_8c.html#a55c12479455ea5852ed33fdaf6a26c8d',1,'BMU_charger_can.c']]],
-  ['outputvoltagehighreceived_1106',['OutputVoltageHighReceived',['../_b_m_u__charger__can_8c.html#a1338693d2ae9f27fd27032679dae5e8a',1,'BMU_charger_can.c']]],
-  ['outputvoltagelowreceived_1107',['OutputVoltageLowReceived',['../_b_m_u__charger__can_8c.html#afca2daa10f58134ff810828c98c99bb1',1,'BMU_charger_can.c']]],
-  ['overtempactivereceived_1108',['OverTempActiveReceived',['../_b_m_u__charger__can_8c.html#a175e3b02dde42f3df0e7b1af1fe8895b',1,'BMU_charger_can.c']]]
+  ['readbusvoltagesandcurrents_157',['readBusVoltagesAndCurrents',['../batteries_8c.html#a4d72951e5a03e396bb864b5c45bda0f0',1,'batteries.c']]],
+  ['readcellvoltagesandtemps_158',['readCellVoltagesAndTemps',['../batteries_8c.html#a36a3c81e474331b59839cb2f565c7704',1,'batteries.c']]],
+  ['resumebalance_159',['resumeBalance',['../batteries_8c.html#a82969943d42e6067b966c64c61196dcd',1,'batteries.c']]]
 ];

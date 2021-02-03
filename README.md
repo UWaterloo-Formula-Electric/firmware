@@ -59,3 +59,11 @@ make load
 You should see OpenOCD starting and attempting to load the code to the board.
 Any errors encountered during the load process will be reported here.
 
+## Documentation
+
+- Doxygen
+brew install doxygen
+- Sphinx
+pip install sphinx
+pip install breathe
+- Breathe

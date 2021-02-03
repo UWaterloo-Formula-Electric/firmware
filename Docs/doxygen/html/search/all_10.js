@@ -1,25 +1,7 @@
 var searchData=
 [
-  ['rdauxa_5fbyte0_622',['RDAUXA_BYTE0',['../ltc6811_8c.html#a749015788b2c11c11627cb1897ef92c0',1,'ltc6811.c']]],
-  ['rdauxa_5fbyte1_623',['RDAUXA_BYTE1',['../ltc6811_8c.html#a4b51efa2dd74bef85406b3a3988ff4c3',1,'ltc6811.c']]],
-  ['rdauxb_5fbyte0_624',['RDAUXB_BYTE0',['../ltc6811_8c.html#a5b304f75669b27132e98c1eae134b932',1,'ltc6811.c']]],
-  ['rdauxb_5fbyte1_625',['RDAUXB_BYTE1',['../ltc6811_8c.html#a01646d6c1b761b6eed7d38b5fd2d338f',1,'ltc6811.c']]],
-  ['rdcfg_5fbyte0_626',['RDCFG_BYTE0',['../ltc6811_8c.html#aa6a613651822dcd9933f5a4b4ebecb08',1,'ltc6811.c']]],
-  ['rdcfg_5fbyte1_627',['RDCFG_BYTE1',['../ltc6811_8c.html#a298b2361cb5c43322d85d16796cf8f75',1,'ltc6811.c']]],
-  ['rdcva_5fbyte0_628',['RDCVA_BYTE0',['../ltc6811_8c.html#a793be63d04d305bd406a543e80574979',1,'ltc6811.c']]],
-  ['rdcva_5fbyte1_629',['RDCVA_BYTE1',['../ltc6811_8c.html#afe84e95baa5b77cfe3393fae2820003d',1,'ltc6811.c']]],
-  ['rdcvb_5fbyte0_630',['RDCVB_BYTE0',['../ltc6811_8c.html#ad24e68619a0ec4a98ce4cd4c5fc3f637',1,'ltc6811.c']]],
-  ['rdcvb_5fbyte1_631',['RDCVB_BYTE1',['../ltc6811_8c.html#aa690a5a8c3f6bf4328195f8a423a4b1a',1,'ltc6811.c']]],
-  ['rdcvc_5fbyte0_632',['RDCVC_BYTE0',['../ltc6811_8c.html#a857a1e5d9b95e253397e363745914f43',1,'ltc6811.c']]],
-  ['rdcvc_5fbyte1_633',['RDCVC_BYTE1',['../ltc6811_8c.html#ae5dc0a874fe988941bd2321ea314568c',1,'ltc6811.c']]],
-  ['rdcvd_5fbyte0_634',['RDCVD_BYTE0',['../ltc6811_8c.html#a431483204ffb2d0c830b237dbd77e42a',1,'ltc6811.c']]],
-  ['rdcvd_5fbyte1_635',['RDCVD_BYTE1',['../ltc6811_8c.html#a50f91f64964103907bda95ec7675935d',1,'ltc6811.c']]],
-  ['rdstatb_5fbyte0_636',['RDSTATB_BYTE0',['../ltc6811_8c.html#a3e5244ac37d8ef245881c2bb41f44d79',1,'ltc6811.c']]],
-  ['rdstatb_5fbyte1_637',['RDSTATB_BYTE1',['../ltc6811_8c.html#a136adfa4c3cf79fec2779dfd1006f27b',1,'ltc6811.c']]],
-  ['readbusvoltagesandcurrents_638',['readBusVoltagesAndCurrents',['../batteries_8c.html#a4d72951e5a03e396bb864b5c45bda0f0',1,'batteries.c']]],
-  ['readcellvoltagesandtemps_639',['readCellVoltagesAndTemps',['../batteries_8c.html#a36a3c81e474331b59839cb2f565c7704',1,'batteries.c']]],
-  ['refon_640',['REFON',['../ltc6811_8c.html#a2bef9dc3d18fc1dcc9ad3875bda0f331',1,'ltc6811.c']]],
-  ['reset_5fon_5fbit_641',['RESET_ON_BIT',['../ade7912_8c.html#a105654aac863a992946fe5d438e73c4e',1,'ade7912.c']]],
-  ['resumebalance_642',['resumeBalance',['../batteries_8c.html#a82969943d42e6067b966c64c61196dcd',1,'batteries.c']]],
-  ['runselfttests_643',['runSelftTests',['../control_state_machine_8c.html#a3930589722c8565674bf4289b62b6736',1,'controlStateMachine.c']]]
+  ['vbattqueue_96',['VBattQueue',['../batteries_8c.html#ad64f368c4f439a41338c59c0c4b685e2',1,'batteries.c']]],
+  ['vbusqueue_97',['VBusQueue',['../batteries_8c.html#abafdcf601bccb3238fcb8534b517d130',1,'batteries.c']]],
+  ['voltagetosoclookup_98',['voltageToSOCLookup',['../batteries_8c.html#ab483cabe57068f7e0fd4bcaee6c1fb59',1,'batteries.c']]],
+  ['vuv_99',['VUV',['../ltc6811_8c.html#adc860e0c23d84c824007b6a211e79c61',1,'ltc6811.c']]]
 ];

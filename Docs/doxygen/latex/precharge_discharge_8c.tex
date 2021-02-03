@@ -1,5 +1,5 @@
-\hypertarget{precharge_discharge_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/precharge\+Discharge.c File Reference}
-\label{precharge_discharge_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/prechargeDischarge.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/prechargeDischarge.c}}
+\hypertarget{precharge_discharge_8c}{}\doxysection{/\+Users/djgood/\+WFE/firmware/2018\+\_\+bmu/\+Src/precharge\+Discharge.c File Reference}
+\label{precharge_discharge_8c}\index{/Users/djgood/WFE/firmware/2018\_bmu/Src/prechargeDischarge.c@{/Users/djgood/WFE/firmware/2018\_bmu/Src/prechargeDischarge.c}}
 
 
 Controls the precharge and dishcarge procedures of the HV bus.  
@@ -8,24 +8,18 @@ Controls the precharge and dishcarge procedures of the HV bus.
 {\ttfamily \#include \char`\"{}precharge\+Discharge.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+RTOS.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}math.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+dtc.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+dtc.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}batteries.\+h\char`\"{}}\newline
-Include dependency graph for precharge\+Discharge.\+c\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c__incl}
-\end{center}
-\end{figure}
 \doxysubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \mbox{\hyperlink{precharge_discharge_8c_a69f54d0032197528845e3c70d2e0bc68}{E\+N\+A\+B\+L\+E\+\_\+\+P\+R\+E\+C\+H\+A\+R\+G\+E\+\_\+\+D\+I\+S\+C\+H\+A\+R\+GE}}
+\mbox{\Hypertarget{precharge_discharge_8c_a69f54d0032197528845e3c70d2e0bc68}\label{precharge_discharge_8c_a69f54d0032197528845e3c70d2e0bc68}} 
+\#define {\bfseries ENABLE\+\_\+\+PRECHARGE\+\_\+\+DISCHARGE}
 \item 
-\#define \mbox{\hyperlink{precharge_discharge_8c_a8f9b3c758c866184895ab6f267f56f2a}{W\+A\+I\+T\+\_\+\+F\+O\+R\+\_\+\+N\+E\+X\+T\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+O\+R\+\_\+\+S\+T\+OP}}(Measure\+Period,  Notification\+Out)
+\#define \mbox{\hyperlink{precharge_discharge_8c_a8f9b3c758c866184895ab6f267f56f2a}{WAIT\+\_\+\+FOR\+\_\+\+NEXT\+\_\+\+MEASURE\+\_\+\+OR\+\_\+\+STOP}}(Measure\+Period,  Notification\+Out)
 \begin{DoxyCompactList}\small\item\em Delay measure period, and interrupt delay if receive notification. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Typedefs}
 \begin{DoxyCompactItemize}
@@ -39,26 +33,27 @@ typedef enum \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0
 \doxysubsection*{Enumerations}
 \begin{DoxyCompactItemize}
 \item 
-enum \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} \{ \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a9e16b164a3957bef4ef78271f7017d8b}{P\+C\+D\+C\+\_\+\+D\+O\+NE}}, 
-\mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a59acc94908f41ef74bec78bba4cb0aa7}{P\+C\+D\+C\+\_\+\+S\+T\+O\+P\+P\+ED}}, 
-\mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a788f6ccccc3a6334cd4eca279b25ecbc}{P\+C\+D\+C\+\_\+\+E\+R\+R\+OR}}
+enum \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} \{ \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a9e16b164a3957bef4ef78271f7017d8b}{PCDC\+\_\+\+DONE}}
+, \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a59acc94908f41ef74bec78bba4cb0aa7}{PCDC\+\_\+\+STOPPED}}
+, \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a788f6ccccc3a6334cd4eca279b25ecbc}{PCDC\+\_\+\+ERROR}}
  \}
 \item 
-enum \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}} \{ \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}{P\+C\+\_\+\+Motor\+Controllers}}, 
-\mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}{P\+C\+\_\+\+Charger}}, 
-\mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ab0d2dd76d50c008cbbcb63b34284e1cd}{P\+C\+\_\+\+Num\+Types}}
+enum \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}} \{ \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}{PC\+\_\+\+Motor\+Controllers}}
+, \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}{PC\+\_\+\+Charger}}
+, {\bfseries PC\+\_\+\+Num\+Types}
  \}
 \item 
-enum \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}} \{ \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a3f1a7d70a2aab523bed3023d4e2620cb}{C\+O\+N\+T\+A\+C\+T\+O\+R\+\_\+\+C\+L\+O\+S\+ED}} = G\+P\+I\+O\+\_\+\+P\+I\+N\+\_\+\+R\+E\+S\+ET, 
-\mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a2b30177bc521d6b4303e990208a5280f}{C\+O\+N\+T\+A\+C\+T\+O\+R\+\_\+\+O\+P\+EN}} = G\+P\+I\+O\+\_\+\+P\+I\+N\+\_\+\+S\+ET
+enum \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}} \{ {\bfseries CONTACTOR\+\_\+\+CLOSED} = GPIO\+\_\+\+PIN\+\_\+\+RESET
+, {\bfseries CONTACTOR\+\_\+\+OPEN} = GPIO\+\_\+\+PIN\+\_\+\+SET
  \}
 \end{DoxyCompactItemize}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
 \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} \mbox{\hyperlink{precharge_discharge_8c_aeb4682e026fd4f795f52338469d54915}{discharge}} ()
-\begin{DoxyCompactList}\small\item\em Discharges HV Bus. Opens contactors which connects in discharge resistor to discharge bus voltage. This function sends out a warning D\+TC, then waits (with timeout) for bus current to go to zero before opening contactors. This attempts to avoid opening contactors under load which can cause arcing/welding of contactors (very bad). \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b}{pcdc\+Init}} ()
+\begin{DoxyCompactList}\small\item\em Discharges HV Bus. Opens contactors which connects in discharge resistor to discharge bus voltage. This function sends out a warning DTC, then waits (with timeout) for bus current to go to zero before opening contactors. This attempts to avoid opening contactors under load which can cause arcing/welding of contactors (very bad). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b}\label{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b}} 
+HAL\+\_\+\+Status\+Type\+Def {\bfseries pcdc\+Init} ()
 \item 
 void \mbox{\hyperlink{precharge_discharge_8c_abff2f24b02adb053c98e9dab39e4bf8c}{set\+Neg\+Contactor}} (\mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}} state)
 \begin{DoxyCompactList}\small\item\em Control negative contactor. \end{DoxyCompactList}\item 
@@ -66,20 +61,24 @@ void \mbox{\hyperlink{precharge_discharge_8c_a1cf8d9e41ce57c21a0cb0c8c3ed63dbc}{
 \begin{DoxyCompactList}\small\item\em Control positive contactor. \end{DoxyCompactList}\item 
 void \mbox{\hyperlink{precharge_discharge_8c_ae515fc0cfdab37834fe7288670ee1c9f}{set\+Precharge\+Contactor}} (\mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}} state)
 \begin{DoxyCompactList}\small\item\em Control precharge discharge contactor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac}\label{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac}} 
 void \mbox{\hyperlink{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac}{open\+All\+Contactors}} ()
 \begin{DoxyCompactList}\small\item\em Opens all contactors (safe state) \end{DoxyCompactList}\item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75}{update\+Measurements}} (float $\ast$V\+Bus, float $\ast$V\+Batt, float $\ast$I\+Bus)
+HAL\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75}{update\+Measurements}} (float $\ast$VBus, float $\ast$VBatt, float $\ast$IBus)
 \begin{DoxyCompactList}\small\item\em Update HV Bus measurements. \end{DoxyCompactList}\item 
 \mbox{\hyperlink{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} \mbox{\hyperlink{precharge_discharge_8c_a7c67d24028b0fc2b67821ea9b0b55144}{precharge}} (\mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}} precharge\+Type)
 \begin{DoxyCompactList}\small\item\em Perform precharge. If succesful, bus voltage will equal battery voltage. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748}\label{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748}} 
 void \mbox{\hyperlink{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748}{pcdc\+Task}} (void $\ast$pv\+Parameter)
 \begin{DoxyCompactList}\small\item\em Task to control precharge and discharge. Receives notifications from the control state machine to either precharge/discharge or stop precharge. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-bool \mbox{\hyperlink{precharge_discharge_8c_a9586edc6945922e1f2308286e7e0f42f}{H\+I\+T\+L\+\_\+\+Precharge\+\_\+\+Mode}} = false
+\mbox{\Hypertarget{precharge_discharge_8c_a9586edc6945922e1f2308286e7e0f42f}\label{precharge_discharge_8c_a9586edc6945922e1f2308286e7e0f42f}} 
+bool {\bfseries HITL\+\_\+\+Precharge\+\_\+\+Mode} = false
 \item 
-float \mbox{\hyperlink{precharge_discharge_8c_a86492193b3825205acfee792b46c0f2d}{H\+I\+T\+L\+\_\+\+V\+P\+A\+CK}} = 0
+\mbox{\Hypertarget{precharge_discharge_8c_a86492193b3825205acfee792b46c0f2d}\label{precharge_discharge_8c_a86492193b3825205acfee792b46c0f2d}} 
+float {\bfseries HITL\+\_\+\+VPACK} = 0
 \end{DoxyCompactItemize}
 
 
@@ -92,17 +91,11 @@ Richard Matthews
 The precharge and discharge procedure is repsonsible for safely connecting and disconnecting the HV battery pack from the motor controllers. It is controlled by the precharge discharge task (pcdc\+Task). The main control state machine initiates precharge and discharge by sending a notification to the pcdc\+Task, and discharge is initiated by the state machine in the case of errors. 
 
 \doxysubsection{Macro Definition Documentation}
-\mbox{\Hypertarget{precharge_discharge_8c_a69f54d0032197528845e3c70d2e0bc68}\label{precharge_discharge_8c_a69f54d0032197528845e3c70d2e0bc68}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!ENABLE\_PRECHARGE\_DISCHARGE@{ENABLE\_PRECHARGE\_DISCHARGE}}
-\index{ENABLE\_PRECHARGE\_DISCHARGE@{ENABLE\_PRECHARGE\_DISCHARGE}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{ENABLE\_PRECHARGE\_DISCHARGE}{ENABLE\_PRECHARGE\_DISCHARGE}}
-{\footnotesize\ttfamily \#define E\+N\+A\+B\+L\+E\+\_\+\+P\+R\+E\+C\+H\+A\+R\+G\+E\+\_\+\+D\+I\+S\+C\+H\+A\+R\+GE}
-
 \mbox{\Hypertarget{precharge_discharge_8c_a8f9b3c758c866184895ab6f267f56f2a}\label{precharge_discharge_8c_a8f9b3c758c866184895ab6f267f56f2a}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP@{WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP}}
 \index{WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP@{WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP}!prechargeDischarge.c@{prechargeDischarge.c}}
 \doxysubsubsection{\texorpdfstring{WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP}{WAIT\_FOR\_NEXT\_MEASURE\_OR\_STOP}}
-{\footnotesize\ttfamily \#define W\+A\+I\+T\+\_\+\+F\+O\+R\+\_\+\+N\+E\+X\+T\+\_\+\+M\+E\+A\+S\+U\+R\+E\+\_\+\+O\+R\+\_\+\+S\+T\+OP(\begin{DoxyParamCaption}\item[{}]{Measure\+Period,  }\item[{}]{Notification\+Out }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily \#define WAIT\+\_\+\+FOR\+\_\+\+NEXT\+\_\+\+MEASURE\+\_\+\+OR\+\_\+\+STOP(\begin{DoxyParamCaption}\item[{}]{Measure\+Period,  }\item[{}]{Notification\+Out }\end{DoxyParamCaption})}
 
 {\bfseries Value\+:}
 \begin{DoxyCode}{0}
@@ -135,7 +128,7 @@ Delay measure period, and interrupt delay if receive notification.
 \doxysubsubsection{\texorpdfstring{ContactorState\_t}{ContactorState\_t}}
 {\footnotesize\ttfamily typedef enum \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}} \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}}}
 
-Enum to translate between contactor open/closed and G\+P\+IO pin state \mbox{\Hypertarget{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}\label{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}} 
+Enum to translate between contactor open/closed and GPIO pin state \mbox{\Hypertarget{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}\label{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!Precharge\_Discharge\_Return\_t@{Precharge\_Discharge\_Return\_t}}
 \index{Precharge\_Discharge\_Return\_t@{Precharge\_Discharge\_Return\_t}!prechargeDischarge.c@{prechargeDischarge.c}}
 \doxysubsubsection{\texorpdfstring{Precharge\_Discharge\_Return\_t}{Precharge\_Discharge\_Return\_t}}
@@ -147,7 +140,7 @@ Return types for precharge and discharge functions \mbox{\Hypertarget{precharge_
 \doxysubsubsection{\texorpdfstring{Precharge\_Type\_t}{Precharge\_Type\_t}}
 {\footnotesize\ttfamily typedef enum \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}} \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}}}
 
-Type of precharge to perform. This changes the checks performed during precharge, due to different capacitance of motor controllers and chargers. See B\+MU confluence for more details 
+Type of precharge to perform. This changes the checks performed during precharge, due to different capacitance of motor controllers and chargers. See BMU confluence for more details 
 
 \doxysubsection{Enumeration Type Documentation}
 \mbox{\Hypertarget{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}\label{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}} 
@@ -156,17 +149,7 @@ Type of precharge to perform. This changes the checks performed during precharge
 \doxysubsubsection{\texorpdfstring{ContactorState\_t}{ContactorState\_t}}
 {\footnotesize\ttfamily enum \mbox{\hyperlink{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7}{Contactor\+State\+\_\+t}}}
 
-Enum to translate between contactor open/closed and G\+P\+IO pin state \begin{DoxyEnumFields}{Enumerator}
-\raisebox{\heightof{T}}[0pt][0pt]{\index{CONTACTOR\_CLOSED@{CONTACTOR\_CLOSED}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!CONTACTOR\_CLOSED@{CONTACTOR\_CLOSED}}}\mbox{\Hypertarget{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a3f1a7d70a2aab523bed3023d4e2620cb}\label{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a3f1a7d70a2aab523bed3023d4e2620cb}} 
-C\+O\+N\+T\+A\+C\+T\+O\+R\+\_\+\+C\+L\+O\+S\+ED&\\
-\hline
-
-\raisebox{\heightof{T}}[0pt][0pt]{\index{CONTACTOR\_OPEN@{CONTACTOR\_OPEN}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!CONTACTOR\_OPEN@{CONTACTOR\_OPEN}}}\mbox{\Hypertarget{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a2b30177bc521d6b4303e990208a5280f}\label{precharge_discharge_8c_a25149a5b048ac873c80edeabc0e1ace7a2b30177bc521d6b4303e990208a5280f}} 
-C\+O\+N\+T\+A\+C\+T\+O\+R\+\_\+\+O\+P\+EN&\\
-\hline
-
-\end{DoxyEnumFields}
-\mbox{\Hypertarget{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}\label{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}} 
+Enum to translate between contactor open/closed and GPIO pin state \mbox{\Hypertarget{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}\label{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!Precharge\_Discharge\_Return\_t@{Precharge\_Discharge\_Return\_t}}
 \index{Precharge\_Discharge\_Return\_t@{Precharge\_Discharge\_Return\_t}!prechargeDischarge.c@{prechargeDischarge.c}}
 \doxysubsubsection{\texorpdfstring{Precharge\_Discharge\_Return\_t}{Precharge\_Discharge\_Return\_t}}
@@ -174,15 +157,15 @@ C\+O\+N\+T\+A\+C\+T\+O\+R\+\_\+\+O\+P\+EN&\\
 
 Return types for precharge and discharge functions \begin{DoxyEnumFields}{Enumerator}
 \raisebox{\heightof{T}}[0pt][0pt]{\index{PCDC\_DONE@{PCDC\_DONE}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PCDC\_DONE@{PCDC\_DONE}}}\mbox{\Hypertarget{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a9e16b164a3957bef4ef78271f7017d8b}\label{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a9e16b164a3957bef4ef78271f7017d8b}} 
-P\+C\+D\+C\+\_\+\+D\+O\+NE&Precharge/\+Discharge completed. \\
+PCDC\+\_\+\+DONE&Precharge/\+Discharge completed. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{PCDC\_STOPPED@{PCDC\_STOPPED}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PCDC\_STOPPED@{PCDC\_STOPPED}}}\mbox{\Hypertarget{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a59acc94908f41ef74bec78bba4cb0aa7}\label{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a59acc94908f41ef74bec78bba4cb0aa7}} 
-P\+C\+D\+C\+\_\+\+S\+T\+O\+P\+P\+ED&Precharge/\+Discharge stopped succesfully (as requested by task notification) \\
+PCDC\+\_\+\+STOPPED&Precharge/\+Discharge stopped succesfully (as requested by task notification) \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{PCDC\_ERROR@{PCDC\_ERROR}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PCDC\_ERROR@{PCDC\_ERROR}}}\mbox{\Hypertarget{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a788f6ccccc3a6334cd4eca279b25ecbc}\label{precharge_discharge_8c_aea79df947f854aa51fdc586c2c8d97f5a788f6ccccc3a6334cd4eca279b25ecbc}} 
-P\+C\+D\+C\+\_\+\+E\+R\+R\+OR&Error occured during Precharge/\+Discharge. \\
+PCDC\+\_\+\+ERROR&Error occured during Precharge/\+Discharge. \\
 \hline
 
 \end{DoxyEnumFields}
@@ -192,17 +175,13 @@ P\+C\+D\+C\+\_\+\+E\+R\+R\+OR&Error occured during Precharge/\+Discharge. \\
 \doxysubsubsection{\texorpdfstring{Precharge\_Type\_t}{Precharge\_Type\_t}}
 {\footnotesize\ttfamily enum \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69}{Precharge\+\_\+\+Type\+\_\+t}}}
 
-Type of precharge to perform. This changes the checks performed during precharge, due to different capacitance of motor controllers and chargers. See B\+MU confluence for more details \begin{DoxyEnumFields}{Enumerator}
+Type of precharge to perform. This changes the checks performed during precharge, due to different capacitance of motor controllers and chargers. See BMU confluence for more details \begin{DoxyEnumFields}{Enumerator}
 \raisebox{\heightof{T}}[0pt][0pt]{\index{PC\_MotorControllers@{PC\_MotorControllers}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PC\_MotorControllers@{PC\_MotorControllers}}}\mbox{\Hypertarget{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}\label{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}} 
-P\+C\+\_\+\+Motor\+Controllers&Precharge motor controllers. \\
+PC\+\_\+\+Motor\+Controllers&Precharge motor controllers. \\
 \hline
 
 \raisebox{\heightof{T}}[0pt][0pt]{\index{PC\_Charger@{PC\_Charger}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PC\_Charger@{PC\_Charger}}}\mbox{\Hypertarget{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}\label{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}} 
-P\+C\+\_\+\+Charger&Precharge charger. \\
-\hline
-
-\raisebox{\heightof{T}}[0pt][0pt]{\index{PC\_NumTypes@{PC\_NumTypes}!prechargeDischarge.c@{prechargeDischarge.c}}\index{prechargeDischarge.c@{prechargeDischarge.c}!PC\_NumTypes@{PC\_NumTypes}}}\mbox{\Hypertarget{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ab0d2dd76d50c008cbbcb63b34284e1cd}\label{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ab0d2dd76d50c008cbbcb63b34284e1cd}} 
-P\+C\+\_\+\+Num\+Types&\\
+PC\+\_\+\+Charger&Precharge charger. \\
 \hline
 
 \end{DoxyEnumFields}
@@ -217,84 +196,11 @@ P\+C\+\_\+\+Num\+Types&\\
 
 
 
-Discharges HV Bus. Opens contactors which connects in discharge resistor to discharge bus voltage. This function sends out a warning D\+TC, then waits (with timeout) for bus current to go to zero before opening contactors. This attempts to avoid opening contactors under load which can cause arcing/welding of contactors (very bad). 
+Discharges HV Bus. Opens contactors which connects in discharge resistor to discharge bus voltage. This function sends out a warning DTC, then waits (with timeout) for bus current to go to zero before opening contactors. This attempts to avoid opening contactors under load which can cause arcing/welding of contactors (very bad). 
 
 \begin{DoxyReturn}{Returns}
 \mbox{\hyperlink{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} 
 \end{DoxyReturn}
-Here is the call graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_aeb4682e026fd4f795f52338469d54915_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=329pt]{precharge_discharge_8c_aeb4682e026fd4f795f52338469d54915_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac}\label{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!openAllContactors@{openAllContactors}}
-\index{openAllContactors@{openAllContactors}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{openAllContactors()}{openAllContactors()}}
-{\footnotesize\ttfamily void open\+All\+Contactors (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-
-
-Opens all contactors (safe state) 
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=330pt]{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_a31e37b4f44b11e182256bff5c25df2ac_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b}\label{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!pcdcInit@{pcdcInit}}
-\index{pcdcInit@{pcdcInit}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{pcdcInit()}{pcdcInit()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def pcdc\+Init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=226pt]{precharge_discharge_8c_af2d764dbfb0dae00e4d9f8849c80bd7b_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748}\label{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!pcdcTask@{pcdcTask}}
-\index{pcdcTask@{pcdcTask}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{pcdcTask()}{pcdcTask()}}
-{\footnotesize\ttfamily void pcdc\+Task (\begin{DoxyParamCaption}\item[{void $\ast$}]{pv\+Parameter }\end{DoxyParamCaption})}
-
-
-
-Task to control precharge and discharge. Receives notifications from the control state machine to either precharge/discharge or stop precharge. 
-
-Here is the call graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_a65d178f293cd832dab02da08d5e86748_cgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{precharge_discharge_8c_a7c67d24028b0fc2b67821ea9b0b55144}\label{precharge_discharge_8c_a7c67d24028b0fc2b67821ea9b0b55144}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!precharge@{precharge}}
 \index{precharge@{precharge}!prechargeDischarge.c@{prechargeDischarge.c}}
@@ -307,28 +213,12 @@ Perform precharge. If succesful, bus voltage will equal battery voltage.
 
 
 \begin{DoxyParams}{Parameters}
-{\em precharge\+Type} & \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}{P\+C\+\_\+\+Motor\+Controllers}} precharges into motor controllers, so assumes a high capacitance and therefore precharge current. \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}{P\+C\+\_\+\+Charger}} precharges into the charger, so assumes a low capacitance and therefore negligible current\\
+{\em precharge\+Type} & \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69ada9b46c1ebd1fbdc6b0ad130e5c1a8da}{PC\+\_\+\+Motor\+Controllers}} precharges into motor controllers, so assumes a high capacitance and therefore precharge current. \mbox{\hyperlink{precharge_discharge_8c_a17b0022b8742c7c348c6ee58af55fc69a6ae49cfd32f4809f78b0f9c95501983f}{PC\+\_\+\+Charger}} precharges into the charger, so assumes a low capacitance and therefore negligible current\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 \mbox{\hyperlink{precharge_discharge_8c_a3777552234c99ae105a60e1d276af4a8}{Precharge\+\_\+\+Discharge\+\_\+\+Return\+\_\+t}} 
 \end{DoxyReturn}
-Here is the call graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_a7c67d24028b0fc2b67821ea9b0b55144_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=234pt]{precharge_discharge_8c_a7c67d24028b0fc2b67821ea9b0b55144_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{precharge_discharge_8c_abff2f24b02adb053c98e9dab39e4bf8c}\label{precharge_discharge_8c_abff2f24b02adb053c98e9dab39e4bf8c}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!setNegContactor@{setNegContactor}}
 \index{setNegContactor@{setNegContactor}!prechargeDischarge.c@{prechargeDischarge.c}}
@@ -344,14 +234,6 @@ Control negative contactor.
 {\em state} & The state to set contactor to \\
 \hline
 \end{DoxyParams}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_abff2f24b02adb053c98e9dab39e4bf8c_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{precharge_discharge_8c_a1cf8d9e41ce57c21a0cb0c8c3ed63dbc}\label{precharge_discharge_8c_a1cf8d9e41ce57c21a0cb0c8c3ed63dbc}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!setPosContactor@{setPosContactor}}
 \index{setPosContactor@{setPosContactor}!prechargeDischarge.c@{prechargeDischarge.c}}
@@ -367,14 +249,6 @@ Control positive contactor.
 {\em state} & The state to set contactor to \\
 \hline
 \end{DoxyParams}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_a1cf8d9e41ce57c21a0cb0c8c3ed63dbc_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{precharge_discharge_8c_ae515fc0cfdab37834fe7288670ee1c9f}\label{precharge_discharge_8c_ae515fc0cfdab37834fe7288670ee1c9f}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!setPrechargeContactor@{setPrechargeContactor}}
 \index{setPrechargeContactor@{setPrechargeContactor}!prechargeDischarge.c@{prechargeDischarge.c}}
@@ -387,22 +261,14 @@ Control precharge discharge contactor.
 
 
 \begin{DoxyParams}{Parameters}
-{\em state} & The state to set contactor to. Note for P\+C\+DC contactor closed means precharge mode, open means discharge mode \\
+{\em state} & The state to set contactor to. Note for PCDC contactor closed means precharge mode, open means discharge mode \\
 \hline
 \end{DoxyParams}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_ae515fc0cfdab37834fe7288670ee1c9f_icgraph}
-\end{center}
-\end{figure}
 \mbox{\Hypertarget{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75}\label{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75}} 
 \index{prechargeDischarge.c@{prechargeDischarge.c}!updateMeasurements@{updateMeasurements}}
 \index{updateMeasurements@{updateMeasurements}!prechargeDischarge.c@{prechargeDischarge.c}}
 \doxysubsubsection{\texorpdfstring{updateMeasurements()}{updateMeasurements()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def update\+Measurements (\begin{DoxyParamCaption}\item[{float $\ast$}]{V\+Bus,  }\item[{float $\ast$}]{V\+Batt,  }\item[{float $\ast$}]{I\+Bus }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily HAL\+\_\+\+Status\+Type\+Def update\+Measurements (\begin{DoxyParamCaption}\item[{float $\ast$}]{VBus,  }\item[{float $\ast$}]{VBatt,  }\item[{float $\ast$}]{IBus }\end{DoxyParamCaption})}
 
 
 
@@ -410,43 +276,13 @@ Update HV Bus measurements.
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\texttt{ out}}  & {\em V\+Bus} & pointer to float to store HV Bus voltage measurement in volts \\
+\mbox{\texttt{ out}}  & {\em VBus} & pointer to float to store HV Bus voltage measurement in volts \\
 \hline
-\mbox{\texttt{ out}}  & {\em V\+Batt} & pointer to float to store HV Battery voltage measurement in volts \\
+\mbox{\texttt{ out}}  & {\em VBatt} & pointer to float to store HV Battery voltage measurement in volts \\
 \hline
-\mbox{\texttt{ out}}  & {\em I\+Bus} & pointer to float to store HV Bus current measurement in amps\\
+\mbox{\texttt{ out}}  & {\em IBus} & pointer to float to store HV Bus current measurement in amps\\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-H\+A\+L\+\_\+\+Status\+Type\+Def 
+HAL\+\_\+\+Status\+Type\+Def 
 \end{DoxyReturn}
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=281pt]{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:
-\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{precharge_discharge_8c_af98be4ce700b42b38a9f1126522cbd75_icgraph}
-\end{center}
-\end{figure}
-
-
-\doxysubsection{Variable Documentation}
-\mbox{\Hypertarget{precharge_discharge_8c_a9586edc6945922e1f2308286e7e0f42f}\label{precharge_discharge_8c_a9586edc6945922e1f2308286e7e0f42f}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!HITL\_Precharge\_Mode@{HITL\_Precharge\_Mode}}
-\index{HITL\_Precharge\_Mode@{HITL\_Precharge\_Mode}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{HITL\_Precharge\_Mode}{HITL\_Precharge\_Mode}}
-{\footnotesize\ttfamily bool H\+I\+T\+L\+\_\+\+Precharge\+\_\+\+Mode = false}
-
-\mbox{\Hypertarget{precharge_discharge_8c_a86492193b3825205acfee792b46c0f2d}\label{precharge_discharge_8c_a86492193b3825205acfee792b46c0f2d}} 
-\index{prechargeDischarge.c@{prechargeDischarge.c}!HITL\_VPACK@{HITL\_VPACK}}
-\index{HITL\_VPACK@{HITL\_VPACK}!prechargeDischarge.c@{prechargeDischarge.c}}
-\doxysubsubsection{\texorpdfstring{HITL\_VPACK}{HITL\_VPACK}}
-{\footnotesize\ttfamily float H\+I\+T\+L\+\_\+\+V\+P\+A\+CK = 0}
-

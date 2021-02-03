@@ -1,5 +1,5 @@
-\hypertarget{fan_control_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/fan\+Control.c File Reference}
-\label{fan_control_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/fanControl.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/fanControl.c}}
+\hypertarget{fan_control_8c}{}\doxysection{/\+Users/djgood/\+WFE/firmware/2018\+\_\+bmu/\+Src/fan\+Control.c File Reference}
+\label{fan_control_8c}\index{/Users/djgood/WFE/firmware/2018\_bmu/Src/fanControl.c@{/Users/djgood/WFE/firmware/2018\_bmu/Src/fanControl.c}}
 
 
 Module controlling battery pack fans.  
@@ -7,41 +7,43 @@ Module controlling battery pack fans.
 
 {\ttfamily \#include \char`\"{}bsp.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}fan\+Control.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+can.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}batteries.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}state\+\_\+machine.\+h\char`\"{}}\newline
-Include dependency graph for fan\+Control.\+c\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{fan_control_8c__incl}
-\end{center}
-\end{figure}
 \doxysubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \mbox{\hyperlink{fan_control_8c_a0f5d005a3b8b11fc2e300d31293db3da}{F\+A\+N\+\_\+\+O\+F\+F\+\_\+\+T\+E\+MP}}~30
+\mbox{\Hypertarget{fan_control_8c_a0f5d005a3b8b11fc2e300d31293db3da}\label{fan_control_8c_a0f5d005a3b8b11fc2e300d31293db3da}} 
+\#define {\bfseries FAN\+\_\+\+OFF\+\_\+\+TEMP}~30
 \item 
-\#define \mbox{\hyperlink{fan_control_8c_af40204cc370431260543a903a052b316}{F\+A\+N\+\_\+\+M\+A\+X\+\_\+\+D\+U\+T\+Y\+\_\+\+P\+E\+R\+C\+E\+NT}}~1.\+0
+\mbox{\Hypertarget{fan_control_8c_af40204cc370431260543a903a052b316}\label{fan_control_8c_af40204cc370431260543a903a052b316}} 
+\#define {\bfseries FAN\+\_\+\+MAX\+\_\+\+DUTY\+\_\+\+PERCENT}~1.\+0
 \item 
-\#define \mbox{\hyperlink{fan_control_8c_a1818a6736bdfc9e35630c3c673f57898}{F\+A\+N\+\_\+\+O\+N\+\_\+\+D\+U\+T\+Y\+\_\+\+P\+E\+R\+C\+E\+NT}}~0.\+2
+\mbox{\Hypertarget{fan_control_8c_a1818a6736bdfc9e35630c3c673f57898}\label{fan_control_8c_a1818a6736bdfc9e35630c3c673f57898}} 
+\#define {\bfseries FAN\+\_\+\+ON\+\_\+\+DUTY\+\_\+\+PERCENT}~0.\+2
 \item 
-\#define \mbox{\hyperlink{fan_control_8c_a7090548812ebaa9461596d32bc9a5ba2}{F\+A\+N\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+C\+O\+U\+NT}}~400
+\mbox{\Hypertarget{fan_control_8c_a7090548812ebaa9461596d32bc9a5ba2}\label{fan_control_8c_a7090548812ebaa9461596d32bc9a5ba2}} 
+\#define {\bfseries FAN\+\_\+\+PERIOD\+\_\+\+COUNT}~400
 \item 
-\#define \mbox{\hyperlink{fan_control_8c_a6aff27262a6bc87a218447cbe551edb3}{F\+A\+N\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS}}~100
+\mbox{\Hypertarget{fan_control_8c_a6aff27262a6bc87a218447cbe551edb3}\label{fan_control_8c_a6aff27262a6bc87a218447cbe551edb3}} 
+\#define {\bfseries FAN\+\_\+\+TASK\+\_\+\+PERIOD\+\_\+\+MS}~100
 \end{DoxyCompactItemize}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-uint32\+\_\+t \mbox{\hyperlink{fan_control_8c_af8b63e1141165474f388757d14b73d8d}{calculate\+Fan\+Period}} ()
+\mbox{\Hypertarget{fan_control_8c_af8b63e1141165474f388757d14b73d8d}\label{fan_control_8c_af8b63e1141165474f388757d14b73d8d}} 
+uint32\+\_\+t {\bfseries calculate\+Fan\+Period} ()
 \item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{fan_control_8c_a0eb72809c678973c8a44d00fca375da4}{fan\+Init}} ()
+\mbox{\Hypertarget{fan_control_8c_a0eb72809c678973c8a44d00fca375da4}\label{fan_control_8c_a0eb72809c678973c8a44d00fca375da4}} 
+HAL\+\_\+\+Status\+Type\+Def {\bfseries fan\+Init} ()
 \item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01}{set\+Fan}} ()
+\mbox{\Hypertarget{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01}\label{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01}} 
+HAL\+\_\+\+Status\+Type\+Def {\bfseries set\+Fan} ()
 \item 
-void \mbox{\hyperlink{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d}{fan\+Task}} ()
+\mbox{\Hypertarget{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d}\label{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d}} 
+void {\bfseries fan\+Task} ()
 \end{DoxyCompactItemize}
 
 
@@ -51,105 +53,4 @@ Module controlling battery pack fans.
 \begin{DoxyAuthor}{Author}
 Richard Matthews
 \end{DoxyAuthor}
-The battery pack contains an array of fans to cool the battery. The B\+MU controls the fans based on the temperature of the battery cells, turning them on as the cells heat up and increasing the fan speed proportional to temeprature. 
-
-\doxysubsection{Macro Definition Documentation}
-\mbox{\Hypertarget{fan_control_8c_af40204cc370431260543a903a052b316}\label{fan_control_8c_af40204cc370431260543a903a052b316}} 
-\index{fanControl.c@{fanControl.c}!FAN\_MAX\_DUTY\_PERCENT@{FAN\_MAX\_DUTY\_PERCENT}}
-\index{FAN\_MAX\_DUTY\_PERCENT@{FAN\_MAX\_DUTY\_PERCENT}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{FAN\_MAX\_DUTY\_PERCENT}{FAN\_MAX\_DUTY\_PERCENT}}
-{\footnotesize\ttfamily \#define F\+A\+N\+\_\+\+M\+A\+X\+\_\+\+D\+U\+T\+Y\+\_\+\+P\+E\+R\+C\+E\+NT~1.\+0}
-
-\mbox{\Hypertarget{fan_control_8c_a0f5d005a3b8b11fc2e300d31293db3da}\label{fan_control_8c_a0f5d005a3b8b11fc2e300d31293db3da}} 
-\index{fanControl.c@{fanControl.c}!FAN\_OFF\_TEMP@{FAN\_OFF\_TEMP}}
-\index{FAN\_OFF\_TEMP@{FAN\_OFF\_TEMP}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{FAN\_OFF\_TEMP}{FAN\_OFF\_TEMP}}
-{\footnotesize\ttfamily \#define F\+A\+N\+\_\+\+O\+F\+F\+\_\+\+T\+E\+MP~30}
-
-\mbox{\Hypertarget{fan_control_8c_a1818a6736bdfc9e35630c3c673f57898}\label{fan_control_8c_a1818a6736bdfc9e35630c3c673f57898}} 
-\index{fanControl.c@{fanControl.c}!FAN\_ON\_DUTY\_PERCENT@{FAN\_ON\_DUTY\_PERCENT}}
-\index{FAN\_ON\_DUTY\_PERCENT@{FAN\_ON\_DUTY\_PERCENT}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{FAN\_ON\_DUTY\_PERCENT}{FAN\_ON\_DUTY\_PERCENT}}
-{\footnotesize\ttfamily \#define F\+A\+N\+\_\+\+O\+N\+\_\+\+D\+U\+T\+Y\+\_\+\+P\+E\+R\+C\+E\+NT~0.\+2}
-
-\mbox{\Hypertarget{fan_control_8c_a7090548812ebaa9461596d32bc9a5ba2}\label{fan_control_8c_a7090548812ebaa9461596d32bc9a5ba2}} 
-\index{fanControl.c@{fanControl.c}!FAN\_PERIOD\_COUNT@{FAN\_PERIOD\_COUNT}}
-\index{FAN\_PERIOD\_COUNT@{FAN\_PERIOD\_COUNT}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{FAN\_PERIOD\_COUNT}{FAN\_PERIOD\_COUNT}}
-{\footnotesize\ttfamily \#define F\+A\+N\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+C\+O\+U\+NT~400}
-
-\mbox{\Hypertarget{fan_control_8c_a6aff27262a6bc87a218447cbe551edb3}\label{fan_control_8c_a6aff27262a6bc87a218447cbe551edb3}} 
-\index{fanControl.c@{fanControl.c}!FAN\_TASK\_PERIOD\_MS@{FAN\_TASK\_PERIOD\_MS}}
-\index{FAN\_TASK\_PERIOD\_MS@{FAN\_TASK\_PERIOD\_MS}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{FAN\_TASK\_PERIOD\_MS}{FAN\_TASK\_PERIOD\_MS}}
-{\footnotesize\ttfamily \#define F\+A\+N\+\_\+\+T\+A\+S\+K\+\_\+\+P\+E\+R\+I\+O\+D\+\_\+\+MS~100}
-
-
-
-\doxysubsection{Function Documentation}
-\mbox{\Hypertarget{fan_control_8c_af8b63e1141165474f388757d14b73d8d}\label{fan_control_8c_af8b63e1141165474f388757d14b73d8d}} 
-\index{fanControl.c@{fanControl.c}!calculateFanPeriod@{calculateFanPeriod}}
-\index{calculateFanPeriod@{calculateFanPeriod}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{calculateFanPeriod()}{calculateFanPeriod()}}
-{\footnotesize\ttfamily uint32\+\_\+t calculate\+Fan\+Period (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=305pt]{fan_control_8c_af8b63e1141165474f388757d14b73d8d_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{fan_control_8c_af8b63e1141165474f388757d14b73d8d_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{fan_control_8c_a0eb72809c678973c8a44d00fca375da4}\label{fan_control_8c_a0eb72809c678973c8a44d00fca375da4}} 
-\index{fanControl.c@{fanControl.c}!fanInit@{fanInit}}
-\index{fanInit@{fanInit}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{fanInit()}{fanInit()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def fan\+Init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=211pt]{fan_control_8c_a0eb72809c678973c8a44d00fca375da4_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d}\label{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d}} 
-\index{fanControl.c@{fanControl.c}!fanTask@{fanTask}}
-\index{fanTask@{fanTask}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{fanTask()}{fanTask()}}
-{\footnotesize\ttfamily void fan\+Task (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{fan_control_8c_a34c9fabe6bbdea59eabd8e06a24aee8d_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01}\label{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01}} 
-\index{fanControl.c@{fanControl.c}!setFan@{setFan}}
-\index{setFan@{setFan}!fanControl.c@{fanControl.c}}
-\doxysubsubsection{\texorpdfstring{setFan()}{setFan()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def set\+Fan (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=214pt]{fan_control_8c_a184ee44a7689f1d3d3aec78b7c4a0e01_icgraph}
-\end{center}
-\end{figure}
+The battery pack contains an array of fans to cool the battery. The BMU controls the fans based on the temperature of the battery cells, turning them on as the cells heat up and increasing the fan speed proportional to temeprature. 

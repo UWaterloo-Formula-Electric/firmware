@@ -1,19 +1,19 @@
-\hypertarget{control_state_machine__mock_8c}{}\doxysection{/\+Users/\+Richard/\+Documents/\+Waterloo/\+W\+F\+E/\+Code.nosync/2018\+\_\+bmu-\/2/\+Src/control\+State\+Machine\+\_\+mock.c File Reference}
-\label{control_state_machine__mock_8c}\index{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/controlStateMachine\_mock.c@{/Users/Richard/Documents/Waterloo/WFE/Code.nosync/2018\_bmu-\/2/Src/controlStateMachine\_mock.c}}
+\hypertarget{control_state_machine__mock_8c}{}\doxysection{/\+Users/djgood/\+WFE/firmware/2018\+\_\+bmu/\+Src/control\+State\+Machine\+\_\+mock.c File Reference}
+\label{control_state_machine__mock_8c}\index{/Users/djgood/WFE/firmware/2018\_bmu/Src/controlStateMachine\_mock.c@{/Users/djgood/WFE/firmware/2018\_bmu/Src/controlStateMachine\_mock.c}}
 
 
-Module containing C\+LI commands for the B\+MU.  
+Module containing CLI commands for the BMU.  
 
 
 {\ttfamily \#include \char`\"{}control\+State\+Machine\+\_\+mock.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}debug.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}string.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}state\+\_\+machine.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}Free\+R\+T\+O\+S\+\_\+\+C\+L\+I.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}Free\+RTOS\+\_\+\+CLI.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}task.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}cmsis\+\_\+os.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}precharge\+Discharge.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}B\+M\+U\+\_\+can.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}BMU\+\_\+can.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}control\+State\+Machine.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}test\+Data.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}filters.\+h\char`\"{}}\newline
@@ -21,1108 +21,132 @@ Module containing C\+LI commands for the B\+MU.
 {\ttfamily \#include \char`\"{}charger\+Control.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}batteries.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}fault\+Monitor.\+h\char`\"{}}\newline
-Include dependency graph for control\+State\+Machine\+\_\+mock.\+c\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c__incl}
-\end{center}
-\end{figure}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}{get\+Brake\+Pressure}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}\label{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}} 
+Base\+Type\+\_\+t {\bfseries get\+Brake\+Pressure} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}{set\+Brake\+Pressure}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}\label{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}} 
+Base\+Type\+\_\+t {\bfseries set\+Brake\+Pressure} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}{test\+Low\+Pass\+Filter}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}\label{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}} 
+Base\+Type\+\_\+t {\bfseries test\+Low\+Pass\+Filter} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}{print\+Batt\+Info}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}\label{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}} 
+Base\+Type\+\_\+t {\bfseries print\+Batt\+Info} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}{set\+Cell\+Voltage}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}\label{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}} 
+Base\+Type\+\_\+t {\bfseries set\+Cell\+Voltage} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}{set\+Cell\+Temp}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}\label{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}} 
+Base\+Type\+\_\+t {\bfseries set\+Cell\+Temp} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}{print\+H\+V\+Measurements}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}\label{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}} 
+Base\+Type\+\_\+t {\bfseries print\+HVMeasurements} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}{set\+V\+Batt}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}\label{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}} 
+Base\+Type\+\_\+t {\bfseries set\+VBatt} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}{set\+V\+Bus}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}\label{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}} 
+Base\+Type\+\_\+t {\bfseries set\+VBus} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}{set\+I\+Bus}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}\label{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}} 
+Base\+Type\+\_\+t {\bfseries set\+IBus} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}{send\+H\+V\+Fault}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}\label{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}} 
+Base\+Type\+\_\+t {\bfseries send\+HVFault} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}{fake\+H\+V\+\_\+\+Toggle\+D\+CU}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}\label{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}} 
+Base\+Type\+\_\+t {\bfseries fake\+HV\+\_\+\+Toggle\+DCU} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}{print\+State}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}\label{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}} 
+Base\+Type\+\_\+t {\bfseries print\+State} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}{max\+Charge\+Current\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}\label{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}} 
+Base\+Type\+\_\+t {\bfseries max\+Charge\+Current\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}{start\+Charge\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}\label{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}} 
+Base\+Type\+\_\+t {\bfseries start\+Charge\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}{stop\+Charge\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}\label{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}} 
+Base\+Type\+\_\+t {\bfseries stop\+Charge\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}{charge\+Cart\+Heartbeat\+Mock\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}\label{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}} 
+Base\+Type\+\_\+t {\bfseries charge\+Cart\+Heartbeat\+Mock\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}{set\+Pos\+Cont}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}\label{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}} 
+Base\+Type\+\_\+t {\bfseries set\+Pos\+Cont} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}{set\+Neg\+Cont}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}\label{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}} 
+Base\+Type\+\_\+t {\bfseries set\+Neg\+Cont} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}{set\+P\+C\+DC}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}\label{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}} 
+Base\+Type\+\_\+t {\bfseries set\+PCDC} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}{I\+M\+D\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}\label{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}} 
+Base\+Type\+\_\+t {\bfseries IMDStatus\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}{send\+Charger\+C\+L\+I\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}\label{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}} 
+Base\+Type\+\_\+t {\bfseries send\+Charger\+CLICommand} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}{charger\+Can\+Start\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}\label{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}} 
+Base\+Type\+\_\+t {\bfseries charger\+Can\+Start\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}{balance\+Cell\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}\label{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}} 
+Base\+Type\+\_\+t {\bfseries balance\+Cell\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}{hitl\+Precharge\+Mode\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}\label{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}} 
+Base\+Type\+\_\+t {\bfseries hitl\+Precharge\+Mode\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}{hvil\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}\label{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}} 
+Base\+Type\+\_\+t {\bfseries hvil\+Status\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}{il\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}\label{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}} 
+Base\+Type\+\_\+t {\bfseries il\+Status\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}{bspd\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}\label{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}} 
+Base\+Type\+\_\+t {\bfseries bspd\+Status\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}{tsms\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}\label{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}} 
+Base\+Type\+\_\+t {\bfseries tsms\+Status\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}{hvd\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}\label{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}} 
+Base\+Type\+\_\+t {\bfseries hvd\+Status\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}{il\+B\+R\+B\+Status\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}\label{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}} 
+Base\+Type\+\_\+t {\bfseries il\+BRBStatus\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}{send\+Cell\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}\label{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}} 
+Base\+Type\+\_\+t {\bfseries send\+Cell\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-Base\+Type\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}{stop\+Send\+Cell\+Command}} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
+\mbox{\Hypertarget{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}\label{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}} 
+Base\+Type\+\_\+t {\bfseries stop\+Send\+Cell\+Command} (char $\ast$write\+Buffer, size\+\_\+t write\+Buffer\+Length, const char $\ast$command\+String)
 \item 
-H\+A\+L\+\_\+\+Status\+Type\+Def \mbox{\hyperlink{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510}{state\+Machine\+Mock\+Init}} ()
+\mbox{\Hypertarget{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510}\label{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510}} 
+HAL\+\_\+\+Status\+Type\+Def {\bfseries state\+Machine\+Mock\+Init} ()
 \end{DoxyCompactItemize}
 \doxysubsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-bool \mbox{\hyperlink{control_state_machine__mock_8c_a9586edc6945922e1f2308286e7e0f42f}{H\+I\+T\+L\+\_\+\+Precharge\+\_\+\+Mode}}
+\mbox{\Hypertarget{control_state_machine__mock_8c_a9586edc6945922e1f2308286e7e0f42f}\label{control_state_machine__mock_8c_a9586edc6945922e1f2308286e7e0f42f}} 
+bool {\bfseries HITL\+\_\+\+Precharge\+\_\+\+Mode}
 \item 
-float \mbox{\hyperlink{control_state_machine__mock_8c_a86492193b3825205acfee792b46c0f2d}{H\+I\+T\+L\+\_\+\+V\+P\+A\+CK}}
+\mbox{\Hypertarget{control_state_machine__mock_8c_a86492193b3825205acfee792b46c0f2d}\label{control_state_machine__mock_8c_a86492193b3825205acfee792b46c0f2d}} 
+float {\bfseries HITL\+\_\+\+VPACK}
 \item 
-uint32\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ad714fac14b537755a79803f2f97fa84a}{brake\+And\+H\+V\+I\+L\+Vals}} \mbox{[}2\mbox{]}
+\mbox{\Hypertarget{control_state_machine__mock_8c_ad714fac14b537755a79803f2f97fa84a}\label{control_state_machine__mock_8c_ad714fac14b537755a79803f2f97fa84a}} 
+uint32\+\_\+t {\bfseries brake\+And\+HVILVals} \mbox{[}2\mbox{]}
 \item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ac3808fc7aab698954f26fb61daf84969}{get\+Brake\+Pressure\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ab9d12e16213daa97c268d5d45fe7ec27}{brake\+Pressure\+Command\+Definition}}
-\item 
-float \mbox{\hyperlink{control_state_machine__mock_8c_a4b7a793b6ae8a2c4f7f5f2ce3758668d}{output}} \mbox{[}\mbox{\hyperlink{test_data_8h_af0113b8a0d65aab384607436aa155838}{D\+A\+T\+A\+\_\+\+L\+E\+N\+G\+TH}}\mbox{]}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a7ad94c4df8429d62436c4b7b152f3222}{test\+Low\+Pass\+Filter\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_af350dbd565895dd65c2d83fca4ce6ec5}{print\+Batt\+Info\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a14e8bfe2b519aad91603b42f59eaa922}{set\+Cell\+Voltage\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a42180159541a12c3e1442a0c2692d424}{set\+Cell\+Temp\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a8978712ffacaf26658767eb55d0b5fa8}{print\+H\+V\+Measurements\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_afc80e3780784e605ceaf826df09818a2}{v\+Batt\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae18dbb47055114b7c948ee164110a60e}{v\+Bus\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ada324ea4e049121f487e222d5864b5cd}{current\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a5ac9e95a04465ae74f788edd7879e766}{hv\+Fault\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a55fca970adbbf6635004757cc4f03b6f}{hv\+Toggle\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a59498645db492916a866b6ebac0cc661}{print\+State\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a423f53b8bfe4027dc2f6fc176c44495a}{max\+Charge\+Current\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a1adf28e1badcb7843b87e9d6ff55b5a7}{start\+Charge\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a9b6216dba87d3602d0961ea10799b4a4}{stop\+Charge\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a20e5b012ffe118e809b7eb7e3d363d9f}{charge\+Cart\+Heartbeat\+Mock\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a191cb4738b844812cc3a5926b2208464}{set\+Pos\+Cont\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a5a710b9b82c84329ee7f07e8ded7d279}{set\+Neg\+Cont\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_aaa50fc560c741af950db135b56e1e480}{set\+P\+C\+D\+C\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a942fcc7ec5ea3708e1b032e083d558ab}{I\+M\+D\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a5a03105401a78da331922857124d926d}{send\+Charger\+C\+L\+I\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a84adfb8f510f9836c8dca10959c0828c}{charger\+Can\+Start\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ae1fd2565e420995d4814ceef7c232cf9}{balance\+Cell\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a7c88bd730e3cbf9405ab0f69aa1c4bfe}{hitl\+Precharge\+Mode\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a5dc65d17a12d6c68c3d36f645c0bb5ff}{hvil\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a1d70ad62794df2e64a4d838ae7ed16a6}{il\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a63b95f081192f6d38ab84964a27f4a62}{bspd\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_add9e623e61bc734c9eaacedbaade742e}{tsms\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_aa2f02247eb9d3fd57ad7a6b5679c0f4d}{hvd\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_ab3b20cd8342597a7b904b4450c0a4438}{il\+B\+R\+B\+Status\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_af37f5e3a720c91e90fa82a6e8703dab1}{send\+Cell\+Command\+Definition}}
-\item 
-static const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t \mbox{\hyperlink{control_state_machine__mock_8c_a3b14927cb63993a143324107a26fcd60}{stop\+Send\+Cell\+Command\+Definition}}
+\mbox{\Hypertarget{control_state_machine__mock_8c_a4b7a793b6ae8a2c4f7f5f2ce3758668d}\label{control_state_machine__mock_8c_a4b7a793b6ae8a2c4f7f5f2ce3758668d}} 
+float {\bfseries output} \mbox{[}DATA\+\_\+\+LENGTH\mbox{]}
 \end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
-Module containing C\+LI commands for the B\+MU. 
+Module containing CLI commands for the BMU. 
 
 \begin{DoxyAuthor}{Author}
 Richard Matthews
 \end{DoxyAuthor}
-This file contains implementations of all the B\+MU specific C\+LI commands availabe on the B\+MU command line interface (C\+LI). 
-
-\doxysubsection{Function Documentation}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}\label{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!balanceCellCommand@{balanceCellCommand}}
-\index{balanceCellCommand@{balanceCellCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{balanceCellCommand()}{balanceCellCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t balance\+Cell\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}\label{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!bspdStatusCommand@{bspdStatusCommand}}
-\index{bspdStatusCommand@{bspdStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{bspdStatusCommand()}{bspdStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t bspd\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=319pt]{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}\label{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!chargeCartHeartbeatMockCommand@{chargeCartHeartbeatMockCommand}}
-\index{chargeCartHeartbeatMockCommand@{chargeCartHeartbeatMockCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{chargeCartHeartbeatMockCommand()}{chargeCartHeartbeatMockCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t charge\+Cart\+Heartbeat\+Mock\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}\label{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!chargerCanStartCommand@{chargerCanStartCommand}}
-\index{chargerCanStartCommand@{chargerCanStartCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{chargerCanStartCommand()}{chargerCanStartCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t charger\+Can\+Start\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}\label{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!fakeHV\_ToggleDCU@{fakeHV\_ToggleDCU}}
-\index{fakeHV\_ToggleDCU@{fakeHV\_ToggleDCU}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{fakeHV\_ToggleDCU()}{fakeHV\_ToggleDCU()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t fake\+H\+V\+\_\+\+Toggle\+D\+CU (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}\label{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!getBrakePressure@{getBrakePressure}}
-\index{getBrakePressure@{getBrakePressure}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{getBrakePressure()}{getBrakePressure()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t get\+Brake\+Pressure (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}\label{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hitlPrechargeModeCommand@{hitlPrechargeModeCommand}}
-\index{hitlPrechargeModeCommand@{hitlPrechargeModeCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hitlPrechargeModeCommand()}{hitlPrechargeModeCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t hitl\+Precharge\+Mode\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}\label{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvdStatusCommand@{hvdStatusCommand}}
-\index{hvdStatusCommand@{hvdStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvdStatusCommand()}{hvdStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t hvd\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=308pt]{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}\label{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvilStatusCommand@{hvilStatusCommand}}
-\index{hvilStatusCommand@{hvilStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvilStatusCommand()}{hvilStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t hvil\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=307pt]{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}\label{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!ilBRBStatusCommand@{ilBRBStatusCommand}}
-\index{ilBRBStatusCommand@{ilBRBStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{ilBRBStatusCommand()}{ilBRBStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t il\+B\+R\+B\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=330pt]{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}\label{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!ilStatusCommand@{ilStatusCommand}}
-\index{ilStatusCommand@{ilStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{ilStatusCommand()}{ilStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t il\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=283pt]{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}\label{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!IMDStatusCommand@{IMDStatusCommand}}
-\index{IMDStatusCommand@{IMDStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{IMDStatusCommand()}{IMDStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t I\+M\+D\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}\label{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!maxChargeCurrentCommand@{maxChargeCurrentCommand}}
-\index{maxChargeCurrentCommand@{maxChargeCurrentCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{maxChargeCurrentCommand()}{maxChargeCurrentCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t max\+Charge\+Current\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}\label{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printBattInfo@{printBattInfo}}
-\index{printBattInfo@{printBattInfo}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printBattInfo()}{printBattInfo()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t print\+Batt\+Info (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=272pt]{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}\label{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printHVMeasurements@{printHVMeasurements}}
-\index{printHVMeasurements@{printHVMeasurements}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printHVMeasurements()}{printHVMeasurements()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t print\+H\+V\+Measurements (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=285pt]{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}\label{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printState@{printState}}
-\index{printState@{printState}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printState()}{printState()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t print\+State (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}\label{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!sendCellCommand@{sendCellCommand}}
-\index{sendCellCommand@{sendCellCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{sendCellCommand()}{sendCellCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t send\+Cell\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=324pt]{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}\label{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!sendChargerCLICommand@{sendChargerCLICommand}}
-\index{sendChargerCLICommand@{sendChargerCLICommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{sendChargerCLICommand()}{sendChargerCLICommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t send\+Charger\+C\+L\+I\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}\label{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!sendHVFault@{sendHVFault}}
-\index{sendHVFault@{sendHVFault}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{sendHVFault()}{sendHVFault()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t send\+H\+V\+Fault (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}\label{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setBrakePressure@{setBrakePressure}}
-\index{setBrakePressure@{setBrakePressure}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setBrakePressure()}{setBrakePressure()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+Brake\+Pressure (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}\label{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setCellTemp@{setCellTemp}}
-\index{setCellTemp@{setCellTemp}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setCellTemp()}{setCellTemp()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+Cell\+Temp (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}\label{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setCellVoltage@{setCellVoltage}}
-\index{setCellVoltage@{setCellVoltage}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setCellVoltage()}{setCellVoltage()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+Cell\+Voltage (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}\label{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setIBus@{setIBus}}
-\index{setIBus@{setIBus}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setIBus()}{setIBus()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+I\+Bus (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=228pt]{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}\label{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setNegCont@{setNegCont}}
-\index{setNegCont@{setNegCont}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setNegCont()}{setNegCont()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+Neg\+Cont (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}\label{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setPCDC@{setPCDC}}
-\index{setPCDC@{setPCDC}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setPCDC()}{setPCDC()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+P\+C\+DC (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}\label{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setPosCont@{setPosCont}}
-\index{setPosCont@{setPosCont}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setPosCont()}{setPosCont()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+Pos\+Cont (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}\label{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setVBatt@{setVBatt}}
-\index{setVBatt@{setVBatt}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setVBatt()}{setVBatt()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+V\+Batt (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=237pt]{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}\label{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setVBus@{setVBus}}
-\index{setVBus@{setVBus}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setVBus()}{setVBus()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t set\+V\+Bus (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=235pt]{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}\label{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!startChargeCommand@{startChargeCommand}}
-\index{startChargeCommand@{startChargeCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{startChargeCommand()}{startChargeCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t start\+Charge\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510}\label{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!stateMachineMockInit@{stateMachineMockInit}}
-\index{stateMachineMockInit@{stateMachineMockInit}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{stateMachineMockInit()}{stateMachineMockInit()}}
-{\footnotesize\ttfamily H\+A\+L\+\_\+\+Status\+Type\+Def state\+Machine\+Mock\+Init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=295pt]{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510_cgraph}
-\end{center}
-\end{figure}
-Here is the caller graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=278pt]{control_state_machine__mock_8c_a814694b73a579d4576140f0ff7582510_icgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}\label{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!stopChargeCommand@{stopChargeCommand}}
-\index{stopChargeCommand@{stopChargeCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{stopChargeCommand()}{stopChargeCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t stop\+Charge\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}\label{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!stopSendCellCommand@{stopSendCellCommand}}
-\index{stopSendCellCommand@{stopSendCellCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{stopSendCellCommand()}{stopSendCellCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t stop\+Send\+Cell\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}\label{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!testLowPassFilter@{testLowPassFilter}}
-\index{testLowPassFilter@{testLowPassFilter}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{testLowPassFilter()}{testLowPassFilter()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t test\+Low\+Pass\+Filter (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=350pt]{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a_cgraph}
-\end{center}
-\end{figure}
-\mbox{\Hypertarget{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}\label{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!tsmsStatusCommand@{tsmsStatusCommand}}
-\index{tsmsStatusCommand@{tsmsStatusCommand}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{tsmsStatusCommand()}{tsmsStatusCommand()}}
-{\footnotesize\ttfamily Base\+Type\+\_\+t tsms\+Status\+Command (\begin{DoxyParamCaption}\item[{char $\ast$}]{write\+Buffer,  }\item[{size\+\_\+t}]{write\+Buffer\+Length,  }\item[{const char $\ast$}]{command\+String }\end{DoxyParamCaption})}
-
-Here is the call graph for this function\+:\nopagebreak
-\begin{figure}[H]
-\begin{center}
-\leavevmode
-\includegraphics[width=320pt]{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0_cgraph}
-\end{center}
-\end{figure}
-
-
-\doxysubsection{Variable Documentation}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae1fd2565e420995d4814ceef7c232cf9}\label{control_state_machine__mock_8c_ae1fd2565e420995d4814ceef7c232cf9}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!balanceCellCommandDefinition@{balanceCellCommandDefinition}}
-\index{balanceCellCommandDefinition@{balanceCellCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{balanceCellCommandDefinition}{balanceCellCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t balance\+Cell\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"balanceCell"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"balanceCell <cell number> <on|off>:\(\backslash\)r\(\backslash\)n set the state of the balance ressistor for a specific cell\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a1ff8bdf04d048eab40c9b97f42dc0c23}{balanceCellCommand}},}
-\DoxyCodeLine{    2 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ad714fac14b537755a79803f2f97fa84a}\label{control_state_machine__mock_8c_ad714fac14b537755a79803f2f97fa84a}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!brakeAndHVILVals@{brakeAndHVILVals}}
-\index{brakeAndHVILVals@{brakeAndHVILVals}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{brakeAndHVILVals}{brakeAndHVILVals}}
-{\footnotesize\ttfamily uint32\+\_\+t brake\+And\+H\+V\+I\+L\+Vals\mbox{[}2\mbox{]}}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_ab9d12e16213daa97c268d5d45fe7ec27}\label{control_state_machine__mock_8c_ab9d12e16213daa97c268d5d45fe7ec27}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!brakePressureCommandDefinition@{brakePressureCommandDefinition}}
-\index{brakePressureCommandDefinition@{brakePressureCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{brakePressureCommandDefinition}{brakePressureCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t brake\+Pressure\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"brake"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"brake <val>:\(\backslash\)r\(\backslash\)n Set brake pressure to val \(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a3a80299be498affa8989b46a9ddbea59}{setBrakePressure}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a63b95f081192f6d38ab84964a27f4a62}\label{control_state_machine__mock_8c_a63b95f081192f6d38ab84964a27f4a62}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!bspdStatusCommandDefinition@{bspdStatusCommandDefinition}}
-\index{bspdStatusCommandDefinition@{bspdStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{bspdStatusCommandDefinition}{bspdStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t bspd\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"bspdStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"bspdStatus:\(\backslash\)r\(\backslash\)n get bspd status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a76f752703a8b98f079a77e2bf4725683}{bspdStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a20e5b012ffe118e809b7eb7e3d363d9f}\label{control_state_machine__mock_8c_a20e5b012ffe118e809b7eb7e3d363d9f}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!chargeCartHeartbeatMockCommandDefinition@{chargeCartHeartbeatMockCommandDefinition}}
-\index{chargeCartHeartbeatMockCommandDefinition@{chargeCartHeartbeatMockCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{chargeCartHeartbeatMockCommandDefinition}{chargeCartHeartbeatMockCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t charge\+Cart\+Heartbeat\+Mock\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ccHeartbeat"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ccHeartbeat:\(\backslash\)r\(\backslash\)n  mock charge cart heartbeat receive\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ad86eb60edf11f0501053d415925dea32}{chargeCartHeartbeatMockCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a84adfb8f510f9836c8dca10959c0828c}\label{control_state_machine__mock_8c_a84adfb8f510f9836c8dca10959c0828c}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!chargerCanStartCommandDefinition@{chargerCanStartCommandDefinition}}
-\index{chargerCanStartCommandDefinition@{chargerCanStartCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{chargerCanStartCommandDefinition}{chargerCanStartCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t charger\+Can\+Start\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"canStartCharger"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"canStartCharger:\(\backslash\)r\(\backslash\)n  Start charger can\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a23c5934c1aa09f6809af4ef3982dca0d}{chargerCanStartCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ada324ea4e049121f487e222d5864b5cd}\label{control_state_machine__mock_8c_ada324ea4e049121f487e222d5864b5cd}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!currentCommandDefinition@{currentCommandDefinition}}
-\index{currentCommandDefinition@{currentCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{currentCommandDefinition}{currentCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t current\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"busCurrent"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"busCurrent <val>:\(\backslash\)r\(\backslash\)n Set bus current to val\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ae589dd0ff2c7eef372eda76de2c820de}{setIBus}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ac3808fc7aab698954f26fb61daf84969}\label{control_state_machine__mock_8c_ac3808fc7aab698954f26fb61daf84969}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!getBrakePressureCommandDefinition@{getBrakePressureCommandDefinition}}
-\index{getBrakePressureCommandDefinition@{getBrakePressureCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{getBrakePressureCommandDefinition}{getBrakePressureCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t get\+Brake\+Pressure\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"getBrake"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"getBrake:\(\backslash\)r\(\backslash\)n Get brake pressure\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_aeadfc5a48c1006ff76676ac26b3cfd67}{getBrakePressure}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a9586edc6945922e1f2308286e7e0f42f}\label{control_state_machine__mock_8c_a9586edc6945922e1f2308286e7e0f42f}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!HITL\_Precharge\_Mode@{HITL\_Precharge\_Mode}}
-\index{HITL\_Precharge\_Mode@{HITL\_Precharge\_Mode}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{HITL\_Precharge\_Mode}{HITL\_Precharge\_Mode}}
-{\footnotesize\ttfamily bool H\+I\+T\+L\+\_\+\+Precharge\+\_\+\+Mode}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a86492193b3825205acfee792b46c0f2d}\label{control_state_machine__mock_8c_a86492193b3825205acfee792b46c0f2d}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!HITL\_VPACK@{HITL\_VPACK}}
-\index{HITL\_VPACK@{HITL\_VPACK}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{HITL\_VPACK}{HITL\_VPACK}}
-{\footnotesize\ttfamily float H\+I\+T\+L\+\_\+\+V\+P\+A\+CK}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_a7c88bd730e3cbf9405ab0f69aa1c4bfe}\label{control_state_machine__mock_8c_a7c88bd730e3cbf9405ab0f69aa1c4bfe}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hitlPrechargeModeCommandDefinition@{hitlPrechargeModeCommandDefinition}}
-\index{hitlPrechargeModeCommandDefinition@{hitlPrechargeModeCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hitlPrechargeModeCommandDefinition}{hitlPrechargeModeCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t hitl\+Precharge\+Mode\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hitlPC"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hitlPC <VPACK>:\(\backslash\)r\(\backslash\)n enables hitl precharge mode, setting pack voltage\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ada28ef71b53b30afb5f8c52bcd06f429}{hitlPrechargeModeCommand}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_aa2f02247eb9d3fd57ad7a6b5679c0f4d}\label{control_state_machine__mock_8c_aa2f02247eb9d3fd57ad7a6b5679c0f4d}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvdStatusCommandDefinition@{hvdStatusCommandDefinition}}
-\index{hvdStatusCommandDefinition@{hvdStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvdStatusCommandDefinition}{hvdStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t hvd\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvdStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvdStatus:\(\backslash\)r\(\backslash\)n get hvd status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ab2a03b64d8ebeaa153dcb1f43b774170}{hvdStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a5ac9e95a04465ae74f788edd7879e766}\label{control_state_machine__mock_8c_a5ac9e95a04465ae74f788edd7879e766}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvFaultCommandDefinition@{hvFaultCommandDefinition}}
-\index{hvFaultCommandDefinition@{hvFaultCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvFaultCommandDefinition}{hvFaultCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t hv\+Fault\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvFault"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvFault:\(\backslash\)r\(\backslash\)n Send hv fault event\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a4a40da3f234694862ec10eb2f3d5b1b5}{sendHVFault}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a5dc65d17a12d6c68c3d36f645c0bb5ff}\label{control_state_machine__mock_8c_a5dc65d17a12d6c68c3d36f645c0bb5ff}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvilStatusCommandDefinition@{hvilStatusCommandDefinition}}
-\index{hvilStatusCommandDefinition@{hvilStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvilStatusCommandDefinition}{hvilStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t hvil\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvilStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvilStatus:\(\backslash\)r\(\backslash\)n get HVIL status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_adb01bc793ef0393888b24e6e68f7e4d7}{hvilStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a55fca970adbbf6635004757cc4f03b6f}\label{control_state_machine__mock_8c_a55fca970adbbf6635004757cc4f03b6f}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!hvToggleCommandDefinition@{hvToggleCommandDefinition}}
-\index{hvToggleCommandDefinition@{hvToggleCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{hvToggleCommandDefinition}{hvToggleCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t hv\+Toggle\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvToggle"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvToggle:\(\backslash\)r\(\backslash\)n Send hv toggle event\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ad4080587afba44f790751d9396eb6d4f}{fakeHV\_ToggleDCU}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ab3b20cd8342597a7b904b4450c0a4438}\label{control_state_machine__mock_8c_ab3b20cd8342597a7b904b4450c0a4438}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!ilBRBStatusCommandDefinition@{ilBRBStatusCommandDefinition}}
-\index{ilBRBStatusCommandDefinition@{ilBRBStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{ilBRBStatusCommandDefinition}{ilBRBStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t il\+B\+R\+B\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ilBRBStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ilBRBStatus:\(\backslash\)r\(\backslash\)n get the status of the IL in to the BMU from the BRBs\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a8681aae0b340bafa3927f8de8f4f85ca}{ilBRBStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a1d70ad62794df2e64a4d838ae7ed16a6}\label{control_state_machine__mock_8c_a1d70ad62794df2e64a4d838ae7ed16a6}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!ilStatusCommandDefinition@{ilStatusCommandDefinition}}
-\index{ilStatusCommandDefinition@{ilStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{ilStatusCommandDefinition}{ilStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t il\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ilStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"ilStatus:\(\backslash\)r\(\backslash\)n get IL status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ae389b6e6d8ab893b2309926a6d9efc71}{ilStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a942fcc7ec5ea3708e1b032e083d558ab}\label{control_state_machine__mock_8c_a942fcc7ec5ea3708e1b032e083d558ab}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!IMDStatusCommandDefinition@{IMDStatusCommandDefinition}}
-\index{IMDStatusCommandDefinition@{IMDStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{IMDStatusCommandDefinition}{IMDStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t I\+M\+D\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"imdStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"imdStatus:\(\backslash\)r\(\backslash\)n  get the imd status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a308d01c454ed39693a67b58640b84778}{IMDStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a423f53b8bfe4027dc2f6fc176c44495a}\label{control_state_machine__mock_8c_a423f53b8bfe4027dc2f6fc176c44495a}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!maxChargeCurrentCommandDefinition@{maxChargeCurrentCommandDefinition}}
-\index{maxChargeCurrentCommandDefinition@{maxChargeCurrentCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{maxChargeCurrentCommandDefinition}{maxChargeCurrentCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t max\+Charge\+Current\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"maxChargeCurrent"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"maxChargeCurrent <current>:\(\backslash\)r\(\backslash\)n  set the max current the charger will output\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a56cc0ce9d03dc53af6b0adf600b8610c}{maxChargeCurrentCommand}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a4b7a793b6ae8a2c4f7f5f2ce3758668d}\label{control_state_machine__mock_8c_a4b7a793b6ae8a2c4f7f5f2ce3758668d}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!output@{output}}
-\index{output@{output}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{output}{output}}
-{\footnotesize\ttfamily float output\mbox{[}\mbox{\hyperlink{test_data_8h_af0113b8a0d65aab384607436aa155838}{D\+A\+T\+A\+\_\+\+L\+E\+N\+G\+TH}}\mbox{]}}
-
-\mbox{\Hypertarget{control_state_machine__mock_8c_af350dbd565895dd65c2d83fca4ce6ec5}\label{control_state_machine__mock_8c_af350dbd565895dd65c2d83fca4ce6ec5}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printBattInfoCommandDefinition@{printBattInfoCommandDefinition}}
-\index{printBattInfoCommandDefinition@{printBattInfoCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printBattInfoCommandDefinition}{printBattInfoCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t print\+Batt\+Info\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"battInfo"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"battInfo:\(\backslash\)r\(\backslash\)n Print info about battery pack\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ab8fcd76c656df5bde6a289c559ae4599}{printBattInfo}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a8978712ffacaf26658767eb55d0b5fa8}\label{control_state_machine__mock_8c_a8978712ffacaf26658767eb55d0b5fa8}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printHVMeasurementsCommandDefinition@{printHVMeasurementsCommandDefinition}}
-\index{printHVMeasurementsCommandDefinition@{printHVMeasurementsCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printHVMeasurementsCommandDefinition}{printHVMeasurementsCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t print\+H\+V\+Measurements\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvMeasure"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"hvMeasure:\(\backslash\)r\(\backslash\)n  Output current hv measurements\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a7776993523843f04088c3c030136c38a}{printHVMeasurements}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a59498645db492916a866b6ebac0cc661}\label{control_state_machine__mock_8c_a59498645db492916a866b6ebac0cc661}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!printStateCommandDefinition@{printStateCommandDefinition}}
-\index{printStateCommandDefinition@{printStateCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{printStateCommandDefinition}{printStateCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t print\+State\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"state"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"state:\(\backslash\)r\(\backslash\)n  Output current state of state machine\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a07da952c32028b0cca8567cb85d2e6a7}{printState}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_af37f5e3a720c91e90fa82a6e8703dab1}\label{control_state_machine__mock_8c_af37f5e3a720c91e90fa82a6e8703dab1}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!sendCellCommandDefinition@{sendCellCommandDefinition}}
-\index{sendCellCommandDefinition@{sendCellCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{sendCellCommandDefinition}{sendCellCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t send\+Cell\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"sendCell"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"sendCell <cellIdx>:\(\backslash\)r\(\backslash\)n Send over CAN one group of 3 cells (not all)\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a8579cea544ffd2e8b4f8003a928bf189}{sendCellCommand}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a5a03105401a78da331922857124d926d}\label{control_state_machine__mock_8c_a5a03105401a78da331922857124d926d}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!sendChargerCLICommandDefinition@{sendChargerCLICommandDefinition}}
-\index{sendChargerCLICommandDefinition@{sendChargerCLICommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{sendChargerCLICommandDefinition}{sendChargerCLICommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t send\+Charger\+C\+L\+I\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"chargeCommand"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"chargeCommand:\(\backslash\)r\(\backslash\)n  send charge command to charger\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ae113bdeee54207e1ca5a2d7d0ea4761f}{sendChargerCLICommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a42180159541a12c3e1442a0c2692d424}\label{control_state_machine__mock_8c_a42180159541a12c3e1442a0c2692d424}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setCellTempCommandDefinition@{setCellTempCommandDefinition}}
-\index{setCellTempCommandDefinition@{setCellTempCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setCellTempCommandDefinition}{setCellTempCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t set\+Cell\+Temp\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"tempCell"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"tempCell <idx> <temp>:\(\backslash\)r\(\backslash\)n Set a cells temperature\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_aa095ff2b5f1d5a44674b2c3cb4c55ece}{setCellTemp}},}
-\DoxyCodeLine{    2 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a14e8bfe2b519aad91603b42f59eaa922}\label{control_state_machine__mock_8c_a14e8bfe2b519aad91603b42f59eaa922}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setCellVoltageCommandDefinition@{setCellVoltageCommandDefinition}}
-\index{setCellVoltageCommandDefinition@{setCellVoltageCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setCellVoltageCommandDefinition}{setCellVoltageCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t set\+Cell\+Voltage\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"voltageCell"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"voltageCell <idx> <voltage>:\(\backslash\)r\(\backslash\)n Set a cells voltage\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a1e62cd83d8a63bf748d3fc76eb8f72d0}{setCellVoltage}},}
-\DoxyCodeLine{    2 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a5a710b9b82c84329ee7f07e8ded7d279}\label{control_state_machine__mock_8c_a5a710b9b82c84329ee7f07e8ded7d279}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setNegContCommandDefinition@{setNegContCommandDefinition}}
-\index{setNegContCommandDefinition@{setNegContCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setNegContCommandDefinition}{setNegContCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t set\+Neg\+Cont\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setNegCont"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setNegCont <state>:\(\backslash\)r\(\backslash\)n sets the state of the negative contactor, 1-\/> closed , 0-\/> open\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_af96edac55d969bfb0aa5d4410fa13f44}{setNegCont}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_aaa50fc560c741af950db135b56e1e480}\label{control_state_machine__mock_8c_aaa50fc560c741af950db135b56e1e480}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setPCDCCommandDefinition@{setPCDCCommandDefinition}}
-\index{setPCDCCommandDefinition@{setPCDCCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setPCDCCommandDefinition}{setPCDCCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t set\+P\+C\+D\+C\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setPCDC"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setPCDC <state>:\(\backslash\)r\(\backslash\)n sets the state of the precharge / Discharge relay, 1-\/> precharge , 0-\/> dishcage\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_af41d303af7b99abae80c9d16522d3170}{setPCDC}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a191cb4738b844812cc3a5926b2208464}\label{control_state_machine__mock_8c_a191cb4738b844812cc3a5926b2208464}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!setPosContCommandDefinition@{setPosContCommandDefinition}}
-\index{setPosContCommandDefinition@{setPosContCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{setPosContCommandDefinition}{setPosContCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t set\+Pos\+Cont\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setPosCont"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"setPosCont <state>:\(\backslash\)r\(\backslash\)n sets the state of the positive contactor, 1-\/> closed , 0-\/> open\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_ae0e7a9f31757d9423dfad4609a06ae18}{setPosCont}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a1adf28e1badcb7843b87e9d6ff55b5a7}\label{control_state_machine__mock_8c_a1adf28e1badcb7843b87e9d6ff55b5a7}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!startChargeCommandDefinition@{startChargeCommandDefinition}}
-\index{startChargeCommandDefinition@{startChargeCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{startChargeCommandDefinition}{startChargeCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t start\+Charge\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"startCharge"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"startCharge:\(\backslash\)r\(\backslash\)n  start charging\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a6f1134e19070c32e242da46f77493e21}{startChargeCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a9b6216dba87d3602d0961ea10799b4a4}\label{control_state_machine__mock_8c_a9b6216dba87d3602d0961ea10799b4a4}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!stopChargeCommandDefinition@{stopChargeCommandDefinition}}
-\index{stopChargeCommandDefinition@{stopChargeCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{stopChargeCommandDefinition}{stopChargeCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t stop\+Charge\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"stopCharge"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"stopCharge:\(\backslash\)r\(\backslash\)n  stop charging\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a550fa1f6a2fc8c91b6db1403b58b1a25}{stopChargeCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a3b14927cb63993a143324107a26fcd60}\label{control_state_machine__mock_8c_a3b14927cb63993a143324107a26fcd60}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!stopSendCellCommandDefinition@{stopSendCellCommandDefinition}}
-\index{stopSendCellCommandDefinition@{stopSendCellCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{stopSendCellCommandDefinition}{stopSendCellCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t stop\+Send\+Cell\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"stopSendCell"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"stopSendCell <cellIdx>:\(\backslash\)r\(\backslash\)n Send over CAN all cells\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a07f875c96434a4f6c4a2362b3cd71ec4}{stopSendCellCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_a7ad94c4df8429d62436c4b7b152f3222}\label{control_state_machine__mock_8c_a7ad94c4df8429d62436c4b7b152f3222}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!testLowPassFilterCommandDefinition@{testLowPassFilterCommandDefinition}}
-\index{testLowPassFilterCommandDefinition@{testLowPassFilterCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{testLowPassFilterCommandDefinition}{testLowPassFilterCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t test\+Low\+Pass\+Filter\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"lowPass"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"lowPass:\(\backslash\)r\(\backslash\)n Print output of low pass filter\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a3e86785d23a5e061dade9eb63aedc38a}{testLowPassFilter}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_add9e623e61bc734c9eaacedbaade742e}\label{control_state_machine__mock_8c_add9e623e61bc734c9eaacedbaade742e}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!tsmsStatusCommandDefinition@{tsmsStatusCommandDefinition}}
-\index{tsmsStatusCommandDefinition@{tsmsStatusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{tsmsStatusCommandDefinition}{tsmsStatusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t tsms\+Status\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"tsmsStatus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"tsmsStatus:\(\backslash\)r\(\backslash\)n get tsms status\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_aea614235e1b5de7be2f93f1c8bad53d0}{tsmsStatusCommand}},}
-\DoxyCodeLine{    0 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_afc80e3780784e605ceaf826df09818a2}\label{control_state_machine__mock_8c_afc80e3780784e605ceaf826df09818a2}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!vBattCommandDefinition@{vBattCommandDefinition}}
-\index{vBattCommandDefinition@{vBattCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{vBattCommandDefinition}{vBattCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t v\+Batt\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"VBatt"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"VBatt <val>:\(\backslash\)r\(\backslash\)n Set VBatt to val\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a0dda484881d82c63b656ecae468da7cd}{setVBatt}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
-\mbox{\Hypertarget{control_state_machine__mock_8c_ae18dbb47055114b7c948ee164110a60e}\label{control_state_machine__mock_8c_ae18dbb47055114b7c948ee164110a60e}} 
-\index{controlStateMachine\_mock.c@{controlStateMachine\_mock.c}!vBusCommandDefinition@{vBusCommandDefinition}}
-\index{vBusCommandDefinition@{vBusCommandDefinition}!controlStateMachine\_mock.c@{controlStateMachine\_mock.c}}
-\doxysubsubsection{\texorpdfstring{vBusCommandDefinition}{vBusCommandDefinition}}
-{\footnotesize\ttfamily const C\+L\+I\+\_\+\+Command\+\_\+\+Definition\+\_\+t v\+Bus\+Command\+Definition\hspace{0.3cm}{\ttfamily [static]}}
-
-{\bfseries Initial value\+:}
-\begin{DoxyCode}{0}
-\DoxyCodeLine{=}
-\DoxyCodeLine{\{}
-\DoxyCodeLine{    \textcolor{stringliteral}{"VBus"},}
-\DoxyCodeLine{    \textcolor{stringliteral}{"VBus <val>:\(\backslash\)r\(\backslash\)n Set VBus to val\(\backslash\)r\(\backslash\)n"},}
-\DoxyCodeLine{    \mbox{\hyperlink{control_state_machine__mock_8c_a675e2d9a32917c7ea848a381b54608a4}{setVBus}},}
-\DoxyCodeLine{    1 }
-\DoxyCodeLine{\}}
-
-\end{DoxyCode}
+This file contains implementations of all the BMU specific CLI commands availabe on the BMU command line interface (CLI). 
