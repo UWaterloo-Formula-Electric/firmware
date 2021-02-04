@@ -60,5 +60,15 @@ html_static_path = ['_static']
 breathe_projects = {
         "BMU": "../build/xml"
 }
+
 breathe_default_project = "BMU"
+breathe_domain_by_extension = {
+        "c": "c",
+        "h": "c"
+}
+
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
+breathe_implementation_filename_extensions = []
+
 

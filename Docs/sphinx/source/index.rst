@@ -10,8 +10,20 @@ Welcome to BMU's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. doxygenfile:: batteries.c 
+:c:func:`canSendCellTask`
+
+.. doxygenfile:: batteries.c
    :project: BMU
+
+.. doxygenfunction:: canSendCellTask
+   :project: BMU
+
+.. doxygenfunction:: getPackVoltage
+   :project: BMU
+
+.. doxygentypedef:: ChargeReturn
+
+.. doxygenfunction:: balanceCharge
 
 Indices and tables
 ==================

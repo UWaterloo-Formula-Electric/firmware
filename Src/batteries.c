@@ -871,7 +871,7 @@ HAL_StatusTypeDef publishPackVoltage(float packVoltage)
  *
  * @param packVoltage pointer to a float to return the pack voltage (in volts)
  *
- * @return HAL_StatusTypeDe
+ * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 {
@@ -1140,7 +1140,7 @@ float getSOCFromVoltage(float cellVoltage)
  *
  * @return @ref ChargeReturn
  */
-ChargeReturn balanceCharge()
+ChargeReturn balanceCharge(void)
 {
     // Start charge
     if (startCharging() != HAL_OK) {

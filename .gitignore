@@ -15,9 +15,7 @@ bak/
 *.map
 *.DS_Store
 tags
-doc/Doxyfile
 info.dox
-Doxyfile
 *_unittest
 *.a
 .d/
@@ -25,3 +23,4 @@ Doxyfile
 Gen/
 .vscode
 *.tmp
+Docs/sphinx/build
