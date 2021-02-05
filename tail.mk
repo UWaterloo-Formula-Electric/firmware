@@ -10,6 +10,7 @@ COMMON_LIB_DIR = common-all
 COMMON_F7_LIB_DIR = common-all/f7
 # only used to include some header files
 COMMON_F0_LIB_DIR = common-all/f0
+GITHOOKS_DIR = common-all/.githooks
 
 MIDDLEWARE_DIR = Middlewares
 FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS
@@ -221,6 +222,14 @@ DEBUG_OBJS = $(SRC:%.c=$(DEBUG_BIN_DIR)/%.o) $(SRCASM:%.s=$(DEBUG_BIN_DIR)/%.o)
 # Default build
 #
 all: release
+
+#
+# Initialization 
+#
+init:
+	git config core.hooksPath $(GITHOOKS_DIR)
+	git submodule init
+	git submodule update
 
 #
 # Release target
