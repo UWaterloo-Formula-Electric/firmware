@@ -80,13 +80,6 @@ void faultMonitorTask(void *pvParameters)
 
    DEBUG_PRINT("HVIL Started\n");
 
-   DEBUG_PRINT("Waiting for IL OK\n");
-   do {
-      vTaskDelay(10);
-   } while (!getIL_Status());
-
-   DEBUG_PRINT("IL Started\n");
-
    if (getIL_BRB_Status() == false) {
        DEBUG_PRINT("IL_BRB is down\n");
    }
@@ -98,6 +91,13 @@ void faultMonitorTask(void *pvParameters)
    if (getHVD_Status() == false) {
        DEBUG_PRINT("HVD is down\n");
    }
+
+   DEBUG_PRINT("Waiting for IL OK\n");
+   do {
+      vTaskDelay(10);
+   } while (!getIL_Status());
+
+   DEBUG_PRINT("IL Started\n");
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
