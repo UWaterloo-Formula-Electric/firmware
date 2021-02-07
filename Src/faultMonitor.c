@@ -87,20 +87,19 @@ void faultMonitorTask(void *pvParameters)
 
    DEBUG_PRINT("IL Started\n");
    
-   //Checking status of each IL
-   for  (int count=0, count<3, count++) {
-      if count == 0 {
-          sense = getIL_BRB_Status()
-      } else if count == 1 {
-          sense = getBSPD_Status()
-      } else if count == 2 {
-          sense = getHVD_Status()
-      } // else if count == 3 {
-      //    sense = 
-      if sense == false {
-           vTaskDelay(10)
-       }
+   
+   if (getIL_BRB_Status() == false) {
+       DEBUG_PRINT("IL_BRB is down\n");
    }
+   
+   if (getBSPD_Status() == false) {
+       DEBUG_PRINT("BDSP is down\n");
+   }
+   
+   if (getHVD_Status() == false) {
+       DEBUG_PRINT("HVD is down\n");
+   }
+    
     
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
