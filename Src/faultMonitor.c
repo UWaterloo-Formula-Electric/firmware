@@ -86,21 +86,19 @@ void faultMonitorTask(void *pvParameters)
    } while (!getIL_Status());
 
    DEBUG_PRINT("IL Started\n");
-   
-   
+
    if (getIL_BRB_Status() == false) {
        DEBUG_PRINT("IL_BRB is down\n");
    }
-   
+
    if (getBSPD_Status() == false) {
        DEBUG_PRINT("BDSP is down\n");
    }
-   
+
    if (getHVD_Status() == false) {
        DEBUG_PRINT("HVD is down\n");
    }
-    
-    
+
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
    if (registerTaskToWatch(FAULT_TASK_ID, 2*pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
