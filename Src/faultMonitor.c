@@ -92,7 +92,7 @@ void faultMonitorTask(void *pvParameters)
    }
 
    if (getBSPD_Status() == false) {
-       DEBUG_PRINT("BDSP is down\n");
+       DEBUG_PRINT("BSPD is down\n");
    }
 
    if (getHVD_Status() == false) {
