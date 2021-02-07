@@ -1,3 +1,13 @@
+/**
+  ****************************************************************************
+  * @file    controlStateMachine.h
+  * @author  Richard Matthews
+  * @brief   State machine controlling BMU's high level logic
+  * @details State machine logic, including transition array, and transition
+  *          function. 
+  ****************************************************************************
+  */
+
 #ifndef CONTROLSTATEMACHINE_H
 
 #define CONTROLSTATEMACHINE_H
@@ -6,16 +16,33 @@
 #include "state_machine.h"
 
 typedef enum BMU_States_t {
-    STATE_Self_Check = 0,
-    STATE_Wait_System_Up,
-    STATE_HV_Disable,
-    STATE_HV_Enable,
-    STATE_Precharge,
-    STATE_Discharge,
-    STATE_Charging,
-    STATE_Failure_Fatal,
-    STATE_ANY, // Must be the last state
+    STATE_Self_Check = 0, ///< 0: Self check performed on boot
+    STATE_Wait_System_Up, ///< 1: Waiting for the IMD and Fault Monitor
+    STATE_HV_Disable,     ///< 2: Battery pack contactors open
+    STATE_HV_Enable,      ///< 3: Battery pack contactors closed
+    STATE_Precharge,      ///< 4: Waiting for precharge to complete
+    STATE_Discharge,      ///< 5: Waiting for discharge to complete
+    STATE_Charging,       ///< 6: Battery is currently being charged
+    STATE_Failure_Fatal,  ///< 7: System encountered a critical failture
+    STATE_ANY,            ///< 8: Must be the last state
 } BMU_States_t;
+
+/*! \var BMU_States_t STATE_Self_Check
+ *  State machine begins in this state. Currently we don't have any self tests
+ *  that run, but this is an area for improvement.
+ */
+
+/*! \var BMU_States_t STATE_Wait_System_Up
+ *  The BMU stays in this state until receiving ::EV_IMD_Ready and
+ *  ::EV_FaultMonitorReady.
+ *  See @ref systemUpCheck and @ref faultMonitorTask for more details.
+ */
+
+/*! \var BMU_States_t STATE_Wait_System_Up
+ *  The BMU stays in this state until receiving ::EV_IMD_Ready and
+ *  ::EV_FaultMonitorReady.
+ *  See @ref systemUpCheck and @ref faultMonitorTask for more details.
+ */
 
 typedef enum BMU_Events_t {
     EV_Init = 0,
