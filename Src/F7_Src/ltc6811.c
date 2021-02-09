@@ -21,14 +21,34 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-// The following defines are always fixed due to AMS architecture, DO NOT CHANGE
-#define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
-#define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+
+/**
+ * @defgroup AmsArchConfig
+ *
+ * The following defines are related to AMS circuit architecture. They will
+ * not change based on the battery box configuration (i.e. number of AMS
+ * boards in the daisy chain, but will change based on a given AMS board
+ * circuit configuration.
+ *
+ * @{
+ */
+
+/// Number of voltage blocks per AMS board
+#define VOLTAGE_BLOCKS_PER_BOARD    4
+/// Number of voltage reading per block
+#define VOLTAGES_PER_BLOCK          3   
+/// Number of temperature channels per board
 #define TEMP_CHANNELS_PER_BOARD     12
-#define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
-#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
-#define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
-#define MUX_MEASURE_DELAY_US  1 // Time for Mux to switch
+/// Length of time for voltage measurements to finish
+#define VOLTAGE_MEASURE_DELAY_MS    2
+/// Time to add on to ms delay for measurements to finsh
+#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 
+/// Time for measurements to finish
+#define TEMP_MEASURE_DELAY_US 405 
+/// Time for Mux to switch
+#define MUX_MEASURE_DELAY_US  1 
+
+/** @} */
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
@@ -200,8 +220,8 @@
 #define GPIO1_POS 3
 
 /** Voltage constants in 100uV steps **/
-#define VUV 0x658 // based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V
-#define VOV 0x8CA // based on: (VOV) * 16 * 100uV and target VOV of 3.6V
+#define VUV 0x658 ///< based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V
+#define VOV 0x8CA ///< based on: (VOV) * 16 * 100uV and target VOV of 3.6V
 
 #define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
 
@@ -214,8 +234,16 @@ static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 uint8_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD+1] = {
     0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x2, 0x3, 0x0, 0x1, 0xB, 0xC };
 
-/* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
+/**
+ * @brief HSPI send/receive function
+ * Make sure rbuffer is large enough for the sending command + receiving bytes
+ *
+ * @param tdata: Pointer to buffer to transmit
+ * @param rbuffer: Pointer to buffer for recieving data
+ * @param len: Amount of data to be sent and recieved
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
                             unsigned int len) {
     //Make sure rbuffer is large enough for the sending command + receiving bytes
@@ -225,6 +253,11 @@ HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
     return status;
 }
 
+/**
+ * @brief HSPI send function
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
 {
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
@@ -233,15 +266,20 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
     return status;
 }
 
+/**
+ * @brief Initialize AMS board configuration array
+ *
+ * @param board: board to initialize
+ */
 void batt_init_board_config(uint16_t board) 
 {
-    m_batt_config[board][0] = REFON(1) |          // Turn on reference
+    m_batt_config[board][0] = REFON(1) |        // Turn on reference
                             ADC_OPT(0);         // We use fast ADC speed so this has to be 0
-    m_batt_config[board][4] = 0x00;                 // Disable the discharge bytes for now
+    m_batt_config[board][4] = 0x00;             // Disable the discharge bytes for now
     m_batt_config[board][5] = 0x00;
 }
 
-/*
+/**
  * Generates a 15bit PEC for the message defined for data.
  * Uses CRC with polynomial:
  *   x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1
@@ -300,10 +338,13 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
 }
 
 
-/*
- * Check the PEC on received data
+/**
+ * @brief Check the PEC on received data
+ *
  * @param rxBuffer: buffer holding the read data and PEC
  * @param dataSize: length of the data the PEC is calculated on
+ *
+ * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
 {
@@ -326,7 +367,11 @@ static void fillDummyBytes(uint8_t * buf, uint32_t length)
     }
 }
 
-/* delay function for wakeup */
+/** 
+ * @brief Delay function for wakeup
+ * 
+ * @param time_us: Time in microseconds to sleep
+ */
 void delay_us(uint32_t time_us)
 {
 	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
@@ -336,17 +381,22 @@ void delay_us(uint32_t time_us)
 	HAL_TIM_Base_Stop(&DELAY_TIMER);
 }
 
-// Wake up the spi bus
-// @param standby: Set to true if the device is in standby already, the device
-// wakes faster in this case
+/** 
+ * @brief: Wake up the spi bus
+ *
+ * @param sleeping: Set to true if the device is in standby already, the device
+ * wakes faster in this case
+ *
+ * @return HAL_StatusTypeDef
+ */
 uint32_t lastWakeup_ticks = 0;
-int batt_spi_wakeup(bool sleeping)
+HAL_StatusTypeDef batt_spi_wakeup(bool sleeping)
 {
     if (!sleeping) {
         // The boards have been initialized, so we're in the REFUP state
         if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(T_IDLE_MS)) {
             // SPI bus already up
-            return 0;
+            return HAL_OK;
         }
     }
 
@@ -366,18 +416,26 @@ int batt_spi_wakeup(bool sleeping)
             if (batt_spi_tx(&dummy, JUNK_SIZE))
             {
                 ERROR_PRINT("Failed to wakeup batt spi\n");
-                return 1;
+                return HAL_ERROR;
             }
         }
     }
 
     lastWakeup_ticks = xTaskGetTickCount();
 
-    return 0;
+    return HAL_OK;
 }
 
-// Write a broadcast command and pec to a tx buffer
-// Make sure txBuffer is big enough
+/**
+ * @brief Write a broadcast 16 bit command and PEC to a tx buffer. Make sure
+ * txBuffer is big enough for command and PEC! 
+ *
+ * @param[in] cmdByteLow: Least significant bits of command
+ * @param[in] cmdByteHigh: Most significant bits of command
+ * @param[in] txBuffer: Pointer to buffer with atleast 4 bytes (CMD + PEC)
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_format_broadcast_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer)
 {
     txBuffer[0] = cmdByteLow;
@@ -387,13 +445,18 @@ HAL_StatusTypeDef batt_format_broadcast_command(uint8_t cmdByteLow, uint8_t cmdB
     return HAL_OK;
 }
 
+/**
+ * @brief Write configuration data to LTC6811 daisy chain.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_write_config()
 {
     const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
     uint8_t txBuffer[BUFF_SIZE];
 
     if (batt_format_broadcast_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer) != HAL_OK) {
-        ERROR_PRINT("Failed to send write config command\n");
+        ERROR_PRINT("Failed to format write config broadcast command\n");
         return HAL_ERROR;
     }
 
@@ -423,15 +486,19 @@ HAL_StatusTypeDef batt_write_config()
         return HAL_ERROR;
     }
 
-    return 0;
+    return HAL_OK;
 }
 
-/*
- * Read data from the daisy chain
- * @param: cmdByteLow and High: cmd to send
- * @param: dataOutBuffer buffer to put read data into (PECs removed after
+/**
+ * @brief: Read data from the daisy chain
+ *
+ * @param cmdByteLow: cmd to send
+ * @param cmdByteHigh: cmd to send
+ * @param dataOutBuffer: buffer to put read data into (PECs removed after
  * verification)
- * @param: readSizePerBoard: amount of data to read per board
+ * @param readSizePerBoard: amount of data to read per board
+ *
+ * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *dataOutBuffer, size_t readSizePerBoard)
 {
@@ -468,6 +535,14 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
     return HAL_OK;
 }
 
+/**
+ * @brief Read LTC6811 configuration from all AMS boards.
+ *
+ * @param[out] rxBuffer: Buffer to store configuration data from all boards,
+ * ensure BATT_CONFIG_SIZE * NUM_BOARDS bytes is allocated.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_read_config(uint8_t *rxBuffer)
 {
     if (batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, rxBuffer, BATT_CONFIG_SIZE) != HAL_OK)
@@ -479,6 +554,11 @@ HAL_StatusTypeDef batt_read_config(uint8_t *rxBuffer)
     return HAL_OK;
 }
 
+/**
+ * @brief Initialize the LTC6811 configuration on each board.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_init()
 {
     uint8_t configReadBuffer[BATT_CONFIG_SIZE * NUM_BOARDS] = {0};
@@ -520,11 +600,17 @@ HAL_StatusTypeDef batt_init()
     return HAL_OK;
 }
 
-/*
- * Read back cell voltages, this assumes that the command to initiate ADC
- * readings has been sent already and the appropriate amount of time has
- * elapsed for readings to finish
- * Used for both batt_read_cell_voltages and open wire check
+/** 
+ * @brief Read back cell voltages.
+ *
+ * This assumes that the command to initiate ADC readings has been sent already
+ * and the appropriate amount of time has elapsed for readings to finish.
+ * Used for both @ref batt_read_cell_voltages and
+ * @ref performOpenCircuitTestReading.
+ *
+ * @param[out] cell_voltage_array: Pointer to buffer to store cell voltages
+ *
+ * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 {
@@ -565,7 +651,8 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
             return HAL_ERROR;
         }
 
-        if (batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
+        if (batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE)
+                != HAL_OK) {
             ERROR_PRINT("Failed to read voltage block %d\n", block);
             return HAL_ERROR;
         }
@@ -587,6 +674,15 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
     return HAL_OK;
 }
 
+
+/** 
+ * @brief Send command to start the ADC, wait for ADC conversion, then read
+ * back cell voltages from each LTC6811.
+ *
+ * @param[out] cell_voltage_array: Pointer to buffer to store cell voltages
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -624,8 +720,16 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     return HAL_OK;
 }
 
-// input voltage is in 100uV
-// output temp is in degrees C
+/**
+ * @brief Converts thermistor voltage drop to temperature.
+ *
+ * This function was determined in Matlab and assumes the thermistors are
+ * NTCALUG02A103G
+ *
+ * @param[in] voltage: Voltage in 100uV step
+ *
+ * @return Estimated output temperature in degrees C
+ */
 float batt_convert_voltage_to_temp(float voltage) {
     const float p1 = 0.059396;
     const float p2 = -0.97375;
@@ -639,13 +743,21 @@ float batt_convert_voltage_to_temp(float voltage) {
 
     float x = voltage;
 
-    // Calculated from matlab
+    // Line of best fit calculated from Matlab polyfit
     float output = p1*pow(x,8) + p2*pow(x,7) + p3*pow(x,6) + p4*pow(x,5)
         + p5*pow(x,4) + p6*pow(x,3) + p7*pow(x,2) + p8*x + p9;
 
     return output;
 }
 
+/**
+ * @brief Read cell temperatures from all boards for single channel.
+ *
+ * @param[out] channel: Channel to read from
+ * @param[out] cell_temp_array: Buffer to store cell temperatures
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
 {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -664,9 +776,11 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
-        // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
+        // Set the external MUX to channel we want to read. MUX pin is
+        // selected via GPIO2, GPIO3, GPIO4, LSB first.
         uint8_t gpioPins = thermistorChannelToMuxLookup[channel];
-        m_batt_config[board][0] = (1<<GPIO5_POS) | (gpioPins << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+        m_batt_config[board][0] = (1 << GPIO5_POS) | (gpioPins << GPIO1_POS)
+                                    | REFON(1) | ADC_OPT(0);
     }
 
     if (batt_write_config() != HAL_OK)
@@ -702,7 +816,8 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     // adc values for one block from all boards
     uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS] = {0};
 
-    if (batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK)
+    if (batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE)
+            != HAL_OK)
     {
         ERROR_PRINT("Failed to read temp adc vals\n");
         return HAL_ERROR;
@@ -722,6 +837,14 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     return HAL_OK;
 }
 
+/**
+ * @brief Read out cell temperatures from all boards for all
+ *      @ref TEMP_CHANNELS_PER_BOARD channels
+ *
+ * @param cell_temp_array: Buffer to store cell temperatures
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
     for (int channel = 0; channel < TEMP_CHANNELS_PER_BOARD; channel++)
@@ -749,6 +872,14 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
     return HAL_OK;
 }
 
+/**
+ * @brief Send open wire check command to LTC6811
+ *
+ * @param pullup: Whether the current sources sink or source current.
+ * 0 = sink, 1 = source
+ * 
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef sendADOWCMD(uint8_t pullup)
 {
     const uint8_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -800,8 +931,12 @@ void divideCellVoltages(float *cell_voltages_average, unsigned int num_readings)
 // Arrays to use with open wire test
 float cell_voltages_single_reading[CELLS_PER_BOARD * NUM_BOARDS];
 
-// Perform open wire test cell voltage reading, either pullup or pulldown
-// Average num_readings voltages to account for noise
+/**
+ * @brief Perform open wire test cell voltage reading, either pullup or
+ * pulldown. Average num_readings voltages to account for noise.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullup,
                                                 unsigned int num_readings)
 {
@@ -838,6 +973,11 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
     return HAL_OK;
 }
 
+/**
+ * @brief Check that all cells are connected for every LTC6811.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef checkForOpenCircuit()
 {
     // Perform averaging of multiple voltage readings to account for potential
@@ -930,7 +1070,14 @@ bool batt_get_balancing_cell_state(int board, int cell)
     }
 }
 
-// Need to write config after
+/**
+ * @brief Set bits in config to balance a cell. Need to write
+ * config over isoSPI after.
+ *
+ * @param cell: Cell to balance
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_balance_cell(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
@@ -945,6 +1092,15 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 
     return HAL_OK;
 }
+
+/**
+ * @brief Set bits in config to stop balancing a cell. Need to
+ * write config over isoSPI after.
+ *
+ * @param cell: Cell to stop balancing
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_stop_balance_cell(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
@@ -960,7 +1116,14 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
     return HAL_OK;
 }
 
-// Need to read config first
+/**
+ * @brief Check bits in config to stop balancing a cell. Need
+ * to read config over isoSPI first!
+ *
+ * @param cell: Cell to check if balancing
+ *
+ * @return HAL_StatusTypeDef
+ */
 bool batt_is_cell_balancing(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
@@ -974,6 +1137,11 @@ bool batt_is_cell_balancing(int cell)
     return batt_get_balancing_cell_state(boardIdx, amsCellIdx);
 }
 
+/** 
+ * @brief Unset configuration bits to stop balancing all cells
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_unset_balancing_all_cells()
 {
     for (int board = 0; board < NUM_BOARDS; board++) {
@@ -985,6 +1153,14 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
     return HAL_OK;
 }
 
+/**
+ * @brief Configure a discharge timer for each LTC6811.
+ *
+ * @param length: One of enum DischargeTimerLength values corresponding to a 
+ * discharge timer length.
+ *
+ * @return HAL_StatusTypeDef
+ */
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length)
 {
     if (length >= INVALID_DT_TIME) {

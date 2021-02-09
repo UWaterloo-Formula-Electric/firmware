@@ -14,7 +14,7 @@ State Machine Diagram
   :alt: BMU State Machine
   :scale: 20%
 
-It's much easier to see if you click on the image to open it in a new page.
+Click on the image to open it in a new page.
 
 States
 ------

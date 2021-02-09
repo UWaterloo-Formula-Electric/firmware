@@ -5,15 +5,23 @@ Welcome to the 2018 BMU documentation!
 The Battery Management Unit (BMU) is responsible for all things related to the
 car's high voltage battery.
 
+The intended use of this documentation is to document the specific
+functionalities of the board alongside revelant functions and configuration
+in order to provide a complete understanding of the code base.
+
 Know where you need to get to? Then follow one of the following links here.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   files/test
-   files/style_guide
    files/state_machine
+   files/cell_monitoring
+   files/charging
+   files/pcdc
+   files/soc
+   files/cli
+   files/style_guide
 
 Main Functionality
 ------------------
@@ -30,5 +38,4 @@ The BMU performs a few main functions:
           system, in particular Section 11 which details the system that
           manages the battery.**
 
-The main functionality of the BMU is controlled by a state machine.
-
+Click on the "Next" button to read more about the BMU.

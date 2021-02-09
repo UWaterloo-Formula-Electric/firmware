@@ -62,23 +62,48 @@
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
-// Cell Low and High Voltages, in volts (floating point)
-#define LIMIT_OVERVOLTAGE 4.2F
-#define LIMIT_HIGHVOLTAGE 4.1F 
-#define LIMIT_LOWVOLTAGE 2.5F
-#define LIMIT_UNDERVOLTAGE 2.5F
-#define LIMIT_LOWVOLTAGE_WARNING 3.2F
-#define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
-// TODO: Update these values for new cells
-#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
-#define CELL_DCR (0.01)
-#define CELL_HEAT_CAPACITY (1034.2) //kj/kg•k
-#define CELL_MASS (0.496)
+/**
+ * @defgroup CellConfig 
+ *
+ * Used for various safety checks and State of Charge calculation.
+ * Update these values for new cells.
+ *
+ * @{
+ */
 
-#define CELL_OVERTEMP (CELL_MAX_TEMP_C) // Maximum allowable cell temperature
-#define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10) // Temp at which warning sent
+/* The following is specified in Volts (floating point) */
+/// Maximum voltage of a cell, will send a critical DTC is exceeded.
+#define LIMIT_OVERVOLTAGE 4.2F        
+/// Used in SOC function. TODO: confirm this value
+#define LIMIT_HIGHVOLTAGE 4.2F        
+/// Used in SOC function. TODO: confirm this value
+#define LIMIT_LOWVOLTAGE 3.0F         
+/// Minimum voltage of a cell, will send a critical DTC if it goes below
+#define LIMIT_UNDERVOLTAGE 3.0F
+/// Warning voltage of a cell, will send a warning DTC if it goes below
+#define LIMIT_LOWVOLTAGE_WARNING 3.2F
+/// Rate at which the low voltage threshold dynamically lowers vs current
+#define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
+
+/* The following values are used in State of Power calculation and should 
+ * be determined from cell testing data */
+
+// TODO: Update these values for 2021 cells
+#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)    ///< seconds?
+#define CELL_DCR (0.01)                         ///< Ohms
+#define CELL_HEAT_CAPACITY (1034.2)             ///< kJ/kg*K
+#define CELL_MASS (0.496)                       ///< kg
+
+/** Maximum allowable cell temperature, will send critical DTC if surpassed */
+#define CELL_OVERTEMP (CELL_MAX_TEMP_C)
+/** Temp at warning DTC is sent */
+#define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
+/** Similar to @ref CELL_OVERTEMP, minimum temp before sending critical DTC */
 #define CELL_UNDERTEMP 5
+/** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
 #define CELL_UNDERTEMP_WARNING 15
+
+/** @} Cell Characteristics */
 
 /*
  * Charging constants
@@ -95,7 +120,7 @@
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
- *out use of charge cart as a board with a microcontroller
+ * out use of charge cart as a board with a microcontroller
  */
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
 
@@ -252,13 +277,14 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
 }
 
 /**
- * @brief Publishes the most recent HV Bus measurements to queues for other tasks to
- * read from
- * Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent
- * data is in the queue and read from the queue
- * @param[in] pIbus pointer to the HV bus current measurement (in Amps)
- * @param[in] pVbus pointer to the HV bus voltage measurement (in Volts)
- * @param[in] pVbatt pointer to the HV battery voltage measurement (in Volts)
+ * @brief Publishes the most recent HV Bus measurements to queues for other
+ * tasks to read from Queue overwrite, Queue peek, and queue size of 1 is used
+ * to ensure only the most recent data is in the queue and read from the queue
+ *
+ * @param[in] pIBus pointer to the HV bus current measurement (in Amps)
+ * @param[in] pVBus pointer to the HV bus voltage measurement (in Volts)
+ * @param[in] pVBatt pointer to the HV battery voltage measurement (in Volts)
+ *
  * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float *pVBatt)
@@ -273,9 +299,9 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
 /**
  * @brief Measures HV voltages and currents using the HV ADC
  *
- * @param[out] Ibus pointer to the HV bus current measurement (in Amps)
- * @param[out] Vbus pointer to the HV bus voltage measurement (in Volts)
- * @param[out] Vbatt pointer to the HV battery voltage measurement (in Volts)
+ * @param[out] IBus pointer to the HV bus current measurement (in Amps)
+ * @param[out] VBus pointer to the HV bus voltage measurement (in Volts)
+ * @param[out] VBatt pointer to the HV battery voltage measurement (in Volts)
  *
  * @return HAL_StatusTypeDef
  */
@@ -331,7 +357,7 @@ HAL_StatusTypeDef getIBus(float *IBus)
  * this is only equal to the battery voltage when both contactors are closed.
  * to get the battery voltage in all times, use @ref getPackVoltage
  *
- * @param[out]  pointer to a float to store the VBatt reading, in volts
+ * @param[out] VBatt pointer to a float to store the VBatt reading, in volts
  *
  * @return HAL_StatusTypeDef
  */
@@ -348,7 +374,7 @@ HAL_StatusTypeDef getVBatt(float *VBatt)
 /**
  * @brief Get the most recent HV Bus voltage reading (from the HV ADC)
  *
- * @param[out]  pointer to a float to store the VBus reading, in volts
+ * @param[out] VBus: pointer to a float to store the VBus reading, in volts
  *
  * @return HAL_StatusTypeDef
  */
@@ -478,6 +504,7 @@ void imdTask(void *pvParamaters)
    }
 
    // Wait for IMD to startup
+   DEBUG_PRINT("Waiting for IMD...");
    do {
       imdStatus = get_imd_status();
       vTaskDelay(100);

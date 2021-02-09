@@ -27,38 +27,21 @@ typedef enum BMU_States_t {
     STATE_ANY,            ///< 8: Must be the last state
 } BMU_States_t;
 
-/*! \var BMU_States_t STATE_Self_Check
- *  State machine begins in this state. Currently we don't have any self tests
- *  that run, but this is an area for improvement.
- */
-
-/*! \var BMU_States_t STATE_Wait_System_Up
- *  The BMU stays in this state until receiving ::EV_IMD_Ready and
- *  ::EV_FaultMonitorReady.
- *  See @ref systemUpCheck and @ref faultMonitorTask for more details.
- */
-
-/*! \var BMU_States_t STATE_Wait_System_Up
- *  The BMU stays in this state until receiving ::EV_IMD_Ready and
- *  ::EV_FaultMonitorReady.
- *  See @ref systemUpCheck and @ref faultMonitorTask for more details.
- */
-
 typedef enum BMU_Events_t {
-    EV_Init = 0,
-    EV_HV_Toggle,
-    EV_Precharge_Finished,
-    EV_Discharge_Finished,
-    EV_PrechargeDischarge_Fail,
-    EV_HV_Fault,
-    EV_IMD_Ready,
-    EV_FaultMonitorReady,
-    EV_Enter_Charge_Mode,
-    EV_Charge_Start,
-    EV_Charge_Done,
-    EV_Charge_Error,
-    EV_Charge_Stop,
-    EV_ANY, // Must be the last event
+    EV_Init = 0,                ///< 0: Event to init the state machine
+    EV_HV_Toggle,               ///< 1: Triggered by CAN message from DCU
+    EV_Precharge_Finished,      ///< 2: Precharge is complete
+    EV_Discharge_Finished,      ///< 3: Discharge is complete
+    EV_PrechargeDischarge_Fail, ///< 4: PC/DC has failed, check debug log
+    EV_HV_Fault,                ///< 5: HV needs to be shutdown immediately
+    EV_IMD_Ready,               ///< 6: IMD is ready, checked on start up
+    EV_FaultMonitorReady,       ///< 7: Safety IL is closed and ready
+    EV_Enter_Charge_Mode,       ///< 8: Charge mode triggered over CAN
+    EV_Charge_Start,            ///< 9: Charging begins, triggered over CAN
+    EV_Charge_Done,             ///< 10: Charging is complete
+    EV_Charge_Error,            ///< 11: Error during balance charging
+    EV_Charge_Stop,             ///< 12: Stop charging, trigerred over CAN
+    EV_ANY,                     ///< 13: Must be the last event
 } BMU_Events_t;
 
 typedef enum BMU_SystemUpFail {
