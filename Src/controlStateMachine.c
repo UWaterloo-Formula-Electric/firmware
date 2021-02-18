@@ -106,6 +106,9 @@ HAL_StatusTypeDef controlInit()
     return HAL_OK;
 }
 
+/**
+ * Task to manage the state machine.
+ */
 void controlTask(void *pvParameters)
 {
     // Pre send EV_INIT to kick off self tests

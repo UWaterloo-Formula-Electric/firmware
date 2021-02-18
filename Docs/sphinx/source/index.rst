@@ -16,6 +16,7 @@ Know where you need to get to? Then follow one of the following links here.
    :caption: Contents:
 
    files/state_machine
+   files/tasks
    files/cell_monitoring
    files/charging
    files/pcdc

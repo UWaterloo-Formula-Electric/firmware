@@ -10,8 +10,8 @@
   *          charger over CAN
   *          - HV Bus Sense (HVMeasureTask): Measures the voltage and current
   *          on the HV Bus as well as the HV battery pack voltage
-  *          - IMD Monitoring (imdTask): Measures the signals from the insulation monitoring
-  *          device (IMD) to check for insulation faults
+  *          - IMD Monitoring (imdTask): Measures the signals from the
+  *          insulation monitoring device (IMD) to check for insulation faults
   *          - canSendCellTask: Sends the cell voltage and temperatures over
   *          CAN using the multiplexed CAN messages
   *
@@ -112,6 +112,12 @@
 /// Block balancing below this cell voltage
 #define BALANCE_START_VOLTAGE (3.5F)
 
+/**
+ * Threshold to begin balancing a cell when it's SoC is this percent higher 
+ * than the minimum cell SoC in the entire pack
+ */
+#define BALANCE_MIN_SOC_DELTA (1.0F)
+
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (1000)
 
@@ -139,9 +145,9 @@
  */
 typedef enum ChargeReturn
 {
-    CHARGE_DONE, ///< Charging finished, cells reached fully charged
+    CHARGE_DONE,    ///< Charging finished, cells reached fully charged
     CHARGE_STOPPED, ///< Charging was stopped as requested, cells not fully charged
-    CHARGE_ERROR ///< Error occured stopping charging, cells not fully charged
+    CHARGE_ERROR    ///< Error occured stopping charging, cells not fully charged
 } ChargeReturn;
 
 extern osThreadId BatteryTaskHandle;
@@ -183,22 +189,24 @@ bool isTempCellWorking[TEMPCELL_COUNT] = {
 false, true , true , false, true , true , true , true , true , true , false, false,
 // Board 2
 false, false, true , false, false, true , true , true , true , true , false, false,
-/*// Board 3*/
+// Board 3
 false, false, false, false, true , false, false, true , true , false, true , false,
-/*// Board 4*/
+// Board 4
 false, false, false, false, false, false, false, false, false, false, false, false,
-/*// Board 5*/
+// Board 5
 false, true , true , false, false, false, false, true , true , true , false, false,
 // Board 6
 // false, false, false, false, false, false, false, false, false, false, false, false,
 };
 
-
 #define NUM_SOC_LOOKUP_VALS 101
 
 /**
- * Lookup table to convert cell voltage to cell state of charge. See BMU
- * confluence page for more info
+ * Lookup table to convert cell voltage to cell state of charge.
+ * Values between points are linearly interpolated. 
+ *
+ * Currently just a linear mapping. Substitute for a suitable non-linear
+ * relationship when it has been developed.
  */
 float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -434,11 +442,13 @@ HAL_StatusTypeDef cliSetIBus(float IBus)
 }
 
 /**
- * Measures the voltage and current on the HV Bus as well as the HV battery pack voltage.
- * Note that the HV battery pack voltage (VBatt) is only equal to the actual pack
- * voltage in ceraint contactor states, see prechargeDischarge procedure on
- * confluence for more info. Instead, use @ref getPackVoltage which bases it
- * measurement on the sum of cell voltages
+ * Measures the voltage and current on the HV Bus as well as the HV battery
+ * pack voltage.
+ *
+ * Note that the HV battery pack voltage (VBatt) is only equal to the actual
+ * pack voltage in certain contactor states. See documentation on Precharge
+ * / Discharge for more information. Instead, use @ref getPackVoltage which
+ * bases it measurement on the sum of cell voltages
  */
 void HVMeasureTask(void *pvParamaters)
 {
@@ -662,8 +672,9 @@ void BatteryTaskError()
 static uint32_t errorCounter = 0;
 
 /**
- * @brief Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed MAX_ERROR_COUNT times, then fail and send
- * error event.
+ * @brief Called by battery task in an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
  * TODO: ensure this is max 500 ms to meet rules for cell reading times
  *
  * @return true if errorCounter is below or equal to max error count, false otherwise
@@ -708,18 +719,19 @@ float cellVoltagesFiltered[VOLTAGECELL_COUNT];
 
 
 /**
- * @brief This takes an array of the instantaneous cell volages, and filters them on
- * an ongoing basis using the cellVoltagesFiltered array.
- * For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due
- * to bad contact with AMS boards. The hypothesis is that the pogo pins make
- * bad contact with the ams boards when the motors spin, thus the need for
- * filtering. This hasn't been proven however, but the filtering fixed the
- * errors we saw before (info up to date as of May 2020)
+ * @brief This takes an array of the instantaneous cell volages, and filters
+ * them on an ongoing basis using the cellVoltagesFiltered array.
+ *
+ * For check cell voltages, a filtered version of cell voltages is needed to
+ * eliminate noise due to bad contact with AMS boards. The hypothesis is that
+ * the pogo pins make bad contact with the AMS boards when the motors spin,
+ * thus the need for filtering. This hasn't been proven however, but the
+ * filtering fixed the errors we saw before (info up to date as of May 2020)
  * NB: Filter voltages shouldn't be sent over CAN, only used with error
  * checking
  *
- * @param[in] cellVoltages unfiltered cell voltage readings
- * @param[out] cellVoltagesFiltered filtered cell voltage readings
+ * @param[in] cellVoltages Unfiltered cell voltage readings
+ * @param[out] cellVoltages Filtered filtered cell voltage readings
  */
 void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 {
@@ -835,7 +847,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
 /**
  * @brief Calculates the state of power of the battery pack. TODO: this
- * calculation is from 2017, so should be updated for the 2020 pack
+ * calculation is from 2017, so should be updated for the 2021 pack
  *
  * @return The state of power of the battery pack (in Watts?)
  */
@@ -1162,8 +1174,7 @@ float getSOCFromVoltage(float cellVoltage)
 }
 
 /**
- * @brief Performs balance charging. For more info, see the BMU page on
- * confluence
+ * @brief Performs balance charging.
  *
  * @return @ref ChargeReturn
  */
@@ -1266,7 +1277,7 @@ ChargeReturn balanceCharge(void)
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
-                    if (cellSOC - minCellSOC > 1) {
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
@@ -1284,7 +1295,7 @@ ChargeReturn balanceCharge(void)
                 batt_set_disharge_timer(DT_30_SEC);
                 if (batt_write_config() != HAL_OK)
                 {
-                return CHARGE_ERROR;
+                    return CHARGE_ERROR;
                 }
 #endif
 

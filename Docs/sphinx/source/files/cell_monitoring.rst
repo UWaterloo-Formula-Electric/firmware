@@ -164,6 +164,19 @@ The LTC driver also needs to know what a particular board looks like:
 
 .. doxygengroup:: AmsArchConfig
 
+**********************
+Cell Voltage Filtering
+**********************
+
+In order to remove noise present in the AMS cell voltage readings, the cell
+voltages are filtered before being used for safety checks. The logged cell
+voltages over CAN remain unfiltered. It is believed the noise is due to
+vibrations from the motors spinning causing bad contact with the pogo pins
+between the cells and the AMS boards. It may also be due to EMI from the
+motor controllers.
+
+.. doxygenfunction:: filterCellVoltages
+
 **********
 References
 **********

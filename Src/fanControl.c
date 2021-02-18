@@ -67,6 +67,9 @@ HAL_StatusTypeDef setFan()
     return HAL_OK;
 }
 
+/**
+ * Task to control the battery box fans.
+ */
 void fanTask()
 {
   if (fanInit() != HAL_OK) {

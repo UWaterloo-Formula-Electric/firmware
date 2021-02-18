@@ -50,6 +50,8 @@ exclude_patterns = ['.DS_Store']
 #
 html_theme = 'sphinx_rtd_theme'
 
+html_favicon = '_static/favicon.ico'
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
