@@ -25,3 +25,5 @@ Doxyfile
 Gen/
 .vscode
 *.tmp
+Cube-Nucleo-Src/build/
+
