@@ -26,6 +26,10 @@
 
 #define CAN_SEND_TIMEOUT_MS 10
 
+#if BOARD_TYPE == NUCLEO_F7
+#define BOARD_DISABLE_CAN
+#endif 
+
 #if IS_BOARD_F7_FAMILY
 #define CAN_P0_QUEUE_LEN 10
 #define CAN_P1_QUEUE_LEN 15
