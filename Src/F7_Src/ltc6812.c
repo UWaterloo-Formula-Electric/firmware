@@ -1,13 +1,13 @@
 /**
   *****************************************************************************
-  * @file    ltc6811.c
+  * @file    ltc6812.c
   * @author  Richard Matthews
-  * @brief   Module for communicating with ltc6811 chips on the AMS boards
-  * @details The ltc6811 chips are battery monitoring chips, with one on each
-  * AMS board connected to 12 battery cells. The chips measure the voltage and
+  * @brief   Module for communicating with ltc6812 chips on the AMS boards
+  * @details The ltc6812 chips are battery monitoring chips, with one on each
+  * AMS board connected to 14 battery cells. The chips measure the voltage and
   * temperature of the cells. They communicate with the BMU over isoSPI (an
   * electrically isolated SPI interface). This file implements a driver for
-  * communicating with the ltc6811 chips
+  * communicating with the ltc6812 chips
   *
   ******************************************************************************
   */
@@ -21,34 +21,14 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-
-/**
- * @defgroup AmsArchConfig
- *
- * The following defines are related to AMS circuit architecture. They will
- * not change based on the battery box configuration (i.e. number of AMS
- * boards in the daisy chain, but will change based on a given AMS board
- * circuit configuration.
- *
- * @{
- */
-
-/// Number of voltage blocks per AMS board
-#define VOLTAGE_BLOCKS_PER_BOARD    4
-/// Number of voltage reading per block
-#define VOLTAGES_PER_BLOCK          3
-/// Number of temperature channels per board
-#define TEMP_CHANNELS_PER_BOARD     12
-/// Length of time for voltage measurements to finish
-#define VOLTAGE_MEASURE_DELAY_MS    2
-/// Time to add on to ms delay for measurements to finsh
-#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400
-/// Time for measurements to finish
-#define TEMP_MEASURE_DELAY_US 405
-/// Time for Mux to switch
-#define MUX_MEASURE_DELAY_US  1
-
-/** @} */
+// The following defines are always fixed due to AMS architecture, DO NOT CHANGE
+#define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
+#define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+#define TEMP_CHANNELS_PER_BOARD     14
+#define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
+#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
+#define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
+#define MUX_MEASURE_DELAY_US  1 // Time for Mux to switch
 
 /* 6804 Commands */
 // Address is specified in the first byte of the command. Each command is 2 bytes.
@@ -117,8 +97,11 @@
 
 #else // defined(USE_ADDRES_MODE)
 
-#define WRCFG_BYTE0 (0x00)
-#define WRCFG_BYTE1 0x01
+#define WRCFGA_BYTE0 (0x00)
+#define WRCFGA_BYTE1 0x01
+
+#define WRCFGB_BYTE0 (0x00)
+#define WRCFGB_BYTE1 0x24
 
 #define RDCFG_BYTE0 (0x00)
 #define RDCFG_BYTE1 0x02
@@ -218,6 +201,11 @@
 #define GPIO3_POS 5
 #define GPIO2_POS 4
 #define GPIO1_POS 3
+
+#define GPIO6_POS 0
+#define GPIO7_POS 1
+#define GPIO8_POS 2   
+#define GPIO9_POS 3
 
 /** Voltage constants in 100uV steps **/
 #define VUV 0x658 ///< based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V

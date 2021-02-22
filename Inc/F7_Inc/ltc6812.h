@@ -9,6 +9,10 @@
 #include "stm32f7xx_hal.h"
 
 // --- Private Defines ---
+// The following defines change depending on battery box layout
+#define NUM_BOARDS                  5   // Number of AMS boards in system
+#define CELLS_PER_BOARD             14  // Number of valid cells per board, starting from the most negative terminal
+#define THERMISTORS_PER_BOARD       14   // Number of thermistors attached to each AMS, starting from A0
 
 
 /** @defgroup AccumulatorConfig
