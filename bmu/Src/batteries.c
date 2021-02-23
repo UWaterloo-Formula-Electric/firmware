@@ -39,7 +39,7 @@
  *
  */
 #if IS_BOARD_F7
-#include "ltc6811.h"
+#include "ltc6812.h"
 #include "ade7912.h"
 #include "imdDriver.h"
 #endif

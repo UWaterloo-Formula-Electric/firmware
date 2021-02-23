@@ -12,7 +12,7 @@
   ******************************************************************************
   */
 
-#include "ltc6811.h"
+#include "ltc6812.h"
 #include "bsp.h"
 #include "math.h"
 #include "stdbool.h"
@@ -24,7 +24,7 @@
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
-#define TEMP_CHANNELS_PER_BOARD     14
+#define TEMP_CHANNELS_PER_BOARD     12
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 #define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
@@ -97,11 +97,8 @@
 
 #else // defined(USE_ADDRES_MODE)
 
-#define WRCFGA_BYTE0 (0x00)
-#define WRCFGA_BYTE1 0x01
-
-#define WRCFGB_BYTE0 (0x00)
-#define WRCFGB_BYTE1 0x24
+#define WRCFG_BYTE0 (0x00)
+#define WRCFG_BYTE1 0x01
 
 #define RDCFG_BYTE0 (0x00)
 #define RDCFG_BYTE1 0x02
@@ -202,11 +199,6 @@
 #define GPIO2_POS 4
 #define GPIO1_POS 3
 
-#define GPIO6_POS 0
-#define GPIO7_POS 1
-#define GPIO8_POS 2   
-#define GPIO9_POS 3
-
 /** Voltage constants in 100uV steps **/
 #define VUV 0x658 ///< based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V
 #define VOV 0x8CA ///< based on: (VOV) * 16 * 100uV and target VOV of 3.6V
@@ -222,6 +214,8 @@ static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 uint8_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD+1] = {
     0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x2, 0x3, 0x0, 0x1, 0xB, 0xC };
 
+
+/* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
 /**
  * @brief HSPI send/receive function
