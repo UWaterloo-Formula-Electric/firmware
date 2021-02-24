@@ -85,12 +85,12 @@ void faultMonitorTask(void *pvParameters)
       DEBUG_PRINT("IL_BRB is down\n");
       vTaskDelay(10);
    }
-   
+
    DEBUG_PRINT("Checking BSPD status\n");
    while (getIL_BRB_Status() == false) {
       DEBUG_PRINT("BSPD is down\n");
       vTaskDelay(10);
-   } 
+   }
 
    DEBUG_PRINT("Checking HVD status\n");
    while (getHVD_Status() == false) {
