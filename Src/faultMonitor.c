@@ -1,4 +1,4 @@
-/**
+    /**
   *****************************************************************************
   * @file    faultMonitor.c
   * @author  Richard Matthews
@@ -79,25 +79,19 @@ void faultMonitorTask(void *pvParameters)
    } while (!getHVIL_Status());
 
    DEBUG_PRINT("HVIL Started\n");
-
-   DEBUG_PRINT("Checking IL_BRB status\n");
+   
+   DEBUG_PRINT("Checking IL statuses... ");
    while (getBSPD_Status() == false) {
-      DEBUG_PRINT("IL_BRB is down\n");
       vTaskDelay(10);
-   }
+   } DEBUG_PRINT("BRB is good; ");
 
-   DEBUG_PRINT("Checking BSPD status\n");
    while (getIL_BRB_Status() == false) {
-      DEBUG_PRINT("BSPD is down\n");
       vTaskDelay(10);
-   }
+   } DEBUG_PRINT("BSPD is good; ");
 
-   DEBUG_PRINT("Checking HVD status\n");
    while (getHVD_Status() == false) {
-      DEBUG_PRINT("HVD is down\n");
       vTaskDelay(10);
-   }
-
+   } DEBUG_PRINT("HVD is good.\n");
 
    DEBUG_PRINT("Waiting for IL OK\n");
    do {
