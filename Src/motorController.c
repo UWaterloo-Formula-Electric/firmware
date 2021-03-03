@@ -97,10 +97,10 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
-    /*if (mcRightCommand(0x4) != HAL_OK) {*/
-        /*ERROR_PRINT("Failed to send init disable bridge command to MC Right");*/
-        /*return HAL_ERROR;*/
-    /*}*/
+    if (mcRightCommand(0x4) != HAL_OK) {
+        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
+        return HAL_ERROR;
+    }
 
     if (mcLeftCommand(0x4) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
@@ -112,24 +112,11 @@ HAL_StatusTypeDef mcInit()
     // TODO: Do we need to check the voltage values from the MC, or are the BMU
     // startup checks sufficient?
 
+    DEBUG_PRINT("Starting MC Left...\n");
 
     uint32_t startTick = xTaskGetTickCount();
-    /*while (xTaskGetTickCount() - startTick < INVERTER_STARTUP_TIMEOUT_MS &&*/
-           /*StateInverterRight != 0x18);*/
-
-    /*if (StateInverterRight != 0x18) {*/
-        /*ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");*/
-        /*return HAL_TIMEOUT;*/
-    /*}*/
-
-    /*if (mcRightCommand(0x1) != HAL_OK) {*/
-        /*ERROR_PRINT("Failed to send enable bridge command to MC Right");*/
-        /*return HAL_ERROR;*/
-    /*}*/
-
-    startTick = xTaskGetTickCount();
-    while (xTaskGetTickCount() - startTick < INVERTER_ON_TIMEOUT_MS &&
-           (StateInverterLeft & INVERTER_STATE_MASK) != 0x18)
+    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
+           ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18))
     {
         sendThrottleValueToMCs(0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
@@ -137,13 +124,43 @@ HAL_StatusTypeDef mcInit()
 
     if ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18) {
         ERROR_PRINT("Timeout waiting for MC Left to be ready to turn on\n");
+        ERROR_PRINT("StateInverterLeft %d\n", (uint8_t)(StateInverterLeft & INVERTER_STATE_MASK));
         return HAL_TIMEOUT;
+    }
+
+    DEBUG_PRINT("Left motor controller ready.\n");
+
+    DEBUG_PRINT("Starting MC Right...\n");
+
+    startTick = xTaskGetTickCount();
+    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
+           ((StateInverterRight & INVERTER_STATE_MASK) != 0x18))
+    {
+        sendThrottleValueToMCs(0);
+        vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
+    }
+
+    if ((StateInverterRight & INVERTER_STATE_MASK) != 0x18) {
+        ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
+        ERROR_PRINT("StateInverterRight %d\n", (uint8_t)(StateInverterRight & INVERTER_STATE_MASK));
+        return HAL_TIMEOUT;
+    }
+
+    DEBUG_PRINT("Right motor controller ready.\n");
+
+    DEBUG_PRINT("Initializing default settings...");
+    initMotorControllerProcanSettings();
+
+    if (mcRightCommand(0x1) != HAL_OK) {
+        ERROR_PRINT("Failed to send enable bridge command to MC right");
+        return HAL_ERROR;
     }
 
     if (mcLeftCommand(0x1) != HAL_OK) {
         ERROR_PRINT("Failed to send enable bridge command to MC Left");
         return HAL_ERROR;
     }
+
 
     return HAL_OK;
 }
@@ -155,10 +172,10 @@ HAL_StatusTypeDef mcShutdown()
         return HAL_ERROR;
     }
 
-    /*if (mcRightCommand(0x4) != HAL_OK) {*/
-        /*ERROR_PRINT("Failed to send init disable bridge command to MC Right");*/
-        /*return HAL_ERROR;*/
-    /*}*/
+    if (mcRightCommand(0x4) != HAL_OK) {
+        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
@@ -228,7 +245,7 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 
     // Sevcon didn't explain what these are for, but said to set to 0
     ActiveShortRight = 0;
-    ActiveShortRight = 0;
+    ActiveShortLeft = 0;
 
     if (sendCAN_TorqueLimitRight() != HAL_OK) {
         ERROR_PRINT("Failed to send torque limit right\n");
