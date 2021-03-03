@@ -11,7 +11,21 @@
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
-#define INVERTER_STATE_MASK 0x3F
+/* Control Values - See 3.4.1 in ProCAN fundementals */
+#define INVERTER_NOP                    0x00
+#define INVERTER_ENABLE_BRIDGE          0x01
+#define INVERTER_RESET                  0x07
+#define INVERTER_DISABLE_BRIDGE         0x04
+#define INVERTER_DISCHARGE_DC_LINK      0x02
+
+/* Status Values - See 3.4.2 in ProCAN fundementals */
+#define INVERTER_BRIDGE_DISABLED        0x18
+#define INVERTER_BRIDGE_ENABLED         0x1A
+#define INVERTER_SELF_TEST              0x15
+#define INVERTER_FAULT_OFF              0x25
+#define INVERTER_NOT_READY              0x00
+
+#define INVERTER_STATE_MASK             0x3F
 
 MotorControllerProcanSettings mcLeftSettings = {0};
 MotorControllerProcanSettings mcRightSettings = {0};
@@ -97,12 +111,12 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
-    if (mcRightCommand(0x4) != HAL_OK) {
+    if (mcRightCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Right");
         return HAL_ERROR;
     }
 
-    if (mcLeftCommand(0x4) != HAL_OK) {
+    if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
         return HAL_ERROR;
     }
@@ -116,13 +130,13 @@ HAL_StatusTypeDef mcInit()
 
     uint32_t startTick = xTaskGetTickCount();
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18))
+           ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
         sendThrottleValueToMCs(0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((StateInverterLeft & INVERTER_STATE_MASK) != 0x18) {
+    if ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
         ERROR_PRINT("Timeout waiting for MC Left to be ready to turn on\n");
         ERROR_PRINT("StateInverterLeft %d\n", (uint8_t)(StateInverterLeft & INVERTER_STATE_MASK));
         return HAL_TIMEOUT;
@@ -134,13 +148,13 @@ HAL_StatusTypeDef mcInit()
 
     startTick = xTaskGetTickCount();
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterRight & INVERTER_STATE_MASK) != 0x18))
+           ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
         sendThrottleValueToMCs(0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((StateInverterRight & INVERTER_STATE_MASK) != 0x18) {
+    if ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
         ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
         ERROR_PRINT("StateInverterRight %d\n", (uint8_t)(StateInverterRight & INVERTER_STATE_MASK));
         return HAL_TIMEOUT;
@@ -151,16 +165,15 @@ HAL_StatusTypeDef mcInit()
     DEBUG_PRINT("Initializing default settings...");
     initMotorControllerProcanSettings();
 
-    if (mcRightCommand(0x1) != HAL_OK) {
-        ERROR_PRINT("Failed to send enable bridge command to MC right");
-        return HAL_ERROR;
-    }
-
-    if (mcLeftCommand(0x1) != HAL_OK) {
+    if (mcLeftCommand(INVERTER_ENABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send enable bridge command to MC Left");
         return HAL_ERROR;
     }
 
+    if (mcRightCommand(INVERTER_ENABLE_BRIDGE) != HAL_OK) {
+        ERROR_PRINT("Failed to send enable bridge command to MC right");
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
