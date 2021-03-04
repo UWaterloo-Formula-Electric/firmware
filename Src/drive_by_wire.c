@@ -18,7 +18,7 @@
 
 // While the motors are starting, increase the watchdog timeout to allow
 // delays to wait for motor controllers to start up
-#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS (INVERTER_ON_TIMEOUT_MS + MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
+#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS ((2 * INVERTER_ON_TIMEOUT_MS) + MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
 #define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 100)
 
 #define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
