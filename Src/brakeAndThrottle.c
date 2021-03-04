@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "motorController.h"
 #include "VCU_F7_can.h"
+#include "VCU_F7_dtc.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -193,6 +194,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     if (throttleAndBrakePressedError) {
         if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
             throttleAndBrakePressedError = false;
+            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
         } else {
             (*throttleOut) = 0;
             DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
@@ -204,6 +206,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     if (isBrakePressed() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
         (*throttleOut) = 0;
         throttleAndBrakePressedError = true;
+        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
         DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return THROTTLE_DISABLED;
     }
