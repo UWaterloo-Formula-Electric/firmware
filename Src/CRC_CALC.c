@@ -1,6 +1,6 @@
-#ifdef __STM32F7xx_HAL_CRC_H
-
 #include "bsp.h"
+
+#ifdef HAL_CRC_MODULE_ENABLED
 
 const uint32_t BUFFER_SIZE = (uint32_t)(6);
 
@@ -10,4 +10,4 @@ uint8_t calculate_base_CRC( uint8_t * data_bytes )
     return (uint8_t)(crc_value ^ 0xff);
 }
 
-#endif /* defined(__STM32F7xx_HAL_CRC_H) */
+#endif /* defined(HAL_CRC_MODULE_ENABLED) */
