@@ -68,7 +68,7 @@
 #define LIMIT_LOWVOLTAGE 2.5F
 #define LIMIT_UNDERVOLTAGE 2.5F
 #define LIMIT_LOWVOLTAGE_WARNING 3.2F
-#define LIMIT_LOWVOLTAGE_WARNING_SLOPE -0.0043125F
+#define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 // TODO: Update these values for new cells
 #define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
 #define CELL_DCR (0.01)
@@ -155,11 +155,11 @@ bool isTempCellWorking[TEMPCELL_COUNT] = {
  * 0    1       2      3      4      5      6      7     8      9      10    11
  */
 // Board 1
-true , true , true , false, true , true , true , true , true , true , false, false,
+false, true , true , false, true , true , true , true , true , true , false, false,
 // Board 2
-true , true , true , false, true , true , true , true , true , true , false, false,
+false, false, true , false, false, true , true , true , true , true , false, false,
 /*// Board 3*/
-true , true , false, false, true , false, false, true , true , false, true , true ,
+false, false, false, false, true , false, false, true , true , false, true , false,
 /*// Board 4*/
 false, false, false, false, false, false, false, false, false, false, false, false,
 /*// Board 5*/
@@ -749,7 +749,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
-      } else if (measure < LIMIT_LOWVOLTAGE_WARNING - LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading)) {
+      } else if (measure < LIMIT_LOWVOLTAGE_WARNING - (LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading))) {
          if (!warningSentForCellVoltage[i]) {
             ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure);
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
