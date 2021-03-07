@@ -162,8 +162,8 @@ true , true , false, false, true , false, false, true , true , false, true , tru
 false, false, false, false, false, false, false, false, false, false, false, false,
 /*// Board 5*/
 false, true , true , false, false, false, false, true , true , true , false, false,
-/*// Board 6*/
-false, false, false, false, false, false, false, false, false, false, false, false,
+// Board 6
+// false, false, false, false, false, false, false, false, false, false, false, false,
 };
 
 

@@ -329,6 +329,10 @@ uint32_t enterChargeMode(uint32_t event)
 
 uint32_t startCharge(uint32_t event)
 {
+    if(!gChargeMode){
+        DEBUG_PRINT("Not in charging mode, returning to HV_ENABLE");
+        return STATE_HV_Enable;
+    }
     DEBUG_PRINT("Starting charge\n");
     xTaskNotify(BatteryTaskHandle, (1<<CHARGE_START_NOTIFICATION), eSetBits);
 
