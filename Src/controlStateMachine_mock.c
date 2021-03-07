@@ -329,6 +329,20 @@ static const CLI_Command_Definition_t hvToggleCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t fakeEnter_Charge_Mode(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Enter_Charge_Mode);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t fakeEnterChargeModeCommandDefinition =
+{
+    "enterChargeMode",
+    "enterChargeMode:\r\n Send EV_Enter_Charge_Mode event\r\n",
+    fakeEnter_Charge_Mode,
+    0 /* Number of parameters */
+};
+
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -858,5 +872,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&stopSendCellCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&fakeEnterChargeModeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }

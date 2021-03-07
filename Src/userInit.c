@@ -48,14 +48,13 @@ void userInit()
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
-
+    if (initBusVoltagesAndCurrentQueues() != HAL_OK) {
+        Error_Handler();
+    }
     if (stateMachineMockInit() != HAL_OK) {
         Error_Handler();
     }
     if (controlInit() != HAL_OK) {
-        Error_Handler();
-    }
-    if (initBusVoltagesAndCurrentQueues() != HAL_OK) {
         Error_Handler();
     }
     if (initPackVoltageQueue() != HAL_OK) {
