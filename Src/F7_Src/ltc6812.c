@@ -173,7 +173,7 @@
 #define SETBIT(value, bit) value |= (1 << (bit))
 #define ASSIGNBIT(value, newvalue, bit) value = ((value) & ~(1 << (bit))) | ((newvalue) << (bit))
 
-#define BATT_CONFIG_SIZE 6
+#define BATT_CONFIG_SIZE 6    // Size of Config per Register
 #define COMMAND_SIZE 2
 #define PEC_SIZE 2
 #define VOLTAGE_BLOCK_SIZE 6
@@ -215,7 +215,9 @@
 #define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
 
 // Configuration array
-static uint8_t m_batt_config[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
+static uint8_t m_batt_config_a[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
+
+static uint8_t m_batt_config_b[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
 // Convert from a channel to mux input to get that channel
 // There are acutally 13 temp channels on the board, but in software
@@ -264,10 +266,12 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
  */
 void batt_init_board_config(uint16_t board) 
 {
-    m_batt_config[board][0] = REFON(1) |        // Turn on reference
+    m_batt_config_a[board][0] = REFON(1) |          // Turn on reference
                             ADC_OPT(0);         // We use fast ADC speed so this has to be 0
-    m_batt_config[board][4] = 0x00;             // Disable the discharge bytes for now
-    m_batt_config[board][5] = 0x00;
+    m_batt_config_a[board][4] = 0x00;                 // Disable the discharge bytes for now
+    m_batt_config_a[board][5] = 0x00;
+    m_batt_config_b[board][0] & = 0x00;
+
 }
 
 /**
@@ -446,8 +450,13 @@ HAL_StatusTypeDef batt_write_config()
     const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
     uint8_t txBuffer[BUFF_SIZE];
 
+<<<<<<< HEAD
     if (batt_format_broadcast_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer) != HAL_OK) {
         ERROR_PRINT("Failed to format write config broadcast command\n");
+=======
+    if (batt_format_broadcast_command(WRCFGA_BYTE0, WRCFGA_BYTE1, txBuffer) != HAL_OK) {
+        ERROR_PRINT("Failed to send write config command\n");
+>>>>>>> 044285e (Sync Progress for Bay Work)
         return HAL_ERROR;
     }
 
@@ -461,11 +470,11 @@ HAL_StatusTypeDef batt_write_config()
         for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
         {
             txBuffer[startByte + dbyte]
-                = m_batt_config[board][dbyte];
+                = m_batt_config_a[board][dbyte];
         }
 
         // Data pec
-        batt_gen_pec(m_batt_config[board], BATT_CONFIG_SIZE,
+        batt_gen_pec(m_batt_config_a[board], BATT_CONFIG_SIZE,
                      &(txBuffer[startByte + BATT_CONFIG_SIZE]));
 
     }
@@ -477,7 +486,42 @@ HAL_StatusTypeDef batt_write_config()
         return HAL_ERROR;
     }
 
+<<<<<<< HEAD
     return HAL_OK;
+=======
+
+    // Same as the above just for B group
+    if (batt_format_broadcast_command(WRCFGB_BYTE0, WRCFGB_BYTE1, txBuffer) != HAL_OK) {
+        ERROR_PRINT("Failed to send write config command\n");
+        return HAL_ERROR;
+    }
+
+    memset(txBuffer, 0, sizeof(txBuffer));
+
+    for (int board = (NUM_BOARDS-1); board >= 0; board--) {
+        uint32_t boardConfigsWritten = (NUM_BOARDS - 1) - board;
+        size_t startByte = COMMAND_SIZE + PEC_SIZE + boardConfigsWritten * (BATT_CONFIG_SIZE + PEC_SIZE);
+
+        for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
+        {
+            txBuffer[startByte + dbyte]
+                = m_batt_config_b[board][dbyte];
+        }
+
+        // Data pec
+        batt_gen_pec(m_batt_config_b[board], BATT_CONFIG_SIZE,
+                     &(txBuffer[startByte + BATT_CONFIG_SIZE]));
+    }
+    
+    if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to transmit config to AMS board\n");
+        return HAL_ERROR;
+    }
+
+
+    return 0;
+>>>>>>> 044285e (Sync Progress for Bay Work)
 }
 
 /**
