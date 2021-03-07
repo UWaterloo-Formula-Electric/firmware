@@ -402,7 +402,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     ERROR_PRINT("INFO: VBatt %f\n", VBatt);
     ERROR_PRINT("INFO: IBus %f\n", IBus);
 
-    if (PC_MotorControllers) {
+    if (prechargeType == PC_MotorControllers) {
         float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
         minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
         DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
