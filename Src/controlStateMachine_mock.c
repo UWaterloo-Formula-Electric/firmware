@@ -343,8 +343,6 @@ static const CLI_Command_Definition_t fakeEnterChargeModeCommandDefinition =
     0 /* Number of parameters */
 };
 
-
-
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -768,8 +766,6 @@ static const CLI_Command_Definition_t stopSendCellCommandDefinition =
     stopSendCellCommand,
     0 /* Number of parameters */
 };
-
-
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
