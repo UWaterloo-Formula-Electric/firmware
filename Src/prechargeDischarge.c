@@ -287,6 +287,9 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
     if (VBus > packVoltage * PRECHARGE_STEP_2_VBUS_MAX_PERCENT_VPACK)
     {
+        // If pack is disconnected from any external load (motor controllers or charger)
+        // and DCDC is disconnected, this might error, probably a false positive
+        // Nothing to discharge VBUS
         ERROR_PRINT("ERROR: VBUS %f > %f\n", VBus,
                     packVoltage * PRECHARGE_STEP_2_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
