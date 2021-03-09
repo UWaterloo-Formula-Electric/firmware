@@ -20,7 +20,7 @@
 #include "debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include <string.h>
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define VOLTAGE_BLOCKS_PER_BOARD    5   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
@@ -202,6 +202,15 @@
 #define ADC_OPT(en) (en << 0) // Since we're using the normal 7kHz mode
 #define SWTRD(en) (en << 1) // We're not using the software time
 #define REFON(en) (en << 2)
+
+
+// These GPIO pins are on Register B
+#define GPIO9_POS 3
+#define GPIO8_POS 2
+#define GPIO7_POS 1
+#define GPIO6_POS 0
+
+//These GPIO pins are on Register A
 #define GPIO5_POS 7
 #define GPIO4_POS 6
 #define GPIO3_POS 5
@@ -220,9 +229,9 @@ static uint8_t m_batt_config_a[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_config_b[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
 // Convert from a channel to mux input to get that channel
-// There are acutally 13 temp channels on the board, but in software
-// we only use 12 for now
-uint8_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD] = {
+// The 8 least significant bits are register A
+// The 8 most significant bits are register B
+static const uint16_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD] = {
     0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x2, 0x3, 0x0, 0x1, 0xB, 0xC, 0xD, 0xE, 0xF };
 
 
@@ -270,8 +279,7 @@ void batt_init_board_config(uint16_t board)
                             ADC_OPT(0);         // We use fast ADC speed so this has to be 0
     m_batt_config_a[board][4] = 0x00;                 // Disable the discharge bytes for now
     m_batt_config_a[board][5] = 0x00;
-    m_batt_config_b[board][0] & = 0x00;
-
+    m_batt_config_b[board][0] = 0x00; // Clear GPIO, DCC and RSVD
 }
 
 /**
@@ -450,13 +458,8 @@ HAL_StatusTypeDef batt_write_config()
     const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
     uint8_t txBuffer[BUFF_SIZE];
 
-<<<<<<< HEAD
-    if (batt_format_broadcast_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer) != HAL_OK) {
-        ERROR_PRINT("Failed to format write config broadcast command\n");
-=======
     if (batt_format_broadcast_command(WRCFGA_BYTE0, WRCFGA_BYTE1, txBuffer) != HAL_OK) {
-        ERROR_PRINT("Failed to send write config command\n");
->>>>>>> 044285e (Sync Progress for Bay Work)
+        ERROR_PRINT("Failed to format write config broadcast command\n");
         return HAL_ERROR;
     }
 
@@ -486,9 +489,6 @@ HAL_StatusTypeDef batt_write_config()
         return HAL_ERROR;
     }
 
-<<<<<<< HEAD
-    return HAL_OK;
-=======
 
     // Same as the above just for B group
     if (batt_format_broadcast_command(WRCFGB_BYTE0, WRCFGB_BYTE1, txBuffer) != HAL_OK) {
@@ -521,7 +521,6 @@ HAL_StatusTypeDef batt_write_config()
 
 
     return 0;
->>>>>>> 044285e (Sync Progress for Bay Work)
 }
 
 /**
@@ -570,6 +569,7 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
     return HAL_OK;
 }
 
+<<<<<<< HEAD
 /**
  * @brief Read LTC6811 configuration from all AMS boards.
  *
@@ -579,12 +579,19 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
  * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef batt_read_config(uint8_t *rxBuffer)
+=======
+HAL_StatusTypeDef batt_read_config(uint8_t *config_a, uint8_t *config_b)
+>>>>>>> 190702d (Finish setting up LTC6812 B config)
 {
-    if (batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, rxBuffer, BATT_CONFIG_SIZE) != HAL_OK)
+    if (batt_read_data(RDCFGA_BYTE0, RDCFGA_BYTE1, config_a, BATT_CONFIG_SIZE) != HAL_OK)
     {
-        ERROR_PRINT("Failed to read config\n");
+        ERROR_PRINT("Failed to read config A\n");
         return HAL_ERROR;
     }
+    if(batt_read_data(RDCFGB_BYTE0, RDCFGB_BYTE1, config_b, BATT_CONFIG_SIZE) != HAL_OK){
+		ERROR_PRINT("Failed to read config B\n");
+		return HAL_ERROR;
+	}
 
     return HAL_OK;
 }
@@ -596,7 +603,8 @@ HAL_StatusTypeDef batt_read_config(uint8_t *rxBuffer)
  */
 HAL_StatusTypeDef batt_init()
 {
-    uint8_t configReadBuffer[BATT_CONFIG_SIZE * NUM_BOARDS] = {0};
+    uint8_t configReadBuffer_a[BATT_CONFIG_SIZE * NUM_BOARDS] = {0};
+    uint8_t configReadBuffer_b[BATT_CONFIG_SIZE * NUM_BOARDS] = {0};
 
     for (int board = 0; board < NUM_BOARDS; board++) {
         batt_init_board_config(board);
@@ -612,7 +620,7 @@ HAL_StatusTypeDef batt_init()
         return HAL_ERROR;
     }
 
-    if(batt_read_config(configReadBuffer) != HAL_OK) {
+    if(batt_read_config(configReadBuffer_a, configReadBuffer_b) != HAL_OK) {
         ERROR_PRINT("Failed to read batt config from boards\n");
         return HAL_ERROR;
     }
@@ -620,15 +628,20 @@ HAL_StatusTypeDef batt_init()
     vTaskDelay(T_REFUP_MS);
 
     for (int board = 0; board < NUM_BOARDS; board++) {
-        DEBUG_PRINT("Config Read (Board: %d): ", board);
+        DEBUG_PRINT("Config Read A (Board: %d): ", board);
         for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
-            DEBUG_PRINT("0x%x ", configReadBuffer[i]);
+            DEBUG_PRINT("0x%x ", configReadBuffer_a[i]);
             /*if (configReadBuffer[i] != m_batt_config[board][i]) {*/
                 /*ERROR_PRINT("Config read (%i) doesn't match written (%d) for board %d\n",*/
                             /*configReadBuffer[i], m_batt_config[board][i], board);*/
                 /*return HAL_ERROR;*/
             /*}*/
         }
+        DEBUG_PRINT("\n");
+		DEBUG_PRINT("Config Read B (Board: %d): ", board);
+        for(int i = 0;i < BATT_CONFIG_SIZE; i++) { 
+			DEBUG_PRINT("0x%x ", configReadBuffer_b[i]);
+		}
         DEBUG_PRINT("\n");
     }
 
@@ -815,11 +828,20 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
+<<<<<<< HEAD
         // Set the external MUX to channel we want to read. MUX pin is
         // selected via GPIO2, GPIO3, GPIO4, LSB first.
         uint8_t gpioPins = thermistorChannelToMuxLookup[channel];
         m_batt_config[board][0] = (1 << GPIO5_POS) | (gpioPins << GPIO1_POS)
                                     | REFON(1) | ADC_OPT(0);
+=======
+        // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
+        uint16_t gpioPins = thermistorChannelToMuxLookup[channel];
+        m_batt_config_a[board][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+
+        // We have this mask so we preserve the DCC config in the first 4 bits
+        m_batt_config_b[board][0] = (m_batt_config_b[board][0] & 0xFF00) | (gpioPins >> BITS_PER_BYTE);
+>>>>>>> 190702d (Finish setting up LTC6812 B config)
     }
 
     if (batt_write_config() != HAL_OK)
@@ -1075,38 +1097,36 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
 void batt_set_balancing_cell (int board, int cell)
 {
-    if (cell < 8) // 8 bits per byte in the register
-    {
-        SETBIT(m_batt_config[board][4], cell);
-    }
-    else
-    {
-        SETBIT(m_batt_config[board][5], cell - 8);
+    if (cell < 8) { // 8 bits per byte in the register
+        SETBIT(m_batt_config_a[board][4], cell);
+    } else if (cell < 12) { // This register byte only contains 4 bytes
+		SETBIT(m_batt_config_a[board][5], cell - 8);
+	} else {
+		// This register byte starts on the 5th(1 << 4) byte
+        SETBIT(m_batt_config_b[board][0], cell - 12 + 4);
     }
 }
 
 void batt_unset_balancing_cell (int board, int cell)
 {
-    if (cell < 8) // 8 bits per byte in the register
-    {
-        CLEARBIT(m_batt_config[board][4], cell);
-    }
-    else
-    {
-        CLEARBIT(m_batt_config[board][5], cell - 8);
-    }
+    if (cell < 8) { // 8 bits per byte in the register
+        CLEARBIT(m_batt_config_a[board][4], cell);
+    } else if (cell < 12){
+        CLEARBIT(m_batt_config_a[board][5], cell - 8);
+    } else {
+		CLEARBIT(m_batt_config_b[board][0], cell - 12 + 4);
+	}
 }
 
 bool batt_get_balancing_cell_state(int board, int cell)
 {
-    if (cell < 8) // 8 bits per byte in the register
-    {
-        return GETBIT(m_batt_config[board][4], cell);
-    }
-    else
-    {
-        return GETBIT(m_batt_config[board][5], cell - 8);
-    }
+    if (cell < 8) { // 8 bits per byte in the register
+        return GETBIT(m_batt_config_a[board][4], cell);
+    } else if (cell < 12) {
+        return GETBIT(m_batt_config_a[board][5], cell - 8);
+    } else {
+		return GETBIT(m_batt_config_b[board][0], cell - 12 + 4);
+	}
 }
 
 /**
@@ -1207,7 +1227,7 @@ HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length)
     }
 
     for (int board = 0; board < NUM_BOARDS; board++) {
-        m_batt_config[board][5] |= (length << 4);
+        m_batt_config_a[board][5] |= (length << 4);
     }
 
     return HAL_OK;
