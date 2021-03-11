@@ -1,0 +1,16 @@
+
+image: stronglytyped/arm-none-eabi-gcc
+
+pipelines:
+    default:
+        - step:
+            # too lazy to make a new docker base image
+            name: 'giant step'
+            script:
+            - apt-get update
+            - apt-get install -y python-minimal python-pip
+            - git submodule init
+            - git submodule update
+            - pip install -r common-all/requirements.txt
+            - make
+
