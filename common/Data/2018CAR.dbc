@@ -1,5 +1,6 @@
 VERSION "1"
 
+
 NS_ : 
 	NS_DESC_
 	CM_
@@ -166,6 +167,30 @@ BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
 
 BO_ 2558526465 BMU_CellVoltage: 8 BMU
+ SG_ VoltageCell84 m27 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell83 m27 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell82 m27 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell81 m26 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell80 m26 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell79 m26 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell78 m25 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell77 m25 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell76 m25 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell75 m24 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell74 m24 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell73 m24 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell72 m23 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell71 m23 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell68 m22 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell67 m22 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell66 m21 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell65 m21 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell64 m21 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell63 m20 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell62 m20 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell61 m20 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
  SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell02 m0 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
@@ -229,6 +254,42 @@ BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCell60 m19 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
 
 BO_ 2562720769 BMU_CellTemp: 8 BMU
+ SG_ TempCell96 m31 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell95 m31 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell94 m31 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell93 m30 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell92 m30 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell91 m30 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell90 m29 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell89 m29 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell88 m29 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell87 m28 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell86 m28 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell85 m28 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell84 m27 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell83 m27 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell82 m27 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell81 m26 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell80 m26 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell79 m26 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell78 m25 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell77 m25 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell76 m25 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell75 m24 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell74 m24 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell73 m24 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell72 m23 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell71 m23 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell70 m23 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell69 m22 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell68 m22 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell67 m22 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell66 m21 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell65 m21 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell64 m21 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell63 m20 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell62 m20 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempCell61 m20 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
  SG_ TempCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ TempCell01 m0 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
  SG_ TempCell02 m0 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
@@ -622,4 +683,3 @@ VAL_ 2214986243 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNE
 VAL_ 2214986243 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
 VAL_ 2281967617 StateBMS 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_ 2214596611 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
-
