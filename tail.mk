@@ -216,7 +216,7 @@ DEBUG_ELF_FILE = $(DEBUG_BIN_DIR)/$(ELF_FILE)
 DEBUG_MAP_FILE = $(DEBUG_BIN_DIR)/$(MAP_FILE)
 DEBUG_OBJS = $(SRC:%.c=$(DEBUG_BIN_DIR)/%.o) $(SRCASM:%.s=$(DEBUG_BIN_DIR)/%.o)
 
-.PHONY: clean all debug release load connect connect-rtos gdb autogen
+.PHONY: clean test all debug release load connect connect-rtos gdb autogen
 
 #
 # Default build
