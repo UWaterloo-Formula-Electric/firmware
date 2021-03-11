@@ -167,30 +167,30 @@ BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
 
 BO_ 2558526465 BMU_CellVoltage: 8 BMU
- SG_ VoltageCell84 m27 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell83 m27 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell82 m27 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell81 m26 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell80 m26 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell79 m26 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell78 m25 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell77 m25 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell76 m25 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell75 m24 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell74 m24 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell73 m24 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell72 m23 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell71 m23 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell68 m22 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell67 m22 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell66 m21 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell65 m21 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell64 m21 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell63 m20 : 40|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell62 m20 : 24|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
- SG_ VoltageCell61 m20 : 8|16@1+ (0.0001,0) [0|6.5535] "V" Vector__XXX
+ SG_ VoltageCell84 m27 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell83 m27 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell82 m27 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell81 m26 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell80 m26 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell79 m26 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell78 m25 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell77 m25 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell76 m25 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell75 m24 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell74 m24 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell73 m24 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell72 m23 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell71 m23 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell68 m22 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell67 m22 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell66 m21 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell65 m21 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell64 m21 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell63 m20 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell62 m20 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell61 m20 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
  SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell02 m0 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
