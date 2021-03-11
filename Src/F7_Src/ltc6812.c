@@ -569,7 +569,6 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
     return HAL_OK;
 }
 
-<<<<<<< HEAD
 /**
  * @brief Read LTC6811 configuration from all AMS boards.
  *
@@ -578,10 +577,7 @@ HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_
  *
  * @return HAL_StatusTypeDef
  */
-HAL_StatusTypeDef batt_read_config(uint8_t *rxBuffer)
-=======
 HAL_StatusTypeDef batt_read_config(uint8_t *config_a, uint8_t *config_b)
->>>>>>> 190702d (Finish setting up LTC6812 B config)
 {
     if (batt_read_data(RDCFGA_BYTE0, RDCFGA_BYTE1, config_a, BATT_CONFIG_SIZE) != HAL_OK)
     {
@@ -828,20 +824,12 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
-<<<<<<< HEAD
-        // Set the external MUX to channel we want to read. MUX pin is
-        // selected via GPIO2, GPIO3, GPIO4, LSB first.
-        uint8_t gpioPins = thermistorChannelToMuxLookup[channel];
-        m_batt_config[board][0] = (1 << GPIO5_POS) | (gpioPins << GPIO1_POS)
-                                    | REFON(1) | ADC_OPT(0);
-=======
         // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
         uint16_t gpioPins = thermistorChannelToMuxLookup[channel];
         m_batt_config_a[board][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0);
 
         // We have this mask so we preserve the DCC config in the first 4 bits
         m_batt_config_b[board][0] = (m_batt_config_b[board][0] & 0xFF00) | (gpioPins >> BITS_PER_BYTE);
->>>>>>> 190702d (Finish setting up LTC6812 B config)
     }
 
     if (batt_write_config() != HAL_OK)
