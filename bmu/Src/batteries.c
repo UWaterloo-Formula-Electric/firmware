@@ -172,7 +172,7 @@ bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above high temperature warning limit
  */
-bool warningSentForCellTemp[TEMPCELL_COUNT];
+bool warningSentForChannelTemp[TEMPCHANNEL_COUNT];
 
 /**
  * Since some thermistors don't give accurate readings (as of June 2020 not
@@ -181,22 +181,22 @@ bool warningSentForCellTemp[TEMPCELL_COUNT];
  * ones checked to ensure they are within safe limits and to determine min and
  * max temperatures.
  */
-bool isTempCellWorking[TEMPCELL_COUNT] = {
+bool isTempChannelWorking[TEMPCHANNEL_COUNT] = {
 /*
- * 0    1       2      3      4      5      6      7     8      9      10    11
+ * 0    1       2      3      4      5      6      7     8      9      10    11     12    13
  */
 // Board 1
-false, true , true , false, true , true , true , true , true , true , false, false,
+true , true , true , false, true , true , true , true , true , true , false, false, true, true,
 // Board 2
-false, false, true , false, false, true , true , true , true , true , false, false,
-// Board 3
-false, false, false, false, true , false, false, true , true , false, true , false,
-// Board 4
-false, false, false, false, false, false, false, false, false, false, false, false,
-// Board 5
-false, true , true , false, false, false, false, true , true , true , false, false,
+true , true , true , false, true , true , true , true , true , true , false, false, true, true,
+/*// Board 3*/
+true , true , false, false, true , false, false, true , true , false, true , true , true, true,
+/*// Board 4*/
+false, false, false, false, false, false, false, false, false, false, false, false, true, true,
+/*// Board 5*/
+false, true , true , false, false, false, false, true , true , true , false, false, true, true,
 // Board 6
-// false, false, false, false, false, false, false, false, false, false, false, false,
+false, false, false, false, false, false, false, false, false, false, false, false, true, true
 };
 
 #define NUM_SOC_LOOKUP_VALS 101
@@ -602,7 +602,7 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
    /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
    /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
 
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
+   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -635,10 +635,10 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
       VoltageCell[i] = initVoltage;
       warningSentForCellVoltage[i] = false;
    }
-   for (int i=0; i < TEMPCELL_COUNT; i++)
+   for (int i=0; i<= TEMPCHANNEL_COUNT; i++)
    {
-      TempCell[i] = initTemp;
-      warningSentForCellTemp[i] = false;
+      TempChannel[i] = initTemp;
+      warningSentForChannelTemp[i] = false;
    }
 
    return HAL_OK;
@@ -746,7 +746,7 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
  * limits, as well as sending out warnings when the values get close to their
  * limits and updating max/min voltages/temps and calculated pack voltage
  * NB: This skips checking temperatures of cells specified as having faulty
- * measurements in @ref isTempCellWorking array
+ * measurements in @ref isTempChannelWorking array
  *
  * @param[out] maxVoltage The cell voltage of the cell with the max voltage
  * @param[out] minVoltage The cell voltage of the cell with the min voltage
@@ -806,34 +806,34 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure;
    }
 
-   for (int i=0; i < TEMPCELL_COUNT; i++)
+   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
    {
-      measure = TempCell[i];
+      measure = TempChannel[i];
 
-      if (!isTempCellWorking[i]) { continue; }
+      if (!isTempChannelWorking[i]) { continue; }
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
-         ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
+         ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
          sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
          rc = HAL_ERROR;
       } else if (measure > CELL_OVERTEMP_WARNING) {
-         if (!warningSentForCellTemp[i]) {
-            ERROR_PRINT("WARN: Cell %d is high temp at %f deg C\n", i, measure);
+         if (!warningSentForChannelTemp[i]) {
+            ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
             sendDTC_WARNING_CELL_TEMP_HIGH(i);
-            warningSentForCellTemp[i] = true;
+            warningSentForChannelTemp[i] = true;
          }
       } else if(measure < CELL_UNDERTEMP){
          ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
 		 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
 		 rc = HAL_ERROR;
       } else if(measure < CELL_UNDERTEMP_WARNING){
-      	 if(!warningSentForCellTemp[i]) {
+      	 if(!warningSentForChannelTemp[i]) {
 			ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
 			sendDTC_WARNING_CELL_TEMP_LOW(i);
-			warningSentForCellTemp[i] = true;
+			warningSentForChannelTemp[i] = true;
 		 }
-      } else if (warningSentForCellTemp[i] == true) {
-         warningSentForCellTemp[i] = false;
+      } else if (warningSentForChannelTemp[i] == true) {
+         warningSentForChannelTemp[i] = false;
       }
 
       // Update max voltage
@@ -1592,7 +1592,7 @@ void canSendCellTask(void *pvParameters)
     }
 
     sendCAN_BMU_CellVoltage(cellIdxToSend);
-    sendCAN_BMU_CellTemp(cellIdxToSend);
+    sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
     // Move on to next cells
     // 3 Cells per CAN message
