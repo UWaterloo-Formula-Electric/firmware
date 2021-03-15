@@ -15,14 +15,15 @@ Initialize the repository with:
 ```
 
 This is will:
-* Download Buildroot
-* Patch Buildroot with any out-of-tree configuration that may be
+
+1. Download Buildroot
+2. Patch Buildroot with any out-of-tree configuration that may be
 required.
-* Then set the repo folder as the out-of-tree build folder. 
-This keeps all of the build information outside of the Buildroot
+3. Then set the repo folder as the out-of-tree build folder. This keeps all of
+the build information (compiled binaries, etc.) outside of the Buildroot
 folder, basically just using the Buildroot repository as a source of
-configuration. This allows versions of Buildroot to be interchanged 
-relatively easily if necessary.
+configuration. This allows versions of Buildroot to be interchanged relatively
+easily if necessary.
 
 ## Building
 
