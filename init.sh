@@ -17,7 +17,33 @@ then
 		echo "Error: Specified BR_VER did not exist."
 	fi
 else
-	echo "Error: Did not clone Buildroot as a repo. Look above for errors."
+	echo "Error: Problem cloning Buildroot repo. Look above for errors."
+        exit 1
 fi
 
+# After downloading the right version, apply some patches that are not
+# yet merged to the stable branch we want to use
+
+PATCHES=$(ls $(pwd)/board/wfe/beaglebone/patches/buildroot/*.patch)
+
+for PATCH in $PATCHES
+do
+    echo "Processing $PATCH... "
+    git -C $BR_FOLDER am "$PATCH"
+    STATUS=$?
+    if [ ! $STATUS ]
+    then
+        echo "Failed."
+        exit 1
+    fi
+
+done
+
+echo "Patching $BR_FOLDER succeeded."
+
+
+# Load the out-of-tree build configuration and the default defconfig
+# we wish to use
+
 make -C $BR_FOLDER BR2_EXTERNAL=.. O=$(pwd) beaglebone_wfe_defconfig
+
