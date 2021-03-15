@@ -174,31 +174,6 @@ bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
  */
 bool warningSentForChannelTemp[TEMPCHANNEL_COUNT];
 
-/**
- * Since some thermistors don't give accurate readings (as of June 2020 not
- * sure why, but maybe due to bad mechanical connections) this array specifies
- * which temperature readings are working. The working readings are the only
- * ones checked to ensure they are within safe limits and to determine min and
- * max temperatures.
- */
-bool isTempChannelWorking[TEMPCHANNEL_COUNT] = {
-/*
- * 0    1       2      3      4      5      6      7     8      9      10    11     12    13
- */
-// Board 1
-true , true , true , false, true , true , true , true , true , true , false, false, true, true,
-// Board 2
-true , true , true , false, true , true , true , true , true , true , false, false, true, true,
-/*// Board 3*/
-true , true , false, false, true , false, false, true , true , false, true , true , true, true,
-/*// Board 4*/
-false, false, false, false, false, false, false, false, false, false, false, false, true, true,
-/*// Board 5*/
-false, true , true , false, false, false, false, true , true , true , false, false, true, true,
-// Board 6
-false, false, false, false, false, false, false, false, false, false, false, false, true, true
-};
-
 #define NUM_SOC_LOOKUP_VALS 101
 
 /**
@@ -745,8 +720,6 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
  * @brief Checks cell voltages and temperatures to ensure they are within safe
  * limits, as well as sending out warnings when the values get close to their
  * limits and updating max/min voltages/temps and calculated pack voltage
- * NB: This skips checking temperatures of cells specified as having faulty
- * measurements in @ref isTempChannelWorking array
  *
  * @param[out] maxVoltage The cell voltage of the cell with the max voltage
  * @param[out] minVoltage The cell voltage of the cell with the min voltage
@@ -810,7 +783,6 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    {
       measure = TempChannel[i];
 
-      if (!isTempChannelWorking[i]) { continue; }
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
          ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);

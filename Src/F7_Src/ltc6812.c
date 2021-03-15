@@ -228,12 +228,6 @@ static uint8_t m_batt_config_a[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
 static uint8_t m_batt_config_b[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
-// Convert from a channel to mux input to get that channel
-// The 8 least significant bits are register A
-// The 8 most significant bits are register B
-static const uint16_t thermistorChannelToMuxLookup[TEMP_CHANNELS_PER_BOARD] = {
-    0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x2, 0x3, 0x0, 0x1, 0xB, 0xC, 0xD, 0xE, 0xF };
-
 
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
@@ -612,7 +606,7 @@ HAL_StatusTypeDef batt_init()
     }
 
     if(batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to write batt config to boards\n");
+    	ERROR_PRINT("Failed to write batt config to boards\n");
         return HAL_ERROR;
     }
 
@@ -825,7 +819,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     for (int board = 0; board < NUM_BOARDS; board++)
     {
         // Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-        uint16_t gpioPins = thermistorChannelToMuxLookup[channel];
+        uint16_t gpioPins = channel;
         m_batt_config_a[board][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0);
 
         // We have this mask so we preserve the DCC config in the first 4 bits
@@ -1087,10 +1081,12 @@ void batt_set_balancing_cell (int board, int cell)
 {
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config_a[board][4], cell);
-    } else if (cell < 12) { // This register byte only contains 4 bytes
+    } else if (cell < 12) { // This register byte only contains 4 bits
 		SETBIT(m_batt_config_a[board][5], cell - 8);
 	} else {
-		// This register byte starts on the 5th(1 << 4) byte
+		// cell - 12 + 4
+		// The 12 is because the first DCC bit on m_batt_config_b is cell 12(0 indexed)
+		// The 4 is because DCC13(1 indexed) is on the (1<<4) bit 
         SETBIT(m_batt_config_b[board][0], cell - 12 + 4);
     }
 }
