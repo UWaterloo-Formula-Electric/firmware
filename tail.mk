@@ -363,7 +363,7 @@ else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
 
-autogen: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h
+autogen: $(GEN_FILES)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
