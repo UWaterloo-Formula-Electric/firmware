@@ -152,7 +152,7 @@ void faultMonitorTask(void *pvParameters)
        DEBUG_PRINT("Fault Monitor: This is IL_F in the 2019_BMU schematic.\n");
        DEBUG_PRINT("Fault Monitor: Things to check:\n");
        DEBUG_PRINT("Fault Monitor:  * IMD has not faulted.\n");
-       DEBUG_PRINT("Fault Monitor:  * BSPD is in `on` position.\n");
+       DEBUG_PRINT("Fault Monitor:  * TSMS is in `on` position.\n");
    }
 
    while (getIL_Status() == false) {
