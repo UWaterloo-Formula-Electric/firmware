@@ -79,7 +79,7 @@ uint32_t toggleEM(uint32_t event)
     {
         /* Only ring buzzer when going to motors enabled */
         DEBUG_PRINT("Kicking off buzzer\n");
-        if (buzzerTimerStarted == false)
+        if (!buzzerTimerStarted)
         {
             if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
             {
@@ -185,7 +185,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    if (alreadyDebouncing == true)
+    if (alreadyDebouncing)
     {
         /* Already debouncing, do nothing with this interrupt */
         return;
@@ -242,8 +242,9 @@ void buzzerTimerCallback(TimerHandle_t timer)
 
 void mainTaskFunction(void const * argument){
     DEBUG_PRINT("Starting up!!\n");
-    if (canStart(&CAN_HANDLE) != HAL_OK) {
-        ERROR_PRINT("Failed to start can\n");
+    if (canStart(&CAN_HANDLE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start CAN!\n");
         Error_Handler();
     }
 
@@ -253,14 +254,20 @@ void mainTaskFunction(void const * argument){
                                     0,
                                     buzzerTimerCallback);
 
+    if (buzzerSoundTimer == NULL)
+    {
+        ERROR_PRINT("Failed to create buzzer timer!\n");
+        Error_Handler();
+    }
+
     debounceTimer = xTimerCreate("DebounceTimer",
                                  pdMS_TO_TICKS(DEBOUNCE_WAIT_MS),
                                  pdFALSE /* Auto Reload */,
                                  0,
                                  debounceTimerCallback);
 
-    if (buzzerSoundTimer == NULL) {
-        ERROR_PRINT("Failed to create buzzer timer\n");
+    if (debounceTimer == NULL) {
+        ERROR_PRINT("Failed to create debounce timer!\n");
         Error_Handler();
     }
 
