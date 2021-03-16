@@ -166,6 +166,7 @@ BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
 
 BO_ 2558526465 BMU_CellVoltage: 8 BMU
+ SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell02 m0 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell03 m0 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
@@ -250,9 +251,9 @@ BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCell82 m27 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
  SG_ VoltageCell83 m27 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
  SG_ VoltageCell84 m27 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
- SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
 
 BO_ 2562720769 BMU_ChannelTemp: 8 BMU
+ SG_ TempChannelMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ TempChannel01 m0 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
  SG_ TempChannel02 m0 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
  SG_ TempChannel03 m0 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
@@ -349,7 +350,6 @@ BO_ 2562720769 BMU_ChannelTemp: 8 BMU
  SG_ TempChannel94 m31 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
  SG_ TempChannel95 m31 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
  SG_ TempChannel96 m31 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
- SG_ TempChannelMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
 
 BO_ 2281703170 VCU_Status: 8 VCU_F7
  SG_ SpeedVehicleVCU : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,DCU
