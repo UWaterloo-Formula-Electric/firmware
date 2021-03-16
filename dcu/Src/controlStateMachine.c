@@ -75,23 +75,6 @@ uint32_t toggleHV(uint32_t event)
 
 uint32_t toggleEM(uint32_t event)
 {
-    if (fsmGetState(&DCUFsmHandle) == STATE_HV_Enable)
-    {
-        /* Only ring buzzer when going to motors enabled */
-        DEBUG_PRINT("Kicking off buzzer\n");
-        if (!buzzerTimerStarted)
-        {
-            if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
-            {
-                ERROR_PRINT("Failed to start buzzer timer\n");
-                Error_Handler();
-            }
-
-            buzzerTimerStarted = true;
-            BUZZER_ON
-        }
-    }
-
     DEBUG_PRINT("Sending EM Toggle button event\n");
     if (sendEMToggleMsg() != HAL_OK)
     {
@@ -121,6 +104,21 @@ uint32_t emControl(uint32_t event)
     if(getEMState() == EM_State_On)
     {
         DEBUG_PRINT("Response from VCU: EM Enabled\n");
+
+        /* Only ring buzzer when going to motors enabled */
+        DEBUG_PRINT("Kicking off buzzer\n");
+        if (!buzzerTimerStarted)
+        {
+            if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
+            {
+                ERROR_PRINT("Failed to start buzzer timer\n");
+                Error_Handler();
+            }
+
+            buzzerTimerStarted = true;
+            BUZZER_ON
+        }
+
         return STATE_EM_Enable;
     }
     else
