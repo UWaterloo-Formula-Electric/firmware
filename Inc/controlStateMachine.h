@@ -10,12 +10,14 @@ typedef enum DCU_States_t {
     STATE_EM_Enable,
     STATE_ANY,
 } DCU_States_t;
+
 typedef enum DCU_Events_t {
     EV_HV_Toggle = 0,
     EV_EM_Toggle,
     EV_CAN_Recieve,
     EV_ANY,
 } DCU_Events_t;
+
 FSM_Handle_Struct DCUFsmHandle;
 HAL_StatusTypeDef dcuFsmInit();
 
