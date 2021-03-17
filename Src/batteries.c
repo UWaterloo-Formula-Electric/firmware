@@ -772,7 +772,6 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       measure = TempCell[i];
 
       if (!isTempCellWorking[i]) { continue; }
-
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
          ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
@@ -785,11 +784,15 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             warningSentForCellTemp[i] = true;
          }
       } else if(measure < CELL_UNDERTEMP){
-          // TODO: Determine if we need to send DTC
-          // Do we need to send DTC for undertemps?
          ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+		 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
+		 rc = HAL_ERROR;
       } else if(measure < CELL_UNDERTEMP_WARNING){
-         ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+      	 if(!warningSentForCellTemp[i]) {
+			ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+			sendDTC_WARNING_CELL_TEMP_LOW(i);
+			warningSentForCellTemp[i] = true;
+		 }
       } else if (warningSentForCellTemp[i] == true) {
          warningSentForCellTemp[i] = false;
       }
