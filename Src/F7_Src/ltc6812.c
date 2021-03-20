@@ -107,7 +107,7 @@
 #define RDCFGA_BYTE1 0x02
 
 #define RDCFGB_BYTE0 (0x00)
-#define RDCFGB_BYTE1 0x16
+#define RDCFGB_BYTE1 0x26
 
 #define RDCVA_BYTE0 (0x00)
 #define RDCVA_BYTE1 0x04
