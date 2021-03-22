@@ -23,9 +23,11 @@ class CanMonitor(QueueDataPublisher):
         logging.info("Initializing CAN monitor on {}".format(self.interface))
         self.can_bus = can.interface.Bus(self.interface, bustype='socketcan')
         self.db = cantools.database.load_file(dbc)
+
+        self.monitoring = True
         
     def monitor_bus(self, timeout=60):
-        while True:
+        while self.monitoring:
             # can_bus.recv is blocking, is unblocked after timeout
             message = self.can_bus.recv(timeout)
             if message is None:
@@ -61,7 +63,6 @@ class CanMonitor(QueueDataPublisher):
             })
 
             self.send(can_packet)
-
 
 if __name__ == "__main__":
     monitor = CanMonitor()
