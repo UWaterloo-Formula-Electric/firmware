@@ -1,0 +1,2 @@
+// Struct and signal receive functions for multiplexed msg ${msgName}
+volatile ${dataType} ${signalName}[${count}];

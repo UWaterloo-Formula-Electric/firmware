@@ -1,0 +1,4 @@
+//DBC Version:
+int ${charger}DBCVersion = ${version};
+${gitFill}
+
