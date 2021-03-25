@@ -1,15 +1,17 @@
-#!/usr/bin/python3
-
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
-from PySide2.QtCore import *
-
 import sys
 import math
 import random
+
+import time
 import threading
 
-from time import sleep
+import cantools
+
+from PySide2.QtWidgets import QApplication, QWidget
+from PySide2.QtGui import QColor, QFont, QPainter, QPalette, QPen, Qt
+from PySide2.QtCore import QTimer
+
+from connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
     
@@ -18,32 +20,32 @@ class Dashboard(QWidget):
 
         self.queue_data = queue_data
 
-        # if the corresponding properties are greater than these values,
+        # If the corresponding properties are greater than these values,
         # their respective dials display in red
         self.OVER_SPEED = 200
         self.OVER_TEMP = 40
         self.OVER_VOLTAGE = 30
         
-        # set window title
+        # Set window title
         self.setWindowTitle("WFE Dashboard")
 
         self.width = 800
         self.height = 480
 
-        # radii of big and small dials
+        # Radii of big and small dials
         self.r_big = 320
         self.r_small = 200
         
-        # set window size
+        # Set window size
         self.setGeometry(10, 10, self.width, self.height)
 
-        # set window position to center of screen
+        # Set window position to center of screen
         qtRectangle = self.frameGeometry()
         centerPoint = app.primaryScreen().availableGeometry().center()
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft());
 
-        # set background to black
+        # Set background to black
         pal = self.palette()
         pal.setColor(QPalette.Background, Qt.black)
         self.setAutoFillBackground(True)
@@ -110,7 +112,7 @@ class Dashboard(QWidget):
                                  text_x_offset=20)
         
 
-        # update values every 100 milliseconds
+        # Update values every 100 milliseconds
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
@@ -127,8 +129,11 @@ class Dashboard(QWidget):
             # if there_are_errors:
             #     self.error_display.set_value(error_message)
             #     self.error_display.set_colour(Qt.red)
+            # else:
+            #     self.error_display.set_value("None")
+            #     self.error_display.set_colour(Qt.white)
 
-        battery_val = round(float(CAN_data["battery"])*100, 1)
+        battery_val = CAN_data["battery"]
         self.battery_display.set_value("{}%".format(battery_val))
         if battery_val > 66:
             self.battery_display.set_colour(Qt.green)
@@ -137,14 +142,14 @@ class Dashboard(QWidget):
         else:
             self.battery_display.set_colour(Qt.red)
 
-        self.speed_dial.set_value(round(float(CAN_data["speed"]), 1))
-        self.temp_dial.set_value(round(float(CAN_data["temperature"]), 1))
-        self.voltage_dial.set_value(round(float(CAN_data["voltage"]), 1))
+        self.speed_dial.set_value(CAN_data["speed"])
+        self.temp_dial.set_value(CAN_data["temperature"])
+        self.voltage_dial.set_value(CAN_data["voltage"])
 
         self.repaint()
 
 
-    # repaints canvas, called automatically with self.repaint()
+    # Repaints canvas, called automatically with self.repaint()
     def paintEvent(self, event):
         qp = QPainter(self)
 
@@ -170,9 +175,9 @@ class Dial:
 
         self.x = x
         self.y = y
-        # radius of arc
+        # Radius of arc
         self.radius = radius
-        # thickness of arc
+        # Thickness of arc
         self.thickness = thickness
         
         self.min_val = min_val
@@ -180,7 +185,7 @@ class Dial:
         self.over_val = over_val
         self.val = min_val
 
-        # in PyQt, angles in degrees must be multiplied by 16
+        # In PyQt/PySide, angles in degrees must be multiplied by 16
         self.start_ang = start_ang * 16
         self.span_ang = span_ang * 16
 
@@ -193,10 +198,10 @@ class Dial:
         self.text_font_size = self.radius // 16
 
 
-    # drawing dial
+    # Drawing dial
     def draw(self, qp):
 
-        # grey arc, shows total span of dial
+        # Grey arc, shows total span of dial
         qp.setPen(QPen(Qt.darkGray, self.thickness, Qt.SolidLine))
         qp.drawArc(self.x, self.y, self.radius, self.radius, self.start_ang, self.span_ang)        
 
@@ -205,13 +210,13 @@ class Dial:
         qp.setPen(pen)
         span_ang = ((self.val - self.min_val) / (self.max_val - self.min_val)) * self.span_ang
 
-        # coloured arc on top of grey arc, shows current span of dial
+        # Coloured arc on top of grey arc, shows current span of dial
         qp.drawArc(self.x, self.y, self.radius, self.radius, self.start_ang, span_ang)
 
         qp.setPen(Qt.white)
         qp.setFont(QFont('Arial', self.val_font_size))
 
-        # display value
+        # Display value
         qp.drawText(self.x + self.text_x_offset,
                     self.y - self.radius * 0.075,
                     self.radius,
@@ -245,7 +250,7 @@ class TextDisplay:
         self.colour = colour
         self.align = align
         
-        # creates padding around window edge
+        # Creates padding around window edge
         self.x = self.parent.width * 0.05 / 2
         self.y = self.parent.height * 0.05 / 2
         self.width = self.parent.width * 0.95
@@ -292,27 +297,70 @@ class QueueData:
 class QueueThread(threading.Thread):
     """ Collects data from zmq message queue in the "background". """
 
-    def __init__(self, queue_data):
+    DEFAULT_DBC = "common-all/Data/2018CAR.dbc"
+
+    def __init__(self, queue_data, dbc=DEFAULT_DBC):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
-        # TODO: initialize zmq, subscribe to queue
+        self.dashboard_subscriber = DashboardSubscriber()
+        self.db = cantools.database.load_file(dbc)
+
+    # Convert motor RPM to km/h
+    def get_speed_kph_from_rpm(self, new_speed_rpm, current_speed_kph):
+        radius = 9              # Inches (wheel radius)
+        in_to_km = 0.001524     # Inches to km conversion
+        sprocket_ratio = 52/15  # Motor sprocket to wheel sprocket ratio
+        new_speed_kph = (new_speed_rpm * in_to_km * sprocket_ratio * 2 * math.pi * radius)
+        return (0.5 * (current_speed_kph + new_speed_kph))
 
     def run(self):
-        while 1:
-            # TODO: fetch queue data
-            # TODO: parse queue data, send as appropriate
-            self.queue_data.push("speed", 20)
-            self.queue_data.push("temperature", 30.4)
-            self.queue_data.push("voltage", 12)
-            self.queue_data.push("battery", 0.623)
-            payload = [
-                "CAN Message: Test\n",
-                "CAN Message: Test\n"
-            ]
+        speed = 0
+        while True:
+            can_packet = self.dashboard_subscriber.recv()
 
-            self.queue_data.push("dtc_message_payload", payload)
-            sleep(2)
+            # BMU_stateBatteryHV
+            if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBatteryHV").frame_id:
+                voltage = can_packet["signals"]["VoltageBatteryHV"]
+                self.queue_data.push("voltage", round(voltage, 1))
+
+            # BMU_batteryStatusHV
+            elif can_packet["frame_id"] == self.db.get_message_by_name("BMU_batteryStatusHV").frame_id:
+                battery = can_packet["signals"]["StateBatteryChargeHV"]
+                self.queue_data.push("battery", round(battery, 1))
+                temp = can_packet["signals"]["TempCellMax"]
+                self.queue_data.push("temperature", round(temp, 1))
+
+            # SpeedFeedbackRight, SpeedFeedbackLeft
+            elif can_packet["frame_id"] in [self.db.get_message_by_name("SpeedFeedbackRight").frame_id,
+                                            self.db.get_message_by_name("SpeedFeedbackLeft").frame_id]:
+                current_speed = 0
+                if can_packet["frame_id"] == self.db.get_message_by_name("SpeedFeedbackRight").frame_id:
+                    current_speed = can_packet["signals"]["SpeedMotorRight"]
+                else:
+                    current_speed = can_packet["signals"]["SpeedMotorLeft"]
+                speed = self.get_speed_kph_from_rpm(current_speed, speed)
+                self.queue_data.push("speed", round(speed, 1))
+
+            # PDU_DTC, DCU_DTC, VCU_F7_DTC, BMU_DTC
+            elif can_packet["frame_id"] in [self.db.get_message_by_name("PDU_DTC").frame_id,
+                                            self.db.get_message_by_name("DCU_DTC").frame_id,
+                                            self.db.get_message_by_name("VCU_F7_DTC").frame_id,
+                                            self.db.get_message_by_name("BMU_DTC").frame_id]:
+                payload = [
+                    can_packet["signals"]["DTC_CODE"]
+                ]
+                self.queue_data.push("dtc_message_payload", payload)
+
+            time.sleep(0.001)
             
+
+class DashboardSubscriber(QueueDataSubscriber):
+    """ Subscribes dashboard to data using zmq """
+
+    def __init__(self):
+        super(DashboardSubscriber, self).__init__()
+        self.subscribe_to_packet_type("")
+
 
 if __name__ == "__main__":
     # Start thread in background to collect data
