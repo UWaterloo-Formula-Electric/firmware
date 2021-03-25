@@ -12,7 +12,10 @@
 #define SEND_FATAL_DTC CAT(sendDTC_FATAL_, CAT(BOARD_NAME, _ERROR))
 #define SEND_CRITICAL_DTC CAT(sendDTC_CRITICAL_, CAT(BOARD_NAME, _ERROR))
 
+#if BOARD_TYPE != NUCLEO_F7
 #define PRODUCTION_ERROR_HANDLING
+#endif
+
 
 // Reset the debug uart
 // This is done to clear the UART in case it is being used by the debug task,
