@@ -180,12 +180,12 @@ HAL_StatusTypeDef mcInit()
 
 HAL_StatusTypeDef mcShutdown()
 {
-    if (mcLeftCommand(0x4) != HAL_OK) {
+    if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
         return HAL_ERROR;
     }
 
-    if (mcRightCommand(0x4) != HAL_OK) {
+    if (mcRightCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Right");
         return HAL_ERROR;
     }
