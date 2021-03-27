@@ -48,50 +48,50 @@ Application/User
 ######################################
 # C sources
 LIB_C_SOURCES =  \
-Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c \
-Src/gpio.c \
-Src/main.c \
-Src/dma.c \
-Src/stm32f7xx_it.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
-Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
-Src/can.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
-Src/freertos.c \
-Src/adc.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_crc.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_crc_ex.c \
-Src/crc.c \
-Src/stm32f7xx_hal_msp.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
-Middlewares/Third_Party/FreeRTOS/Source/queue.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
-Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
-Middlewares/Third_Party/FreeRTOS/Source/timers.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
-Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
-Middlewares/Third_Party/FreeRTOS/Source/list.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
-Src/system_stm32f7xx.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
-Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
-Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
-Src/usart.c \
-Src/tim.c \
-Src/iwdg.c
+../../Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c \
+../../Src/gpio.c \
+../../Src/main.c \
+../../Src/dma.c \
+../../Src/stm32f7xx_it.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
+../../Src/can.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
+../../Src/freertos.c \
+../../Src/adc.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_crc.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_crc_ex.c \
+../../Src/crc.c \
+../../Src/stm32f7xx_hal_msp.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/queue.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/timers.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/list.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
+../..//Src/system_stm32f7xx.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
+../../Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
+../../Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
+../../Src/usart.c \
+../../Src/tim.c \
+../../Src/iwdg.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
@@ -137,14 +137,14 @@ LIB_AS_INCLUDES := $(addprefix -I, $(LIB_AS_INCLUDES))
 
 # C includes
 LIB_C_INCLUDES =  \
-Inc \
-Drivers/STM32F7xx_HAL_Driver/Inc \
-Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
-Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 \
-Drivers/CMSIS/Device/ST/STM32F7xx/Include \
-Middlewares/Third_Party/FreeRTOS/Source/include \
-Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
-Drivers/CMSIS/Include
+../../Inc \
+../../Drivers/STM32F7xx_HAL_Driver/Inc \
+../../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
+../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 \
+../../Drivers/CMSIS/Device/ST/STM32F7xx/Include \
+../../Middlewares/Third_Party/FreeRTOS/Source/include \
+../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
+../../Drivers/CMSIS/Include
 
 LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
 
