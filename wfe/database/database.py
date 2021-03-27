@@ -1,23 +1,26 @@
 import cantools
 import logging
 import os
+import pathlib
 import sqlite3
 from datetime import datetime, timedelta
 
-from database.schema import TableWriter
-from connect.connect import QueueDataSubscriber
-from connect.connect import CANPacket
+from wfe.database.schema import TableWriter
+from wfe.connect.connect import QueueDataSubscriber
+from wfe.connect.connect import CANPacket
 
 logging.basicConfig()
 logger = logging.getLogger()
 logging.getLogger().setLevel(logging.INFO)
+
+path = pathlib.Path(__file__).resolve().parent
 
 class Database(QueueDataSubscriber):
 
     DEFAULT_DB_PATH = '/tmp/wfe-data/'
 
     INSERT = "INSERT INTO {} VALUES ({})"
-    DEFAULT_DBC = os.path.join(path, "../common-all/Data/2018CAR.dbc")
+    DEFAULT_DBC = os.path.join(path, "../../common-all/Data/2018CAR.dbc")
 
     def __init__(self, custom_name=None):
         super(Database, self).__init__()
@@ -28,15 +31,15 @@ class Database(QueueDataSubscriber):
             os.makedirs(self.DEFAULT_DB_PATH)
 
         if custom_name:
-            db_name = self.DEFAULT_DB_PATH + custom_name
+            self.path = self.DEFAULT_DB_PATH + custom_name
         else:
-            db_name = self.DEFAULT_DB_PATH + 'can_data-{}.db'.format(date)
+            self.path = self.DEFAULT_DB_PATH + 'can_data-{}.db'.format(date)
 
-        tw = TableWriter(db_name)
+        tw = TableWriter(self.path)
         tw.parse_dbc(self.DEFAULT_DBC)
 
-        logger.info("Connecting to database '{}'".format(db_name))
-        self.conn = sqlite3.connect(db_name)
+        logger.info("Connecting to database '{}'".format(self.path))
+        self.conn = sqlite3.connect(self.path)
         self.c = self.conn.cursor()
         logger.info("Connected to database.")
 

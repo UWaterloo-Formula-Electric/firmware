@@ -1,6 +1,6 @@
 import unittest
 
-from packet import Packet, CANPacket, PacketSchemaException
+from wfe.connect.packet import Packet, CANPacket, PacketSchemaException
 
 class TestPacket(unittest.TestCase):
 

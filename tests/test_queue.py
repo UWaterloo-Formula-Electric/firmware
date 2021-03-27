@@ -1,6 +1,8 @@
 import unittest
 
-from car_queue import QueueSerializer
+from .context import wfe
+
+from wfe.connect.connect import QueueSerializer
 
 class TestSerializer(unittest.TestCase):
 

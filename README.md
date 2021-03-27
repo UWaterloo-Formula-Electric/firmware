@@ -49,6 +49,12 @@ In order to decode the messages, a DBC file is needed. The script by default req
 **TODO**:
 * Write an install script to install this script as a service that automatically runs
 
+## Running tests
+
+```
+python3 -m unittest tests/
+```
+
 ## Simulating CAN Messages
 
 For an extensive guide, refer to our [Confluence page](https://wiki.uwaterloo.ca/display/FESW/Simulation+of+CAN+Messages).

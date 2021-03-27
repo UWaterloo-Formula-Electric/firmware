@@ -1,8 +1,10 @@
 import unittest
 import os
 
-from database import Database
-from packet import Packet, CANPacket
+from .context import wfe
+
+from wfe.database.database import Database
+from wfe.connect.packet import Packet, CANPacket
 
 class TestDatabase(unittest.TestCase):
 
@@ -66,5 +68,5 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(insert, self.CAN_MULTIPLEXED_INSERT)
 
     def tearDown(self):
-        os.remove('databases/test')
+        os.remove(self.d.path)
 
