@@ -25,3 +25,5 @@ class CANPacket(Packet):
         self.verify_data(data)
         self.data = data
 
+    def __getitem__(self, key):
+        return self.data[key]
