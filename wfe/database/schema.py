@@ -1,10 +1,12 @@
 import cantools
 import sqlite3
 
+from wfe.util import default_dbc_path
+
 class TableWriter:
 
     CREATE_TABLE = "CREATE TABLE {} ({})"
-    DEFAULT_DBC = "../common-all/Data/2018CAR.dbc"
+    DEFAULT_DBC = default_dbc_path() 
 
     def __init__(self, sqlite_db):
         self.conn = sqlite3.connect(sqlite_db)
