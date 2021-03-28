@@ -22,7 +22,7 @@
 
 ## CAN Monitor
 
-Monitor incoming data off the default CAN interface (default `can0`) and send
+Monitor incoming data off the default CAN interface (default `can1`) and send
 it to a message queue to the display and a log database. 
 
 ## Installation
