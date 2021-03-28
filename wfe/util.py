@@ -1,5 +1,4 @@
-from inspect import getsourcefile
-from os.path import abspath
+import pkg_resources
 
 def default_dbc_path():
-    pass 
+    return pkg_resources.resource_filename(__name__, "common-all/Data/2018CAR.dbc")

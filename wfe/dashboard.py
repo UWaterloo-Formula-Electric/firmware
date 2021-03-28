@@ -11,7 +11,8 @@ from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtGui import QColor, QFont, QPainter, QPalette, QPen, Qt
 from PySide2.QtCore import QTimer
 
-from connect.connect import QueueDataSubscriber
+from wfe.util import default_dbc_path
+from wfe.connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
     
@@ -299,7 +300,7 @@ class QueueThread(threading.Thread):
 
     DEFAULT_DBC = "common-all/Data/2018CAR.dbc"
 
-    def __init__(self, queue_data, dbc=DEFAULT_DBC):
+    def __init__(self, queue_data, dbc=default_dbc_path()):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
         self.dashboard_subscriber = DashboardSubscriber()
@@ -362,7 +363,7 @@ class DashboardSubscriber(QueueDataSubscriber):
         self.subscribe_to_packet_type("")
 
 
-if __name__ == "__main__":
+def main():
     # Start thread in background to collect data
     data = QueueData()
     queue_thread = QueueThread(data)
@@ -376,4 +377,6 @@ if __name__ == "__main__":
     # run application until user closes it
     sys.exit(app.exec_())
 
+if __name__ == "__main__":
+     main()
 

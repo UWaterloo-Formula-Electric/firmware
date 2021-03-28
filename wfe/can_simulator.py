@@ -10,7 +10,7 @@ import threading
 import can
 import cantools
 
-from can_monitor import CanMonitor
+from wfe.can_monitor import CanMonitor
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -133,7 +133,8 @@ def get_arguments():
     args = parser.parse_args()
     return args.dbc, args.json, args.time
 
-if __name__ == "__main__":
+
+def main():
     dbc_file, json_file, duration = get_arguments()
 
     can_simulator = CanSimulator()
@@ -155,3 +156,6 @@ if __name__ == "__main__":
     can_monitor.monitoring = False
     monitor_thread.join()
     logging.info("CAN simulator and monitor threads have ended!")
+
+if __name__ == "__main__":
+    main()

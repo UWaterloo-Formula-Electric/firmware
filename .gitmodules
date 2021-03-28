@@ -1,3 +1,4 @@
-[submodule "app/common-all"]
-	path = app/common-all
+[submodule "wfe/common-all"]
+	path = wfe/common-all
 	url = git@bitbucket.org:waterloohybrid/common-all.git
+        branch = develop

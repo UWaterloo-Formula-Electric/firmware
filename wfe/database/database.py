@@ -9,6 +9,8 @@ from wfe.database.schema import TableWriter
 from wfe.connect.connect import QueueDataSubscriber
 from wfe.connect.connect import CANPacket
 
+from wfe.util import default_dbc_path
+
 logging.basicConfig()
 logger = logging.getLogger()
 logging.getLogger().setLevel(logging.INFO)
@@ -20,7 +22,7 @@ class Database(QueueDataSubscriber):
     DEFAULT_DB_PATH = '/tmp/wfe-data/'
 
     INSERT = "INSERT INTO {} VALUES ({})"
-    DEFAULT_DBC = os.path.join(path, "../../common-all/Data/2018CAR.dbc")
+    DEFAULT_DBC = default_dbc_path()
 
     def __init__(self, custom_name=None):
         super(Database, self).__init__()
@@ -123,4 +125,9 @@ class Database(QueueDataSubscriber):
 
         return table_name, signals
 
+def main():
+    database = Database()
+    database.run()
 
+if __name__ == "__main__":
+    main()

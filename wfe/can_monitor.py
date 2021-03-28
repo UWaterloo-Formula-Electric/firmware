@@ -5,8 +5,10 @@ import can
 import cantools
 import zmq
 
-from connect.packet import CANPacket
-from connect.connect import QueueDataPublisher
+from wfe.connect.packet import CANPacket
+from wfe.connect.connect import QueueDataPublisher
+
+from wfe.util import default_dbc_path
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -14,7 +16,7 @@ logging.getLogger().setLevel(logging.ERROR)
 
 class CanMonitor(QueueDataPublisher):
 
-    DEFAULT_DBC = 'common-all/Data/2018CAR.dbc'
+    DEFAULT_DBC = default_dbc_path()
 
     def __init__(self, interface='can1', dbc=DEFAULT_DBC):
         super(CanMonitor, self).__init__()
@@ -64,7 +66,11 @@ class CanMonitor(QueueDataPublisher):
 
             self.send(can_packet)
 
-if __name__ == "__main__":
+
+def main():
     monitor = CanMonitor()
     monitor.monitor_bus()
+
+if __name__ == "__main__":
+    main()
 
