@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from wfe.database.schema import TableWriter
 from wfe.connect.connect import QueueDataSubscriber
 from wfe.connect.connect import CANPacket
-
 from wfe.util import default_dbc_path
 
 logging.basicConfig()
@@ -23,6 +22,8 @@ class Database(QueueDataSubscriber):
 
     INSERT = "INSERT INTO {} VALUES ({})"
     DEFAULT_DBC = default_dbc_path()
+
+    DB_COMMIT_PERIOD = 1 # seconds
 
     def __init__(self, custom_name=None):
         super(Database, self).__init__()
@@ -51,7 +52,7 @@ class Database(QueueDataSubscriber):
     def run(self):
         logger.info("Listening for packets...")
         last_execute_time = datetime.now()
-        period = timedelta(seconds=5)
+        period = timedelta(seconds=self.DB_COMMIT_PERIOD)
         insert_count = 0
         while True:
             packet = self.recv()
@@ -60,7 +61,7 @@ class Database(QueueDataSubscriber):
             try:
                 self.c.execute(insert)
             except sqlite3.OperationalError as e:
-                print(packet.data)
+                logger.error("failed packet data: {}".format(packet.data))
                 raise e
 
             insert_count += 1
@@ -70,6 +71,8 @@ class Database(QueueDataSubscriber):
             if time >= last_execute_time + period:
                 self.conn.commit()
                 logger.info("Committing {} inserts".format(insert_count))
+                last_execute_time = datetime.now()
+                insert_count = 0
 
     def generate_insert_statement_by_packet(self, packet):
         if isinstance(packet, CANPacket):

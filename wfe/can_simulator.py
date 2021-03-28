@@ -3,6 +3,8 @@ import json
 import heapq
 import logging
 import argparse
+import pkg_resources
+import os
 
 import time
 import threading
@@ -137,7 +139,16 @@ def get_arguments():
 def main():
     dbc_file, json_file, duration = get_arguments()
 
+    # For default JSON files
+    if pkg_resources.resource_exists(__name__, json_file):
+        json_file = pkg_resources.resource_filename(__name__, json_file)
+
+    # For default DBC file
+    if pkg_resources.resource_exists(__name__, dbc_file):
+        dbc_file = pkg_resources.resource_filename(__name__, dbc_file)
+
     can_simulator = CanSimulator()
+
     can_simulator.load_scenario(dbc_file, json_file)
 
     can_monitor = CanMonitor(interface="vcan0", dbc=dbc_file)
