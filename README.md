@@ -6,10 +6,12 @@
 .
 ├── Cube-F0-Src/                # Legacy autogen CubeMX HAL
 ├── Cube-Nucleo-Src/            # Current autogen CubeMX HAL
+├── Docs/                       # Documentation for this repo 
 ├── Src/                        # WFE board-specific source code
 ├── Inc/                        # WFE board-specific source headers
 ├── common-all/                 # Source code shared among boards
 ├── Makefile                    # GNU Make build script
+├── bitbucket-pipelines.yml     # Tells Bitbucket Pipelines how to build 
 └── README.md                   # You are here
 
 ```
