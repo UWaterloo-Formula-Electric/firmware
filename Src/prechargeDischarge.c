@@ -22,26 +22,28 @@
 #include "BMU_dtc.h"
 #include "batteries.h"
 
+/** Define this to enable contactor control, otherwise PCDC will always
+ *  return successful.
+ */
 #define ENABLE_PRECHARGE_DISCHARGE
 
 /**
  * Return types for precharge and discharge functions
  */
 typedef enum Precharge_Discharge_Return_t {
-    PCDC_DONE, ///< Precharge/Discharge completed
+    PCDC_DONE,    ///< Precharge/Discharge completed
     PCDC_STOPPED, ///< Precharge/Discharge stopped succesfully (as requested by task notification)
-    PCDC_ERROR ///< Error occured during Precharge/Discharge
+    PCDC_ERROR    ///< Error occured during Precharge/Discharge
 } Precharge_Discharge_Return_t;
 
 /**
  * Type of precharge to perform. This changes the checks performed during
  * precharge, due to different capacitance of motor controllers and chargers.
- * See BMU confluence for more details
  */
 typedef enum Precharge_Type_t {
     PC_MotorControllers, ///< Precharge motor controllers
-    PC_Charger, ///< Precharge charger
-    PC_NumTypes,
+    PC_Charger,          ///< Precharge charger
+    PC_NumTypes,         ///< Must be defined last to accurately count enum
 } Precharge_Type_t;
 
 
