@@ -129,7 +129,7 @@ HAL_StatusTypeDef startControl()
 }
 
 
-/// Bool to record receiving the event that the IMD is ready 
+/// Bool to record receiving the event that the IMD is ready
 bool imdReady = false;
 /// Bool to record recieving the event that the Fault Monitor is ready
 bool faultMonitorReady = false;

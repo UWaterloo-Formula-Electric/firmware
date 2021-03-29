@@ -63,7 +63,7 @@
 #define BATTERY_TASK_ID 2
 
 /**
- * @defgroup CellConfig 
+ * @defgroup CellConfig
  *
  * Used for various safety checks and State of Charge calculation.
  * Update these values for new cells.
@@ -73,11 +73,11 @@
 
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
-#define LIMIT_OVERVOLTAGE 4.2F        
+#define LIMIT_OVERVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
-#define LIMIT_HIGHVOLTAGE 4.2F        
+#define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
-#define LIMIT_LOWVOLTAGE 3.0F         
+#define LIMIT_LOWVOLTAGE 3.0F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
 #define LIMIT_UNDERVOLTAGE 3.0F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
@@ -85,7 +85,7 @@
 /// Rate at which the low voltage threshold dynamically lowers vs current
 #define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 
-/* The following values are used in State of Power calculation and should 
+/* The following values are used in State of Power calculation and should
  * be determined from cell testing data */
 
 // TODO: Update these values for 2021 cells
@@ -113,7 +113,7 @@
 #define BALANCE_START_VOLTAGE (3.5F)
 
 /**
- * Threshold to begin balancing a cell when it's SoC is this percent higher 
+ * Threshold to begin balancing a cell when it's SoC is this percent higher
  * than the minimum cell SoC in the entire pack
  */
 #define BALANCE_MIN_SOC_DELTA (1.0F)
@@ -203,7 +203,7 @@ false, true , true , false, false, false, false, true , true , true , false, fal
 
 /**
  * Lookup table to convert cell voltage to cell state of charge.
- * Values between points are linearly interpolated. 
+ * Values between points are linearly interpolated.
  *
  * Currently just a linear mapping. Substitute for a suitable non-linear
  * relationship when it has been developed.

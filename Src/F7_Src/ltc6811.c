@@ -36,17 +36,17 @@
 /// Number of voltage blocks per AMS board
 #define VOLTAGE_BLOCKS_PER_BOARD    4
 /// Number of voltage reading per block
-#define VOLTAGES_PER_BLOCK          3   
+#define VOLTAGES_PER_BLOCK          3
 /// Number of temperature channels per board
 #define TEMP_CHANNELS_PER_BOARD     12
 /// Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_MS    2
 /// Time to add on to ms delay for measurements to finsh
-#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 
+#define VOLTAGE_MEASURE_DELAY_EXTRA_US 400
 /// Time for measurements to finish
-#define TEMP_MEASURE_DELAY_US 405 
+#define TEMP_MEASURE_DELAY_US 405
 /// Time for Mux to switch
-#define MUX_MEASURE_DELAY_US  1 
+#define MUX_MEASURE_DELAY_US  1
 
 /** @} */
 
@@ -367,9 +367,9 @@ static void fillDummyBytes(uint8_t * buf, uint32_t length)
     }
 }
 
-/** 
+/**
  * @brief Delay function for wakeup
- * 
+ *
  * @param time_us: Time in microseconds to sleep
  */
 void delay_us(uint32_t time_us)
@@ -381,7 +381,7 @@ void delay_us(uint32_t time_us)
 	HAL_TIM_Base_Stop(&DELAY_TIMER);
 }
 
-/** 
+/**
  * @brief: Wake up the spi bus
  *
  * @param sleeping: Set to true if the device is in standby already, the device
@@ -428,7 +428,7 @@ HAL_StatusTypeDef batt_spi_wakeup(bool sleeping)
 
 /**
  * @brief Write a broadcast 16 bit command and PEC to a tx buffer. Make sure
- * txBuffer is big enough for command and PEC! 
+ * txBuffer is big enough for command and PEC!
  *
  * @param[in] cmdByteLow: Least significant bits of command
  * @param[in] cmdByteHigh: Most significant bits of command
@@ -600,7 +600,7 @@ HAL_StatusTypeDef batt_init()
     return HAL_OK;
 }
 
-/** 
+/**
  * @brief Read back cell voltages.
  *
  * This assumes that the command to initiate ADC readings has been sent already
@@ -675,7 +675,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 }
 
 
-/** 
+/**
  * @brief Send command to start the ADC, wait for ADC conversion, then read
  * back cell voltages from each LTC6811.
  *
@@ -877,7 +877,7 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
  *
  * @param pullup: Whether the current sources sink or source current.
  * 0 = sink, 1 = source
- * 
+ *
  * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef sendADOWCMD(uint8_t pullup)
@@ -1137,7 +1137,7 @@ bool batt_is_cell_balancing(int cell)
     return batt_get_balancing_cell_state(boardIdx, amsCellIdx);
 }
 
-/** 
+/**
  * @brief Unset configuration bits to stop balancing all cells
  *
  * @return HAL_StatusTypeDef
@@ -1156,7 +1156,7 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
 /**
  * @brief Configure a discharge timer for each LTC6811.
  *
- * @param length: One of enum DischargeTimerLength values corresponding to a 
+ * @param length: One of enum DischargeTimerLength values corresponding to a
  * discharge timer length.
  *
  * @return HAL_StatusTypeDef
