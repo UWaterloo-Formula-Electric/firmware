@@ -2,3 +2,6 @@ bitstruct==3.9.0
 cantools==23.0.0
 pyparsing==2.2.0
 python-can==2.1.0
+sphinx==3.3.1
+sphinx-rtd-theme==0.5.0
+breathe==4.23.0
