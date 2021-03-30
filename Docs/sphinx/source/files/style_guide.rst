@@ -11,7 +11,7 @@ It is not about documentation content.
 RestructuredText with Sphinx directives
 ***************************************
 
-This documentation uses `Python-sphinx`_, which itself uses `reStructuredText`_
+This documentation uses Python-sphinx, which itself uses reStructuredText
 syntax.
 
 
@@ -19,31 +19,9 @@ syntax.
 Filenames
 *********
 
-Use only lowercase alphanumeric characters and ``-`` (minus) symbol.
+Use only lowercase alphanumeric characters and ``_`` (underscore) symbol.
 
 Suffix filenames with the ``.rst`` extension.
-
-.. note::
-
-  Usage of ``.rst`` extension is not recommended because:
-
-  * RST files are human-readable text files. Most systems natively recognize
-    the ``.txt`` extension and open these files with a text editor. This is
-    a good choice.
-
-  * Some programs parse ``.rst`` with `rst2html`_, which cannot interpret some
-    Sphinx's directives such as ``code-block``. So readers using such programs
-    actually lose some content.
-
-    As an example, well known `Github`_ platform uses rst2html
-    to render ``.rst`` files in its repository browser. Not only you lose
-    content, you also lose features like links to lines.
-
-  * When you need to read HTML builds of the documentation, best practice is to
-    export documentation as static builds with ``sphinx-build`` command, then
-    host and serve these builds as static files. For public projects, you may
-    have a look at services like `Read the docs`_.
-
 
 ***********
 Whitespaces
