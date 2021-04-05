@@ -296,9 +296,7 @@ class QueueData:
 
 
 class QueueThread(threading.Thread):
-    """ Collects data from zmq message queue in the "background". """
-
-    DEFAULT_DBC = "common-all/Data/2018CAR.dbc"
+    """ Collects data from zmq message queue in the background. """
 
     def __init__(self, queue_data, dbc=default_dbc_path()):
         threading.Thread.__init__(self)
