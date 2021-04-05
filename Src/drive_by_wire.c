@@ -332,7 +332,7 @@ HAL_StatusTypeDef turnOnMotorControllers() {
 HAL_StatusTypeDef turnOffMotorControllers() {
     uint32_t dbwTaskNotifications;
 
-    // Request PDU to turn on motor controllers
+    // Request PDU to turn off motor controllers
     EM_Power_State_Request = EM_Power_State_Request_Off;
     sendCAN_VCU_EM_Power_State_Request();
 
