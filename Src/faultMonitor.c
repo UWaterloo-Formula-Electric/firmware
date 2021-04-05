@@ -66,6 +66,9 @@ bool getIL_Status()
    return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
 }
 
+/**
+ * Task to continuously monitor the HVIL and IL.
+ */
 void faultMonitorTask(void *pvParameters)
 {
 

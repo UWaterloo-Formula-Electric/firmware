@@ -44,6 +44,9 @@ HAL_StatusTypeDef sensorTaskInit()
     return HAL_OK;
 }
 
+/**
+ * Task to monitor ADC values, mainly the rear brake pressure
+ */
 void sensorTask(void *pvParameters)
 {
     if (registerTaskToWatch(3, 2*pdMS_TO_TICKS(SENSOR_TASK_PERIOD), false, NULL) != HAL_OK)

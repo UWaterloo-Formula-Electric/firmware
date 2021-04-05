@@ -19,5 +19,6 @@ endif
 CUBE_F7_VERSION_1_MAKEFILE_PATH= Cube-F7-Src/
 CUBE_F7_VERSION_2_MAKEFILE_PATH= Cube-F7-Src-respin/
 CUBE_NUCLEO_MAKEFILE_PATH = Cube-Nucleo-Src/CanTest/
+DOCS_MAKEFILE_PATH = Docs/sphinx/
 
 include common-all/tail.mk
