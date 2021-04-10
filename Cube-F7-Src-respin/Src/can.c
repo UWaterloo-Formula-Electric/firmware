@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -62,11 +62,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     __HAL_RCC_CAN3_CLK_ENABLE();
     __HAL_RCC_CAN2_CLK_ENABLE();
     __HAL_RCC_CAN1_CLK_ENABLE();
-  
+
     __HAL_RCC_GPIOB_CLK_ENABLE();
-    /**CAN3 GPIO Configuration    
+    /**CAN3 GPIO Configuration
     PB3     ------> CAN3_RX
-    PB4     ------> CAN3_TX 
+    PB4     ------> CAN3_TX
     */
     GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -102,10 +102,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
     __HAL_RCC_CAN3_CLK_DISABLE();
     __HAL_RCC_CAN2_CLK_DISABLE();
     __HAL_RCC_CAN1_CLK_DISABLE();
-  
-    /**CAN3 GPIO Configuration    
+
+    /**CAN3 GPIO Configuration
     PB3     ------> CAN3_RX
-    PB4     ------> CAN3_TX 
+    PB4     ------> CAN3_TX
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3|GPIO_PIN_4);
 
@@ -118,7 +118,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 
   /* USER CODE END CAN3_MspDeInit 1 */
   }
-} 
+}
 
 /* USER CODE BEGIN 1 */
 
