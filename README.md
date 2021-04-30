@@ -7,10 +7,12 @@
 ├── Cube-F7-Src/                # Legacy autogen CubeMX HAL
 ├── Cube-F7-Src-respin/         # Current autogen CubeMX HAL
 ├── Cube-Nucleo-Src/            # Nucleo autogen CubeMX HAL
+├── Docs/                       # Documentation for this repo 
 ├── Src/                        # WFE board-specific source code
 ├── Inc/                        # WFE board-specific source headers
 ├── common-all/                 # Source code shared among boards
 ├── Makefile                    # GNU Make build script
+├── bitbucket-pipelines.yaml    # Tells Bitbucket Pipelines how to build
 └── README.md                   # You are here
 
 ```
@@ -57,3 +59,42 @@ make load
 You should see OpenOCD starting and attempting to load the code to the board.
 Any errors encountered during the load process will be reported here.
 
+## Documentation
+
+### Requirements
+
+The documentation requires some specific Python packages are installed.
+These should have been installed when you ran
+`pip install common-all/requirements.txt`
+earlier.
+
+For completeness, these are:
+
+```
+sphinx
+sphinx-rtd-theme
+breathe
+```
+
+Before attempting to build, you'll also have to make sure Doxygen is
+installed:
+```
+doxygen -v
+```
+
+That command should return a version number (probably >= 1.9.1) and not
+error out.
+
+If it didn't work, you likely need to install Doxygen, which can be done
+from your system package manager. Since there are a number of ways to do
+that, do some searching on the internet or ask a more experience team
+member.
+
+### Building the Documentation
+
+Finally, the build command is:
+```
+make docs
+```
+
+The Makefile should give you a hint at the output was generated.

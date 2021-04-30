@@ -10,8 +10,8 @@
   *          charger over CAN
   *          - HV Bus Sense (HVMeasureTask): Measures the voltage and current
   *          on the HV Bus as well as the HV battery pack voltage
-  *          - IMD Monitoring (imdTask): Measures the signals from the insulation monitoring
-  *          device (IMD) to check for insulation faults
+  *          - IMD Monitoring (imdTask): Measures the signals from the
+  *          insulation monitoring device (IMD) to check for insulation faults
   *          - canSendCellTask: Sends the cell voltage and temperatures over
   *          CAN using the multiplexed CAN messages
   *
@@ -62,21 +62,48 @@
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
-// Cell Low and High Voltages, in volts (floating point)
+/**
+ * @defgroup CellConfig
+ *
+ * Used for various safety checks and State of Charge calculation.
+ * Update these values for new cells.
+ *
+ * @{
+ */
+
+/* The following is specified in Volts (floating point) */
+/// Maximum voltage of a cell, will send a critical DTC is exceeded.
 #define LIMIT_OVERVOLTAGE 4.2F
-#define LIMIT_HIGHVOLTAGE 4.2F // TODO: Not sure what this should be
-#define LIMIT_LOWVOLTAGE 3.0F // TODO: Not sure what this should be
+/// Used in SOC function. TODO: confirm this value
+#define LIMIT_HIGHVOLTAGE 4.2F
+/// Used in SOC function. TODO: confirm this value
+#define LIMIT_LOWVOLTAGE 3.0F
+/// Minimum voltage of a cell, will send a critical DTC if it goes below
 #define LIMIT_UNDERVOLTAGE 3.0F
+/// Warning voltage of a cell, will send a warning DTC if it goes below
 #define LIMIT_LOWVOLTAGE_WARNING 3.2F
+/// Rate at which the low voltage threshold dynamically lowers vs current
+#define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 
-// TODO: Update these values for new cells
-#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)
-#define CELL_DCR (0.01)
-#define CELL_HEAT_CAPACITY (1034.2) //kj/kg•k
-#define CELL_MASS (0.496)
+/* The following values are used in State of Power calculation and should
+ * be determined from cell testing data */
 
-#define CELL_OVERTEMP (CELL_MAX_TEMP_C) // Maximum allowable cell temperature
-#define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10) // Temp at which warning sent
+// TODO: Update these values for 2021 cells
+#define CELL_TIME_TO_FAILURE_ALLOWABLE (6.0)    ///< seconds?
+#define CELL_DCR (0.01)                         ///< Ohms
+#define CELL_HEAT_CAPACITY (1034.2)             ///< kJ/kg*K
+#define CELL_MASS (0.496)                       ///< kg
+
+/** Maximum allowable cell temperature, will send critical DTC if surpassed */
+#define CELL_OVERTEMP (CELL_MAX_TEMP_C)
+/** Temp at warning DTC is sent */
+#define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
+/** Similar to @ref CELL_OVERTEMP, minimum temp before sending critical DTC */
+#define CELL_UNDERTEMP 5
+/** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
+#define CELL_UNDERTEMP_WARNING 15
+
+/** @} Cell Characteristics */
 
 /*
  * Charging constants
@@ -84,6 +111,12 @@
 
 /// Block balancing below this cell voltage
 #define BALANCE_START_VOLTAGE (3.5F)
+
+/**
+ * Threshold to begin balancing a cell when it's SoC is this percent higher
+ * than the minimum cell SoC in the entire pack
+ */
+#define BALANCE_MIN_SOC_DELTA (1.0F)
 
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (1000)
@@ -93,7 +126,7 @@
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
- *out use of charge cart as a board with a microcontroller
+ * out use of charge cart as a board with a microcontroller
  */
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
 
@@ -112,9 +145,9 @@
  */
 typedef enum ChargeReturn
 {
-    CHARGE_DONE, ///< Charging finished, cells reached fully charged
+    CHARGE_DONE,    ///< Charging finished, cells reached fully charged
     CHARGE_STOPPED, ///< Charging was stopped as requested, cells not fully charged
-    CHARGE_ERROR ///< Error occured stopping charging, cells not fully charged
+    CHARGE_ERROR    ///< Error occured stopping charging, cells not fully charged
 } ChargeReturn;
 
 extern osThreadId BatteryTaskHandle;
@@ -153,25 +186,27 @@ bool isTempCellWorking[TEMPCELL_COUNT] = {
  * 0    1       2      3      4      5      6      7     8      9      10    11
  */
 // Board 1
-true , true , true , false, true , true , true , true , true , true , false, false,
+false, true , true , false, true , true , true , true , true , true , false, false,
 // Board 2
-true , true , true , false, true , true , true , true , true , true , false, false,
-/*// Board 3*/
-true , true , false, false, true , false, false, true , true , false, true , true ,
-/*// Board 4*/
+false, false, true , false, false, true , true , true , true , true , false, false,
+// Board 3
+false, false, false, false, true , false, false, true , true , false, true , false,
+// Board 4
 false, false, false, false, false, false, false, false, false, false, false, false,
-/*// Board 5*/
+// Board 5
 false, true , true , false, false, false, false, true , true , true , false, false,
 // Board 6
 // false, false, false, false, false, false, false, false, false, false, false, false,
 };
 
-
 #define NUM_SOC_LOOKUP_VALS 101
 
 /**
- * Lookup table to convert cell voltage to cell state of charge. See BMU
- * confluence page for more info
+ * Lookup table to convert cell voltage to cell state of charge.
+ * Values between points are linearly interpolated.
+ *
+ * Currently just a linear mapping. Substitute for a suitable non-linear
+ * relationship when it has been developed.
  */
 float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -250,13 +285,14 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
 }
 
 /**
- * @brief Publishes the most recent HV Bus measurements to queues for other tasks to
- * read from
- * Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent
- * data is in the queue and read from the queue
- * @param[in] pIbus pointer to the HV bus current measurement (in Amps)
- * @param[in] pVbus pointer to the HV bus voltage measurement (in Volts)
- * @param[in] pVbatt pointer to the HV battery voltage measurement (in Volts)
+ * @brief Publishes the most recent HV Bus measurements to queues for other
+ * tasks to read from Queue overwrite, Queue peek, and queue size of 1 is used
+ * to ensure only the most recent data is in the queue and read from the queue
+ *
+ * @param[in] pIBus pointer to the HV bus current measurement (in Amps)
+ * @param[in] pVBus pointer to the HV bus voltage measurement (in Volts)
+ * @param[in] pVBatt pointer to the HV battery voltage measurement (in Volts)
+ *
  * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float *pVBatt)
@@ -271,9 +307,9 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
 /**
  * @brief Measures HV voltages and currents using the HV ADC
  *
- * @param[out] Ibus pointer to the HV bus current measurement (in Amps)
- * @param[out] Vbus pointer to the HV bus voltage measurement (in Volts)
- * @param[out] Vbatt pointer to the HV battery voltage measurement (in Volts)
+ * @param[out] IBus pointer to the HV bus current measurement (in Amps)
+ * @param[out] VBus pointer to the HV bus voltage measurement (in Volts)
+ * @param[out] VBatt pointer to the HV battery voltage measurement (in Volts)
  *
  * @return HAL_StatusTypeDef
  */
@@ -329,7 +365,7 @@ HAL_StatusTypeDef getIBus(float *IBus)
  * this is only equal to the battery voltage when both contactors are closed.
  * to get the battery voltage in all times, use @ref getPackVoltage
  *
- * @param[out]  pointer to a float to store the VBatt reading, in volts
+ * @param[out] VBatt pointer to a float to store the VBatt reading, in volts
  *
  * @return HAL_StatusTypeDef
  */
@@ -346,7 +382,7 @@ HAL_StatusTypeDef getVBatt(float *VBatt)
 /**
  * @brief Get the most recent HV Bus voltage reading (from the HV ADC)
  *
- * @param[out]  pointer to a float to store the VBus reading, in volts
+ * @param[out] VBus: pointer to a float to store the VBus reading, in volts
  *
  * @return HAL_StatusTypeDef
  */
@@ -406,11 +442,13 @@ HAL_StatusTypeDef cliSetIBus(float IBus)
 }
 
 /**
- * Measures the voltage and current on the HV Bus as well as the HV battery pack voltage.
- * Note that the HV battery pack voltage (VBatt) is only equal to the actual pack
- * voltage in ceraint contactor states, see prechargeDischarge procedure on
- * confluence for more info. Instead, use @ref getPackVoltage which bases it
- * measurement on the sum of cell voltages
+ * Measures the voltage and current on the HV Bus as well as the HV battery
+ * pack voltage.
+ *
+ * Note that the HV battery pack voltage (VBatt) is only equal to the actual
+ * pack voltage in certain contactor states. See documentation on Precharge
+ * / Discharge for more information. Instead, use @ref getPackVoltage which
+ * bases it measurement on the sum of cell voltages
  */
 void HVMeasureTask(void *pvParamaters)
 {
@@ -476,6 +514,7 @@ void imdTask(void *pvParamaters)
    }
 
    // Wait for IMD to startup
+   DEBUG_PRINT("Waiting for IMD...");
    do {
       imdStatus = get_imd_status();
       vTaskDelay(100);
@@ -633,8 +672,9 @@ void BatteryTaskError()
 static uint32_t errorCounter = 0;
 
 /**
- * @brief Called by battery task it an error is encountered that is not immediately fatal. This causes the task to retry its readings/whatever else failed MAX_ERROR_COUNT times, then fail and send
- * error event.
+ * @brief Called by battery task in an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
  * TODO: ensure this is max 500 ms to meet rules for cell reading times
  *
  * @return true if errorCounter is below or equal to max error count, false otherwise
@@ -679,18 +719,19 @@ float cellVoltagesFiltered[VOLTAGECELL_COUNT];
 
 
 /**
- * @brief This takes an array of the instantaneous cell volages, and filters them on
- * an ongoing basis using the cellVoltagesFiltered array.
- * For check cell voltages, a filtered version of cell voltages is needed to eliminate noise due
- * to bad contact with AMS boards. The hypothesis is that the pogo pins make
- * bad contact with the ams boards when the motors spin, thus the need for
- * filtering. This hasn't been proven however, but the filtering fixed the
- * errors we saw before (info up to date as of May 2020)
+ * @brief This takes an array of the instantaneous cell volages, and filters
+ * them on an ongoing basis using the cellVoltagesFiltered array.
+ *
+ * For check cell voltages, a filtered version of cell voltages is needed to
+ * eliminate noise due to bad contact with AMS boards. The hypothesis is that
+ * the pogo pins make bad contact with the AMS boards when the motors spin,
+ * thus the need for filtering. This hasn't been proven however, but the
+ * filtering fixed the errors we saw before (info up to date as of May 2020)
  * NB: Filter voltages shouldn't be sent over CAN, only used with error
  * checking
  *
- * @param[in] cellVoltages unfiltered cell voltage readings
- * @param[out] cellVoltagesFiltered filtered cell voltage readings
+ * @param[in] cellVoltages Unfiltered cell voltage readings
+ * @param[out] cellVoltages Filtered filtered cell voltage readings
  */
 void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 {
@@ -720,7 +761,12 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 {
    HAL_StatusTypeDef rc = HAL_OK;
    float measure;
-
+   float currentReading;
+   if(getIBus(&currentReading) != HAL_OK){
+       ERROR_PRINT("Cannot read current from bus!!");
+       sendDTC_FATAL_BMU_ERROR();
+       return HAL_ERROR;
+   } 
    *maxVoltage = 0;
    *minVoltage = LIMIT_OVERVOLTAGE;
    *maxTemp = -100; // Cells shouldn't get this cold right??
@@ -742,7 +788,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
-      } else if (measure < LIMIT_LOWVOLTAGE_WARNING) {
+      } else if (measure < LIMIT_LOWVOLTAGE_WARNING - (LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading))) {
          if (!warningSentForCellVoltage[i]) {
             ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure);
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -765,7 +811,6 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       measure = TempCell[i];
 
       if (!isTempCellWorking[i]) { continue; }
-
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
          ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
@@ -777,6 +822,16 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             sendDTC_WARNING_CELL_TEMP_HIGH(i);
             warningSentForCellTemp[i] = true;
          }
+      } else if(measure < CELL_UNDERTEMP){
+         ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+		 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
+		 rc = HAL_ERROR;
+      } else if(measure < CELL_UNDERTEMP_WARNING){
+      	 if(!warningSentForCellTemp[i]) {
+			ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+			sendDTC_WARNING_CELL_TEMP_LOW(i);
+			warningSentForCellTemp[i] = true;
+		 }
       } else if (warningSentForCellTemp[i] == true) {
          warningSentForCellTemp[i] = false;
       }
@@ -792,7 +847,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
 /**
  * @brief Calculates the state of power of the battery pack. TODO: this
- * calculation is from 2017, so should be updated for the 2020 pack
+ * calculation is from 2017, so should be updated for the 2021 pack
  *
  * @return The state of power of the battery pack (in Watts?)
  */
@@ -855,7 +910,7 @@ HAL_StatusTypeDef publishPackVoltage(float packVoltage)
  *
  * @param packVoltage pointer to a float to return the pack voltage (in volts)
  *
- * @return HAL_StatusTypeDe
+ * @return HAL_StatusTypeDef
  */
 HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 {
@@ -1119,12 +1174,11 @@ float getSOCFromVoltage(float cellVoltage)
 }
 
 /**
- * @brief Performs balance charging. For more info, see the BMU page on
- * confluence
+ * @brief Performs balance charging.
  *
  * @return @ref ChargeReturn
  */
-ChargeReturn balanceCharge()
+ChargeReturn balanceCharge(void)
 {
     // Start charge
     if (startCharging() != HAL_OK) {
@@ -1223,7 +1277,7 @@ ChargeReturn balanceCharge()
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
-                    if (cellSOC - minCellSOC > 1) {
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
@@ -1243,7 +1297,7 @@ ChargeReturn balanceCharge()
                 batt_set_disharge_timer(DT_30_SEC);
                 if (batt_write_config() != HAL_OK)
                 {
-                return CHARGE_ERROR;
+                    return CHARGE_ERROR;
                 }
 #endif
 

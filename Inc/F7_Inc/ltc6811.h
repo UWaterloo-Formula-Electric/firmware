@@ -9,18 +9,32 @@
 #include "stm32f7xx_hal.h"
 
 // --- Private Defines ---
-// The following defines change depending on battery box layout
-// TODO: Update these to 2018 values
-#define NUM_BOARDS                  5   // Number of AMS boards in system
-#define CELLS_PER_BOARD             12  // Number of valid cells per board, starting from the most negative terminal
-#define THERMISTORS_PER_BOARD       12   // Number of thermistors attached to each AMS, starting from A0
 
-// Average 4 readings for both pullup and pulldown in open wire test
+
+/** @defgroup AccumulatorConfig
+ *
+ * These defines change based upon the battery box layout.
+ *
+ * @{
+ */
+
+// TODO: Update these to 2021 values
+
+/// Number of AMS boards in system
+#define NUM_BOARDS                  5
+/// Number of valid cells per board, starting from the most negative terminal
+#define CELLS_PER_BOARD             12
+/// Number of thermistors attached to each AMS, starting from A0
+#define THERMISTORS_PER_BOARD       12
+
+/// Average number of readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 4
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
 #define NUM_TEMP_CELLS              (NUM_BOARDS*THERMISTORS_PER_BOARD)
+
+/** @} */
 
 typedef enum DischargeTimerLength {
     DT_OFF = 0,

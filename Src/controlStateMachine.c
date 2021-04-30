@@ -106,6 +106,9 @@ HAL_StatusTypeDef controlInit()
     return HAL_OK;
 }
 
+/**
+ * Task to manage the state machine.
+ */
 void controlTask(void *pvParameters)
 {
     // Pre send EV_INIT to kick off self tests
@@ -126,8 +129,9 @@ HAL_StatusTypeDef startControl()
 }
 
 
-// Bool to record when receive events the various systems are ready
+/// Bool to record receiving the event that the IMD is ready
 bool imdReady = false;
+/// Bool to record recieving the event that the Fault Monitor is ready
 bool faultMonitorReady = false;
 
 /**
@@ -172,6 +176,14 @@ uint32_t systemUpCheck(uint32_t event)
 uint32_t runSelftTests(uint32_t event)
 {
     // TODO: Run some tests
+    // Example of tests to run:
+    // - Check the AMS boards are functioning correctly:
+    //   - DIAGN command to test MUX functionality
+    //   - CVST, AXST, STATST commands to test digital filters and memory
+    //   - ADAXD to check for differences between ADCs
+    //   - ADSTAT to ensure VREG and VREGD are within acceptable levels
+    //   - ADOL to compare ADCs
+    //   - AXOW for an auxillary open wire check
 
     DEBUG_PRINT("Self tests done, waiting for system to come up\n");
 
