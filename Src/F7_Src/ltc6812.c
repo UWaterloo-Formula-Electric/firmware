@@ -34,65 +34,64 @@
 // Address is specified in the first byte of the command. Each command is 2 bytes.
 // See page 46-47 of http://cds.linear.com/docs/en/datasheet/680412fb.pdf
 // If not using address mode, set address to 0
-/*#define USE_ADDRESS_MODE*/
-// For testing, allow using address mode, but assume address is 0
-#define ADDRESS 1
+
+#define USE_ADDRESS_MODE
 
 #ifdef USE_ADDRESS_MODE
-#define WRCFG_BYTE0 ((0x80) | (ADDRESS << 3))
+#define WRCFG_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDCFG_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDCVA_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDCVB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDCVC_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDCVD_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0  ((0x87) | (ADDRESS << 3))
+#define PLADC_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0 ((0x87) | (ADDRESS << 3))
+#define CLRSTAT_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0 ((0x87) | (ADDRESS << 3))
+#define CLRCELL_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0 ((0x87) | (ADDRESS << 3))
+#define CLRAUX_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDAUXA_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDAUXB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDAUXB_BYTE1 0x0e
 
 // Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0 ((0x85) | (ADDRESS << 3))
+#define ADCVAX_BYTE0(ADDRESS) ((0x85) | (ADDRESS << 3))
 #define ADCVAX_BYTE1 0x6f
 
 // Use normal MD (7kHz), Discharge not permission, all channels
-#define ADCV_BYTE0 ((0x83) | (ADDRESS << 3))
+#define ADCV_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
 #define ADCV_BYTE1 0x60
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADAX_BYTE0 ((0x85) | (ADDRESS << 3))
+#define ADAX_BYTE0(ADDRESS) ((0x85) | (ADDRESS << 3))
 #define ADAX_BYTE1 0x65
 
-#define RDSTATB_BYTE0 ((0x80) | (ADDRESS << 3))
+#define RDSTATB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0 ((0x83) | (ADDRESS << 3))
+#define ADOW_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 #else // defined(USE_ADDRES_MODE)
@@ -226,7 +225,22 @@
 // Configuration array
 static uint8_t m_batt_config_a[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
 
+#ifndef USE_ADDRESS_MODE
+
 static uint8_t m_batt_config_b[NUM_BOARDS][BATT_CONFIG_SIZE] = {0};
+
+#endif
+
+#ifdef USE_ADDRESS_MODE
+
+#define NUM_LTC_ADDRESSES 2
+static const uint8_t LTC_ADDRESS[NUM_LTC_ADDRESSES] = {1, 2};
+
+#endif
+
+/* Function Prototypes (We'll use these for the Chip Specific Functions)*/
+void batt_init_board_config(uint16_t board);
+HAL_StatusTypeDef batt_write_config();
 
 
 /* HSPI send/receive function */
@@ -260,20 +274,6 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
     HAL_StatusTypeDef status = HAL_SPI_Transmit(&ISO_SPI_HANDLE, txBuffer, len, HSPI_TIMEOUT);
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
     return status;
-}
-
-/**
- * @brief Initialize AMS board configuration array
- *
- * @param board: board to initialize
- */
-void batt_init_board_config(uint16_t board) 
-{
-    m_batt_config_a[board][0] = REFON(1) |          // Turn on reference
-                            ADC_OPT(0);         // We use fast ADC speed so this has to be 0
-    m_batt_config_a[board][4] = 0x00;                 // Disable the discharge bytes for now
-    m_batt_config_a[board][5] = 0x00;
-    m_batt_config_b[board][0] = 0x00; // Clear GPIO, DCC and RSVD
 }
 
 /**
@@ -440,81 +440,6 @@ HAL_StatusTypeDef batt_format_broadcast_command(uint8_t cmdByteLow, uint8_t cmdB
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
 
     return HAL_OK;
-}
-
-/**
- * @brief Write configuration data to LTC6811 daisy chain.
- *
- * @return HAL_StatusTypeDef
- */
-HAL_StatusTypeDef batt_write_config()
-{
-    const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
-    uint8_t txBuffer[BUFF_SIZE];
-
-    if (batt_format_broadcast_command(WRCFGA_BYTE0, WRCFGA_BYTE1, txBuffer) != HAL_OK) {
-        ERROR_PRINT("Failed to format write config broadcast command\n");
-        return HAL_ERROR;
-    }
-
-    // Fill data, note that config register is sent in reverse order, as the
-    // daisy chain acts as a shift register
-    // Therefore, we send data destined for the last board first
-    for (int board = (NUM_BOARDS-1); board >= 0; board--) {
-        uint32_t boardConfigsWritten = (NUM_BOARDS - 1) - board;
-        size_t startByte = COMMAND_SIZE + PEC_SIZE + boardConfigsWritten * (BATT_CONFIG_SIZE + PEC_SIZE);
-
-        for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
-        {
-            txBuffer[startByte + dbyte]
-                = m_batt_config_a[board][dbyte];
-        }
-
-        // Data pec
-        batt_gen_pec(m_batt_config_a[board], BATT_CONFIG_SIZE,
-                     &(txBuffer[startByte + BATT_CONFIG_SIZE]));
-
-    }
-
-    // Send command + data
-    if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
-    {
-        ERROR_PRINT("Failed to transmit config to AMS board\n");
-        return HAL_ERROR;
-    }
-
-
-    // Same as the above just for B group
-    if (batt_format_broadcast_command(WRCFGB_BYTE0, WRCFGB_BYTE1, txBuffer) != HAL_OK) {
-        ERROR_PRINT("Failed to send write config command\n");
-        return HAL_ERROR;
-    }
-
-    memset(txBuffer, 0, sizeof(txBuffer));
-
-    for (int board = (NUM_BOARDS-1); board >= 0; board--) {
-        uint32_t boardConfigsWritten = (NUM_BOARDS - 1) - board;
-        size_t startByte = COMMAND_SIZE + PEC_SIZE + boardConfigsWritten * (BATT_CONFIG_SIZE + PEC_SIZE);
-
-        for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
-        {
-            txBuffer[startByte + dbyte]
-                = m_batt_config_b[board][dbyte];
-        }
-
-        // Data pec
-        batt_gen_pec(m_batt_config_b[board], BATT_CONFIG_SIZE,
-                     &(txBuffer[startByte + BATT_CONFIG_SIZE]));
-    }
-    
-    if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
-    {
-        ERROR_PRINT("Failed to transmit config to AMS board\n");
-        return HAL_ERROR;
-    }
-
-
-    return 0;
 }
 
 /**
@@ -1255,3 +1180,93 @@ HAL_StatusTypeDef balanceTest()
 
     return HAL_OK;
 }
+
+HAL_StatusTypeDef format_and_send_config(uint8_t first_config_byte, uint8_t config_buffer[NUM_BOARDS][BATT_CONFIG_SIZE]){
+	
+	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
+	uint8_t txBuffer[BUFF_SIZE];
+
+	if (batt_format_broadcast_command(first_config_byte, WRCFG_BYTE1, txBuffer) != HAL_OK) {
+		ERROR_PRINT("Failed to send write config command\n");
+		return HAL_ERROR;
+	}
+
+	// Fill data, note that config register is sent in reverse order, as the
+	// daisy chain acts as a shift register
+	// Therefore, we send data destined for the last board first
+	for (int board = (NUM_BOARDS-1); board >= 0; board--) {
+		uint32_t boardConfigsWritten = (NUM_BOARDS - 1) - board;
+		size_t startByte = COMMAND_SIZE + PEC_SIZE + boardConfigsWritten * (BATT_CONFIG_SIZE + PEC_SIZE);
+
+		for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
+		{
+			txBuffer[startByte + dbyte]
+				= config_buffer[board][dbyte];
+		}
+
+		// Data pec
+		batt_gen_pec(config_buffer[board], BATT_CONFIG_SIZE,
+					&(txBuffer[startByte + BATT_CONFIG_SIZE]));
+
+	}
+
+	// Send command + data
+	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+	{
+		ERROR_PRINT("Failed to transmit config to AMS board\n");
+		return HAL_ERROR;
+	}
+
+	return 0;
+}
+
+
+/* CHIP SPECIFIC FUNCTIONS BELOW HERE*/
+
+#ifdef USE_ADDRESS_MODE
+
+void batt_init_board_config(uint16_t board)
+{
+    m_batt_config_a[board][0] = REFON(1) |          // Turn on reference
+                            ADC_OPT(0);         // We use fast ADC speed so this has to be 0
+}
+
+
+HAL_StatusTypeDef batt_write_config()
+{
+	for(int ltc_chip = 0; ltc_chip < NUM_LTC_ADDRESSES; ltc_chip++){
+		HAL_StatusTypeDef retval = format_and_send_config(WRCFG_BYTE0(LTC_ADDRESS[ltc_chip]), m_batt_config_a);
+		if(0 != retval){
+			return retval;
+		}
+	}
+
+    return 0;
+}
+
+#else
+
+void batt_init_board_config(uint16_t board)
+{
+    m_batt_config_a[board][0] = REFON(1) |          // Turn on reference
+                            ADC_OPT(0);         // We use fast ADC speed so this has to be 0
+    m_batt_config_a[board][4] = 0x00;                 // Disable the discharge bytes for now
+    m_batt_config_a[board][5] = 0x00;
+    m_batt_config_b[board][0] = 0x00; // Clear GPIO, DCC and RSVD
+}
+
+HAL_StatusTypeDef batt_write_config()
+{
+	HAL_StatusTypeDef config_a_retval = format_and_send_config(WRCFG_BYTE0, m_batt_config_a);
+	
+	if(0 != config_a_retval)
+	{
+		return config_a_retval;
+	}
+
+	HAL_StatusTypeDef config_b_retval = format_and_send_config(WRCFG_BYTE0, m_batt_config_b);
+	return config_b_retval;
+}
+
+
+#endif
