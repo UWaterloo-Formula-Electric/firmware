@@ -1,19 +1,14 @@
-// Copyright @ 2015 Waterloo Hybrid
+/* Owen Brake - May 2021
+ * This is what all non driver C files should include to interface with the LTC chips
+ * This has the user facing functions
+ * */
+#ifndef LTC_CHIP_H
 
-#ifndef LTC6811_H
-
-#define LTC6811_H
+#define LTC_CHIP_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32f7xx_hal.h"
-
-// --- Private Defines ---
-// The following defines change depending on battery box layout
-#define NUM_BOARDS                  6   // Number of AMS boards in system
-#define CELLS_PER_BOARD             14  // Number of valid cells per board, starting from the most negative terminal
-#define THERMISTORS_PER_BOARD       16   // Number of thermistors attached to each AMS, starting from A0
-
 
 /** @defgroup AccumulatorConfig
  *
@@ -25,13 +20,32 @@
 // TODO: Update these to 2021 values
 
 /// Number of AMS boards in system
-#define NUM_BOARDS                  5
+#define NUM_BOARDS                  6
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             12
+#define CELLS_PER_BOARD             14
 /// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       12
+#define THERMISTORS_PER_BOARD       16
 
-/// Average number of readings for both pullup and pulldown in open wire test
+// This specifies which chip architecture we are using
+// 6812/6804
+// Ex. if 6812 is selected: then ltc6812.c is used
+#define LTC_CHIP_6812 1
+#define LTC_CHIP_6804 2
+
+#define LTC_CHIP LTC_CHIP_6804
+
+#if LTC_CHIP == LTC_CHIP_6804
+#define NUM_LTC_CHIPS_PER_BOARD 2
+#elif LTC_CHIP == LTC_CHIP_6812
+#define NUM_LTC_CHIPS_PER_BOARD 1
+#else
+#error "No LTC Chip specified, please specify one"
+#endif
+
+// Number of Voltage Cells per LTC6812/6804/6811 chip
+#define CELLS_PER_CHIP (CELLS_PER_BOARD / NUM_LTC_CHIPS_PER_BOARD) 
+
+// Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 4
 
 // Public defines
@@ -54,6 +68,7 @@ typedef enum DischargeTimerLength {
     INVALID_DT_TIME, // There is longer times, but we won't need it for now
 } DischargeTimerLength;
 
+
 /* Public Functions */
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
 
@@ -65,7 +80,6 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
-HAL_StatusTypeDef batt_write_config();
 
 HAL_StatusTypeDef batt_init();
 HAL_StatusTypeDef balanceTest();
