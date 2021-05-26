@@ -55,12 +55,17 @@ class CanSimulator:
             msg_types = ["periodic_messages", "one_time_messages"]
             for m_type in msg_types:
                 for msg_obj in json_obj[m_type]:
-                    arb_id = db.get_message_by_name(msg_obj["name"]).frame_id
-                    data = db.encode_message(msg_obj["name"], msg_obj["signals"])
-                    message = can.Message(arbitration_id=arb_id, data=data)
-                    start = msg_obj["time"]
-                    period = -1 if "period_ms" not in msg_obj else msg_obj["period_ms"]
-                    self.messages.append((message, start, period))
+                    try:
+                        arb_id = db.get_message_by_name(msg_obj["name"]).frame_id
+                        data = db.encode_message(msg_obj["name"], msg_obj["signals"])
+                        message = can.Message(arbitration_id=arb_id, data=data)
+                        start = msg_obj["time"]
+                        period = -1 if "period_ms" not in msg_obj else msg_obj["period_ms"]
+                        self.messages.append((message, start, period))
+                    # Can occur due to JSON file not having keys, or errors thrown by
+                    # db.get_message_by_name or db.encode_message
+                    except KeyError as e:
+                        logging.error(e)
 
         except (FileNotFoundError, KeyError) as e:
             logging.error(e)
