@@ -33,6 +33,11 @@ BOARD_VERSION ?= 1
 CUBE_F7_VERSION_1_MAKEFILE_PATH ?= $(CUBE_F7_MAKEFILE_PATH)
 CUBE_NUCLEO_F7_VERSION_1_MAKEFILE_PATH ?= $(CUBE_NUCLEO_MAKEFILE_PATH)
 
+# Check and warn about running instances of OpenOCD
+#ifeq ()
+#   $(warn "OpenOCD is already running")
+#endif
+
 ifeq ($(BOARD_TYPE), NUCLEO_F7)
    ifeq ($(BOARD_VERSION), 2)
       include $(CUBE_NUCLEO_F7_VERSION_2_MAKEFILE_PATH)/Cube-Lib.mk
@@ -305,14 +310,17 @@ else
 endif
 
 load: release
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x8000000" -c "verify_image $(RELEASE_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+#	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x8000000" -c "verify_image $(RELEASE_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "reset init" -c "reset halt" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x8000000" -c "verify_image $(RELEASE_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 load-debug: debug
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+#	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "reset init" -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 # Use this if you want gdb to be rtos thread aware
 connect-rtos: load-debug
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
+#	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c "reset init" -c "reset halt" -c halt
 
 # use this to debug stuff before rtos starts
 connect: load-debug
