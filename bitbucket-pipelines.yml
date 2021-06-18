@@ -2,7 +2,7 @@
 image: stronglytyped/arm-none-eabi-gcc
 
 pipelines:
-    default:
+    pull-requests:
         - step:
             name: 'Download common-all'
             script:
