@@ -1,3 +1,5 @@
+OPENOCD_RUNNING = false
+
 CC=arm-none-eabi-gcc
 HEX=arm-none-eabi-objcopy
 SZ = arm-none-eabi-size
@@ -320,7 +322,9 @@ connect-rtos: load-debug
 
 # use this to debug stuff before rtos starts
 connect: load-debug
+	OPENOCD_RUNNING = true
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
+	OPENOCD_RUNNING = false
 
 #=======
 #load: release
