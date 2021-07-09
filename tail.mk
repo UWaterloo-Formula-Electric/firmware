@@ -305,10 +305,10 @@ else
 endif
 
 load: release
-	$(eval OPENOCD_INSTANCES := $(shell (ps -ef | grep \"openocd\") | wc -l))
-ifneq ("$(OPENOCD_INSTANCES)", "1")
-	@echo "$(OPENOCD_INSTANCES) instances are open, make load may not compile"
-endif
+	@OPENOCD_INSTANCES=$(shell ps -ef | grep openocd | wc -l); \
+	if [ $$OPENOCD_INSTANCES -gt 2 ]; then \
+		echo "$$OPENOCD_INSTANCES instances of OpenOCD are open, make load may not compile"; \
+	fi
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x8000000" -c "verify_image $(RELEASE_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 load-debug: debug
