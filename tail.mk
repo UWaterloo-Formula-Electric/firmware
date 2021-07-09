@@ -307,12 +307,17 @@ endif
 load: release
 	@OPENOCD_INSTANCES=$(shell ps -ef | grep openocd | wc -l); \
 	if [ $$OPENOCD_INSTANCES -gt 2 ]; then \
-		echo "$$OPENOCD_INSTANCES instances of OpenOCD are open, make load may not compile"; \
+		echo "$$OPENOCD_INSTANCES instances of OpenOCD are open, make load may not compile. If applicable, close other OpenOCD sessions."; \
 		read -p "Press enter to continue" temp; \
 	fi
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(RELEASE_BIN_FILE) 0x8000000" -c "verify_image $(RELEASE_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 load-debug: debug
+	@OPENOCD_INSTANCES=$(shell ps -ef | grep openocd | wc -l); \
+	if [ $$OPENOCD_INSTANCES -gt 2 ]; then \
+		echo "$$OPENOCD_INSTANCES instances of OpenOCD are open, make load may not compile. If applicable, close other OpenOCD sessions."; \
+		read -p "Press enter to continue" temp; \
+	fi
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(DEBUG_BIN_FILE) 0x8000000" -c "verify_image $(DEBUG_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 # Use this if you want gdb to be rtos thread aware
