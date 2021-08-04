@@ -1,6 +1,5 @@
 VERSION "1"
 
-
 NS_ : 
 	NS_DESC_
 	CM_
@@ -64,12 +63,6 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ VoltageHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
-
-BO_ 2151743746 VCU_updateBmuSocPolling: 8 VCU_F7
- SG_ VCU_updateBmuPollingFrequency : 0|8@1- (1,0) [0|0] ""  BMU
-
-BO_ 2281832193 BMU_BatterySoc: 8 BMU
- SG_ BMU_Soc : 0|8@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
 
 BO_ 2147548936 WSBFL_DTC: 6 WSBFL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBFR,WSBRR,WSBRL
@@ -521,7 +514,6 @@ BO_ 2550137353 WSBFR_WheelData: 8 WSBFR
  SG_ StrainXRightFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
  SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
 
-BO_TX_BU_ 2151743746 : VCU_BeagleBone,VCU_F7;
 
 
 CM_ BU_ MCLeft "5_2_Left Inverter";
