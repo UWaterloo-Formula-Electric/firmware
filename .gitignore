@@ -23,4 +23,5 @@ info.dox
 Gen/
 .vscode
 *.tmp
+Cube-Nucleo-Src/build/
 Docs/sphinx/build

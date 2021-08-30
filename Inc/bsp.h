@@ -100,15 +100,19 @@
 #define ERROR_LED_PORT LD3_GPIO_Port
 #define IWDG_HANDLE hiwdg
 #define ISO_SPI_HANDLE hspi4
+#define FAN_HANDLE htim10
 
 #define CONT_POS_CLOSE	  asm("NOP")
 #define CONT_POS_OPEN	  asm("NOP")
 #define CONT_NEG_CLOSE	  asm("NOP")
 #define CONT_NEG_OPEN	  asm("NOP")
-#define PCDC_PC			  asm("NOP")
-#define PCDC_DC			  asm("NOP")
+#define PCDC_PC	          asm("NOP")
+#define PCDC_DC           asm("NOP")
 #define CONT_CHARGE_CLOSE asm("NOP")
 #define CONT_CHARGE_OPEN  asm("NOP")
+#define DC_DC_ON          asm("NOP")
+#define DC_DC_OFF         asm("NOP")
+
 #else
 
 #define STR_HELPER(x) #x

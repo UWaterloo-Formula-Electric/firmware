@@ -1285,7 +1285,9 @@ ChargeReturn balanceCharge(void)
                         balancingCells = true;
                     } else {
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
+#if IS_BOARD_F7
                       batt_stop_balance_cell(cell);
+#endif
                     }
                 }
 
