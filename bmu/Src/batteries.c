@@ -888,7 +888,7 @@ HAL_StatusTypeDef publishPackVoltage(float packVoltage)
 HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 {
     if (xQueuePeek(PackVoltageQueue, packVoltage, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive IBus current from queue\n");
+        ERROR_PRINT("Failed to receive Pack Voltage from queue\n");
         return HAL_ERROR;
     }
 
