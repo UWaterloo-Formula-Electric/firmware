@@ -15,14 +15,14 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (1985)
-#define THROTT_B_LOW (661)
+#define THROTT_A_LOW (2100)
+#define THROTT_B_LOW (2125)
 
-#define THROTT_A_HIGH (2284)
-#define THROTT_B_HIGH (965)
+#define THROTT_A_HIGH (2325)
+#define THROTT_B_HIGH (2350)
 
-#define BRAKE_POS_LOW (2058)
-#define BRAKE_POS_HIGH (2250)
+#define BRAKE_POS_LOW (1740)
+#define BRAKE_POS_HIGH (1895)
 
 #define STEERING_POT_LOW (1040)
 #define STEERING_POT_CENTER (2122)
@@ -92,7 +92,7 @@ int map_range(int in, int low, int high, int low_out, int high_out) {
 
 float getBrakePositionPercent()
 {
-    return 100 - map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
+    return map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
                            BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
 }
 
