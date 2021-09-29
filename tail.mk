@@ -29,7 +29,6 @@ MAP_FILE = $(BINARY_BASE_NAME).map
 CURRENT_DATE = \"$(shell date +%F_%T%Z)\"
 CURRENT_TOP_BRANCH = \"$(shell git rev-parse --abbrev-ref HEAD)\"
 CURRENT_COMMON_BRANCH = \"$(shell cd common-all && git rev-parse --abbrev-ref HEAD)\"
-#CURRENT_COMMON_BRANCH = \"Version-CLI\"
 
 # Set default version here, so not needed in makefile for single version boards
 BOARD_VERSION ?= 1
@@ -129,7 +128,6 @@ LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 LINKER_FLAGS += -z muldefs
-#LINKER_FLAGS += -D CUR_DATE=1
 #DEBUG_FLAGS=-g -O2
 #COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
 #ASSEMBLER_FLAGS=$(COMMON_FLAGS) -x assembler-with-cpp
