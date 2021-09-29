@@ -26,6 +26,11 @@ ELF_FILE = $(BINARY_BASE_NAME).elf
 BIN_FILE = $(BINARY_BASE_NAME).bin
 MAP_FILE = $(BINARY_BASE_NAME).map
 
+CURRENT_DATE = \"$(shell date +%F_%T%Z)\"
+CURRENT_TOP_BRANCH = \"$(shell git rev-parse --abbrev-ref HEAD)\"
+CURRENT_COMMON_BRANCH = \"$(shell cd common-all && git rev-parse --abbrev-ref HEAD)\"
+#CURRENT_COMMON_BRANCH = \"Version-CLI\"
+
 # Set default version here, so not needed in makefile for single version boards
 BOARD_VERSION ?= 1
 
@@ -124,6 +129,7 @@ LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 LINKER_FLAGS += -z muldefs
+#LINKER_FLAGS += -D CUR_DATE=1
 #DEBUG_FLAGS=-g -O2
 #COMMON_FLAGS=-c $(DEBUG_FLAGS) -std=gnu99 -Wall $(MCU)
 #ASSEMBLER_FLAGS=$(COMMON_FLAGS) -x assembler-with-cpp
@@ -134,6 +140,9 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 #COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
 COMPILER_FLAGS = $(LIB_CFLAGS)
 COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS) -Werror
+COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
+COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
+COMPILER_FLAGS += -D CUR_COMMON_BRANCH=$(CURRENT_COMMON_BRANCH)
 
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 

@@ -391,6 +391,22 @@ static const CLI_Command_Definition_t resetCLICommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t versionCLICommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("Compiled on %s, Branches: %s, %s\r\n", CUR_DATE, CUR_TOP_BRANCH, CUR_COMMON_BRANCH);
+    //COMMAND_OUTPUT("Compiled on s, Main branch: s, Common-all Branch: s\r\n");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t versionCLICommandDefinition =
+{
+    "version",
+    "version:\r\n  Get the current firmware version\r\n",
+    versionCLICommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef debugInit()
 {
@@ -420,6 +436,9 @@ HAL_StatusTypeDef debugInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&versionCLICommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&resetCLICommandDefinition) != pdPASS) {
