@@ -394,9 +394,16 @@ static const CLI_Command_Definition_t resetCLICommandDefinition =
 BaseType_t versionCLICommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("Compiled on %s, Branches: %s, %s\r\n", CUR_DATE, CUR_TOP_BRANCH, CUR_COMMON_BRANCH);
-    //COMMAND_OUTPUT("Compiled on s, Main branch: s, Common-all Branch: s\r\n");
-    return pdFALSE;
+	static bool versionCLIwriting = false;
+	if(!versionCLIwriting){
+    	COMMAND_OUTPUT("Compiled on %s, Branches: %s, %s\r\n", CUR_DATE, CUR_TOP_BRANCH, CUR_COMMON_BRANCH);
+    	versionCLIwriting = true;
+    	return pdTRUE;
+    } else {
+    	COMMAND_OUTPUT("Commit Hash: %s\r\n", CUR_HASH);
+    	versionCLIwriting = false;
+    	return pdFALSE;
+	}
 }
 
 static const CLI_Command_Definition_t versionCLICommandDefinition =
