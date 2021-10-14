@@ -180,7 +180,7 @@ HAL_StatusTypeDef batt_read_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_
 			int address = LTC_ADDRESS[board][ltc_chip];
 		    uint8_t response_buffer[BATT_CONFIG_SIZE] = {0};
 
-			batt_read_data(WRCFG_BYTE0(address), WRCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
+			batt_read_data(RDCFG_BYTE0(address), RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
 			
 			for(int i = 0;i < BATT_CONFIG_SIZE; i++){
 				config[board][ltc_chip][i] = response_buffer[i];
