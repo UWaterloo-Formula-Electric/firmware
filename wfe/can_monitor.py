@@ -11,14 +11,13 @@ from wfe.connect.connect import QueueDataPublisher
 from wfe.util import default_dbc_path
 
 logging.basicConfig()
-logger = logging.getLogger()
 logging.getLogger().setLevel(logging.ERROR)
 
 class CanMonitor(QueueDataPublisher):
 
     DEFAULT_DBC = default_dbc_path()
 
-    def __init__(self, interface='can1', dbc=DEFAULT_DBC):
+    def __init__(self, interface='can1', dbc=DEFAULT_DBC, log_to_file=True):
         super(CanMonitor, self).__init__()
 
         self.interface=interface
@@ -27,6 +26,9 @@ class CanMonitor(QueueDataPublisher):
         self.db = cantools.database.load_file(dbc)
 
         self.monitoring = True
+
+        if log_to_file:
+            logging.basicConfig(filename="beaglebone.log")
         
     def monitor_bus(self, timeout=60):
         while self.monitoring:
