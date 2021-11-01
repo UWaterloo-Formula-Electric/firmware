@@ -1,9 +1,10 @@
-import logging
-import json
-
 import can
 import cantools
+import json
+import logging
 import zmq
+
+from datetime import datetime
 
 from wfe.connect.packet import CANPacket
 from wfe.connect.connect import QueueDataPublisher
@@ -28,7 +29,8 @@ class CanMonitor(QueueDataPublisher):
         self.monitoring = True
 
         if log_to_file:
-            logging.basicConfig(filename="beaglebone.log")
+            wfe_log_filename = "{}_wfe.log".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+            logging.basicConfig(filename=wfe_log_filename)
         
     def monitor_bus(self, timeout=60):
         while self.monitoring:
