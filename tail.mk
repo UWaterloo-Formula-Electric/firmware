@@ -26,6 +26,11 @@ ELF_FILE = $(BINARY_BASE_NAME).elf
 BIN_FILE = $(BINARY_BASE_NAME).bin
 MAP_FILE = $(BINARY_BASE_NAME).map
 
+CURRENT_DATE = \"$(shell date +%F_%T%Z)\"
+CURRENT_TOP_BRANCH = \"$(shell git rev-parse --abbrev-ref HEAD)\"
+CURRENT_COMMON_BRANCH = \"$(shell cd common-all && git rev-parse --abbrev-ref HEAD)\"
+CURRENT_HASH = \"$(shell git rev-parse HEAD)\"
+
 # Set default version here, so not needed in makefile for single version boards
 BOARD_VERSION ?= 1
 
@@ -134,6 +139,10 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 #COMPILER_FLAGS=$(COMMON_FLAGS) -ffunction-sections -fdata-sections $(DEFINE_FLAGS) -Werror $(DEPFLAGS)
 COMPILER_FLAGS = $(LIB_CFLAGS)
 COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS) -Werror
+COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
+COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
+COMPILER_FLAGS += -D CUR_COMMON_BRANCH=$(CURRENT_COMMON_BRANCH)
+COMPILER_FLAGS += -D CUR_HASH=$(CURRENT_HASH)
 
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
