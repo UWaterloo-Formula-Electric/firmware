@@ -16,7 +16,7 @@ HAL_StatusTypeDef batt_init()
 
     batt_init_chip_configs();
 
-    if (batt_spi_wakeup(true /* sleeping */) != HAL_OK) {
+    if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }

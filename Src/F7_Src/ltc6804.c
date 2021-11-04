@@ -80,12 +80,7 @@
 
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
-	{0, 1},
-	{2, 3},
-	{4, 5},
-	{6, 7},
-	{8, 9},
-	{10, 11},
+	{0, 1}
 };
 
 
@@ -125,6 +120,13 @@ HAL_StatusTypeDef format_and_send_config(
 	batt_gen_pec(config_buffer, BATT_CONFIG_SIZE,
 				&(txBuffer[START_OF_DATA_IDX + BATT_CONFIG_SIZE]));
 
+	DEBUG_PRINT("\nWRCFG Data: ");
+	for(int i = 0;i < BUFF_SIZE; i++)
+	{
+		DEBUG_PRINT(" 0x%x", txBuffer[i]);
+	}
+	DEBUG_PRINT("\n");
+
 	// Send command + data
 	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
 	{
@@ -132,7 +134,7 @@ HAL_StatusTypeDef format_and_send_config(
 		return HAL_ERROR;
 	}
 
-	return 0;
+	return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_write_config()
@@ -143,7 +145,7 @@ HAL_StatusTypeDef batt_write_config()
 			format_and_send_config(LTC_ADDRESS[board][ltc_chip], m_batt_config[board][ltc_chip]);
 		}
 	}
-    return 0;
+    return HAL_OK;
 }
 
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
@@ -152,14 +154,33 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
 			
-	fillDummyBytes(txBuffer, BUFF_SIZE);
+	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
+		ERROR_PRINT("Failed to send write config command\n");
+		return HAL_ERROR;
+	}
+
+	fillDummyBytes(&(txBuffer[DATA_START_IDX]), BUFF_SIZE - DATA_START_IDX);
 
 	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send read data command\n");
 		return HAL_ERROR;
 	}
+	
+	DEBUG_PRINT("\n Tx Config Read:");
+	for(int i = 0; i < BUFF_SIZE;i++)
+	{
+		DEBUG_PRINT("0x%x", txBuffer[i]);
+	}
+	DEBUG_PRINT("\n");
 
-	if (checkPEC(rxBuffer, response_size) != HAL_OK)
+	DEBUG_PRINT("\n Rx Config Read:");
+	for(int i = 0; i < BUFF_SIZE;i++)
+	{
+		DEBUG_PRINT("0x%x", rxBuffer[i]);
+	}
+	DEBUG_PRINT("\n");
+
+	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
 	{
 		ERROR_PRINT("PEC mismath \n");
 		return HAL_ERROR;
@@ -199,6 +220,13 @@ HAL_StatusTypeDef batt_verify_config(){
 	}
     
     vTaskDelay(T_REFUP_MS);
+
+	DEBUG_PRINT("\nrxBuffer: ");
+    for(int byte = 0; byte < BATT_CONFIG_SIZE; byte++)
+	{
+		DEBUG_PRINT("0x%x", config_buffer[0][0][byte]);
+	}
+	DEBUG_PRINT("\n");
 	
 	// Verify was set correctly
 	for(int board = 0; board < NUM_BOARDS; board++) {
@@ -207,7 +235,7 @@ HAL_StatusTypeDef batt_verify_config(){
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
-					ERROR_PRINT("ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch", board, ltc_chip, buff_byte);
+					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch \n", board, ltc_chip, buff_byte);
 					return HAL_ERROR;
 				}
 			}
