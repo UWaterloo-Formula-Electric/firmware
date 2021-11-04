@@ -139,7 +139,7 @@ int batt_spi_wakeup(bool sleeping)
     if (sleeping) {
         for (int board = 0; board < NUM_BOARDS; board++) {
             HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-            delay_us(300);
+            delay_us(400);
             HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
             delay_us(10);
         }

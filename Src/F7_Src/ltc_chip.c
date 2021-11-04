@@ -16,10 +16,10 @@ HAL_StatusTypeDef batt_init()
 
     batt_init_chip_configs();
 
- //   if (batt_spi_wakeup(true) != HAL_OK) {
- //       ERROR_PRINT("Failed to wake up boards\n");
- //       return HAL_ERROR;
- //   }
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
 
     if(batt_write_config() != HAL_OK) {
     	ERROR_PRINT("Failed to write batt config to boards\n");
