@@ -1,8 +1,6 @@
 import can
 import cantools
-import json
 import logging
-import zmq
 
 from datetime import datetime
 
@@ -11,14 +9,16 @@ from wfe.connect.connect import QueueDataPublisher
 
 from wfe.util import default_dbc_path
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.ERROR)
+wfe_log_filename = "{}_wfe.log".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+log_format = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(filename=wfe_log_filename, format=log_format)
+logging.getLogger().setLevel(logging.DEBUG)
 
 class CanMonitor(QueueDataPublisher):
 
     DEFAULT_DBC = default_dbc_path()
 
-    def __init__(self, interface='can1', dbc=DEFAULT_DBC, log_to_file=True):
+    def __init__(self, interface='can1', dbc=DEFAULT_DBC):
         super(CanMonitor, self).__init__()
 
         self.interface=interface
@@ -27,10 +27,6 @@ class CanMonitor(QueueDataPublisher):
         self.db = cantools.database.load_file(dbc)
 
         self.monitoring = True
-
-        if log_to_file:
-            wfe_log_filename = "{}_wfe.log".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-            logging.basicConfig(filename=wfe_log_filename)
         
     def monitor_bus(self, timeout=60):
         while self.monitoring:
@@ -77,4 +73,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
