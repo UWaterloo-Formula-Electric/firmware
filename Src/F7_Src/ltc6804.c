@@ -75,7 +75,7 @@
 #define AUX_BLOCK_SIZE 6
 #define CELL_VOLTAGE_SIZE_BYTES 2
 
-#define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
+#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
 
 
