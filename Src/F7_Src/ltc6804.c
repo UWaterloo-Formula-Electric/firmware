@@ -275,6 +275,7 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, si
 		{
 			command_byte_low = ADOW_BYTE0(address);
 			command_byte_high = ADOW_BYTE1(0);
+			break;
 		}
 		default:
 			return HAL_ERROR;
