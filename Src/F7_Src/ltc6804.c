@@ -90,7 +90,7 @@ void batt_init_chip_configs()
 {
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
-			m_batt_config[board][ltc_chip][0] = REFON(1) | ADC_OPT(0);
+			m_batt_config[board][ltc_chip][0] = REFON(1) | ADC_OPT(0) | SWTRD(1);
 		}
 	}
 }
