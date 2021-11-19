@@ -1,0 +1,15 @@
+int sendCAN_${name}()
+{
+    struct ${name} new_${name};
+    new_${name}.DBC = DBCVersion;
+
+    new_${name}.git0 = gitCommit[0];
+    new_${name}.git1 = gitCommit[1];
+    new_${name}.git2 = gitCommit[2];
+    new_${name}.git3 = gitCommit[3];
+    new_${name}.git4 = gitCommit[4];
+    new_${name}.git5 = gitCommit[5];
+    new_${name}.git6 = gitCommit[6];
+
+    return sendCanMessage(${id}, ${len}, (uint8_t *)&new_${name});
+}

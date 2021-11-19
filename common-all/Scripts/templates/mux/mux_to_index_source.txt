@@ -1,0 +1,9 @@
+uint8_t ${name}MuxSelectToIndex(int muxSelect, int offset)
+{
+    int index =  muxSelect * ${numSignalsPerMessage} + offset;
+    if (index >= ${numSignals}) {
+        index = ${numSignals} - 1;
+    }
+
+    return index;
+}
