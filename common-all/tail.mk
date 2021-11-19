@@ -6,11 +6,11 @@ RM=rm -rf
 
 SRC_DIR = Src
 BIN_BASE_DIR = Bin
-COMMON_LIB_DIR = common-all
-COMMON_F7_LIB_DIR = common-all/f7
+COMMON_LIB_DIR = ../common-all
+COMMON_F7_LIB_DIR = ../common-all/f7
 # only used to include some header files
-COMMON_F0_LIB_DIR = common-all/f0
-GITHOOKS_DIR = common-all/.githooks
+COMMON_F0_LIB_DIR = ../common-all/f0
+GITHOOKS_DIR = ../common-all/.githooks
 
 MIDDLEWARE_DIR = Middlewares
 FREERTOS_DIR = $(MIDDLEWARE_DIR)/Third_Party/FreeRTOS

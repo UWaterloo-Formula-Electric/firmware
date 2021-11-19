@@ -11,4 +11,4 @@ CUBE_F0_MAKEFILE_PATH= Cube-F0-Src/DCU/
 CUBE_NUCLEO_F0_MAKEFILE_PATH = Cube-Nucleo-Src/DCU/
 
 
-include common-all/tail.mk
+include ../common-all/tail.mk

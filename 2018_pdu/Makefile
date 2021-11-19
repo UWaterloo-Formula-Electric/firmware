@@ -18,4 +18,4 @@ CUBE_F7_VERSION_2_MAKEFILE_PATH= Cube-F7-Src-respin/
 
 CUBE_NUCLEO_MAKEFILE_PATH = Cube-Nucleo-Src/CanTest/
 
-include common-all/tail.mk
+include ../common-all/tail.mk

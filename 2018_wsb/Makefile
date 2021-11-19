@@ -11,4 +11,4 @@ CUBE_F0_MAKEFILE_PATH= Cube-F0-Src/2018_WSB/
 CUBE_NUCLEO_F0_MAKEFILE_PATH = Cube-Nucleo-Src/WSB/
 
 
-include common-all/tail.mk
+include ../common-all/tail.mk

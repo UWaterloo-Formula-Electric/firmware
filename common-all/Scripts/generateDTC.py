@@ -5,7 +5,7 @@ import os
 import sys
 import errno
 
-commonDir = 'common-all'
+commonDir = '../common-all'
 
 ScriptsDir = os.path.join(commonDir, 'Scripts')
 

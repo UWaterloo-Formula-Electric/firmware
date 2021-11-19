@@ -765,7 +765,7 @@ def main(argv):
         print("ERROR: Specifiy either F0 or F7 for boardtype")
         sys.exit(1)
 
-    commonDir = 'common-all'
+    commonDir = '../common-all'
     genDir = 'Gen'
 
     genIncDir = os.path.join(genDir, 'Inc')
