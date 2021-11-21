@@ -429,7 +429,6 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 			if(batt_read_data(RDAUXB_BYTE0(address), RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
 				ERROR_PRINT("ERROR: Error reading thermistor values over SPI");
 			}
-			
 			size_t cellIdx = /*(board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP*/ + channel;
 			
 			// We only use the first GPIO register, 2 bytes out of the total 6 in adc_vals
@@ -437,6 +436,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 										| adc_vals[TEMP_ADC_IDX_LOW]));
 			float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 			cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			DEBUG_PRINT("Trying to write thermistor: %d, with value %f", cellIdx, cell_temp_array[cellIdx]);
 			
 		}
 	}
