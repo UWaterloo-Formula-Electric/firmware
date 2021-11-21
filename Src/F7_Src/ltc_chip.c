@@ -65,7 +65,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
 {
 
-    if (batt_spi_wakeup(false /* not sleeping*/))
+    if (batt_spi_wakeup(true /* not sleeping*/))
     {
         return HAL_ERROR;
     }
