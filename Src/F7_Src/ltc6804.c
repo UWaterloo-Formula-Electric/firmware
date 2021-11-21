@@ -381,7 +381,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 				}
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
-					if(cvreg + VOLTAGE_BLOCKS_PER_CHIP * VOLTAGES_PER_BLOCK == 4 || cvreg + VOLTAGE_BLOCKS_PER_CHIP * VOLTAGES_PER_BLOCK == 5)
+					if(cvreg + block * VOLTAGES_PER_BLOCK == 4 || cvreg + block * VOLTAGES_PER_BLOCK == 5)
 					{
 						continue;
 					}
