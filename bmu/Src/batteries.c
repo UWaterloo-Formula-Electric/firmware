@@ -780,7 +780,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure;
    }
 	DEBUG_PRINT("Temp Channel: %d is temp %f deg C\n", 0, TempChannel[0]);
-   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
+   for (int i=0; i < 14; i++)
    {
       measure = TempChannel[i];
 			
