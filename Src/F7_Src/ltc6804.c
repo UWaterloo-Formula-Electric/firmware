@@ -170,19 +170,6 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		return HAL_ERROR;
 	}
 	
-	DEBUG_PRINT("\n Tx Config Read:");
-	for(int i = 0; i < BUFF_SIZE;i++)
-	{
-		DEBUG_PRINT("0x%x", txBuffer[i]);
-	}
-	DEBUG_PRINT("\n");
-
-	DEBUG_PRINT("\n Rx Config Read:");
-	for(int i = 0; i < BUFF_SIZE;i++)
-	{
-		DEBUG_PRINT("0x%x", rxBuffer[i]);
-	}
-	DEBUG_PRINT("\n");
 
 	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
 	{
@@ -432,7 +419,6 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 									| adc_vals[TEMP_ADC_IDX_LOW]));
 		float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-		DEBUG_PRINT("Trying to write thermistor: %d, with value %f", cellIdx, cell_temp_array[cellIdx]);
 		
 	}
 	return HAL_OK;
