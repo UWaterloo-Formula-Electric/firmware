@@ -77,7 +77,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     }
 
 	
-	batt_set_temp_config(0);
+	batt_set_temp_config(channel);
 
     if (batt_write_config() != HAL_OK)
     {
