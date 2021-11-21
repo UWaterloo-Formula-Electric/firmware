@@ -154,6 +154,10 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
 			
+	if(batt_spi_wakeup(false))
+	{
+		return HAL_ERROR;
+	}
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
@@ -326,11 +330,15 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 
 	for (int board = 0; board < NUM_BOARDS; board++){
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
+			size_t local_cell_idx = 0;
 			for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 				
 				uint8_t address = LTC_ADDRESS[board][ltc_chip]; 
 				uint8_t cmdByteLow, cmdByteHigh;
-
+				if(batt_spi_wakeup(false))
+				{
+					return HAL_ERROR;
+				}
 				// Select appropriate voltage register group
 				switch(block){
 					case 0:
@@ -371,13 +379,19 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 					ERROR_PRINT("ERROR: Issue reading voltage cell values");
 					return HAL_ERROR;
 				}
-
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
+					if(cvreg + VOLTAGE_BLOCKS_PER_CHIP * VOLTAGES_PER_BLOCK == 4 || cvreg + VOLTAGE_BLOCKS_PER_CHIP * VOLTAGES_PER_BLOCK == 5)
+					{
+						continue;
+					}
+
 					size_t registerIndex = cvreg * CELL_VOLTAGE_SIZE_BYTES;
-					size_t cellIdx = cvreg + (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + VOLTAGES_PER_BLOCK*block;
+					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
+
 					uint16_t temp = ((uint16_t) (adc_vals[(registerIndex + 1)] << 8 | adc_vals[registerIndex]));
 					cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+					local_cell_idx++;
 				}
 
 			}
