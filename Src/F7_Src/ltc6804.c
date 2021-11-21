@@ -120,13 +120,6 @@ HAL_StatusTypeDef format_and_send_config(
 	batt_gen_pec(config_buffer, BATT_CONFIG_SIZE,
 				&(txBuffer[START_OF_DATA_IDX + BATT_CONFIG_SIZE]));
 
-	DEBUG_PRINT("\nWRCFG Data: ");
-	for(int i = 0;i < BUFF_SIZE; i++)
-	{
-		DEBUG_PRINT(" 0x%x", txBuffer[i]);
-	}
-	DEBUG_PRINT("\n");
-
 	// Send command + data
 	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
 	{
