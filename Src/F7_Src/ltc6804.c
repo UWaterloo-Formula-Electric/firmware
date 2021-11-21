@@ -411,7 +411,7 @@ void batt_set_temp_config(size_t channel) {
     	{
     		uint8_t gpioPins = channel;
 			// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-			m_batt_config[board][ltc_chip][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0);
+			m_batt_config[board][ltc_chip][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
 		}
 	}
 }
