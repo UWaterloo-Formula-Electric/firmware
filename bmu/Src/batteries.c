@@ -749,7 +749,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
-   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < 14; i++)
    {
       measure = VoltageCell[i];
 
@@ -779,11 +779,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Sum up cell voltages to get overall pack voltage
       (*packVoltage) += measure;
    }
-
+	DEBUG_PRINT("Temp Channel: %d is temp %f deg C\n", 0, TempChannel[0]);
    for (int i=0; i < TEMPCHANNEL_COUNT; i++)
    {
       measure = TempChannel[i];
-
+			
       // Check it is within bounds
       if (measure > CELL_OVERTEMP) {
          ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
