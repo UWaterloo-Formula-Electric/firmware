@@ -79,11 +79,11 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 	
 	batt_set_temp_config(channel);
 
-    if (batt_write_config() != HAL_OK)
+    /*if (batt_write_config() != HAL_OK)
     {
         ERROR_PRINT("Failed to setup mux for temp reading\n");
         return HAL_ERROR;
-    }
+    }*/
 
     delay_us(MUX_MEASURE_DELAY_US);
     if (batt_spi_wakeup(false /* not sleeping*/))

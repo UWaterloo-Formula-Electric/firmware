@@ -374,7 +374,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 					cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 					local_cell_idx++;
 				}
-				delay_us(1000);
 
 			}
 		}
