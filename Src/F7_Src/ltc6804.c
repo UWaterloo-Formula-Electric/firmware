@@ -80,7 +80,7 @@
 
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
-	{0, 1}
+	{1, 0}
 };
 
 
@@ -400,7 +400,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		// adc values for one block from all boards
 		uint8_t adc_vals[AUX_BLOCK_SIZE] = {0};
 		
-		uint8_t address = LTC_ADDRESS[board][0];
+		uint8_t address = LTC_ADDRESS[board][1];
 		
 		if(batt_read_data(RDAUXB_BYTE0(address), RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
 			ERROR_PRINT("ERROR: Error reading thermistor values over SPI");
