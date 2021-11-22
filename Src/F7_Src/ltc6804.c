@@ -388,6 +388,7 @@ void batt_set_temp_config(size_t channel) {
 	for (int board = 0; board < NUM_BOARDS; board++)
     {
 		uint8_t gpioPins = channel;
+
 		// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
 		m_batt_config[board][1][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
 	}
@@ -412,6 +413,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 									| adc_vals[TEMP_ADC_IDX_LOW]));
 		float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+		DEBUG_PRINT("Channel: %d, cellIdx: %d, value: %f\n", channel, cellIdx, cell_temp_array[cellIdx]);
 		
 	}
 	return HAL_OK;
