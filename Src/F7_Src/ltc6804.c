@@ -147,7 +147,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
 			
-	if(batt_spi_wakeup(false))
+	if(batt_spi_wakeup(true))
 	{
 		return HAL_ERROR;
 	}

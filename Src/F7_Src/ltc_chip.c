@@ -172,12 +172,10 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
 
     for (int i = 0; i < num_readings; i++) {
         if (batt_spi_wakeup(false /* not sleeping*/)) {
-        	DEBUG_PRINT("Won't wakeup A\n");
             return HAL_ERROR;
         }
 
         if (batt_broadcast_command(pullup ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
-        	DEBUG_PRINT("Won't pullup or down ADOW\n");
             return HAL_ERROR;
         }
 
@@ -185,13 +183,11 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
         delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
         if (batt_spi_wakeup(false /* not sleeping*/))
         {
-        	DEBUG_PRINT("Won't wakeup B\n");
             return HAL_ERROR;
         }
 
         if (batt_readBackCellVoltage(cell_voltages_single_reading) != HAL_OK)
         {
-        	DEBUG_PRINT("Failed read back\n");
             return HAL_ERROR;
         }
 
