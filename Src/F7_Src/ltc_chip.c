@@ -243,7 +243,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                 return HAL_ERROR;
         }
 
-		size_t last_cell_in_board = board*CELLS_PER_BOARD + CELLS_PER_BOARD-1;
+		size_t last_cell_in_board = /*board*CELLS_PER_BOARD + CELLS_PER_BOARD-1*/6;
         if (float_abs(cell_voltages_pullup[last_cell_in_board] - 0) < 0.0002) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
                             last_cell_in_board, cell_voltages_pullup[last_cell_in_board],
