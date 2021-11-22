@@ -147,6 +147,10 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
 			
+	if(batt_spi_wakeup(false))
+	{
+		return HAL_ERROR;
+	}
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
@@ -352,7 +356,8 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
 				
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-					ERROR_PRINT("ERROR: Issue reading voltage cell values");
+					DEBUG_PRINT("Failed on board: %d, chip %d, block %d", board, ltc_chip, block);
+					ERROR_PRINT("ERROR: Issue reading voltage cell values\n");
 					return HAL_ERROR;
 				}
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
@@ -369,6 +374,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 					cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 					local_cell_idx++;
 				}
+				delay_us(5);
 
 			}
 		}
