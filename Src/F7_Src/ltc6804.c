@@ -309,7 +309,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 
 
 	for (int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
+		for(int ltc_chip = 0; ltc_chip < 1; ltc_chip++) {
 			size_t local_cell_idx = 0;
 			for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 				

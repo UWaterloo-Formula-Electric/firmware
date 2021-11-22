@@ -127,11 +127,11 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         return HAL_ERROR;
     }
 
-/*    if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
+    if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temperatures\n");
         return HAL_ERROR;
     }
-*/
+
     return HAL_OK;
 }
 
