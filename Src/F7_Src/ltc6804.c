@@ -302,15 +302,14 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
  */
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 {
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-
 
 	for (int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < 1; ltc_chip++) {
+		for(int ltc_chip = 0; ltc_chip < 2; ltc_chip++) {
 			size_t local_cell_idx = 0;
+			if (batt_spi_wakeup(true /* not sleeping*/))
+			{
+				return HAL_ERROR;
+			}
 			for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 				
 				uint8_t address = LTC_ADDRESS[board][ltc_chip]; 
