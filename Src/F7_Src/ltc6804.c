@@ -306,7 +306,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 	for (int board = 0; board < NUM_BOARDS; board++){
 		for(int ltc_chip = 0; ltc_chip < 2; ltc_chip++) {
 			size_t local_cell_idx = 0;
-			if (batt_spi_wakeup(true /* not sleeping*/))
+			if (batt_spi_wakeup(false /* not sleeping*/))
 			{
 				return HAL_ERROR;
 			}
