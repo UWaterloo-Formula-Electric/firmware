@@ -1,8 +1,8 @@
 #include "brakeAndThrottle.h"
 #include "debug.h"
 #include "motorController.h"
-#include "VCU_F7_can.h"
-#include "VCU_F7_dtc.h"
+#include "vcu_F7_can.h"
+#include "vcu_F7_dtc.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS

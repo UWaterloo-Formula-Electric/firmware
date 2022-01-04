@@ -16,7 +16,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "userCan.h"
-#include "DCU_can.h"
+#include "dcu_can.h"
 #include "controlStateMachine.h"
 /**
  * Called by FreeRTOS on stack overflow

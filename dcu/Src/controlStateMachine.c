@@ -7,7 +7,7 @@
 
 #include "bsp.h"
 #include "debug.h"
-#include "DCU_can.h"
+#include "dcu_can.h"
 #include "userCan.h"
 #include "watchdog.h"
 #include "canReceive.h"

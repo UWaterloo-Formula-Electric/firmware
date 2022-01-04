@@ -5,18 +5,6 @@
 #include "bsp.h"
 #include "FreeRTOS.h"
 
-#if BOARD_VERSION == 1
-/* Only declared public for use in CLI for mock testing */
-typedef enum ADC_Indices_t {
-    THROTTLE_B_INDEX = 0,
-    BRAKE_POS_INDEX,
-    THROTTLE_A_INDEX,
-    STEERING_INDEX,
-    BRAKE_PRES_INDEX,
-    NUM_ADC_CHANNELS
-} ADC_Indices_t;
-
-#elif BOARD_VERSION == 2
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
@@ -27,9 +15,6 @@ typedef enum ADC_Indices_t {
     NUM_ADC_CHANNELS
 } ADC_Indices_t;
 
-#else
-#error Define ADC_Indices for this board version!
-#endif
 
 #define TPS_MULTPLIER 100
 #define TPS_DIVISOR 4095

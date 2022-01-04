@@ -8,7 +8,7 @@
 #include "sensors.h"
 #include "adc.h"
 #include <stdbool.h>
-#include "PDU_can.h"
+#include "pdu_can.h"
 #include "watchdog.h"
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];

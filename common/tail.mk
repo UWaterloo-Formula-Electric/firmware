@@ -1,21 +1,28 @@
 # Toolchain
-CC  = arm-none-eabi-gcc
-HEX = arm-none-eabi-objcopy
-SZ  = arm-none-eabi-size
+CC  = @arm-none-eabi-gcc
+HEX = @arm-none-eabi-objcopy
+SZ  = @arm-none-eabi-size
 
 RM=rm -rf
 
 # Global Variables
+DEBUG ?=0 # Default to non debug
+BIN_DIR = Bin
+
 ELF_FILE = $(BOARD_NAME).elf
 BIN_FILE = $(BOARD_NAME).bin
 MAP_FILE = $(BOARD_NAME).map
 
+ifeq ($(DEBUG), 1)
+RELEASE_BIN_DIR = $(BIN_DIR)/$(BOARD_NAME)/Debug
+else
 RELEASE_BIN_DIR = $(BIN_DIR)/$(BOARD_NAME)/Release
+endif
 RELEASE_BIN_FILE = $(RELEASE_BIN_DIR)/$(BIN_FILE)
 RELEASE_ELF_FILE = $(RELEASE_BIN_DIR)/$(ELF_FILE)
 RELEASE_MAP_FILE = $(RELEASE_BIN_DIR)/$(MAP_FILE)
 
-SRC_DIR = $(BOARD_NAME)/Src
+SRC_DIR = $(BUILD_TARGET)/Src
 COMMON_LIB_DIR = common/
 COMMON_F7_LIB_DIR = $(COMMON_LIB_DIR)/f7
 COMMON_F0_LIB_DIR = $(COMMON_LIB_DIR)/f0
@@ -50,19 +57,19 @@ else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F0)
 else ifeq ($(BOARD_ARCHITECTURE), F0)
 	include $(CUBE_F0_MAKEFILE_PATH)/Cube-Lib.mk
 else
-	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
+    $(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
 
-DEPDIR := .d
+DEPDIR_BASE := .d
+DEPDIR := $(DEPDIR_BASE)/$(BOARD_NAME)
 $(shell mkdir -p $(DEPDIR) >/dev/null)
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+DEPFLAGS = -MT $@ -MMD -MP -MF $(BOARD_DEPDIR)/$*.Td
 
 # Setup includes: flags, dirs
-$(info $(C_INCLUDES))
-INCLUDE_DIRS= $(COMMON_LIB_DIR)/Inc \
+INCLUDE_DIRS = $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
-			  $(BOARD_NAME)/Inc \
+			  $(BUILD_TARGET)/Inc \
 			  $(F7_INC_DIR) \
 			  $(GEN_INC_DIR)
 
@@ -81,12 +88,12 @@ else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
 
-DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_NAME_UPPER=$(BOARD_NAME_UPPER) BOARD_ID=ID_$(BOARD_NAME_UPPER) BOARD_TYPE_$(BOARD_ARCHITECTURE)=1 "USE_HAL_DRIVER" BOARD_VERSION=$(BOARD_VERSION)
+DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_NAME_UPPER=$(BOARD_NAME_UPPER) BOARD_ID=ID_$(BOARD_NAME_UPPER) BOARD_TYPE_$(BOARD_ARCHITECTURE)=1 "USE_HAL_DRIVER"
 DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
 # Setup Linker Flags
 LINKER_FLAGS =$(LIB_LDFLAGS)
-LINKER_FLAGS += -Wl,-Map=$(MAP_FILE_PATH),--cref
+LINKER_FLAGS += -Wl,-Map=$(RELEASE_MAP_FILE),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 LINKER_FLAGS += -z muldefs
@@ -96,16 +103,21 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 
 # Compiler Flags
 COMPILER_FLAGS = $(LIB_CFLAGS)
-COMPILER_FLAGS += $(DEFINE_FLAGS) $(DEPFLAGS) -Werror
+COMPILER_FLAGS += $(DEFINE_FLAGS) -Werror
 COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
 COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
 COMPILER_FLAGS += -D CUR_HASH=$(CURRENT_HASH)
+ifeq ($(DEBUG), 1)
+COMPILER_FLAGS += -g -Og
+else
+COMPILER_FLAGS += -g -O2
+endif
 
-POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
+POSTCOMPILE = @mv -f $(BOARD_DEPDIR)/$*.Td $(BOARD_DEPDIR)/$*.d && touch $@
 
 
 # Setup Src *.c, *.asm files to build
-SRC ?= $(wildcard $(SRC_DIR)/*.c) \
+SRC = $(wildcard $(SRC_DIR)/*.c) \
 	   $(addprefix $(COMMON_LIB_DIR)/Src/, $(COMMON_LIB_SRC)) \
 	   $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c \
 	   $(LIB_C_SOURCES)
@@ -148,19 +160,26 @@ ifeq ($(BOARD_NAME), bmu)
    GEN_FILES += $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h
 endif
 
-#
-# Initialization 
-#
-init:
-	git config core.hooksPath $(GITHOOKS_DIR)
-	git submodule init
-	git submodule update
+
 
 # Board Build
-$(BOARD_NAME): MAP_FILE_PATH = $(RELEASE_MAP_FILE)
-$(BOARD_NAME): BIN_FILE_PATH = $(RELEASE_BIN_FILE)
-$(BOARD_NAME): ELF_FILE_PATH = $(RELEASE_ELF_FILE)
-$(BOARD_NAME): $(RELEASE_BIN_FILE)
+
+ifneq ($(BOARD_NAME), $(BUILD_TARGET))
+$(BUILD_TARGET): $(BOARD_NAME)
+endif
+
+$(BOARD_NAME): BOARD_COMPILER_FLAGS := $(COMPILER_FLAGS)
+$(BOARD_NAME): BOARD_INCLUDE_FLAGS := $(INCLUDE_FLAGS)
+$(BOARD_NAME): BOARD_ASSEMBLER_FLAGS := $(ASSEMBLER_FLAGS)
+$(BOARD_NAME): BOARD_POSTCOMPILE = $(POSTCOMPILE)
+$(BOARD_NAME): BOARD_LINKER_FLAGS := $(LINKER_FLAGS)
+$(BOARD_NAME): BOARD_DEPDIR := $(DEPDIR)
+$(BOARD_NAME): CURR_BOARD := $(BOARD_NAME)
+
+$(BOARD_NAME): BOARD_BIN_FILE := $(RELEASE_BIN_FILE)
+
+$(BOARD_NAME): pre-build $(RELEASE_BIN_FILE)
+	$(info Completed building $(CURR_BOARD))
 
 RELEASE_OBJS = $(SRC:%.c=$(RELEASE_BIN_DIR)/%.o) $(SRCASM:%.s=$(RELEASE_BIN_DIR)/%.o)
 
@@ -168,7 +187,7 @@ $(RELEASE_BIN_FILE): $(RELEASE_ELF_FILE)
 	$(HEX) -O binary "$<" "$@"
 
 $(RELEASE_ELF_FILE): $(RELEASE_OBJS)
-	$(CC) $^ $(LINKER_FLAGS) -o $@
+	$(CC) $^ $(BOARD_LINKER_FLAGS) -o $@
 	$(SZ) $@
 
 
@@ -178,22 +197,18 @@ $(RELEASE_OBJS): | $(GEN_FILES)
 # Build each object file
 $(RELEASE_BIN_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	@mkdir -p $(dir $(DEPDIR)/$^)
-	$(CC) $(COMPILER_FLAGS) $(INCLUDE_FLAGS) $< -o $@
-	$(POSTCOMPILE)
+	@mkdir -p $(dir $(BOARD_DEPDIR)/$^)
+	$(CC) $(BOARD_COMPILER_FLAGS) $(BOARD_INCLUDE_FLAGS) $(DEPFLAGS) $< -o $@
+	$(BOARD_POSTCOMPILE)
 
 $(RELEASE_BIN_DIR)/%.o: %.s
 	@mkdir -p $(dir $@)
-	$(CC) $(ASSEMBLER_FLAGS) $(INCLUDE_FLAGS) $< -o $@
+	$(CC) $(BOARD_ASSEMBLER_FLAGS) $(BOARD_INCLUDE_FLAGS) $< -o $@
 
 $(RELEASE_BIN_DIR)/%.o: %.S
 	@mkdir -p $(dir $@)
-	$(CC) $(ASSEMBLER_FLAGS) $(INCLUDE_FLAGS) $< -o $@
+	$(CC) $(BOARD_ASSEMBLER_FLAGS) $(BOARD_INCLUDE_FLAGS) $< -o $@
 
-clean:
-	$(RM) $(BIN_DIR)
-	$(RM) $(DEPDIR)
-	$(RM) $(GEN_DIR)
 
 ######################################
 # Created autogenerated files
@@ -211,9 +226,10 @@ autogen: $(GEN_FILES)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
+$(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: BOARD_F0_OR_F7 := $(F0_OR_F7)
 $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: $(CAN_FILES_GEN_SCRIPT) $(DBC_FILE)
 	@mkdir -p $(GEN_DIR)
-	$(CAN_FILES_GEN_SCRIPT) $(BOARD_NAME) $(F0_OR_F7)
+	@$(CAN_FILES_GEN_SCRIPT) $(CURR_BOARD) $(BOARD_F0_OR_F7)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
 
@@ -221,11 +237,58 @@ $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h: $(DTC_FILES_GEN_SCRIPT) $(DTC_FILE)
 	@mkdir -p $(GEN_DIR)
-	$(DTC_FILES_GEN_SCRIPT) $(BOARD_NAME)
+	@$(DTC_FILES_GEN_SCRIPT) $(CURR_BOARD)
 
 #$(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
 
+
+ifndef BUILD_ONLY_ONCE
+
+clean:
+	$(RM) $(BIN_DIR)
+	$(RM) $(DEPDIR_BASE)
+	$(RM) $(GEN_DIR)
+
+#
+# Initialization 
+#
+init:
+	git config core.hooksPath $(GITHOOKS_DIR)
+	git submodule init
+	git submodule update
+
+pre-build:
+	$(info Building Board: $(CURR_BOARD))
+
+BUILD_ONLY_ONCE = 1
+
+endif
+
+
+ifeq ($(LOAD_TARGET), $(BUILD_TARGET))
+
+ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
+   OPENOCD_FILE := target/stm32f7x.cfg
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
+   OPENOCD_FILE := target/stm32f0x.cfg
+else
+	$(error "Unsupported Board type: $(BOARD_TYPE)")
+endif
+
+
+load: $(BUILD_TARGET) 
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(BOARD_BIN_FILE) 0x8000000" -c "verify_image $(BOARD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+
+# Use this if you want gdb to be rtos thread aware
+connect-rtos: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
+
+# use this to debug stuff before rtos starts
+connect: load-debug
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
+
+endif # LOAD_TARGET == BUILD_TARGET
 
 #
 # Include dependencies

@@ -1,9 +1,10 @@
-CUSTOM_COMMANDS = all clean autogen
+CUSTOM_COMMANDS = all clean autogen init
 BOARDS = bmu pdu dcu vcu wsb
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
-BIN_DIR = Bin
 
-all: bmu
+all: bmu dcu pdu vcu
 
 include bmu/board.mk
-
+include dcu/board.mk
+include pdu/board.mk
+include vcu/board.mk

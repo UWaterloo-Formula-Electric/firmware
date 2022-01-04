@@ -2,7 +2,7 @@
 #include "bsp.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "PDU_can.h"
+#include "pdu_can.h"
 #include "debug.h"
 
 #define BRAKE_LIGHT_ON_THRESHOLD 5

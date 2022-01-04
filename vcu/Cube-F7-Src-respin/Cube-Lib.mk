@@ -11,11 +11,11 @@
 # ------------------------------------------------
 
 
-THIS_MAKEFILE_PATH := $(CUBE_F7_VERSION_2_MAKEFILE_PATH)
+THIS_MAKEFILE_PATH := $(CUBE_F7_MAKEFILE_PATH)
 ######################################
 # target
 ######################################
-TARGET = 2018_VCU
+TARGET = vcu
 
 
 ######################################

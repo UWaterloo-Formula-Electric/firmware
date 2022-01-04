@@ -15,11 +15,11 @@
 #include "debug.h"
 #include "controlStateMachine.h"
 
-#include "DCU_can.h"
+#include "dcu_can.h"
 
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
-#include "DCU_dtc.h"
+#include "dcu_dtc.h"
 
 extern osThreadId mainTaskHandle;
 

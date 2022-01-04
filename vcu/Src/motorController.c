@@ -1,6 +1,6 @@
 #include "motorController.h"
 #include "bsp.h"
-#include "VCU_F7_can.h"
+#include "vcu_F7_can.h"
 #include "debug.h"
 #include "task.h"
 #include "string.h"

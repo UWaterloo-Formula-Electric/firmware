@@ -1,6 +1,6 @@
 #include "bsp.h"
-#include "PDU_can.h"
-#include "PDU_dtc.h"
+#include "pdu_can.h"
+#include "pdu_dtc.h"
 #include "state_machine.h"
 #include "controlStateMachine.h"
 #include "debug.h"

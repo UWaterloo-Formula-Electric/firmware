@@ -6,8 +6,8 @@
 
 #include "drive_by_wire.h"
 
-#include "VCU_F7_can.h"
-#include "VCU_F7_dtc.h"
+#include "vcu_F7_can.h"
+#include "vcu_F7_dtc.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

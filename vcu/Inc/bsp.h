@@ -25,21 +25,12 @@
 #define ERROR_LED_PIN LED_Y_Pin
 #define ERROR_LED_PORT LED_Y_GPIO_Port
 
-#if BOARD_VERSION == 1
-
-#define PP_5V0_ENABLE 	asm("NOP")
-#define PP_5V0_DISABLE	asm("NOP")
-#define PP_BB_ENABLE 	asm("NOP")
-#define PP_BB_DISABLE	asm("NOP")
-
-#elif BOARD_VERSION == 2
 
 #define PP_5V0_ENABLE 	HAL_GPIO_WritePin(PP_5V0_EN_GPIO_Port,PP_5V0_EN_Pin,GPIO_PIN_SET)
 #define PP_5V0_DISABLE	HAL_GPIO_WritePin(PP_5V0_EN_GPIO_Port,PP_5V0_EN_Pin,GPIO_PIN_RESET)
 #define PP_BB_ENABLE 	HAL_GPIO_WritePin(PP_BB_EN_GPIO_Port,PP_BB_EN_Pin,GPIO_PIN_SET)
 #define PP_BB_DISABLE	HAL_GPIO_WritePin(PP_BB_EN_GPIO_Port,PP_BB_EN_Pin,GPIO_PIN_RESET)
 
-#endif
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"

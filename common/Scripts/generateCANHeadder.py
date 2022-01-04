@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import logging, sys
-logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 import cantools #$ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
 import os

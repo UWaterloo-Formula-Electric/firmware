@@ -6,7 +6,7 @@
 #include "FreeRTOS_CLI.h"
 #include "task.h"
 #include "cmsis_os.h"
-#include "VCU_F7_can.h"
+#include "vcu_F7_can.h"
 #include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "motorController.h"

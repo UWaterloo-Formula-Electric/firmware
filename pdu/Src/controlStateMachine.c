@@ -7,8 +7,8 @@
 #include "debug.h"
 #include "state_machine.h"
 #include "timers.h"
-#include "PDU_dtc.h"
-#include "PDU_can.h"
+#include "pdu_dtc.h"
+#include "pdu_can.h"
 #include "bsp.h"
 #include "watchdog.h"
 

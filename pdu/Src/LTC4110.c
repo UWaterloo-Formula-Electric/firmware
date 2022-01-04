@@ -8,7 +8,7 @@
 #include "debug.h"
 #include "adc.h"
 #include <stdbool.h>
-#include "PDU_can.h"
+#include "pdu_can.h"
 #include "watchdog.h"
 
 void powerTask(void *pvParameters)

@@ -630,12 +630,12 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
 #error Unsupported board type
 #endif
 
-   for (int i=0; i<= VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < VOLTAGECELL_COUNT; i++)
    {
       VoltageCell[i] = initVoltage;
       warningSentForCellVoltage[i] = false;
    }
-   for (int i=0; i<= TEMPCELL_COUNT; i++)
+   for (int i=0; i < TEMPCELL_COUNT; i++)
    {
       TempCell[i] = initTemp;
       warningSentForCellTemp[i] = false;
