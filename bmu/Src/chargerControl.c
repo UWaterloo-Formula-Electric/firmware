@@ -11,7 +11,7 @@
 
 #include "chargerControl.h"
 #include "debug.h"
-#include "BMU_charger_can.h"
+#include "bmu_charger_can.h"
 #include "userCan.h"
 #include "inttypes.h"
 #include <string.h>
@@ -24,15 +24,11 @@ ChargerStatus mStatus = {0};
 
 HAL_StatusTypeDef chargerInit()
 {
-#if BOARD_VERSION >= 2 || IS_BOARD_TYPE_NUCLEO_F7
    if (canStart(&CHARGER_CAN_HANDLE) != HAL_OK) {
       ERROR_PRINT("Failed to start charger CAN\n");
    }
 
    return HAL_OK;
-#else
-   return HAL_OK;
-#endif
 }
 
 HAL_StatusTypeDef startChargerCommunication(float maxVoltage, float maxCurrent, uint32_t watchdogTaskId)
@@ -62,7 +58,6 @@ HAL_StatusTypeDef startChargerCommunication(float maxVoltage, float maxCurrent, 
 
 HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool startCharging)
 {
-#if BOARD_VERSION >= 2 || IS_BOARD_TYPE_NUCLEO_F7
    uint32_t maxVoltageInt = maxVoltage / 0.1;
    uint32_t maxCurrentInt = maxCurrent / 0.1;
 
@@ -82,9 +77,6 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
 
    /*DEBUG_PRINT("Sending charger command can message\n");*/
    return sendCAN_ChargerCommand();
-#else
-   return HAL_OK;
-#endif
 }
 
 void CAN_Msg_ChargeStatus_Callback()

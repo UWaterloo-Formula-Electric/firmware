@@ -57,7 +57,7 @@ def create_dir(path):
 def fWrite(string, fileHandle):
     fileHandle.write(string + '\n')
 
-def generateDepedencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir):
+def generateDependencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir):
     with open(depFile, 'w+') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateCANHeadder.py {dbFile}'.format(headerFile=headerFile, dbFile=dbFile, dir=ScriptsDir), depFileHandle)
         fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=nodeName, boardType=boardType, dir=ScriptsDir), depFileHandle)
@@ -97,7 +97,7 @@ def writeEndIncludeGuard(sourceFileHandle, headerFileHandle):
 def getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileHandle):
     nodeAddress = 0
     messageGroups = list()
-
+    nodeName = nodeName.upper()
     for node in db.nodes:
         if node.name == nodeName:
             nodeAddress = node.comment.split("_")[0]
@@ -138,6 +138,9 @@ def isProCanMessage(msg):
     return False
 
 def parseCanDB(db, nodeName):
+
+    nodeName = nodeName.upper()
+
     rxMessages = [msg for msg in db.messages if isRxMessage(msg, nodeName)]
     txMessages = [msg for msg in db.messages if nodeName in msg.senders]
 
@@ -296,7 +299,7 @@ def dataTypeFromSignal(signal):
 
 
 def getReceivedSignalsFromMessage(msg, nodeName):
-    return [signal for signal in msg.signals if nodeName in signal.receivers]
+    return [signal for signal in msg.signals if nodeName.upper() in signal.receivers]
 
 def writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFileHandle):
     for msg in normalRxMessages:
@@ -592,7 +595,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
             createdFatalCallback = True
 
         fWrite('            if (newDtc.DTC_Severity == DTC_Severity_FATAL) {', sourceFileHandle)
-        fWrite('                {fatalCallback}(ID_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName), sourceFileHandle)
+        fWrite('                {fatalCallback}(ID_{nodeName});\n            }}'.format(fatalCallback=fatalCallbackName, nodeName=nodeName.upper()), sourceFileHandle)
         fWrite('            {callback}(newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(callback=callbackName), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
@@ -687,7 +690,6 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
 
     gitCommit = getGitCommit()
 
-
     headerFileHandle = open(headerFileName, "w+")
     sourceFileHandle = open(sourceFileName, "w+")
 
@@ -721,7 +723,6 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
 
     # print normal Tx Messages
     writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=isChargerDBC)
-
     if (not isChargerDBC):
         # print dtc Tx Messages
         writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle)
@@ -765,11 +766,11 @@ def main(argv):
         print("ERROR: Specifiy either F0 or F7 for boardtype")
         sys.exit(1)
 
-    commonDir = '../common-all'
+    commonDir = 'common'
     genDir = 'Gen'
 
-    genIncDir = os.path.join(genDir, 'Inc')
-    genSrcDir = os.path.join(genDir, 'Src')
+    genIncDir = os.path.join(genDir, nodeName, 'Inc')
+    genSrcDir = os.path.join(genDir, nodeName, 'Src')
     create_dir(genIncDir) # Create genIncDir if it doesn't already exist
     create_dir(genSrcDir) # Create genSrcDir if it doesn't already exist
 
@@ -785,7 +786,7 @@ def main(argv):
 
     generateCANHeaderFromDB(mainDbFile, headerFile, sourceFile, nodeName, boardType)
 
-    if (nodeName == 'BMU'):
+    if (nodeName == 'bmu'):
         chargerDbFile = os.path.join(dataDir, 'ChargerMessages.dbc')
 
         chargerHeaderFile = os.path.join(genIncDir, nodeName + '_charger_can.h')

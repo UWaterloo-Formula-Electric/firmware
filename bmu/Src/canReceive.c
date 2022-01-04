@@ -17,7 +17,7 @@
 
 #include "controlStateMachine.h"
 
-#include "BMU_can.h"
+#include "bmu_can.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

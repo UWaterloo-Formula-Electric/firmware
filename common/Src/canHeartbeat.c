@@ -2,7 +2,7 @@
 #include "debug.h"
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
-#define HEARTBEAT_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_Heartbeat)
+#define HEARTBEAT_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_Heartbeat)
 
 HAL_StatusTypeDef sendHeartbeat()
 {

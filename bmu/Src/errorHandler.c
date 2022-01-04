@@ -12,7 +12,7 @@
 #include "stdio.h"
 #include "stm32f7xx_hal.h"
 #include "debug.h"
-#include "BMU_dtc.h"
+#include "bmu_dtc.h"
 
 int log_assert_violation(char *file, int line, char *condition)
 {

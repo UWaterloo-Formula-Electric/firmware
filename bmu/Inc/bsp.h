@@ -40,29 +40,6 @@
 #define DC_DC_ON          HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_SET);
 #define DC_DC_OFF         HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_RESET);
 
-#if BOARD_VERSION == 1
-
-#define DEBUG_UART_HANDLE huart2
-#define CAN_HANDLE hcan3
-#define STATS_TIM_HANDLE htim4
-#define ISO_SPI_HANDLE hspi4
-#define HV_ADC_SPI_HANDLE hspi1
-#define IMD_TIM_HANDLE htim3
-#define IMD_TIM_INSTANCE TIM3
-#define BRAKE_ADC_HANDLE hadc2
-#define BRAKE_TIM_ADC_HANDLE htim6
-#define DEBUG_LED_PIN LED_B_Pin
-#define DEBUG_LED_PORT LED_B_GPIO_Port
-#define ERROR_LED_PIN LED_Y_Pin
-#define ERROR_LED_PORT LED_Y_GPIO_Port
-#define IWDG_HANDLE hiwdg
-#define DELAY_TIMER htim9
-#define DELAY_TIMER_INSTANCE TIM9
-// This doesn't exist on V1, but we need it so the code compiles still
-#define CHARGER_CAN_HANDLE hcan3
-
-#elif BOARD_VERSION == 2
-
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
 #define CHARGER_CAN_HANDLE hcan1
@@ -82,9 +59,6 @@
 #define DELAY_TIMER_INSTANCE TIM9
 #define FAN_HANDLE htim12
 
-#else
-#error "Unsupported board version"
-#endif
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"

@@ -19,7 +19,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
-#include "BMU_dtc.h"
+#include "bmu_dtc.h"
 #include "batteries.h"
 
 /** Define this to enable contactor control, otherwise PCDC will always

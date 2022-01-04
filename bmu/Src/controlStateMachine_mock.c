@@ -16,7 +16,7 @@
 #include "task.h"
 #include "cmsis_os.h"
 #include "prechargeDischarge.h"
-#include "BMU_can.h"
+#include "bmu_can.h"
 #include "controlStateMachine.h"
 #include "testData.h"
 #include "filters.h"

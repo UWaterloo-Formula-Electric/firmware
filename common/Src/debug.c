@@ -396,7 +396,7 @@ BaseType_t versionCLICommand(char *writeBuffer, size_t writeBufferLength,
 {
 	static bool versionCLIwriting = false;
 	if(!versionCLIwriting){
-    	COMMAND_OUTPUT("Compiled on %s, Branches: %s, %s\r\n", CUR_DATE, CUR_TOP_BRANCH, CUR_COMMON_BRANCH);
+    	COMMAND_OUTPUT("Compiled on %s, Branch: %s\r\n", CUR_DATE, CUR_TOP_BRANCH);
     	versionCLIwriting = true;
     	return pdTRUE;
     } else {

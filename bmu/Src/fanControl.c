@@ -12,7 +12,7 @@
 
 #include "bsp.h"
 #include "fanControl.h"
-#include "BMU_can.h"
+#include "bmu_can.h"
 #include "batteries.h"
 #include "debug.h"
 #include "controlStateMachine.h"

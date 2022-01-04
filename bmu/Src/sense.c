@@ -9,7 +9,7 @@
 
 #include "sense.h"
 #include "bsp.h"
-#include "BMU_can.h"
+#include "bmu_can.h"
 #include "debug.h"
 #include "FreeRTOS.h"
 #include "task.h"

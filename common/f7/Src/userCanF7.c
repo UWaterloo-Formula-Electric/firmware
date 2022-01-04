@@ -13,10 +13,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #ifdef CHARGER_CAN_HANDLE
-#include "BMU_charger_can.h"
+#include "bmu_charger_can.h"
 #endif
 
-#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
+#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)
 
 HAL_StatusTypeDef F7_canInit(CAN_HandleTypeDef *hcan)
 {

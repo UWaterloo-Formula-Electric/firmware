@@ -11,7 +11,7 @@
 #include "debug.h"
 #include "bsp.h"
 
-#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME),_DTC)
+#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)
 
 HAL_StatusTypeDef F0_canInit(CAN_HandleTypeDef *hcan)
 {

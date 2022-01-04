@@ -5,12 +5,11 @@ import os
 import sys
 import errno
 
-commonDir = '../common-all'
+commonDir = 'common'
 
 ScriptsDir = os.path.join(commonDir, 'Scripts')
 
 genDir = 'Gen'
-genIncDir = os.path.join(genDir, 'Inc')
 
 depFile = os.path.join(genDir, 'dtc.d')
 
@@ -66,7 +65,7 @@ def generateErrorMacro(headerFileHandle, dtcName, dtcData, dtcCode, dtcSeverity)
         print("Invalid severity {} for dtc {}".format(severity, dtcName))
         sys.exit(1)
 
-def generateDepedencyFile(headerFile, target):
+def generateDependencyFile(headerFile, target):
     with open(depFile, 'w') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateDTC.py {dtcFile}'.format(headerFile=headerFile, dtcFile=dtcFile, dir=ScriptsDir), depFileHandle)
         fWrite('	{dir}/generateDTC.py {target}'.format(target=target, dir=ScriptsDir), depFileHandle)
@@ -92,10 +91,11 @@ def generateSeveritiesEnum(headerFileHandle):
 
 def main(argv):
     createDir(genDir)
-    createDir(genIncDir)
 
     if argv and len(argv) == 1:
         target = argv[0]
+        genIncDir = os.path.join(genDir, target, 'Inc')
+        createDir(genIncDir)
         headerFile = genIncDir + '/' + target + '_dtc.h'
         includeGuardMacroName = '__' + target + '_DTC_H'
     else:
@@ -113,7 +113,7 @@ def main(argv):
     for row in dtcReader:
         dtcCodeToName[row['DTC CODE']] = {'name':row['NAME'], 'message':row['MESSAGE'], 'severity':row['SEVERITY']}
         origins = row['ORIGIN'].split(',')
-        if (target in origins):
+        if (target.upper() in origins):
             generateErrorMacro(headerFileHandle, row['NAME'], row['DATA'], row['DTC CODE'], row['SEVERITY'])
 
     generateEnum(headerFileHandle, dtcCodeToName)
@@ -123,7 +123,7 @@ def main(argv):
 
     headerFileHandle.close()
 
-    # generateDepedencyFile(headerFile, target)
+    #generateDependencyFile(headerFile, target)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
