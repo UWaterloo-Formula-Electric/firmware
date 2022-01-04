@@ -191,7 +191,7 @@ $(RELEASE_BIN_DIR)/%.o: %.S
 	$(CC) $(ASSEMBLER_FLAGS) $(INCLUDE_FLAGS) $< -o $@
 
 clean:
-	$(RM) $(BIN_BASE_DIR)
+	$(RM) $(BIN_DIR)
 	$(RM) $(DEPDIR)
 	$(RM) $(GEN_DIR)
 

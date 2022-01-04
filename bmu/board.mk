@@ -14,4 +14,4 @@ CUBE_F7_MAKEFILE_PATH = $(BOARD_NAME)/Cube-F7-Src-respin/
 CUBE_NUCLEO_MAKEFILE_PATH = $(BOARD_NAME)/Cube-Nucleo-Src/CanTest/
 DOCS_MAKEFILE_PATH = $(BOARD_NAME)/Docs/sphinx/
 
-include common/tail_custom.mk
+include common/tail.mk
