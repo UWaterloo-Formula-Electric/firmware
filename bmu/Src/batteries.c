@@ -611,7 +611,7 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
       VoltageCell[i] = initVoltage;
       warningSentForCellVoltage[i] = false;
    }
-   for (int i=0; i<= TEMPCHANNEL_COUNT; i++)
+   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
    {
       TempChannel[i] = initTemp;
       warningSentForChannelTemp[i] = false;
@@ -749,7 +749,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
-   for (int i=0; i < 7; i++)
+   for (int i=0; i < VOLTAGECELL_COUNT; i++)
    {
       measure = VoltageCell[i];
 
@@ -779,7 +779,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Sum up cell voltages to get overall pack voltage
       (*packVoltage) += measure;
    }
-   for (int i=0; i < 14; i++)
+   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
    {
       measure = TempChannel[i];
 			

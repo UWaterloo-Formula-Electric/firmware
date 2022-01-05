@@ -81,6 +81,11 @@
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 	{1, 0}
+	{2, 3},
+	{4, 5},
+	{6, 7},
+	{8, 9},
+	{10, 11}
 };
 
 
@@ -204,13 +209,6 @@ HAL_StatusTypeDef batt_verify_config(){
 	}
     
     vTaskDelay(T_REFUP_MS);
-
-	DEBUG_PRINT("\nrxBuffer: ");
-    for(int byte = 0; byte < BATT_CONFIG_SIZE; byte++)
-	{
-		DEBUG_PRINT("0x%x", config_buffer[0][0][byte]);
-	}
-	DEBUG_PRINT("\n");
 	
 	// Verify was set correctly
 	for(int board = 0; board < NUM_BOARDS; board++) {
