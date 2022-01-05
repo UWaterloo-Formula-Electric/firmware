@@ -27,3 +27,5 @@ Cube-Nucleo-Src/build/
 Docs/sphinx/build
 Bin/
 common/Scripts/templates/outputs/
+common/Scripts/__pycache__/
+*.pyc
