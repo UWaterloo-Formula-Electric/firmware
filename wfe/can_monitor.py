@@ -1,18 +1,18 @@
-import logging
-import json
-
 import can
 import cantools
-import zmq
+import logging
+
+from datetime import datetime
 
 from wfe.connect.packet import CANPacket
 from wfe.connect.connect import QueueDataPublisher
 
 from wfe.util import default_dbc_path
 
-logging.basicConfig()
-logger = logging.getLogger()
-logging.getLogger().setLevel(logging.ERROR)
+wfe_log_filename = "{}_wfe.log".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+log_format = "%(asctime)s - %(levelname)s - %(message)s"
+logging.basicConfig(filename=wfe_log_filename, format=log_format)
+logging.getLogger().setLevel(logging.DEBUG)
 
 class CanMonitor(QueueDataPublisher):
 
@@ -73,4 +73,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
