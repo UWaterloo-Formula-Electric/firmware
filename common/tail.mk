@@ -275,18 +275,18 @@ endif
 
 
 ifeq ($(LOAD_TARGET), $(BUILD_TARGET))
-
-ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
+LOAD_BOARD_ARCH := $(BOARD_ARCHITECTURE)
+ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F7 F7))
    OPENOCD_FILE := target/stm32f7x.cfg
-else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
+else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F0 F0))
    OPENOCD_FILE := target/stm32f0x.cfg
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
-
+LOAD_BIN_FILE := $(RELEASE_BIN_FILE)
 
 load: $(BUILD_TARGET) 
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(BOARD_BIN_FILE) 0x8000000" -c "verify_image $(BOARD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
+	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(LOAD_BIN_FILE) 0x8000000" -c "verify_image $(LOAD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 # Use this if you want gdb to be rtos thread aware
 connect-rtos: load-debug
