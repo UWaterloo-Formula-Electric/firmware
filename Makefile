@@ -5,7 +5,7 @@ BOARDS = bmu pdu dcu vcu wsb
 LINT_DIR = Lint
 LINT_TARGETS := common bmu pdu dcu vcu wsb
 LINT_TARGET ?= none
-RUN_LINTER = cppcheck --addon=misra.py --enable=all  -I $(LINT_TARGET)/Inc --output-file=Lint/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
+RUN_LINTER = cppcheck --addon=misra.py --enable=all  -I $(LINT_TARGET)/Inc --output-file=$(LINT_DIR)/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
 
 all: bmu dcu pdu vcu
 
