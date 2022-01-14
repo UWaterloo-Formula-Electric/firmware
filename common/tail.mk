@@ -280,10 +280,10 @@ lint:
 	@mkdir -p $(LINT_DIR)
 ifneq ($(filter $(LINT_TARGET), $(LINT_TARGETS)),)
 	@echo "Running linter on: $(LINT_TARGET)"
-	$(RUN_LINTER)
+	@$(RUN_LINTER)
 else
 	@echo "Running linter on: $(LINT_TARGETS)"
-	$(foreach LINT_TARGET, $(LINT_TARGETS), $(RUN_LINTER);)
+	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(RUN_LINTER);)
 endif
 
 BUILD_ONLY_ONCE = 1
