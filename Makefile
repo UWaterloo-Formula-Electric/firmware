@@ -8,3 +8,4 @@ include bmu/board.mk
 include dcu/board.mk
 include pdu/board.mk
 include vcu/board.mk
+include wsb/board.mk
