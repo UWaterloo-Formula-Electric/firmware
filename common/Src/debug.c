@@ -261,7 +261,11 @@ static const CLI_Command_Definition_t boardHeartbeatCommandDefinition =
 BaseType_t boardHeartbeatInfoCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+#if !BOARD_IS_WSB(BOARD_ID)
     printHeartbeatStatus();
+#else 
+	COMMAND_OUTPUT("WSB does not have support for reading heartbeats");
+#endif
     return pdFALSE;
 }
 
