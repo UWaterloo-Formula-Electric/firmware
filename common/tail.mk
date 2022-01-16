@@ -61,7 +61,7 @@ LINT_DIR = Lint
 LINT_TARGETS := common bmu pdu dcu vcu wsb
 LINT_TARGET ?= none
 RUN_CPPCHECK = cppcheck --addon=./common/Misra/misra.json --enable=all  -I $(LINT_TARGET)/Inc --output-file=$(LINT_DIR)/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
-DELETE_CTU_FILES = find ./$(LINT_TARGET)/Src/ -type f \( -name "*.ctu-info" -or -name "cppcheck-addon-ctu-file-list" \) -delete
+DELETE_CTU_FILES = find ./$(LINT_TARGET)/Src/ -type f \( -name "*.ctu-info" -or -name "cppcheck-addon-ctu-file-list" -or -name "*.dump" \) -delete
 RUN_LINTER = $(RUN_CPPCHECK); $(DELETE_CTU_FILES);
 
 
@@ -270,6 +270,8 @@ clean:
 	$(RM) $(DEPDIR_BASE)
 	$(RM) $(GEN_DIR)
 
+	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(DELETE_CTU_FILES);)
+
 #
 # Initialization 
 #
@@ -285,7 +287,7 @@ ifneq ($(filter $(LINT_TARGET), $(LINT_TARGETS)),)
 	@$(RUN_LINTER)
 else
 	@echo "Running linter on: $(LINT_TARGETS)"
-	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(RUN_LINTER);)
+	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(RUN_LINTER))
 endif
 
 BUILD_ONLY_ONCE = 1
