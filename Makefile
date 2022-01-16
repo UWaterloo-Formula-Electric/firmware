@@ -1,5 +1,5 @@
 CUSTOM_COMMANDS = all clean autogen init
-BOARDS = bmu pdu dcu vcu wsb
+BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
 all: bmu dcu pdu vcu
