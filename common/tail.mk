@@ -269,7 +269,6 @@ clean:
 	$(RM) $(BIN_DIR)
 	$(RM) $(DEPDIR_BASE)
 	$(RM) $(GEN_DIR)
-
 	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(DELETE_CTU_FILES);)
 
 #
