@@ -29,3 +29,5 @@ Bin/
 common/Scripts/templates/outputs/
 common/Scripts/__pycache__/
 *.pyc
+Lint/
+*.ctu-info
