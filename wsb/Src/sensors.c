@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "userCan.h"
 #include "stdbool.h"
+#include AUTOGEN_HEADER_NAME(BOARD_NAME)
 
 // Task Information
 #define POLL_SENSORS_TASK_ID 2
@@ -72,9 +73,22 @@ void pollSensorsTask(void const * argument)
 	}
 }
 
+static void transmit_encoder(void)
+{
+
+#if (BOARD_ID == ID_WSBFL)
+	FL_WheelDistance = sensors_data.encoder_mm;
+#elif (BOARD_ID == ID_WSBFR)
+	FR_WheelDistance = sensors_data.encoder_mm;
+#endif
+
+
+}
+
 static void transmit_sensor_values(void)
 {
 	// Send over CAN
+	transmit_encoder();
 }
 
 uint32_t sensor_encoder_count(void)

@@ -1,5 +1,6 @@
 VERSION "1"
 
+
 NS_ : 
 	NS_DESC_
 	CM_
@@ -63,6 +64,33 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ VoltageHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+
+BO_ 2272736804 WSBRR_Sensors: 4 WSBRR
+ SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" Vector__XXX
+
+BO_ 2272736803 WSBRL_Sensors: 4 WSBRL
+ SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" Vector__XXX
+
+BO_ 2272736802 WSBFR_Sensors: 4 WSBFR
+ SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" Vector__XXX
+
+BO_ 2272736801 WSBFL_Sensors: 8 WSBFL
+ SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" Vector__XXX
+
+BO_ 2147548939 WSBRL_DTC: 6 WSBRL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL
+
+BO_ 2147548938 WSBRR_DTC: 6 WSBRR
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRL,WSBFR,WSBFL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL
+
+BO_ 2147548937 WSBFR_DTC: 6 WSBFR
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL
 
 BO_ 2147548936 WSBFL_DTC: 6 WSBFL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBFR,WSBRR,WSBRL
