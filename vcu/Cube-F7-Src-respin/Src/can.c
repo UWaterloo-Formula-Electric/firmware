@@ -1,12 +1,12 @@
 /**
   ******************************************************************************
-  * File Name          : CAN.c
-  * Description        : This file provides code for the configuration
-  *                      of the CAN instances.
+  * @file    can.c
+  * @brief   This file provides code for the configuration
+  *          of the CAN instances.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -30,6 +30,13 @@ CAN_HandleTypeDef hcan3;
 void MX_CAN3_Init(void)
 {
 
+  /* USER CODE BEGIN CAN3_Init 0 */
+
+  /* USER CODE END CAN3_Init 0 */
+
+  /* USER CODE BEGIN CAN3_Init 1 */
+
+  /* USER CODE END CAN3_Init 1 */
   hcan3.Instance = CAN3;
   hcan3.Init.Prescaler = 10;
   hcan3.Init.Mode = CAN_MODE_NORMAL;
@@ -46,6 +53,9 @@ void MX_CAN3_Init(void)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN CAN3_Init 2 */
+
+  /* USER CODE END CAN3_Init 2 */
 
 }
 
