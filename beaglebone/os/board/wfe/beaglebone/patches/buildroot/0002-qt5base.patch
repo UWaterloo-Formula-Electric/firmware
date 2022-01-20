@@ -1,0 +1,57 @@
+From 3f4c38656bfb21af9ba39258943f3307af7cb2dc Mon Sep 17 00:00:00 2001
+From: Desmond Good <desmond.good@enlightedinc.com>
+Date: Sat, 28 Nov 2020 18:32:30 -0500
+Subject: [PATCH] qt5base fixes for beaglebone
+
+---
+ package/qt5/qt5base/0008-gbm-fix.patch | 21 +++++++++++++++++++++
+ package/qt5/qt5base/qt5base.mk         |  4 ++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
+ create mode 100644 package/qt5/qt5base/0008-gbm-fix.patch
+
+diff --git a/package/qt5/qt5base/0008-gbm-fix.patch b/package/qt5/qt5base/0008-gbm-fix.patch
+new file mode 100644
+index 0000000000..3d1582bfd0
+--- /dev/null
++++ b/package/qt5/qt5base/0008-gbm-fix.patch
+@@ -0,0 +1,21 @@
++diff -Naur
++a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
++b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
++---
++a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
+++++
++b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
++@@ -80,7 +80,8 @@
++     }
++ 
++     if (getPlatformDisplay) {
++-        display = getPlatformDisplay(EGL_PLATFORM_GBM_KHR, nativeDisplay,
++nullptr);
+++        qintptr nativeDisplayPtr =
++reinterpret_cast<qintptr>(nativeDisplay);
+++        display = getPlatformDisplay(EGL_PLATFORM_GBM_KHR,
++reinterpret_cast<void *>(&nativeDisplayPtr), nullptr);
++     } else {
++         qCDebug(qLcEglfsKmsDebug, "No eglGetPlatformDisplay for GBM,
++falling back to eglGetDisplay");
++         display = eglGetDisplay(nativeDisplay);
+diff --git a/package/qt5/qt5base/qt5base.mk b/package/qt5/qt5base/qt5base.mk
+index 359a380075..17ff969a70 100644
+--- a/package/qt5/qt5base/qt5base.mk
++++ b/package/qt5/qt5base/qt5base.mk
+@@ -76,9 +76,9 @@ QT5BASE_DEPENDENCIES += mesa3d
+ else ifeq ($(BR2_PACKAGE_GCNANO_BINARIES),y)
+ QT5BASE_CONFIGURE_OPTS += -gbm
+ QT5BASE_DEPENDENCIES += gcnano-binaries
+-else ifeq ($(BR2_PACKAGE_TI_SGX_LIBGBM),y)
++else ifeq ($(BR2_PACKAGE_TI_SGX_UM),y)
+ QT5BASE_CONFIGURE_OPTS += -gbm
+-QT5BASE_DEPENDENCIES += ti-sgx-libgbm
++QT5BASE_DEPENDENCIES += ti-sgx-um
+ else
+ QT5BASE_CONFIGURE_OPTS += -no-gbm
+ endif
+-- 
+2.17.1
+

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Add any directories, files, or patterns you don't want to be tracked by version control
 Debug/
 Release/
@@ -36,3 +35,16 @@ venv/
 dist/
 build/
 *.egg-info
+
+# Ignore Buildroot files
+buildroot-*.*/
+host/
+target/
+images/
+staging
+
+beaglebone/os/Makefile
+.br2-external*
+..config.tmp
+.config*
+
