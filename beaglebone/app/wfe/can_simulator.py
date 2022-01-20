@@ -130,8 +130,8 @@ class CanSimulator:
 def get_arguments():
     parser = argparse.ArgumentParser(description="Run CAN Simulations with CAN monitor.")
     parser.add_argument("-d", "--dbc", dest="dbc", type=str,
-                        default="common-all/Data/2018CAR.dbc",
-                        help="DBC file (default: common-all/Data/2018CAR.dbc)")
+                        default="../../../../common/Data/2018CAR.dbc",
+                        help="DBC file (default: ../../../../common/Data/2018CAR.dbc)")
     parser.add_argument("-j", "--json", dest="json", type=str,
                         default="json/heartbeat.json",
                         help="JSON file (default: json/heartbeat.json)")

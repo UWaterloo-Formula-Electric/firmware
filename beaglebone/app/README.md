@@ -87,7 +87,7 @@ Run CAN Simulations with CAN monitor.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d DBC, --dbc DBC     DBC file (default: common-all/Data/2018CAR.dbc)
+  -d DBC, --dbc DBC     DBC file (default: ../../../../common/Data/2018CAR.dbc)
   -j JSON, --json JSON  JSON file (default: json/heartbeat.json)
   -t TIME, --time TIME  Duration of simulation in ms (default: 5000)
 ```
