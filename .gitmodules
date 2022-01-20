@@ -1,0 +1,4 @@
+[submodule "wfe/common-all"]
+	path = wfe/common-all
+	url = git@bitbucket.org:waterloohybrid/common-all.git
+	branch = develop
