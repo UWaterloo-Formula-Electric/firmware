@@ -9,33 +9,6 @@ Subject: [PATCH] qt5base fixes for beaglebone
  2 files changed, 23 insertions(+), 2 deletions(-)
  create mode 100644 package/qt5/qt5base/0008-gbm-fix.patch
 
-diff --git a/package/qt5/qt5base/0008-gbm-fix.patch b/package/qt5/qt5base/0008-gbm-fix.patch
-new file mode 100644
-index 0000000000..3d1582bfd0
---- /dev/null
-+++ b/package/qt5/qt5base/0008-gbm-fix.patch
-@@ -0,0 +1,21 @@
-+diff -Naur
-+a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
-+b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
-+---
-+a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
-++++
-+b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmintegration.cpp
-+@@ -80,7 +80,8 @@
-+     }
-+ 
-+     if (getPlatformDisplay) {
-+-        display = getPlatformDisplay(EGL_PLATFORM_GBM_KHR, nativeDisplay,
-+nullptr);
-++        qintptr nativeDisplayPtr =
-+reinterpret_cast<qintptr>(nativeDisplay);
-++        display = getPlatformDisplay(EGL_PLATFORM_GBM_KHR,
-+reinterpret_cast<void *>(&nativeDisplayPtr), nullptr);
-+     } else {
-+         qCDebug(qLcEglfsKmsDebug, "No eglGetPlatformDisplay for GBM,
-+falling back to eglGetDisplay");
-+         display = eglGetDisplay(nativeDisplay);
 diff --git a/package/qt5/qt5base/qt5base.mk b/package/qt5/qt5base/qt5base.mk
 index 359a380075..17ff969a70 100644
 --- a/package/qt5/qt5base/qt5base.mk
