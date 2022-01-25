@@ -50,6 +50,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* Enable the TIM2 global Interrupt */
   HAL_NVIC_EnableIRQ(TIM2_IRQn);
+
   /* Enable TIM2 clock */
   __HAL_RCC_TIM2_CLK_ENABLE();
 
@@ -58,9 +59,8 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* Compute TIM2 clock */
   uwTimclock = 2*HAL_RCC_GetPCLK1Freq();
-
   /* Compute the prescaler value to have TIM2 counter clock equal to 1MHz */
-  uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000) - 1);
+  uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000U) - 1U);
 
   /* Initialize TIM2 */
   htim2.Instance = TIM2;
@@ -71,10 +71,11 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   + ClockDivision = 0
   + Counter direction = Up
   */
-  htim2.Init.Period = (1000000 / 1000) - 1;
+  htim2.Init.Period = (1000000U / 1000U) - 1U;
   htim2.Init.Prescaler = uwPrescalerValue;
   htim2.Init.ClockDivision = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+
   if(HAL_TIM_Base_Init(&htim2) == HAL_OK)
   {
     /* Start the TIM time Base generation in interrupt mode */
