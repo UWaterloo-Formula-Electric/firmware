@@ -1,4 +1,4 @@
-CUSTOM_COMMANDS = all clean autogen init
+CUSTOM_COMMANDS = all clean autogen init load
 BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 

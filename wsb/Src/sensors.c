@@ -96,3 +96,8 @@ uint32_t sensor_encoder_count(void)
 	return sensors_data.encoder_counts;
 }
 
+uint32_t sensor_encoder_mm(void)
+{
+	return sensors_data.encoder_mm;
+}
+
