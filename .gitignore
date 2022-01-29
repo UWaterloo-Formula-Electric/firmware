@@ -28,6 +28,23 @@ Docs/sphinx/build
 Bin/
 common/Scripts/templates/outputs/
 common/Scripts/__pycache__/
-*.pyc
 Lint/
 *.ctu-info
+*.py[cod]
+venv/
+dist/
+build/
+*.egg-info
+
+# Ignore Buildroot files
+buildroot-*.*/
+host/
+target/
+images/
+staging
+
+beaglebone/os/Makefile
+.br2-external*
+..config.tmp
+.config*
+
