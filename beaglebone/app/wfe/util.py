@@ -5,4 +5,3 @@ def default_dbc_path():
 
 def default_dtc_path():
     return pkg_resources.resource_filename(__name__, "../../../../common/Data/DTC.csv")
-
