@@ -1,2 +1,0 @@
-extern volatile ${dataType} ${name};
-extern SemaphoreHandle_t ${name}_mutex;

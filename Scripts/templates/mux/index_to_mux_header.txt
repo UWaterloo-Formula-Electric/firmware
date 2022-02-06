@@ -1,1 +1,0 @@
-uint8_t ${name}IndexToMuxSelect(int index);

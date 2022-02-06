@@ -1,4 +1,0 @@
-uint8_t ${name}IndexToMuxSelect(int index)
-{
-    return (uint8_t) index / ${numSignalsPerMessage};
-}

@@ -1,2 +1,0 @@
-extern volatile ${dataType} ${signalName}[${count}];
-#define ${signalNameUpper}_COUNT (${count})

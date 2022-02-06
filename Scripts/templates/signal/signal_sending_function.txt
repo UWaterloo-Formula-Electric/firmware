@@ -1,7 +1,0 @@
-${returnDataType} ${signalName}Sending(${params})
-{
-    ${sendDataType} sendValue = ${signalName}${optIndex};
-    sendValue -= ${offset};
-    sendValue /= ${scaler};
-    return sendValue;
-}

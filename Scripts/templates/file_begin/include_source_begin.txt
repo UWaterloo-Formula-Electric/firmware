@@ -1,7 +1,0 @@
-//${nodeName} autogen can source
-// *** Do not modify by hand
-#include "${nodeName}${isCharger}_can.h"
-#include "CRC_CALC.h"
-#include "userCan.h"
-#include "debug.h"
-#include "${nodeName}_dtc.h"
