@@ -137,19 +137,15 @@ int batt_spi_wakeup(bool sleeping)
 
     // Wake up the serial interface on device S1.
     if (sleeping) {
-        for (int board = 0; board < NUM_BOARDS; board++) {
-            HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-            delay_us(300);
-            HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-            delay_us(10);
-        }
+		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+		delay_us(300);
+		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+		delay_us(10);
     }  
-    for (int board = 0; board < NUM_BOARDS; board++) {
-		if (batt_spi_tx(&dummy, JUNK_SIZE))
-		{
-			ERROR_PRINT("Failed to wakeup batt spi\n");
-			return 1;
-		}
+	if (batt_spi_tx(&dummy, JUNK_SIZE))
+	{
+		ERROR_PRINT("Failed to wakeup batt spi\n");
+		return 1;
 	}
 
     lastWakeup_ticks = xTaskGetTickCount();
