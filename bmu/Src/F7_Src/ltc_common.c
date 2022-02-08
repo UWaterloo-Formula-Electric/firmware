@@ -143,22 +143,14 @@ int batt_spi_wakeup(bool sleeping)
             HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
             delay_us(10);
         }
-        for (int board = 0; board < NUM_BOARDS; board++) {
-            if (batt_spi_tx(&dummy, JUNK_SIZE))
-            {
-                ERROR_PRINT("Failed to wakeup batt spi\n");
-                return 1;
-            }
-        }
-    } else {
-        for (int board = 0; board < NUM_BOARDS; board++) {
-            if (batt_spi_tx(&dummy, JUNK_SIZE))
-            {
-                ERROR_PRINT("Failed to wakeup batt spi\n");
-                return 1;
-            }
-        }
-    }
+    }  
+    for (int board = 0; board < NUM_BOARDS; board++) {
+		if (batt_spi_tx(&dummy, JUNK_SIZE))
+		{
+			ERROR_PRINT("Failed to wakeup batt spi\n");
+			return 1;
+		}
+	}
 
     lastWakeup_ticks = xTaskGetTickCount();
 

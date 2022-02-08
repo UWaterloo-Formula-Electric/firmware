@@ -26,10 +26,6 @@ HAL_StatusTypeDef batt_init()
         return HAL_ERROR;
     }
 
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
-    }
 	if(batt_verify_config() != HAL_OK){
 		ERROR_PRINT("Failed to read batt config from boards\n");
 		return HAL_ERROR;
