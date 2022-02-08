@@ -110,13 +110,13 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-    for (int channel = 0; channel < TEMP_CHANNELS_PER_BOARD; channel++)
-    {
-        if (batt_read_cell_temps_single_channel(channel, cell_temp_array) != HAL_OK)
-        {
-            return HAL_ERROR;
-        }
-    }
+	for (int channel = 0; channel < THERMISTORS_PER_BOARD; channel++)
+	{
+		if (batt_read_cell_temps_single_channel(channel, cell_temp_array) != HAL_OK)
+		{
+			return HAL_ERROR;
+		}
+	}
 
     return HAL_OK;
 }

@@ -78,14 +78,13 @@
 #define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
 
+#define THERMISTOR_CHIP 0
+
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
-	{1, 0},
+	{0, 1},
 	{2, 3},
-	{4, 5},
-	{6, 7},
-	{8, 9},
-	{10, 11}
+	{4, 5}
 };
 
 
@@ -388,7 +387,7 @@ void batt_set_temp_config(size_t channel) {
 		uint8_t gpioPins = channel;
 
 		// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-		m_batt_config[board][1][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
+		m_batt_config[board][THERMISTOR_CHIP][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
 	}
 }
 
@@ -399,19 +398,18 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		// adc values for one block from all boards
 		uint8_t adc_vals[AUX_BLOCK_SIZE] = {0};
 		
-		uint8_t address = LTC_ADDRESS[board][1];
+		uint8_t address = LTC_ADDRESS[board][THERMISTOR_CHIP];
 		
 		if(batt_read_data(RDAUXB_BYTE0(address), RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
 			ERROR_PRINT("ERROR: Error reading thermistor values over SPI");
 		}
-		size_t cellIdx = /*(board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP*/channel;
+		size_t cellIdx = (board) * THERMISTORS_PER_BOARD + channel;
 		
 		// We only use the first GPIO register, 2 bytes out of the total 6 in adc_vals
 		uint16_t temp = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
 									| adc_vals[TEMP_ADC_IDX_LOW]));
 		float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-		DEBUG_PRINT("Channel: %d, cellIdx: %d, value: %f\n", channel, cellIdx, cell_temp_array[cellIdx]);
 		
 	}
 	return HAL_OK;

@@ -20,11 +20,11 @@
 // TODO: Update these to 2021 values
 
 /// Number of AMS boards in system
-#define NUM_BOARDS                  6
+#define NUM_BOARDS                  3
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             14
 /// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       16
+#define THERMISTORS_PER_BOARD       14
 
 // This specifies which chip architecture we are using
 // 6812/6804

@@ -8,7 +8,7 @@ COMMON_F7_LIB_SRC := userCanF7.c
 
 F7_INC_DIR := $(BOARD_NAME)/Inc/F7_Inc
 F7_SRC_DIR := $(BOARD_NAME)/Src/F7_Src
-F7_SRC := ltc6811.c ade7912.c imdDriver.c
+F7_SRC := ltc6804.c ltc6812.c ltc_chip.c ltc_common.c ade7912.c imdDriver.c
 
 CUBE_F7_MAKEFILE_PATH := $(BOARD_NAME)/Cube-F7-Src-respin/
 CUBE_NUCLEO_MAKEFILE_PATH := $(BOARD_NAME)/Cube-Nucleo-Src/CanTest/

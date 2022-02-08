@@ -117,7 +117,6 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
     getIBus(&IBus);
     getVBus(&VBus);
     getVBatt(&VBatt);
-    getPackVoltage(&packVoltage);
 
     if (cellIdx == -6) {
         COMMAND_OUTPUT("IBUS\tVBUS\tVBATT\r\n");
@@ -132,6 +131,7 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         cellIdx = -3;
         return pdTRUE;
     } else if (cellIdx == -3) {
+		getPackVoltage(&packVoltage);
         COMMAND_OUTPUT("%f\t%f\t%f\t%f\t%f\r\n\n", VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax, packVoltage);
         cellIdx = -2;
         return pdTRUE;
