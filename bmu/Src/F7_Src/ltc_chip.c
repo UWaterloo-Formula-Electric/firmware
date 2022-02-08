@@ -218,7 +218,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
-        for (int cell = 1; cell < 7; cell++)
+        for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
             float pullup = cell_voltages_pullup[board*CELLS_PER_BOARD + cell];
             float pulldown = cell_voltages_pulldown[board*CELLS_PER_BOARD + cell];
@@ -232,14 +232,15 @@ HAL_StatusTypeDef checkForOpenCircuit()
             }
         }
 
+		// First cell in board
         if (float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0) < 0.0002) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
                             board*CELLS_PER_BOARD, cell_voltages_pullup[board*CELLS_PER_BOARD],
                             float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0));
                 return HAL_ERROR;
         }
-
-		size_t last_cell_in_board = /*board*CELLS_PER_BOARD + CELLS_PER_BOARD-1*/6;
+		// Last cell in board
+		size_t last_cell_in_board = board*CELLS_PER_BOARD + CELLS_PER_BOARD-1;
         if (float_abs(cell_voltages_pullup[last_cell_in_board] - 0) < 0.0002) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
                             last_cell_in_board, cell_voltages_pullup[last_cell_in_board],
