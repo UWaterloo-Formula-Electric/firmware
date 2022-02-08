@@ -67,11 +67,10 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-void _Error_Handler(char *file, int line);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
-//#define Error_Handler() junk
 /* USER CODE END EM */
+
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 

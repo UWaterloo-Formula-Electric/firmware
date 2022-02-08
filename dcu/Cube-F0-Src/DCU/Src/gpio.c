@@ -1,12 +1,12 @@
 /**
   ******************************************************************************
-  * File Name          : gpio.c
-  * Description        : This file provides code for the configuration
-  *                      of all used GPIO pins.
+  * @file    gpio.c
+  * @brief   This file provides code for the configuration
+  *          of all used GPIO pins.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
+
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -30,9 +31,9 @@
 
 /* USER CODE END 1 */
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -53,8 +54,8 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, LED_R_Pin|LED_Y_Pin|LED_B_Pin|MC_LED_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin 
-                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin 
+  HAL_GPIO_WritePin(GPIOB, IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
+                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
                           |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -82,11 +83,11 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin 
-                           PBPin PBPin PBPin PBPin 
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin
+                           PBPin PBPin PBPin PBPin
                            PBPin PBPin */
-  GPIO_InitStruct.Pin = IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin 
-                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin 
+  GPIO_InitStruct.Pin = IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
+                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
                           |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
