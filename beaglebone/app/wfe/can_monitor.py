@@ -75,8 +75,8 @@ def get_arguments():
     parser.add_argument("-i", "--interface", dest="interface", type=str,
                         default="can1", help="Bus interface (default: can1)")
     parser.add_argument("-d", "--dbc", dest="dbc", type=str,
-                        default="../../../../common/Data/2018CAR.dbc",
-                        help="DBC file (default: firmware/common/Data/2018CAR.dbc)")
+                        default=default_dbc_path(),
+                        help="DBC file (default: /home/wfe/data/2018CAR.dbc)")
     args = parser.parse_args()
     return args.interface, args.dbc
 
