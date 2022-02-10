@@ -1,6 +1,8 @@
+import argparse
 import can
 import cantools
 import logging
+import pkg_resources
 
 from datetime import datetime
 
@@ -18,12 +20,12 @@ class CanMonitor(QueueDataPublisher):
 
     DEFAULT_DBC = default_dbc_path()
 
-    def __init__(self, interface='can1', dbc=DEFAULT_DBC):
+    def __init__(self, interface="can1", dbc=DEFAULT_DBC):
         super(CanMonitor, self).__init__()
 
         self.interface=interface
         logging.info("Initializing CAN monitor on {}".format(self.interface))
-        self.can_bus = can.interface.Bus(self.interface, bustype='socketcan')
+        self.can_bus = can.interface.Bus(self.interface, bustype="socketcan")
         self.db = cantools.database.load_file(dbc)
 
         self.monitoring = True
@@ -67,8 +69,28 @@ class CanMonitor(QueueDataPublisher):
             self.send(can_packet)
 
 
+# Parsing command line arguments
+def get_arguments():
+    parser = argparse.ArgumentParser(description="Monitor CAN messages being sent on a bus and log them to a file.")
+    parser.add_argument("-i", "--interface", dest="interface", type=str,
+                        default="can1", help="Bus interface (default: can1)")
+    parser.add_argument("-d", "--dbc", dest="dbc", type=str,
+                        default=default_dbc_path(),
+                        help="DBC file (default: /home/wfe/data/2018CAR.dbc)")
+    args = parser.parse_args()
+    return args.interface, args.dbc
+
+
 def main():
-    monitor = CanMonitor()
+    bus_interface, dbc_file = get_arguments()
+
+    # For DBC files that come with the package
+    if pkg_resources.resource_exists(__name__, dbc_file):
+        dbc_file = pkg_resources.resource_filename(__name__, dbc_file)
+
+    logging.info("Using DBC: {}".format(dbc_file))
+
+    monitor = CanMonitor(interface=bus_interface, dbc=dbc_file)
     monitor.monitor_bus()
 
 if __name__ == "__main__":
