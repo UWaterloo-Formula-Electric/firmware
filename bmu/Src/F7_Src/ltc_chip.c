@@ -218,7 +218,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
-        for (int cell = 1; cell < CELLS_PER_BOARD-1; cell++)
+        for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
             float pullup = cell_voltages_pullup[board*CELLS_PER_BOARD + cell];
             float pulldown = cell_voltages_pulldown[board*CELLS_PER_BOARD + cell];

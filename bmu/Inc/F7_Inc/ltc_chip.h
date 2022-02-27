@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32f7xx_hal.h"
+#include "bmu_can.h"
 
 /** @defgroup AccumulatorConfig
  *
@@ -20,7 +21,7 @@
 // TODO: Update these to 2021 values
 
 /// Number of AMS boards in system
-#define NUM_BOARDS                  3
+#define NUM_BOARDS                  5
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             14
 /// Number of thermistors attached to each AMS, starting from A0
@@ -51,6 +52,14 @@
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
 #define NUM_TEMP_CELLS              (NUM_BOARDS*THERMISTORS_PER_BOARD)
+
+#if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
+#error "DBC file has less voltage cells defined then they are in the system"
+#endif
+
+#if NUM_TEMP_CELLS > TEMPCHANNEL_COUNT
+#error "DBC file has less temp cells defined then they are in the system"
+#endif
 
 /** @} */
 

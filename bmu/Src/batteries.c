@@ -159,21 +159,21 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 /**
  * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
  */
-float maxChargeVoltage = LIMIT_OVERVOLTAGE * VOLTAGECELL_COUNT;
+float maxChargeVoltage = LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
 
 /**
  * Set to true if we've already sent a low voltage warning for this cell to
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above low voltage warning limit
  */
-bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
+bool warningSentForCellVoltage[NUM_VOLTAGE_CELLS];
 
 /**
  * Set to true if we've already sent a high temperature warning for this cell to
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above high temperature warning limit
  */
-bool warningSentForChannelTemp[TEMPCHANNEL_COUNT];
+bool warningSentForChannelTemp[NUM_TEMP_CELLS];
 
 #define NUM_SOC_LOOKUP_VALS 101
 
@@ -606,12 +606,12 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
 #error Unsupported board type
 #endif
 
-   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       VoltageCell[i] = initVoltage;
       warningSentForCellVoltage[i] = false;
    }
-   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
+   for (int i=0; i < NUM_TEMP_CELLS; i++)
    {
       TempChannel[i] = initTemp;
       warningSentForChannelTemp[i] = false;
@@ -691,7 +691,7 @@ void ERROR_COUNTER_SUCCESS()
 #define CELL_VOLTAGE_FILTER_ALPHA 0.18
 
 /// Array is used to store the filtered voltages
-float cellVoltagesFiltered[VOLTAGECELL_COUNT];
+float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
 
 /**
@@ -711,7 +711,7 @@ float cellVoltagesFiltered[VOLTAGECELL_COUNT];
  */
 void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 {
-  for (int i = 0; i < VOLTAGECELL_COUNT; i++) {
+  for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
     cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
                               + (1-IBUS_FILTER_ALPHA)*cellVoltagesFiltered[i];
   }
@@ -749,7 +749,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
-   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       measure = VoltageCell[i];
 
@@ -779,7 +779,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Sum up cell voltages to get overall pack voltage
       (*packVoltage) += measure;
    }
-   for (int i=0; i < TEMPCHANNEL_COUNT; i++)
+   for (int i=0; i < NUM_TEMP_CELLS; i++)
    {
       measure = TempChannel[i];
 			
@@ -1014,7 +1014,7 @@ HAL_StatusTypeDef stopBalance()
 }
 
 /// Array to store if a cell is balancing
-bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
+bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
 
 /**
  * @brief Stops all cells balancing, but stores which cells were balancing to
@@ -1025,7 +1025,7 @@ bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
 HAL_StatusTypeDef pauseBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
         if (batt_is_cell_balancing(cell)) {
             isCellBalancing[cell] = true;
         } else {
@@ -1049,7 +1049,7 @@ HAL_StatusTypeDef pauseBalance()
 HAL_StatusTypeDef resumeBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
         if (isCellBalancing[cell]) {
             batt_balance_cell(cell);
         }
@@ -1244,7 +1244,7 @@ ChargeReturn balanceCharge(void)
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
 
-                for (int cell=0; cell<VOLTAGECELL_COUNT; cell++) {
+                for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
                     float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
@@ -1405,6 +1405,7 @@ void batteryTask(void *pvParameter)
         Error_Handler();
     }
 
+    uint32_t counter = 0;
     float packVoltage;
     uint32_t dbwTaskNotifications;
     while (1)
@@ -1457,13 +1458,15 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-
+		if(counter > 2)
+		{
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
         }
 #endif
+		}
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
@@ -1471,7 +1474,6 @@ void batteryTask(void *pvParameter)
             if (boundedContinue()) { continue; }
         }
 #endif
-
 
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
@@ -1510,6 +1512,7 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
+        counter++;
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }
@@ -1569,7 +1572,7 @@ void canSendCellTask(void *pvParameters)
     // Move on to next cells
     // 3 Cells per CAN message
     cellIdxToSend += 3;
-    cellIdxToSend = cellIdxToSend % VOLTAGECELL_COUNT;
+    cellIdxToSend = cellIdxToSend % NUM_VOLTAGE_CELLS;
 
     vTaskDelay(pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
   }

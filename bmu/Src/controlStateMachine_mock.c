@@ -24,6 +24,7 @@
 #include "chargerControl.h"
 #include "batteries.h"
 #include "faultMonitor.h"
+#include "ltc_chip.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -145,15 +146,18 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     }
     // Note that the temperature channels are not correlated with the voltage cell
-	if(cellIdx >= VOLTAGECELL_COUNT){
+	if(cellIdx >= NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS){
 		COMMAND_OUTPUT("%d\t(N/A)\t%f\r\n", cellIdx, TempChannel[cellIdx]);
-	} else if(cellIdx >= TEMPCHANNEL_COUNT) {
+	} else if(cellIdx < NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
 		COMMAND_OUTPUT("%d\t%f\t(N/A)\r\n", cellIdx, VoltageCell[cellIdx]);
-	} else {
+	} else if(cellIdx < NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS) {
 		COMMAND_OUTPUT("%d\t%f\t%f\r\n", cellIdx, VoltageCell[cellIdx], TempChannel[cellIdx]);
 	}
+	else {
+		// Do nothing
+	}
 	++cellIdx;
-    if (cellIdx >= VOLTAGECELL_COUNT && cellIdx >= TEMPCHANNEL_COUNT) {
+    if (cellIdx >= NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
         cellIdx = -6;
         return pdFALSE;
     } else {
@@ -180,8 +184,8 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= VOLTAGECELL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
         return pdFALSE;
     }
 
@@ -208,8 +212,8 @@ BaseType_t setChannelTemp(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= TEMPCHANNEL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", TEMPCHANNEL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_TEMP_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_TEMP_CELLS);
         return pdFALSE;
     }
 
@@ -453,7 +457,7 @@ BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -488,7 +492,7 @@ BaseType_t setNegCont(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -523,7 +527,7 @@ BaseType_t setPCDC(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -600,8 +604,8 @@ BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= VOLTAGECELL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
         return pdFALSE;
     }
 

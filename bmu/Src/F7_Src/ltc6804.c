@@ -84,7 +84,9 @@
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 	{0, 1},
 	{2, 3},
-	{4, 5}
+	{4, 5},
+	{6, 7},
+	{8, 9}
 };
 
 
@@ -151,16 +153,10 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
 			
-	if(batt_spi_wakeup(false))
-	{
-		return HAL_ERROR;
-	}
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
 	}
-
-	fillDummyBytes(&(txBuffer[DATA_START_IDX]), BUFF_SIZE - DATA_START_IDX);
 
 	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send read data command\n");
@@ -278,15 +274,9 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, si
 
 
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
-	for(int board = 0; board < NUM_BOARDS; board++)
-	{
-		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++)
-		{
-			if(batt_send_command(curr_command, board, ltc_chip) != HAL_OK){
-				ERROR_PRINT("Failed to send command: %d", curr_command);
-				return HAL_ERROR;
-			}
-		}
+	if(batt_send_command(curr_command, 0, 0) != HAL_OK){
+		ERROR_PRINT("Failed to send command: %d", curr_command);
+		return HAL_ERROR;
 	}
 	return HAL_OK;
 }
@@ -300,21 +290,17 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 {
 
+	if (batt_spi_wakeup(false /* not sleeping*/))
+	{
+		return HAL_ERROR;
+	}
 	for (int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < 2; ltc_chip++) {
+		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
 			size_t local_cell_idx = 0;
-			if (batt_spi_wakeup(false /* not sleeping*/))
-			{
-				return HAL_ERROR;
-			}
 			for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 				
 				uint8_t address = LTC_ADDRESS[board][ltc_chip]; 
 				uint8_t cmdByteLow, cmdByteHigh;
-				if(batt_spi_wakeup(false))
-				{
-					return HAL_ERROR;
-				}
 				// Select appropriate voltage register group
 				switch(block){
 					case 0:
