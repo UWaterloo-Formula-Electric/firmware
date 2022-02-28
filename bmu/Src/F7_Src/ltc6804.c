@@ -251,11 +251,11 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 		{
 			if(broadcast)
 			{
-				command_byte_low = ADAX_BYTE0(address);
+				command_byte_low = ADAX_BROADCAST_BYTE0;
 			}
 			else
 			{
-				command_byte_low = ADAX_BROADCAST_BYTE0;
+				command_byte_low = ADAX_BYTE0(address);
 			}
 			command_byte_high = ADAX_BYTE1;
 			break;
@@ -264,11 +264,11 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 		{
 			if(broadcast)
 			{
-				command_byte_low = ADOW_BYTE0(address);
+				command_byte_low = ADOW_BROADCAST_BYTE0;
 			}
 			else
 			{
-				command_byte_low = ADOW_BROADCAST_BYTE0;
+				command_byte_low = ADOW_BYTE0(address);
 			}
 			command_byte_high = ADOW_BYTE1(1);
 			break;
@@ -277,11 +277,11 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 		{
 			if(broadcast)
 			{
-				command_byte_low = ADOW_BYTE0(address);
+				command_byte_low = ADOW_BROADCAST_BYTE0;
 			}
 			else
 			{
-				command_byte_low = ADOW_BROADCAST_BYTE0;
+				command_byte_low = ADOW_BYTE0(address);
 			}
 			command_byte_high = ADOW_BYTE1(0);
 			break;
