@@ -51,16 +51,20 @@
 
 // Use normal MD (7kHz), Discharge not permission, all channels
 #define ADCV_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
+#define ADCV_BROADCAST_BYTE0 (0x03)
 #define ADCV_BYTE1 0x60
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
+#define ADAX_BROADCAST_BYTE0 (0x05)
 #define ADAX_BYTE0(ADDRESS) ((0x85) | (ADDRESS << 3))
 #define ADAX_BYTE1 0x65
+
 
 #define RDSTATB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
 #define RDSTATB_BYTE1 0x12
 
 #define ADOW_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
+#define ADOW_BROADCAST_BYTE0 (0x03)
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 
@@ -223,7 +227,7 @@ HAL_StatusTypeDef batt_verify_config(){
 }
 
 
-HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, size_t ltc_chip) {
+HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, size_t board, size_t ltc_chip) {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
     uint8_t txBuffer[TX_BUFF_SIZE];
 	
@@ -232,25 +236,53 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, si
 	switch(curr_command) {
 		case(ADCV): 
 		{
-			command_byte_low = ADCV_BYTE0(address);
+			if(broadcast)
+			{
+				command_byte_low = ADCV_BROADCAST_BYTE0;
+			}
+			else
+			{	
+				command_byte_low = ADCV_BYTE0(address);
+			}
 			command_byte_high = ADCV_BYTE1;
 			break;
 		}
 		case(ADAX):
 		{
-			command_byte_low = ADAX_BYTE0(address);
+			if(broadcast)
+			{
+				command_byte_low = ADAX_BYTE0(address);
+			}
+			else
+			{
+				command_byte_low = ADAX_BROADCAST_BYTE0;
+			}
 			command_byte_high = ADAX_BYTE1;
 			break;
 		}
 		case(ADOW_UP):
 		{
-			command_byte_low = ADOW_BYTE0(address);
+			if(broadcast)
+			{
+				command_byte_low = ADOW_BYTE0(address);
+			}
+			else
+			{
+				command_byte_low = ADOW_BROADCAST_BYTE0;
+			}
 			command_byte_high = ADOW_BYTE1(1);
 			break;
 		}
 		case(ADOW_DOWN):
 		{
-			command_byte_low = ADOW_BYTE0(address);
+			if(broadcast)
+			{
+				command_byte_low = ADOW_BYTE0(address);
+			}
+			else
+			{
+				command_byte_low = ADOW_BROADCAST_BYTE0;
+			}
 			command_byte_high = ADOW_BYTE1(0);
 			break;
 		}
@@ -274,24 +306,9 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, si
 
 
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
-	if(curr_command == ADAX)
-	{
-		for(int board = 0; board < NUM_BOARDS; board++)
-		{
-			for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++)
-			{	
-				if(batt_send_command(curr_command, board, ltc_chip) != HAL_OK){
-					ERROR_PRINT("Failed to send command: %d", curr_command);
-					return HAL_ERROR;
-				}
-			}
-		}
-	}
-	else{
-		if(batt_send_command(curr_command, 0, 0) != HAL_OK){
-			ERROR_PRINT("Failed to send command: %d", curr_command);
-			return HAL_ERROR;
-		}
+	if(batt_send_command(curr_command, true, 0, 0) != HAL_OK){
+		ERROR_PRINT("Failed to send command: %d", curr_command);
+		return HAL_ERROR;
 	}
 	return HAL_OK;
 }
