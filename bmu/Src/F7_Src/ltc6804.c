@@ -274,9 +274,24 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, size_t board, si
 
 
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
-	if(batt_send_command(curr_command, 0, 0) != HAL_OK){
-		ERROR_PRINT("Failed to send command: %d", curr_command);
-		return HAL_ERROR;
+	if(curr_command == ADAX)
+	{
+		for(int board = 0; board < NUM_BOARDS; board++)
+		{
+			for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++)
+			{	
+				if(batt_send_command(curr_command, board, ltc_chip) != HAL_OK){
+					ERROR_PRINT("Failed to send command: %d", curr_command);
+					return HAL_ERROR;
+				}
+			}
+		}
+	}
+	else{
+		if(batt_send_command(curr_command, 0, 0) != HAL_OK){
+			ERROR_PRINT("Failed to send command: %d", curr_command);
+			return HAL_ERROR;
+		}
 	}
 	return HAL_OK;
 }
