@@ -59,7 +59,8 @@
  * Battery task Defines and Variables
  */
 
-#define BATTERY_TASK_PERIOD_MS 100
+// This is subject to change and is expected to be 50ms
+#define BATTERY_TASK_PERIOD_MS 250
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -577,7 +578,7 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
    /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
    /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
-
+	
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -747,6 +748,9 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    *minTemp = CELL_OVERTEMP;
    *packVoltage = 0;
 
+   // Unfortunately the thermistors may run slower than the cell voltage measurements
+   static uint8_t thermistor_lag_counter = 0;
+
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
@@ -779,38 +783,46 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Sum up cell voltages to get overall pack voltage
       (*packVoltage) += measure;
    }
-   for (int i=0; i < NUM_TEMP_CELLS; i++)
-   {
-      measure = TempChannel[i];
-			
-      // Check it is within bounds
-      if (measure > CELL_OVERTEMP) {
-         ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
-         sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
-         rc = HAL_ERROR;
-      } else if (measure > CELL_OVERTEMP_WARNING) {
-         if (!warningSentForChannelTemp[i]) {
-            ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
-            sendDTC_WARNING_CELL_TEMP_HIGH(i);
-            warningSentForChannelTemp[i] = true;
-         }
-      } else if(measure < CELL_UNDERTEMP){
-         ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
-		 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
-		 rc = HAL_ERROR;
-      } else if(measure < CELL_UNDERTEMP_WARNING){
-      	 if(!warningSentForChannelTemp[i]) {
-			ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
-			sendDTC_WARNING_CELL_TEMP_LOW(i);
-			warningSentForChannelTemp[i] = true;
-		 }
-      } else if (warningSentForChannelTemp[i] == true) {
-         warningSentForChannelTemp[i] = false;
-      }
 
-      // Update max voltage
-      if (measure > (*maxTemp)) {(*maxTemp) = measure;}
-      if (measure < (*minTemp)) {(*minTemp) = measure;}
+   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   {
+	   for (int i=0; i < NUM_TEMP_CELLS; i++)
+	   {
+			measure = TempChannel[i];
+				
+			// Check it is within bounds
+			if (measure > CELL_OVERTEMP) {
+				ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
+				sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
+				rc = HAL_ERROR;
+			} else if (measure > CELL_OVERTEMP_WARNING) {
+				if (!warningSentForChannelTemp[i]) {
+					ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
+					sendDTC_WARNING_CELL_TEMP_HIGH(i);
+					warningSentForChannelTemp[i] = true;
+				}
+			} else if(measure < CELL_UNDERTEMP){
+				ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+				sendDTC_CRITICAL_CELL_TEMP_LOW(i);
+				rc = HAL_ERROR;
+			} else if(measure < CELL_UNDERTEMP_WARNING){
+				if(!warningSentForChannelTemp[i]) {
+					ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+					sendDTC_WARNING_CELL_TEMP_LOW(i);
+					warningSentForChannelTemp[i] = true;
+				}
+			} else if (warningSentForChannelTemp[i] == true) {
+				warningSentForChannelTemp[i] = false;
+			}
+
+			// Update max voltage
+			if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+			if (measure < (*minTemp)) {(*minTemp) = measure;}
+		}
+   }
+   else
+   {
+		thermistor_lag_counter++;
    }
 
    return rc;
@@ -1405,7 +1417,6 @@ void batteryTask(void *pvParameter)
         Error_Handler();
     }
 
-    uint32_t counter = 0;
     float packVoltage;
     uint32_t dbwTaskNotifications;
     while (1)
@@ -1458,15 +1469,12 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-		if(counter > 2)
-		{
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
         }
 #endif
-		}
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
@@ -1512,7 +1520,6 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        counter++;
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

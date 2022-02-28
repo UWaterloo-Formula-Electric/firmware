@@ -48,6 +48,8 @@
 
 // Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 4
+#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 1
+
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)

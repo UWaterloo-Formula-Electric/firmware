@@ -72,9 +72,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
         return HAL_ERROR;
     }
 
-	
 	batt_set_temp_config(channel);
-
     if (batt_write_config() != HAL_OK)
     {
         ERROR_PRINT("Failed to setup mux for temp reading\n");
@@ -106,11 +104,17 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
 
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-	for (int channel = 0; channel < THERMISTORS_PER_BOARD; channel++)
+	static uint8_t curr_channel = 0;
+	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
 	{
-		if (batt_read_cell_temps_single_channel(channel, cell_temp_array) != HAL_OK)
+		if (batt_read_cell_temps_single_channel(curr_channel, cell_temp_array) != HAL_OK)
 		{
 			return HAL_ERROR;
+		}
+		curr_channel++;
+		if(curr_channel >= THERMISTORS_PER_BOARD)
+		{
+			curr_channel = 0;
 		}
 	}
 
@@ -122,7 +126,6 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         ERROR_PRINT("Failed to read cell voltages\n");
         return HAL_ERROR;
     }
-
     if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temperatures\n");
         return HAL_ERROR;

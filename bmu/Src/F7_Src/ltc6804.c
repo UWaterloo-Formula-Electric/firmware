@@ -336,7 +336,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 				
 				// Voltage values for one block from one boards
 				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
-				
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
 					DEBUG_PRINT("Failed on board: %d, chip %d, block %d", board, ltc_chip, block);
 					ERROR_PRINT("ERROR: Issue reading voltage cell values\n");

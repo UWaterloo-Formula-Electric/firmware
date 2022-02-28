@@ -22,6 +22,8 @@
 
 #define ENABLE_IL_CHECKS
 
+#define HVIL_ENABLED (0)
+
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {
    if (enable)
@@ -51,7 +53,11 @@ bool getHVD_Status()
 
 bool getHVIL_Status()
 {
-   return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
+#if HVIL_ENABLED
+	return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
+#else
+	return true;
+#endif
 }
 
 // IL in to the BMU

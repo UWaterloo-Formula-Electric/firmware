@@ -141,11 +141,13 @@ int batt_spi_wakeup(bool sleeping)
 		delay_us(300);
 		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 		delay_us(10);
-    }  
-	if (batt_spi_tx(&dummy, JUNK_SIZE))
-	{
-		ERROR_PRINT("Failed to wakeup batt spi\n");
-		return 1;
+    }
+	else{
+		if (batt_spi_tx(&dummy, JUNK_SIZE))
+		{
+			ERROR_PRINT("Failed to wakeup batt spi\n");
+			return 1;
+		}
 	}
 
     lastWakeup_ticks = xTaskGetTickCount();
