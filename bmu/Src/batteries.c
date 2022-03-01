@@ -60,7 +60,7 @@
  */
 
 // This is subject to change and is expected to be 50ms
-#define BATTERY_TASK_PERIOD_MS 250
+#define BATTERY_TASK_PERIOD_MS 50
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -1519,6 +1519,7 @@ void batteryTask(void *pvParameter)
         ERROR_COUNTER_SUCCESS();
         /*!!! Change the check in in bounded continue as well if you change
          * this */
+		
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }

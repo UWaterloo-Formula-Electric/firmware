@@ -180,20 +180,20 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
 
         vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
         delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-        if (batt_spi_wakeup(false /* not sleeping*/))
-        {
-            return HAL_ERROR;
-        }
-
-        if (batt_readBackCellVoltage(cell_voltages_single_reading) != HAL_OK)
-        {
-            return HAL_ERROR;
-        }
-
-        addCellVoltages(cell_voltages_single_reading, cell_voltages);
     }
 
-    divideCellVoltages(cell_voltages, num_readings);
+	if (batt_spi_wakeup(false /* not sleeping*/))
+	{
+		return HAL_ERROR;
+	}
+
+	if (batt_readBackCellVoltage(cell_voltages_single_reading) != HAL_OK)
+	{
+		return HAL_ERROR;
+	}
+
+	// Copy our cell voltage readings to the array
+	addCellVoltages(cell_voltages_single_reading, cell_voltages);
 
     return HAL_OK;
 }
