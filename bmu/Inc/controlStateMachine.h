@@ -55,6 +55,7 @@ extern FSM_Handle_Struct fsmHandle;
 
 HAL_StatusTypeDef controlInit(void);
 HAL_StatusTypeDef startControl();
+void setChargeMode(bool charge_mode);
 void controlTask(void *pvParameters);
 
 #endif /* end of include guard: CONTROLSTATEMACHINE_H */

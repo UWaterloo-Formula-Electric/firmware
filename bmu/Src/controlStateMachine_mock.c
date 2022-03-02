@@ -780,6 +780,28 @@ static const CLI_Command_Definition_t stopSendCellCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t forceChargeModeCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    int mode;
+    sscanf(cellIdxString, "%d", &mode);
+
+	setChargeMode(mode);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t forceChargeModeCommandDefinition =
+{
+    "forceChargeMode",
+    "forceChargeMode:\r\n Set precharge mode to 0: PC_MotorController, 1: PC_Charger. Force this change\r\n Please only do this if you know what you're doing\r\n",
+    forceChargeModeCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     cliSetVBatt(0);
@@ -886,6 +908,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&fakeEnterChargeModeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&forceChargeModeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
