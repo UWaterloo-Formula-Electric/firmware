@@ -410,6 +410,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
         if (!HITL_Precharge_Mode) {
             if (maxIBus < minPrechargeCurrent) {
+            	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
                 return PCDC_ERROR;
