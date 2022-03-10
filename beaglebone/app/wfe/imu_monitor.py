@@ -1,5 +1,5 @@
 import csv
-import board
+import serial
 import adafruit_bno055
 import datetime
 import time
@@ -9,9 +9,11 @@ import os
 class IMUMonitor:
     def __init__(self):
         
-        i2c = board.I2C() #returns object with board's designated i2c bus(es)
-        self.imu = adafruit_bno055.BNO055_I2C(i2c) #creates IMU sensor object for snesnor connected to i2c bus
+        #opens a port on the beaglebone for i2c 
 
+        i2c = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #need to find new port to use
+        self.imu = adafruit_bno055.BNO055_I2C(i2c) #creates IMU sensor object for snesnor connected to i2c bus
+        
         #Adds heading row to new csv file 
         if not os.path.isfile('./imu_data.csv'):
             with open('./imu_data.csv', 'w', newline='') as csvfile:
