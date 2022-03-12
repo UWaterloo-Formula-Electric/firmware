@@ -22,7 +22,7 @@
 
 #define ENABLE_IL_CHECKS
 
-#define HVIL_ENABLED (1)
+#define HVIL_ENABLED (0)
 
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {

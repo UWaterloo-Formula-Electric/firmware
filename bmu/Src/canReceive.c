@@ -26,13 +26,16 @@
 
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
+	DEBUG_PRINT_ISR("DCU Button events\n");
     if (ButtonHVEnabled) {
+		DEBUG_PRINT_ISR("HV Toggle button event\n");
         fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
     }
 }
 
 void DTC_Fatal_Callback(BoardIDs board)
 {
+	DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
     fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
 }
 
