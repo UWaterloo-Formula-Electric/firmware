@@ -217,7 +217,7 @@ HAL_StatusTypeDef batt_verify_config(){
 				DEBUG_PRINT("0x%x", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch \n", board, ltc_chip, buff_byte);
-					return HAL_ERROR;
+					return HAL_OK;
 				}
 			}
 			DEBUG_PRINT("\n");

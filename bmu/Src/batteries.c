@@ -1469,7 +1469,7 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && 0
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
@@ -1479,7 +1479,7 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
+           // if (boundedContinue()) { continue; }
         }
 #endif
 
