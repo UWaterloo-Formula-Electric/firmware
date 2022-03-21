@@ -759,11 +759,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
       // Check it is within bounds
       if (measure < LIMIT_UNDERVOLTAGE) {
-         //ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure);
+         ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
       } else if (measure > LIMIT_OVERVOLTAGE) {
-         //ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
+		 ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
       } else if (measure < LIMIT_LOWVOLTAGE_WARNING - (LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading))) {
@@ -1479,7 +1479,7 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-           // if (boundedContinue()) { continue; }
+            if (boundedContinue()) { continue; }
         }
 #endif
 
@@ -1488,7 +1488,8 @@ void batteryTask(void *pvParameter)
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage) != HAL_OK)
         {
-            //BatteryTaskError();
+        	ERROR_PRINT("Failed check of battery cell voltages and temps\n");
+            BatteryTaskError();
         }
 
         if (publishPackVoltage(packVoltage) != HAL_OK) {

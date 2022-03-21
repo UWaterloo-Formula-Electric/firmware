@@ -63,6 +63,12 @@
 #error "DBC file has less temp cells defined then they are in the system"
 #endif
 
+#if LTC_CHIP == LTC_CHIP_6804
+#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
+#elif LTC_CHIP == LTC_CHIP_6812
+#define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
+#endif
+
 /** @} */
 
 typedef enum DischargeTimerLength {

@@ -73,6 +73,8 @@
 
 #define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
 
+#define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
+
 HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer);
 void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr);
 HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len);

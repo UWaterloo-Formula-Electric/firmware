@@ -4,7 +4,7 @@
  *
  * */
 #include "ltc_chip_interface.h"
-
+#include "string.h"
 #if LTC_CHIP == LTC_CHIP_6804
 
 #define WRCFG_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
@@ -78,10 +78,6 @@
 #define VOLTAGE_BLOCK_SIZE 6
 #define AUX_BLOCK_SIZE 6
 #define CELL_VOLTAGE_SIZE_BYTES 2
-
-#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
-#define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
-
 #define THERMISTOR_CHIP 0
 
 
@@ -94,10 +90,18 @@ static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 };
 
 
+static uint8_t cell_voltage_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
+open_wire_failure_t open_wire_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
+static uint8_t thermistor_failure[NUM_BOARDS][THERMISTORS_PER_BOARD];
+
+
 static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs()
 {
+	memset(cell_voltage_failure, 0, NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD*VOLTAGE_BLOCKS_PER_CHIP);
+	memset((open_wire_failure_t*)open_wire_failure, 0, NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD*VOLTAGE_BLOCKS_PER_CHIP);
+	memset(thermistor_failure, 0, NUM_BOARDS*THERMISTORS_PER_BOARD);
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
 			m_batt_config[board][ltc_chip][0] = REFON(1) | ADC_OPT(0) | SWTRD(1);
@@ -151,6 +155,8 @@ HAL_StatusTypeDef batt_write_config()
     return HAL_OK;
 }
 
+static uint32_t PEC_count = 0;
+static uint32_t last_PEC_tick = 0;
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
     const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + (response_size + PEC_SIZE);
     const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
@@ -170,8 +176,16 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 
 	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
 	{
-		ERROR_PRINT("PEC mismath \n");
+		PEC_count++;
 		return HAL_ERROR;
+	}
+
+
+	if(xTaskGetTickCount() - last_PEC_tick > 10000)
+	{
+		DEBUG_PRINT("\nPEC Rate: %lu errors/10s \n", PEC_count);
+		PEC_count = 0;
+		last_PEC_tick = xTaskGetTickCount();
 	}
 
 	for(int response_byte_i = 0; response_byte_i < response_size; response_byte_i++) {
@@ -217,7 +231,7 @@ HAL_StatusTypeDef batt_verify_config(){
 				DEBUG_PRINT("0x%x", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch \n", board, ltc_chip, buff_byte);
-					return HAL_OK;
+					return HAL_ERROR;
 				}
 			}
 			DEBUG_PRINT("\n");
@@ -319,8 +333,9 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
  * elapsed for readings to finish
  * Used for both batt_read_cell_voltages and open wire check
  */
-HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
+HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation)
 {
+
 
 	if (batt_spi_wakeup(false /* not sleeping*/))
 	{
@@ -368,10 +383,50 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 				
 				// Voltage values for one block from one boards
 				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
+				bool failed_read = false;
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-					DEBUG_PRINT("Failed on board: %d, chip %d, block %d", board, ltc_chip, block);
-					ERROR_PRINT("ERROR: Issue reading voltage cell values\n");
-					return HAL_ERROR;
+					// Tolerate up to 2 errors in a row, fail on 3
+					DEBUG_PRINT("\nFailed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
+					if(voltage_operation == POLL_VOLTAGE)
+					{
+						DEBUG_PRINT("Failed because POLL_VOLTAGE\n");
+						cell_voltage_failure[board][ltc_chip][block]++;
+						if(cell_voltage_failure[board][ltc_chip][block] >= 3)
+						{
+							ERROR_PRINT("Battery error to be triggered because of >=3 consecutive PEC mismatches");
+							return HAL_ERROR;
+						}
+						else if(cell_voltage_failure[board][ltc_chip][block] >= 2)
+						{
+							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n", cell_voltage_failure[board][ltc_chip][block]);
+						}
+						failed_read = true;
+					}
+					else
+					{
+						DEBUG_PRINT("Failed because OPEN_WIRE\n");
+						open_wire_failure[board][ltc_chip][block].num_times_consec++;
+						open_wire_failure[board][ltc_chip][block].occurred = 1;
+						if(open_wire_failure[board][ltc_chip][block].num_times_consec >= 3)
+						{
+							return HAL_ERROR;
+						}
+						else if(open_wire_failure[board][ltc_chip][block].num_times_consec >= 2)
+						{
+							DEBUG_PRINT("Reached warning for open wire PEC mismatch %u\n", open_wire_failure[board][ltc_chip][block].num_times_consec);
+						}
+					}
+				}
+				else
+				{
+					if(voltage_operation == POLL_VOLTAGE)
+					{
+						cell_voltage_failure[board][ltc_chip][block] = 0;
+					}
+					else
+					{
+						open_wire_failure[board][ltc_chip][block].num_times_consec = 0;
+					}
 				}
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
@@ -385,6 +440,10 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array)
 
 					uint16_t temp = ((uint16_t) (adc_vals[(registerIndex + 1)] << 8 | adc_vals[registerIndex]));
 					cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+					if(failed_read)
+					{
+						cell_voltage_array[cellIdx] = (VoltageCellMax + VoltageCellMin)/2.0F;
+					}
 					local_cell_idx++;
 				}
 
@@ -418,7 +477,17 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		uint8_t address = LTC_ADDRESS[board][THERMISTOR_CHIP];
 		
 		if(batt_read_data(RDAUXB_BYTE0(address), RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
-			ERROR_PRINT("ERROR: Error reading thermistor values over SPI");
+			DEBUG_PRINT("ERROR: Reading thermistor on board %d, channel %lu failed (perhaps PEC mismatch)\n", board, (unsigned long)channel);
+			thermistor_failure[board][channel]++;
+			if(thermistor_failure[board][channel] >= 3)
+			{
+				return HAL_ERROR;
+			}
+			else if(thermistor_failure[board][channel] >= 2)
+			{
+				DEBUG_PRINT("Reached warning for cell thermistor PEC mismatch %u\n", thermistor_failure[board][channel]);
+			}
+			return HAL_OK;
 		}
 		size_t cellIdx = (board) * THERMISTORS_PER_BOARD + channel;
 		

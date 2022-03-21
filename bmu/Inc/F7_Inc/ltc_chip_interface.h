@@ -16,10 +16,20 @@ typedef enum ltc_command_t {
 	ADOW_DOWN,
 } ltc_command_t;
 
+typedef enum voltage_operation_t {
+	OPEN_WIRE = 0,
+	POLL_VOLTAGE = 1,
+} voltage_operation_t;
+
+typedef struct open_wire_failure_t {
+	uint8_t occurred: 1;
+	uint8_t num_times_consec: 7;
+} open_wire_failure_t;
+
 void batt_init_chip_configs(void);
 HAL_StatusTypeDef batt_write_config(void);
 HAL_StatusTypeDef batt_verify_config(void);
-HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array);
+HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation);
 void batt_set_temp_config(size_t channel);
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command); 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array);
@@ -27,4 +37,8 @@ void batt_set_balancing_cell (int board, int chip, int cell);
 void batt_unset_balancing_cell (int board, int chip, int cell);
 bool batt_get_balancing_cell_state(int board, int chip, int cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
+
+
+extern open_wire_failure_t open_wire_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
+
 #endif
