@@ -91,7 +91,7 @@ static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 
 
 static uint8_t cell_voltage_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
-volatile open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
+open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
 static uint8_t thermistor_failure[NUM_BOARDS][THERMISTORS_PER_BOARD];
 
 
@@ -101,8 +101,9 @@ void batt_init_chip_configs()
 {
 
 	memset(cell_voltage_failure, 0, NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD*VOLTAGE_BLOCKS_PER_CHIP);
-	memset((open_wire_failure_t*)open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
+	
 	memset(thermistor_failure, 0, NUM_BOARDS*THERMISTORS_PER_BOARD);
+	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
 			m_batt_config[board][ltc_chip][0] = REFON(1) | ADC_OPT(0) | SWTRD(1);
@@ -391,7 +392,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					DEBUG_PRINT("\nFailed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
 					if(voltage_operation == POLL_VOLTAGE)
 					{
-						DEBUG_PRINT("Failed because POLL_VOLTAGE\n");
 						cell_voltage_failure[board][ltc_chip][block]++;
 						if(cell_voltage_failure[board][ltc_chip][block] >= 3)
 						{
@@ -403,10 +403,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n", cell_voltage_failure[board][ltc_chip][block]);
 						}
 					}
-					else
-					{	
-						DEBUG_PRINT("Failed because OPEN_WIRE\n");
-					}
 				}
 				else 
 				{
@@ -417,7 +413,9 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				}
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
-					if(cvreg + block * VOLTAGES_PER_BLOCK == 4 || cvreg + block * VOLTAGES_PER_BLOCK == 5)
+					uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
+					// pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
+					if(voltage_terminal == 4 || voltage_terminal == 5)
 					{
 						continue;
 					}
@@ -426,19 +424,20 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
 
 					uint16_t temp = ((uint16_t) (adc_vals[(registerIndex + 1)] << 8 | adc_vals[registerIndex]));
-					cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+
 					if(failed_read)
 					{
 						if(voltage_operation == POLL_VOLTAGE)
 						{
-							cell_voltage_array[cellIdx] = (VoltageCellMax + VoltageCellMin)/2.0F;
+							//cell_voltage_array[cellIdx] = (VoltageCellMax + VoltageCellMin)/2.0F;
 						}
 						else
 						{
 							open_wire_failure[cellIdx].num_times_consec++;
-							open_wire_failure[cellIdx].occurred = 1;
+							open_wire_failure[cellIdx].occurred = true;
 							if(open_wire_failure[cellIdx].num_times_consec >= 3)
 							{
+								DEBUG_PRINT("Reached ERROR for open wire PEC mismatch cell: %lu\n", (unsigned long)cellIdx);
 								return HAL_ERROR;
 							}
 							else if(open_wire_failure[cellIdx].num_times_consec >= 2)
@@ -450,6 +449,8 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					}
 					else
 					{
+						
+						cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 						if(voltage_operation == OPEN_WIRE)
 						{
 							open_wire_failure[cellIdx].num_times_consec = 0;

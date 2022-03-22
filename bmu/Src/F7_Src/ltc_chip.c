@@ -223,52 +223,45 @@ HAL_StatusTypeDef checkForOpenCircuit()
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
-        	if(open_wire_failure[cellIdx].occurred == 0)
+        	if(!open_wire_failure[cellIdx].occurred)
 			{
 				float pullup = cell_voltages_pullup[cellIdx];
 				float pulldown = cell_voltages_pulldown[cellIdx];
 				
-				if (float_abs(pullup - pulldown) > (0.4F))
+				if (float_abs(pullup - pulldown) > (0.4))
 				{
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f > 0.4)\n",
 								cellIdx, pullup, pulldown,
 								float_abs(pullup - pulldown));
 					return HAL_ERROR;
 				}
+				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_pulldown[cellIdx] - 0) < 0.0002))
+				{	
+					ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
+								cellIdx, cell_voltages_pulldown[cellIdx],
+								float_abs(cell_voltages_pulldown[cellIdx] - 0));
+					return HAL_ERROR;
+				}
 			}
-			else
+			else // PEC mismatch this cell
 			{
-				DEBUG_PRINT("Open Wire Failll\n");
-				open_wire_failure[cellIdx].occurred = 0;
+				open_wire_failure[cellIdx].occurred = false;
 			}
         }
 
 		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
 		// First cell in board
-        if (false && open_wire_failure[first_cell_idx].occurred == 0 && (float_abs(cell_voltages_pullup[first_cell_idx] - 0.0F) < 0.0002F)) {
+        if (!open_wire_failure[first_cell_idx].occurred && (float_abs(cell_voltages_pullup[first_cell_idx] - 0) < 0.0002)) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
                             first_cell_idx, cell_voltages_pullup[first_cell_idx],
-                            float_abs(cell_voltages_pullup[first_cell_idx] - 0.0F));
+                            float_abs(cell_voltages_pullup[first_cell_idx] - 0));
                 return HAL_ERROR;
         }
-		else if(open_wire_failure[first_cell_idx].occurred != 0)
+		else if(open_wire_failure[first_cell_idx].occurred) // PEC mismatch on this cell
 		{
-			open_wire_failure[first_cell_idx].occurred = 0;
+			open_wire_failure[first_cell_idx].occurred = false;
 		}
-		
-		// Last cell in board
-		size_t last_cell_idx = board*CELLS_PER_BOARD + CELLS_PER_BOARD-1;
-        if (false && open_wire_failure[last_cell_idx].occurred == 0 && (float_abs(cell_voltages_pullup[last_cell_idx] - 0.0F) < 0.0002F)) {
-                ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
-                            last_cell_idx, cell_voltages_pullup[last_cell_idx],
-                            float_abs(cell_voltages_pullup[last_cell_idx] - 0.0F));
-                return HAL_ERROR;
-        }
-		else if(open_wire_failure[last_cell_idx].occurred)
-		{
-			open_wire_failure[last_cell_idx].occurred = 0;
-		}
-
+	
     }
 
     return HAL_OK;

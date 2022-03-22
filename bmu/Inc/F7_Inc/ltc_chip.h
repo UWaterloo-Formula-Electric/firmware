@@ -47,7 +47,7 @@
 #define CELLS_PER_CHIP (CELLS_PER_BOARD / NUM_LTC_CHIPS_PER_BOARD) 
 
 // Average 4 readings for both pullup and pulldown in open wire test
-#define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 4
+#define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 5
 #define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 1
 
 
@@ -64,7 +64,9 @@
 #endif
 
 #if LTC_CHIP == LTC_CHIP_6804
-#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
+// We set this to 3 as the last 3 cell connections are actually CELL7 which is on the 2nd chip
+// If this changes in the future VOLTAGE_BLOCKS_PER_CHIP should be 4
+#define VOLTAGE_BLOCKS_PER_CHIP    3   // Number of voltage blocks per AMS board
 #elif LTC_CHIP == LTC_CHIP_6812
 #define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
 #endif
