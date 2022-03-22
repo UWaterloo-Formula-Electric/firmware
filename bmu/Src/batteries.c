@@ -60,7 +60,7 @@
  */
 
 // This is subject to change and is expected to be 50ms
-#define BATTERY_TASK_PERIOD_MS 50
+#define BATTERY_TASK_PERIOD_MS 150
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -1211,7 +1211,7 @@ ChargeReturn balanceCharge(void)
             if (boundedContinue()) { continue; }
         }
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && 0
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
@@ -1469,7 +1469,7 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-#if IS_BOARD_F7 && defined(ENABLE_AMS) && 0
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();

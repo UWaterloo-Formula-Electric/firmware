@@ -220,21 +220,18 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
-		bool open_wire_failed_0 = open_wire_failure[board][0][0].occurred;
-		bool open_wire_failed_last = open_wire_failure[board][NUM_LTC_CHIPS_PER_BOARD-1][VOLTAGE_BLOCKS_PER_CHIP-1].occurred;
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
-        	uint8_t chip = cell/CELLS_PER_CHIP;
-        	uint8_t voltage_block = (cell - chip*CELLS_PER_CHIP)/VOLTAGES_PER_BLOCK;
-        	if(open_wire_failure[board][chip][voltage_block].occurred == 0)
+        	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
+        	if(open_wire_failure[cellIdx].occurred == 0)
 			{
-				float pullup = cell_voltages_pullup[board*CELLS_PER_BOARD + cell];
-				float pulldown = cell_voltages_pulldown[board*CELLS_PER_BOARD + cell];
+				float pullup = cell_voltages_pullup[cellIdx];
+				float pulldown = cell_voltages_pulldown[cellIdx];
 				
-				if (float_abs(pullup - pulldown) > (0.4))
+				if (float_abs(pullup - pulldown) > (0.4F))
 				{
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f > 0.4)\n",
-								(cell+board*CELLS_PER_BOARD), pullup, pulldown,
+								cellIdx, pullup, pulldown,
 								float_abs(pullup - pulldown));
 					return HAL_ERROR;
 				}
@@ -242,33 +239,34 @@ HAL_StatusTypeDef checkForOpenCircuit()
 			else
 			{
 				DEBUG_PRINT("Open Wire Failll\n");
-				//open_wire_failure[board][chip][voltage_block].occurred = 0;
+				open_wire_failure[cellIdx].occurred = 0;
 			}
         }
 
+		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
 		// First cell in board
-        if (!open_wire_failed_0 && float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0) < 0.0002) {
-                ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
-                            board*CELLS_PER_BOARD, cell_voltages_pullup[board*CELLS_PER_BOARD],
-                            float_abs(cell_voltages_pullup[board*CELLS_PER_BOARD] - 0));
+        if (false && open_wire_failure[first_cell_idx].occurred == 0 && (float_abs(cell_voltages_pullup[first_cell_idx] - 0.0F) < 0.0002F)) {
+                ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
+                            first_cell_idx, cell_voltages_pullup[first_cell_idx],
+                            float_abs(cell_voltages_pullup[first_cell_idx] - 0.0F));
                 return HAL_ERROR;
         }
-		else if(open_wire_failed_0)
+		else if(open_wire_failure[first_cell_idx].occurred != 0)
 		{
-			open_wire_failure[board][0][0].occurred = 0;
+			open_wire_failure[first_cell_idx].occurred = 0;
 		}
 		
 		// Last cell in board
-		size_t last_cell_in_board = board*CELLS_PER_BOARD + CELLS_PER_BOARD-1;
-        if (!open_wire_failed_last && float_abs(cell_voltages_pullup[last_cell_in_board] - 0) < 0.0002) {
-                ERROR_PRINT("Cell %d open (val: %f, diff: %f > 0.0002)\n",
-                            last_cell_in_board, cell_voltages_pullup[last_cell_in_board],
-                            float_abs(cell_voltages_pullup[last_cell_in_board] - 0));
+		size_t last_cell_idx = board*CELLS_PER_BOARD + CELLS_PER_BOARD-1;
+        if (false && open_wire_failure[last_cell_idx].occurred == 0 && (float_abs(cell_voltages_pullup[last_cell_idx] - 0.0F) < 0.0002F)) {
+                ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
+                            last_cell_idx, cell_voltages_pullup[last_cell_idx],
+                            float_abs(cell_voltages_pullup[last_cell_idx] - 0.0F));
                 return HAL_ERROR;
         }
-		else if(open_wire_failed_last)
+		else if(open_wire_failure[last_cell_idx].occurred)
 		{
-			open_wire_failure[board][NUM_LTC_CHIPS_PER_BOARD-1][VOLTAGE_BLOCKS_PER_CHIP-1].occurred = 0;
+			open_wire_failure[last_cell_idx].occurred = 0;
 		}
 
     }

@@ -22,8 +22,8 @@ typedef enum voltage_operation_t {
 } voltage_operation_t;
 
 typedef struct open_wire_failure_t {
-	uint8_t occurred: 1;
-	uint8_t num_times_consec: 7;
+	bool occurred;
+	uint8_t num_times_consec: 6;
 } open_wire_failure_t;
 
 void batt_init_chip_configs(void);
@@ -39,6 +39,6 @@ bool batt_get_balancing_cell_state(int board, int chip, int cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
 
 
-extern open_wire_failure_t open_wire_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
+extern volatile open_wire_failure_t open_wire_failure[NUM_BOARDS*CELLS_PER_BOARD];
 
 #endif
