@@ -38,9 +38,9 @@ extern osThreadId driveByWireHandle;
 
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
-//	DEBUG_PRINT_ISR("Received DCU button Event\n");
+	DEBUG_PRINT_ISR("Received DCU button Event\n");
     if (ButtonEMEnabled) {
-//		DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
+		DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
         fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
     }
     // For now, ignore HV Enable button, as we really want to wait for BMU to
