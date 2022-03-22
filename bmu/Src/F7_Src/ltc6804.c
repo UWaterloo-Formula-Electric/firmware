@@ -382,35 +382,49 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 						return HAL_ERROR;
 					}
 				}
-				
+
+				/*
+				 * This section gets a bit complicated so sorry.
+				 * It was very clean before we had the Motor Controller EMI issues
+				 * Essentially the logic is, read in the voltage registers from the LTC6804 chips
+				 * If it works then pop the reading into it's proper spot in the array (we skip terminals 5, 6, 10, 11, 12)
+				 * If it doesn't work (PEC mismatch) we monitor the voltage measurement failures and if it happens 3 times in a row we fail
+				 * Note: the open_wire_failure array measures each cell's failure to measure because we care about each specific cell rather than just the reading
+				 * (register voltage readings don't map 1:1 with cells becaus we have to skip some cell terminals (5,6,10,11,12)
+				 * The cell_voltage_failure array measures failure in voltage block readings we only really care if a reading was incorrect, not really which specific cell.
+				 * */
+
+				/* TL;DR it works, I'm sorry, you can me blame Owen Brake, hopefully you can burn this part as EMI will be fixed by the time you read this */
+
 				// Voltage values for one block from one boards
 				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
 				bool failed_read = false;
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
 					failed_read = true;
 					// Tolerate up to 2 errors in a row, fail on 3
+#if PRINT_ALL_PEC_ERRORS != 0
 					DEBUG_PRINT("\nFailed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
+#endif
 					if(voltage_operation == POLL_VOLTAGE)
 					{
 						cell_voltage_failure[board][ltc_chip][block]++;
-						if(cell_voltage_failure[board][ltc_chip][block] >= 3)
+						if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
 						{
-							ERROR_PRINT("Battery error to be triggered because of >=3 consecutive PEC mismatches");
+							ERROR_PRINT("Battery error to be triggered because of %lu consecutive PEC mismatches",
+									(unsigned long)cell_voltage_failure[board][ltc_chip][block]);
 							return HAL_ERROR;
 						}
-						else if(cell_voltage_failure[board][ltc_chip][block] >= 2)
+						else if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
 						{
 							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n", cell_voltage_failure[board][ltc_chip][block]);
 						}
 					}
 				}
-				else 
+				else if(voltage_operation == POLL_VOLTAGE)
 				{
-					if(voltage_operation == POLL_VOLTAGE)
-					{
-						cell_voltage_failure[board][ltc_chip][block] = 0;
-					}
+					cell_voltage_failure[board][ltc_chip][block] = 0;
 				}
+
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
 					uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
@@ -424,38 +438,34 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
 
 					uint16_t temp = ((uint16_t) (adc_vals[(registerIndex + 1)] << 8 | adc_vals[registerIndex]));
-
-					if(failed_read)
+					if(!failed_read) // If we read successfully
 					{
-						if(voltage_operation == POLL_VOLTAGE)
-						{
-							//cell_voltage_array[cellIdx] = (VoltageCellMax + VoltageCellMin)/2.0F;
-						}
-						else
-						{
-							open_wire_failure[cellIdx].num_times_consec++;
-							open_wire_failure[cellIdx].occurred = true;
-							if(open_wire_failure[cellIdx].num_times_consec >= 3)
-							{
-								DEBUG_PRINT("Reached ERROR for open wire PEC mismatch cell: %lu\n", (unsigned long)cellIdx);
-								return HAL_ERROR;
-							}
-							else if(open_wire_failure[cellIdx].num_times_consec >= 2)
-							{
-								DEBUG_PRINT("Reached warning for open wire PEC mismatch %u\n", open_wire_failure[cellIdx].num_times_consec);
-							}
-						
-						}
-					}
-					else
-					{
-						
 						cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 						if(voltage_operation == OPEN_WIRE)
 						{
 							open_wire_failure[cellIdx].num_times_consec = 0;
 						}
 					}
+					else if(failed_read && voltage_operation == OPEN_WIRE)
+					{
+						open_wire_failure[cellIdx].num_times_consec++;
+						open_wire_failure[cellIdx].occurred = true;
+						if(open_wire_failure[cellIdx].num_times_consec >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
+						{
+							DEBUG_PRINT("Reached ERROR for open wire PEC mismatch cell: %lu\n", (unsigned long)cellIdx);
+							return HAL_ERROR;
+						}
+						else if(open_wire_failure[cellIdx].num_times_consec >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
+						{
+							DEBUG_PRINT("Reached warning for open wire PEC mismatch %u\n", open_wire_failure[cellIdx].num_times_consec);
+						}
+						else
+						{
+						
+						}
+						
+					}
+
 					local_cell_idx++;
 				}
 

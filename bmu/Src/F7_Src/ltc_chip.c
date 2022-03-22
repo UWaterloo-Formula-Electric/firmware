@@ -243,14 +243,15 @@ HAL_StatusTypeDef checkForOpenCircuit()
 					return HAL_ERROR;
 				}
 			}
-			else // PEC mismatch this cell
+			else // PEC mismatch on this cell
 			{
 				open_wire_failure[cellIdx].occurred = false;
 			}
         }
 
-		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
+
 		// First cell in board
+		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
         if (!open_wire_failure[first_cell_idx].occurred && (float_abs(cell_voltages_pullup[first_cell_idx] - 0) < 0.0002)) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
                             first_cell_idx, cell_voltages_pullup[first_cell_idx],
