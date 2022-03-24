@@ -1,14 +1,14 @@
-/**
- *****************************************************************************
- * @file    faultMonitor.c
- * @author  Richard Matthews
- * @brief   Module monitoring status of IL and HVIL
- * @details Contains fault monitor task which monitors the status of the
- * interlock loop (IL) and high voltage interlock loop (HVIL) and reports an
- * error when either breaks. Also contains functions for getting the status of
- * various points along the IL.
- ******************************************************************************
- */
+    /**
+  *****************************************************************************
+  * @file    faultMonitor.c
+  * @author  Richard Matthews
+  * @brief   Module monitoring status of IL and HVIL
+  * @details Contains fault monitor task which monitors the status of the
+  * interlock loop (IL) and high voltage interlock loop (HVIL) and reports an
+  * error when either breaks. Also contains functions for getting the status of
+  * various points along the IL.
+  ******************************************************************************
+  */
 
 #include "faultMonitor.h"
 #include "controlStateMachine.h"
@@ -22,16 +22,14 @@
 
 #define ENABLE_IL_CHECKS
 
-#define HVIL_ENABLED (0)
+#define HVIL_ENABLED (1)
 
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {
    if (enable)
    {
       HAL_GPIO_WritePin(HVIL_EN_GPIO_Port, HVIL_EN_Pin, GPIO_PIN_SET);
-   }
-   else
-   {
+   } else {
       HAL_GPIO_WritePin(HVIL_EN_GPIO_Port, HVIL_EN_Pin, GPIO_PIN_RESET);
    }
 
@@ -56,9 +54,9 @@ bool getHVD_Status()
 bool getHVIL_Status()
 {
 #if HVIL_ENABLED
-   return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
+	return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
 #else
-   return true;
+	return true;
 #endif
 }
 
@@ -87,8 +85,8 @@ void faultMonitorTask(void *pvParameters)
 
    if (getHVIL_Status() == false)
    {
-      DEBUG_PRINT("Fault Monitor: HVIL is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for HVIL OK.\n");
+       DEBUG_PRINT("Fault Monitor: HVIL is down!\n");
+       DEBUG_PRINT("Fault Monitor: Waiting for HVIL OK.\n");
    }
 
    while (getHVIL_Status() == false)
@@ -101,14 +99,14 @@ void faultMonitorTask(void *pvParameters)
    /* BRB Status */
    if (getIL_BRB_Status() == false)
    {
-      DEBUG_PRINT("Fault Monitor: BRB is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for BRB OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_A in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * Left, right and dash BRBs are closed.\n");
-      DEBUG_PRINT("Fault Monitor:  * Brake overtravel switch is closed.\n");
-      DEBUG_PRINT("Fault Monitor:  * Intertia/crash switch is closed.\n");
+       DEBUG_PRINT("Fault Monitor: BRB is down!\n");
+       DEBUG_PRINT("Fault Monitor: Waiting for BRB OK.\n");
+       DEBUG_PRINT("Fault Monitor: -- help --\n");
+       DEBUG_PRINT("Fault Monitor: This is IL_A in the 2019_BMU schematic.\n");
+       DEBUG_PRINT("Fault Monitor: Things to check:\n");
+       DEBUG_PRINT("Fault Monitor:  * Left, right and dash BRBs are closed.\n");
+       DEBUG_PRINT("Fault Monitor:  * Brake overtravel switch is closed.\n");
+       DEBUG_PRINT("Fault Monitor:  * Intertia/crash switch is closed.\n");
    }
 
    while (getIL_BRB_Status() == false)
@@ -121,10 +119,10 @@ void faultMonitorTask(void *pvParameters)
    /* BSPD Status */
    if (getBSPD_Status() == false)
    {
-      DEBUG_PRINT("Fault Monitor: BSPD is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_B in the 2019_BMU schematic.\n");
+       DEBUG_PRINT("Fault Monitor: BSPD is down!\n");
+       DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\n");
+       DEBUG_PRINT("Fault Monitor: -- help --\n");
+       DEBUG_PRINT("Fault Monitor: This is IL_B in the 2019_BMU schematic.\n");
    }
 
    while (getBSPD_Status() == false)
@@ -137,13 +135,13 @@ void faultMonitorTask(void *pvParameters)
    /* HVD Status */
    if (getHVD_Status() == false)
    {
-      DEBUG_PRINT("Fault Monitor: HVD is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_C in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * HVD is plugged in.\n");
-      DEBUG_PRINT("Fault Monitor:  * HV connectors are plugged in.\n");
+       DEBUG_PRINT("Fault Monitor: HVD is down!\n");
+       DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\n");
+       DEBUG_PRINT("Fault Monitor: -- help --\n");
+       DEBUG_PRINT("Fault Monitor: This is IL_C in the 2019_BMU schematic.\n");
+       DEBUG_PRINT("Fault Monitor: Things to check:\n");
+       DEBUG_PRINT("Fault Monitor:  * HVD is plugged in.\n");
+       DEBUG_PRINT("Fault Monitor:  * HV connectors are plugged in.\n");
    }
 
    while (getHVD_Status() == false)
@@ -157,35 +155,40 @@ void faultMonitorTask(void *pvParameters)
 
    if (getIL_Status() == false)
    {
-      DEBUG_PRINT("Fault Monitor: IL is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for IL OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_F in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * IMD has not faulted.\n");
-      DEBUG_PRINT("Fault Monitor:  * TSMS is in `on` position.\n");
+       DEBUG_PRINT("Fault Monitor: IL is down!\n");
+       DEBUG_PRINT("Fault Monitor: Waiting for IL OK.\n");
+       DEBUG_PRINT("Fault Monitor: -- help --\n");
+       DEBUG_PRINT("Fault Monitor: This is IL_F in the 2019_BMU schematic.\n");
+       DEBUG_PRINT("Fault Monitor: Things to check:\n");
+       DEBUG_PRINT("Fault Monitor:  * IMD has not faulted.\n");
+       DEBUG_PRINT("Fault Monitor:  * TSMS is in `on` position.\n");
    }
 
-   while (getIL_Status() == false)
-   {
+   while (getIL_Status() == false) {
       vTaskDelay(10);
    };
 
    DEBUG_PRINT("Fault Monitor: IL Started\n");
 
+	
+   /* Prevents race condition where Fault Monitor passes before system is setup*/
+   if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
+   {
+   	   DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
+   }
    while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-      vTaskDelay(10);
+		vTaskDelay(10);
    }
 
    /* IL checks complete at this point, fault monitoring system ready */
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
-   if (registerTaskToWatch(FAULT_TASK_ID, 2 * pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
+   if (registerTaskToWatch(FAULT_TASK_ID, 2*pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
    {
-      ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
-      Error_Handler();
+     ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
+     Error_Handler();
    }
 
    while (1)
@@ -195,8 +198,7 @@ void faultMonitorTask(void *pvParameters)
          ERROR_PRINT("Fault Monitor: HVIL broken!\n");
          fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 
-         while (1)
-         {
+         while (1) {
             watchdogTaskCheckIn(FAULT_TASK_ID);
             vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
          }
@@ -207,8 +209,7 @@ void faultMonitorTask(void *pvParameters)
          ERROR_PRINT("Fault Monitor: IL broken!\n");
          fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 
-         while (1)
-         {
+         while (1) {
             watchdogTaskCheckIn(FAULT_TASK_ID);
             vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
          }
@@ -222,8 +223,7 @@ void faultMonitorTask(void *pvParameters)
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
-   while (1)
-   {
+   while (1) {
       vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
    }
 
