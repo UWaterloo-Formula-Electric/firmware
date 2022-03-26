@@ -15,14 +15,14 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2100)
-#define THROTT_B_LOW (2125)
+#define THROTT_A_LOW (2098)
+#define THROTT_B_LOW (1960)
 
-#define THROTT_A_HIGH (2325)
-#define THROTT_B_HIGH (2350)
+#define THROTT_A_HIGH (2480)
+#define THROTT_B_HIGH (2338)
 
 #define BRAKE_POS_LOW (1740)
-#define BRAKE_POS_HIGH (1895)
+#define BRAKE_POS_HIGH (1882)
 
 #define STEERING_POT_LOW (1040)
 #define STEERING_POT_CENTER (2122)
@@ -35,8 +35,8 @@
 /*#define THROTT_A_HIGH (0xf08)*/
 /*#define THROTT_B_HIGH (0x71f)*/
 
-#define MAX_THROTTLE_A_DEADZONE (300)
-#define MAX_THROTTLE_B_DEADZONE (300)
+#define MAX_THROTTLE_A_DEADZONE (100)
+#define MAX_THROTTLE_B_DEADZONE (100)
 /*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
 #define VCU_DATA_PUBLISH_TIME_MS 200
@@ -97,11 +97,11 @@ float getBrakePositionPercent()
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
-  return throttle <= THROTT_A_HIGH+MAX_THROTTLE_A_DEADZONE && throttle >= THROTT_A_LOW;
+  return throttle <= THROTT_A_HIGH+MAX_THROTTLE_A_DEADZONE && throttle >= THROTT_A_LOW-MAX_THROTTLE_A_DEADZONE;
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
-  return throttle <= THROTT_B_HIGH && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
+  return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
 }
 
 uint16_t calculate_throttle_percent1(uint16_t tps_value)
@@ -164,6 +164,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     {
         (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %ld %%\r\n", throttle1_percent - throttle2_percent);
+        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
