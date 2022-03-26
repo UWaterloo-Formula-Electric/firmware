@@ -22,7 +22,7 @@
 
 #define ENABLE_IL_CHECKS
 
-#define HVIL_ENABLED (1)
+#define HVIL_ENABLED (0)
 
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {
@@ -180,6 +180,8 @@ void faultMonitorTask(void *pvParameters)
    {
 		vTaskDelay(10);
    }
+	
+   DEBUG_PRINT("Fault Monitor: fsm in proper state: STATE_Wait_System_Up\n");
 
    /* IL checks complete at this point, fault monitoring system ready */
 
