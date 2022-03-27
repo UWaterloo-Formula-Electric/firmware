@@ -170,6 +170,19 @@ void faultMonitorTask(void *pvParameters)
 
    DEBUG_PRINT("Fault Monitor: IL Started\n");
 
+	
+   /* Prevents race condition where Fault Monitor passes before system is setup*/
+   if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
+   {
+   	   DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
+   }
+   while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
+   {
+		vTaskDelay(10);
+   }
+	
+   DEBUG_PRINT("Fault Monitor: fsm in proper state: STATE_Wait_System_Up\n");
+
    /* IL checks complete at this point, fault monitoring system ready */
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
