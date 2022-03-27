@@ -1208,10 +1208,10 @@ ChargeReturn balanceCharge(void)
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
+			BatteryTaskError();
         }
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS) && 0
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
             BatteryTaskError();
@@ -1479,8 +1479,8 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
-        }
+			BatteryTaskError();
+		}
 #endif
 
         if (checkCellVoltagesAndTemps(
