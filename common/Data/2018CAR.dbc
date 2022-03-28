@@ -227,69 +227,89 @@ BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCell58 m19 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell59 m19 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell60 m19 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
+ SG_ VoltageCell61 m20 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell62 m20 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell63 m20 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell64 m21 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell65 m21 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell66 m21 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell67 m22 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell68 m22 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
+ SG_ VoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
 
-BO_ 2562720769 BMU_CellTemp: 8 BMU
- SG_ TempCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
- SG_ TempCell01 m0 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell02 m0 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell03 m0 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell04 m1 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell05 m1 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell06 m1 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell07 m2 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell08 m2 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell09 m2 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell10 m3 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell11 m3 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell12 m3 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell13 m4 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell14 m4 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell15 m4 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell16 m5 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell17 m5 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell18 m5 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell19 m6 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell20 m6 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell21 m6 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell22 m7 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell23 m7 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell24 m7 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell25 m8 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell26 m8 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell27 m8 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell28 m9 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell29 m9 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell30 m9 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell31 m10 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell32 m10 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell33 m10 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell34 m11 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell35 m11 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell36 m11 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell37 m12 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell38 m12 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell39 m12 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell40 m13 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell41 m13 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell42 m13 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell43 m14 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell44 m14 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell45 m14 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell46 m15 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell47 m15 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell48 m15 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell49 m16 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell50 m16 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell51 m16 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell52 m17 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell53 m17 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell54 m17 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell55 m18 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell56 m18 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell57 m18 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell58 m19 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell59 m19 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
- SG_ TempCell60 m19 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+BO_ 2562720769 BMU_ChannelTemp: 8 BMU
+ SG_ TempChannelMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel01 m0 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel02 m0 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel03 m0 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel04 m1 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel05 m1 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel06 m1 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel07 m2 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel08 m2 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel09 m2 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel10 m3 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel11 m3 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel12 m3 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel13 m4 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel14 m4 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel15 m4 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel16 m5 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel17 m5 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel18 m5 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel19 m6 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel20 m6 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel21 m6 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel22 m7 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel23 m7 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel24 m7 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel25 m8 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel26 m8 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel27 m8 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel28 m9 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel29 m9 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel30 m9 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel31 m10 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel32 m10 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel33 m10 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel34 m11 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel35 m11 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel36 m11 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel37 m12 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel38 m12 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel39 m12 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel40 m13 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel41 m13 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel42 m13 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel43 m14 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel44 m14 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel45 m14 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel46 m15 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel47 m15 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel48 m15 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel49 m16 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel50 m16 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel51 m16 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel52 m17 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel53 m17 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel54 m17 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel55 m18 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel56 m18 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel57 m18 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel58 m19 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel59 m19 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel60 m19 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
+ SG_ TempChannel61 m20 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel62 m20 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel63 m20 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel64 m21 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel65 m21 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel66 m21 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel67 m22 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel68 m22 : 24|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel69 m22 : 40|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
+ SG_ TempChannel70 m23 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  VCU_BeagleBone,ChargeCart
 
 BO_ 2281703170 VCU_Status: 8 VCU_F7
  SG_ SpeedVehicleVCU : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,DCU
@@ -622,4 +642,3 @@ VAL_ 2214986243 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNE
 VAL_ 2214986243 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
 VAL_ 2281967617 StateBMS 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_ 2214596611 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
-

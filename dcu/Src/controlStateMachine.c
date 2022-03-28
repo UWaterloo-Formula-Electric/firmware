@@ -30,6 +30,7 @@ TimerHandle_t debounceTimer;
 void debounceTimerCallback(TimerHandle_t timer);
 bool debounceTimerStarted = false;
 
+uint32_t selfTests(uint32_t event);
 uint32_t toggleHV(uint32_t event);
 uint32_t toggleEM(uint32_t event);
 uint32_t hvControl(uint32_t event);
@@ -37,15 +38,106 @@ uint32_t emControl(uint32_t event);
 uint32_t defaultTransition(uint32_t event);
 void mainTaskFunction(void const * argument);
 
+/**
+ * Update state machine from CAN message from BMU or VCU to accurately
+ * reflect state on the dash.
+ */
+uint32_t updateFromCAN(uint32_t event)
+{
+
+    uint32_t current_state = fsmGetState(&DCUFsmHandle);
+    uint32_t updated_state = current_state;
+
+    bool hvState = getHVState();
+    bool emState = getEMState();
+
+    switch (event)
+    {
+        case EV_CAN_Recieve_HV:
+            if (hvState == HV_Power_State_On)
+            {
+                if (current_state != STATE_HV_Enable)
+                {
+                    updated_state = STATE_HV_Enable;
+                }
+
+                DEBUG_PRINT("Received an HV on state but already in HV_Enable\n");
+            }
+            else /* hvState == HV_Power_State_Off */
+            {
+                if (current_state != STATE_HV_Disable)
+                {
+                    updated_state = STATE_HV_Disable;
+                }
+
+                DEBUG_PRINT("Received an HV off state but already in HV_Disable\n");
+            }
+
+            break;
+
+        case EV_CAN_Recieve_EM:
+            if (emState == EM_State_On)
+            {
+                if (current_state != STATE_EM_Enable)
+                {
+                    updated_state = STATE_EM_Enable;
+                }
+
+                DEBUG_PRINT("Recieved an EM on state but already in EM_Enable\n");
+            }
+
+            break;
+
+        default:
+            ERROR_PRINT("Error: Unexpected event when updating from CAN!\n");
+            Error_Handler();
+    }
+
+    /* Return current state, as it's not always an error */
+    /* For example, recieving multiple HV ON messages */
+    return updated_state;
+}
+
+uint32_t fatalTransition(uint32_t event)
+{
+    return STATE_Failure_Fatal;
+}
+
+uint32_t doNothing(uint32_t event)
+{
+    return fsmGetState(&DCUFsmHandle);
+}
+
 Transition_t transitions[] = {
-    {STATE_HV_Disable, EV_HV_Toggle,   &toggleHV},
-    {STATE_HV_Toggle,  EV_CAN_Recieve, &hvControl},
-    {STATE_HV_Enable,  EV_EM_Toggle,   &toggleEM},
-    {STATE_EM_Toggle,  EV_CAN_Recieve, &emControl},
-    {STATE_EM_Enable,  EV_EM_Toggle,   &toggleEM},
-    {STATE_HV_Enable,  EV_HV_Toggle,   &toggleHV},
-    {STATE_ANY,        EV_ANY,         &defaultTransition}
+    {STATE_Self_Test,     EV_Init,                &selfTests},
+    {STATE_HV_Disable,    EV_HV_Toggle,           &toggleHV},
+    {STATE_HV_Toggle,     EV_CAN_Recieve_HV,      &hvControl},
+    {STATE_HV_Toggle,     EV_HV_Toggle,           &doNothing},
+    {STATE_HV_Enable,     EV_EM_Toggle,           &toggleEM},
+
+    {STATE_EM_Toggle,     EV_CAN_Recieve_EM,      &emControl},
+    {STATE_EM_Enable,     EV_EM_Toggle,           &toggleEM},
+    {STATE_EM_Toggle,     EV_EM_Toggle,           &doNothing},
+
+    {STATE_HV_Enable,     EV_HV_Toggle,           &toggleHV},
+
+    {STATE_HV_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
+    {STATE_HV_Disable,    EV_CAN_Recieve_HV,      &updateFromCAN},
+
+    {STATE_HV_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
+    {STATE_EM_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
+
+    {STATE_Failure_Fatal, EV_ANY,                 &doNothing},
+    {STATE_ANY,           EV_CAN_Recieve_Fatal,   &fatalTransition},
+    {STATE_ANY,           EV_ANY,                 &defaultTransition}
 };
+
+uint32_t selfTests(uint32_t event)
+{
+    /* Run self tests here */
+    DEBUG_PRINT("Completed start up tests\n");
+    return STATE_HV_Disable;
+}
 
 int sendHVToggleMsg(void)
 {
@@ -75,23 +167,6 @@ uint32_t toggleHV(uint32_t event)
 
 uint32_t toggleEM(uint32_t event)
 {
-    if (fsmGetState(&DCUFsmHandle) == STATE_HV_Enable)
-    {
-        /* Only ring buzzer when going to motors enabled */
-        DEBUG_PRINT("Kicking off buzzer\n");
-        if (!buzzerTimerStarted)
-        {
-            if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
-            {
-                ERROR_PRINT("Failed to start buzzer timer\n");
-                Error_Handler();
-            }
-
-            buzzerTimerStarted = true;
-            BUZZER_ON
-        }
-    }
-
     DEBUG_PRINT("Sending EM Toggle button event\n");
     if (sendEMToggleMsg() != HAL_OK)
     {
@@ -121,6 +196,21 @@ uint32_t emControl(uint32_t event)
     if(getEMState() == EM_State_On)
     {
         DEBUG_PRINT("Response from VCU: EM Enabled\n");
+
+        /* Only ring buzzer when going to motors enabled */
+        DEBUG_PRINT("Kicking off buzzer\n");
+        if (!buzzerTimerStarted)
+        {
+            if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
+            {
+                ERROR_PRINT("Failed to start buzzer timer\n");
+                Error_Handler();
+            }
+
+            buzzerTimerStarted = true;
+            BUZZER_ON
+        }
+
         return STATE_EM_Enable;
     }
     else
@@ -134,8 +224,8 @@ bool alreadyDebouncing = false;
 uint16_t debouncingPin = 0;
 
 /*
- * A button press is considered valid if it is still low after TIMER_WAIT_MS
- * milliseconds.
+ * A button press is considered valid if it is still low (active) after
+ * TIMER_WAIT_MS milliseconds.
  */
 void debounceTimerCallback(TimerHandle_t timer)
 {
@@ -166,7 +256,7 @@ void debounceTimerCallback(TimerHandle_t timer)
             case HV_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_HV_Toggle);
                 break;
-            
+
             case EM_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_EM_Toggle);
                 break;
@@ -208,7 +298,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
             return;
     }
-    
+
     xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
@@ -222,9 +312,9 @@ HAL_StatusTypeDef dcuFsmInit(){
     init.EV_ANY = EV_ANY;
     init.transitions = transitions;
     init.transitionTableLength = TRANS_COUNT(transitions);
-    init.eventQueueLength = 5;
+    init.eventQueueLength = 10;
     init.watchdogTaskId = MAIN_TASK_ID;
-    if (fsmInit(STATE_HV_Disable, &init, &DCUFsmHandle) != HAL_OK) {
+    if (fsmInit(STATE_Self_Test, &init, &DCUFsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init DCU fsm\n");
         return HAL_ERROR;
     }
