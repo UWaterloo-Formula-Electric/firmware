@@ -3,6 +3,7 @@ import can
 import cantools
 import csv
 import logging
+import os
 import pkg_resources
 import traceback
 
@@ -14,15 +15,20 @@ from wfe.connect.connect import QueueDataPublisher
 from wfe.util import default_dbc_path
 
 today = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+logs_folder = "logs"
+
+# Create logs folder if it does not already exist
+if not os.path.isdir(logs_folder):
+    os.mkdir(logs_folder)
 
 # Logging setup
-wfe_log_filename = "{}_wfe.log".format(today)
+wfe_log_filename = "{}/{}_wfe.log".format(logs_folder, today)
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
 logging.basicConfig(filename=wfe_log_filename, format=log_format)
 logging.getLogger().setLevel(logging.DEBUG)
 
 # CSV setup
-csv_filename = "{}_wfe.csv".format(today)
+csv_filename = "{}/{}_wfe.csv".format(logs_folder, today)
 csv_file_exists = os.path.isfile(csv_filename)
 with open(csv_filename, "a") as csv_file:
     csv_writer = csv.writer(csv_file)
