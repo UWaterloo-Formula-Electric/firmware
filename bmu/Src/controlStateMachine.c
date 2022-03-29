@@ -380,3 +380,8 @@ uint32_t systemNotReady(uint32_t event)
 
     return STATE_Wait_System_Up;
 }
+
+void setChargeMode(bool charge_mode)
+{
+	gChargeMode = charge_mode;
+}

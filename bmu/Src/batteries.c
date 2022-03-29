@@ -39,7 +39,8 @@
  *
  */
 #if IS_BOARD_F7
-#include "ltc6811.h"
+#include "ltc_chip.h"
+#include "ltc_chip_interface.h"
 #include "ade7912.h"
 #include "imdDriver.h"
 #endif
@@ -58,7 +59,8 @@
  * Battery task Defines and Variables
  */
 
-#define BATTERY_TASK_PERIOD_MS 100
+// This is subject to change and is expected to be 50ms
+#define BATTERY_TASK_PERIOD_MS 50
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -158,46 +160,21 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 /**
  * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
  */
-float maxChargeVoltage = LIMIT_OVERVOLTAGE * VOLTAGECELL_COUNT;
+float maxChargeVoltage = LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
 
 /**
  * Set to true if we've already sent a low voltage warning for this cell to
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above low voltage warning limit
  */
-bool warningSentForCellVoltage[VOLTAGECELL_COUNT];
+bool warningSentForCellVoltage[NUM_VOLTAGE_CELLS];
 
 /**
  * Set to true if we've already sent a high temperature warning for this cell to
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above high temperature warning limit
  */
-bool warningSentForCellTemp[TEMPCELL_COUNT];
-
-/**
- * Since some thermistors don't give accurate readings (as of June 2020 not
- * sure why, but maybe due to bad mechanical connections) this array specifies
- * which temperature readings are working. The working readings are the only
- * ones checked to ensure they are within safe limits and to determine min and
- * max temperatures.
- */
-bool isTempCellWorking[TEMPCELL_COUNT] = {
-/*
- * 0    1       2      3      4      5      6      7     8      9      10    11
- */
-// Board 1
-false, true , true , false, true , true , true , true , true , true , false, false,
-// Board 2
-false, false, true , false, false, true , true , true , true , true , false, false,
-// Board 3
-false, false, false, false, true , false, false, true , true , false, true , false,
-// Board 4
-false, false, false, false, false, false, false, false, false, false, false, false,
-// Board 5
-false, true , true , false, false, false, false, true , true , true , false, false,
-// Board 6
-// false, false, false, false, false, false, false, false, false, false, false, false,
-};
+bool warningSentForChannelTemp[NUM_TEMP_CELLS];
 
 #define NUM_SOC_LOOKUP_VALS 101
 
@@ -601,8 +578,8 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
    /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
    /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
-
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempCell);
+	
+   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -630,15 +607,15 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
 #error Unsupported board type
 #endif
 
-   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       VoltageCell[i] = initVoltage;
       warningSentForCellVoltage[i] = false;
    }
-   for (int i=0; i < TEMPCELL_COUNT; i++)
+   for (int i=0; i < NUM_TEMP_CELLS; i++)
    {
-      TempCell[i] = initTemp;
-      warningSentForCellTemp[i] = false;
+      TempChannel[i] = initTemp;
+      warningSentForChannelTemp[i] = false;
    }
 
    return HAL_OK;
@@ -715,7 +692,7 @@ void ERROR_COUNTER_SUCCESS()
 #define CELL_VOLTAGE_FILTER_ALPHA 0.18
 
 /// Array is used to store the filtered voltages
-float cellVoltagesFiltered[VOLTAGECELL_COUNT];
+float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
 
 /**
@@ -735,7 +712,7 @@ float cellVoltagesFiltered[VOLTAGECELL_COUNT];
  */
 void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 {
-  for (int i = 0; i < VOLTAGECELL_COUNT; i++) {
+  for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
     cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
                               + (1-IBUS_FILTER_ALPHA)*cellVoltagesFiltered[i];
   }
@@ -745,8 +722,6 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
  * @brief Checks cell voltages and temperatures to ensure they are within safe
  * limits, as well as sending out warnings when the values get close to their
  * limits and updating max/min voltages/temps and calculated pack voltage
- * NB: This skips checking temperatures of cells specified as having faulty
- * measurements in @ref isTempCellWorking array
  *
  * @param[out] maxVoltage The cell voltage of the cell with the max voltage
  * @param[out] minVoltage The cell voltage of the cell with the min voltage
@@ -773,9 +748,12 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    *minTemp = CELL_OVERTEMP;
    *packVoltage = 0;
 
+   // Unfortunately the thermistors may run slower than the cell voltage measurements
+   static uint8_t thermistor_lag_counter = 0;
+
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
 
-   for (int i=0; i < VOLTAGECELL_COUNT; i++)
+   for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       measure = VoltageCell[i];
 
@@ -785,7 +763,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
       } else if (measure > LIMIT_OVERVOLTAGE) {
-         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
+		 ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
       } else if (measure < LIMIT_LOWVOLTAGE_WARNING - (LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading))) {
@@ -806,39 +784,45 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure;
    }
 
-   for (int i=0; i < TEMPCELL_COUNT; i++)
+   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
    {
-      measure = TempCell[i];
+	   for (int i=0; i < NUM_TEMP_CELLS; i++)
+	   {
+			measure = TempChannel[i];
+				
+			// Check it is within bounds
+			if (measure > CELL_OVERTEMP) {
+				ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
+				sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
+				rc = HAL_ERROR;
+			} else if (measure > CELL_OVERTEMP_WARNING) {
+				if (!warningSentForChannelTemp[i]) {
+					ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
+					sendDTC_WARNING_CELL_TEMP_HIGH(i);
+					warningSentForChannelTemp[i] = true;
+				}
+			} else if(measure < CELL_UNDERTEMP){
+				ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+				sendDTC_CRITICAL_CELL_TEMP_LOW(i);
+				rc = HAL_ERROR;
+			} else if(measure < CELL_UNDERTEMP_WARNING){
+				if(!warningSentForChannelTemp[i]) {
+					ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+					sendDTC_WARNING_CELL_TEMP_LOW(i);
+					warningSentForChannelTemp[i] = true;
+				}
+			} else if (warningSentForChannelTemp[i] == true) {
+				warningSentForChannelTemp[i] = false;
+			}
 
-      if (!isTempCellWorking[i]) { continue; }
-      // Check it is within bounds
-      if (measure > CELL_OVERTEMP) {
-         ERROR_PRINT("Cell %d is overtemp at %f deg C\n", i, measure);
-         sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
-         rc = HAL_ERROR;
-      } else if (measure > CELL_OVERTEMP_WARNING) {
-         if (!warningSentForCellTemp[i]) {
-            ERROR_PRINT("WARN: Cell %d is high temp at %f deg C\n", i, measure);
-            sendDTC_WARNING_CELL_TEMP_HIGH(i);
-            warningSentForCellTemp[i] = true;
-         }
-      } else if(measure < CELL_UNDERTEMP){
-         ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
-		 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
-		 rc = HAL_ERROR;
-      } else if(measure < CELL_UNDERTEMP_WARNING){
-      	 if(!warningSentForCellTemp[i]) {
-			ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
-			sendDTC_WARNING_CELL_TEMP_LOW(i);
-			warningSentForCellTemp[i] = true;
-		 }
-      } else if (warningSentForCellTemp[i] == true) {
-         warningSentForCellTemp[i] = false;
-      }
-
-      // Update max voltage
-      if (measure > (*maxTemp)) {(*maxTemp) = measure;}
-      if (measure < (*minTemp)) {(*minTemp) = measure;}
+			// Update max voltage
+			if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+			if (measure < (*minTemp)) {(*minTemp) = measure;}
+		}
+   }
+   else
+   {
+		thermistor_lag_counter++;
    }
 
    return rc;
@@ -915,7 +899,7 @@ HAL_StatusTypeDef publishPackVoltage(float packVoltage)
 HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 {
     if (xQueuePeek(PackVoltageQueue, packVoltage, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive IBus current from queue\n");
+        ERROR_PRINT("Failed to receive Pack Voltage from queue\n");
         return HAL_ERROR;
     }
 
@@ -1042,7 +1026,7 @@ HAL_StatusTypeDef stopBalance()
 }
 
 /// Array to store if a cell is balancing
-bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
+bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
 
 /**
  * @brief Stops all cells balancing, but stores which cells were balancing to
@@ -1053,7 +1037,7 @@ bool isCellBalancing[VOLTAGECELL_COUNT] = {0};
 HAL_StatusTypeDef pauseBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
         if (batt_is_cell_balancing(cell)) {
             isCellBalancing[cell] = true;
         } else {
@@ -1077,7 +1061,7 @@ HAL_StatusTypeDef pauseBalance()
 HAL_StatusTypeDef resumeBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    for (int cell = 0; cell < VOLTAGECELL_COUNT; cell++) {
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
         if (isCellBalancing[cell]) {
             batt_balance_cell(cell);
         }
@@ -1224,7 +1208,7 @@ ChargeReturn balanceCharge(void)
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
+			BatteryTaskError();
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
@@ -1272,7 +1256,7 @@ ChargeReturn balanceCharge(void)
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
 
-                for (int cell=0; cell<VOLTAGECELL_COUNT; cell++) {
+                for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
                     float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
@@ -1485,7 +1469,6 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
@@ -1496,16 +1479,16 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
-        }
+			BatteryTaskError();
+		}
 #endif
-
 
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage) != HAL_OK)
         {
+        	ERROR_PRINT("Failed check of battery cell voltages and temps\n");
             BatteryTaskError();
         }
 
@@ -1537,6 +1520,7 @@ void batteryTask(void *pvParameter)
         ERROR_COUNTER_SUCCESS();
         /*!!! Change the check in in bounded continue as well if you change
          * this */
+		
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
@@ -1592,12 +1576,12 @@ void canSendCellTask(void *pvParameters)
     }
 
     sendCAN_BMU_CellVoltage(cellIdxToSend);
-    sendCAN_BMU_CellTemp(cellIdxToSend);
+    sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
     // Move on to next cells
     // 3 Cells per CAN message
     cellIdxToSend += 3;
-    cellIdxToSend = cellIdxToSend % VOLTAGECELL_COUNT;
+    cellIdxToSend = cellIdxToSend % NUM_VOLTAGE_CELLS;
 
     vTaskDelay(pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
   }

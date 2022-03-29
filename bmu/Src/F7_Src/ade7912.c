@@ -45,8 +45,13 @@
 
 // Current scale and offset current to volts, then we use shunt val to get
 // current in amps
-#define CURRENT_SCALE  (0.000000005332795540972819F)
-#define CURRENT_OFFSET (-0.002105965908664F)
+//
+// This used to be
+// CURRENT_SCALE (0.000000005332795540972819F)
+// CURRENT_OFFSET (-0.002105965908664F)
+// Calibration Resulted in different answers
+#define CURRENT_SCALE  (0.0000000023186067569447039)
+#define CURRENT_OFFSET (-0.000916F)
 #define CURRENT_SHUNT_VAL_OHMS_HITL (0.000235F)
 #define CURRENT_SHUNT_VAL_OHMS_CAR (0.0001F)
 

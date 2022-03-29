@@ -1,0 +1,52 @@
+{
+    "periodic_messages": [
+        {
+            "name": "DCU_Heartbeat",
+            "signals": {
+                "DCU_Heartbeat_dummydata": 0
+            },
+            "period_ms": 50,
+            "time": 300
+        },
+        {
+            "name": "PDU_Heartbeat",
+            "signals": {
+                "PDU_Heartbeat_dummydata": 0
+            },
+            "period_ms": 25,
+            "time": 250
+        },
+        {
+            "name": "VCU_F7_Heartbeat",
+            "signals": {
+                "VCU_Heartbeat_dummydata": 0
+            },
+            "period_ms": 100,
+            "time": 800
+        },
+        {
+            "name": "BMU_Heartbeat",
+            "signals": {
+                "BMU_Heartbeat_dummydata": 0
+            },
+            "period_ms": 250,
+            "time": 500
+        }
+    ],
+    "one_time_messages": [
+        {
+            "name": "VCU_EM_State",
+            "signals": {
+                "EM_State": 0
+            },
+            "time": 700
+        },
+        {
+            "name": "VCU_EM_Power_State_Request",
+            "signals": {
+                "EM_Power_State_Request": 0
+            },
+            "time": 1500
+        }
+    ]
+}

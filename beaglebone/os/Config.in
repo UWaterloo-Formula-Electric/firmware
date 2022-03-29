@@ -1,0 +1,2 @@
+source "$BR2_EXTERNAL_WFE_PATH/package/libopenblt/Config.in"
+
