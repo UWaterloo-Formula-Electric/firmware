@@ -9,12 +9,12 @@ import os
 class IMUMonitor:
     def __init__(self):
         
-        #opens a port on the beaglebone for i2c 
-
-        i2c = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #need to find new port to use
-        self.imu = adafruit_bno055.BNO055_I2C(i2c) #creates IMU sensor object for snesnor connected to i2c bus
+        #Opens a port on the beaglebone for i2c 
+        i2c = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #Specifies which port on beaglebone to use for i2c: Need to find correct port to use during testing
+        self.imu = adafruit_bno055.BNO055_I2C(i2c) #Creates IMU sensor object for sensor connected to i2c bus
         
         #Adds heading row to new csv file 
+        #If no file named imu_data.csv, creates a new file on beaglebone
         if not os.path.isfile('./imu_data.csv'):
             with open('./imu_data.csv', 'w', newline='') as csvfile:
                 self.writer = csv.writer(csvfile, delimiter='|')
