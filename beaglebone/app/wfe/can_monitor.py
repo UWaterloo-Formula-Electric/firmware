@@ -4,6 +4,7 @@ import cantools
 import csv
 import logging
 import pkg_resources
+import traceback
 
 from datetime import datetime
 
@@ -44,17 +45,17 @@ class CanMonitor(QueueDataPublisher):
         
     def monitor_bus(self, timeout=60):
         while self.monitoring:
-            # can_bus.recv is blocking, is unblocked after timeout
-            message = self.can_bus.recv(timeout)
-            if message is None:
-                logging.info("Failed to receive a CAN message on {} for {} "
-                        "seconds".format(self.interface, timeout))
-                # Try again
-                continue
-
-            logging.debug("Message received: {}".format(message))
-
             try:
+                # can_bus.recv is blocking, is unblocked after timeout
+                message = self.can_bus.recv(timeout)
+                if message is None:
+                    logging.info("Failed to receive a CAN message on {} for {} "
+                            "seconds".format(self.interface, timeout))
+                    # Try again
+                    continue
+
+                logging.debug("Message received: {}".format(message))
+
                 # Dictionary of decoded values and their signals
                 decoded_data = self.db.decode_message(
                     message.arbitration_id,
@@ -68,17 +69,9 @@ class CanMonitor(QueueDataPublisher):
                     for signal in decoded_data:
                         csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
 
-            except KeyError:
-                # Generally, if this happens the DBC is out of date.
-                logging.warning("KeyError - Message ID {} could not be decoded - check DBC file".format(
-                    message.arbitration_id
-                ))
-                # Try again
-                continue
- 
             except Exception as e:
-                logging.warning("NOT KeyError - failed to decode data for message: {}".format())
-
+                tb_msg = "".join(traceback.format_exception(None, e, e.__traceback__))
+                logging.error(tb_msg)
 
             # Not needed for competition
 
