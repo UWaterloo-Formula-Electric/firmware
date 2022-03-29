@@ -60,25 +60,36 @@ class CanMonitor(QueueDataPublisher):
                     message.arbitration_id,
                     message.data
                 )
+                logging.debug("Decoded signals: {}".format(decoded_data))
+
+                # Log to CSV file
+                with open(csv_filename, "a") as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    for signal in decoded_data:
+                        csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
 
             except KeyError:
                 # Generally, if this happens the DBC is out of date.
-                logging.warning("Message ID {} could not be decoded".format(
+                logging.warning("KeyError - Message ID {} could not be decoded - check DBC file".format(
                     message.arbitration_id
                 ))
                 # Try again
                 continue
+ 
+            except Exception as e:
+                logging.warning("NOT KeyError - failed to decode data for message: {}".format())
 
-            logging.debug("Decoded signals: {}".format(decoded_data))
+
+            # Not needed for competition
 
             # Add the frame_id back into the decoded data dict
-            can_packet = CANPacket({
-                "timestamp": message.timestamp,
-                "frame_id": message.arbitration_id,
-                "signals": decoded_data
-            })
+            # can_packet = CANPacket({
+            #    "timestamp": message.timestamp,
+            #    "frame_id": message.arbitration_id,
+            #    "signals": decoded_data
+            # })
 
-            self.send(can_packet)
+            # self.send(can_packet)
 
 
 # Parsing command line arguments
