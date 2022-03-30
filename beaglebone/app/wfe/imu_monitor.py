@@ -9,9 +9,9 @@ import os
 class IMUMonitor:
     def __init__(self):
         
-        #Opens a port on the beaglebone for i2c 
-        i2c = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #Specifies which port on beaglebone to use for i2c: Need to find correct port to use during testing
-        self.imu = adafruit_bno055.BNO055_I2C(i2c) #Creates IMU sensor object for sensor connected to i2c bus
+        #Opens a port on the beaglebone for uart 
+        uart = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #Specifies which port on beaglebone to use for uart: Need to find correct port to use during testing
+        self.imu = adafruit_bno055.BNO055_I2C(uart) #Creates IMU sensor object for sensor connected to uart bus
         
         #Adds heading row to new csv file 
         #If no file named imu_data.csv, creates a new file on beaglebone
