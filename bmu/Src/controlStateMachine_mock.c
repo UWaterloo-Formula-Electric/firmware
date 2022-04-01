@@ -24,6 +24,7 @@
 #include "chargerControl.h"
 #include "batteries.h"
 #include "faultMonitor.h"
+#include "ltc_chip.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -109,43 +110,55 @@ static const CLI_Command_Definition_t testLowPassFilterCommandDefinition =
 BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    _Static_assert(VOLTAGECELL_COUNT == TEMPCELL_COUNT, "Length of array for cell voltages doens't match array for cell temps");
 
-    static int cellIdx = -5;
+    static int cellIdx = -6;
 
     float IBus, VBus, VBatt, packVoltage;
 
     getIBus(&IBus);
     getVBus(&VBus);
     getVBatt(&VBatt);
-    getPackVoltage(&packVoltage);
 
-    if (cellIdx == -5) {
+    if (cellIdx == -6) {
         COMMAND_OUTPUT("IBUS\tVBUS\tVBATT\r\n");
+        cellIdx = -5;
+        return pdTRUE;
+    } else if (cellIdx == -5) {
+        COMMAND_OUTPUT("%f\t%f\t%f\r\n\n", IBus, VBus, VBatt);
         cellIdx = -4;
         return pdTRUE;
     } else if (cellIdx == -4) {
-        COMMAND_OUTPUT("%f\t%f\t%f\r\n\n", IBus, VBus, VBatt);
+        COMMAND_OUTPUT("MinVoltage\tMaxVoltage\tMinTemp\tMaxTemp\tPackVoltage\r\n");
         cellIdx = -3;
         return pdTRUE;
     } else if (cellIdx == -3) {
-        COMMAND_OUTPUT("MinVoltage\tMaxVoltage\tMinTemp\tMaxTemp\tPackVoltage\r\n");
+		getPackVoltage(&packVoltage);
+        COMMAND_OUTPUT("%f\t%f\t%f\t%f\t%f\r\n\n", VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax, packVoltage);
         cellIdx = -2;
         return pdTRUE;
     } else if (cellIdx == -2) {
-        COMMAND_OUTPUT("%f\t%f\t%f\t%f\t%f\r\n\n", VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax, packVoltage);
-        cellIdx = -1;
-        return pdTRUE;
-    } else if (cellIdx == -1) {
-        COMMAND_OUTPUT("Cell\tVoltage(V)\tTemp(degC)\r\n");
+    	COMMAND_OUTPUT("*Note Temp is not related to a specific cell number\r\n\n");
+    	cellIdx = -1;
+    	return pdTRUE;
+	} else if (cellIdx == -1) {
+        COMMAND_OUTPUT("Index\tCell Voltage(V)\tTemp Channel(degC)\r\n");
         cellIdx = 0;
         return pdTRUE;
     }
-
-    COMMAND_OUTPUT("%d\t%f\t%f\r\n", cellIdx, VoltageCell[cellIdx], TempCell[cellIdx]);
-
-    if (++cellIdx >= VOLTAGECELL_COUNT) {
-        cellIdx = -5;
+    // Note that the temperature channels are not correlated with the voltage cell
+	if(cellIdx >= NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS){
+		COMMAND_OUTPUT("%d\t(N/A)\t%f\r\n", cellIdx, TempChannel[cellIdx]);
+	} else if(cellIdx < NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
+		COMMAND_OUTPUT("%d\t%f\t(N/A)\r\n", cellIdx, VoltageCell[cellIdx]);
+	} else if(cellIdx < NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS) {
+		COMMAND_OUTPUT("%d\t%f\t%f\r\n", cellIdx, VoltageCell[cellIdx], TempChannel[cellIdx]);
+	}
+	else {
+		// Do nothing
+	}
+	++cellIdx;
+    if (cellIdx >= NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
+        cellIdx = -6;
         return pdFALSE;
     } else {
         vTaskDelay(1); // Hack to avoid overflowing our serial buffer
@@ -171,8 +184,8 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= VOLTAGECELL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
         return pdFALSE;
     }
 
@@ -188,7 +201,7 @@ static const CLI_Command_Definition_t setCellVoltageCommandDefinition =
     2 /* Number of parameters */
 };
 
-BaseType_t setCellTemp(char *writeBuffer, size_t writeBufferLength,
+BaseType_t setChannelTemp(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
@@ -199,20 +212,20 @@ BaseType_t setCellTemp(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= TEMPCELL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", TEMPCELL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_TEMP_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_TEMP_CELLS);
         return pdFALSE;
     }
 
-    sscanf(tempParam, "%f", &TempCell[cellIdx]);
-    COMMAND_OUTPUT("TempCell[%d] = %fdegC\n", cellIdx, TempCell[cellIdx]);
+    sscanf(tempParam, "%f", &TempChannel[cellIdx]);
+    COMMAND_OUTPUT("TempChannel[%d] = %fdegC\n", cellIdx, TempChannel[cellIdx]);
     return pdFALSE;
 }
-static const CLI_Command_Definition_t setCellTempCommandDefinition =
+static const CLI_Command_Definition_t setChannelTempCommandDefinition =
 {
-    "tempCell",
-    "tempCell <idx> <temp>:\r\n Set a cells temperature\r\n",
-    setCellTemp,
+    "tempChannel",
+    "tempChannel <idx> <temp>:\r\n Set a channels temperature\r\n",
+    setChannelTemp,
     2 /* Number of parameters */
 };
 
@@ -444,7 +457,7 @@ BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -479,7 +492,7 @@ BaseType_t setNegCont(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -514,7 +527,7 @@ BaseType_t setPCDC(char *writeBuffer, size_t writeBufferLength,
         break;
 
         default:
-            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+            COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
             return pdFALSE;    
         break;
     }
@@ -591,8 +604,8 @@ BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     sscanf(idxParam, "%u", &cellIdx);
 
-    if (cellIdx < 0 || cellIdx >= VOLTAGECELL_COUNT) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", VOLTAGECELL_COUNT);
+    if (cellIdx < 0 || cellIdx >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
         return pdFALSE;
     }
 
@@ -767,6 +780,28 @@ static const CLI_Command_Definition_t stopSendCellCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t forceChargeModeCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    int mode;
+    sscanf(cellIdxString, "%d", &mode);
+
+	setChargeMode(mode);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t forceChargeModeCommandDefinition =
+{
+    "forceChargeMode",
+    "forceChargeMode:\r\n Set precharge mode to 0: PC_MotorController, 1: PC_Charger. Force this change\r\n Please only do this if you know what you're doing\r\n",
+    forceChargeModeCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     cliSetVBatt(0);
@@ -794,7 +829,7 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&setCellTempCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&setChannelTempCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setCellVoltageCommandDefinition) != pdPASS) {
@@ -873,6 +908,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&fakeEnterChargeModeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&forceChargeModeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

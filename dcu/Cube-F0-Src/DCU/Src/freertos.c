@@ -55,7 +55,7 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 #include "stm32f0xx_hal.h"
 /* USER CODE END Includes */
 
@@ -202,7 +202,7 @@ void MX_FREERTOS_Init(void) {
   cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
 
   /* definition and creation of led */
-  osThreadDef(led, ledTask, osPriorityNormal, 0, 64);
+  osThreadDef(led, ledTask, osPriorityNormal, 0, 128);
   ledHandle = osThreadCreate(osThread(led), NULL);
 
   /* definition and creation of canSendTask */

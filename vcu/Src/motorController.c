@@ -111,6 +111,20 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
+	DEBUG_PRINT("Discharging MCs for 1 second before turning on\n");
+
+    if (mcRightCommand(INVERTER_DISCHARGE_DC_LINK) != HAL_OK) {
+        ERROR_PRINT("Failed to send discharge command to MC Right");
+        return HAL_ERROR;
+    }
+
+    if (mcLeftCommand(INVERTER_DISCHARGE_DC_LINK) != HAL_OK) {
+        ERROR_PRINT("Failed to send discharge command to MC Left");
+        return HAL_ERROR;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(MC_INIT_DISCHARGE_TIME_MS));
+
     if (mcRightCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Right");
         return HAL_ERROR;
