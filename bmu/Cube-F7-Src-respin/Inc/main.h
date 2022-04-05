@@ -150,6 +150,8 @@ void Error_Handler(void);
 #define IMD_STATUS_GPIO_Port GPIOC
 #define IMD_SENSE_Pin GPIO_PIN_8
 #define IMD_SENSE_GPIO_Port GPIOC
+#define COCKPIT_BRB_SENSE_Pin GPIO_PIN_0
+#define COCKPIT_BRB_SENSE_GPIO_Port GPIOD
 #define CONT_PRE_Pin GPIO_PIN_1
 #define CONT_PRE_GPIO_Port GPIOD
 #define AMS_CONT_Pin GPIO_PIN_2
