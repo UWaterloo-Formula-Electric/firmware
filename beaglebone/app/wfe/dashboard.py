@@ -7,7 +7,8 @@ import time
 
 from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QWidget
-from PySide2.QtGui import Qt, QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
 
 from wfe.util import default_dbc_path, default_dtc_path
 from wfe.connect.connect import QueueDataSubscriber
