@@ -39,7 +39,6 @@
 #define AMS_CONT_OPEN     HAL_GPIO_WritePin(AMS_CONT_GPIO_Port,AMS_CONT_Pin,GPIO_PIN_RESET)
 #define DC_DC_ON          HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_SET);
 #define DC_DC_OFF         HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_RESET);
-
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
 #define CHARGER_CAN_HANDLE hcan1

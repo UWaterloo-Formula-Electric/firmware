@@ -126,6 +126,9 @@ Transition_t transitions[] = {
 
     {STATE_HV_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
     {STATE_EM_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
+    
+    // Can occur when contactors open while EM enabled
+    {STATE_EM_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
 
     {STATE_Failure_Fatal, EV_ANY,                 &doNothing},
     {STATE_ANY,           EV_CAN_Recieve_Fatal,   &fatalTransition},
