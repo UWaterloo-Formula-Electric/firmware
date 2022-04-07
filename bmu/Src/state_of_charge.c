@@ -90,6 +90,7 @@ void socTask(void *pvParamaters)
 	float v_soc = compute_voltage_soc();
 	float i_soc = v_soc;
 	capacity_startup = v_soc * TOTAL_CAPACITY;
+	DEBUG_PRINT("Initial SOC: %f \n", v_soc * 100.0f);
 
 	if (registerTaskToWatch(SOC_TASK_ID, 2*pdMS_TO_TICKS(SOC_TASK_PERIOD), false, NULL) != HAL_OK)
 	{
@@ -116,6 +117,10 @@ void socTask(void *pvParamaters)
 			float current_weight = (v_soc - 0.0f)/(SOC_LOW_VOLTAGE_SOC_CUTOFF - 0.0f);
 			voltage_weight = 1.0f - current_weight;
 		}
+		
+		// Clamp voltage weight
+		voltage_weight = voltage_weight > 1.0f ? 1.0f : voltage_weight;
+		voltage_weight = voltage_weight < 0.0f ? 0.0f : voltage_weight;
 
 		float soc = (v_soc * voltage_weight) + (i_soc * (1.0f-voltage_weight));
 
