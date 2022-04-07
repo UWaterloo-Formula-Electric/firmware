@@ -92,6 +92,7 @@ osThreadId FaultMonitorHandle;
 osThreadId canSendCellsHandle;
 osThreadId canSendTaskHandle;
 osThreadId fanHandle;
+osThreadId stateOfChargeHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -112,6 +113,7 @@ extern void faultMonitorTask(void const * argument);
 extern void canSendCellTask(void const * argument);
 extern void canTask(void const * argument);
 extern void fanTask(void const * argument);
+void socTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -257,6 +259,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(fan, fanTask, osPriorityAboveNormal, 0, 1000);
   fanHandle = osThreadCreate(osThread(fan), NULL);
 
+  /* definition and creation of stateOfCharge */
+  osThreadDef(stateOfCharge, socTask, osPriorityNormal, 0, 500);
+  stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -279,6 +285,24 @@ __weak void mainTaskFunction(void const * argument)
     osDelay(1);
   }
   /* USER CODE END mainTaskFunction */
+}
+
+/* USER CODE BEGIN Header_socTask */
+/**
+* @brief Function implementing the stateOfCharge thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_socTask */
+void socTask(void const * argument)
+{
+  /* USER CODE BEGIN socTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END socTask */
 }
 
 /* Private application code --------------------------------------------------*/
