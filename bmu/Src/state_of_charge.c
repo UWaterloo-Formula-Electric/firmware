@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "watchdog.h"
 
-#define SOC_TASK_PERIOD 100
+#define SOC_TASK_PERIOD 300
 #define SOC_TASK_ID 7
 
 #define SEGMENT_FULL_VOLTAGE 57.33867f //A full segment will read 57.33867V
@@ -49,6 +49,8 @@ static float compute_voltage_soc(void)
 		ERROR_PRINT("Failed to read segment voltage, returning 0V");
 		return 0.0f;
 	}
+//	DEBUG_PRINT("Segment Voltage: %f\n", segment_voltage);
+
 	if(segment_voltage >= SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF)
 	{
 		soc_lut = highVoltageSocLut;
@@ -77,7 +79,7 @@ static float compute_voltage_soc(void)
 
 static float compute_current_soc(void)
 {
-	float capacity = TOTAL_CAPACITY - IBus_integrated;
+	float capacity = capacity_startup - IBus_integrated;
 	return capacity/TOTAL_CAPACITY;
 }
 
@@ -90,7 +92,7 @@ void socTask(void *pvParamaters)
 	float v_soc = compute_voltage_soc();
 	float i_soc = v_soc;
 	capacity_startup = v_soc * TOTAL_CAPACITY;
-	DEBUG_PRINT("Initial SOC: %f \n", v_soc * 100.0f);
+	DEBUG_PRINT("Initial SOC: %f %% \n", v_soc * 100.0f);
 
 	if (registerTaskToWatch(SOC_TASK_ID, 2*pdMS_TO_TICKS(SOC_TASK_PERIOD), false, NULL) != HAL_OK)
 	{
@@ -101,6 +103,8 @@ void socTask(void *pvParamaters)
 	{
 		v_soc = compute_voltage_soc();
 		i_soc = compute_current_soc();
+
+		//DEBUG_PRINT("SOC: V: %f %%, I: %f %% \n", v_soc * 100.0f, i_soc*100.0f);
 		
 		float voltage_weight = 1.0f;
 		if (v_soc >= SOC_HIGH_VOLTAGE_SOC_CUTOFF)
@@ -143,7 +147,7 @@ static float interpolateLut(float value, float lut_min, float lut_step, uint8_t 
     {
         return lut[lutLen-1];
     }
-	
+//	DEBUG_PRINT("lowIndex : %u\n", lowIndex);
 	float lowValue = lut_min + lowIndex*lut_step;
     
     return lut[lowIndex] + (value - lowValue)*(lut[lowIndex+1]-lut[lowIndex])/(lut_step);
