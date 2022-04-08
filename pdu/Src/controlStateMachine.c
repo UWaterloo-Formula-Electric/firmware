@@ -485,10 +485,10 @@ uint32_t coolingOff(uint32_t event) {
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-    /*PUMP_LEFT_ENABLE;*/
-    /*PUMP_RIGHT_ENABLE;*/
-    /*FAN_LEFT_ENABLE;*/
-    /*FAN_RIGHT_ENABLE;*/
+//    PUMP_LEFT_ENABLE;
+//    PUMP_RIGHT_ENABLE;
+//    FAN_LEFT_ENABLE;
+//    FAN_RIGHT_ENABLE;
     return COOL_STATE_ON;
 }
 

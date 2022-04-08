@@ -102,9 +102,9 @@
 /** Temp at warning DTC is sent */
 #define CELL_OVERTEMP_WARNING (CELL_MAX_TEMP_C - 10)
 /** Similar to @ref CELL_OVERTEMP, minimum temp before sending critical DTC */
-#define CELL_UNDERTEMP 5
+#define CELL_UNDERTEMP 0
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
-#define CELL_UNDERTEMP_WARNING 15
+#define CELL_UNDERTEMP_WARNING 5
 
 /** @} Cell Characteristics */
 
