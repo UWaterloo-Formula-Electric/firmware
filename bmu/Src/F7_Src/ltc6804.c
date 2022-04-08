@@ -501,11 +501,11 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		if(batt_read_data(RDAUXB_BYTE0(address), RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
 			DEBUG_PRINT("ERROR: Reading thermistor on board %d, channel %lu failed (perhaps PEC mismatch)\n", board, (unsigned long)channel);
 			thermistor_failure[board][channel]++;
-			if(thermistor_failure[board][channel] >= 3)
+			if(thermistor_failure[board][channel] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
 			{
 				return HAL_ERROR;
 			}
-			else if(thermistor_failure[board][channel] >= 2)
+			else if(thermistor_failure[board][channel] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
 			{
 				DEBUG_PRINT("Reached warning for cell thermistor PEC mismatch %u\n", thermistor_failure[board][channel]);
 			}
