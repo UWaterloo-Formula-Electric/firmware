@@ -30,6 +30,8 @@ TimerHandle_t debounceTimer;
 void debounceTimerCallback(TimerHandle_t timer);
 bool debounceTimerStarted = false;
 
+bool TC_on = false;
+
 uint32_t selfTests(uint32_t event);
 uint32_t toggleHV(uint32_t event);
 uint32_t toggleEM(uint32_t event);
@@ -188,6 +190,7 @@ uint32_t toggleTC(uint32_t event)
         ERROR_PRINT("Failed to send TC Toggle button event!\n");
         Error_Handler();
 	}
+	TC_on = !TC_on;
 	return STATE_EM_Enable;
 }
 
