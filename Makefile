@@ -2,7 +2,7 @@ CUSTOM_COMMANDS = all clean autogen init load lint
 BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
-all: bmu dcu pdu vcu
+all: bmu dcu pdu vcu wsb
 
 beaglebone:;
 	make -C beaglebone/os/

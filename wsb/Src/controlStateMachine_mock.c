@@ -1,4 +1,11 @@
 #include "controlStateMachine_mock.h"
+#include "sensors.h"
+#include "string.h"
+#include "debug.h"
+#include "FreeRTOS_CLI.h"
+#include "cmsis_os.h"
+
+
 BaseType_t sensorsCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -12,7 +19,7 @@ BaseType_t sensorsCommand(char *writeBuffer, size_t writeBufferLength,
 	}
 	else if(index == 2)
 	{
-		COMMAND_OUTPUT("Encoder: %u counts, %u mm", sensor_encoder_count, sensor_encoder_mm);
+		COMMAND_OUTPUT("Encoder: %lu counts, %lu mm\n", sensor_encoder_count(), sensor_encoder_mm());
 		vTaskDelay(1);
 		return pdTRUE;
 	}

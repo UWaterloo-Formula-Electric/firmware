@@ -4,6 +4,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "userCan.h"
+#include "controlStateMachine_mock.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
