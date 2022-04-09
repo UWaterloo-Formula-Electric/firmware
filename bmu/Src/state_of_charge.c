@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "watchdog.h"
 
-#define SOC_TASK_PERIOD 300
+#define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
 #define SEGMENT_FULL_VOLTAGE 57.33867f //A full segment will read 57.33867V
@@ -13,8 +13,8 @@
 #define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF 56.f //When the segment reaches 56V, the soc algorithm will be using the integration method exclusively
 #define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF 46.f //When the segment reaches 46V, the soc algorithm will start weighing the lookup table method
 
-#define SOC_HIGH_VOLTAGE_SOC_CUTOFF (0.971f)
-#define SOC_LOW_VOLTAGE_SOC_CUTOFF (0.18f)
+#define SOC_HIGH_VOLTAGE_SOC_CUTOFF (0.942f) // Ramp up to around all cells 4V
+#define SOC_LOW_VOLTAGE_SOC_CUTOFF (0.06144f) // Ramp down when all cells around 3V
 
 
 // Units A-s
