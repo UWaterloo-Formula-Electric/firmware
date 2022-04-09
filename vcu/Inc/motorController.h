@@ -36,6 +36,7 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle);
 HAL_StatusTypeDef mcShutdown();
 HAL_StatusTypeDef initMotorControllerProcanSettings();
 HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings);
+HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);
 

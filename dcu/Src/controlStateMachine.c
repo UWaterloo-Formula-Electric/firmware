@@ -33,6 +33,8 @@ bool debounceTimerStarted = false;
 uint32_t selfTests(uint32_t event);
 uint32_t toggleHV(uint32_t event);
 uint32_t toggleEM(uint32_t event);
+uint32_t toggleTC(uint32_t event);
+uint32_t toggleTV(uint32_t event);
 uint32_t hvControl(uint32_t event);
 uint32_t emControl(uint32_t event);
 uint32_t defaultTransition(uint32_t event);
@@ -127,6 +129,9 @@ Transition_t transitions[] = {
     {STATE_HV_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
     {STATE_EM_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
 
+	{STATE_EM_Enable,	  EV_TC_Toggle,			  &toggleTC},
+	{STATE_EM_Enable,	  EV_TV_Toggle,			  &toggleTV},
+
     {STATE_Failure_Fatal, EV_ANY,                 &doNothing},
     {STATE_ANY,           EV_CAN_Recieve_Fatal,   &fatalTransition},
     {STATE_ANY,           EV_ANY,                 &defaultTransition}
@@ -143,6 +148,8 @@ int sendHVToggleMsg(void)
 {
     ButtonHVEnabled = 1;
     ButtonEMEnabled = 0;
+    ButtonTVEnabled = 0;
+    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -150,8 +157,51 @@ int sendEMToggleMsg(void)
 {
     ButtonHVEnabled = 0;
     ButtonEMEnabled = 1;
+    ButtonTVEnabled = 0;
+    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
+
+int sendTVToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonTVEnabled = 1;
+    ButtonTCEnabled = 0;
+	return sendCAN_DCU_buttonEvents();
+}
+
+int sendTCToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonTVEnabled = 0;
+    ButtonTCEnabled = 1;
+	return sendCAN_DCU_buttonEvents();
+}
+
+uint32_t toggleTC(uint32_t event)
+{
+	DEBUG_PRINT("Toggling TC\n");
+	if(sendTCToggleMsg() != HAL_OK)
+	{
+        ERROR_PRINT("Failed to send TC Toggle button event!\n");
+        Error_Handler();
+	}
+	return STATE_EM_Enable;
+}
+
+uint32_t toggleTV(uint32_t event)
+{
+	DEBUG_PRINT("Toggling TV\n");
+	if(sendTVToggleMsg() != HAL_OK)
+	{
+        ERROR_PRINT("Failed to send TV Toggle button event!\n");
+        Error_Handler();
+	}
+	return STATE_EM_Enable;
+}
+
 
 uint32_t toggleHV(uint32_t event)
 {
@@ -242,6 +292,16 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
                     EM_TOGGLE_BUTTON_PIN);
             break;
+        
+        case TC_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT,
+                    TC_TOGGLE_BUTTON_PIN);
+            break;
+        
+        case TV_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(TV_TOGGLE_BUTTON_PORT,
+                    TV_TOGGLE_BUTTON_PIN);
+            break;
 
         default:
             /* Shouldn't get here */ 
@@ -260,6 +320,14 @@ void debounceTimerCallback(TimerHandle_t timer)
             case EM_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_EM_Toggle);
                 break;
+            
+            case TC_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&DCUFsmHandle, EV_TC_Toggle);
+                break;
+
+            case TV_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&DCUFsmHandle, EV_TV_Toggle);
+            	break;
 
             default:
                 /* Shouldn't get here */
@@ -292,6 +360,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         case EM_TOGGLE_BUTTON_PIN:
             debouncingPin = EM_TOGGLE_BUTTON_PIN;
             break;
+		
+		case TC_TOGGLE_BUTTON_PIN:
+			debouncingPin = TC_TOGGLE_BUTTON_PIN;
+			break;
+
+		case TV_TOGGLE_BUTTON_PIN:
+			debouncingPin = TV_TOGGLE_BUTTON_PIN;
+			break;
 
         default:
             /* Not a fatal error here, but report error and return */

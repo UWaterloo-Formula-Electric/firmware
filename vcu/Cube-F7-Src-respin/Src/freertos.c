@@ -57,6 +57,7 @@ osThreadId watchdogTaskNamHandle;
 osThreadId canSendTaskHandle;
 osThreadId canPublishHandle;
 osThreadId beagleboneHandle;
+osThreadId enduranceModeHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -71,6 +72,7 @@ extern void watchdogTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
 extern void bbTask(void const * argument);
+extern void enduranceModeTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -191,6 +193,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of beaglebone */
   osThreadDef(beaglebone, bbTask, osPriorityNormal, 0, 1000);
   beagleboneHandle = osThreadCreate(osThread(beaglebone), NULL);
+
+  /* definition and creation of enduranceMode */
+  osThreadDef(enduranceMode, enduranceModeTask, osPriorityNormal, 0, 10000);
+  enduranceModeHandle = osThreadCreate(osThread(enduranceMode), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

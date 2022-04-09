@@ -19,6 +19,8 @@ typedef enum DCU_Events_t {
     EV_EM_Toggle,
     EV_CAN_Recieve_HV,
     EV_CAN_Recieve_EM,
+    EV_TC_Toggle,
+    EV_TV_Toggle,
     EV_CAN_Recieve_Fatal,
     EV_ANY,
 } DCU_Events_t;

@@ -103,8 +103,10 @@ void Error_Handler(void);
 #define BUZZER_EN_GPIO_Port GPIOB
 #define BTN_TC_READ_Pin GPIO_PIN_10
 #define BTN_TC_READ_GPIO_Port GPIOB
+#define BTN_TC_READ_EXTI_IRQn EXTI4_15_IRQn
 #define BTN_TV_READ_Pin GPIO_PIN_11
 #define BTN_TV_READ_GPIO_Port GPIOB
+#define BTN_TV_READ_EXTI_IRQn EXTI4_15_IRQn
 #define TC_LED_EN_Pin GPIO_PIN_12
 #define TC_LED_EN_GPIO_Port GPIOB
 #define TV_LED_EN_Pin GPIO_PIN_15

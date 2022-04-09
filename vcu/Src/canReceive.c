@@ -13,6 +13,8 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+#include "endurance_mode.h"
+
 /*
  * External Board Statuses:
  * Variables for keeping track of external board statuses that get updated by
@@ -41,8 +43,16 @@ void CAN_Msg_DCU_buttonEvents_Callback()
 	DEBUG_PRINT_ISR("Received DCU button Event\n");
     if (ButtonEMEnabled) {
 		DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
-        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);    
     }
+    else if(ButtonTCEnabled) 
+    {
+		toggle_endurance_mode();
+	}
+	else if(ButtonTVEnabled)
+	{
+		trigger_lap();
+	}
     // For now, ignore HV Enable button, as we really want to wait for BMU to
     // complete HV Enable
 }
