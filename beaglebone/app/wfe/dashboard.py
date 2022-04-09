@@ -1,17 +1,16 @@
-import sys
-import math
-import random
-
-import time
-import threading
-
 import cantools
+import csv
+import math
+import sys
+import threading
+import time
 
+from PySide2 import QtCore
 from PySide2.QtWidgets import QApplication, QWidget
-from PySide2.QtGui import QColor, QFont, QPainter, QPalette, QPen, Qt
-from PySide2.QtCore import QTimer
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
 
-from wfe.util import default_dbc_path
+from wfe.util import default_dbc_path, default_dtc_path
 from wfe.connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
@@ -53,22 +52,16 @@ class Dashboard(QWidget):
         self.setPalette(pal)
 
         self.mode_display = TextDisplay(self,
-                                        label="Mode",
-                                        value="Normal",
+                                        text="Mode: Normal",
                                         colour=Qt.white,
                                         align=Qt.AlignLeft)
 
         self.battery_display = TextDisplay(self,
-                                           label="Battery",
-                                           value="100%",
+                                           text="Battery: 100%",
                                            colour=Qt.green,
                                            align=Qt.AlignRight)
 
-        self.error_display = TextDisplay(self,
-                                         label="Errors",
-                                         value="None",
-                                         colour=Qt.white,
-                                         align=Qt.AlignBottom)
+        self.error_display = ErrorDisplay(self, align=Qt.AlignBottom)
 
         self.speed_dial = Dial(norm_colour=QColor(44, 197, 239),
                                over_colour=Qt.red,
@@ -111,31 +104,33 @@ class Dashboard(QWidget):
                                  span_ang=140,
                                  text="V",
                                  text_x_offset=20)
-        
+
+        self.current_dtc_messages = []
 
         # Update values every 100 milliseconds
-        self.timer = QTimer()
+        self.timer = QtCore.QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update)
         self.timer.start()
 
         self.show()
 
+    # Update error text display by checking messages in DTC payload
+    # Sets colour of text depending on severity
+    def __update_error_display(self, dtc_message_payload):
+        for message in dtc_message_payload:
+            severity, text = message["severity"], message["message"]
+            self.error_display.add_error_message(text, int(severity))
+
     def update(self):
         # TODO: update this to read data from zmq message queue
         CAN_data = self.queue_data.fetch()
-        for message in CAN_data["dtc_message_payload"]:
-            pass
-            # TODO: display error messages, change error message colour
-            # if there_are_errors:
-            #     self.error_display.set_value(error_message)
-            #     self.error_display.set_colour(Qt.red)
-            # else:
-            #     self.error_display.set_value("None")
-            #     self.error_display.set_colour(Qt.white)
+
+        self.__update_error_display(CAN_data["dtc_message_payload"])
+        self.queue_data.push("dtc_message_payload", [])
 
         battery_val = CAN_data["battery"]
-        self.battery_display.set_value("{}%".format(battery_val))
+        self.battery_display.set_text("Battery: {}%".format(battery_val))
         if battery_val > 66:
             self.battery_display.set_colour(Qt.green)
         elif battery_val > 33:
@@ -228,7 +223,7 @@ class Dial:
         qp.setPen(self.over_colour if self.is_over else self.norm_colour)
         qp.setFont(QFont('Arial', self.text_font_size))
 
-        # display smaller text (the unit) e.g. "kph" in speed dial
+        # Display smaller text (the unit) e.g. "kph" in speed dial
         qp.drawText(self.x + self.text_x_offset,
                     self.y + self.radius * 0.075,
                     self.radius,
@@ -244,12 +239,12 @@ class Dial:
 class TextDisplay:
     """ Used to display text. """
 
-    def __init__(self, parent, label, value, colour, align):
+    def __init__(self, parent, text, colour, align, font_size=22):
         self.parent = parent
-        self.label = label
-        self.value = value
+        self.text = text
         self.colour = colour
         self.align = align
+        self.font = QFont('Arial', font_size)
         
         # Creates padding around window edge
         self.x = self.parent.width * 0.05 / 2
@@ -257,17 +252,71 @@ class TextDisplay:
         self.width = self.parent.width * 0.95
         self.height = self.parent.height * 0.95
 
-    def set_value(self, value):
-        self.value = value
+    def set_text(self, text):
+        self.text = text
 
     def set_colour(self, colour):
         self.colour = colour
 
     def draw(self, qp):
         qp.setPen(self.colour)
-        qp.setFont(QFont('Arial', 22))
-        text = "{}: {}".format(self.label, self.value)
-        qp.drawText(self.x, self.y, self.width, self.height, self.align, text)
+        qp.setFont(self.font)
+        metrics = QFontMetrics(self.font)
+        elided_text  = metrics.elidedText(self.text, QtCore.Qt.ElideRight, self.width)
+        qp.drawText(self.x, self.y, self.width, self.height, self.align, elided_text)
+
+class ErrorDisplay:
+    """ Used to display DTC messages. """
+
+    def __init__(self, parent, align):
+        self.parent = parent
+        self.align = align
+        self.font = QFont('Arial', 20)
+        self.error_messages = []
+        self.severities = []
+
+        # Creates padding around window edge
+        self.x = self.parent.width * 0.05 / 2
+        self.y = self.parent.height * 0.05 / 2
+        self.width = self.parent.width * 0.95
+        self.height = self.parent.height * 0.95
+
+        self.severity_settings = {
+            1: { "header": "FATAL", "colour": Qt.red },
+            2: { "header": "CRITICAL", "colour": QColor(255, 103, 0) },
+            3: { "header": "ERROR", "colour": QColor(255, 193, 7) },
+            4: { "header": "WARNING", "colour": Qt.yellow }
+        }
+
+    def add_error_message(self, err_msg, severity):
+        if len(self.error_messages) == 3:
+            self.error_messages.pop(0)
+            self.severities.pop(0)
+        try:
+            header = self.severity_settings[severity]["header"]
+        except KeyError:
+            header = "UNKNOWN"
+        self.error_messages.append("{}: {}".format(header, err_msg))
+        self.severities.append(severity)
+
+    def draw(self, qp):
+        qp.setFont(self.font)
+
+        # If there are no error messages
+        if not self.error_messages:
+            qp.setPen(Qt.white)
+            qp.drawText(self.x, self.y, self.width, self.height, self.align, "No DTC Messages Received")
+
+        num_error_msgs = len(self.error_messages)
+        for i in range(num_error_msgs):
+            error_msg = self.error_messages[i]
+            severity = self.severities[i]
+            colour = self.severity_settings[severity]["colour"]
+            qp.setPen(colour)
+            metrics = QFontMetrics(self.font)
+            elided_text  = metrics.elidedText(error_msg, QtCore.Qt.ElideRight, self.width)
+            y = self.y - (num_error_msgs - 1 - i) * metrics.height()
+            qp.drawText(self.x, y, self.width, self.height, self.align, elided_text)
 
 
 class QueueData:
@@ -298,11 +347,18 @@ class QueueData:
 class QueueThread(threading.Thread):
     """ Collects data from zmq message queue in the background. """
 
-    def __init__(self, queue_data, dbc=default_dbc_path()):
+    def __init__(self, queue_data, dbc=default_dbc_path(), dtc=default_dtc_path()):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
         self.dashboard_subscriber = DashboardSubscriber()
         self.db = cantools.database.load_file(dbc)
+
+        self.dtc_messages = []
+        with open(dtc) as dtc_file:
+            csv_reader = csv.reader(dtc_file)
+            next(csv_reader)                        # Read header
+            for row in csv_reader:
+                self.dtc_messages.append(row[6])    # Add each DTC message to list
 
     # Convert motor RPM to km/h
     def get_speed_kph_from_rpm(self, new_speed_rpm, current_speed_kph):
@@ -345,9 +401,15 @@ class QueueThread(threading.Thread):
                                             self.db.get_message_by_name("DCU_DTC").frame_id,
                                             self.db.get_message_by_name("VCU_F7_DTC").frame_id,
                                             self.db.get_message_by_name("BMU_DTC").frame_id]:
-                payload = [
-                    can_packet["signals"]["DTC_CODE"]
-                ]
+                code, severity = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"]
+                try:
+                    message = self.dtc_messages[int(code)-1]
+                except IndexError:
+                    message = "Unknown DTC Code! (Code given: <{}>)".format(code)
+                payload = [{
+                    "severity": severity,
+                    "message": message
+                }]
                 self.queue_data.push("dtc_message_payload", payload)
 
             time.sleep(0.001)
@@ -372,9 +434,8 @@ def main():
 
     Dashboard(app, data)
 
-    # run application until user closes it
+    # Run application until user closes it
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
      main()
-

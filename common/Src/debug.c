@@ -398,15 +398,31 @@ static const CLI_Command_Definition_t resetCLICommandDefinition =
 BaseType_t versionCLICommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-	static bool versionCLIwriting = false;
-	if(!versionCLIwriting){
-    	COMMAND_OUTPUT("Compiled on %s, Branch: %s\r\n", CUR_DATE, CUR_TOP_BRANCH);
-    	versionCLIwriting = true;
-    	return pdTRUE;
-    } else {
-    	COMMAND_OUTPUT("Commit Hash: %s\r\n", CUR_HASH);
-    	versionCLIwriting = false;
-    	return pdFALSE;
+	static int versionCLIwriting = 0;
+	if(versionCLIwriting == 0){
+	    	COMMAND_OUTPUT("Compiled on %s, Branch: %s\r\n", CUR_DATE, CUR_TOP_BRANCH);
+		versionCLIwriting = 1;
+		vTaskDelay(1);
+		return pdTRUE;
+	}else if (versionCLIwriting == 1){
+    		COMMAND_OUTPUT("Commit Hash: %s\r\n", CUR_HASH);
+		versionCLIwriting = 2;
+		vTaskDelay(1);
+	    	return pdTRUE;
+	} else if (versionCLIwriting == 2) {
+		COMMAND_OUTPUT("Release Notes: ");
+		versionCLIwriting = 3;
+		vTaskDelay(1);
+		return pdTRUE;
+	} else if (versionCLIwriting == 3){
+		COMMAND_OUTPUT(RELEASE_NOTES);
+		vTaskDelay(1);
+		versionCLIwriting = 4;
+    		return pdTRUE;
+	} else {
+		COMMAND_OUTPUT("\n");
+		versionCLIwriting = 0;
+		return pdFALSE;
 	}
 }
 
