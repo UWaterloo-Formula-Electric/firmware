@@ -81,7 +81,7 @@
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 3.0F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
-#define LIMIT_UNDERVOLTAGE 3.0F
+#define LIMIT_UNDERVOLTAGE 2.5F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
 #define LIMIT_LOWVOLTAGE_WARNING 3.2F
 /// Rate at which the low voltage threshold dynamically lowers vs current
@@ -644,7 +644,7 @@ void BatteryTaskError()
 
 
 /// Maximum number of errors battery task can encounter before reporting error
-#define MAX_ERROR_COUNT 3
+#define MAX_ERROR_COUNT 5
 
 static uint32_t errorCounter = 0;
 
@@ -1472,14 +1472,14 @@ void batteryTask(void *pvParameter)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            BatteryTaskError();
+            if (boundedContinue()) { continue; }
         }
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-			BatteryTaskError();
+            if (boundedContinue()) { continue; }
 		}
 #endif
 
@@ -1489,7 +1489,7 @@ void batteryTask(void *pvParameter)
               &packVoltage) != HAL_OK)
         {
         	ERROR_PRINT("Failed check of battery cell voltages and temps\n");
-            BatteryTaskError();
+            if (boundedContinue()) { continue; }
         }
 
         if (publishPackVoltage(packVoltage) != HAL_OK) {
