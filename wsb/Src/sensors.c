@@ -26,7 +26,7 @@
 #define PI_SCALE (100)
 #define PI_SCALED (314)
 #define ENCODER_COUNT_TO_MM(count) ((count)*(((WHEEL_DIAMETER_MM*PI_SCALED)/PI_SCALE)/12))
-#define ENCODER_COUNT_TO_RADS_S(delta_count, period) (period*((2*PI_SCALED*delta_count)/(ENCODER_PULSES_PER_REVOLUTION*PI_SCALE)))
+#define ENCODER_COUNT_TO_RADS_S(delta_count, period) (((2*PI_SCALED*delta_count)/(ENCODER_PULSES_PER_REVOLUTION*PI_SCALE))/period)
 
 typedef struct {
 	volatile uint32_t encoder_counts;
