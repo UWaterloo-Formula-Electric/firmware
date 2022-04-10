@@ -19,9 +19,14 @@ BaseType_t sensorsCommand(char *writeBuffer, size_t writeBufferLength,
 	}
 	else if(index == 2)
 	{
-		COMMAND_OUTPUT("Encoder: %lu counts, %lu mm\n", sensor_encoder_count(), sensor_encoder_mm());
+		COMMAND_OUTPUT("Encoder Distance: %lu counts, %lu mm\n", sensor_encoder_count(), sensor_encoder_mm());
 		vTaskDelay(1);
 		return pdTRUE;
+	}
+	else if(index == 3)
+	{
+		COMMAND_OUTPUT("Encoder Speed: %f rads/s\n", sensor_encoder_speed());
+		return pdFALSE;
 	}
 	else
 	{
