@@ -8,8 +8,6 @@
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
-#define SEGMENT_FULL_VOLTAGE 57.33867f //A full segment will read 57.33867V
-#define SEGMENT_DEPLETED_VOLTAGE 38.75026f //An empty segment will read 36V
 #define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF 56.f //When the segment reaches 56V, the soc algorithm will be using the integration method exclusively
 #define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF 46.f //When the segment reaches 46V, the soc algorithm will start weighing the lookup table method
 
@@ -73,14 +71,18 @@ static float compute_voltage_soc(void)
 		lut_len = LV_SOC_LUT_LEN;	
 	}
 	soc = interpolateLut(segment_voltage, lut_min, lut_step, lut_len, soc_lut);
-	
+	soc = soc > 1.0f ? 1.0f : soc;
+	soc = soc < 0.0f ? 0.0f : soc;
 	return soc;
 }
 
 static float compute_current_soc(void)
 {
 	float capacity = capacity_startup - IBus_integrated;
-	return capacity/TOTAL_CAPACITY;
+	float soc = capacity/TOTAL_CAPACITY;
+	soc = capacity > 1.0f ? 1.0f : capacity;
+	soc = capacity < 0.0f ? 0.0f : capacity;
+	return soc;
 }
 
 void socTask(void *pvParamaters)
