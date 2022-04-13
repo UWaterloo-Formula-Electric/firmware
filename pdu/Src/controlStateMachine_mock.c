@@ -330,6 +330,78 @@ static const CLI_Command_Definition_t printPowerStatesCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	
+    BaseType_t paramLen;
+    unsigned int selection;
+
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(selectionParam, "%u", &selection);
+    if (selection & 0x1)
+	{
+		FAN_RIGHT_ENABLE;
+	}
+	else
+	{
+		FAN_RIGHT_DISABLE;
+	}
+	if (selection & 0x2)
+	{
+		FAN_LEFT_ENABLE;
+	}
+	else
+	{
+		FAN_LEFT_DISABLE;
+	}
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t controlFansCommandDefinition =
+{
+    "controlFans",
+    "controlFans:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on",
+    controlFans,
+    1 /* Number of parameters */
+};
+
+BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	
+    BaseType_t paramLen;
+    unsigned int selection;
+
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(selectionParam, "%u", &selection);
+    if (selection & 0x1)
+	{
+		PUMP_RIGHT_ENABLE;
+	}
+	else
+	{
+		PUMP_RIGHT_DISABLE;
+	}
+	if (selection & 0x2)
+	{
+		PUMP_LEFT_ENABLE;
+	}
+	else
+	{
+		PUMP_LEFT_DISABLE;
+	}
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t controlPumpsCommandDefinition =
+{
+    "controlPumps",
+    "controlPumps:\r\n  Controls the power to the pumps \r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on",
+    controlPumps,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&criticalCommandDefinition) != pdPASS) {
@@ -369,6 +441,12 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&printPowerStatesCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&controlPumpsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&controlFansCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
