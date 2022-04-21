@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 // Config
-#define NUMBER_OF_LAPS_TO_COMPLETE_DEFAULT (990)
+#define NUMBER_OF_LAPS_TO_COMPLETE_DEFAULT (44)
 #define ENDURANCE_MODE_BUFFER (1.05f)
 
 void endurance_mode_EM_callback(void);
