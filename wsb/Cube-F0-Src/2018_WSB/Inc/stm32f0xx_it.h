@@ -24,7 +24,7 @@
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,7 +49,6 @@
 /* Exported functions prototypes ---------------------------------------------*/
 void NMI_Handler(void);
 void HardFault_Handler(void);
-void SysTick_Handler(void);
 void DMA1_Channel4_5_6_7_IRQHandler(void);
 void USART2_IRQHandler(void);
 void CEC_CAN_IRQHandler(void);
