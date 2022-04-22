@@ -93,6 +93,15 @@ void ledTask(void *pvParameters)
 			TC_LED_OFF;
 		}
 
+		if(endurance_on)
+		{
+			ENDURANCE_LED_ON;
+		}
+		else
+		{
+			ENDURANCE_LED_OFF;
+		}
+
         vTaskDelay(blink_period);
     }
 }
@@ -106,7 +115,7 @@ void selfTestLEDs(void)
     flashLED(TC_LED_EN_GPIO_Port, TC_LED_EN_Pin);
     flashLED(HV_LED_EN_GPIO_Port, HV_LED_EN_Pin);
     flashLED(EV_LED_EN_GPIO_Port, EV_LED_EN_Pin);
-    flashLED(TV_LED_EN_GPIO_Port, TV_LED_EN_Pin);
+    flashLED(ENDURANCE_LED_GPIO_Port, ENDURANCE_LED_Pin);
     flashDualLED(AMS_LED_RED_EN_GPIO_Port, AMS_LED_RED_EN_Pin,
                  AMS_LED_GR_EN_GPIO_Port, AMS_LED_GR_EN_Pin);
     // OVERTEMP

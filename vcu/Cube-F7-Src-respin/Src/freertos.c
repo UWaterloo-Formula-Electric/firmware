@@ -58,6 +58,7 @@ osThreadId canSendTaskHandle;
 osThreadId canPublishHandle;
 osThreadId beagleboneHandle;
 osThreadId enduranceModeHandle;
+osThreadId tractionControlHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -73,6 +74,7 @@ extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
 extern void bbTask(void const * argument);
 extern void enduranceModeTask(void const * argument);
+extern void tractionControlTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -197,6 +199,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of enduranceMode */
   osThreadDef(enduranceMode, enduranceModeTask, osPriorityNormal, 0, 10000);
   enduranceModeHandle = osThreadCreate(osThread(enduranceMode), NULL);
+
+  /* definition and creation of tractionControl */
+  osThreadDef(tractionControl, tractionControlTask, osPriorityNormal, 0, 1024);
+  tractionControlHandle = osThreadCreate(osThread(tractionControl), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
