@@ -6,6 +6,9 @@ SourceFiles=Src/main.c;Src/gpio.c;Src/freertos.c;Src/adc.c;Src/can.c;Src/crc.c;S
 HeaderPath=Drivers/STM32F7xx_HAL_Driver/Inc;Drivers/STM32F7xx_HAL_Driver/Inc/Legacy;Middlewares/Third_Party/FreeRTOS/Source/include;Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1;Drivers/CMSIS/Device/ST/STM32F7xx/Include;Drivers/CMSIS/Include;Inc;
 CDefines=USE_HAL_DRIVER;STM32F767xx;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
+[]
+SourceFiles=;;
+
 [PreviousGenFiles]
 HeaderPath=../Inc
 HeaderFiles=gpio.h;FreeRTOSConfig.h;adc.h;can.h;crc.h;dma.h;iwdg.h;tim.h;usart.h;stm32f7xx_it.h;stm32f7xx_hal_conf.h;main.h;

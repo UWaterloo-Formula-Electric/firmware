@@ -65,13 +65,14 @@ void pollSensorsTask(void const * argument)
     while(1)
 	{
 
+		xLastWakeTime = xTaskGetTickCount();
+		
 		poll_encoder();
 
 		transmit_sensor_values();
 
         watchdogTaskCheckIn(POLL_SENSORS_TASK_ID);
 		
-		xLastWakeTime = xTaskGetTickCount();
 		// Always poll at almost exactly PERIOD
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(POLL_SENSORS_PERIOD_MS));
 	}
@@ -86,13 +87,25 @@ static void transmit_encoder(void)
 	FR_WheelDistance = sensors_data.encoder_mm;
 	sendCAN_WSBFR_Sensors();
 #endif
+}
 
+static void transmit_speed(void)
+{
+#if (BOARD_ID == ID_WSBFL)
+	SpeedWheelLeftFront = sensors_data.encoder_speed;
+	sendCAN_WSBFL_WheelData();
+#elif (BOARD_ID == ID_WSBFR)
+	SpeedWheelRightFront = sensors_data.encoder_speed;
+	sendCAN_WSBFR_WheelData();
+#endif
+	
 }
 
 static void transmit_sensor_values(void)
 {
 	// Send over CAN
 	transmit_encoder();
+	transmit_speed();
 }
 
 uint32_t sensor_encoder_count(void)
