@@ -1,4 +1,8 @@
 #include "traction_control.h"
+#include "stdint.h"
+#include "stdbool.h"
+#include "watchdog.h"
+#include "debug.h"
 
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 200
@@ -8,25 +12,27 @@ void toggle_TC(void)
 {
 	tc_on = !tc_on;
 }
-
+#if 0
 static float get_FR_speed()
 {
+	return 0.0f;
 }
 
 static float get_FL_speed()
 {
-
+	return 0.0f;
 }
 
 static float get_RR_speed()
 {
-
+	return 0.0f;
 }
 
 static float get_RL_speed()
 {
-
+	return 0.0f;
 }
+#endif
 
 void tractionControlTask(void *pvParameters)
 {
@@ -37,11 +43,12 @@ void tractionControlTask(void *pvParameters)
 	}
 	while(1)
 	{
-		float FR_speed = 
-		float FL_speed = 
-		float RR_speed = 
-		float RL_speed = 
-		
+#if 0
+		float FR_speed = 0.0f;
+		float FL_speed = 0.0f;
+		float RR_speed = 0.0f;
+		float RL_speed = 0.0f;
+#endif
 	}
 
 }

@@ -11,7 +11,6 @@
 #include "bsp.h"
 #include "motorController.h"
 #include "beaglebone.h"
-#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];

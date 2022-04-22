@@ -4,6 +4,8 @@
 #include "bsp.h"
 #include "debug.h"
 #include "userCan.h"
+#include "controlStateMachine_mock.h"
+#include "sensors.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -30,6 +32,15 @@ void userInit()
     if (canInit(&CAN_HANDLE) != HAL_OK) {
       Error_Handler();
     }
+    
+    if (stateMachineMockInit() != HAL_OK) {
+      Error_Handler();
+    }
+
+    if (sensors_init() != HAL_OK) {
+      Error_Handler();
+    }
+
 
     printf("User init done\n");
 }

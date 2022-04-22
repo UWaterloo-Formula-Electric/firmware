@@ -25,7 +25,7 @@
  *
  * 1 tab == 4 spaces!
  */
- /* USER CODE END Header */
+/* USER CODE END Header */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
@@ -42,15 +42,14 @@
  * See http://www.freertos.org/a00110.html
  *----------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */   	      
+/* USER CODE BEGIN Includes */
 /* Section where include file can be added */
-/* USER CODE END Includes */ 
+/* USER CODE END Includes */
 
 /* Ensure definitions are only used by the compiler, and not by the assembler. */
 #if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
   #include <stdint.h>
   extern uint32_t SystemCoreClock;
-  void xPortSysTickHandler(void);
 /* USER CODE BEGIN 0 */
   extern void configureTimerForRunTimeStats(void);
   extern unsigned long getRunTimeCounterValue(void);
@@ -87,7 +86,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelete                 1
 #define INCLUDE_vTaskCleanUpResources       0
 #define INCLUDE_vTaskSuspend                1
-#define INCLUDE_vTaskDelayUntil             0
+#define INCLUDE_vTaskDelayUntil             1
 #define INCLUDE_vTaskDelay                  1
 #define INCLUDE_xTaskGetSchedulerState      1
 
@@ -104,17 +103,17 @@ standard names. */
 
 /* IMPORTANT: This define is commented when used with STM32Cube firmware, when the timebase source is SysTick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
- 
-/* #define xPortSysTickHandler SysTick_Handler */
 
-/* USER CODE BEGIN 2 */    
+#define xPortSysTickHandler SysTick_Handler
+
+/* USER CODE BEGIN 2 */
 /* Definitions needed when configGENERATE_RUN_TIME_STATS is on */
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS configureTimerForRunTimeStats
 #define portGET_RUN_TIME_COUNTER_VALUE getRunTimeCounterValue    
 /* USER CODE END 2 */
 
-/* USER CODE BEGIN Defines */   	      
+/* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
-/* USER CODE END Defines */ 
+/* USER CODE END Defines */
 
 #endif /* FREERTOS_CONFIG_H */
