@@ -106,7 +106,7 @@ else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
 
-DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_NAME_UPPER=$(BOARD_NAME_UPPER) BOARD_ID=ID_$(BOARD_NAME_UPPER) BOARD_TYPE_$(BOARD_ARCHITECTURE)=1 "USE_HAL_DRIVER"
+DEFINES += BOARD_NAME=$(BOARD_NAME) BOARD_NAME_UPPER=$(BOARD_NAME_UPPER) BOARD_ID=ID_$(BOARD_NAME_UPPER) BOARD_TYPE=$(BOARD_ARCHITECTURE) BOARD_TYPE_$(BOARD_ARCHITECTURE)=1 "USE_HAL_DRIVER"
 DEFINE_FLAGS := $(addprefix -D,$(DEFINES))
 
 # Setup Linker Flags
@@ -119,12 +119,14 @@ LINKER_FLAGS += -z muldefs
 # Assembler Flags
 ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 
+NOTES ?= "N/A"
 # Compiler Flags
 COMPILER_FLAGS = $(LIB_CFLAGS)
 COMPILER_FLAGS += $(DEFINE_FLAGS) -Werror
 COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
 COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
 COMPILER_FLAGS += -D CUR_HASH=$(CURRENT_HASH)
+COMPILER_FLAGS += -D RELEASE_NOTES=\"$(NOTES)\"
 ifeq ($(DEBUG), 1)
 COMPILER_FLAGS += -g -Og
 else
@@ -294,7 +296,7 @@ BUILD_ONLY_ONCE = 1
 endif
 
 
-ifeq ($(LOAD_TARGET), $(BUILD_TARGET))
+ifeq ($(LOAD_TARGET), $(BOARD_NAME))
 LOAD_BOARD_ARCH := $(BOARD_ARCHITECTURE)
 ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F7 F7))
    OPENOCD_FILE := target/stm32f7x.cfg
@@ -305,7 +307,7 @@ else
 endif
 LOAD_BIN_FILE := $(RELEASE_BIN_FILE)
 
-load: $(BUILD_TARGET) 
+load: $(BOARD_NAME) 
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(LOAD_BIN_FILE) 0x8000000" -c "verify_image $(LOAD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 # Use this if you want gdb to be rtos thread aware

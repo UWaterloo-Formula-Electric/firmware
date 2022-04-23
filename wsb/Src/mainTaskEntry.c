@@ -18,7 +18,7 @@ void mainTaskFunction(void const * argument)
         ERROR_PRINT("Failed to register main task with watchdog!\n");
         Error_Handler();
     }
-
+    
     DEBUG_PRINT("Started Up");
 
     while (1) {
