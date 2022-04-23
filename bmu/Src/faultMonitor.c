@@ -75,7 +75,8 @@ bool getIL_Status()
 // Cockpit BRB IL in to the BMU
 bool getCBRB_IL_Status()
 {
-   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
+	return true;
+//   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
 }
 
 /**

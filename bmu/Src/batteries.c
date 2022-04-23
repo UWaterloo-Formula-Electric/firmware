@@ -141,7 +141,7 @@
  * between balance and not
  */
 #define BALANCE_RECHECK_PERIOD_MS (3000)
-
+#define START_NUM_TRIES (3)
 /**
  * Return of balance charge function
  */
@@ -1405,10 +1405,19 @@ void batteryTask(void *pvParameter)
 
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-    if (batteryStart() != HAL_OK)
-    {
-        BatteryTaskError();
-    }
+	HAL_StatusTypeDef ret = HAL_ERROR;
+	for(int num_tries = 0; num_tries < START_NUM_TRIES; num_tries++)
+	{
+		ret = batteryStart();
+		if (ret == HAL_OK)
+		{
+			break;
+		}
+	}
+	if(ret != HAL_OK)
+	{
+		BatteryTaskError();
+	}
 #endif
 
     if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
