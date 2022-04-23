@@ -221,13 +221,13 @@ void faultMonitorTask(void *pvParameters)
 					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
 				}
 		}
-		else if (getCBRB_IL_Status() == false)
+		else if (getCBRB_IL_Status() == false && !cbrb_pressed)
 		{
 			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
 		}
-		else if (cbrb_pressed)
+		else if (getCBRB_IL_Status() == true && cbrb_pressed)
 		{
 			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
 		}
