@@ -306,10 +306,10 @@ class ErrorDisplay:
         self.height = self.parent.height * 0.95
 
         self.severity_settings = {
-            1: { "header": "FATAL", "colour": Qt.red },
-            2: { "header": "CRITICAL", "colour": QColor(255, 103, 0) },
-            3: { "header": "ERROR", "colour": QColor(255, 193, 7) },
-            4: { "header": "WARNING", "colour": Qt.yellow }
+            1: { "header": "F", "colour": Qt.red },
+            2: { "header": "C", "colour": QColor(255, 103, 0) },
+            3: { "header": "E", "colour": QColor(255, 193, 7) },
+            4: { "header": "W", "colour": Qt.yellow }
         }
 
     def add_error_message(self, err_msg, severity):
