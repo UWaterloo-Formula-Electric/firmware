@@ -19,6 +19,7 @@
 #define CAN_HANDLE hcan
 #define IWDG_HANDLE hiwdg
 #define STATS_TIM_HANDLE htim2
+#define ENCODER_TIM_HANDLE htim3
 
 #define ERROR_LED_PIN LED_R_Pin
 #define ERROR_LED_PORT LED_R_GPIO_Port

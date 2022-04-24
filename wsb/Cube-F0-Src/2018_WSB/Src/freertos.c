@@ -25,7 +25,7 @@
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */     
+/* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
@@ -53,6 +53,7 @@ osThreadId watchdogTaskNamHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
 osThreadId canSendTaskNameHandle;
+osThreadId pollSensorsHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -64,6 +65,7 @@ extern void watchdogTask(void const * argument);
 extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void canTask(void const * argument);
+extern void pollSensorsTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -140,6 +142,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of canSendTaskName */
   osThreadDef(canSendTaskName, canTask, osPriorityIdle, 0, 256);
   canSendTaskNameHandle = osThreadCreate(osThread(canSendTaskName), NULL);
+
+  /* definition and creation of pollSensors */
+  osThreadDef(pollSensors, pollSensorsTask, osPriorityNormal, 0, 256);
+  pollSensorsHandle = osThreadCreate(osThread(pollSensors), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
