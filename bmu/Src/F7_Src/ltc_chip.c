@@ -9,6 +9,9 @@
 #include "task.h"
 #include <string.h>
 #include "ltc_chip_interface.h"
+#include "batteries.h"
+
+#define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
 
 
 HAL_StatusTypeDef batt_init()
@@ -203,6 +206,10 @@ HAL_StatusTypeDef checkForOpenCircuit()
     // bad connections to AMS boards that causes noise
     float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS] = {0};
     float cell_voltages_pulldown[CELLS_PER_BOARD * NUM_BOARDS] = {0};
+	
+	float last_IBus = 0.0f;
+	// If we can't get it from the IBus queue, skip the check
+	bool skip_IBus_check = getIBus(&last_IBus) != HAL_OK;
 
     if (performOpenCircuitTestReading(cell_voltages_pullup, true /* pullup */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
@@ -217,6 +224,19 @@ HAL_StatusTypeDef checkForOpenCircuit()
     {
         return HAL_ERROR;
     }
+
+    float curr_IBus = 0.0f;
+	skip_IBus_check |= getIBus(&curr_IBus) != HAL_OK;
+	if (!skip_IBus_check)
+	{
+		float IBus_error = float_abs(last_IBus - curr_IBus);
+		if (IBus_error > OPEN_WIRE_IBUS_TOLERANCE_A)
+		{
+			// Open Wire check only really works if IBus is constant
+			DEBUG_PRINT("Sharp IBus spike over > %f A, at %f A\n", OPEN_WIRE_IBUS_TOLERANCE_A, IBus_error);
+			return HAL_OK;
+		}
+	}
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
