@@ -52,7 +52,7 @@ class Dashboard(QWidget):
         self.setPalette(pal)
 
         self.mode_display = TextDisplay(self,
-                                        text="Mode: Normal",
+                                        text="Mode: Norm",
                                         colour=Qt.white,
                                         align=Qt.AlignLeft)
 
@@ -62,6 +62,23 @@ class Dashboard(QWidget):
                                            align=Qt.AlignRight)
 
         self.error_display = ErrorDisplay(self, align=Qt.AlignBottom)
+
+        self.speed_display = TextDisplay(self,
+                                         text="Speed: 0 kph",
+                                         colour=QColor(44, 197, 239),
+                                         align=Qt.AlignHCenter)
+
+        self.temp_display = TextDisplay(self,
+                                        text="Temp: N/A",
+                                        colour=QColor(255, 204, 0),
+                                        align=Qt.AlignLeft,
+                                        y_offset=45)
+
+        self.voltage_display = TextDisplay(self,
+                                           text="Voltage: 0 V",
+                                           colour=QColor(181, 124, 255),
+                                           align=Qt.AlignRight,
+                                           y_offset=45)
 
         self.speed_dial = Dial(norm_colour=QColor(44, 197, 239),
                                over_colour=Qt.red,
@@ -138,6 +155,10 @@ class Dashboard(QWidget):
         else:
             self.battery_display.set_colour(Qt.red)
 
+        self.speed_display.set_text("Speed: {} kph".format(CAN_data["speed"]))
+        self.temp_display.set_text("Temp: {}°C".format(CAN_data["temperature"]))
+        self.voltage_display.set_text("Voltage: {} V".format(CAN_data["voltage"]))
+
         self.speed_dial.set_value(CAN_data["speed"])
         self.temp_dial.set_value(CAN_data["temperature"])
         self.voltage_dial.set_value(CAN_data["voltage"])
@@ -152,6 +173,9 @@ class Dashboard(QWidget):
         self.mode_display.draw(qp)
         self.battery_display.draw(qp)
         self.error_display.draw(qp)
+        self.speed_display.draw(qp)
+        self.temp_display.draw(qp)
+        self.voltage_display.draw(qp)
         self.speed_dial.draw(qp)
         self.temp_dial.draw(qp)
         self.voltage_dial.draw(qp)
@@ -239,7 +263,7 @@ class Dial:
 class TextDisplay:
     """ Used to display text. """
 
-    def __init__(self, parent, text, colour, align, font_size=22):
+    def __init__(self, parent, text, colour, align, font_size=22, y_offset=0):
         self.parent = parent
         self.text = text
         self.colour = colour
@@ -248,7 +272,7 @@ class TextDisplay:
         
         # Creates padding around window edge
         self.x = self.parent.width * 0.05 / 2
-        self.y = self.parent.height * 0.05 / 2
+        self.y = self.parent.height * 0.05 / 2 + y_offset
         self.width = self.parent.width * 0.95
         self.height = self.parent.height * 0.95
 
