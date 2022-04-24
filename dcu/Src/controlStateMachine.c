@@ -252,7 +252,8 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = GPIO_PIN_SET;
     }
 
-    if (pin_val == GPIO_PIN_RESET)
+
+    if (pin_val == GPIO_PIN_SET)
     {
         switch (debouncingPin)
         {
@@ -283,7 +284,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         /* Already debouncing, do nothing with this interrupt */
         return;
     }
-
     alreadyDebouncing = true;
 
     switch (pin)
