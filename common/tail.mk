@@ -296,7 +296,7 @@ BUILD_ONLY_ONCE = 1
 endif
 
 
-ifeq ($(LOAD_TARGET), $(BOARD_NAME))
+ifneq (,$(filter $(LOAD_TARGET), $(BOARD_NAME) $(BUILD_TARGET)))
 LOAD_BOARD_ARCH := $(BOARD_ARCHITECTURE)
 ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F7 F7))
    OPENOCD_FILE := target/stm32f7x.cfg
