@@ -209,7 +209,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 	
 	float last_IBus = 0.0f;
 	// If we can't get it from the IBus queue, skip the check
-	bool skip_IBus_check = getIBus(&last_IBus) != HAL_OK;
+	bool skip_IBus_check = (getIBus(&last_IBus) != HAL_OK);
 
     if (performOpenCircuitTestReading(cell_voltages_pullup, true /* pullup */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
@@ -226,7 +226,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
     }
 
     float curr_IBus = 0.0f;
-	skip_IBus_check |= getIBus(&curr_IBus) != HAL_OK;
+	skip_IBus_check |= (getIBus(&curr_IBus) != HAL_OK);
 	if (!skip_IBus_check)
 	{
 		float IBus_error = float_abs(last_IBus - curr_IBus);
