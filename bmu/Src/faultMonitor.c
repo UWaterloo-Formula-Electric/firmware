@@ -72,6 +72,13 @@ bool getIL_Status()
    return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
 }
 
+// Cockpit BRB IL in to the BMU
+bool getCBRB_IL_Status()
+{
+	return true;
+//   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
+}
+
 /**
  * Task to continuously monitor the HVIL and IL.
  */
@@ -192,33 +199,43 @@ void faultMonitorTask(void *pvParameters)
      ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
      Error_Handler();
    }
-
+	
+   bool cbrb_pressed = false;
    while (1)
    {
-      if (getHVIL_Status() == false)
-      {
-         ERROR_PRINT("Fault Monitor: HVIL broken!\n");
-         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+		if (getHVIL_Status() == false)
+		{
+				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
+				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+				while (1) {
+					watchdogTaskCheckIn(FAULT_TASK_ID);
+					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+				}
+		}
 
-         while (1) {
-            watchdogTaskCheckIn(FAULT_TASK_ID);
-            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-         }
-      }
+		if (getIL_Status() == false)
+		{
+				ERROR_PRINT("Fault Monitor: IL broken!\n");
+				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+				while (1) {
+					watchdogTaskCheckIn(FAULT_TASK_ID);
+					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+				}
+		}
+		else if (getCBRB_IL_Status() == false && !cbrb_pressed)
+		{
+			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
+			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+			cbrb_pressed = true;
+		}
+		else if (getCBRB_IL_Status() == true && cbrb_pressed)
+		{
+			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
+		}
 
-      if (getIL_Status() == false)
-      {
-         ERROR_PRINT("Fault Monitor: IL broken!\n");
-         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 
-         while (1) {
-            watchdogTaskCheckIn(FAULT_TASK_ID);
-            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-         }
-      }
-
-      watchdogTaskCheckIn(FAULT_TASK_ID);
-      vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+		watchdogTaskCheckIn(FAULT_TASK_ID);
+		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
    }
 
 #else
@@ -226,7 +243,7 @@ void faultMonitorTask(void *pvParameters)
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
 
    while (1) {
-      vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
    }
 
 #endif
