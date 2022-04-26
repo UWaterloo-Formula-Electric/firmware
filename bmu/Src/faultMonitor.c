@@ -75,8 +75,7 @@ bool getIL_Status()
 // Cockpit BRB IL in to the BMU
 bool getCBRB_IL_Status()
 {
-	return true;
-//   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
+   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
 }
 
 /**
@@ -213,7 +212,20 @@ void faultMonitorTask(void *pvParameters)
 				}
 		}
 
-		if (getIL_Status() == false)
+		bool il_ok = getIL_Status();
+		bool cbrb_ok = getCBRB_IL_Status();
+		if(!cbrb_ok && !cbrb_pressed)
+		{	
+			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
+			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+			cbrb_pressed = true;
+		}
+		else if (cbrb_ok && cbrb_pressed)
+		{
+			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
+			cbrb_pressed = false;
+		}
+		else if (!il_ok && cbrb_ok)
 		{
 				ERROR_PRINT("Fault Monitor: IL broken!\n");
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
@@ -222,17 +234,6 @@ void faultMonitorTask(void *pvParameters)
 					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
 				}
 		}
-		else if (getCBRB_IL_Status() == false && !cbrb_pressed)
-		{
-			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
-			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
-			cbrb_pressed = true;
-		}
-		else if (getCBRB_IL_Status() == true && cbrb_pressed)
-		{
-			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
-		}
-
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);

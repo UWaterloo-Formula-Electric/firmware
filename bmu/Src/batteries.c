@@ -863,11 +863,12 @@ float calculateStateOfCharge()
 HAL_StatusTypeDef batteryStart()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   return batt_init();
+	AMS_CONT_CLOSE;
+	return batt_init();
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
-   return HAL_OK;
+	return HAL_OK;
 #else
 #error Unsupported board type
 #endif

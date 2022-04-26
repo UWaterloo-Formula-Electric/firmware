@@ -76,6 +76,7 @@ Transition_t transitions[] = {
 	// Cockpit BRB pressed/unpressed
 	{ STATE_ANY, EV_Cockpit_BRB_Pressed, &cockpitBRBPressed },
 	{ STATE_Failure_CBRB, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased},
+    { STATE_Failure_CBRB, EV_Discharge_Finished, &dischargeFinished },
 
     // Already in failure, do nothing
     // Takes priority over rest of events
@@ -235,13 +236,18 @@ uint32_t startDischarge(uint32_t event)
 
 uint32_t dischargeFinished(uint32_t event)
 {
+	
+    uint32_t currentState = fsmGetState(&fsmHandle);
     DEBUG_PRINT("discharge finished\n");
 
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
-
+	if(currentState == STATE_Failure_CBRB)
+	{
+		return STATE_Failure_CBRB;
+	}
     return STATE_HV_Disable;
 }
 
