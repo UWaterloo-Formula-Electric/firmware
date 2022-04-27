@@ -253,7 +253,7 @@ void debounceTimerCallback(TimerHandle_t timer)
     }
 
 
-    if (pin_val == GPIO_PIN_SET)
+    if (pin_val == GPIO_PIN_RESET)
     {
         switch (debouncingPin)
         {
