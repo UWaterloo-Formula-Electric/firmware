@@ -39,6 +39,7 @@ typedef enum ThrottleStatus_t {
 } ThrottleStatus_t;
 
 bool isBrakePressed();
+bool isBrakePressedHard();
 HAL_StatusTypeDef outputThrottle();
 bool throttleIsZero();
 bool checkBPSState();
