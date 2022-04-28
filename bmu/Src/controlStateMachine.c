@@ -46,6 +46,8 @@ uint32_t stopCharge(uint32_t event);
 uint32_t chargeDone(uint32_t event);
 uint32_t systemUpCheck(uint32_t event);
 uint32_t systemNotReady(uint32_t event);
+uint32_t cockpitBRBPressed(uint32_t event);
+uint32_t cockpitBRBReleased(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
@@ -70,6 +72,11 @@ Transition_t transitions[] = {
 
     // When not hv disabled, ignore charge mode message
     { STATE_ANY, EV_Enter_Charge_Mode, &controlDoNothing },
+
+	// Cockpit BRB pressed/unpressed
+	{ STATE_ANY, EV_Cockpit_BRB_Pressed, &cockpitBRBPressed },
+	{ STATE_Failure_CBRB, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased},
+    { STATE_Failure_CBRB, EV_Discharge_Finished, &dischargeFinished },
 
     // Already in failure, do nothing
     // Takes priority over rest of events
@@ -229,13 +236,18 @@ uint32_t startDischarge(uint32_t event)
 
 uint32_t dischargeFinished(uint32_t event)
 {
+	
+    uint32_t currentState = fsmGetState(&fsmHandle);
     DEBUG_PRINT("discharge finished\n");
 
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
-
+	if(currentState == STATE_Failure_CBRB)
+	{
+		return STATE_Failure_CBRB;
+	}
     return STATE_HV_Disable;
 }
 
@@ -384,4 +396,56 @@ uint32_t systemNotReady(uint32_t event)
 void setChargeMode(bool charge_mode)
 {
 	gChargeMode = charge_mode;
+}
+
+uint32_t cockpitBRBPressed(uint32_t event)
+{
+
+    uint32_t currentState = fsmGetState(&fsmHandle);
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
+
+    switch (currentState) {
+        case STATE_HV_Disable:
+            {
+                DEBUG_PRINT("Cockpit BRB pressed during HV Disable phase, nothing done\n");
+            }
+            break;
+        case STATE_HV_Enable:
+            {
+                DEBUG_PRINT("Cockpit BRB pressed during HV Enable, starting discharge\n");
+                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+            }
+            break;
+        case STATE_Precharge:
+            {
+                DEBUG_PRINT("Cocpit BRB pressed during precharge\n");
+                // Only send stop if the precharge hasn't already failed
+                // Otherwise it's been stopped already
+                if (event != EV_PrechargeDischarge_Fail) {
+                    sendStopPrecharge();
+                }
+            }
+            break;
+        case STATE_Discharge:
+            {
+                DEBUG_PRINT("Cockpit BRB pressed during discharge. Attempting to continue discharge\n");
+            }
+            break;
+        default:
+            {
+                ERROR_PRINT("Cockpit BRB during other state. Starting discharge\n");
+                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+            }
+            break;
+    }
+	return STATE_Failure_CBRB;
+}
+
+uint32_t cockpitBRBReleased(uint32_t event)
+{
+	return STATE_HV_Disable;
 }

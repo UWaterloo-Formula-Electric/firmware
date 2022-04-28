@@ -8,21 +8,22 @@
 #define MOCK_ADC_READINGS
 #endif
 
-#define MIN_BRAKE_PRESSED_VAL_PERCENT 40
+#define MIN_BRAKE_PRESSED_VAL_PERCENT 10
+#define MIN_BRAKE_PRESSED_HARD_VAL_PERCENT 40
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 1
 
 #define TPS_TOLERANCE_PERCENT 10
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2109)
-#define THROTT_B_LOW (2019)
+#define THROTT_A_LOW (1810)
+#define THROTT_B_LOW (616)
 
-#define THROTT_A_HIGH (2421)
-#define THROTT_B_HIGH (2334)
+#define THROTT_A_HIGH (2095)
+#define THROTT_B_HIGH (939)
 
-#define BRAKE_POS_LOW (1887)
-#define BRAKE_POS_HIGH (2060)
+#define BRAKE_POS_LOW (1117)
+#define BRAKE_POS_HIGH (1410)
 
 #define STEERING_POT_LOW (1040)
 #define STEERING_POT_CENTER (2122)
@@ -204,7 +205,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     }
 
     // check if both throttle and brake are pressed
-    if (isBrakePressed() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
         (*throttleOut) = 0;
         throttleAndBrakePressedError = true;
         sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
@@ -240,6 +241,14 @@ HAL_StatusTypeDef outputThrottle() {
     return HAL_OK;
 }
 
+bool isBrakePressedHard()
+{
+    if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_HARD_VAL_PERCENT) {
+        return true;
+    } else {
+        return false;
+    }
+}
 bool isBrakePressed()
 {
     /*DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());*/

@@ -133,6 +133,9 @@ Transition_t transitions[] = {
 
     {STATE_HV_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
     {STATE_EM_Enable,     EV_CAN_Recieve_EM,      &updateFromCAN},
+    
+    // Can occur when contactors open while EM enabled
+    {STATE_EM_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
 
 	{STATE_EM_Enable,	  EV_TC_Toggle,			  &toggleTC},
 	{STATE_EM_Enable,	  EV_Endurance_Mode_Toggle,&toggleEnduranceMode},
@@ -347,6 +350,7 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = GPIO_PIN_SET;
     }
 
+
     if (pin_val == GPIO_PIN_RESET)
     {
         switch (debouncingPin)
@@ -390,7 +394,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         /* Already debouncing, do nothing with this interrupt */
         return;
     }
-
     alreadyDebouncing = true;
 
     switch (pin)

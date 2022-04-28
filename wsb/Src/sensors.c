@@ -64,9 +64,6 @@ void pollSensorsTask(void const * argument)
     
     while(1)
 	{
-
-		xLastWakeTime = xTaskGetTickCount();
-		
 		poll_encoder();
 
 		transmit_sensor_values();
@@ -75,6 +72,7 @@ void pollSensorsTask(void const * argument)
 		
 		// Always poll at almost exactly PERIOD
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(POLL_SENSORS_PERIOD_MS));
+		xLastWakeTime = xTaskGetTickCount();
 	}
 }
 

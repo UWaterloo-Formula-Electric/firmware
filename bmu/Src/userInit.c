@@ -30,6 +30,16 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
     printf("Stack overflow for task %s\n", pcTaskName);
 }
 
+static HAL_StatusTypeDef init_HW_check_timer(void)
+{
+	if (HAL_TIM_PWM_Start(&HW_CHECK_HANDLE, TIM_CHANNEL_1) != HAL_OK)
+	{
+		ERROR_PRINT("Failed to start HW_CHECK timer\n");
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
 
 // This is declared with weak linkage in all Cube main.c files, and called
 // before freeRTOS initializes and starts up
@@ -69,6 +79,9 @@ void userInit()
         Error_Handler();
     }
 #endif
+	if (init_HW_check_timer() != HAL_OK) {
+		Error_Handler();
+	}
 
     printf("Finished user init\n");
 }

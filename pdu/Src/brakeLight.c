@@ -5,7 +5,7 @@
 #include "pdu_can.h"
 #include "debug.h"
 
-#define BRAKE_LIGHT_ON_THRESHOLD 5
+#define BRAKE_LIGHT_ON_THRESHOLD 15
 #define BRAKE_TASK_PERIOD_MS 300
 
 bool isBrakePressed(uint32_t brakePercent)
