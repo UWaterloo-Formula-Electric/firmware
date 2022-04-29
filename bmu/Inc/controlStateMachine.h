@@ -16,16 +16,17 @@
 #include "state_machine.h"
 
 typedef enum BMU_States_t {
-    STATE_Self_Check = 0,		///< 0: Self check performed on boot
-    STATE_Wait_System_Up,		///< 1: Waiting for the IMD and Fault Monitor
-    STATE_HV_Disable,			///< 2: Battery pack contactors open
-    STATE_HV_Enable,			///< 3: Battery pack contactors closed
-    STATE_Precharge,			///< 4: Waiting for precharge to complete
-    STATE_Discharge,			///< 5: Waiting for discharge to complete
-    STATE_Charging,				///< 6: Battery is currently being charged
-    STATE_Failure_Fatal,		///< 7: System encountered a critical failture
-    STATE_Failure_CBRB,         ///< 8: Cockpit BRB has been pressed, non critical error 
-    STATE_ANY,					///< 9: Must be the last state
+    STATE_Self_Check = 0,		 ///< 0: Self check performed on boot
+    STATE_Wait_System_Up,		 ///< 1: Waiting for the IMD and Fault Monitor
+    STATE_HV_Disable,			 ///< 2: Battery pack contactors open
+    STATE_HV_Enable,			 ///< 3: Battery pack contactors closed
+    STATE_Precharge,			 ///< 4: Waiting for precharge to complete
+    STATE_Discharge,			 ///< 5: Waiting for discharge to complete
+    STATE_Charging,				 ///< 6: Battery is currently being charged
+    STATE_Failure_Fatal,		 ///< 7: System encountered a critical failture
+    STATE_Failure_CBRB_Disabled, ///< 8: Cockpit BRB has been pressed when not at HV, non critical error
+    STATE_Failure_CBRB_Discharge,///< 9: Cockpit BRB has been pressed when at HV, non critical error 
+    STATE_ANY,					 ///< 10: Must be the last state
 } BMU_States_t;
 
 typedef enum BMU_Events_t {
