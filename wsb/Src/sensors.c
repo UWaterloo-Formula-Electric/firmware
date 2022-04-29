@@ -18,14 +18,14 @@
 
 // Encoder Information
 #define ENCODER_COUNTER (__HAL_TIM_GET_COUNTER(&ENCODER_TIM_HANDLE))
-#define ENCODER_PULSES_PER_REVOLUTION (3)
+#define ENCODER_PULSES_PER_REVOLUTION (6)
 #define WHEEL_DIAMETER_MM (525)
 
 // About a 0.6% error due to integer rounding of PI
 // Increasing scale of PI does not improve accuracy
 #define PI_SCALE (100)
 #define PI_SCALED (314)
-#define ENCODER_COUNT_TO_MM(count) ((count)*(((WHEEL_DIAMETER_MM*PI_SCALED)/PI_SCALE)/12))
+#define ENCODER_COUNT_TO_MM(count) ((count)*(((WHEEL_DIAMETER_MM*PI_SCALED)/PI_SCALE)/ENCODER_PULSES_PER_REVOLUTION))
 #define ENCODER_COUNT_TO_RADS_S(delta_count, period) (((2*PI_SCALED*delta_count)/(ENCODER_PULSES_PER_REVOLUTION*PI_SCALE))/period)
 
 typedef struct {

@@ -87,6 +87,11 @@ void tractionControlTask(void *pvParameters)
 			{
 				output_torque = ADJUSTMENT_TORQUE_FLOOR;
 			}
+			else if(output_torque > MAX_TORQUE_DEMAND_DEFAULT)
+			{
+				// Whoa error in TC
+				output_torque = MAX_TORQUE_DEMAND_DEFAULT;
+			}
 			setTorqueLimit(output_torque);
 		}
 		else
@@ -94,6 +99,7 @@ void tractionControlTask(void *pvParameters)
 			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
 		}
 		// Always poll at almost exactly PERIOD
+        watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS));
 	}
 

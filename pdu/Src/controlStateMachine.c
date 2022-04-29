@@ -464,6 +464,7 @@ uint32_t coolingLVCuttoff(uint32_t event) {
     return COOL_STATE_LV_Cuttoff;
 }
 uint32_t coolingCriticalFailure(uint32_t event) {
+	coolingOff(event);
     if (fsmGetState(&coolingFsmHandle) != COOL_STATE_HV_CRITICAL) {
         DEBUG_PRINT("Cooling critical failure\n");
         // TODO: What to do here? Should turn off, or leave on cooling
@@ -485,10 +486,10 @@ uint32_t coolingOff(uint32_t event) {
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-//    PUMP_LEFT_ENABLE;
-//    PUMP_RIGHT_ENABLE;
-//    FAN_LEFT_ENABLE;
-//    FAN_RIGHT_ENABLE;
+    PUMP_LEFT_ENABLE;
+    PUMP_RIGHT_ENABLE;
+    FAN_LEFT_ENABLE;
+    FAN_RIGHT_ENABLE;
     return COOL_STATE_ON;
 }
 
