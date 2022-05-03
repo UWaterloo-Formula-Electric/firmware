@@ -24,6 +24,8 @@
 
 #define HVIL_ENABLED (0)
 
+bool skip_il = false;
+
 HAL_StatusTypeDef HVIL_Control(bool enable)
 {
    if (enable)
@@ -69,13 +71,13 @@ bool getIL_BRB_Status()
 // IL in to the BMU
 bool getIL_Status()
 {
-   return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
+   return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET || skip_il);
 }
 
 // Cockpit BRB IL in to the BMU
 bool getCBRB_IL_Status()
 {
-   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET);
+   return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET || skip_il);
 }
 
 /**
