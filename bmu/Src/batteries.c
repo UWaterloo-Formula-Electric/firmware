@@ -75,13 +75,16 @@
 
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
-#define LIMIT_OVERVOLTAGE 4.2F
+
+#define DEFAULT_LIMIT_OVERVOLTAGE 4.2F
+volatile float LIMIT_OVERVOLTAGE = DEFAULT_LIMIT_OVERVOLTAGE;
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 3.0F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
-#define LIMIT_UNDERVOLTAGE 2.5F
+#define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
+volatile float LIMIT_UNDERVOLTAGE = DEFAULT_LIMIT_UNDERVOLTAGE;
 /// Warning voltage of a cell, will send a warning DTC if it goes below
 #define LIMIT_LOWVOLTAGE_WARNING 3.2F
 /// Rate at which the low voltage threshold dynamically lowers vs current
@@ -160,7 +163,7 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 /**
  * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
  */
-float maxChargeVoltage = LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
+float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
 
 /**
  * Set to true if we've already sent a low voltage warning for this cell to

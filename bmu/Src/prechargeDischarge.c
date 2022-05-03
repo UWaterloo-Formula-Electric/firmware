@@ -374,6 +374,9 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     setPosContactor(CONTACTOR_OPEN);
 
     float maxIBus = 0;
+    float VBus_avg = 0;
+    uint8_t index = 0;
+    bool VBus_settled = false;
     DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
     startTickCount = xTaskGetTickCount();
     do {
@@ -397,7 +400,21 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: IBus %f\n", IBus);
             return PCDC_ERROR;
         }
-    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK));
+        VBus_avg += VBus/(float)PRECHARGE_STEP_4_AVERAGE;
+        index++;
+        if(index >= PRECHARGE_STEP_4_AVERAGE)
+		{	
+			index = 0;
+			float diff = VBus_avg - VBus;
+			diff = diff > 0.0F ? diff : -diff;
+			if(diff < PRECHARGE_STEP_4_DIFF_TOLERANCE)
+			{
+				VBus_settled = true;
+			}
+			VBus_avg = 0;
+		}
+        
+    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK) || !VBus_settled);
 
     uint32_t prechargeTime = xTaskGetTickCount() - startTickCount;
     DEBUG_PRINT("Precharge took %lu ticks\n", prechargeTime);

@@ -81,7 +81,6 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
 
 void CAN_Msg_ChargeStatus_Callback()
 {
-   /*DEBUG_PRINT_ISR("Charger status\n");*/
 
    uint16_t current = (OutputCurrentHigh<<8) | (OutputCurrentLow & 0xFF);
    uint16_t voltage = (OutputVoltageHigh<<8) | (OutputVoltageLow & 0xFF);
