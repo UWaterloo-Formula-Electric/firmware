@@ -25,7 +25,7 @@ typedef enum BMU_States_t {
     STATE_Charging,				 ///< 6: Battery is currently being charged
     STATE_Failure_Fatal,		 ///< 7: System encountered a critical failture
     STATE_Failure_CBRB_Disabled, ///< 8: Cockpit BRB has been pressed when not at HV, non critical error
-    STATE_Failure_CBRB_Enabled,///< 9: Cockpit BRB has been pressed when at HV, non critical error 
+    STATE_Failure_CBRB_Enabled,  ///< 9: Cockpit BRB has been pressed when at HV, non critical error 
     STATE_ANY,					 ///< 10: Must be the last state
 } BMU_States_t;
 
