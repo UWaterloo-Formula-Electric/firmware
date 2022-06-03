@@ -60,7 +60,8 @@ endif
 LINT_DIR = Lint
 LINT_TARGETS := common bmu pdu dcu vcu wsb
 LINT_TARGET ?= none
-RUN_CPPCHECK = cppcheck --addon=./common/Misra/misra.json --enable=all  -I $(LINT_TARGET)/Inc --output-file=$(LINT_DIR)/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
+CPPCHECK_INC_DIRS = $(if $(filter $(LINT_TARGET), bmu), -I $(LINT_TARGET)/Inc -I $(LINT_TARGET)/Inc/F7_Inc, -I $(LINT_TARGET)/Inc)
+RUN_CPPCHECK = cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  $(CPPCHECK_INC_DIRS) --output-file=$(LINT_DIR)/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
 DELETE_CTU_FILES = find ./$(LINT_TARGET)/Src/ -type f \( -name "*.ctu-info" -or -name "cppcheck-addon-ctu-file-list" -or -name "*.dump" \) -delete
 RUN_LINTER = $(RUN_CPPCHECK); $(DELETE_CTU_FILES);
 
