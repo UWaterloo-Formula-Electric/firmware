@@ -9,6 +9,14 @@
 #include "stdbool.h"
 #include "iwdg.h"
 
+//definitions for MISRA-C rules compliance
+#ifndef IS_BOARD_F0
+#define IS_BOARD_F0
+#endif
+
+#ifndef IS_BOARD_NUCLEO_F0
+#define IS_BOARD_NUCLEO_F0 0
+#endif
 
 #if IS_BOARD_F0
 #include "stm32f0xx_hal.h"
