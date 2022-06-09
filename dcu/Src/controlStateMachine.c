@@ -54,7 +54,6 @@ uint32_t updateFromCAN(uint32_t event)
     switch (event)
     {
         case EV_CAN_Recieve_HV:
-        {
             if (hvState == HV_Power_State_On)
             {
                 if (current_state != STATE_HV_Enable)
@@ -75,9 +74,8 @@ uint32_t updateFromCAN(uint32_t event)
             }
 
             break;
-        }
+
         case EV_CAN_Recieve_EM:
-        {
             if (emState == EM_State_On)
             {
                 if (current_state != STATE_EM_Enable)
@@ -89,12 +87,10 @@ uint32_t updateFromCAN(uint32_t event)
             }
 
             break;
-        }
+
         default:
-        {
             ERROR_PRINT("Error: Unexpected event when updating from CAN!\n");
             Error_Handler();
-        }
     }
 
     /* Return current state, as it's not always an error */
@@ -241,23 +237,19 @@ void debounceTimerCallback(TimerHandle_t timer)
     switch (debouncingPin)
     {
         case HV_TOGGLE_BUTTON_PIN:
-        {
             pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
                     HV_TOGGLE_BUTTON_PIN);
             break;
-        }
+        
         case EM_TOGGLE_BUTTON_PIN:
-        {
             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
                     EM_TOGGLE_BUTTON_PIN);
             break;
-        }
+        
         default:
-        {
             /* Shouldn't get here */ 
             DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
             pin_val = GPIO_PIN_SET;
-        }
     }
 
 
@@ -266,20 +258,16 @@ void debounceTimerCallback(TimerHandle_t timer)
         switch (debouncingPin)
         {
             case HV_TOGGLE_BUTTON_PIN:
-            {
                 fsmSendEventISR(&DCUFsmHandle, EV_HV_Toggle);
                 break;
-            }
+            
             case EM_TOGGLE_BUTTON_PIN:
-            {
                 fsmSendEventISR(&DCUFsmHandle, EV_EM_Toggle);
                 break;
-            }
+            
             default:
-            {
                 /* Shouldn't get here */
                 DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
-            }
         }
 
     }
@@ -301,21 +289,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
     switch (pin)
     {
         case HV_TOGGLE_BUTTON_PIN:
-        {
             debouncingPin = HV_TOGGLE_BUTTON_PIN;
             break;
-        }
+        
         case EM_TOGGLE_BUTTON_PIN:
-        {
             debouncingPin = EM_TOGGLE_BUTTON_PIN;
             break;
-        }
+        
         default:
-        {
             /* Not a fatal error here, but report error and return */
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
             return;
-        }
     }
 
     xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
