@@ -391,7 +391,8 @@ void mainTaskFunction(void const * argument){
 
     fsmTaskFunction(&DCUFsmHandle);
 
-    for(;;);
+    for(;;) {
+    };
 }
 
 uint32_t defaultTransition(uint32_t event)
