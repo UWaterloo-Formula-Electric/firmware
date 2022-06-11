@@ -21,9 +21,5 @@ void DTC_Fatal_Callback(BoardIDs board) {
 }
 
 void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
-    switch (DTC_CODE) {
-        default:
-            // Do nothing, other events handled by fatal callback
-            break;
-    }
+   
 }
