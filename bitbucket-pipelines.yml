@@ -3,10 +3,6 @@ image: addis0n/arm-none-eabi-gcc-from-python:latest
 pipelines:
   default:
     - step:
-        name: 'test'
-        script:
-          - make
-    - step:
         name: 'test3'
         script:
           - pip install -r requirements.txt
