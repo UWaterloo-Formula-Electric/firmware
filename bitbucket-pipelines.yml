@@ -1,11 +1,10 @@
-image: stronglytyped/arm-none-eabi-gcc
+image: addis0n/arm-none-eabi-gcc-from-python:test
 
 pipelines:
   default:
     - step:
         name: 'test'
         script:
-          - apt-get install -y python3 python3-pip idle3
           - pip install -r common/requirements.txt
           - make
         
