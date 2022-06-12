@@ -5,6 +5,5 @@ pipelines:
     - step:
         name: 'test'
         script:
-          - pip install -r common/requirements.txt
           - make
         
