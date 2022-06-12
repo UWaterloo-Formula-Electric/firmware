@@ -1,3 +1,5 @@
+image: stronglytyped/arm-none-eabi-gcc
+
 pipelines:
   default:
     - step:
@@ -5,5 +7,7 @@ pipelines:
         name: 'Install python dependencies'
         script:
           - pip install -r common/requirements.txt
+    - step:
+        script: 
           - make
         
