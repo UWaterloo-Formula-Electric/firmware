@@ -5,6 +5,7 @@ pipelines:
     - step:
         name: 'test'
         script:
+          - apt-get install sudo -y
           - sudo apt-get install -y python3 python3-pip idle3
           - pip install -r common/requirements.txt
           - make
