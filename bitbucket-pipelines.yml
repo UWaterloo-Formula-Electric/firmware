@@ -1,13 +1,11 @@
-image: stronglytyped/arm-none-eabi-gcc
+image: atlassian/default-image:3
 
 pipelines:
   default:
     - step:
         image: python:3 
-        name: 'Install python dependencies'
+        name: 'test'
         script:
           - pip install -r common/requirements.txt
-    - step:
-        script: 
           - make
         
