@@ -1,9 +1,9 @@
-image: atlassian/default-image:3
+image: srzzumix/arm-none-eabi-gcc-with-python
+
 
 pipelines:
   default:
     - step:
-        image: python:3 
         name: 'test'
         script:
           - pip install -r common/requirements.txt
