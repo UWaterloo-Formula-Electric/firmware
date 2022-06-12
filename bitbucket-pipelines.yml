@@ -1,5 +1,4 @@
-addis0n/arm-none-eabi-gcc-from-python:latest
-
+image: addis0n/arm-none-eabi-gcc-from-python:latest
 
 pipelines:
   default:
