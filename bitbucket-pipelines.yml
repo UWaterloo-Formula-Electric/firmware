@@ -1,9 +1,9 @@
-image: addis0n/arm-none-eabi-gcc-from-python:latest
+image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
 pipelines:
   default:
     - step:
-        name: 'test3'
+        name: 'Build all firmware code'
         script:
           - pip install -r common/requirements.txt
           - make
