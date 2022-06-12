@@ -1,11 +1,11 @@
-image: srzzumix/arm-none-eabi-gcc-with-python
-
+image: stronglytyped/arm-none-eabi-gcc
 
 pipelines:
   default:
     - step:
         name: 'test'
         script:
+          - sudo apt-get install -y python3 python3-pip idle3
           - pip install -r common/requirements.txt
           - make
         
