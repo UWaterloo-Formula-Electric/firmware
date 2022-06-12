@@ -1,6 +1,7 @@
 pipelines:
   default:
     - step:
+        image: python:3 
         name: 'Install python dependencies'
         script:
           - pip install -r common/requirements.txt
