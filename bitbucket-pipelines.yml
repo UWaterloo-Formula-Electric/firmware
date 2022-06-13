@@ -13,3 +13,6 @@ pipelines:
         name: 'Run the linter'
         script:
           - make lint
+        artifcats:
+          - Lint/**
+          - Gen/**
