@@ -9,4 +9,7 @@ pipelines:
           - make
           - cppcheck --version
         
-  
+    - step:
+        name: 'Run the linter'
+        script:
+          - make lint
