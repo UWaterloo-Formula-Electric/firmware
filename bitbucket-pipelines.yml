@@ -35,5 +35,5 @@ pipelines:
             script:
               - cppcheck --version
               - make lint
-             artifacts:
-               - Lint/**
+            artifacts:
+              - Lint/**
