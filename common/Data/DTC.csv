@@ -18,13 +18,13 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"VCU failed EM enable due to: #data (Reasons: 0: bpsState false, 1: low brake pressure, 2: throttle non-zero, 3: brake not pressed, 4: not hv enabled, 5: motors failed to start)"
 18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is about to turn off the boards after a short delay"
 19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is turning off the boards"
-20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reach, PDU is about to turn off the boards after a short delay"
+20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reached, PDU is about to turn off the boards after a short delay"
 21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,HV Critical failure has been detected by the PDU
-22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU: unkown error occured
-23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: unkown error occured
-24, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,BMU: unkown error occured
-25, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: unkown error occured
-26, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU-BB: unkown error occured
+22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU: unknown error occured
+23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: unknown error occured
+24, BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,BMU: unknown error occured
+25, DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: unknown error occured
+26, VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU-BB: unknown error occured
 27, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
 28, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
 29, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU CAN Timeout occured
@@ -41,11 +41,11 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 40,BMU_Charger_ERROR,BMU,1,"DCU,PDU,VCU_F7,ChargeCart",NA,Charger reported an error while charging
 41,BMU_SystemNotReady,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Reason,"BMU is waiting for system to come up, and can't process the request yet (Reasons: 1: IMD_FAIL, 2: IL_HVIL_FAIL)"
 42,PDU_EM_EN_BLOCKED_DCDC_OFF,PDU,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU blocked EM enable request since DC-DC not on
-43,ChargeCart_ERROR,ChargeCart,1,BMU,NA,CC: unkown error occured
-44,WSBFL_ERROR,WSBFL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFL: unkown error occured
-45,WSBFR_ERROR,WSBFR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFR: unkown error occured
-46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRL: unkown error occured
-47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRR: unkown error occured
+43,ChargeCart_ERROR,ChargeCart,1,BMU,NA,CC: unknown error occured
+44,WSBFL_ERROR,WSBFL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFL: unknown error occured
+45,WSBFR_ERROR,WSBFR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFR: unknown error occured
+46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRL: unknown error occured
+47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRR: unknown error occured
 48,BMU_UNKOWN_EVENT_STATE_COMBO,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Event,BMU received an event for which it doesn't have a registered transition in the current state
 49,BrakeWhileThrottleError_Disabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Max throttle while brake pressed reached, throttle disabled as per EV.3.4 (FSAE)"
 50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throttle reached reset point after BrakeWhileThrottle Error, Throttle Re engaged as per EV.3.4(FSAE)"
