@@ -1,20 +1,39 @@
 image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
 pipelines:
-  default:
-    - parallel:
+  pull-requests:
+    '**':
+      - parallel:
+          - step:
+              name: 'Build all firmware code'
+              script:
+                - pip install -r common/requirements.txt
+                - make
+              artifacts:
+                - Gen/**
+        
+          - step:
+              name: 'Run the linter'
+              script:
+                - cppcheck --version
+                - make lint
+              artifacts:
+                - Lint/**
+  branches:
+    main:
+      - parallel:
         - step:
-            name: 'Build all firmware code'
+          name: 'Build all firmware code'
             script:
               - pip install -r common/requirements.txt
               - make
-              - cppcheck --version
             artifacts:
               - Gen/**
         
         - step:
             name: 'Run the linter'
             script:
+              - cppcheck --version
               - make lint
-            artifacts:
-              - Lint/**
+             artifacts:
+               - Lint/**
