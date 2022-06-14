@@ -319,7 +319,7 @@ class ErrorDisplay:
         try:
             header = self.severity_settings[severity]["header"]
         except KeyError:
-            header = "UNKNOWN"
+            header = "U"
         self.error_messages.append("{}: {}".format(header, err_msg))
         self.severities.append(severity)
 
@@ -370,6 +370,10 @@ class QueueData:
 
 class QueueThread(threading.Thread):
     """ Collects data from zmq message queue in the background. """
+
+    em_enable_fail_codes = [16, 17]
+    em_enable_fail_reasons = ["bpsState false", "low brake pressure", "throttle non-zero",
+                              "brake not pressed", "not hv enabled", "motors failed to start"]
 
     def __init__(self, queue_data, dbc=default_dbc_path(), dtc=default_dtc_path()):
         threading.Thread.__init__(self)
@@ -425,11 +429,19 @@ class QueueThread(threading.Thread):
                                             self.db.get_message_by_name("DCU_DTC").frame_id,
                                             self.db.get_message_by_name("VCU_F7_DTC").frame_id,
                                             self.db.get_message_by_name("BMU_DTC").frame_id]:
-                code, severity = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"]
+                code, severity, data = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"], can_packet["signals"]["DTC_Data"]
                 try:
                     message = self.dtc_messages[int(code)-1]
                 except IndexError:
-                    message = "Unknown DTC Code! (Code given: <{}>)".format(code)
+                    message = "Unknown DTC Code: {})".format(code)
+
+                # Substitute #data in message with actual error reason
+                if code in QueueThread.em_enable_fail_codes:
+                    message = message[:message.find(" (Reasons")]
+                    message.replace("#data", QueueThread.em_enable_fail_reasons[data])
+                elif "#data" in message:
+                    message = message.replace("#data", data)
+
                 payload = [{
                     "severity": severity,
                     "message": message
