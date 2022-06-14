@@ -3,22 +3,44 @@ image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 pipelines:
   pull-requests:
     '**':
-      - parallel:
-          - step:
-              name: 'Build all firmware code'
-              script:
-                - pip install -r common/requirements.txt
-                - make
-              artifacts:
-                - Gen/**
+      - step:
+          name: 'Build all firmware code'
+          script:
+            - pip install -r common/requirements.txt
+            - make
+          artifacts:
+            - Gen/**
         
+      - parallel: #Run the linter - download raw output to see all logs
           - step:
-              name: 'Run the linter'
+              name: 'Verify cppcheck works'
               script:
                 - cppcheck --version
-                - make lint
-              artifacts:
-                - Lint/**
+          - step:
+              name: 'Lint common'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I common/Inc common/Src
+          - step:
+              name: 'Lint BMU'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I bmu/Inc bmu/Src
+          - step:
+              name: 'Lint PDU'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I pdu/Inc pdu/Src
+          - step:
+              name: 'Lint DCU'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I dcu/Inc dcu/Src
+          - step:
+              name: 'Lint VCU'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I vcu/Inc vcu/Src
+          - step:
+              name: 'Lint WSB'
+              script:
+                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I wsb/Inc wsb/Src
+          
   branches:
     main:
       - parallel:
