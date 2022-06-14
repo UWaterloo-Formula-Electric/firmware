@@ -23,17 +23,17 @@ pipelines:
     main:
       - parallel:
         - step:
-          name: 'Build all firmware code'
-          script:
-            - pip install -r common/requirements.txt
-            - make
-          artifacts:
-            - Gen/**
+            name: 'Build all firmware code'
+            script:
+              - pip install -r common/requirements.txt
+              - make
+            artifacts:
+              - Gen/**
         
         - step:
-          name: 'Run the linter'
-          script:
-            - cppcheck --version
-            - make lint
-          artifacts:
-            - Lint/**
+            name: 'Run the linter'
+            script:
+              - cppcheck --version
+              - make lint
+            artifacts:
+              - Lint/**
