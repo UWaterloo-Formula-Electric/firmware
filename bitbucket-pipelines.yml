@@ -24,11 +24,11 @@ pipelines:
       - parallel:
         - step:
           name: 'Build all firmware code'
-            script:
-              - pip install -r common/requirements.txt
-              - make
-            artifacts:
-              - Gen/**
+          script:
+            - pip install -r common/requirements.txt
+            - make
+          artifacts:
+            - Gen/**
         
         - step:
             name: 'Run the linter'
