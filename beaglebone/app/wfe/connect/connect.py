@@ -10,7 +10,7 @@ class QueueSerializer:
 
     def serialize(self, topic, msg):
         """ JSON encode our topic and message into a multipart message """
-        if type(msg) == NamedSignalValue:
+        if isinstance(msg, NamedSignalValue):
             msg = msg.name()
         msg_string = json.dumps(msg)
         return [topic.encode(), msg_string.encode()]
