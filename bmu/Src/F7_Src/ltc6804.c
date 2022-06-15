@@ -7,70 +7,70 @@
 #include "string.h"
 #if LTC_CHIP == LTC_CHIP_6804
 
-#define WRCFG_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define WRCFG_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define WRCFG_BYTE1 0x01
 
-#define RDCFG_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDCFG_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDCFG_BYTE1 0x02
 
-#define RDCVA_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDCVA_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDCVA_BYTE1 0x04
 
-#define RDCVB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDCVB_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDCVB_BYTE1 0x06
 
-#define RDCVC_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDCVC_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDCVC_BYTE1 0x08
 
-#define RDCVD_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDCVD_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDCVD_BYTE1 0x0a
 
-#define PLADC_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
+#define PLADC_BYTE0(ADDRESS) ((0x87) | ((ADDRESS) << 3))
 #define PLADC_BYTE1 0x14
 
-#define CLRSTAT_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
+#define CLRSTAT_BYTE0(ADDRESS) ((0x87) | ((ADDRESS) << 3))
 #define CLRSTAT_BYTE1 0x13
 
-#define CLRCELL_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
+#define CLRCELL_BYTE0(ADDRESS) ((0x87) | ((ADDRESS) << 3))
 #define CLRCELL_BYTE1 0x11
 
-#define CLRAUX_BYTE0(ADDRESS) ((0x87) | (ADDRESS << 3))
+#define CLRAUX_BYTE0(ADDRESS) ((0x87) | ((ADDRESS) << 3))
 #define CLRAUX_BYTE1 0x12
 
 // For reading auxiliary register group A
-#define RDAUXA_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDAUXA_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDAUXA_BYTE1 0x0c
 
 // For reading auxiliary register group B
-#define RDAUXB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDAUXB_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDAUXB_BYTE1 0x0e
 
 // Use normal MD (7kHz), Discharge not permission, all channels and GPIO 1 & 2
-#define ADCVAX_BYTE0(ADDRESS) ((0x85) | (ADDRESS << 3))
+#define ADCVAX_BYTE0(ADDRESS) ((0x85) | ((ADDRESS) << 3))
 #define ADCVAX_BYTE1 0x6f
 
 // Use normal MD (7kHz), Discharge not permission, all channels
-#define ADCV_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
+#define ADCV_BYTE0(ADDRESS) ((0x83) | ((ADDRESS) << 3))
 #define ADCV_BROADCAST_BYTE0 (0x03)
 #define ADCV_BYTE1 0x60
 
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 1 & 2
 #define ADAX_BROADCAST_BYTE0 (0x05)
-#define ADAX_BYTE0(ADDRESS) ((0x85) | (ADDRESS << 3))
+#define ADAX_BYTE0(ADDRESS) ((0x85) | ((ADDRESS) << 3))
 #define ADAX_BYTE1 0x65
 
 
-#define RDSTATB_BYTE0(ADDRESS) ((0x80) | (ADDRESS << 3))
+#define RDSTATB_BYTE0(ADDRESS) ((0x80) | ((ADDRESS) << 3))
 #define RDSTATB_BYTE1 0x12
 
-#define ADOW_BYTE0(ADDRESS) ((0x83) | (ADDRESS << 3))
+#define ADOW_BYTE0(ADDRESS) ((0x83) | ((ADDRESS) << 3))
 #define ADOW_BROADCAST_BYTE0 (0x03)
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
 
-#define ADC_OPT(en) (en << 0) // Since we're using the normal 7kHz mode
-#define SWTRD(en) (en << 1) // We're not using the software time
-#define REFON(en) (en << 2)
+#define ADC_OPT(en) ((en) << 0) // Since we're using the normal 7kHz mode
+#define SWTRD(en) ((en) << 1) // We're not using the software time
+#define REFON(en) ((en) << 2)
 
 #define BATT_CONFIG_SIZE 6    // Size of Config per Register
 #define COMMAND_SIZE 2
