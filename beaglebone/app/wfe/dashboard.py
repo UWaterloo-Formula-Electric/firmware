@@ -438,7 +438,7 @@ class QueueThread(threading.Thread):
                 # Substitute #data in message with actual error reason
                 if code in QueueThread.em_enable_fail_codes:
                     message = message[:message.find(" (Reasons")]
-                    message.replace("#data", QueueThread.em_enable_fail_reasons[data])
+                    message = message.replace("#data", QueueThread.em_enable_fail_reasons[data])
                 elif "#data" in message:
                     message = message.replace("#data", data)
 
