@@ -38,7 +38,7 @@ pipelines:
           name: 'Build all firmware code'
           script:
             - pip install -r common/requirements.txt
-            - make
+            - make all
           artifacts:
             - Gen/**
             
@@ -79,6 +79,6 @@ pipelines:
           name: 'Build all firmware code'
           script:
             - pip install -r common/requirements.txt
-            - make
+            - make all
           artifacts:
             - Gen/**
