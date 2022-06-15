@@ -12,27 +12,27 @@ pipelines:
           - step:
               name: 'Lint common'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I common/Inc common/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I common/Inc common/Src 
           - step:
               name: 'Lint BMU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I bmu/Inc bmu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I bmu/Inc bmu/Src 
           - step:
               name: 'Lint PDU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I pdu/Inc pdu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I pdu/Inc pdu/Src 
           - step:
               name: 'Lint DCU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I dcu/Inc dcu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I dcu/Inc dcu/Src 
           - step:
               name: 'Lint VCU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I vcu/Inc vcu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I vcu/Inc vcu/Src 
           - step:
               name: 'Lint WSB'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I wsb/Inc wsb/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I wsb/Inc wsb/Src 
 
       - step:
           name: 'Build all firmware code'
@@ -53,27 +53,27 @@ pipelines:
           - step:
               name: 'Lint common'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I common/Inc common/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I common/Inc common/Src 
           - step:
               name: 'Lint BMU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I bmu/Inc bmu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I bmu/Inc bmu/Src
           - step:
               name: 'Lint PDU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I pdu/Inc pdu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I pdu/Inc pdu/Src
           - step:
               name: 'Lint DCU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I dcu/Inc dcu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I dcu/Inc dcu/Src
           - step:
               name: 'Lint VCU'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I vcu/Inc vcu/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I vcu/Inc vcu/Src
           - step:
               name: 'Lint WSB'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --enable=all  -I wsb/Inc wsb/Src --inline-suppr
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I wsb/Inc wsb/Src 
 
       - step:
           name: 'Build all firmware code'
