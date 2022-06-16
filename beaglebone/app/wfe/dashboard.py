@@ -10,8 +10,8 @@ from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
 
-from wfe.util import default_dbc_path, default_dtc_path
-from wfe.connect.connect import QueueDataSubscriber
+from util import default_dbc_path, default_dtc_path
+from connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
     
