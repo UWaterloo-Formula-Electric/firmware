@@ -14,7 +14,7 @@ from wfe.connect.connect import QueueDataPublisher
 
 from wfe.util import default_dbc_path
 
-today = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+today = datetime.now().strftime("%b_%d_%y-%H-%M-%S")
 logs_folder = "/home/debian/can_monitor_logs"
 
 # Create logs folder if it does not already exist
