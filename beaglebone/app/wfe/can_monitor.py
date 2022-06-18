@@ -14,8 +14,8 @@ from wfe.connect.connect import QueueDataPublisher
 
 from wfe.util import default_dbc_path
 
-today = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-logs_folder = "logs"
+today = datetime.now().strftime("%b-%d-%y_%H-%M-%S")
+logs_folder = "/home/debian/can_monitor_logs"
 
 # Create logs folder if it does not already exist
 if not os.path.isdir(logs_folder):
@@ -74,23 +74,16 @@ class CanMonitor(QueueDataPublisher):
                     csv_writer = csv.writer(csv_file)
                     for signal in decoded_data:
                         csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
+                # Add the frame_id back into the decoded data dict
+                can_packet = CANPacket({"timestamp": message.timestamp, "frame_id": message.arbitration_id, "signals": decoded_data})
+                self.send(can_packet)
+
 
             except Exception as e:
                 tb_msg = "".join(traceback.format_exception(None, e, e.__traceback__))
                 logging.error(tb_msg)
 
-            # Not needed for competition
-
-            # Add the frame_id back into the decoded data dict
-            # can_packet = CANPacket({
-            #    "timestamp": message.timestamp,
-            #    "frame_id": message.arbitration_id,
-            #    "signals": decoded_data
-            # })
-
-            # self.send(can_packet)
-
-
+            
 # Parsing command line arguments
 def get_arguments():
     parser = argparse.ArgumentParser(description="Monitor CAN messages being sent on a bus and log them to a file.")
