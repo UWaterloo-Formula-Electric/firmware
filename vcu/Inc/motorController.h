@@ -34,7 +34,7 @@ typedef struct MotorControllerProcanSettings {
 extern uint64_t maxTorqueDemand;
 
 HAL_StatusTypeDef mcInit();
-HAL_StatusTypeDef sendThrottleValueToMCs(float throttle);
+HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle);
 HAL_StatusTypeDef mcShutdown();
 HAL_StatusTypeDef initMotorControllerProcanSettings();
 HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings);
