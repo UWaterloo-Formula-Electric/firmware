@@ -235,7 +235,7 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
     // Throttle adjustments for torque vectoring
-    // Assumes that positive angle => CCW rotation (left turn), negative angle => CW rotation (right turn)
+    // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
     float throttleRight = throttle - ( steeringAngle * TORQUE_VECTOR_FACTOR );
     float throttleLeft = throttle + ( steeringAngle * TORQUE_VECTOR_FACTOR );
 
