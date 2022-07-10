@@ -4,19 +4,19 @@
 
 #include "bsp.h"
 
-#define MAX_TORQUE_DEMAND_DEFAULT 20
-#define BRAKING_TORQUE_LIMIT_DEFAULT 0
-#define SPEED_LIMIT_DEFAULT 4000
-#define REVERSE_SPEED_LIMIT_DEFAULT 0
+#define MAX_TORQUE_DEMAND_DEFAULT       20
+#define BRAKING_TORQUE_LIMIT_DEFAULT    0
+#define SPEED_LIMIT_DEFAULT             4000
+#define REVERSE_SPEED_LIMIT_DEFAULT     0
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT 30
-#define CHARGE_CURRENT_LIMIT_DEFAULT 0
-#define HIGH_VOLTAGE_LIMIT_DEFAULT 300
-#define LOW_VOLTAGE_LIMIT_DEFAULT 150
+#define CHARGE_CURRENT_LIMIT_DEFAULT    0
+#define HIGH_VOLTAGE_LIMIT_DEFAULT      300
+#define LOW_VOLTAGE_LIMIT_DEFAULT       150
 
-#define INVERTER_STOP_TIMEOUT_MS    10000 // TODO: Chose a good value for this
-#define MC_INIT_DISCHARGE_TIME_MS (1000)
+#define INVERTER_STOP_TIMEOUT_MS        10000   // TODO: Chose a good value for this
+#define MC_INIT_DISCHARGE_TIME_MS       1000
 
-#define TORQUE_VECTOR_FACTOR 2.5   // TODO: Choose good value for this when testing
+#define TORQUE_VECTOR_FACTOR            2.5f    // TODO: Adjust value for this when testing
 
 typedef struct MotorControllerProcanSettings {
     uint64_t InverterCommand;
