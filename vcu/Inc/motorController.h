@@ -2,7 +2,6 @@
 
 #define MOTORCONTROLLER_H
 
-#include "brakeAndThrottle.h"
 #include "bsp.h"
 
 #define MAX_TORQUE_DEMAND_DEFAULT       20

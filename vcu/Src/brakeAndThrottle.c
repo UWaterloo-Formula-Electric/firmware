@@ -236,7 +236,7 @@ HAL_StatusTypeDef outputThrottle() {
     if (count % 20 == 0) {
       DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
     }
-    sendThrottleValueToMCs(throttle);
+    sendThrottleValueToMCs(throttle, getSteeringAngle());
 
     return HAL_OK;
 }

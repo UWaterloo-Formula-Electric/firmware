@@ -230,16 +230,14 @@ float limit(float in, float min, float max)
     return min;
 }
 
-HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
+HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 {
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    int steeringAngle = getSteeringAngle();
-
     // Throttle adjustments for torque vectoring
     // Assumes that positive angle => CCW rotation (left turn), negative angle => CW rotation (right turn)
-    float throttleRight = throttle - steeringAngle * TORQUE_VECTOR_FACTOR;
-    float throttleLeft = throttle + steeringAngle * TORQUE_VECTOR_FACTOR;
+    float throttleRight = throttle - ( steeringAngle * TORQUE_VECTOR_FACTOR );
+    float throttleLeft = throttle + ( steeringAngle * TORQUE_VECTOR_FACTOR );
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
