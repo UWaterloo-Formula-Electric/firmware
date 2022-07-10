@@ -234,21 +234,30 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
 {
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    float torqueDemand = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
+    int steeringAngle = getSteeringAngle();
+
+    // Throttle adjustments for torque vectoring
+    // Assumes that positive angle => CCW rotation (left turn), negative angle => CW rotation (right turn)
+    float throttleRight = throttle - steeringAngle * TORQUE_VECTOR_FACTOR;
+    float throttleLeft = throttle + steeringAngle * TORQUE_VECTOR_FACTOR;
+
+    float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
+    float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
 
     static uint64_t count2 = 0;
     count2++;
     if (count2 % 20 == 0) {
-        DEBUG_PRINT("Torque demand %f\n", torqueDemand);
+        DEBUG_PRINT("Torque demand right %f\n", torqueDemandR);
+        DEBUG_PRINT("Torque demand left %f\n", torqueDemandL);
     }
 
     TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
     TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
-    TorqueDemandRight = torqueDemand;
+    TorqueDemandRight = torqueDemandR;
 
     TorqueLimitDriveLeft = mcLeftSettings.DriveTorqueLimit;
     TorqueLimitBrakingLeft = mcLeftSettings.BrakingTorqueLimit;
-    TorqueDemandLeft = torqueDemand;
+    TorqueDemandLeft = torqueDemandL;
 
     SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
     SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
