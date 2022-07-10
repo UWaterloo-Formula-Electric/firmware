@@ -146,7 +146,7 @@ HAL_StatusTypeDef mcInit()
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
            ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
-        sendThrottleValueToMCs(0);
+        sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
@@ -164,7 +164,7 @@ HAL_StatusTypeDef mcInit()
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
            ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
-        sendThrottleValueToMCs(0);
+        sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
