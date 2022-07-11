@@ -122,11 +122,11 @@ void openAllContactors()
  */
 #define WAIT_FOR_NEXT_MEASURE_OR_STOP(MeasurePeriod, NotificationOut) \
     do { \
-        NotificationOut = 0; /* Set to zero, in case no notifaction received */ \
+        (NotificationOut) = 0; /* Set to zero, in case no notifaction received */ \
         xTaskNotifyWait( 0x00,       /* Don't clear any notification bits on entry. */ \
                          UINT32_MAX, /* Reset the notification value to 0 on exit. */ \
-                         &NotificationOut, /* Notified value passed out */ \
-                         pdMS_TO_TICKS(MeasurePeriod)); /* Timeout */ \
+                         &(NotificationOut), /* Notified value passed out */ \
+                         pdMS_TO_TICKS((MeasurePeriod))); /* Timeout */ \
     } while(0)
 
 
