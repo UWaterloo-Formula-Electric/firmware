@@ -14,8 +14,8 @@ from wfe.connect.connect import QueueDataPublisher
 
 from wfe.util import default_dbc_path
 
-today = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-logs_folder = "logs"
+today = datetime.now().strftime("%b-%d-%y_%H-%M-%S")
+logs_folder = "/home/debian/can_monitor_logs"
 
 # Create logs folder if it does not already exist
 if not os.path.isdir(logs_folder):
@@ -37,9 +37,10 @@ with open(csv_filename, "a") as csv_file:
 
 class CanMonitor(QueueDataPublisher):
 
-    DEFAULT_DBC = default_dbc_path()
+    PROCAN_MSG_IDS = [0x5947102, 0x596FF71, 0x5847270, 0x5937102, 0x5907102, 0x598FF71, 0x599FF71, 0x5917102, 0x597FF71, 0x5927102,
+                      0x5827202, 0x587FF72, 0x586FF72, 0x5817202, 0x589FF72, 0x588FF72, 0x5807202, 0x5837202, 0x18000205, 0x18000206]
 
-    def __init__(self, interface="can1", dbc=DEFAULT_DBC):
+    def __init__(self, interface="can1", dbc=default_dbc_path()):
         super(CanMonitor, self).__init__()
 
         self.interface=interface
@@ -49,7 +50,7 @@ class CanMonitor(QueueDataPublisher):
 
         self.monitoring = True
         
-    def monitor_bus(self, timeout=60):
+    def monitor_bus(self, timeout=None):
         while self.monitoring:
             try:
                 # can_bus.recv is blocking, is unblocked after timeout
@@ -60,37 +61,28 @@ class CanMonitor(QueueDataPublisher):
                     # Try again
                     continue
 
-                logging.debug("Message received: {}".format(message))
-
                 # Dictionary of decoded values and their signals
                 decoded_data = self.db.decode_message(
                     message.arbitration_id,
                     message.data
                 )
-                logging.debug("Decoded signals: {}".format(decoded_data))
+                #logging.debug("Decoded signals: {}".format(decoded_data))
 
                 # Log to CSV file
                 with open(csv_filename, "a") as csv_file:
                     csv_writer = csv.writer(csv_file)
                     for signal in decoded_data:
-                        csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
+                        if int(message.arbitration_id) not in CanMonitor.PROCAN_MSG_IDS:
+                            csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
+                # Add the frame_id back into the decoded data dict
+                can_packet = CANPacket({"timestamp": message.timestamp, "frame_id": message.arbitration_id, "signals": decoded_data})
+                self.send(can_packet)
 
             except Exception as e:
                 tb_msg = "".join(traceback.format_exception(None, e, e.__traceback__))
                 logging.error(tb_msg)
 
-            # Not needed for competition
-
-            # Add the frame_id back into the decoded data dict
-            # can_packet = CANPacket({
-            #    "timestamp": message.timestamp,
-            #    "frame_id": message.arbitration_id,
-            #    "signals": decoded_data
-            # })
-
-            # self.send(can_packet)
-
-
+            
 # Parsing command line arguments
 def get_arguments():
     parser = argparse.ArgumentParser(description="Monitor CAN messages being sent on a bus and log them to a file.")
@@ -98,7 +90,7 @@ def get_arguments():
                         default="can1", help="Bus interface (default: can1)")
     parser.add_argument("-d", "--dbc", dest="dbc", type=str,
                         default=default_dbc_path(),
-                        help="DBC file (default: /home/wfe/data/2018CAR.dbc)")
+                        help="DBC file (default: {})".format(default_dbc_path()))
     args = parser.parse_args()
     return args.interface, args.dbc
 
