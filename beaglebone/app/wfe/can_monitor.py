@@ -37,9 +37,10 @@ with open(csv_filename, "a") as csv_file:
 
 class CanMonitor(QueueDataPublisher):
 
-    DEFAULT_DBC = default_dbc_path()
+    PROCAN_MSG_IDS = [0x5947102, 0x596FF71, 0x5847270, 0x5937102, 0x5907102, 0x598FF71, 0x599FF71, 0x5917102, 0x597FF71, 0x5927102,
+                      0x5827202, 0x587FF72, 0x586FF72, 0x5817202, 0x589FF72, 0x588FF72, 0x5807202, 0x5837202, 0x18000205, 0x18000206]
 
-    def __init__(self, interface="can1", dbc=DEFAULT_DBC):
+    def __init__(self, interface="can1", dbc=default_dbc_path()):
         super(CanMonitor, self).__init__()
 
         self.interface=interface
@@ -50,8 +51,6 @@ class CanMonitor(QueueDataPublisher):
         self.monitoring = True
         
     def monitor_bus(self, timeout=None):
-        procan_msg_ids = [0x5947102, 0x596FF71, 0x5847270, 0x5937102, 0x5907102, 0x598FF71, 0x599FF71, 0x5917102, 0x597FF71, 0x5927102, 0x5827202, 0x587FF72, 0x586FF72, 0x5817202, 0x589FF72, 0x588FF72, 0x5807202, 0x5837202, 0x18000205, 0x18000206
-]
         while self.monitoring:
             try:
                 # can_bus.recv is blocking, is unblocked after timeout
@@ -61,7 +60,6 @@ class CanMonitor(QueueDataPublisher):
                             "seconds".format(self.interface, timeout))
                     # Try again
                     continue
-
 
                 # Dictionary of decoded values and their signals
                 decoded_data = self.db.decode_message(
@@ -74,12 +72,11 @@ class CanMonitor(QueueDataPublisher):
                 with open(csv_filename, "a") as csv_file:
                     csv_writer = csv.writer(csv_file)
                     for signal in decoded_data:
-                        if int(message.arbitration_id) not in procan_msg_ids:
+                        if int(message.arbitration_id) not in CanMonitor.PROCAN_MSG_IDS:
                             csv_writer.writerow([message.timestamp, signal, decoded_data[signal]])
                 # Add the frame_id back into the decoded data dict
                 can_packet = CANPacket({"timestamp": message.timestamp, "frame_id": message.arbitration_id, "signals": decoded_data})
                 self.send(can_packet)
-
 
             except Exception as e:
                 tb_msg = "".join(traceback.format_exception(None, e, e.__traceback__))
