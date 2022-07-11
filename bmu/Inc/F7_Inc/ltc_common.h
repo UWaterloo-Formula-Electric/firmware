@@ -47,9 +47,9 @@
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
 
-#define ADC_OPT(en) (en << 0) // Since we're using the normal 7kHz mode
-#define SWTRD(en) (en << 1) // We're not using the software time
-#define REFON(en) (en << 2)
+#define ADC_OPT(en) ((en) << 0) // Since we're using the normal 7kHz mode
+#define SWTRD(en) ((en) << 1) // We're not using the software time
+#define REFON(en) ((en) << 2)
 
 
 // These GPIO pins are on Register B
