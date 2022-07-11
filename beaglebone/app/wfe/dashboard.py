@@ -10,8 +10,8 @@ from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
 
-from wfe.util import default_dbc_path, default_dtc_path
-from wfe.connect.connect import QueueDataSubscriber
+from util import default_dbc_path, default_dtc_path
+from connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
     
@@ -52,7 +52,7 @@ class Dashboard(QWidget):
         self.setPalette(pal)
 
         self.mode_display = TextDisplay(self,
-                                        text="Mode: Normal",
+                                        text="Mode: Norm",
                                         colour=Qt.white,
                                         align=Qt.AlignLeft)
 
@@ -62,6 +62,23 @@ class Dashboard(QWidget):
                                            align=Qt.AlignRight)
 
         self.error_display = ErrorDisplay(self, align=Qt.AlignBottom)
+
+        self.speed_display = TextDisplay(self,
+                                         text="Speed: 0 kph",
+                                         colour=QColor(44, 197, 239),
+                                         align=Qt.AlignHCenter)
+
+        self.temp_display = TextDisplay(self,
+                                        text="Temp: N/A",
+                                        colour=QColor(255, 204, 0),
+                                        align=Qt.AlignLeft,
+                                        y_offset=45)
+
+        self.voltage_display = TextDisplay(self,
+                                           text="Voltage: 0 V",
+                                           colour=QColor(181, 124, 255),
+                                           align=Qt.AlignRight,
+                                           y_offset=45)
 
         self.speed_dial = Dial(norm_colour=QColor(44, 197, 239),
                                over_colour=Qt.red,
@@ -107,12 +124,11 @@ class Dashboard(QWidget):
 
         self.current_dtc_messages = []
 
-        # Update values every 100 milliseconds
+        # Update values every 10 milliseconds
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(100)
+        self.timer.setInterval(10)
         self.timer.timeout.connect(self.update)
         self.timer.start()
-
         self.show()
 
     # Update error text display by checking messages in DTC payload
@@ -138,6 +154,10 @@ class Dashboard(QWidget):
         else:
             self.battery_display.set_colour(Qt.red)
 
+        self.speed_display.set_text("Speed: {} kph".format(CAN_data["speed"]))
+        self.temp_display.set_text("Temp: {}°C".format(CAN_data["temperature"]))
+        self.voltage_display.set_text("Voltage: {} V".format(CAN_data["voltage"]))
+
         self.speed_dial.set_value(CAN_data["speed"])
         self.temp_dial.set_value(CAN_data["temperature"])
         self.voltage_dial.set_value(CAN_data["voltage"])
@@ -152,6 +172,9 @@ class Dashboard(QWidget):
         self.mode_display.draw(qp)
         self.battery_display.draw(qp)
         self.error_display.draw(qp)
+        self.speed_display.draw(qp)
+        self.temp_display.draw(qp)
+        self.voltage_display.draw(qp)
         self.speed_dial.draw(qp)
         self.temp_dial.draw(qp)
         self.voltage_dial.draw(qp)
@@ -239,7 +262,7 @@ class Dial:
 class TextDisplay:
     """ Used to display text. """
 
-    def __init__(self, parent, text, colour, align, font_size=22):
+    def __init__(self, parent, text, colour, align, font_size=22, y_offset=0):
         self.parent = parent
         self.text = text
         self.colour = colour
@@ -248,7 +271,7 @@ class TextDisplay:
         
         # Creates padding around window edge
         self.x = self.parent.width * 0.05 / 2
-        self.y = self.parent.height * 0.05 / 2
+        self.y = self.parent.height * 0.05 / 2 + y_offset
         self.width = self.parent.width * 0.95
         self.height = self.parent.height * 0.95
 
@@ -282,10 +305,10 @@ class ErrorDisplay:
         self.height = self.parent.height * 0.95
 
         self.severity_settings = {
-            1: { "header": "FATAL", "colour": Qt.red },
-            2: { "header": "CRITICAL", "colour": QColor(255, 103, 0) },
-            3: { "header": "ERROR", "colour": QColor(255, 193, 7) },
-            4: { "header": "WARNING", "colour": Qt.yellow }
+            1: { "header": "F", "colour": Qt.red },
+            2: { "header": "C", "colour": QColor(255, 103, 0) },
+            3: { "header": "E", "colour": QColor(255, 193, 7) },
+            4: { "header": "W", "colour": Qt.yellow }
         }
 
     def add_error_message(self, err_msg, severity):
@@ -295,7 +318,7 @@ class ErrorDisplay:
         try:
             header = self.severity_settings[severity]["header"]
         except KeyError:
-            header = "UNKNOWN"
+            header = "U"
         self.error_messages.append("{}: {}".format(header, err_msg))
         self.severities.append(severity)
 
@@ -347,6 +370,10 @@ class QueueData:
 class QueueThread(threading.Thread):
     """ Collects data from zmq message queue in the background. """
 
+    em_enable_fail_codes = [16, 17]
+    em_enable_fail_reasons = ["bpsState false", "low brake pressure", "throttle non-zero",
+                              "brake not pressed", "not hv enabled", "motors failed to start"]
+
     def __init__(self, queue_data, dbc=default_dbc_path(), dtc=default_dtc_path()):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
@@ -374,8 +401,8 @@ class QueueThread(threading.Thread):
             can_packet = self.dashboard_subscriber.recv()
 
             # BMU_stateBatteryHV
-            if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBatteryHV").frame_id:
-                voltage = can_packet["signals"]["VoltageBatteryHV"]
+            if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBusHV").frame_id:
+                voltage = can_packet["signals"]["VoltageCellMin"]
                 self.queue_data.push("voltage", round(voltage, 1))
 
             # BMU_batteryStatusHV
@@ -384,7 +411,7 @@ class QueueThread(threading.Thread):
                 self.queue_data.push("battery", round(battery, 1))
                 temp = can_packet["signals"]["TempCellMax"]
                 self.queue_data.push("temperature", round(temp, 1))
-
+ 
             # SpeedFeedbackRight, SpeedFeedbackLeft
             elif can_packet["frame_id"] in [self.db.get_message_by_name("SpeedFeedbackRight").frame_id,
                                             self.db.get_message_by_name("SpeedFeedbackLeft").frame_id]:
@@ -401,19 +428,24 @@ class QueueThread(threading.Thread):
                                             self.db.get_message_by_name("DCU_DTC").frame_id,
                                             self.db.get_message_by_name("VCU_F7_DTC").frame_id,
                                             self.db.get_message_by_name("BMU_DTC").frame_id]:
-                code, severity = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"]
+                code, severity, data = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"], can_packet["signals"]["DTC_Data"]
                 try:
                     message = self.dtc_messages[int(code)-1]
                 except IndexError:
-                    message = "Unknown DTC Code! (Code given: <{}>)".format(code)
+                    message = "Unknown DTC Code: {})".format(code)
+
+                # Substitute #data in message with actual error reason
+                if code in QueueThread.em_enable_fail_codes:
+                    message = message[:message.find(" (Reasons")]
+                    message = message.replace("#data", QueueThread.em_enable_fail_reasons[data])
+                elif "#data" in message:
+                    message = message.replace("#data", data)
+
                 payload = [{
                     "severity": severity,
                     "message": message
                 }]
                 self.queue_data.push("dtc_message_payload", payload)
-
-            time.sleep(0.001)
-            
 
 class DashboardSubscriber(QueueDataSubscriber):
     """ Subscribes dashboard to data using zmq """

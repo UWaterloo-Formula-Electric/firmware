@@ -17,7 +17,7 @@
 
 extern osThreadId mainTaskHandle;
 
-#define BUZZER_LENGTH_MS 1000
+#define BUZZER_LENGTH_MS 2000
 TimerHandle_t buzzerSoundTimer;
 
 void buzzerTimerCallback(TimerHandle_t timer);

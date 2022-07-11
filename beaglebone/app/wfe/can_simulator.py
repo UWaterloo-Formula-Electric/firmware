@@ -12,7 +12,8 @@ import threading
 import can
 import cantools
 
-from wfe.can_monitor import CanMonitor
+from can_monitor import CanMonitor
+from util import default_dbc_path
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -130,8 +131,8 @@ class CanSimulator:
 def get_arguments():
     parser = argparse.ArgumentParser(description="Run CAN Simulations with CAN monitor.")
     parser.add_argument("-d", "--dbc", dest="dbc", type=str,
-                        default="../../../../common/Data/2018CAR.dbc",
-                        help="DBC file (default: ../../../../common/Data/2018CAR.dbc)")
+                        default=default_dbc_path(),
+                        help="DBC file (default: {})".format(default_dbc_path()))
     parser.add_argument("-j", "--json", dest="json", type=str,
                         default="json/heartbeat.json",
                         help="JSON file (default: json/heartbeat.json)")
