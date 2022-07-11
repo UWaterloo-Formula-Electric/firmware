@@ -9,15 +9,7 @@
 #include "stdbool.h"
 #include "iwdg.h"
 
-//definitions for MISRA-C rules compliance
-#ifndef IS_BOARD_F0
-#define IS_BOARD_F0
-#endif
-
-#ifndef IS_BOARD_NUCLEO_F0
-#define IS_BOARD_NUCLEO_F0 0
-#endif
-
+// cppcheck-suppress misra-c2012-20.9
 #if IS_BOARD_F0
 #include "stm32f0xx_hal.h"
 
@@ -74,6 +66,7 @@
 #define BUZZER_ON HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_SET);
 #define BUZZER_OFF HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port, BUZZER_EN_Pin, GPIO_PIN_RESET);
 
+// cppcheck-suppress misra-c2012-20.9
 #elif IS_BOARD_NUCLEO_F0
 #include "stm32f0xx_hal.h"
 
