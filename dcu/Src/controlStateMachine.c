@@ -91,6 +91,7 @@ uint32_t updateFromCAN(uint32_t event)
         default:
             ERROR_PRINT("Error: Unexpected event when updating from CAN!\n");
             Error_Handler();
+            break;
     }
 
     /* Return current state, as it's not always an error */
@@ -250,6 +251,7 @@ void debounceTimerCallback(TimerHandle_t timer)
             /* Shouldn't get here */ 
             DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
             pin_val = GPIO_PIN_SET;
+            break;
     }
 
 
@@ -268,6 +270,7 @@ void debounceTimerCallback(TimerHandle_t timer)
             default:
                 /* Shouldn't get here */
                 DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
+                break;
         }
 
     }
@@ -300,6 +303,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
             /* Not a fatal error here, but report error and return */
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
             return;
+            break;
     }
 
     xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
