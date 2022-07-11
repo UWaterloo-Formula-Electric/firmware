@@ -403,15 +403,14 @@ class QueueThread(threading.Thread):
             # BMU_stateBatteryHV
             if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBusHV").frame_id:
                 voltage = can_packet["signals"]["VoltageCellMin"]
-                #self.queue_data.push("voltage", round(voltage, 1))
-                self.queue_data.push("voltage", round(voltage,2))
+                self.queue_data.push("voltage", round(voltage, 1))
 
             # BMU_batteryStatusHV
             elif can_packet["frame_id"] == self.db.get_message_by_name("BMU_batteryStatusHV").frame_id:
                 battery = can_packet["signals"]["StateBatteryChargeHV"]
                 self.queue_data.push("battery", round(battery, 1))
                 temp = can_packet["signals"]["TempCellMax"]
-                self.queue_data.push("temperature", round(temp, 2))
+                self.queue_data.push("temperature", round(temp, 1))
  
             # SpeedFeedbackRight, SpeedFeedbackLeft
             elif can_packet["frame_id"] in [self.db.get_message_by_name("SpeedFeedbackRight").frame_id,
