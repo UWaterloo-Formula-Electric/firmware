@@ -10,8 +10,8 @@ from PySide2.QtWidgets import QApplication, QWidget
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
 
-from wfe.util import default_dbc_path, default_dtc_path
-from wfe.connect.connect import QueueDataSubscriber
+from util import default_dbc_path, default_dtc_path
+from connect.connect import QueueDataSubscriber
 
 class Dashboard(QWidget):
     
@@ -124,12 +124,11 @@ class Dashboard(QWidget):
 
         self.current_dtc_messages = []
 
-        # Update values every 100 milliseconds
+        # Update values every 10 milliseconds
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(100)
+        self.timer.setInterval(10)
         self.timer.timeout.connect(self.update)
         self.timer.start()
-
         self.show()
 
     # Update error text display by checking messages in DTC payload
@@ -319,7 +318,7 @@ class ErrorDisplay:
         try:
             header = self.severity_settings[severity]["header"]
         except KeyError:
-            header = "UNKNOWN"
+            header = "U"
         self.error_messages.append("{}: {}".format(header, err_msg))
         self.severities.append(severity)
 
@@ -371,6 +370,10 @@ class QueueData:
 class QueueThread(threading.Thread):
     """ Collects data from zmq message queue in the background. """
 
+    em_enable_fail_codes = [16, 17]
+    em_enable_fail_reasons = ["bpsState false", "low brake pressure", "throttle non-zero",
+                              "brake not pressed", "not hv enabled", "motors failed to start"]
+
     def __init__(self, queue_data, dbc=default_dbc_path(), dtc=default_dtc_path()):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
@@ -398,8 +401,8 @@ class QueueThread(threading.Thread):
             can_packet = self.dashboard_subscriber.recv()
 
             # BMU_stateBatteryHV
-            if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBatteryHV").frame_id:
-                voltage = can_packet["signals"]["VoltageBatteryHV"]
+            if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBusHV").frame_id:
+                voltage = can_packet["signals"]["VoltageCellMin"]
                 self.queue_data.push("voltage", round(voltage, 1))
 
             # BMU_batteryStatusHV
@@ -408,7 +411,7 @@ class QueueThread(threading.Thread):
                 self.queue_data.push("battery", round(battery, 1))
                 temp = can_packet["signals"]["TempCellMax"]
                 self.queue_data.push("temperature", round(temp, 1))
-
+ 
             # SpeedFeedbackRight, SpeedFeedbackLeft
             elif can_packet["frame_id"] in [self.db.get_message_by_name("SpeedFeedbackRight").frame_id,
                                             self.db.get_message_by_name("SpeedFeedbackLeft").frame_id]:
@@ -425,19 +428,24 @@ class QueueThread(threading.Thread):
                                             self.db.get_message_by_name("DCU_DTC").frame_id,
                                             self.db.get_message_by_name("VCU_F7_DTC").frame_id,
                                             self.db.get_message_by_name("BMU_DTC").frame_id]:
-                code, severity = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"]
+                code, severity, data = can_packet["signals"]["DTC_CODE"], can_packet["signals"]["DTC_Severity"], can_packet["signals"]["DTC_Data"]
                 try:
                     message = self.dtc_messages[int(code)-1]
                 except IndexError:
-                    message = "Unknown DTC Code! (Code given: <{}>)".format(code)
+                    message = "Unknown DTC Code: {})".format(code)
+
+                # Substitute #data in message with actual error reason
+                if code in QueueThread.em_enable_fail_codes:
+                    message = message[:message.find(" (Reasons")]
+                    message = message.replace("#data", QueueThread.em_enable_fail_reasons[data])
+                elif "#data" in message:
+                    message = message.replace("#data", data)
+
                 payload = [{
                     "severity": severity,
                     "message": message
                 }]
                 self.queue_data.push("dtc_message_payload", payload)
-
-            time.sleep(0.001)
-            
 
 class DashboardSubscriber(QueueDataSubscriber):
     """ Subscribes dashboard to data using zmq """
