@@ -3,7 +3,7 @@ from cantools.database.can.signal import NamedSignalValue
 import zmq
 import json
 
-from wfe.connect.packet import Packet, CANPacket, UnknownPacketException
+from connect.packet import Packet, CANPacket, UnknownPacketException
 
 class QueueSerializer:
     # http://zguide.zeromq.org/page:all#Pub-Sub-Message-Envelopes
