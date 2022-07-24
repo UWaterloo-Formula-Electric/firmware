@@ -240,12 +240,12 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
                     HV_TOGGLE_BUTTON_PIN);
             break;
-        
+
         case EM_TOGGLE_BUTTON_PIN:
             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
                     EM_TOGGLE_BUTTON_PIN);
             break;
-        
+
         default:
             /* Shouldn't get here */ 
             DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
@@ -260,11 +260,11 @@ void debounceTimerCallback(TimerHandle_t timer)
             case HV_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_HV_Toggle);
                 break;
-            
+
             case EM_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_EM_Toggle);
                 break;
-            
+
             default:
                 /* Shouldn't get here */
                 DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
@@ -291,11 +291,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         case HV_TOGGLE_BUTTON_PIN:
             debouncingPin = HV_TOGGLE_BUTTON_PIN;
             break;
-        
+
         case EM_TOGGLE_BUTTON_PIN:
             debouncingPin = EM_TOGGLE_BUTTON_PIN;
             break;
-        
+
         default:
             /* Not a fatal error here, but report error and return */
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
