@@ -58,7 +58,7 @@ BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(idxParam, "%u", &channelIdx);
 
-    if (channelIdx < 0 || channelIdx >= NUM_PDU_CHANNELS) {
+    if ((channelIdx < 0) || (channelIdx >= NUM_PDU_CHANNELS)) {
         COMMAND_OUTPUT("channelIdx Index must be between 0 and %d\n", NUM_PDU_CHANNELS);
         return pdFALSE;
     }

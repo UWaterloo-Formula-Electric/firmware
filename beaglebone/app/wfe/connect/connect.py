@@ -1,13 +1,17 @@
+from cantools.database.can.signal import NamedSignalValue
+
 import zmq
 import json
 
-from wfe.connect.packet import Packet, CANPacket, UnknownPacketException
+from connect.packet import Packet, CANPacket, UnknownPacketException
 
 class QueueSerializer:
     # http://zguide.zeromq.org/page:all#Pub-Sub-Message-Envelopes
 
     def serialize(self, topic, msg):
         """ JSON encode our topic and message into a multipart message """
+        if isinstance(msg, NamedSignalValue):
+            msg = msg.name()
         msg_string = json.dumps(msg)
         return [topic.encode(), msg_string.encode()]
 
