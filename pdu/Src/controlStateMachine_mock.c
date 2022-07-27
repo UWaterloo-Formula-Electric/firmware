@@ -267,7 +267,16 @@ static const CLI_Command_Definition_t mockOverTempCommandDefinition =
 BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("States:\nCooling: %ld\nMotors: %ld\nMain: %ld\n", fsmGetState(&coolingFsmHandle), fsmGetState(&motorFsmHandle), fsmGetState(&mainFsmHandle));
+    char Main_state_arr[6][16]={
+        "Boards Off", "Boards On", "Warning Critical", "LV Shutting Down", "Critical Failure", "Any State"
+    };
+    char Motor_state_arr[4][16]={
+        "Motors Off", "Motors On", "Critical", "Any State"
+    };
+    char Cool_state_arr[6][11]={
+        "OFF", "WAIT", "ON", "HV_CRITICAL", "LV_Cuttoff", "Any State"
+    };
+    COMMAND_OUTPUT("States:\nCooling: %ld\nMotors: %ld\nMain: %ld\n", Cool_state_arr[fsmGetState(&coolingFsmHandle)], Motor_state_arr[fsmGetState(&motorFsmHandle)], Main_state_arr[fsmGetState(&mainFsmHandle)]);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =

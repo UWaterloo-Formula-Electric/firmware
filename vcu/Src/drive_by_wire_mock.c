@@ -309,7 +309,15 @@ static const CLI_Command_Definition_t hvStateCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("State: %ld\n", fsmGetState(&fsmHandle));
+    char state_arr[5][10]={
+        "Self Check", "Em Disable", "Em Enable", "Failure Fatal", "State Any"
+    };
+    if (index < 0 || index > 5){
+        printf("Error: state index out of range");
+    } else {
+        COMMAND_OUTPUT("State: %s\n", state_arr[fsmGetState(&fsmHandle)]);
+    }
+    // COMMAND_OUTPUT("State: %s\n", state_arr[fsmGetState(&fsmHandle)]);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =

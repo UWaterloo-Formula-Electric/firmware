@@ -359,7 +359,34 @@ static const CLI_Command_Definition_t fakeEnterChargeModeCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("State: %ld\n", fsmGetState(&fsmHandle));
+    // char state_arr[11][25] =
+    // {
+    //     "Self check", "Wait System Up", "HV Disable",
+    //     "HV Enable", "Precharge", "Discharge",
+    //     "Charging", "Failure fatal", "Failure CBRB Disabled",
+    //     "Failure CBRB Discharge", "State any"
+    // };
+    // COMMAND_OUTPUT("State: %s\n", state_arr[fsmGetState(&fsmHandle)]);
+    long int index;
+    const char *msgArray[11];
+    msgArray[0] = "Self Check";
+    msgArray[1] = "Wait System Up";
+    msgArray[2] = "HV Disable";
+    msgArray[3] = "HV Enable";
+    msgArray[4] = "Precharge";
+    msgArray[5] = "Discharge"    ;
+    msgArray[6] = "Charging";
+    msgArray[7] = "Failure Fatal"; 
+    msgArray[8] = "Failure CBRB Disabled";
+    msgArray[9] = "Failure CBRB Discharge";
+    msgArray[10] = "ANY";
+
+    index = fsmGetState(&fsmHandle);
+    if (index < 0 || index > 10){
+        printf("Error: state index out of range");
+    } else {
+        COMMAND_OUTPUT("State: %s\n", state_arr[fsmGetState(&fsmHandle)]);
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
