@@ -267,16 +267,20 @@ static const CLI_Command_Definition_t mockOverTempCommandDefinition =
 BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    char Main_state_arr[6][16]={
-        "Boards Off", "Boards On", "Warning Critical", "LV Shutting Down", "Critical Failure", "Any State"
-    };
-    char Motor_state_arr[4][16]={
-        "Motors Off", "Motors On", "Critical", "Any State"
-    };
-    char Cool_state_arr[6][11]={
-        "OFF", "WAIT", "ON", "HV_CRITICAL", "LV_Cuttoff", "Any State"
-    };
-    COMMAND_OUTPUT("States:\nCooling: %ld\nMotors: %ld\nMain: %ld\n", Cool_state_arr[fsmGetState(&coolingFsmHandle)], Motor_state_arr[fsmGetState(&motorFsmHandle)], Main_state_arr[fsmGetState(&mainFsmHandle)]);
+    
+    long int cool_index, motor_index, main_index;
+    cool_index = fsmGetState(&coolingFsmHandle);
+    motor_index = fsmGetState(&motorFsmHandle);
+    main_index = fsmGetState(&mainFsmHandle);
+    if (cool_index < 0 || cool_index >= lutLen(Cool_state_arr)  ){
+        printf("Error: cool state index out of range");
+    }else if (motor_index <0 || motor_index >= lutLen(Motor_state_arr)){
+        printf("Error: motor state index out of range");
+    }else if (main_index <0 || main_index >= lutLen(Main_state_arr)){
+        printf("Error: main state index out of range");
+    }else {
+        COMMAND_OUTPUT("States:\nCooling: %s\nMotors: %s\nMain: %s\n", Cool_state_arr[cool_index], Motor_state_arr[motor_index], Main_state_arr[main_index]);
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
