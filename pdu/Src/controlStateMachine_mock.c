@@ -273,11 +273,11 @@ BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
     motor_index = fsmGetState(&motorFsmHandle);
     main_index = fsmGetState(&mainFsmHandle);
     if (cool_index < 0 || cool_index >= lutLen(Cool_state_arr)  ){
-        printf("Error: cool state index out of range");
+        DEBUG_PRINT("Error: cool state index out of range");
     }else if (motor_index <0 || motor_index >= lutLen(Motor_state_arr)){
-        printf("Error: motor state index out of range");
+        DEBUG_PRINT("Error: motor state index out of range");
     }else if (main_index <0 || main_index >= lutLen(Main_state_arr)){
-        printf("Error: main state index out of range");
+        DEBUG_PRINT("Error: main state index out of range");
     }else {
         COMMAND_OUTPUT("States:\nCooling: %s\nMotors: %s\nMain: %s\n", Cool_state_arr[cool_index], Motor_state_arr[motor_index], Main_state_arr[main_index]);
     }

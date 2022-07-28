@@ -362,7 +362,7 @@ BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
     long int index;
     index = fsmGetState(&fsmHandle);
     if (index < 0 || index >= lutLen(state_arr)){
-        printf("Error: state index out of range");
+        DEBUG_PRINT("Error: state index out of range");
     } else {
         COMMAND_OUTPUT("State: %s\n", state_arr[index]);
     }
