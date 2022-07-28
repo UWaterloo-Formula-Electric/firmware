@@ -310,10 +310,10 @@ BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     long int index = fsmGetState(&fsmHandle);
-    if (index < 0 || index >= lutLen(state_arr) ){
-        DEBUG_PRINT("Error: state index out of range");
+    if (index < 0 || index >= lutLen(VCU_States_String) ){
+        COMMAND_OUTPUT("Error: state index out of range. Index: %ld\n", index);
     } else {
-        COMMAND_OUTPUT("State: %s\n", state_arr[index]);
+        COMMAND_OUTPUT("State: %s\n", VCU_States_String[index]);
     }
     return pdFALSE;
 }

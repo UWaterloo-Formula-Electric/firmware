@@ -14,8 +14,13 @@ typedef enum Main_PDU_States_t {
     MN_STATE_ANY, // Must be the last state
 } Main_PDU_States_t;
 
-char Main_state_arr[][25]={
-    "Boards Off", "Boards On", "Warning Critical", "LV Shutting Down", "Critical Failure", "Any State"
+char PDU_Main_States_String[][25]={
+    "Boards Off", 
+    "Boards On", 
+    "Warning Critical", 
+    "LV Shutting Down", 
+    "Critical Failure", 
+    "Any State"
 };
 
 typedef enum MAIN_PDU_Events_t {
@@ -34,8 +39,11 @@ typedef enum MotorControl_PDU_States_t {
     MTR_STATE_ANY, // Must be the last state
 } MotorControl_PDU_States_t;
 
-char Motor_state_arr[][20]={
-    "Motors Off", "Motors On", "Critical", "Any State"
+char PDU_Motor_States_String[][20]={
+    "Motors Off", 
+    "Motors On", 
+    "Critical", 
+    "Any State"
 };
 
 typedef enum MotorControl_PDU_Events_t {
@@ -54,8 +62,13 @@ typedef enum CoolingControl_PDU_States_t {
     COOL_STATE_ANY, // Must be the last state
 } CoolingControl_PDU_States_t;
 
-char Cool_state_arr[][15]={
-    "OFF", "WAIT", "ON", "HV_CRITICAL", "LV_Cutoff", "Any State"
+char PDU_Cool_States_String[][15]={
+    "OFF", 
+    "WAIT", 
+    "ON", 
+    "HV_CRITICAL", 
+    "LV_Cutoff", 
+    "Any State"
 };
 
 typedef enum CoolingControl_PDU_Events_t {

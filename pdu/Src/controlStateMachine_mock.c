@@ -269,15 +269,40 @@ BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
 {
     
     long int cool_index, motor_index, main_index;
+    static int count = 0;
+
     cool_index = fsmGetState(&coolingFsmHandle);
     motor_index = fsmGetState(&motorFsmHandle);
     main_index = fsmGetState(&mainFsmHandle);
+    if(count == 0){
+        if (cool_index < 0 || cool_index >= lutLen(PDU_Cool_States_String)){
+            COMMAND_OUTPUT("States:\nError: cool state index out of range. Cool State Index: %ld\n", cool_index);
+        }else{
+            COMMAND_OUTPUT("States:\nCooling: %s\n", PDU_Cool_States_String[cool_index]);
+        }
+        count++;
+        return pdTRUE;
+    }else if(count == 1){
+        if (motor_index <0 || motor_index >= lutLen(PDU_Motor_States_String)){
+            COMMAND_OUTPUT("Error: motor state index out of range. Motor State Index: %ld\n", motor_index);
+        }else{
+            COMMAND_OUTPUT("Motor: %s\n", PDU_Motor_States_String[motor_index]);
+        }
+        count++;
+        return pdTRUE;
+    }else if(count == 2){
+        if (main_index <0 || main_index >= lutLen(PDU_Main_States_String)){
+            COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %ld\n", main_index);
+        }else{
+            COMMAND_OUTPUT("Main: %s\n", PDU_Main_States_String[main_index]);
+        }
+    }
     if (cool_index < 0 || cool_index >= lutLen(Cool_state_arr)  ){
-        DEBUG_PRINT("Error: cool state index out of range");
+        COMMAND_OUTPUT("Error: cool state index out of range. Cool State Index: %ld\n", cool_index);
     }else if (motor_index <0 || motor_index >= lutLen(Motor_state_arr)){
-        DEBUG_PRINT("Error: motor state index out of range");
+        COMMAND_OUTPUT("Error: motor state index out of range. Motor State Index: %ld\n", motor_index);
     }else if (main_index <0 || main_index >= lutLen(Main_state_arr)){
-        DEBUG_PRINT("Error: main state index out of range");
+        COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %ld\n", main_index);
     }else {
         COMMAND_OUTPUT("States:\nCooling: %s\nMotors: %s\nMain: %s\n", Cool_state_arr[cool_index], Motor_state_arr[motor_index], Main_state_arr[main_index]);
     }
