@@ -267,35 +267,35 @@ static const CLI_Command_Definition_t mockOverTempCommandDefinition =
 BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    
-    long int cool_index, motor_index, main_index;
     static int count = 0;
 
-    cool_index = fsmGetState(&coolingFsmHandle);
-    motor_index = fsmGetState(&motorFsmHandle);
-    main_index = fsmGetState(&mainFsmHandle);
-
     if(count == 0){
-        if (cool_index < 0 || cool_index >= lutLen(PDU_Cool_States_String)){
-            COMMAND_OUTPUT("States:\nError: cool state index out of range. Cool State Index: %ld\n", cool_index);
-        }else{
+        uint8_t cool_index;
+        cool_index = fsmGetState(&coolingFsmHandle);
+        if (cool_index >= 0 && cool_index < COOL_STATE_ANY){
             COMMAND_OUTPUT("States:\nCooling: %s\n", PDU_Cool_States_String[cool_index]);
+        }else{
+            COMMAND_OUTPUT("States:\nError: cool state index out of range. Cool State Index: %u\n", cool_index);
         }
         count++;
         return pdTRUE;
     }else if(count == 1){
-        if (motor_index <0 || motor_index >= lutLen(PDU_Motor_States_String)){
-            COMMAND_OUTPUT("Error: motor state index out of range. Motor State Index: %ld\n", motor_index);
-        }else{
+        uint8_t motor_index;
+        motor_index = fsmGetState(&motorFsmHandle);
+        if (motor_index >= 0 && motor_index < MTR_STATE_ANY){
             COMMAND_OUTPUT("Motor: %s\n", PDU_Motor_States_String[motor_index]);
+        }else{
+            COMMAND_OUTPUT("Error: motor state index out of range. Motor State Index: %u\n", motor_index);
         }
         count++;
         return pdTRUE;
     }else if(count == 2){
-        if (main_index <0 || main_index >= lutLen(PDU_Main_States_String)){
-            COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %ld\n", main_index);
-        }else{
+        uint8_t main_index;
+        main_index = fsmGetState(&mainFsmHandle);
+        if (main_index >= 0 && main_index < MN_STATE_ANY){
             COMMAND_OUTPUT("Main: %s\n", PDU_Main_States_String[main_index]);
+        }else{
+            COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %u\n", main_index);
         }
         return pdFALSE;
     }else{

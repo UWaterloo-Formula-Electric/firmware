@@ -3,7 +3,6 @@
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
 
-#define lutLen(X) (sizeof(X) / sizeof((X)[0]))
 
 typedef enum Main_PDU_States_t {
     MN_STATE_Boards_Off = 0,
@@ -19,8 +18,7 @@ char PDU_Main_States_String[][25]={
     "Boards On", 
     "Warning Critical", 
     "LV Shutting Down", 
-    "Critical Failure", 
-    "Any State"
+    "Critical Failure"
 };
 
 typedef enum MAIN_PDU_Events_t {
@@ -42,8 +40,7 @@ typedef enum MotorControl_PDU_States_t {
 char PDU_Motor_States_String[][20]={
     "Motors Off", 
     "Motors On", 
-    "Critical", 
-    "Any State"
+    "Critical"
 };
 
 typedef enum MotorControl_PDU_Events_t {
@@ -67,8 +64,7 @@ char PDU_Cool_States_String[][15]={
     "WAIT", 
     "ON", 
     "HV_CRITICAL", 
-    "LV_Cutoff", 
-    "Any State"
+    "LV_Cutoff"
 };
 
 typedef enum CoolingControl_PDU_Events_t {

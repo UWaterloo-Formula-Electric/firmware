@@ -15,8 +15,6 @@
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
 
-#define lutLen(X) (sizeof(X) / sizeof((X)[0]))
-
 typedef enum BMU_States_t {
     STATE_Self_Check = 0,		 ///< 0: Self check performed on boot
     STATE_Wait_System_Up,		 ///< 1: Waiting for the IMD and Fault Monitor
@@ -42,8 +40,7 @@ char BMU_states_string[][25] =
     "Charging", 
     "Failure fatal", 
     "Failure CBRB Disabled",
-    "Failure CBRB Discharge", 
-    "State any"
+    "Failure CBRB Discharge"
 };
 
 typedef enum BMU_Events_t {

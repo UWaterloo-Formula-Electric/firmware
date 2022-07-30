@@ -2,7 +2,6 @@
 #define __DRIVE_BY_WIRE_H
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
-#define lutLen(X) (sizeof(X) / sizeof((X)[0]))
 
 // Throttle poll time is linked to brake timeout and implausibilty timeout
 #define THROTTLE_POLL_TIME_MS 50
@@ -23,8 +22,7 @@ char VCU_States_String[][20]={
     "Self Check", 
     "Em Disable", 
     "Em Enable", 
-    "Failure Fatal", 
-    "State Any"
+    "Failure Fatal"
 };
 
 typedef enum VCU_Events_t {

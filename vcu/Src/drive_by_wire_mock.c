@@ -309,11 +309,11 @@ static const CLI_Command_Definition_t hvStateCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    long int index = fsmGetState(&fsmHandle);
-    if (index < 0 || index >= lutLen(VCU_States_String) ){
-        COMMAND_OUTPUT("Error: state index out of range. Index: %ld\n", index);
-    } else {
+    uint8_t index = fsmGetState(&fsmHandle);
+    if (index >= 0 && index < STATE_ANY){
         COMMAND_OUTPUT("State: %s\n", VCU_States_String[index]);
+    } else {
+        COMMAND_OUTPUT("Error: state index out of range. Index: %u\n", index);
     }
     return pdFALSE;
 }
