@@ -34,21 +34,25 @@ void toggle_TC(void)
 }
 static float get_FR_speed()
 {
+	//Value comes from WSB
 	return SpeedWheelRightFront;
 }
 
 static float get_FL_speed()
 {
+	//Value comes from WSB
 	return SpeedWheelLeftFront;
 }
 
 static float get_RR_speed()
 {
+	//Value comes from MC
 	return RPM_TO_RADS(SpeedMotorRight);
 }
 
 static float get_RL_speed()
 {
+	//Value comes from MC
 	return RPM_TO_RADS(SpeedMotorLeft);
 }
 
