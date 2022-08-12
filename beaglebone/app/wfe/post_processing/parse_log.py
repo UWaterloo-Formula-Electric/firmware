@@ -2,6 +2,8 @@ import argparse
 import logging
 import csv
 import re
+import codecs
+
 
 def sort_csv(csv_reader, column, rev=False):
     return sorted(csv_reader, key = lambda row: row[column], reverse=rev)
@@ -19,9 +21,12 @@ def filter(src_file, signals_l, regex_l):
     with open(src_file, 'r') as f:
         reader = csv.reader(f)
         sorted_csv = sort_csv(reader, 0)
-        for row in sorted_csv:
-            if signal_filter(row[1], signals_l, regex_l):
-                filtered_data.append(row)
+        try:
+            for row in sorted_csv:
+                if signal_filter(row[1], signals_l, regex_l):
+                    filtered_data.append(row)
+        except:
+            pass
     return filtered_data
 
 
