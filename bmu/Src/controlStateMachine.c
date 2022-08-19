@@ -76,8 +76,8 @@ Transition_t transitions[] = {
 	// Cockpit BRB pressed/unpressed
 	{ STATE_ANY, EV_Cockpit_BRB_Pressed, &cockpitBRBPressed },
 	{ STATE_Failure_CBRB_Disabled, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased},
-	{ STATE_Failure_CBRB_Discharge, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased},
-    { STATE_Failure_CBRB_Discharge, EV_Discharge_Finished, &dischargeFinished },
+	{ STATE_Failure_CBRB_Enabled, EV_Cockpit_BRB_Unpressed, &startPrecharge},
+    { STATE_Failure_CBRB_Enabled, EV_Discharge_Finished, &dischargeFinished },
 
     // Already in failure, do nothing
     // Takes priority over rest of events
@@ -245,9 +245,9 @@ uint32_t dischargeFinished(uint32_t event)
     sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
-	if(currentState == STATE_Failure_CBRB_Discharge || currentState == STATE_Failure_CBRB_Disabled)
+	if(currentState == STATE_Failure_CBRB_Enabled || currentState == STATE_Failure_CBRB_Disabled)
 	{
-		return STATE_Failure_CBRB_Disabled;
+		return currentState;
 	}
     return STATE_HV_Disable;
 }
@@ -420,43 +420,34 @@ uint32_t cockpitBRBPressed(uint32_t event)
             {
                 DEBUG_PRINT("Cockpit BRB pressed during HV Enable, starting discharge\n");
                 xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
-                return STATE_Failure_CBRB_Discharge;
+                return STATE_Failure_CBRB_Enabled;
             }
             break;
         case STATE_Precharge:
             {
                 DEBUG_PRINT("Cocpit BRB pressed during precharge\n");
 				sendStopPrecharge();
-				return STATE_Failure_CBRB_Discharge;
+				return STATE_Failure_CBRB_Enabled;
             }
             break;
         case STATE_Discharge:
             {
                 DEBUG_PRINT("Cockpit BRB pressed during discharge. Attempting to continue discharge\n");
-                return STATE_Failure_CBRB_Discharge;
+                return STATE_Failure_CBRB_Disabled;
             }
             break;
         default:
             {
                 ERROR_PRINT("Cockpit BRB during other state. Starting discharge\n");
                 xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
-                return STATE_Failure_CBRB_Discharge;
+                return STATE_Failure_CBRB_Disabled;
             }
             break;
     }
-	return STATE_Failure_CBRB_Discharge;
+	return STATE_Failure_CBRB_Disabled;
 }
 
 uint32_t cockpitBRBReleased(uint32_t event)
 {
-	if (fsmGetState(&fsmHandle) == STATE_Failure_CBRB_Disabled)
-	{
-		return STATE_HV_Disable;
-	}
-	else if (fsmGetState(&fsmHandle) == STATE_Failure_CBRB_Discharge)
-	{
-		// If we are discharging put us in the discharge state
-		return STATE_Discharge;
-	}
 	return STATE_HV_Disable;
 }

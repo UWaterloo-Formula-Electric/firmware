@@ -780,6 +780,7 @@ static const CLI_Command_Definition_t stopSendCellCommandDefinition =
     0 /* Number of parameters */
 };
 
+extern bool skip_il;
 BaseType_t forceChargeModeCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -791,6 +792,7 @@ BaseType_t forceChargeModeCommand(char *writeBuffer, size_t writeBufferLength,
     sscanf(cellIdxString, "%d", &mode);
 
 	setChargeMode(mode);
+	skip_il = mode;
     return pdFALSE;
 }
 
@@ -801,6 +803,70 @@ static const CLI_Command_Definition_t forceChargeModeCommandDefinition =
     forceChargeModeCommand,
     1 /* Number of parameters */
 };
+
+extern volatile float LIMIT_OVERVOLTAGE;
+BaseType_t setOverVoltageLimitCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    float limit;
+    sscanf(cellIdxString, "%f", &limit);
+	LIMIT_OVERVOLTAGE = limit;
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t setOverVoltageLimitCommandDefinition =
+{
+    "setOverVoltageLimit",
+    "setOverVoltageLimit:\r\n Set the overvoltage limit for the battery (pass in a float) \r\n",
+    setOverVoltageLimitCommand,
+    1 /* Number of parameters */
+};
+
+extern volatile float LIMIT_UNDERVOLTAGE;
+BaseType_t setUnderVoltageLimitCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    float limit;
+    sscanf(cellIdxString, "%f", &limit);
+	LIMIT_UNDERVOLTAGE = limit;
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t setUnderVoltageLimitCommandDefinition =
+{
+    "setUnderVoltageLimit",
+    "setUnderVoltageLimit:\r\n Set the undervoltage limit for the battery (pass in a float) \r\n",
+    setUnderVoltageLimitCommand,
+    1 /* Number of parameters */
+};
+
+
+BaseType_t cbrbStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_IL_Status()?"OK":"Fault");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t cbrbStatusCommandDefinition =
+{
+    "cbrbStatus",
+    "cbrbStatus:\r\n \r\n",
+    cbrbStatusCommand,
+    0 /* Number of parameters */
+};
+
+
+
+
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -911,6 +977,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&forceChargeModeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setOverVoltageLimitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setUnderVoltageLimitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&cbrbStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
