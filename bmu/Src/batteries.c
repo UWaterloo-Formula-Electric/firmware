@@ -60,7 +60,8 @@
  */
 
 // This is subject to change and is expected to be 50ms
-#define BATTERY_TASK_PERIOD_MS 50
+// I moved it to 75ms to be safe
+#define BATTERY_TASK_PERIOD_MS 75
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -98,6 +99,11 @@ volatile float LIMIT_UNDERVOLTAGE = DEFAULT_LIMIT_UNDERVOLTAGE;
 #define CELL_DCR (0.01)                         ///< Ohms
 #define CELL_HEAT_CAPACITY (1034.2)             ///< kJ/kg*K
 #define CELL_MASS (0.496)                       ///< kg
+
+// A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
+// This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
+// Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
+#define ADJUSTED_CELL_IR (0.003F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
@@ -218,6 +224,9 @@ QueueHandle_t PackVoltageQueue;
  */
 #define IMD_TASK_PERIOD_MS 1000
 #define IMD_TASK_ID 5
+
+/// Array is used to store the filtered voltages
+float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
 /*
  * HV Measure
@@ -592,6 +601,18 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #endif
 }
 
+/*
+ * Adjusts cell voltages based on cell internal resistance and current
+ * */
+void enterAdjustedCellVoltages(void)
+{
+	float bus_current_A;
+	getIBus(&bus_current_A);
+	for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
+	{
+		AdjustedVoltageCell[cell] = cellVoltagesFiltered[cell] + (bus_current_A * ADJUSTED_CELL_IR);
+	}
+}
 /**
  * @brief This functions sets all cell voltages and temps to known values.
  * This is necessary for testing on Nucleo so it doesn't immediately error
@@ -694,8 +715,6 @@ void ERROR_COUNTER_SUCCESS()
  */
 #define CELL_VOLTAGE_FILTER_ALPHA 0.18
 
-/// Array is used to store the filtered voltages
-float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
 
 /**
@@ -715,10 +734,19 @@ float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
  */
 void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 {
-  for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
-    cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
-                              + (1-IBUS_FILTER_ALPHA)*cellVoltagesFiltered[i];
-  }
+	static bool first_run = true;
+	if(first_run)
+	{
+		for(int i = 0; i < NUM_VOLTAGE_CELLS; i++)
+		{
+			cellVoltagesFiltered[i] = cellVoltages[i];
+		}
+		first_run = false;
+	}
+	for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
+		cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
+								+ (1-CELL_VOLTAGE_FILTER_ALPHA)*cellVoltagesFiltered[i];
+	}
 }
 
 /**
@@ -739,6 +767,8 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 {
    HAL_StatusTypeDef rc = HAL_OK;
    float measure;
+   float measure_high;
+   float measure_low;
    float currentReading;
    if(getIBus(&currentReading) != HAL_OK){
        ERROR_PRINT("Cannot read current from bus!!");
@@ -753,38 +783,45 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
    // Unfortunately the thermistors may run slower than the cell voltage measurements
    static uint8_t thermistor_lag_counter = 0;
-
    filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
+   enterAdjustedCellVoltages();
 
+   // We should only send a warning at max every cycle otherwise we could trigger a watchdog timeout
+   bool warning_dtc_sent_this_period = false;
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
-      measure = VoltageCell[i];
+	  // We have 2 basically confidence measurements
+	  // We have an adjusted cell measurement which probably overestimates the cell voltage a little at high current
+	  // We have our standard cell measurement which probably underestimates the cell voltage a little at high current
+      measure_high = AdjustedVoltageCell[i];
+      measure_low = VoltageCell[i];
 
       // Check it is within bounds
-      if (measure < LIMIT_UNDERVOLTAGE) {
-         ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure);
+      if (measure_high < LIMIT_UNDERVOLTAGE) {
+         ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
-      } else if (measure > LIMIT_OVERVOLTAGE) {
-		 ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure);
+      } else if (measure_low > LIMIT_OVERVOLTAGE) {
+		 ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
-      } else if (measure < LIMIT_LOWVOLTAGE_WARNING - (LIMIT_LOWVOLTAGE_WARNING_SLOPE*(currentReading))) {
-         if (!warningSentForCellVoltage[i]) {
-            ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure);
+      } else if (measure_high < LIMIT_LOWVOLTAGE_WARNING) {
+         if (!warningSentForCellVoltage[i] && !warning_dtc_sent_this_period) {
+            ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
             warningSentForCellVoltage[i] = true;
+            warning_dtc_sent_this_period = true;
          }
       } else if (warningSentForCellVoltage[i] == true) {
          warningSentForCellVoltage[i] = false;
       }
 
       // Update max voltage
-      if (measure > (*maxVoltage)) {(*maxVoltage) = measure;}
-      if (measure < (*minVoltage)) {(*minVoltage) = measure;}
+      if (measure_low > (*maxVoltage)) {(*maxVoltage) = measure_low;}
+      if (measure_high < (*minVoltage)) {(*minVoltage) = measure_high;}
 
       // Sum up cell voltages to get overall pack voltage
-      (*packVoltage) += measure;
+      (*packVoltage) += measure_low;
    }
 
    if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
@@ -1495,7 +1532,6 @@ void batteryTask(void *pvParameter)
             if (boundedContinue()) { continue; }
 		}
 #endif
-
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
@@ -1589,6 +1625,7 @@ void canSendCellTask(void *pvParameters)
     }
 
     sendCAN_BMU_CellVoltage(cellIdxToSend);
+    sendCAN_BMU_CellVoltage_Adjusted(cellIdxToSend);
     sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
     // Move on to next cells

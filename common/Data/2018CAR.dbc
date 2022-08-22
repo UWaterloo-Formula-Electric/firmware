@@ -266,6 +266,79 @@ BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
  SG_ VoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone,ChargeCart
 
+BO_ 2558788609 BMU_CellVoltage_Adjusted: 8 BMU
+ SG_ AdjustedVoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  VCU_BeagleBone
+ SG_ AdjustedVoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell02 m0 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell03 m0 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell04 m1 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell05 m1 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell06 m1 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell07 m2 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell08 m2 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell09 m2 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell10 m3 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell11 m3 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell12 m3 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell13 m4 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell14 m4 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell15 m4 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell16 m5 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell17 m5 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell18 m5 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell19 m6 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell20 m6 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell21 m6 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell22 m7 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell23 m7 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell24 m7 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell25 m8 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell26 m8 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell27 m8 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell28 m9 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell29 m9 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell30 m9 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell31 m10 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell32 m10 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell33 m10 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell34 m11 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell35 m11 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell36 m11 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell37 m12 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell38 m12 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell39 m12 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell40 m13 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell41 m13 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell42 m13 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell43 m14 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell44 m14 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell45 m14 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell46 m15 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell47 m15 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell48 m15 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell49 m16 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell50 m16 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell51 m16 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell52 m17 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell53 m17 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell54 m17 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell55 m18 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell56 m18 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell57 m18 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell58 m19 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell59 m19 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell60 m19 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell61 m20 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell62 m20 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell63 m20 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell64 m21 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell65 m21 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell66 m21 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell67 m22 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell68 m22 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell69 m22 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+ SG_ AdjustedVoltageCell70 m23 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart
+
 BO_ 2562720769 BMU_ChannelTemp: 8 BMU
  SG_ TempChannelMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ TempChannel01 m0 : 8|16@1+ (0.01,-100) [-100|555.35] "C"  ChargeCart,VCU_BeagleBone
