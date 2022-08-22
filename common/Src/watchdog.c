@@ -134,7 +134,8 @@ void watchdogSignalError(uint32_t id)
 {
     if (!signaledError) {
         ERROR_PRINT("Watchdog error for task id %lu\n", id);
-        sendDTC_FATAL_WatchdogTaskMissedCheckIn();
+        uint8_t data = id | (BOARD_ID << 4);
+        sendDTC_FATAL_WatchdogTaskMissedCheckIn(data);
 #if BOARD_TYPE != NUCLEO_F7
         Error_Handler();
 #endif

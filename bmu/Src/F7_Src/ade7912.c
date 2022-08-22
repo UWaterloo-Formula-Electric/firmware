@@ -30,6 +30,8 @@
 
 #define SPI_TIMEOUT 15
 
+#define DISABLE_ADC_WARNINGS
+
 // Voltage scale and offset convert to volts
 #define VOLTAGE_1_SCALE  (-0.000052670388F)
 #define VOLTAGE_1_OFFSET (20.451204825373F)
@@ -165,12 +167,16 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
   /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
   shuntVoltage += CURRENT_OFFSET;
   /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
-
+#ifdef DISABLE_HV_WARNINGS
+  // This should be "fixed"/removed when a smaller shunt resistor is found.
+  // With our current setup we probably surpass the "nominal maximum" 31.25mV of the ADC
+  // However, with this print statement in, the entire system crashes when we surpass 312.5A
   if (fabs(shuntVoltage) > MAX_CURRENT_ADC_VOLTAGE) {
     ERROR_PRINT("IBus outside adc range!\n");
     *dataOut = 0;
     return HAL_ERROR;
   }
+#endif
 
   if (HITL_Precharge_Mode) {
     shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_HITL);
