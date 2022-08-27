@@ -65,17 +65,19 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
-BO_ 2272736804 WSBRR_Sensors: 4 WSBRR
+BO_ 2272736804 WSBRR_Sensors: 8 WSBRR
  SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
 
-BO_ 2272736803 WSBRL_Sensors: 4 WSBRL
+BO_ 2272736803 WSBRL_Sensors: 8 WSBRL
  SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
 
-BO_ 2272736802 WSBFR_Sensors: 4 WSBFR
+BO_ 2272736802 WSBFR_Sensors: 8 WSBFR
  SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ FR_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
 
 BO_ 2272736801 WSBFL_Sensors: 8 WSBFL
  SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ FL_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
 
 BO_ 2147548939 WSBRL_DTC: 6 WSBRL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
