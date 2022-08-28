@@ -236,8 +236,8 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 
     // Throttle adjustments for torque vectoring
     // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
-    float throttleRight = throttle - ( steeringAngle * TORQUE_VECTOR_FACTOR );
-    float throttleLeft = throttle + ( steeringAngle * TORQUE_VECTOR_FACTOR );
+    float throttleRight = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
+    float throttleLeft = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);

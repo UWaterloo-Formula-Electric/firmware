@@ -103,7 +103,7 @@ volatile float LIMIT_UNDERVOLTAGE = DEFAULT_LIMIT_UNDERVOLTAGE;
 // A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
 // This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
 // Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
-#define ADJUSTED_CELL_IR (0.003F)
+#define ADJUSTED_CELL_IR (0.002F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
@@ -610,7 +610,7 @@ void enterAdjustedCellVoltages(void)
 	getIBus(&bus_current_A);
 	for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
 	{
-		AdjustedVoltageCell[cell] = cellVoltagesFiltered[cell] + (bus_current_A * ADJUSTED_CELL_IR);
+		AdjustedVoltageCell[cell] = VoltageCell[cell] + (bus_current_A * ADJUSTED_CELL_IR);
 	}
 }
 /**
@@ -783,7 +783,6 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 
    // Unfortunately the thermistors may run slower than the cell voltage measurements
    static uint8_t thermistor_lag_counter = 0;
-   filterCellVoltages((float *)VoltageCell, cellVoltagesFiltered);
    enterAdjustedCellVoltages();
 
    // We should only send a warning at max every cycle otherwise we could trigger a watchdog timeout
