@@ -37,19 +37,23 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 void userInit()
 {
     /* Should be the first thing initialized, otherwise print will fail */
-    if (debugInit() != HAL_OK) {
-        Error_Handler();
-    }
-
-    if (uartStartReceiving(&DEBUG_UART_HANDLE) != HAL_OK)
+    if (debugInit() != HAL_OK) 
     {
         Error_Handler();
     }
 
-    if (canInit(&CAN_HANDLE) != HAL_OK) {
+    if (uartStartReceiving(&DEBUG_UART_HANDLE) != HAL_OK) 
+    {
         Error_Handler();
     }
-    if(dcuFsmInit() != HAL_OK){
+
+    if (canInit(&CAN_HANDLE) != HAL_OK) 
+    {
+        Error_Handler();
+    }
+    
+    if (dcuFsmInit() != HAL_OK)
+    {
         Error_Handler();
     }
 
