@@ -41,7 +41,7 @@ def graph(data, args):
             data_dict[sig_name] = [(float(row[0]), float(row[2]))]
     fig, ax = plt.subplots()
     for signal in data_dict:
-        ax.plot(*zip(*data_dict[signal]), label=signal)
+        ax.plot(*zip(*data_dict[signal]), label=signal, marker='.')
     if args.ymax is not None:
         plt.ylim(top=args.ymax)
     if args.ymin is not None:
