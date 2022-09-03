@@ -13,6 +13,7 @@
 #include "brakeAndThrottle.h"
 #include "watchdog.h"
 #include "motorController.h"
+#include "endurance_mode.h"
 
 #define DRIVE_BY_WIRE_TASK_ID 1
 
@@ -176,6 +177,8 @@ uint32_t EM_Enable(uint32_t event)
             state = STATE_Failure_Fatal;
         }
     }
+
+	endurance_mode_EM_callback();
 
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();

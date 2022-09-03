@@ -55,7 +55,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
-                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
+                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
                           |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -71,14 +71,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = BTN_HV_READ_Pin|BTN_EV_READ_Pin;
+  /*Configure GPIO pins : PAPin PAPin PAPin */
+  GPIO_InitStruct.Pin = BTN_HV_READ_Pin|BTN_EV_READ_Pin|BTN_ENDURANCE_TOGGLE_READ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin PAPin */
-  GPIO_InitStruct.Pin = BTN_NAV_R_READ_Pin|BTN_NAV_L_READ_Pin|BTN_SELECT_READ_Pin;
+  /*Configure GPIO pins : PAPin PAPin */
+  GPIO_InitStruct.Pin = BTN_NAV_R_READ_Pin|BTN_NAV_L_READ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -87,7 +87,7 @@ void MX_GPIO_Init(void)
                            PBPin PBPin PBPin PBPin
                            PBPin PBPin */
   GPIO_InitStruct.Pin = IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
-                          |TV_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
+                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
                           |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -95,9 +95,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin */
-  GPIO_InitStruct.Pin = BTN_TC_READ_Pin|BTN_TV_READ_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pin = BTN_TC_READ_Pin|BTN_ENDURANCE_LAP_READ_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PCPin PCPin PCPin */
@@ -123,6 +123,9 @@ void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 3, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
 

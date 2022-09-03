@@ -13,6 +13,9 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+#include "endurance_mode.h"
+#include "traction_control.h"
+
 /*
  * External Board Statuses:
  * Variables for keeping track of external board statuses that get updated by
@@ -36,13 +39,26 @@ bool getMotorControllersStatus()
 
 extern osThreadId driveByWireHandle;
 
+// Currently TC will toggle endurance mode and TV will falsely trigger a lap
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
 	DEBUG_PRINT_ISR("Received DCU button Event\n");
     if (ButtonEMEnabled) {
 		DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
-        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);    
     }
+    else if(ButtonEnduranceToggleEnabled) 
+    {
+		toggle_endurance_mode();
+	}
+	else if(ButtonEnduranceLapEnabled)
+	{
+		trigger_lap();
+	}
+	else if(ButtonTCEnabled)
+	{
+		toggle_TC();
+	}
     // For now, ignore HV Enable button, as we really want to wait for BMU to
     // complete HV Enable
 }

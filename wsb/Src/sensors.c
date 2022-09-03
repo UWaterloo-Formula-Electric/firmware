@@ -45,8 +45,8 @@ static void poll_encoder(void)
 
 	// TIM3 uses lower 16 bits
 	uint16_t current_count = ENCODER_COUNTER;
-	uint16_t count_diff = current_count - last_count;
-	sensors_data.encoder_counts += ((uint32_t)current_count - (uint32_t)last_count);
+	uint32_t count_diff = current_count - last_count;
+	sensors_data.encoder_counts += count_diff;
 	sensors_data.encoder_mm = ENCODER_COUNT_TO_MM(sensors_data.encoder_counts);
 	sensors_data.encoder_speed = ENCODER_COUNT_TO_RADS_S(count_diff, (float)(POLL_SENSORS_PERIOD_MS)/1000.0f);
 	last_count = current_count;
@@ -87,13 +87,25 @@ static void transmit_encoder(void)
 	FR_WheelDistance = sensors_data.encoder_mm;
 	sendCAN_WSBFR_Sensors();
 #endif
+}
 
+static void transmit_speed(void)
+{
+#if (BOARD_ID == ID_WSBFL)
+	SpeedWheelLeftFront = sensors_data.encoder_speed;
+	sendCAN_WSBFL_WheelData();
+#elif (BOARD_ID == ID_WSBFR)
+	SpeedWheelRightFront = sensors_data.encoder_speed;
+	sendCAN_WSBFR_WheelData();
+#endif
+	
 }
 
 static void transmit_sensor_values(void)
 {
 	// Send over CAN
 	transmit_encoder();
+	transmit_speed();
 }
 
 uint32_t sensor_encoder_count(void)

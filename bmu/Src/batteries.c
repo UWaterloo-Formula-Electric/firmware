@@ -31,6 +31,7 @@
 #include "watchdog.h"
 #include "canReceive.h"
 #include "chargerControl.h"
+#include "state_of_charge.h"
 
 
 /*
@@ -228,6 +229,7 @@ QueueHandle_t PackVoltageQueue;
 /// Array is used to store the filtered voltages
 float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
+extern osThreadId stateOfChargeHandle;
 /*
  * HV Measure
  */
@@ -478,7 +480,8 @@ void HVMeasureTask(void *pvParamaters)
             sendCAN_BMU_stateBusHV();
             lastStateBusHVSend = xTaskGetTickCount();
         }
-
+		integrate_bus_current(IBus, (float)(xTaskGetTickCount() - xLastWakeTime));
+	
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, HV_MEASURE_TASK_PERIOD_MS);
     }
@@ -1401,7 +1404,6 @@ ChargeReturn balanceCharge(void)
          */
 
         StateBatteryPowerHV = calculateStateOfPower();
-        StateBatteryChargeHV = calculateStateOfCharge();
         StateBMS = fsmGetState(&fsmHandle);
 
 
@@ -1546,7 +1548,6 @@ void batteryTask(void *pvParameter)
         }
 
         StateBatteryPowerHV = calculateStateOfPower();
-        StateBatteryChargeHV = calculateStateOfCharge();
         StateBMS = fsmGetState(&fsmHandle);
 
 
@@ -1563,6 +1564,14 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed to send batter status HV\n");
             if (boundedContinue()) { continue; }
         }
+
+		static bool released_soc = false;
+		if(!released_soc)
+		{
+			xTaskNotifyGive(stateOfChargeHandle);
+			released_soc = true;
+		}
+
 
         // Succesfully reach end of loop, update error counter to reflect that
         ERROR_COUNTER_SUCCESS();

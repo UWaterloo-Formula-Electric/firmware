@@ -108,6 +108,13 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
     return HAL_OK;
 }
 
+HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
+{
+    mcRightSettings.DischargeCurrentLimit = limit;
+    mcLeftSettings.DischargeCurrentLimit = limit;
+	return HAL_OK;
+}
+
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
