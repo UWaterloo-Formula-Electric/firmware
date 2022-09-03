@@ -6,17 +6,17 @@
 
 #define MAX_TORQUE_DEMAND_DEFAULT       20
 #define BRAKING_TORQUE_LIMIT_DEFAULT    0
-#define SPEED_LIMIT_DEFAULT             4000
+#define SPEED_LIMIT_DEFAULT             10000
 #define REVERSE_SPEED_LIMIT_DEFAULT     0
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT 30
 #define CHARGE_CURRENT_LIMIT_DEFAULT    0
 #define HIGH_VOLTAGE_LIMIT_DEFAULT      300
-#define LOW_VOLTAGE_LIMIT_DEFAULT       150
+#define LOW_VOLTAGE_LIMIT_DEFAULT       100
 
 #define INVERTER_STOP_TIMEOUT_MS        10000   // TODO: Chose a good value for this
 #define MC_INIT_DISCHARGE_TIME_MS       1000
 
-#define TORQUE_VECTOR_FACTOR            (0.25f/30.0f)    // TODO: Adjust value for this when testing
+#define TORQUE_VECTOR_FACTOR            (0.25f/30.0f)
 
 typedef struct MotorControllerProcanSettings {
     uint64_t InverterCommand;

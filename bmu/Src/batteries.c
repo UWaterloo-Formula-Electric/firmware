@@ -87,7 +87,7 @@ volatile float LIMIT_OVERVOLTAGE = DEFAULT_LIMIT_OVERVOLTAGE;
 #define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
 volatile float LIMIT_UNDERVOLTAGE = DEFAULT_LIMIT_UNDERVOLTAGE;
 /// Warning voltage of a cell, will send a warning DTC if it goes below
-#define LIMIT_LOWVOLTAGE_WARNING 3.2F
+#define LIMIT_LOWVOLTAGE_WARNING 2.8F
 /// Rate at which the low voltage threshold dynamically lowers vs current
 #define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 
@@ -103,7 +103,7 @@ volatile float LIMIT_UNDERVOLTAGE = DEFAULT_LIMIT_UNDERVOLTAGE;
 // A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
 // This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
 // Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
-#define ADJUSTED_CELL_IR (0.002F)
+#define ADJUSTED_CELL_IR (0.00286F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)

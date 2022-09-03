@@ -501,7 +501,7 @@ uint32_t emEnable(uint32_t event) {
             coolingOn(COOL_EV_WAIT_ELAPSED);
             return COOL_STATE_ON;
         }
-    return COOL_STATE_WAIT;
+		return COOL_STATE_WAIT;
     } else {
         DEBUG_PRINT("Not turning cooling on from em enable, DC-DC off\n");
         return COOL_STATE_OFF;
