@@ -3,43 +3,44 @@
 import argparse
 import csv
 import math
+import matplotlib.pyplot as plt
 
-def getMagnitudeOfAcceleration(vector):
-    return math.sqrt(float(vector[0].strip())**2 + float(vector[1].strip())**2 + float(vector[0].strip())**2)
+def getMagnitudeOfVector(vector):
+    sumOfSquareOfComponents = 0
+    for component in vector:
+        sumOfSquareOfComponents += component**2
+    return math.sqrt(sumOfSquareOfComponents)
 
-def filter(src_file, plotVelocity):
-    filtered_data = []
+def filter(src_file):
+    data = {}
+    data["magnitude of acceleration [ms^-2]"] = []
+    data["magnitude of velocity [ms^-1]"] = []
     with open(src_file, 'r') as f:
-        next(f) # skip the first row of headers
+        next(f) # skip the first row as it is headers
         reader = csv.reader(f)
+        
+        velocityX = 0
+        velocityY = 0
+        velocityZ = 0
+        time = 0.0
         try:
-            velocity = 0
             line = 1
             for row in reader:
-                acceleration = getMagnitudeOfAcceleration(row[1][1:len(row[1])-1].split(","))
-                if plotVelocity:
-                    #integrate acceleration
-                    filtered_data.append(acceleration * 1/6) # we get measurements at 6 hertz
-                else:
-                    #plot acceleration directly
-                    filtered_data.append(acceleration)
+                accel_vector = row[1][1:len(row[1])-1].split(",")           #Array of strings
+                accel_vector = [float(x.strip()) for x in accel_vector]     #3D vector of floats
+                data["magnitude of acceleration [ms^-2]"].append((time, getMagnitudeOfVector(accel_vector)))
+                velocityX += accel_vector[0] * 1/6 #We get measurements at 6Hz
+                velocityY += accel_vector[1] * 1/6 #We get measurements at 6Hz
+                velocityZ += accel_vector[2] * 1/6 #We get measurements at 6Hz
+                data["magnitude of velocity [ms^-1]"].append((time, getMagnitudeOfVector([velocityX, velocityY, velocityZ])))
                 line += 1
+                time += 1/6
         except:
             print("error on line {}".format(line))
-    return filtered_data
+    return data
 
-def graph(data, args):
-    import matplotlib.pyplot as plt
-    data_dict = {}
-    if args.velocity:
-        sig_name = "velocity"
-    else:
-        sig_name = "acceleration"
-    data_dict[sig_name] = []
-    time = 0
-    for row in data:
-        data_dict[sig_name].append((float(time), float(row)))
-        time += 1/6 # 6 hertz
+def graph(args):
+    data_dict = filter(args.src_file)
     fig, ax = plt.subplots()
     for signal in data_dict:
         ax.plot(*zip(*data_dict[signal]), label=signal, marker='.')
@@ -54,12 +55,10 @@ def graph(data, args):
 def main():
     parser = argparse.ArgumentParser(description="Process IMU log")
     parser.add_argument('src_file', help="IMU log file (csv) to be read in")
-    parser.add_argument('-v', '--velocity', action='store_true', help="Graph velocity")
     parser.add_argument('-ymax', type=float)
     parser.add_argument('-ymin', type=float)
     args = parser.parse_args()
-    filtered_data = filter(args.src_file, args.velocity)
-    graph(filtered_data, args)
+    graph(args)
 
 if __name__ == "__main__":
     main()
