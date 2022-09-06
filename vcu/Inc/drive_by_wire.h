@@ -18,6 +18,13 @@ typedef enum VCU_States_t {
     STATE_ANY, // Must be the last state
 } VCU_States_t;
 
+char VCU_States_String[][20]={
+    "Self Check", 
+    "Em Disable", 
+    "Em Enable", 
+    "Failure Fatal"
+};
+
 typedef enum VCU_Events_t {
     EV_Init = 0,
     EV_EM_Toggle,

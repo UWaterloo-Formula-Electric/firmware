@@ -359,7 +359,13 @@ static const CLI_Command_Definition_t fakeEnterChargeModeCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("State: %ld\n", fsmGetState(&fsmHandle));
+    uint8_t index;
+    index = fsmGetState(&fsmHandle);
+    if ( index >= 0 && index < STATE_ANY ){
+        COMMAND_OUTPUT("State: %s\n", BMU_states_string[index]);
+    } else {
+        COMMAND_OUTPUT("Error: state index out of range. Index: %u\n", index);
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
