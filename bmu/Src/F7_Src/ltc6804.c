@@ -83,10 +83,10 @@
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 	{0, 1},
-	{2, 3},
+/*	{2, 3},
 	{4, 5},
 	{6, 7},
-	{8, 9}
+	{8, 9}*/
 };
 
 
@@ -526,6 +526,11 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 
 void batt_set_balancing_cell (int board, int chip, int cell) {
+	if(cell >= 4)
+	{
+		// We skip S5, S6 in the schematic
+		cell += 2;
+	}
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config[board][chip][4], cell);
     } else { // This register byte only contains 4 bits
