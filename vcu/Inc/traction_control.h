@@ -2,5 +2,5 @@
 #define TRACTION_CONTROL_H
 
 void toggle_TC(void);
-
+void disable_TC(void);
 #endif
