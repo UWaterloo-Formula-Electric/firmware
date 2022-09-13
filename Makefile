@@ -1,4 +1,4 @@
-CUSTOM_COMMANDS = all clean autogen init lint load load_debug connect gdb
+CUSTOM_COMMANDS = all clean autogen init lint load connect gdb
 BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
