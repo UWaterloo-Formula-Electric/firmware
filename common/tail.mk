@@ -304,9 +304,9 @@ else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F0 F0))
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
+
 LOAD_BIN_FILE := $(RELEASE_BIN_FILE)
 LOAD_ELF_FILE := $(RELEASE_ELF_FILE)
-LOADDEBUG_BIN_FILE := $(DEBUG_BIN_FILE)
 
 
 load: $(BOARD_NAME)
