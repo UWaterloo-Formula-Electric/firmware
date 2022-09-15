@@ -83,10 +83,10 @@
 
 static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 	{0, 1},
-/*	{2, 3},
+	{2, 3},
 	{4, 5},
 	{6, 7},
-	{8, 9}*/
+	{8, 9}
 };
 
 
