@@ -418,7 +418,7 @@ static const CLI_Command_Definition_t startChargeCommandDefinition =
 BaseType_t stopChargeCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+    fsmSendEvent(&fsmHandle, EV_Notification_Stop, portMAX_DELAY);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t stopChargeCommandDefinition =
