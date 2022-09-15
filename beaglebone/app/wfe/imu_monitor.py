@@ -4,7 +4,6 @@ import adafruit_bno055
 import datetime
 import time
 import os
-
 today = datetime.now().strftime("%b-%d-%y_%H-%M-%S")
 logs_folder = "/home/debian/imu_logs/"
 imu_file = "{}/{}_imu.csv".format(logs_folder, today)

@@ -26,8 +26,24 @@ typedef enum BMU_States_t {
     STATE_Failure_Fatal,		 ///< 7: System encountered a critical failture
     STATE_Failure_CBRB_Disabled, ///< 8: Cockpit BRB has been pressed when not at HV, non critical error
     STATE_Failure_CBRB_Enabled,  ///< 9: Cockpit BRB has been pressed when at HV, non critical error 
-    STATE_ANY,					 ///< 10: Must be the last state
+    STATE_Balancing,             ///< 10: The cells are being balanced
+    STATE_ANY,					 ///< 11: Must be the last state
 } BMU_States_t;
+
+char BMU_states_string[][25] =
+{
+    "Self check", 
+    "Wait System Up", 
+    "HV Disable",
+    "HV Enable", 
+    "Precharge", 
+    "Discharge",
+    "Charging", 
+    "Failure fatal", 
+    "Failure CBRB Disabled",
+    "Failure CBRB Enabled",
+    "Balancing"
+};
 
 typedef enum BMU_Events_t {
     EV_Init = 0,                ///< 0: Event to init the state machine
@@ -40,12 +56,14 @@ typedef enum BMU_Events_t {
     EV_FaultMonitorReady,       ///< 7: Safety IL is closed and ready
     EV_Enter_Charge_Mode,       ///< 8: Charge mode triggered over CAN
     EV_Charge_Start,            ///< 9: Charging begins, triggered over CAN
-    EV_Charge_Done,             ///< 10: Charging is complete
+    EV_Notification_Done,       ///< 10: Charging/Cell Balancing is done
     EV_Charge_Error,            ///< 11: Error during balance charging
-    EV_Charge_Stop,             ///< 12: Stop charging, trigerred over CAN
+    EV_Notification_Stop,       ///< 12: Stopped charging/balancing. This is sent after the batteryTask returns from balanceCharge()
     EV_Cockpit_BRB_Pressed,     ///< 13: Cockpit BRB has been pressed
     EV_Cockpit_BRB_Unpressed,   ///< 14: Cockpit BRB has been released
-    EV_ANY,                     ///< 15: Must be the last event
+    EV_Balance_Start,           ///< 15: Start balancing the cells
+    EV_Balance_Stop,            ///< 16: Request stop cell balancing. Only called by CLI command
+    EV_ANY,                     ///< 17: Must be the last event
 } BMU_Events_t;
 
 typedef enum BMU_SystemUpFail {

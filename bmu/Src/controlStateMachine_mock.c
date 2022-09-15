@@ -359,7 +359,13 @@ static const CLI_Command_Definition_t fakeEnterChargeModeCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("State: %ld\n", fsmGetState(&fsmHandle));
+    uint8_t index;
+    index = fsmGetState(&fsmHandle);
+    if ( index >= 0 && index < STATE_ANY ){
+        COMMAND_OUTPUT("State: %s\n", BMU_states_string[index]);
+    } else {
+        COMMAND_OUTPUT("Error: state index out of range. Index: %u\n", index);
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
@@ -412,7 +418,7 @@ static const CLI_Command_Definition_t startChargeCommandDefinition =
 BaseType_t stopChargeCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+    fsmSendEvent(&fsmHandle, EV_Notification_Stop, portMAX_DELAY);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t stopChargeCommandDefinition =
@@ -592,6 +598,36 @@ static const CLI_Command_Definition_t chargerCanStartCommandDefinition =
     "canStartCharger",
     "canStartCharger:\r\n  Start charger can\r\n",
     chargerCanStartCommand,
+    0 /* Number of parameters */
+};
+
+
+BaseType_t startCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Start);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t startBalanceCommandDefinition =
+{
+    "startBalance",
+    "startBalance:\r\n Start cell balancing\r\n",
+    startCellBalancing,
+    0 /* Number of parameters */
+};
+
+
+BaseType_t stopCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Stop);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopBalanceCommandDefinition =
+{
+    "stopBalance",
+    "stopBalance:\r\n Stop cell balancing command\r\n",
+    stopCellBalancing,
     0 /* Number of parameters */
 };
 
@@ -972,6 +1008,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargerCanStartCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&startBalanceCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopBalanceCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {

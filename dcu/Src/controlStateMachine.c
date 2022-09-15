@@ -241,7 +241,7 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
                     HV_TOGGLE_BUTTON_PIN);
             break;
-        
+
         case EM_TOGGLE_BUTTON_PIN:
             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
                     EM_TOGGLE_BUTTON_PIN);
@@ -321,7 +321,8 @@ HAL_StatusTypeDef dcuFsmInit(){
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 10;
     init.watchdogTaskId = MAIN_TASK_ID;
-    if (fsmInit(STATE_Self_Test, &init, &DCUFsmHandle) != HAL_OK) {
+    if (fsmInit(STATE_Self_Test, &init, &DCUFsmHandle) != HAL_OK) 
+    {
         ERROR_PRINT("Failed to init DCU fsm\n");
         return HAL_ERROR;
     }
@@ -363,7 +364,8 @@ void mainTaskFunction(void const * argument){
                                  0,
                                  debounceTimerCallback);
 
-    if (debounceTimer == NULL) {
+    if (debounceTimer == NULL) 
+    {
         ERROR_PRINT("Failed to create debounce timer!\n");
         Error_Handler();
     }
@@ -377,7 +379,8 @@ void mainTaskFunction(void const * argument){
 
     fsmTaskFunction(&DCUFsmHandle);
 
-    for(;;);
+    for(;;) {
+    };
 }
 
 uint32_t defaultTransition(uint32_t event)

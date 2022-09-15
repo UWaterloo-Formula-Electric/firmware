@@ -1202,10 +1202,10 @@ float getSOCFromVoltage(float cellVoltage)
  *
  * @return @ref ChargeReturn
  */
-ChargeReturn balanceCharge(void)
+ChargeReturn balanceCharge(Balance_Type_t using_charger)
 {
     // Start charge
-    if (startCharging() != HAL_OK) {
+    if (using_charger && startCharging() != HAL_OK) {
         return CHARGE_ERROR;
     }
 
@@ -1219,7 +1219,7 @@ ChargeReturn balanceCharge(void)
        /*
         * Need to send msg to charger every second to continue charging
         */
-       if (!waitingForBalanceDone) {
+       if (using_charger && !waitingForBalanceDone) {
           if (continueCharging() != HAL_OK) {
              ERROR_PRINT("Failed to send charge continue message\n");
              if (boundedContinue()) { continue; }
@@ -1279,7 +1279,7 @@ ChargeReturn balanceCharge(void)
          * Check if we should balance any cells
          * Only balance above a minimum voltage
          */
-        if (VoltageCellMin >= BALANCE_START_VOLTAGE)
+        if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
         {
             if (xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
@@ -1329,20 +1329,19 @@ ChargeReturn balanceCharge(void)
             }
         } else {
             balancingCells = false;
-
+            DEBUG_PRINT("Can't balance cells as VoltageCellMin (%f) < BALANCE_START_VOLTAGE (%f)\n", VoltageCellMin, BALANCE_START_VOLTAGE);
             if (stopBalance() != HAL_OK) {
                 ERROR_PRINT("Failed to stop balance\n");
                 if (boundedContinue()) { continue; }
             }
         }
 
-
         /*
-         * Check if we are done charging
+         * Check if we are done charging/balancing
          */
-        if (getSOCFromVoltage(VoltageCellMin) >= CHARGE_STOP_SOC && !balancingCells) {
+        if (using_charger && getSOCFromVoltage(VoltageCellMin) >= CHARGE_STOP_SOC && !balancingCells) {
             DEBUG_PRINT("Done charging\n");
-            if (stopCharging() != HAL_OK) {
+            if (using_charger && stopCharging() != HAL_OK) {
                 return CHARGE_ERROR;
             }
             break;
@@ -1358,21 +1357,25 @@ ChargeReturn balanceCharge(void)
                          0);                    /* Timeout */
 
         if (rc == pdTRUE) {
-            if (dbwTaskNotifications & (1<<CHARGE_STOP_NOTIFICATION)) {
+            if (dbwTaskNotifications & (1<<BATTERY_STOP_NOTIFICATION)) {
                 DEBUG_PRINT("Stopping charge\n");
-                if (stopCharging() != HAL_OK) {
+                if (using_charger && stopCharging() != HAL_OK) {
                     stopBalance();
                     return CHARGE_ERROR;
                 }
-
-                if (balancingCells) {
+                else if (!using_charger) // CLI command to stop was called
+                {
+                    stopBalance();
+                    return CHARGE_STOPPED;
+                }
+                else if (balancingCells) {
                     DEBUG_PRINT("Balance ongoing, waiting for finish\n");
                     waitingForBalanceDone = true;
                 } else {
                     DEBUG_PRINT("Not balancing, can stop safely\n");
                     return CHARGE_DONE;
                 }
-            } else if (dbwTaskNotifications & (1<<CHARGE_STOP_NOTIFICATION)) {
+            } else if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION)) {
                 DEBUG_PRINT("Received charge start, but already charging\n");
             } else {
                 DEBUG_PRINT("Received invalid notification\n");
@@ -1386,19 +1389,6 @@ ChargeReturn balanceCharge(void)
             DEBUG_PRINT("Balance ended, stopping charge\n");
             return CHARGE_STOPPED;
         }
-
-        /*
-         * Check if we are still connected to charge cart
-         */
-        /*
-         *if (xTaskGetTickCount() - lastChargeCartHeartbeat
-         *    > CHARGE_CART_HEARTBEAT_MAX_PERIOD)
-         *{
-         *   ERROR_PRINT("Charge cart not responding\n");
-         *   // Notify ourselves that we should stop charging
-         *   xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
-         *}
-         */
 
         StateBatteryPowerHV = calculateStateOfPower();
         StateBatteryChargeHV = calculateStateOfCharge();
@@ -1480,15 +1470,33 @@ void batteryTask(void *pvParameter)
                          0);                    /* Timeout */
 
         if (rc == pdTRUE) {
-            if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION)) {
-                ChargeEN_State = ChargeEN_State_On;
-                sendCAN_BMU_ChargeEN_State();
+            if (dbwTaskNotifications & ((1<<CHARGE_START_NOTIFICATION) | (1<<BALANCE_START_NOTIFICATION))) {
+                
+                if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
+                {
+                    ChargeEN_State = ChargeEN_State_On;
+                    sendCAN_BMU_ChargeEN_State();
+                }
                 if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
                                                         BATTERY_CHARGE_TASK_PERIOD_MS))
                 {
                     ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
                 } else {
-                    ChargeReturn chargeRc = balanceCharge();
+                    ChargeReturn chargeRc;
+                    
+                    if (dbwTaskNotifications & 1<<CHARGE_START_NOTIFICATION)
+                    {
+                        chargeRc = balanceCharge(USING_CHARGER);
+                    }
+                    else if (dbwTaskNotifications & (1<<BALANCE_START_NOTIFICATION))
+                    {
+                        chargeRc = balanceCharge(USING_CLI);
+                    }
+                    else
+                    {
+                        ERROR_PRINT("Processing unknown notification in batteryTask\n");
+                        chargeRc = CHARGE_ERROR;
+                    }
 
                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
                                                             BATTERY_TASK_PERIOD_MS))
@@ -1500,19 +1508,22 @@ void batteryTask(void *pvParameter)
                         ERROR_PRINT("Failed to balance charge\n");
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                     } else if (chargeRc == CHARGE_DONE) {
-                        DEBUG_PRINT("Finished charge\n");
-                        fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
+                        DEBUG_PRINT("Finished charge/balancing\n");
+                        fsmSendEvent(&fsmHandle, EV_Notification_Done, 20);
                     } else if (chargeRc == CHARGE_STOPPED) {
-                        DEBUG_PRINT("Stopped charge\n");
-                        fsmSendEvent(&fsmHandle, EV_Charge_Done, 20);
+                        DEBUG_PRINT("Stopped charge/balancing\n");
                     } else {
                         ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                     }
                 }
-                ChargeEN_State = ChargeEN_State_Off;
-                sendCAN_BMU_ChargeEN_State();
-            } else if (dbwTaskNotifications & (1<<CHARGE_STOP_NOTIFICATION)) {
+                if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
+                {
+                    ChargeEN_State = ChargeEN_State_Off;
+                    sendCAN_BMU_ChargeEN_State();
+                }
+            }
+            else if (dbwTaskNotifications & (1<<BATTERY_STOP_NOTIFICATION)) {
                 DEBUG_PRINT("Received charge stop, but not charging\n");
             } else {
                 DEBUG_PRINT("Received invalid notification\n");
