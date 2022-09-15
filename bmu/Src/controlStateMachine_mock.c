@@ -601,6 +601,36 @@ static const CLI_Command_Definition_t chargerCanStartCommandDefinition =
     0 /* Number of parameters */
 };
 
+
+BaseType_t startCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Start);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t startBalanceCommandDefinition =
+{
+    "startBalance",
+    "startBalance:\r\n Start cell balancing\r\n",
+    startCellBalancing,
+    0 /* Number of parameters */
+};
+
+
+BaseType_t stopCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Stop);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopBalanceCommandDefinition =
+{
+    "stopBalance",
+    "stopBalance:\r\n Stop cell balancing command\r\n",
+    stopCellBalancing,
+    0 /* Number of parameters */
+};
+
 BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -947,6 +977,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargerCanStartCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&startBalanceCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopBalanceCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {
