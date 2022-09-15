@@ -1,5 +1,7 @@
-CUSTOM_COMMANDS = all clean autogen init lint load connect gdb
+CUSTOM_COMMANDS = all clean autogen init lint load connect gdb set_debug load-debug
 BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
+# DEBUG = 0
+# export DEBUG
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
 all: bmu dcu pdu vcu wsb
