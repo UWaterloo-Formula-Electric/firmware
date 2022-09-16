@@ -317,7 +317,7 @@ connect-rtos: load-debug
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
 
 # use this to debug stuff before rtos starts
-# connect: DEBUG=1
+
 connect: load
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
 
