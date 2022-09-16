@@ -321,7 +321,7 @@ connect-rtos: load-debug
 connect: load
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
 
-gdb: set_debug
+gdb: 
 	arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(LOAD_ELF_FILE)
 
 endif # LOAD_TARGET == BUILD_TARGET
