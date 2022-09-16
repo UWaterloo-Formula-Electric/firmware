@@ -65,17 +65,23 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
+BO_ 2298416383 StateMachineEventProcessed: 4 VCU_F7
+ SG_ StateMachineWatchdogID : 24|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineEvent : 8|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineBoardID : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+
 BO_ 2272736804 WSBRR_Sensors: 4 WSBRR
- SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2272736803 WSBRL_Sensors: 4 WSBRL
- SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2272736802 WSBFR_Sensors: 4 WSBFR
- SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2272736801 WSBFL_Sensors: 8 WSBFL
- SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2147548939 WSBRL_DTC: 6 WSBRL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
@@ -562,6 +568,7 @@ BO_ 2550137353 WSBFR_WheelData: 8 WSBFR
  SG_ StrainXRightFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
  SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
 
+BO_TX_BU_ 2298416383 : BMU,DCU,PDU,VCU_F7;
 
 
 CM_ BU_ MCLeft "5_2_Left Inverter";
@@ -670,3 +677,4 @@ VAL_ 2214986243 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNE
 VAL_ 2214986243 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
 VAL_ 2281967617 StateBMS 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_ 2214596611 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
+
