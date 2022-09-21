@@ -209,8 +209,8 @@ void faultMonitorTask(void *pvParameters)
 		{
 				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
             BMU_checkFailed = 1;
-            sendCAN_BMU_Interlock_Loop_Status()
-            
+            sendCAN_BMU_Interlock_Loop_Status();
+
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
 					watchdogTaskCheckIn(FAULT_TASK_ID);
@@ -224,7 +224,7 @@ void faultMonitorTask(void *pvParameters)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
          BMU_checkFailed = 2;
-         sendCAN_BMU_Interlock_Loop_Status()
+         sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
@@ -233,7 +233,7 @@ void faultMonitorTask(void *pvParameters)
 		{
          //
          BMU_checkFailed = 3;
-         sendCAN_BMU_Interlock_Loop_Status()
+         sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
 			cbrb_pressed = false;
@@ -242,7 +242,7 @@ void faultMonitorTask(void *pvParameters)
 		{
 				ERROR_PRINT("Fault Monitor: IL broken!\n");
             BMU_checkFailed = 4;
-            sendCAN_BMU_Interlock_Loop_Status()
+            sendCAN_BMU_Interlock_Loop_Status();
 
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
