@@ -404,6 +404,9 @@ uint32_t cockpitBRBPressed(uint32_t event)
 
     uint32_t currentState = fsmGetState(&fsmHandle);
 
+    BMU_StateMachine_State = currentState;
+    sendCAN_BMU_StateMachine_State();
+
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 

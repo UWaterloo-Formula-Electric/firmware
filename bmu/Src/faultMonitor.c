@@ -16,6 +16,7 @@
 #include "watchdog.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "bmu_can.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
@@ -207,6 +208,9 @@ void faultMonitorTask(void *pvParameters)
 		if (getHVIL_Status() == false)
 		{
 				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
+            BMU_checkFailed = 1;
+            sendCAN_BMU_Interlock_Loop_Status()
+            
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
 					watchdogTaskCheckIn(FAULT_TASK_ID);
@@ -219,17 +223,27 @@ void faultMonitorTask(void *pvParameters)
 		if(!cbrb_ok && !cbrb_pressed)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
+         BMU_checkFailed = 2;
+         sendCAN_BMU_Interlock_Loop_Status()
+
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
 		}
 		else if (cbrb_ok && cbrb_pressed)
 		{
+         //
+         BMU_checkFailed = 3;
+         sendCAN_BMU_Interlock_Loop_Status()
+
 			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
 			cbrb_pressed = false;
 		}
 		else if (!il_ok && cbrb_ok)
 		{
 				ERROR_PRINT("Fault Monitor: IL broken!\n");
+            BMU_checkFailed = 4;
+            sendCAN_BMU_Interlock_Loop_Status()
+
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
 					watchdogTaskCheckIn(FAULT_TASK_ID);
