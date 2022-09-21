@@ -158,9 +158,6 @@ int sendHVToggleMsg(void)
 {
     ButtonHVEnabled = 1;
     ButtonEMEnabled = 0;
-    ButtonEnduranceToggleEnabled = 0;
-	ButtonEnduranceLapEnabled = 0;
-    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -168,40 +165,31 @@ int sendEMToggleMsg(void)
 {
     ButtonHVEnabled = 0;
     ButtonEMEnabled = 1;
-    ButtonEnduranceToggleEnabled = 0;
-	ButtonEnduranceLapEnabled = 0;
-    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
 int sendEnduranceToggleMsg(void)
 {
-    ButtonHVEnabled = 0;
-    ButtonEMEnabled = 0;
     ButtonEnduranceToggleEnabled = 1;
 	ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
-	return sendCAN_DCU_buttonEvents();
+	return sendCAN_DCU_secondaryButton();
 }
 
 int sendEnduranceLapMsg(void)
 {
-    ButtonHVEnabled = 0;
-    ButtonEMEnabled = 0;
     ButtonEnduranceToggleEnabled = 0;
 	ButtonEnduranceLapEnabled = 1;
     ButtonTCEnabled = 0;
-	return sendCAN_DCU_buttonEvents();
+	return sendCAN_DCU_secondaryButton();
 }
 
 int sendTCToggleMsg(void)
 {
-    ButtonHVEnabled = 0;
-    ButtonEMEnabled = 0;
     ButtonEnduranceToggleEnabled = 0;
 	ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 1;
-	return sendCAN_DCU_buttonEvents();
+	return sendCAN_DCU_secondaryButton();
 }
 
 uint32_t toggleTC(uint32_t event)
@@ -317,7 +305,7 @@ uint16_t debouncingPin = 0;
 void debounceTimerCallback(TimerHandle_t timer)
 {
     GPIO_PinState pin_val;
-
+	DEBUG_PRINT_ISR("debounceTimer Callback\n");
     switch (debouncingPin)
     {
         case HV_TOGGLE_BUTTON_PIN:
