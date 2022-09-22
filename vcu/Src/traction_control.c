@@ -11,6 +11,7 @@
 #include "stm32f7xx_hal_tim.h"
 
 #define PI 3.14159
+#define MC_ENCODER_OFFSET 32768
 
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 200
@@ -48,14 +49,15 @@ static float get_FL_speed()
 static float get_RR_speed()
 {
 	//Value comes from MC
-	return RPM_TO_RADS(SpeedMotorRight);
+	int64_t val = SpeedMotorRight;
+	return val - MC_ENCODER_OFFSET;
 }
 */
 static float get_RL_speed()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorLeft;
-	return (val - 32768);
+	return val - MC_ENCODER_OFFSET;
 }
 
 void tractionControlTask(void *pvParameters)
@@ -66,6 +68,9 @@ void tractionControlTask(void *pvParameters)
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
 		while(1);
 	}
+
+	//Init the Motor speed to the offset so it will value that will give a value of 0
+	SpeedMotorLeft = MC_ENCODER_OFFSET;
 	while(1)
 	{
 		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
@@ -103,7 +108,7 @@ void tractionControlTask(void *pvParameters)
 			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
 		}
 
-		DEBUG_PRINT("R: %f T: %f\r\n", rear_speed, output_torque);
+		DEBUG_PRINT("F: %f, R: %f T: %f\r\n", front_speed, rear_speed, output_torque);
 
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);

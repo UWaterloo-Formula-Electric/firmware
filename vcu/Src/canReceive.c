@@ -69,7 +69,6 @@ void CAN_Msg_DCU_secondaryButton_Callback()
 	}
 }
 
-
 void CAN_Msg_PDU_ChannelStatus_Callback()
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
