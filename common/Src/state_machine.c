@@ -14,6 +14,14 @@
 	#include "vcu_F7_can.h"
 #elif BOARD_ID  == ID_PDU
 	#include "pdu_can.h"
+#elif BOARD_ID  == ID_WSBFL
+    #include "wsbfl_can.h"
+#elif BOARD_ID  == ID_WSBFR
+    #include "wsbfr_can.h"
+#elif BOARD_ID  == ID_WSBRL
+    #include "wsbrl_can.h"
+#elif BOARD_ID  == ID_WSBRR
+    #include "wsbrr_can.h"
 #endif
 
 
