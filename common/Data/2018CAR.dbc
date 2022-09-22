@@ -66,18 +66,18 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
 BO_ 2272736804 WSBRR_Sensors: 8 WSBRR
- SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2272736803 WSBRL_Sensors: 8 WSBRL
- SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
+ SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2272736802 WSBFR_Sensors: 8 WSBFR
- SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
- SG_ FR_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
+ SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+ SG_ FR_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
 BO_ 2272736801 WSBFL_Sensors: 8 WSBFL
- SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm" VCU_BeagleBone
- SG_ FL_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
+ SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+ SG_ FL_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
 BO_ 2147548939 WSBRL_DTC: 6 WSBRL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
@@ -471,7 +471,7 @@ BO_ 2240348018 TempMotorRight: 8 MCRight
  SG_ TempMotorDeltaRight : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2240216946 SpeedFeedbackRight: 8 MCRight
- SG_ SpeedMotorRight : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ SpeedMotorRight : 0|16@1+ (1,-0) [0|131071] "RPM"  VCU_BeagleBone,VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -531,7 +531,7 @@ BO_ 2241396593 TempMotorLeft: 8 MCLeft
  SG_ TempMotorDeltaLeft : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2241265521 SpeedFeedbackLeft: 8 MCLeft
- SG_ SpeedMotorLeft : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ SpeedMotorLeft : 0|16@1+ (1,0) [0|131071] "RPM"  VCU_BeagleBone,VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -750,3 +750,4 @@ VAL_ 2214986243 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNE
 VAL_ 2214986243 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
 VAL_ 2281967617 StateBMS 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_ 2214596611 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
+

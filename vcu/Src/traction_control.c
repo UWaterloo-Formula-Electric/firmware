@@ -32,33 +32,35 @@ void toggle_TC(void)
 {
 	tc_on = !tc_on;
 }
+/*
 static float get_FR_speed()
 {
 	//Value comes from WSB
-	return SpeedWheelRightFront;
+	return FR_Speed;
 }
-
+*/
 static float get_FL_speed()
 {
 	//Value comes from WSB
-	return SpeedWheelLeftFront;
+	return FL_Speed;
 }
-
+/*
 static float get_RR_speed()
 {
 	//Value comes from MC
 	return RPM_TO_RADS(SpeedMotorRight);
 }
-
+*/
 static float get_RL_speed()
 {
 	//Value comes from MC
-	return RPM_TO_RADS(SpeedMotorLeft);
+	return RPM_TO_RADS((float)(((int32_t)SpeedMotorLeft)-98304));
 }
 
 void tractionControlTask(void *pvParameters)
 {
-	TickType_t xLastWakeTime;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	TickType_t xLastWakePrint = xTaskGetTickCount();
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
@@ -66,17 +68,15 @@ void tractionControlTask(void *pvParameters)
 	}
 	while(1)
 	{
-		xLastWakeTime = xTaskGetTickCount();
-		
 		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
 		float adjustment_factor = 0.0f;
-		float FR_speed = get_FR_speed();
+		//float FR_speed = get_FR_speed();
 		float FL_speed = get_FL_speed();
-		float RR_speed = get_RR_speed();
+		//float RR_speed = get_RR_speed();
 		float RL_speed = get_RL_speed();
 
-		float front_speed = (FR_speed + FL_speed)/2.0f;
-		float rear_speed = (RR_speed + RL_speed)/2.0f;
+		float front_speed = FL_speed; //(FR_speed + FL_speed)/2.0f;
+		float rear_speed = RL_speed; //(RR_speed + RL_speed)/2.0f;
 
 		float error = rear_speed - front_speed;
 		if(error > ERROR_FLOOR_RADS)
@@ -84,7 +84,7 @@ void tractionControlTask(void *pvParameters)
 			adjustment_factor = error * kP;
 		}
 
-		if(tc_on)
+		if(true)
 		{
 			output_torque = MAX_TORQUE_DEMAND_DEFAULT - adjustment_factor;
 			if(output_torque < ADJUSTMENT_TORQUE_FLOOR)
@@ -102,6 +102,13 @@ void tractionControlTask(void *pvParameters)
 		{
 			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
 		}
+
+		if ( pdMS_TO_TICKS(xTaskGetTickCount() - xLastWakePrint) > 1000)
+		{
+			DEBUG_PRINT("F: %f R: %f A: %f M: %ld\r\n", FL_speed, RL_speed, adjustment_factor, (int32_t)SpeedMotorLeft);
+			xLastWakePrint = xTaskGetTickCount();
+		}
+
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS));

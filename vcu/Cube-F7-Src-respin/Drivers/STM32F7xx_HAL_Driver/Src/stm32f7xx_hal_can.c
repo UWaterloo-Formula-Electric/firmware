@@ -1866,6 +1866,8 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Receive FIFO 0 overrun interrupt management *****************************/
   if ((interrupts & CAN_IT_RX_FIFO0_OVERRUN) != 0U)
   {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 1);
+
     if ((rf0rflags & CAN_RF0R_FOVR0) != 0U)
     {
       /* Set CAN error code to Rx Fifo 0 overrun error */
@@ -1879,6 +1881,8 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Receive FIFO 0 full interrupt management ********************************/
   if ((interrupts & CAN_IT_RX_FIFO0_FULL) != 0U)
   {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 1);
+
     if ((rf0rflags & CAN_RF0R_FULL0) != 0U)
     {
       /* Clear FIFO 0 full Flag */
@@ -1898,6 +1902,8 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Receive FIFO 0 message pending interrupt management *********************/
   if ((interrupts & CAN_IT_RX_FIFO0_MSG_PENDING) != 0U)
   {
+    //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_2);
+
     /* Check if message is still pending */
     if ((hcan->Instance->RF0R & CAN_RF0R_FMP0) != 0U)
     {
@@ -1928,6 +1934,7 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Receive FIFO 1 full interrupt management ********************************/
   if ((interrupts & CAN_IT_RX_FIFO1_FULL) != 0U)
   {
+    
     if ((rf1rflags & CAN_RF1R_FULL1) != 0U)
     {
       /* Clear FIFO 1 full Flag */
@@ -2002,6 +2009,7 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Error interrupts management *********************************************/
   if ((interrupts & CAN_IT_ERROR) != 0U)
   {
+    //JUSTIN
     if ((msrflags & CAN_MSR_ERRI) != 0U)
     {
       /* Check Error Warning Flag */
@@ -2080,6 +2088,7 @@ void HAL_CAN_IRQHandler(CAN_HandleTypeDef *hcan)
   /* Call the Error call Back in case of Errors */
   if (errorcode != HAL_CAN_ERROR_NONE)
   {
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 1);
     /* Update error code in handle */
     hcan->ErrorCode |= errorcode;
 
