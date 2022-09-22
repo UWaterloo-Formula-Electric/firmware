@@ -204,9 +204,9 @@ void faultMonitorTask(void *pvParameters)
    /* Prevents race condition where Fault Monitor passes before system is setup*/
    if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-         BMU_checkFailed = NO_FAULTS & ~(FSM_STATE_BIT);
+        BMU_checkFailed = NO_FAULTS & ~(FSM_STATE_BIT);
 
-   	   DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
+   	    DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
    }
    while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
@@ -232,14 +232,14 @@ void faultMonitorTask(void *pvParameters)
    {
 		if (getHVIL_Status() == false)
 		{
-				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
+			ERROR_PRINT("Fault Monitor: HVIL broken!\n");
             BMU_checkFailed = NO_FAULTS & ~(HVIL_FAILED_BIT);
 
-				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-				while (1) {
-					watchdogTaskCheckIn(FAULT_TASK_ID);
-					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-				}
+			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			while (1) {
+				watchdogTaskCheckIn(FAULT_TASK_ID);
+				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+			}
 		}
 
 		bool il_ok = getIL_Status();
@@ -247,7 +247,7 @@ void faultMonitorTask(void *pvParameters)
 		if(!cbrb_ok && !cbrb_pressed)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
-         BMU_checkFailed = NO_FAULTS & ~(CBRB_FAILED_BIT);
+            BMU_checkFailed = NO_FAULTS & ~(CBRB_FAILED_BIT);
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
@@ -260,7 +260,7 @@ void faultMonitorTask(void *pvParameters)
 		else if (!il_ok && cbrb_ok)
 		{
 			ERROR_PRINT("Fault Monitor: IL broken!\n");
-         BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
+            BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
 
 			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 			while (1) {
@@ -272,7 +272,7 @@ void faultMonitorTask(void *pvParameters)
 		watchdogTaskCheckIn(FAULT_TASK_ID);
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
 
-      sendCAN_BMU_Interlock_Loop_Status();
+        sendCAN_BMU_Interlock_Loop_Status();
 
    }
 
