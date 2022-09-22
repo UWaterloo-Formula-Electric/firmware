@@ -160,13 +160,13 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
         StateMachineEvent = event;
         StateMachineState = fsmGetState(handle);
 
-        sendCAN_StateMachineEventProcessed(); 
-
         if (fsmProcessEvent(handle, event) != HAL_OK)
         {
             ERROR_PRINT("Failed to process event %lu\n", event);
         }
 
+        StateMachineNewState = fsmGetState(handle);
+        sendCAN_StateMachineEventProcessed(); 
 
     }
 }

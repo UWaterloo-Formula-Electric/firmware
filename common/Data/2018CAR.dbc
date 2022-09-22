@@ -65,7 +65,8 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
-BO_ 2298416383 StateMachineEventProcessed: 4 VCU_F7
+BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7
+ SG_ StateMachineNewState : 32|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineWatchdogID : 24|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StateMachineEvent : 8|8@1- (1,0) [0|0] ""  VCU_BeagleBone
