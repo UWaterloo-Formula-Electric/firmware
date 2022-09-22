@@ -26,14 +26,15 @@
 #define HVIL_ENABLED (0)
 
 // CAN Logging
-#define NO_FAULTS (0xFF)
-#define HVIL_FAILED_BIT (1)
-#define BRB_FAILED_BIT (1 << 1)
-#define BSPD_FAILED_BIT (1 << 2)
-#define HVD_FAILED_BIT (1 << 3)
-#define IL_FAILED_BIT (1 << 4)
-#define FSM_STATE_BIT (1 << 5)
+#define NO_FAULTS 0xFF
 
+#define HVIL_FAILED_BIT  (1 << 0)
+#define BRB_FAILED_BIT   (1 << 1)
+#define BSPD_FAILED_BIT  (1 << 2)
+#define HVD_FAILED_BIT   (1 << 3)
+#define IL_FAILED_BIT    (1 << 4)
+#define FSM_STATE_BIT    (1 << 5)
+#define CBRB_FAILED_BIT  (1 << 6)
 
 bool skip_il = false;
 
@@ -99,7 +100,7 @@ void faultMonitorTask(void *pvParameters)
 
 #ifdef ENABLE_IL_CHECKS
 
-   BMU_checkFailed = NO_FAULTS; // 00111111
+   BMU_checkFailed = NO_FAULTS;
 
    /* HVIL status */
    HVIL_Control(true);
@@ -246,7 +247,7 @@ void faultMonitorTask(void *pvParameters)
 		if(!cbrb_ok && !cbrb_pressed)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
-         BMU_checkFailed = NO_FAULTS & ~(BRB_FAILED_BIT);
+         BMU_checkFailed = NO_FAULTS & ~(CBRB_FAILED_BIT);
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
@@ -258,14 +259,14 @@ void faultMonitorTask(void *pvParameters)
 		}
 		else if (!il_ok && cbrb_ok)
 		{
-				ERROR_PRINT("Fault Monitor: IL broken!\n");
-            BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
+			ERROR_PRINT("Fault Monitor: IL broken!\n");
+         BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
 
-				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-				while (1) {
-					watchdogTaskCheckIn(FAULT_TASK_ID);
-					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-				}
+			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			while (1) {
+				watchdogTaskCheckIn(FAULT_TASK_ID);
+				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+			}
 		}
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);
