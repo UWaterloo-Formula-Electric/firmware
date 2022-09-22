@@ -62,6 +62,7 @@ void pollSensorsTask(void const * argument)
         Error_Handler();
     }
     
+	xLastWakeTime = xTaskGetTickCount();
     while(1)
 	{
 		poll_encoder();
