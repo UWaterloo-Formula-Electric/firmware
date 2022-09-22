@@ -272,7 +272,7 @@ void faultMonitorTask(void *pvParameters)
 		watchdogTaskCheckIn(FAULT_TASK_ID);
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
 
-                sendCAN_BMU_Interlock_Loop_Status();
+        sendCAN_BMU_Interlock_Loop_Status();
 
    }
 
