@@ -96,7 +96,7 @@ void faultMonitorTask(void *pvParameters)
 
    if (getHVIL_Status() == false)
    {
-       BMU_checkFailed ^= 1;
+       BMU_checkFailed &= ~(1);
        DEBUG_PRINT("Fault Monitor: HVIL is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for HVIL OK.\n");
    }
@@ -111,7 +111,7 @@ void faultMonitorTask(void *pvParameters)
    /* BRB Status */
    if (getIL_BRB_Status() == false)
    {
-       BMU_checkFailed ^= 1 << 1;
+       BMU_checkFailed &= ~(1 << 1);
        DEBUG_PRINT("Fault Monitor: BRB is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for BRB OK.\n");
        DEBUG_PRINT("Fault Monitor: -- help --\n");
@@ -132,7 +132,7 @@ void faultMonitorTask(void *pvParameters)
    /* BSPD Status */
    if (getBSPD_Status() == false)
    {
-       BMU_checkFailed ^= 1 << 2;
+       BMU_checkFailed &= ~(1 << 2);
 
        DEBUG_PRINT("Fault Monitor: BSPD is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\n");
@@ -150,7 +150,7 @@ void faultMonitorTask(void *pvParameters)
    /* HVD Status */
    if (getHVD_Status() == false)
    {
-       BMU_checkFailed ^= 1 << 3;
+       BMU_checkFailed &= ~(1 << 3);
 
        DEBUG_PRINT("Fault Monitor: HVD is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\n");
@@ -172,7 +172,7 @@ void faultMonitorTask(void *pvParameters)
 
    if (getIL_Status() == false)
    {
-       BMU_checkFailed ^= 1 << 3;
+       BMU_checkFailed &= ~(1 << 4);
 
        DEBUG_PRINT("Fault Monitor: IL is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for IL OK.\n");
@@ -193,7 +193,7 @@ void faultMonitorTask(void *pvParameters)
    /* Prevents race condition where Fault Monitor passes before system is setup*/
    if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-         BMU_checkFailed ^= 1 << 4;
+         BMU_checkFailed &= ~(1 << 5);
 
    	   DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
    }
@@ -222,8 +222,7 @@ void faultMonitorTask(void *pvParameters)
 		if (getHVIL_Status() == false)
 		{
 				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
-            BMU_checkFailed 
-            sendCAN_BMU_Interlock_Loop_Status();
+            BMU_checkFailed &= ~(1);
 
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
@@ -237,8 +236,7 @@ void faultMonitorTask(void *pvParameters)
 		if(!cbrb_ok && !cbrb_pressed)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
-         BMU_checkFailed = 2;
-         sendCAN_BMU_Interlock_Loop_Status();
+         BMU_checkFailed &= ~(1 << 1);
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			cbrb_pressed = true;
@@ -246,8 +244,7 @@ void faultMonitorTask(void *pvParameters)
 		else if (cbrb_ok && cbrb_pressed)
 		{
          //
-         BMU_checkFailed = 3;
-         sendCAN_BMU_Interlock_Loop_Status();
+         BMU_checkFailed &= ~(1 << 2);
 
 			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
 			cbrb_pressed = false;
@@ -255,8 +252,7 @@ void faultMonitorTask(void *pvParameters)
 		else if (!il_ok && cbrb_ok)
 		{
 				ERROR_PRINT("Fault Monitor: IL broken!\n");
-            BMU_checkFailed = 4;
-            sendCAN_BMU_Interlock_Loop_Status();
+            BMU_checkFailed &= ~(1 << 4);
 
 				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 				while (1) {
@@ -267,6 +263,9 @@ void faultMonitorTask(void *pvParameters)
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+
+      sendCAN_BMU_Interlock_Loop_Status();
+
    }
 
 #else
