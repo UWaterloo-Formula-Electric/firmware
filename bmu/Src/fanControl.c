@@ -28,6 +28,7 @@
 
 uint32_t calculateFanPeriod()
 {
+  uint32_t FanP;
   // PWM Output is inverted from what we generate from PROC
 
   // Full fan while charging
@@ -39,10 +40,13 @@ uint32_t calculateFanPeriod()
   if (TempCellMax < FAN_OFF_TEMP) {
     return FAN_PERIOD_COUNT;
   }
-
-  return FAN_PERIOD_COUNT - map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
+  FanP = FAN_PERIOD_COUNT - map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
                       FAN_PERIOD_COUNT*FAN_ON_DUTY_PERCENT,
                       FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT);
+
+  FanPeriod = FanP;
+  sendCAN_BMU_FanPeriod();
+  return FanP;
 }
 
 HAL_StatusTypeDef fanInit()
