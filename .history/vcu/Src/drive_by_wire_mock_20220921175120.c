@@ -306,13 +306,14 @@ static const CLI_Command_Definition_t hvStateCommandDefinition =
     fakeHVStateChange,
     1 /* Number of parameters */
 };
-extern uint16_t called;
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("%u\r\n", called);
+
+    COMMAND_OUTPUT("%lu")
     return pdFALSE;
 }
+extern uint16_t called;
 
 static const CLI_Command_Definition_t printStateCommandDefinition =
 {

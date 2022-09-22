@@ -310,7 +310,7 @@ extern uint16_t called;
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("%u\r\n", called);
+    COMMAND_OUTPUT("%lu\r\n", called);
     return pdFALSE;
 }
 

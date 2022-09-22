@@ -64,7 +64,6 @@ void CAN_Msg_DCU_secondaryButton_Callback()
 	}
 	else if(ButtonTCEnabled)
 	{
-        called += 1;    
 		toggle_TC();
 	}
 }

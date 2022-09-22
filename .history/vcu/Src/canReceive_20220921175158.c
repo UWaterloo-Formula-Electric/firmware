@@ -47,6 +47,7 @@ void CAN_Msg_DCU_buttonEvents_Callback()
     if (ButtonEMEnabled) {
 		// DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
         fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+        called += 1;    
     }
     // For now, ignore HV Enable button, as we really want to wait for BMU to
     // complete HV Enable
@@ -64,7 +65,6 @@ void CAN_Msg_DCU_secondaryButton_Callback()
 	}
 	else if(ButtonTCEnabled)
 	{
-        called += 1;    
 		toggle_TC();
 	}
 }

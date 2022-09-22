@@ -110,7 +110,7 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
                 } else {
                     if (current_state != handle->state)
                     {
-                        DEBUG_PRINT("didnt match\r\n");
+                        DEBUG_PRINT("")
                     }
                     handle->state = newState;
                     break;

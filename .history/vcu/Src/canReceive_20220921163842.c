@@ -23,7 +23,7 @@
  */
 volatile bool motorControllersStatus = false;
 uint32_t lastBrakeValReceiveTimeTicks = 0;
-uint16_t called = 0;
+
 /*
  * Functions to get external board status
  */
@@ -42,18 +42,17 @@ extern osThreadId driveByWireHandle;
 // Currently TC will toggle endurance mode and TV will falsely trigger a lap
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
-    
-	// DEBUG_PRINT_ISR("Received DCU button Event\n");
+	DEBUG_PRINT_ISR("Received DCU button Event\n");
     if (ButtonEMEnabled) {
-		// DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
-        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+		DEBUG_PRINT_ISR("Received ButtonEMEnabled CAN signal\n");
+        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);    
     }
     // For now, ignore HV Enable button, as we really want to wait for BMU to
     // complete HV Enable
 }
 void CAN_Msg_DCU_secondaryButton_Callback()
 {
-	// DEBUG_PRINT_ISR("Received DCU secondary button Event\n");
+	DEBUG_PRINT_ISR("Received DCU secondary button Event\n");
     if(ButtonEnduranceToggleEnabled) 
     {
 		toggle_endurance_mode();
@@ -64,7 +63,6 @@ void CAN_Msg_DCU_secondaryButton_Callback()
 	}
 	else if(ButtonTCEnabled)
 	{
-        called += 1;    
 		toggle_TC();
 	}
 }
