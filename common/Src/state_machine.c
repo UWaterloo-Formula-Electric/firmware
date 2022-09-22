@@ -93,7 +93,10 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
         return HAL_OK;
     }
 
-    DEBUG_PRINT("Processing event %lu\n", event);
+    if (event != 7)
+    {
+        DEBUG_PRINT("Processing event %lu\n", event);
+    }
 
     if (event > handle->init.maxEventNum) {
         ERROR_PRINT("FSM: Event out of range\n");
@@ -143,7 +146,7 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
             continue;
         }
 
-        if (event != UINT32_MAX) {
+        if (event != UINT32_MAX && event != 7) {
             DEBUG_PRINT("Received event %lu\n", event);
         }
 
