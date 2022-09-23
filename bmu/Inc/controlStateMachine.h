@@ -29,6 +29,20 @@ typedef enum BMU_States_t {
     STATE_ANY,					 ///< 10: Must be the last state
 } BMU_States_t;
 
+char BMU_states_string[][25] =
+{
+    "Self check", 
+    "Wait System Up", 
+    "HV Disable",
+    "HV Enable", 
+    "Precharge", 
+    "Discharge",
+    "Charging", 
+    "Failure fatal", 
+    "Failure CBRB Disabled",
+    "Failure CBRB Discharge"
+};
+
 typedef enum BMU_Events_t {
     EV_Init = 0,                ///< 0: Event to init the state machine
     EV_HV_Toggle,               ///< 1: Triggered by CAN message from DCU

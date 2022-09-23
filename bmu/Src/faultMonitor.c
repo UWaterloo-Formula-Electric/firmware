@@ -16,6 +16,7 @@
 #include "watchdog.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "bmu_can.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
@@ -23,6 +24,17 @@
 #define ENABLE_IL_CHECKS
 
 #define HVIL_ENABLED (0)
+
+// CAN Logging
+#define NO_FAULTS 0xFF
+
+#define HVIL_FAILED_BIT  (1 << 0)
+#define BRB_FAILED_BIT   (1 << 1)
+#define BSPD_FAILED_BIT  (1 << 2)
+#define HVD_FAILED_BIT   (1 << 3)
+#define IL_FAILED_BIT    (1 << 4)
+#define FSM_STATE_BIT    (1 << 5)
+#define CBRB_FAILED_BIT  (1 << 6)
 
 bool skip_il = false;
 
@@ -88,11 +100,14 @@ void faultMonitorTask(void *pvParameters)
 
 #ifdef ENABLE_IL_CHECKS
 
+   BMU_checkFailed = NO_FAULTS;
+
    /* HVIL status */
    HVIL_Control(true);
 
    if (getHVIL_Status() == false)
    {
+       BMU_checkFailed = NO_FAULTS & ~(HVIL_FAILED_BIT);
        DEBUG_PRINT("Fault Monitor: HVIL is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for HVIL OK.\n");
    }
@@ -107,6 +122,7 @@ void faultMonitorTask(void *pvParameters)
    /* BRB Status */
    if (getIL_BRB_Status() == false)
    {
+       BMU_checkFailed = NO_FAULTS & ~(BRB_FAILED_BIT);
        DEBUG_PRINT("Fault Monitor: BRB is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for BRB OK.\n");
        DEBUG_PRINT("Fault Monitor: -- help --\n");
@@ -127,6 +143,8 @@ void faultMonitorTask(void *pvParameters)
    /* BSPD Status */
    if (getBSPD_Status() == false)
    {
+       BMU_checkFailed = NO_FAULTS & ~(BSPD_FAILED_BIT);
+
        DEBUG_PRINT("Fault Monitor: BSPD is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\n");
        DEBUG_PRINT("Fault Monitor: -- help --\n");
@@ -143,6 +161,8 @@ void faultMonitorTask(void *pvParameters)
    /* HVD Status */
    if (getHVD_Status() == false)
    {
+       BMU_checkFailed = NO_FAULTS & ~(HVD_FAILED_BIT);
+
        DEBUG_PRINT("Fault Monitor: HVD is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\n");
        DEBUG_PRINT("Fault Monitor: -- help --\n");
@@ -163,6 +183,8 @@ void faultMonitorTask(void *pvParameters)
 
    if (getIL_Status() == false)
    {
+       BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
+
        DEBUG_PRINT("Fault Monitor: IL is down!\n");
        DEBUG_PRINT("Fault Monitor: Waiting for IL OK.\n");
        DEBUG_PRINT("Fault Monitor: -- help --\n");
@@ -182,7 +204,9 @@ void faultMonitorTask(void *pvParameters)
    /* Prevents race condition where Fault Monitor passes before system is setup*/
    if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-   	   DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
+        BMU_checkFailed = NO_FAULTS & ~(FSM_STATE_BIT);
+
+   	    DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
    }
    while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
@@ -201,44 +225,55 @@ void faultMonitorTask(void *pvParameters)
      Error_Handler();
    }
 	
+   sendCAN_BMU_Interlock_Loop_Status();
+
    bool cbrb_pressed = false;
    while (1)
    {
 		if (getHVIL_Status() == false)
 		{
-				ERROR_PRINT("Fault Monitor: HVIL broken!\n");
-				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-				while (1) {
-					watchdogTaskCheckIn(FAULT_TASK_ID);
-					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-				}
+		    ERROR_PRINT("Fault Monitor: HVIL broken!\n");
+            BMU_checkFailed = NO_FAULTS & ~(HVIL_FAILED_BIT);
+
+		    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+		    while (1) {
+			    watchdogTaskCheckIn(FAULT_TASK_ID);
+			    vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+		    }
 		}
 
 		bool il_ok = getIL_Status();
 		bool cbrb_ok = getCBRB_IL_Status();
 		if(!cbrb_ok && !cbrb_pressed)
 		{	
-			ERROR_PRINT("Fault Monitor: Cockbit BRB pressed\n");
-			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
-			cbrb_pressed = true;
+		    ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
+            BMU_checkFailed = NO_FAULTS & ~(CBRB_FAILED_BIT);
+
+            fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+		    cbrb_pressed = true;
 		}
 		else if (cbrb_ok && cbrb_pressed)
 		{
-			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
-			cbrb_pressed = false;
+		    fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
+		    cbrb_pressed = false;
 		}
 		else if (!il_ok && cbrb_ok)
 		{
-				ERROR_PRINT("Fault Monitor: IL broken!\n");
-				fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-				while (1) {
-					watchdogTaskCheckIn(FAULT_TASK_ID);
-					vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-				}
+		    ERROR_PRINT("Fault Monitor: IL broken!\n");
+            BMU_checkFailed = NO_FAULTS & ~(IL_FAILED_BIT);
+
+		    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+		    while (1) {
+		        watchdogTaskCheckIn(FAULT_TASK_ID);
+			    vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+		    }
 		}
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+
+        sendCAN_BMU_Interlock_Loop_Status();
+
    }
 
 #else

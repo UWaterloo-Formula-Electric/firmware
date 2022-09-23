@@ -248,6 +248,12 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
+	if (VBatt < packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK) {
+        ERROR_PRINT("ERROR: VBatt %f < %f\n", VBatt,
+                    packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK);
+        return PCDC_ERROR;
+	}
+
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
         ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);

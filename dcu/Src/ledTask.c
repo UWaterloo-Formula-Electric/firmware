@@ -80,7 +80,6 @@ void ledTask(void *pvParameters)
                 HAL_GPIO_TogglePin(EM_LED_GPIO_Port, HV_LED_Pin);
                 HAL_GPIO_TogglePin(EM_LED_GPIO_Port, EM_LED_Pin);
                 break;
-
             default:
                 break;
         }
