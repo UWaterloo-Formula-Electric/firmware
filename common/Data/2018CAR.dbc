@@ -68,7 +68,8 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
 BO_ 2297236481 BMU_Interlock_Loop_Status: 8 BMU
  SG_ BMU_checkFailed : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
-BO_ 2298416383 StateMachineEventProcessed: 4 VCU_F7
+BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7
+ SG_ StateMachineNewState : 32|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineWatchdogID : 24|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StateMachineEvent : 8|8@1- (1,0) [0|0] ""  VCU_BeagleBone
@@ -571,8 +572,7 @@ BO_ 2550137353 WSBFR_WheelData: 8 WSBFR
  SG_ StrainXRightFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
  SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
 
-BO_TX_BU_ 2298416383 : BMU,DCU,PDU,VCU_F7;
-
+BO_TX_BU_ 2298416383 : WSBFR,WSBRL,WSBRR,WSBFL,BMU,DCU,PDU,VCU_F7;
 
 CM_ BU_ MCLeft "5_2_Left Inverter";
 CM_ BU_ MCRight "6_2_Right Inverter";
