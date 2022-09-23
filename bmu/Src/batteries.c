@@ -208,7 +208,7 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
  */
 #define HV_MEASURE_TASK_PERIOD_MS 1
 #define HV_MEASURE_TASK_ID 4
-#define STATE_BUS_HV_CAN_SEND_PERIOD_MS 500
+#define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 
 /// Queue holding most recent bus current measurement
 QueueHandle_t IBusQueue;
@@ -478,6 +478,8 @@ void HVMeasureTask(void *pvParamaters)
             CurrentBusHV = IBus;
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
+            publishVbatt = VBatt;
+            sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
         }
 		integrate_bus_current(IBus, (float)(xTaskGetTickCount() - xLastWakeTime));
@@ -1250,6 +1252,8 @@ ChargeReturn balanceCharge(void)
         }
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
+            BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
 			BatteryTaskError();
         }
@@ -1458,6 +1462,8 @@ void batteryTask(void *pvParameter)
 	}
 	if(ret != HAL_OK)
 	{
+        BatteryTaskFailure = BATTERY_START_FAIL_BIT;
+        sendCAN_BMU_BatteryChecks();
 		BatteryTaskError();
 	}
 #endif
@@ -1522,6 +1528,8 @@ void batteryTask(void *pvParameter)
         }
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
+            BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Open wire test failed!\n");
             if (boundedContinue()) { continue; }
         }
@@ -1529,6 +1537,8 @@ void batteryTask(void *pvParameter)
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
+            BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
 		}
@@ -1538,11 +1548,15 @@ void batteryTask(void *pvParameter)
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage) != HAL_OK)
         {
+            BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
         	ERROR_PRINT("Failed check of battery cell voltages and temps\n");
             if (boundedContinue()) { continue; }
         }
 
         if (publishPackVoltage(packVoltage) != HAL_OK) {
+            BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to publish pack voltage\n");
             if (boundedContinue()) { continue; }
         }
