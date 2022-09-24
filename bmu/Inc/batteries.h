@@ -14,7 +14,13 @@ typedef enum Balance_Type_t {
     USING_CHARGER
 } Balance_Type_t;
 
-typedef enum Battery_Notifications_t {
+#define BATTERY_START_FAIL_BIT                      (1U << 0)
+#define OPEN_CIRCUIT_FAIL_BIT                       (1U << 1)
+#define READ_CELL_VOLTAGE_TEMPS_FAIL_BIT            (1U << 2)
+#define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
+#define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
+
+typedef enum Charge_Notifications_t {
     CHARGE_START_NOTIFICATION,
     BALANCE_START_NOTIFICATION,
     BATTERY_STOP_NOTIFICATION,                  

@@ -6,6 +6,25 @@
 #include "debug.h"
 #include "watchdog.h"
 
+#if BOARD_ID == ID_BMU
+    #include "bmu_can.h"
+#elif BOARD_ID  == ID_DCU
+	#include "dcu_can.h"
+#elif BOARD_ID  == ID_VCU_F7
+	#include "vcu_F7_can.h"
+#elif BOARD_ID  == ID_PDU
+	#include "pdu_can.h"
+#elif BOARD_ID  == ID_WSBFL
+    #include "wsbfl_can.h"
+#elif BOARD_ID  == ID_WSBFR
+    #include "wsbfr_can.h"
+#elif BOARD_ID  == ID_WSBRL
+    #include "wsbrl_can.h"
+#elif BOARD_ID  == ID_WSBRR
+    #include "wsbrr_can.h"
+#endif
+
+
 HAL_StatusTypeDef fsmInit(uint32_t startingState, FSM_Init_Struct *init,
                           FSM_Handle_Struct *handle)
 {
@@ -144,11 +163,21 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
         if (event != UINT32_MAX) {
             DEBUG_PRINT("Received event %lu\n", event);
         }
+        
+        
+        StateMachineBoardID = BOARD_ID;
+        StateMachineWatchdogID =  handle->init.watchdogTaskId;
+        StateMachineEvent = event;
+        StateMachineState = fsmGetState(handle);
 
         if (fsmProcessEvent(handle, event) != HAL_OK)
         {
             ERROR_PRINT("Failed to process event %lu\n", event);
         }
+
+        StateMachineNewState = fsmGetState(handle);
+        sendCAN_StateMachineEventProcessed(); 
+
     }
 }
 

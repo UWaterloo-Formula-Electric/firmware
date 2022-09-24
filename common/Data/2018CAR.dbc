@@ -79,6 +79,34 @@ BO_ 2215641608 WSBFL_Sensors: 8 WSBFL
  SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
  SG_ FL_Speed : 32|16@1- (0.0625,0) [-2048|2047.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
+BO_ 2281835521 BMU_BatteryChecks: 8 BMU
+ SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281769985 BMU_AmsVBatt: 8 BMU
+ SG_ publishVbatt : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_BeagleBone
+
+BO_ 2282884097 BMU_FanPeriod: 8 BMU
+ SG_ FanPeriod : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2295598081 PrechargeState: 8 BMU
+ SG_ PrechargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2287209473 Discharge_Data: 8 BMU
+ SG_ IBus_Data : 48|16@1- (1,0) [0|0] "" Vector__XXX
+ SG_ VBus_Data : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ VBatt_Data : 16|16@1+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ DischargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2297236481 BMU_Interlock_Loop_Status: 8 BMU
+ SG_ BMU_checkFailed : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7
+ SG_ StateMachineNewState : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineWatchdogID : 24|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineEvent : 8|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StateMachineBoardID : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+
 BO_ 2147548939 WSBRL_DTC: 6 WSBRL
  SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
  SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL
@@ -617,8 +645,6 @@ BO_ 2282754561 BMU_stateBusHV: 8 BMU
 BO_ 2214596611 PDU_DCDC_Status: 8 PDU
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
  SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
-
-
 
 CM_ BU_ MCLeft "5_2_Left Inverter";
 CM_ BU_ MCRight "6_2_Right Inverter";

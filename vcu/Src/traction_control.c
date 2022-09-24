@@ -29,6 +29,11 @@
 
 static bool tc_on = false;
 
+void disable_TC(void)
+{
+	tc_on = false;
+}
+
 void toggle_TC(void)
 {
 	tc_on = !tc_on;

@@ -291,6 +291,9 @@ uint32_t emControl(uint32_t event)
     else
     {
         DEBUG_PRINT("Response from VCU: EM Disabled\n");
+
+        //Turn off TC button
+        TC_on = false;
         return STATE_HV_Enable;
     }
 }

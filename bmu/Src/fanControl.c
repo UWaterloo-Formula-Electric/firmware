@@ -60,11 +60,13 @@ HAL_StatusTypeDef fanInit()
 
 HAL_StatusTypeDef setFan()
 {
-   uint32_t duty = calculateFanPeriod();
+  uint32_t duty = calculateFanPeriod();
 
-    __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
-
-    return HAL_OK;
+  __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
+  
+  FanPeriod = duty;
+  sendCAN_BMU_FanPeriod();
+  return HAL_OK;
 }
 
 /**
