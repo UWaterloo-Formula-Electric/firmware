@@ -505,6 +505,7 @@ uint32_t emEnable(uint32_t event) {
 		return COOL_STATE_WAIT;
     } else {
         DEBUG_PRINT("Not turning cooling on from em enable, DC-DC off\n");
+        sendDTC_WARNING_PDU_EM_EN_BLOCKED_DCDC_OFF();
         return COOL_STATE_OFF;
     }
 }
