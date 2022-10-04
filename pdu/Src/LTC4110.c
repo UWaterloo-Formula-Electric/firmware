@@ -37,14 +37,13 @@ void powerTask(void *pvParameters)
             else
             {
                 DEBUG_PRINT("Switched to battery\n");
-            }
+                uint32_t curr_state = fsmGetState(&coolingFsmHandle);
+                if(DC_DC_state == false && curr_state == COOL_STATE_ON){
+                    fsmSendEvent(&coolingFsmHandle, COOL_EV_EM_DISABLE, portMAX_DELAY);
+                }
             DC_DC_state = newDCDCState;
         }
 
-        uint32_t curr_state = fsmGetState(&coolingFsmHandle);
-        if(DC_DC_state == false && curr_state == COOL_STATE_ON){
-            fsmSendEvent(&coolingFsmHandle, COOL_STATE_OFF, 100); //what is the correct timeout here?
-        }
         watchdogTaskCheckIn(5);
         vTaskDelay(POWER_TASK_INTERVAL_MS);
     }
