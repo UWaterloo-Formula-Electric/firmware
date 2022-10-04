@@ -16,7 +16,7 @@ typedef enum Charge_Notifications_t {
 
 HAL_StatusTypeDef getIBus(float *IBus);
 HAL_StatusTypeDef getVBatt(float *VBatt);
-HAL_StatusTypeDef getVBus(float * VBus);
+HAL_StatusTypeDef getVBus(float *VBus);
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
@@ -29,5 +29,6 @@ void clearSendOnlyOneCell();
 HAL_StatusTypeDef cliSetVBatt(float VBatt);
 HAL_StatusTypeDef cliSetVBus(float VBus);
 HAL_StatusTypeDef cliSetIBus(float IBus);
-
+void cliSetStateBusHVSendPeriod(uint32_t period);
+uint32_t cliGetStateBusHVSendPeriod();
 #endif /* end of include guard: BATTERIES_H */

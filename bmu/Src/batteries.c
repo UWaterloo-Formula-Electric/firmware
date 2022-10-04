@@ -202,6 +202,8 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 #define HV_MEASURE_TASK_PERIOD_MS 1
 #define HV_MEASURE_TASK_ID 4
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 500
+static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
+
 
 /// Queue holding most recent bus current measurement
 QueueHandle_t IBusQueue;
@@ -422,6 +424,25 @@ HAL_StatusTypeDef cliSetIBus(float IBus)
 }
 
 /**
+ * @brief Allows setting of the interval for sending state bus HV CAN messages
+ *
+ * @param period The period of time, in milliseconds
+ */
+void cliSetStateBusHVSendPeriod(uint32_t period)
+{
+    StateBusHVSendPeriod = period;
+}
+
+/**
+ * @brief Allows getting of the interval for sending state bus HV CAN messages
+ */
+uint32_t cliGetStateBusHVSendPeriod() 
+{
+    return StateBusHVSendPeriod;
+}
+
+
+/**
  * Measures the voltage and current on the HV Bus as well as the HV battery
  * pack voltage.
  *
@@ -462,7 +483,7 @@ void HVMeasureTask(void *pvParamaters)
 
 
         if (xTaskGetTickCount() - lastStateBusHVSend
-            > pdMS_TO_TICKS(STATE_BUS_HV_CAN_SEND_PERIOD_MS))
+            > pdMS_TO_TICKS(StateBusHVSendPeriod))
         {
             CurrentBusHV = IBus;
             VoltageBusHV = VBus;

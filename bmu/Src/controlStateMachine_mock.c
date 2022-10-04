@@ -548,6 +548,47 @@ static const CLI_Command_Definition_t setPCDCCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t getStateBusHVSendPeriod(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint32_t current_period = cliGetStateBusHVSendPeriod();
+    COMMAND_OUTPUT("The current state bus HV CAN send period: %lu\r\n", current_period);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getStateBusHVSendPeriodCommandDefinition =
+{
+    "getStateBusHVSendPeriod",
+    "getStateBusHVSendPeriod:\r\n Get the state bus HV CAN send period\r\n",
+    getStateBusHVSendPeriod,
+    0 /* Number of parameters */
+};
+
+BaseType_t setStateBusHVSendPeriod(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint32_t period_ms;
+
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (idxParam[0] == '-') {
+        COMMAND_OUTPUT("The publishing time (in ms) must be greater than 0");
+    } else {
+        sscanf(idxParam, "%lu", &period_ms);
+        cliSetStateBusHVSendPeriod(period_ms);
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setStateBusHVSendPeriodCommandDefinition =
+{
+    "setStateBusHVSendPeriod",
+    "setStateBusHVSendPeriod <period>:\r\n  set the period/interval for sending state bus HV CAN messages\r\n",
+    setStateBusHVSendPeriod,
+    1 /* Number of parameters */
+};
+
 BaseType_t IMDStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -992,6 +1033,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&cbrbStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setStateBusHVSendPeriodCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getStateBusHVSendPeriodCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
