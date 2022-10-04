@@ -27,6 +27,10 @@
 
 #define INVERTER_STATE_MASK             0x3F
 
+// Torque vectoring dead zone angle boundaries
+#define TV_DEADZONE_END_RIGHT 10
+#define TV_DEADZONE_END_LEFT -10
+
 MotorControllerProcanSettings mcLeftSettings = {0};
 MotorControllerProcanSettings mcRightSettings = {0};
 
@@ -237,14 +241,27 @@ float limit(float in, float min, float max)
     return min;
 }
 
+bool is_wheel_within_deadzone(int steeringAngle) {
+    if (steeringAngle >= TV_DEADZONE_END_LEFT && 
+        steeringAngle <= TV_DEADZONE_END_RIGHT) {
+            return true;
+    }
+    return false;
+}
+
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 {
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    // Throttle adjustments for torque vectoring
+    float throttleRight = throttle;
+    float throttleLeft = throttle;
+
+    // Throttle adjustments for torque vectoring (only if steeringAngle is outside the dead zone)
     // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
-    float throttleRight = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
-    float throttleLeft = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
+    if (!is_wheel_within_deadzone(steeringAngle)) {
+            throttleRight += (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+            throttleLeft -= (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+        }
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
