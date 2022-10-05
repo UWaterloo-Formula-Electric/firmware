@@ -71,8 +71,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         }
     } else {
 #endif
-    if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
+    if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
+        if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) { 
+            /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
+        }
     }
 #ifdef CHARGER_CAN_HANDLE
     }
@@ -97,8 +99,10 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
         }
     } else {
 #endif
-    if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-        /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
+    if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
+        if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+            /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
+        }
     }
 #ifdef CHARGER_CAN_HANDLE
     }
