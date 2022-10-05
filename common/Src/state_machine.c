@@ -165,18 +165,18 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
         }
         
         
-        StateMachineBoardID = BOARD_ID;
-        StateMachineWatchdogID =  handle->init.watchdogTaskId;
-        StateMachineEvent = event;
-        StateMachineState = fsmGetState(handle);
+        //StateMachineBoardID = BOARD_ID;
+        //StateMachineWatchdogID =  handle->init.watchdogTaskId;
+        //StateMachineEvent = event;
+        //StateMachineState = fsmGetState(handle);
 
         if (fsmProcessEvent(handle, event) != HAL_OK)
         {
             ERROR_PRINT("Failed to process event %lu\n", event);
         }
 
-        StateMachineNewState = fsmGetState(handle);
-        sendCAN_StateMachineEventProcessed(); 
+        //StateMachineNewState = fsmGetState(handle);
+        //sendCAN_StateMachineEventProcessed(); 
 
     }
 }

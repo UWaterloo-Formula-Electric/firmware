@@ -595,7 +595,6 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
    /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
    /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
-	
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -1225,6 +1224,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         * Need to send msg to charger every second to continue charging
         */
        if (using_charger && !waitingForBalanceDone) {
+       	   DEBUG_PRINT("Still Charging\n");
           if (continueCharging() != HAL_OK) {
              ERROR_PRINT("Failed to send charge continue message\n");
              if (boundedContinue()) { continue; }
@@ -1266,7 +1266,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #endif
 
         if (resumeBalance() != HAL_OK) {
-            ERROR_PRINT("Failed to pause balance!\n");
+            ERROR_PRINT("Failed to resume balance!\n");
             if (boundedContinue()) { continue; }
         }
 
@@ -1302,9 +1302,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 float minCellSOC = getSOCFromVoltage(VoltageCellMin);
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
-
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
-                    float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
+                    float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
@@ -1486,13 +1485,13 @@ void batteryTask(void *pvParameter)
                     sendCAN_BMU_ChargeEN_State();
                 }
                 if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
-                                                        BATTERY_CHARGE_TASK_PERIOD_MS))
+                                                        2*BATTERY_CHARGE_TASK_PERIOD_MS))
                 {
                     ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
                 } else {
                     ChargeReturn chargeRc;
                     
-                    if (dbwTaskNotifications & 1<<CHARGE_START_NOTIFICATION)
+                    if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
                     {
                         chargeRc = balanceCharge(USING_CHARGER);
                     }
@@ -1507,7 +1506,7 @@ void batteryTask(void *pvParameter)
                     }
 
                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
-                                                            BATTERY_TASK_PERIOD_MS))
+                                                            2*BATTERY_TASK_PERIOD_MS))
                     {
                         ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
                     }
