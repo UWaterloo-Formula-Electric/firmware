@@ -26,13 +26,9 @@ BaseType_t sensorsCommand(char *writeBuffer, size_t writeBufferLength,
 	else if(index == 3)
 	{
 		COMMAND_OUTPUT("Encoder Speed: %f rads/s\n", sensor_encoder_speed());
-		return pdTRUE;
-	}
-	else
-	{
 		index = 0;
 	}
-    return pdFALSE;
+	return pdFALSE;
 }
 static const CLI_Command_Definition_t sensorsCommandDefinition =
 {

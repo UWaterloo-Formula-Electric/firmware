@@ -150,6 +150,9 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
 {
     uint32_t event;
 
+    //Used to log state machine processing if event != UINT32_MAX
+    uint8_t validEvent = 0;
+
     while(1)
     {
         if (xQueueReceive(handle->eventQueue, &event, portMAX_DELAY) != pdTRUE)
@@ -160,21 +163,25 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
 
         if (event != UINT32_MAX) {
             DEBUG_PRINT("Received event %lu\n", event);
+            
+            validEvent = 1;
+            StateMachineBoardID = BOARD_ID;
+            StateMachineWatchdogID =  handle->init.watchdogTaskId;
+            StateMachineEvent = event;
+            StateMachineState = fsmGetState(handle);
         }
-        
-        
-        StateMachineBoardID = BOARD_ID;
-        StateMachineWatchdogID =  handle->init.watchdogTaskId;
-        StateMachineEvent = event;
-        StateMachineState = fsmGetState(handle);
 
         if (fsmProcessEvent(handle, event) != HAL_OK)
         {
             ERROR_PRINT("Failed to process event %lu\n", event);
         }
 
-        StateMachineNewState = fsmGetState(handle);
-        sendCAN_StateMachineEventProcessed(); 
+        if (validEvent)
+        {
+            StateMachineNewState = fsmGetState(handle);
+            sendCAN_StateMachineEventProcessed(); 
+            validEvent = 0;
+        }
 
     }
 }
