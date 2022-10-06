@@ -73,11 +73,11 @@ void _handleError(char *file, int line)
     HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
 
 #if !BOARD_IS_WSB(BOARD_ID)
+	sendDTC_WARNING_ERROR_HANDLER(line);
     SEND_FATAL_DTC();
 #else
     SEND_CRITICAL_DTC();
 #endif
-
     // Trigger whatever error handling this board has
     DTC_Fatal_Callback(BOARD_ID);
 

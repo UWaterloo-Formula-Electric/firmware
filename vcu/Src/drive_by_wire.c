@@ -13,6 +13,8 @@
 #include "brakeAndThrottle.h"
 #include "watchdog.h"
 #include "motorController.h"
+#include "endurance_mode.h"
+#include "traction_control.h"
 
 #define DRIVE_BY_WIRE_TASK_ID 1
 
@@ -45,7 +47,6 @@ Transition_t transitions[] = {
     { STATE_EM_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
     { STATE_EM_Disable, EV_DCU_Can_Timeout, &EM_Fault },
     { STATE_EM_Disable, EV_Throttle_Failure, &EM_Fault },
-    { STATE_EM_Disable, EV_EM_Toggle, &EM_Fault },
     { STATE_EM_Enable, EV_Bps_Fail, &EM_Fault },
     { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
@@ -177,6 +178,8 @@ uint32_t EM_Enable(uint32_t event)
         }
     }
 
+	endurance_mode_EM_callback();
+
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();
 
@@ -235,6 +238,8 @@ uint32_t EM_Fault(uint32_t event)
         case EV_EM_Toggle:
             {
                 DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
+                //disable TC
+                disable_TC();
                 newState = STATE_EM_Disable;
             }
             break;

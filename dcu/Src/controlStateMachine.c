@@ -30,9 +30,16 @@ TimerHandle_t debounceTimer;
 void debounceTimerCallback(TimerHandle_t timer);
 bool debounceTimerStarted = false;
 
+bool TC_on = false;
+bool endurance_on = false;
+
 uint32_t selfTests(uint32_t event);
 uint32_t toggleHV(uint32_t event);
 uint32_t toggleEM(uint32_t event);
+uint32_t toggleTC(uint32_t event);
+uint32_t toggleEnduranceMode(uint32_t event);
+uint32_t toggleEnduranceLap(uint32_t event);
+uint32_t toggleSelect(uint32_t event);
 uint32_t hvControl(uint32_t event);
 uint32_t emControl(uint32_t event);
 uint32_t defaultTransition(uint32_t event);
@@ -131,6 +138,10 @@ Transition_t transitions[] = {
     // Can occur when contactors open while EM enabled
     {STATE_EM_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
 
+	{STATE_EM_Enable,	  EV_TC_Toggle,			  &toggleTC},
+	{STATE_EM_Enable,	  EV_Endurance_Mode_Toggle,&toggleEnduranceMode},
+	{STATE_EM_Enable,	  EV_Endurance_Lap_Toggle,&toggleEnduranceLap},
+
     {STATE_Failure_Fatal, EV_ANY,                 &doNothing},
     {STATE_ANY,           EV_CAN_Recieve_Fatal,   &fatalTransition},
     {STATE_ANY,           EV_ANY,                 &defaultTransition}
@@ -147,6 +158,9 @@ int sendHVToggleMsg(void)
 {
     ButtonHVEnabled = 1;
     ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+	ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -154,8 +168,77 @@ int sendEMToggleMsg(void)
 {
     ButtonHVEnabled = 0;
     ButtonEMEnabled = 1;
+    ButtonEnduranceToggleEnabled = 0;
+	ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
+
+int sendEnduranceToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 1;
+	ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+	return sendCAN_DCU_buttonEvents();
+}
+
+int sendEnduranceLapMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+	ButtonEnduranceLapEnabled = 1;
+    ButtonTCEnabled = 0;
+	return sendCAN_DCU_buttonEvents();
+}
+
+int sendTCToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+	ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 1;
+	return sendCAN_DCU_buttonEvents();
+}
+
+uint32_t toggleTC(uint32_t event)
+{
+	DEBUG_PRINT("Toggling TC\n");
+	if(sendTCToggleMsg() != HAL_OK)
+	{
+        ERROR_PRINT("Failed to send TC Toggle button event!\n");
+        Error_Handler();
+	}
+	TC_on = !TC_on;
+	return STATE_EM_Enable;
+}
+
+uint32_t toggleEnduranceMode(uint32_t event)
+{
+	DEBUG_PRINT("Toggling Endurance Mode\n");
+	if(sendEnduranceToggleMsg() != HAL_OK)
+	{
+        ERROR_PRINT("Failed to send EnduranceMode Toggle button event!\n");
+        Error_Handler();
+	}
+	endurance_on = !endurance_on;
+	return STATE_EM_Enable;
+}
+
+uint32_t toggleEnduranceLap(uint32_t event)
+{
+	DEBUG_PRINT("Incrementing Enduranc eLap\n");
+	if(sendEnduranceLapMsg() != HAL_OK)
+	{
+        ERROR_PRINT("Failed to send EnduranceLap Toggle button event!\n");
+        Error_Handler();
+	}
+	return STATE_EM_Enable;
+}
+
 
 uint32_t toggleHV(uint32_t event)
 {
@@ -220,6 +303,9 @@ uint32_t emControl(uint32_t event)
     else
     {
         DEBUG_PRINT("Response from VCU: EM Disabled\n");
+
+        //Turn off TC button
+        TC_on = false;
         return STATE_HV_Enable;
     }
 }
@@ -246,6 +332,21 @@ void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
                     EM_TOGGLE_BUTTON_PIN);
             break;
+        
+        case TC_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT,
+                    TC_TOGGLE_BUTTON_PIN);
+            break;
+         
+        case ENDURANCE_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT,
+                    ENDURANCE_TOGGLE_BUTTON_PIN);
+            break;
+
+        case ENDURANCE_LAP_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(ENDURANCE_LAP_BUTTON_PORT,
+                    ENDURANCE_LAP_BUTTON_PIN);
+            break;
 
         default:
             /* Shouldn't get here */ 
@@ -266,6 +367,18 @@ void debounceTimerCallback(TimerHandle_t timer)
             case EM_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_EM_Toggle);
                 break;
+            
+            case TC_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&DCUFsmHandle, EV_TC_Toggle);
+                break;
+
+			case ENDURANCE_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&DCUFsmHandle, EV_Endurance_Lap_Toggle);
+				break;
+
+			case ENDURANCE_LAP_BUTTON_PIN:
+                fsmSendEventISR(&DCUFsmHandle, EV_Endurance_Mode_Toggle);
+				break;
 
             default:
                 /* Shouldn't get here */
@@ -298,6 +411,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         case EM_TOGGLE_BUTTON_PIN:
             debouncingPin = EM_TOGGLE_BUTTON_PIN;
             break;
+		
+		case TC_TOGGLE_BUTTON_PIN:
+			debouncingPin = TC_TOGGLE_BUTTON_PIN;
+			break;
+
+		case ENDURANCE_TOGGLE_BUTTON_PIN:
+			debouncingPin = ENDURANCE_TOGGLE_BUTTON_PIN;
+			break;
+
+		case ENDURANCE_LAP_BUTTON_PIN:
+			debouncingPin = ENDURANCE_LAP_BUTTON_PIN;
+			break;
 
         default:
             /* Not a fatal error here, but report error and return */

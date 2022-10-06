@@ -915,6 +915,21 @@ static const CLI_Command_Definition_t cbrbStatusCommandDefinition =
 
 
 
+BaseType_t socCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	COMMAND_OUTPUT("State of Charge %f %% \n", StateBatteryChargeHV);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t socCommandDefinition =
+{
+    "soc",
+    "soc:\r\n Print system state of charge \n",
+    socCommand,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     cliSetVBatt(0);
@@ -1033,6 +1048,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&cbrbStatusCommandDefinition) != pdPASS) {
+		return HAL_ERROR;
+	}
+    if (FreeRTOS_CLIRegisterCommand(&socCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setStateBusHVSendPeriodCommandDefinition) != pdPASS) {

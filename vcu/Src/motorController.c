@@ -108,6 +108,13 @@ HAL_StatusTypeDef setTorqueLimit(float limit)
     return HAL_OK;
 }
 
+HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
+{
+    mcRightSettings.DischargeCurrentLimit = limit;
+    mcLeftSettings.DischargeCurrentLimit = limit;
+	return HAL_OK;
+}
+
 // TODO: Probably need to set speed limits after init
 HAL_StatusTypeDef mcInit()
 {
@@ -146,7 +153,7 @@ HAL_StatusTypeDef mcInit()
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
            ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
-        sendThrottleValueToMCs(0);
+        sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
@@ -164,7 +171,7 @@ HAL_StatusTypeDef mcInit()
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
            ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
-        sendThrottleValueToMCs(0);
+        sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
@@ -230,25 +237,32 @@ float limit(float in, float min, float max)
     return min;
 }
 
-HAL_StatusTypeDef sendThrottleValueToMCs(float throttle)
+HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 {
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    float torqueDemand = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
+    // Throttle adjustments for torque vectoring
+    // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
+    float throttleRight = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
+    float throttleLeft = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR );
+
+    float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
+    float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
 
     static uint64_t count2 = 0;
     count2++;
     if (count2 % 20 == 0) {
-        DEBUG_PRINT("Torque demand %f\n", torqueDemand);
+        DEBUG_PRINT("Torque demand right %f\n", torqueDemandR);
+        DEBUG_PRINT("Torque demand left %f\n", torqueDemandL);
     }
 
     TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
     TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
-    TorqueDemandRight = torqueDemand;
+    TorqueDemandRight = torqueDemandR;
 
     TorqueLimitDriveLeft = mcLeftSettings.DriveTorqueLimit;
     TorqueLimitBrakingLeft = mcLeftSettings.BrakingTorqueLimit;
-    TorqueDemandLeft = torqueDemand;
+    TorqueDemandLeft = torqueDemandL;
 
     SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
     SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;

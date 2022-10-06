@@ -5,6 +5,7 @@
 
 #define POWER_TASK_INTERVAL_MS 250
 
+extern volatile bool DC_DC_state;
 HAL_StatusTypeDef LTC4110Init(void);
 
 #endif /* end of include guard: SENSORS_H */

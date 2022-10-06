@@ -11,9 +11,10 @@
 #include "pdu_can.h"
 #include "watchdog.h"
 
+volatile bool DC_DC_state = false;
+
 void powerTask(void *pvParameters)
 {
-    bool DC_DC_state = false;
     if (registerTaskToWatch(5, 2*POWER_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register power task with watchdog!\n");

@@ -11,6 +11,7 @@
 #include "pdu_can.h"
 #include "bsp.h"
 #include "watchdog.h"
+#include "LTC4110.h"
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
 #define LV_SHUTDOWN_DELAY_TIME_MS 1000
@@ -464,6 +465,7 @@ uint32_t coolingLVCuttoff(uint32_t event) {
     return COOL_STATE_LV_Cuttoff;
 }
 uint32_t coolingCriticalFailure(uint32_t event) {
+	coolingOff(event);
     if (fsmGetState(&coolingFsmHandle) != COOL_STATE_HV_CRITICAL) {
         DEBUG_PRINT("Cooling critical failure\n");
         // TODO: What to do here? Should turn off, or leave on cooling
@@ -485,22 +487,22 @@ uint32_t coolingOff(uint32_t event) {
 
 uint32_t coolingOn(uint32_t event) {
     DEBUG_PRINT("Turning cooling on\n");
-//    PUMP_LEFT_ENABLE;
-//    PUMP_RIGHT_ENABLE;
-//    FAN_LEFT_ENABLE;
-//    FAN_RIGHT_ENABLE;
+    PUMP_LEFT_ENABLE;
+    PUMP_RIGHT_ENABLE;
+    FAN_LEFT_ENABLE;
+    FAN_RIGHT_ENABLE;
     return COOL_STATE_ON;
 }
 
 uint32_t emEnable(uint32_t event) {
     DEBUG_PRINT("EM Enable received\n");
-    if (true) {
+    if (DC_DC_state) {
         if (xTimerStart(coolingDelayTimer, 100) != pdPASS) {
             ERROR_PRINT("Failed to start coolingdelay timer\n");
             coolingOn(COOL_EV_WAIT_ELAPSED);
             return COOL_STATE_ON;
         }
-    return COOL_STATE_WAIT;
+		return COOL_STATE_WAIT;
     } else {
         DEBUG_PRINT("Not turning cooling on from em enable, DC-DC off\n");
         return COOL_STATE_OFF;
