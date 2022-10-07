@@ -248,11 +248,6 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-	if (VBatt < packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK) {
-        ERROR_PRINT("ERROR: VBatt %f < %f\n", VBatt,
-                    packVoltage * PRECHARGE_STEP_1_VBATT_MIN_PERCENT_VPACK);
-        return PCDC_ERROR;
-	}
 
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
@@ -532,6 +527,13 @@ Precharge_Discharge_Return_t discharge()
     DEBUG_PRINT("Discharge start, waiting for zero current\n");
     uint32_t startTickVal = xTaskGetTickCount();
     float IBus, VBus, VBatt;
+
+    //Reset the can logs signals
+    DischargeState = 0;
+    VBus_Data = 0;
+    VBatt_Data = 0;
+    IBus_Data = 0;
+
     do {
         if (getIBus(&IBus) != HAL_OK) {
             break;
@@ -547,11 +549,14 @@ Precharge_Discharge_Return_t discharge()
         sendCAN_Discharge_Data();
         vTaskDelay(1);
     } while (IBus > ZERO_CURRENT_MAX_AMPS);
+
+    //Publish Discharge state for can logs
     DischargeState = 1;
     VBus_Data = 0;
     VBatt_Data = 0;
     IBus_Data = 0;
     sendCAN_Discharge_Data();
+
     DEBUG_PRINT("Opening contactors\n");
     openAllContactors();
 
