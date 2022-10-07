@@ -527,6 +527,13 @@ Precharge_Discharge_Return_t discharge()
     DEBUG_PRINT("Discharge start, waiting for zero current\n");
     uint32_t startTickVal = xTaskGetTickCount();
     float IBus, VBus, VBatt;
+
+    //Reset the can logs signals
+    DischargeState = 0;
+    VBus_Data = 0;
+    VBatt_Data = 0;
+    IBus_Data = 0;
+
     do {
         if (getIBus(&IBus) != HAL_OK) {
             break;
@@ -542,11 +549,14 @@ Precharge_Discharge_Return_t discharge()
         sendCAN_Discharge_Data();
         vTaskDelay(1);
     } while (IBus > ZERO_CURRENT_MAX_AMPS);
+
+    //Publish Discharge state for can logs
     DischargeState = 1;
     VBus_Data = 0;
     VBatt_Data = 0;
     IBus_Data = 0;
     sendCAN_Discharge_Data();
+
     DEBUG_PRINT("Opening contactors\n");
     openAllContactors();
 
