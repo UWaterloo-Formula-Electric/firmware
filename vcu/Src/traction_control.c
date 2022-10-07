@@ -63,50 +63,65 @@ static float get_RL_speed()
 
 void tractionControlTask(void *pvParameters)
 {
-	TickType_t xLastWakeTime;
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
 		while(1);
 	}
+
+	float torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+	float torque_adjustment = ADJUSTMENT_TORQUE_FLOOR;
+	float FR_speed = 0.0f; //front right wheel speed
+	float FL_speed = 0.0f; //front left wheel speed
+	float RR_speed = 0.0f; //rear right wheel speed
+	float RL_speed = 0.0f; //rear left wheel speed
+	float error_left = 0.0f; //error between left rear and front
+	float error_right = 0.0f; //error between right rear and front
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+
 	while(1)
 	{
-		xLastWakeTime = xTaskGetTickCount();
-		
-		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
-		float adjustment_factor = 0.0f;
-		float FR_speed = get_FR_speed();
-		float FL_speed = get_FL_speed();
-		float RR_speed = get_RR_speed();
-		float RL_speed = get_RL_speed();
-
-		float front_speed = (FR_speed + FL_speed)/2.0f;
-		float rear_speed = (RR_speed + RL_speed)/2.0f;
-
-		float error = rear_speed - front_speed;
-		if(error > ERROR_FLOOR_RADS)
-		{
-			adjustment_factor = error * kP;
-		}
+		torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 
 		if(tc_on)
 		{
-			output_torque = MAX_TORQUE_DEMAND_DEFAULT - adjustment_factor;
-			if(output_torque < ADJUSTMENT_TORQUE_FLOOR)
+			torque_adjustment = ADJUSTMENT_TORQUE_FLOOR;
+			FR_speed = get_FR_speed(); 
+			FL_speed = get_FL_speed(); 
+			RR_speed = get_RR_speed(); 
+			RL_speed = get_RL_speed(); 
+
+			error_left = RL_speed - FL_speed;
+			error_right = RR_speed - FR_speed;
+
+			//calculate error. This is a P-controller
+			if(error_left > ERROR_FLOOR_RADS || error_right > ERROR_FLOOR_RADS)
 			{
-				output_torque = ADJUSTMENT_TORQUE_FLOOR;
+				if (error_left > error_right)
+				{
+					torque_adjustment = error_left * kP;
+				}
+				else
+				{
+					torque_adjustment = error_right * kP;
+				}
 			}
-			else if(output_torque > MAX_TORQUE_DEMAND_DEFAULT)
+
+			//clamp values
+			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
+			if(torque_max < ADJUSTMENT_TORQUE_FLOOR)
 			{
-				// Whoa error in TC
-				output_torque = MAX_TORQUE_DEMAND_DEFAULT;
+				torque_max = ADJUSTMENT_TORQUE_FLOOR;
 			}
-			setTorqueLimit(output_torque);
+			else if(torque_max > MAX_TORQUE_DEMAND_DEFAULT)
+			{
+				// Whoa error in TC (front wheel is spinning faster than rear)
+				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+			}
 		}
-		else
-		{
-			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
-		}
+
+		setTorqueLimit(torque_max);
+
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS));
