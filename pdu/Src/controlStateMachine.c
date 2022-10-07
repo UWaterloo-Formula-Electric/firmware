@@ -366,7 +366,7 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (true) {
+    if (DC_DC_state) {
         if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
             MC_LEFT_ENABLE;
             MC_RIGHT_ENABLE;
