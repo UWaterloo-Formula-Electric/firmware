@@ -479,9 +479,9 @@ void HVMeasureTask(void *pvParamaters)
     uint32_t lastStateBusHVSend = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-  float VBus;
-  float VBatt;
-  float IBus;
+    float VBus;
+    float VBatt;
+    float IBus;
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to read bus voltages and current!\n");

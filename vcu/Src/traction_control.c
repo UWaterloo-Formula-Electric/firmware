@@ -11,6 +11,12 @@
 #include "stm32f7xx_hal_tim.h"
 
 #define PI 3.14159
+
+/*
+The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
+This exists and isn't done in the DBC bc the CAN driver has issues with the order of casting gives us large numbers around the middle point when the speed is around 0 
+We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uint32_t)rpm-32768)
+*/
 #define MC_ENCODER_OFFSET 32768
 
 #define TRACTION_CONTROL_TASK_ID 3
@@ -94,7 +100,7 @@ void tractionControlTask(void *pvParameters)
 			adjustment_factor = error * kP;
 		}
 
-		if(true)
+		if(tc_on)
 		{
 			output_torque = MAX_TORQUE_DEMAND_DEFAULT - adjustment_factor;
 			if(output_torque < ADJUSTMENT_TORQUE_FLOOR)
@@ -112,8 +118,6 @@ void tractionControlTask(void *pvParameters)
 		{
 			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
 		}
-
-		DEBUG_PRINT("F: %f, R: %f T: %f\r\n", front_speed, rear_speed, output_torque);
 
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);

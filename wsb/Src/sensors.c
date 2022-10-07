@@ -13,7 +13,7 @@
 
 // Task Information
 #define POLL_SENSORS_TASK_ID 2
-#define POLL_SENSORS_PERIOD_MS 200
+#define POLL_SENSORS_PERIOD_MS 100
 
 
 // Encoder Information
@@ -54,15 +54,14 @@ static void poll_encoder(void)
 
 void pollSensorsTask(void const * argument)
 {
-	TickType_t xLastWakeTime= xTaskGetTickCount();;
-    
     if (registerTaskToWatch(POLL_SENSORS_TASK_ID, 5*pdMS_TO_TICKS(POLL_SENSORS_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register sensors task with watchdog!\n");
         Error_Handler();
     }
+	
+	TickType_t xLastWakeTime = xTaskGetTickCount();
     
-	xLastWakeTime = xTaskGetTickCount();
     while(1)
 	{
 		poll_encoder();

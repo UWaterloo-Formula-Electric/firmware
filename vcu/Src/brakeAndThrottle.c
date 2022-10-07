@@ -233,11 +233,6 @@ HAL_StatusTypeDef outputThrottle() {
         DEBUG_PRINT("Throttle disabled due brake pressed\n");
     }
 
-    static uint64_t count = 0;
-    count++;
-    if (count % 20 == 0) {
-      //DEBUG_PRINT("Setting MC throttles to %f\n", throttle);
-    }
     sendThrottleValueToMCs(throttle, getSteeringAngle());
 
     return HAL_OK;

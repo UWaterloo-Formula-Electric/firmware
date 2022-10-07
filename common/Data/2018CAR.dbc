@@ -644,6 +644,9 @@ BO_ 2214596611 PDU_DCDC_Status: 8 PDU
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
  SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
 
+BO_TX_BU_ 2298416383 : BMU,DCU,PDU,VCU_BeagleBone,WSBFL,WSBFR,WSBRL,WSBRR,VCU_F7;
+
+
 CM_ BU_ MCLeft "5_2_Left Inverter";
 CM_ BU_ MCRight "6_2_Right Inverter";
 CM_ BU_ DCU "7_3_Driver Contol Unit";
