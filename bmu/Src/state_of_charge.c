@@ -80,8 +80,8 @@ static float compute_current_soc(void)
 {
 	float capacity = capacity_startup - IBus_integrated;
 	float soc = capacity/TOTAL_CAPACITY;
-	soc = capacity > 1.0f ? 1.0f : capacity;
-	soc = capacity < 0.0f ? 0.0f : capacity;
+	soc = soc > 1.0f ? 1.0f : soc;
+	soc = soc < 0.0f ? 0.0f : soc;
 	return soc;
 }
 
@@ -129,7 +129,7 @@ void socTask(void *pvParamaters)
 		voltage_weight = voltage_weight < 0.0f ? 0.0f : voltage_weight;
 
 		float soc = (v_soc * voltage_weight) + (i_soc * (1.0f-voltage_weight));
-
+		//DEBUG_PRINT("SOC: %f, v_soc: %f, i_soc: %f \n", soc, v_soc, i_soc);
 		StateBatteryChargeHV = soc * 100.0f;
 		watchdogTaskCheckIn(SOC_TASK_ID);
 		vTaskDelay(SOC_TASK_PERIOD);

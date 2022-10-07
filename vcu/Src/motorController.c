@@ -249,13 +249,6 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
 
-    static uint64_t count2 = 0;
-    count2++;
-    if (count2 % 20 == 0) {
-        DEBUG_PRINT("Torque demand right %f\n", torqueDemandR);
-        DEBUG_PRINT("Torque demand left %f\n", torqueDemandL);
-    }
-
     TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
     TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
     TorqueDemandRight = torqueDemandR;

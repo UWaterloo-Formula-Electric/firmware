@@ -54,13 +54,13 @@ static void poll_encoder(void)
 
 void pollSensorsTask(void const * argument)
 {
-	TickType_t xLastWakeTime;
-    
     if (registerTaskToWatch(POLL_SENSORS_TASK_ID, 5*pdMS_TO_TICKS(POLL_SENSORS_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register sensors task with watchdog!\n");
         Error_Handler();
     }
+	
+	TickType_t xLastWakeTime = xTaskGetTickCount();
     
     while(1)
 	{
@@ -72,7 +72,6 @@ void pollSensorsTask(void const * argument)
 		
 		// Always poll at almost exactly PERIOD
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(POLL_SENSORS_PERIOD_MS));
-		xLastWakeTime = xTaskGetTickCount();
 	}
 }
 
@@ -89,23 +88,10 @@ static void transmit_encoder(void)
 #endif
 }
 
-static void transmit_speed(void)
-{
-#if (BOARD_ID == ID_WSBFL)
-	SpeedWheelLeftFront = sensors_data.encoder_speed;
-	sendCAN_WSBFL_WheelData();
-#elif (BOARD_ID == ID_WSBFR)
-	SpeedWheelRightFront = sensors_data.encoder_speed;
-	sendCAN_WSBFR_WheelData();
-#endif
-	
-}
-
 static void transmit_sensor_values(void)
 {
 	// Send over CAN
 	transmit_encoder();
-	transmit_speed();
 }
 
 uint32_t sensor_encoder_count(void)

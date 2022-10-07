@@ -12,6 +12,13 @@
 
 #define PI 3.14159
 
+/*
+The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
+This exists and isn't done in the DBC bc the CAN driver has issues with the order of casting gives us large numbers around the middle point when the speed is around 0 
+We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uint32_t)rpm-32768)
+*/
+#define MC_ENCODER_OFFSET 32768
+
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 200
 #define RPM_TO_RADS(rpm) (rpm*2*PI/60.0f)
@@ -37,51 +44,55 @@ void toggle_TC(void)
 {
 	tc_on = !tc_on;
 }
+/*
 static float get_FR_speed()
 {
 	//Value comes from WSB
-	return SpeedWheelRightFront;
+	return FR_Speed;
 }
-
+*/
 static float get_FL_speed()
 {
 	//Value comes from WSB
-	return SpeedWheelLeftFront;
+	return FL_Speed;
 }
-
+/*
 static float get_RR_speed()
 {
 	//Value comes from MC
-	return RPM_TO_RADS(SpeedMotorRight);
+	int64_t val = SpeedMotorRight;
+	return val - MC_ENCODER_OFFSET;
 }
-
+*/
 static float get_RL_speed()
 {
 	//Value comes from MC
-	return RPM_TO_RADS(SpeedMotorLeft);
+	int64_t val = SpeedMotorLeft;
+	return val - MC_ENCODER_OFFSET;
 }
 
 void tractionControlTask(void *pvParameters)
 {
-	TickType_t xLastWakeTime;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
 		while(1);
 	}
+
+	//Init the Motor speed to the offset so it will value that will give a value of 0
+	SpeedMotorLeft = MC_ENCODER_OFFSET;
 	while(1)
 	{
-		xLastWakeTime = xTaskGetTickCount();
-		
 		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
 		float adjustment_factor = 0.0f;
-		float FR_speed = get_FR_speed();
+		//float FR_speed = get_FR_speed();
 		float FL_speed = get_FL_speed();
-		float RR_speed = get_RR_speed();
+		//float RR_speed = get_RR_speed();
 		float RL_speed = get_RL_speed();
 
-		float front_speed = (FR_speed + FL_speed)/2.0f;
-		float rear_speed = (RR_speed + RL_speed)/2.0f;
+		float front_speed = FL_speed; //(FR_speed + FL_speed)/2.0f;
+		float rear_speed = RPM_TO_RADS(RL_speed); //(RR_speed + RL_speed)/2.0f;
 
 		float error = rear_speed - front_speed;
 		if(error > ERROR_FLOOR_RADS)
@@ -107,6 +118,7 @@ void tractionControlTask(void *pvParameters)
 		{
 			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
 		}
+
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS));

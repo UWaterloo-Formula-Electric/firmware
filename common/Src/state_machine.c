@@ -105,7 +105,7 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
     uint32_t newState;
     uint32_t i;
     Transition_t *trans = handle->init.transitions;
-
+    uint32_t current_state = handle->state;
 
     if (event == WATCHDOG_REQUEST_EVENT_NUM) {
         watchdogTaskCheckIn(handle->init.watchdogTaskId);
@@ -120,8 +120,8 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
     }
 
     for (i = 0; i < handle->init.transitionTableLength; i++) {
-        if ((handle->state == trans[i].st) || (handle->init.ST_ANY == trans[i].st)) {
-            if ((event == trans[i].ev) || (handle->init.EV_ANY == trans[i].ev)) {
+        if ((current_state == trans[i].st) || (handle->init.ST_ANY == trans[i].st)) {
+            if ((event == trans[i].ev) || (trans[i].ev == handle->init.EV_ANY)) {
                 newState = (trans[i].fn)(event);
                 if (newState > handle->init.maxStateNum) {
                     ERROR_PRINT("FSM: New state out of range\n");

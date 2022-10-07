@@ -56,6 +56,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         Error_Handler();
     }
 
+    /*
+        This check is essential as it was causing issues with our brake light flashing and our button presses were getting random values.
+        The cause is the motor controllers who send messages with standard ID lengths. So since we are passing in RxHeader.ExtId
+        the data that was being received changed but the id did not so it would call the callback of the last extended message that was processed.
+        This is why we would get brake light values of 255 and button presses with multiple bits high even though that is impossible from our code.
+        Props to Joseph Borromeo for squashing this 5 year old bug
+    */
     if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
         if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
             /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
@@ -74,6 +81,13 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
         Error_Handler();
     }
 
+    /*
+        This check is essential as it was causing issues with our brake light flashing and our button presses were getting random values.
+        The cause is the motor controllers who send messages with standard ID lengths. So since we are passing in RxHeader.ExtId
+        the data that was being received changed but the id did not so it would call the callback of the last extended message that was processed.
+        This is why we would get brake light values of 255 and button presses with multiple bits high even though that is impossible from our code.
+        Props to Joseph Borromeo for squashing this 5 year old bug
+    */
     if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
         if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
             /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/

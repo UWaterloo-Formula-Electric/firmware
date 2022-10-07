@@ -418,7 +418,7 @@ static const CLI_Command_Definition_t startChargeCommandDefinition =
 BaseType_t stopChargeCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEvent(&fsmHandle, EV_Charge_Stop, portMAX_DELAY);
+    fsmSendEvent(&fsmHandle, EV_Notification_Stop, portMAX_DELAY);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t stopChargeCommandDefinition =
@@ -642,6 +642,36 @@ static const CLI_Command_Definition_t chargerCanStartCommandDefinition =
     0 /* Number of parameters */
 };
 
+
+BaseType_t startCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Start);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t startBalanceCommandDefinition =
+{
+    "startBalance",
+    "startBalance:\r\n Start cell balancing\r\n",
+    startCellBalancing,
+    0 /* Number of parameters */
+};
+
+
+BaseType_t stopCellBalancing(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    fsmSendEventISR(&fsmHandle, EV_Balance_Stop);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopBalanceCommandDefinition =
+{
+    "stopBalance",
+    "stopBalance:\r\n Stop cell balancing command\r\n",
+    stopCellBalancing,
+    0 /* Number of parameters */
+};
+
 BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -652,7 +682,7 @@ BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
     sscanf(idxParam, "%u", &cellIdx);
 
     if (cellIdx < 0 || cellIdx >= NUM_VOLTAGE_CELLS) {
-        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS);
+        COMMAND_OUTPUT("Cell Index must be between 0 and %d\n", NUM_VOLTAGE_CELLS-1);
         return pdFALSE;
     }
 
@@ -911,8 +941,39 @@ static const CLI_Command_Definition_t cbrbStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t balanceCellsCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
 
 
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+        COMMAND_OUTPUT("Setting all cells to balance\n");
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+        COMMAND_OUTPUT("Setting all cells to not balance\n");
+    } else {
+        COMMAND_OUTPUT("Unkown parameter\n");
+        return pdFALSE;
+    }
+    for(int i = 0;i < NUM_VOLTAGE_CELLS;i++)
+	{
+		balance_cell(i, onOff);
+	}
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t balanceCellsCommandDefinition =
+{
+    "balanceCells",
+    "balanceCells:\r\n \r\n",
+    balanceCellsCommand,
+    1 /* Number of parameters */
+};
 
 
 BaseType_t socCommand(char *writeBuffer, size_t writeBufferLength,
@@ -1005,6 +1066,12 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&chargerCanStartCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&startBalanceCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopBalanceCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1051,6 +1118,9 @@ HAL_StatusTypeDef stateMachineMockInit()
 		return HAL_ERROR;
 	}
     if (FreeRTOS_CLIRegisterCommand(&socCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&balanceCellsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setStateBusHVSendPeriodCommandDefinition) != pdPASS) {
