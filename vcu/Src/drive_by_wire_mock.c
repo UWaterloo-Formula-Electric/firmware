@@ -271,6 +271,69 @@ static const CLI_Command_Definition_t emToggleCommandDefinition =
     0 /* Number of parameters */
 };
 
+extern float kP;
+extern float error_floor;
+extern float adjustment_torque_floor;
+
+BaseType_t setKp(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    float tmpKp = 0.0f;
+    sscanf(param, "%f", &tmpKp);
+    kP = tmpKp;
+
+    COMMAND_OUTPUT("setting kP %f\n", kP);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setKpCommandDefinition =
+{
+    "setKp",
+    "setKp <kP>:\r\n set TC kP value\r\n",
+    setKp,
+    1 /* Number of parameters */
+};
+
+BaseType_t setErrorFloor(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(param, "%f", &adjustment_torque_floor);
+
+    COMMAND_OUTPUT("setting error floor %f\n", adjustment_torque_floor);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setErrorFloorCommandDefinition =
+{
+    "setErrorFloor",
+    "setErrorFloor <errorFloor>:\r\n set TC error floor value\r\n",
+    setErrorFloor,
+    1 /* Number of parameters */
+};
+
+BaseType_t setAdjustmentFloor(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(param, "%f", &error_floor);
+
+    COMMAND_OUTPUT("setting error floor %f\n", error_floor);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setAdjustmentFloorCommandDefinition =
+{
+    "setAdjustmentFloor",
+    "setAdjustmentFloor <adjFloor>:\r\n set TC adjustment floor value\r\n",
+    setAdjustmentFloor,
+    1 /* Number of parameters */
+};
+
 BaseType_t fakeHVStateChange(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -435,6 +498,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&emToggleCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setKpCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setErrorFloorCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setAdjustmentFloorCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hvStateCommandDefinition) != pdPASS) {

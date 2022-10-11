@@ -18,12 +18,12 @@
 
 
 // For every 1rad/s, decrease torque by kP
-#define kP (0.5f)
+#define kP_DEFAULT (0.5f)
 
 
 // With our tire radius, rads/s ~ km/h
-#define ERROR_FLOOR_RADS (10.0f)
-#define ADJUSTMENT_TORQUE_FLOOR (5.0f)
+#define ERROR_FLOOR_RADS_DEFAULT (10.0f)
+#define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (5.0f)
 
 
 static bool tc_on = false;
@@ -61,6 +61,10 @@ static float get_RL_speed()
 	return RPM_TO_RADS(SpeedMotorLeft);
 }
 
+float kP = kP_DEFAULT;
+float error_floor = ERROR_FLOOR_RADS_DEFAULT;
+float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
+
 void tractionControlTask(void *pvParameters)
 {
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
@@ -70,7 +74,7 @@ void tractionControlTask(void *pvParameters)
 	}
 
 	float torque_max = MAX_TORQUE_DEMAND_DEFAULT;
-	float torque_adjustment = ADJUSTMENT_TORQUE_FLOOR;
+	float torque_adjustment = adjustment_torque_floor;
 	float FR_speed = 0.0f; //front right wheel speed
 	float FL_speed = 0.0f; //front left wheel speed
 	float RR_speed = 0.0f; //rear right wheel speed
@@ -85,7 +89,7 @@ void tractionControlTask(void *pvParameters)
 
 		if(tc_on)
 		{
-			torque_adjustment = ADJUSTMENT_TORQUE_FLOOR;
+			torque_adjustment = adjustment_torque_floor;
 			FR_speed = get_FR_speed(); 
 			FL_speed = get_FL_speed(); 
 			RR_speed = get_RR_speed(); 
@@ -95,7 +99,7 @@ void tractionControlTask(void *pvParameters)
 			error_right = RR_speed - FR_speed;
 
 			//calculate error. This is a P-controller
-			if(error_left > ERROR_FLOOR_RADS || error_right > ERROR_FLOOR_RADS)
+			if(error_left > error_floor || error_right > error_floor)
 			{
 				if (error_left > error_right)
 				{
@@ -109,9 +113,9 @@ void tractionControlTask(void *pvParameters)
 
 			//clamp values
 			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
-			if(torque_max < ADJUSTMENT_TORQUE_FLOOR)
+			if(torque_max < adjustment_torque_floor)
 			{
-				torque_max = ADJUSTMENT_TORQUE_FLOOR;
+				torque_max = adjustment_torque_floor;
 			}
 			else if(torque_max > MAX_TORQUE_DEMAND_DEFAULT)
 			{
