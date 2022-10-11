@@ -111,6 +111,11 @@ void tractionControlTask(void *pvParameters)
 				}
 			}
 
+			Torque_Adjustment_Left = error_left * kP;
+			Torque_Adjustment_Left = error_left * kP;
+			sendCAN_TC_Torque_Adjustment_Left();
+			sendCAN_TC_Torque_Adjustment_Right();
+
 			//clamp values
 			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
 			if(torque_max < adjustment_torque_floor)

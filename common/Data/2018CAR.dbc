@@ -65,6 +65,12 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
+BO_ 2281835522 TC_Torque_Adjustment_Right: 8 VCU_F7
+ SG_ Torque_Adjustment_Right : 0|64@1- (1,0) [-1.7E+308|1.7E+308] ""  VCU_BeagleBone
+
+BO_ 2281769986 TC_Torque_Adjustment_Left: 8 VCU_F7
+ SG_ Torque_Adjustment_Left : 0|64@1- (1,-0) [-1.7E+308|1.7E+308] ""  VCU_BeagleBone
+
 BO_ 2281835521 BMU_BatteryChecks: 8 BMU
  SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
@@ -777,4 +783,6 @@ VAL_ 2214986243 StatusPowerCoolingFanBattery 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNE
 VAL_ 2214986243 StatusPowerBMU 4 "CHANNEL_ON_FUSE_BLOWN" 3 "CHANNEL_OFF_FUSE_BLOWN" 2 "CHANNEL_ON" 1 "CHANNEL_OFF" 0 "INVALID" ;
 VAL_ 2281967617 StateBMS 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_ 2214596611 Status_DCDC 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
+SIG_VALTYPE_ 2281835522 Torque_Adjustment_Right : 2;
+SIG_VALTYPE_ 2281769986 Torque_Adjustment_Left : 2;
 

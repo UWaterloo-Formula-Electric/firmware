@@ -179,7 +179,7 @@ void fsmTaskFunction(FSM_Handle_Struct *handle)
         if (validEvent)
         {
             StateMachineNewState = fsmGetState(handle);
-            sendCAN_StateMachineEventProcessed(); 
+            //sendCAN_StateMachineEventProcessed(); 
             validEvent = 0;
         }
 
