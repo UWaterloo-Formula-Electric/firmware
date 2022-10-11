@@ -29,9 +29,8 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 
 
 // With our tire radius, rads/s ~ km/h
-#define ERROR_FLOOR_RADS_DEFAULT (30.0f)
+#define ERROR_FLOOR_RADS_DEFAULT (20.0f)
 #define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (2.0f)
-
 
 static bool tc_on = false;
 
@@ -119,11 +118,11 @@ void tractionControlTask(void *pvParameters)
 			{
 				if (error_left > error_right)
 				{
-					torque_adjustment = (error_left - ERROR_FLOOR_RADS_DEFAULT) * kP;
+					torque_adjustment = (error_left - error_floor) * kP;
 				}
 				else
 				{
-					torque_adjustment = (error_right - ERROR_FLOOR_RADS_DEFAULT) * kP;
+					torque_adjustment = (error_right - error_floor) * kP;
 				}
 			}
 
@@ -143,7 +142,7 @@ void tractionControlTask(void *pvParameters)
 				// Whoa error in TC (front wheel is spinning faster than rear)
 				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 			}
-			Torque_Max = (uint32_t)torque_max*100;
+			Torque_Max = (uint32_t)torque_max;
 			sendCAN_TC_Torque_Max();
 		}
 
