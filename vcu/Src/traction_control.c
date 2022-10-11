@@ -25,12 +25,12 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 
 
 // For every 1rad/s, decrease torque by kP
-#define kP (0.5f)
+#define kP_DEFAULT (0.5f)
 
 
 // With our tire radius, rads/s ~ km/h
-#define ERROR_FLOOR_RADS (10.0f)
-#define ADJUSTMENT_TORQUE_FLOOR (5.0f)
+#define ERROR_FLOOR_RADS_DEFAULT (10.0f)
+#define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (5.0f)
 
 
 static bool tc_on = false;
@@ -44,26 +44,26 @@ void toggle_TC(void)
 {
 	tc_on = !tc_on;
 }
-/*
+
 static float get_FR_speed()
 {
 	//Value comes from WSB
 	return FR_Speed;
 }
-*/
+
 static float get_FL_speed()
 {
 	//Value comes from WSB
 	return FL_Speed;
 }
-/*
+
 static float get_RR_speed()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorRight;
 	return val - MC_ENCODER_OFFSET;
 }
-*/
+
 static float get_RL_speed()
 {
 	//Value comes from MC
@@ -71,53 +71,77 @@ static float get_RL_speed()
 	return val - MC_ENCODER_OFFSET;
 }
 
+float kP = kP_DEFAULT;
+float error_floor = ERROR_FLOOR_RADS_DEFAULT;
+float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
+
 void tractionControlTask(void *pvParameters)
 {
-	TickType_t xLastWakeTime = xTaskGetTickCount();
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
 		while(1);
 	}
 
-	//Init the Motor speed to the offset so it will value that will give a value of 0
-	SpeedMotorLeft = MC_ENCODER_OFFSET;
+	float torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+	float torque_adjustment = adjustment_torque_floor;
+	float FR_speed = 0.0f; //front right wheel speed
+	float FL_speed = 0.0f; //front left wheel speed
+	float RR_speed = 0.0f; //rear right wheel speed
+	float RL_speed = 0.0f; //rear left wheel speed
+	float error_left = 0.0f; //error between left rear and front
+	float error_right = 0.0f; //error between right rear and front
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+
 	while(1)
 	{
-		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
-		float adjustment_factor = 0.0f;
-		//float FR_speed = get_FR_speed();
-		float FL_speed = get_FL_speed();
-		//float RR_speed = get_RR_speed();
-		float RL_speed = get_RL_speed();
-
-		float front_speed = FL_speed; //(FR_speed + FL_speed)/2.0f;
-		float rear_speed = RPM_TO_RADS(RL_speed); //(RR_speed + RL_speed)/2.0f;
-
-		float error = rear_speed - front_speed;
-		if(error > ERROR_FLOOR_RADS)
-		{
-			adjustment_factor = error * kP;
-		}
+		torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 
 		if(tc_on)
 		{
-			output_torque = MAX_TORQUE_DEMAND_DEFAULT - adjustment_factor;
-			if(output_torque < ADJUSTMENT_TORQUE_FLOOR)
+			torque_adjustment = adjustment_torque_floor;
+			FR_speed = get_FR_speed(); 
+			FL_speed = get_FL_speed(); 
+			RR_speed = get_RR_speed(); 
+			RL_speed = get_RL_speed(); 
+
+			error_left = RL_speed - FL_speed;
+			error_right = RR_speed - FR_speed;
+
+			//calculate error. This is a P-controller
+			if(error_left > error_floor || error_right > error_floor)
 			{
-				output_torque = ADJUSTMENT_TORQUE_FLOOR;
+				if (error_left > error_right)
+				{
+					torque_adjustment = error_left * kP;
+				}
+				else
+				{
+					torque_adjustment = error_right * kP;
+				}
 			}
-			else if(output_torque > MAX_TORQUE_DEMAND_DEFAULT)
+
+			Torque_Adjustment_Right = error_right * kP;
+			Torque_Adjustment_Left = error_left * kP;
+			sendCAN_TC_Torque_Adjustment_Left();
+			sendCAN_TC_Torque_Adjustment_Right();
+
+			//clamp values
+			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
+			if(torque_max < adjustment_torque_floor)
 			{
-				// Whoa error in TC
-				output_torque = MAX_TORQUE_DEMAND_DEFAULT;
+				torque_max = adjustment_torque_floor;
 			}
-			setTorqueLimit(output_torque);
+			else if(torque_max > MAX_TORQUE_DEMAND_DEFAULT)
+			{
+				// Whoa error in TC (front wheel is spinning faster than rear)
+				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+			}
+			Torque_Max = torque_max;
+			sendCAN_TC_Torque_Max();
 		}
-		else
-		{
-			setTorqueLimit(MAX_TORQUE_DEMAND_DEFAULT);
-		}
+
+		setTorqueLimit(torque_max);
 
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);

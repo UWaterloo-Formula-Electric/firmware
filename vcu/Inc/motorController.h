@@ -4,7 +4,7 @@
 
 #include "bsp.h"
 
-#define MAX_TORQUE_DEMAND_DEFAULT       20
+#define MAX_TORQUE_DEMAND_DEFAULT       30
 #define BRAKING_TORQUE_LIMIT_DEFAULT    0
 #define SPEED_LIMIT_DEFAULT             10000
 #define REVERSE_SPEED_LIMIT_DEFAULT     0
