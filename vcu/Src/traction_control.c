@@ -21,16 +21,16 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 200
-#define RPM_TO_RADS(rpm) (rpm*2*PI/60.0f)
+#define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
 
 // For every 1rad/s, decrease torque by kP
-#define kP_DEFAULT (0.5f)
+#define kP_DEFAULT (0.1f)
 
 
 // With our tire radius, rads/s ~ km/h
-#define ERROR_FLOOR_RADS_DEFAULT (10.0f)
-#define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (5.0f)
+#define ERROR_FLOOR_RADS_DEFAULT (30.0f)
+#define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (2.0f)
 
 
 static bool tc_on = false;
@@ -61,14 +61,14 @@ static float get_RR_speed()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorRight;
-	return val - MC_ENCODER_OFFSET;
+	return RPM_TO_RADS(val - MC_ENCODER_OFFSET);
 }
 
 static float get_RL_speed()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorLeft;
-	return val - MC_ENCODER_OFFSET;
+	return RPM_TO_RADS(val - MC_ENCODER_OFFSET);
 }
 
 float kP = kP_DEFAULT;
@@ -99,11 +99,17 @@ void tractionControlTask(void *pvParameters)
 
 		if(tc_on)
 		{
-			torque_adjustment = adjustment_torque_floor;
+			torque_adjustment = 0.0f;
 			FR_speed = get_FR_speed(); 
 			FL_speed = get_FL_speed(); 
 			RR_speed = get_RR_speed(); 
 			RL_speed = get_RL_speed(); 
+
+			VCU_wheelSpeed_RR = RR_speed;
+			sendCAN_TC_wheelSpeed_right();
+
+			VCU_wheelSpeed_RL = RL_speed;
+			sendCAN_TC_wheelSpeed_left();
 
 			error_left = RL_speed - FL_speed;
 			error_right = RR_speed - FR_speed;
@@ -113,16 +119,16 @@ void tractionControlTask(void *pvParameters)
 			{
 				if (error_left > error_right)
 				{
-					torque_adjustment = error_left * kP;
+					torque_adjustment = (error_left - ERROR_FLOOR_RADS_DEFAULT) * kP;
 				}
 				else
 				{
-					torque_adjustment = error_right * kP;
+					torque_adjustment = (error_right - ERROR_FLOOR_RADS_DEFAULT) * kP;
 				}
 			}
 
-			Torque_Adjustment_Right = error_right * kP;
-			Torque_Adjustment_Left = error_left * kP;
+			Torque_Adjustment_Right = (uint32_t) (error_right * kP);
+			Torque_Adjustment_Left = (uint32_t) (error_left * kP);
 			sendCAN_TC_Torque_Adjustment_Left();
 			sendCAN_TC_Torque_Adjustment_Right();
 
@@ -137,7 +143,7 @@ void tractionControlTask(void *pvParameters)
 				// Whoa error in TC (front wheel is spinning faster than rear)
 				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 			}
-			Torque_Max = torque_max;
+			Torque_Max = (uint32_t)torque_max*100;
 			sendCAN_TC_Torque_Max();
 		}
 
