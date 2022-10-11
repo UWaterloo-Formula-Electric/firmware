@@ -111,7 +111,7 @@ void tractionControlTask(void *pvParameters)
 				}
 			}
 
-			Torque_Adjustment_Left = error_left * kP;
+			Torque_Adjustment_Right = error_right * kP;
 			Torque_Adjustment_Left = error_left * kP;
 			sendCAN_TC_Torque_Adjustment_Left();
 			sendCAN_TC_Torque_Adjustment_Right();
@@ -127,6 +127,8 @@ void tractionControlTask(void *pvParameters)
 				// Whoa error in TC (front wheel is spinning faster than rear)
 				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 			}
+			Torque_Max = torque_max;
+			sendCAN_TC_Torque_Max();
 		}
 
 		setTorqueLimit(torque_max);
