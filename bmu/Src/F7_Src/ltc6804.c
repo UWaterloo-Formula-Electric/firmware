@@ -526,6 +526,11 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 
 void batt_set_balancing_cell (int board, int chip, int cell) {
+	if(cell >= 4)
+	{
+		// We skip S5, S6 in the schematic
+		cell += 2;
+	}
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config[board][chip][4], cell);
     } else { // This register byte only contains 4 bits
@@ -536,6 +541,11 @@ void batt_set_balancing_cell (int board, int chip, int cell) {
 
 void batt_unset_balancing_cell (int board, int chip, int cell)
 {
+	if(cell >= 4)
+	{
+		// We skip S5, S6 in the schematic
+		cell += 2;
+	}
     if (cell < 8) { // 8 bits per byte in the register
         CLEARBIT(m_batt_config[board][chip][4], cell);
     } else {
@@ -545,6 +555,11 @@ void batt_unset_balancing_cell (int board, int chip, int cell)
 
 bool batt_get_balancing_cell_state(int board, int chip, int cell)
 {
+	if(cell >= 4)
+	{
+		// We skip S5, S6 in the schematic
+		cell += 2;
+	}
     if (cell < 8) { // 8 bits per byte in the register
         return GETBIT(m_batt_config[board][chip][4], cell);
     } else {

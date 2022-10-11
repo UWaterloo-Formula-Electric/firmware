@@ -9,6 +9,11 @@
 // Used by FAN Control to determine when to turn on fans
 #define CELL_MAX_TEMP_C (55.0)
 
+typedef enum Balance_Type_t {
+    USING_CLI,
+    USING_CHARGER
+} Balance_Type_t;
+
 #define BATTERY_START_FAIL_BIT                      (1U << 0)
 #define OPEN_CIRCUIT_FAIL_BIT                       (1U << 1)
 #define READ_CELL_VOLTAGE_TEMPS_FAIL_BIT            (1U << 2)
@@ -17,8 +22,9 @@
 
 typedef enum Charge_Notifications_t {
     CHARGE_START_NOTIFICATION,
-    CHARGE_STOP_NOTIFICATION,
-} Charge_Notifications_t;
+    BALANCE_START_NOTIFICATION,
+    BATTERY_STOP_NOTIFICATION,                  
+} Battery_Notifications_t;
 
 HAL_StatusTypeDef getIBus(float *IBus);
 HAL_StatusTypeDef getVBatt(float *VBatt);

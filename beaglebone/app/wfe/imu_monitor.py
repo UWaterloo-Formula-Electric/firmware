@@ -1,22 +1,22 @@
 import csv
-import serial
+import board
 import adafruit_bno055
 import datetime
 import time
 import os
-
+today = datetime.now().strftime("%b-%d-%y_%H-%M-%S")
+logs_folder = "/home/debian/imu_logs/"
+imu_file = "{}/{}_imu.csv".format(logs_folder, today)
 #library used: https://github.com/adafruit/Adafruit_CircuitPython_BNO055
 class IMUMonitor:
     def __init__(self):
         
-        #Opens a port on the beaglebone for uart 
-        uart = serial.Serial("/dev/ttyO4", baudrate=9600, timeout=10) #Specifies which port on beaglebone to use for uart: Need to find correct port to use during testing
-        self.imu = adafruit_bno055.BNO055_I2C(uart) #Creates IMU sensor object for sensor connected to uart bus
-        
+        i2c = board.I2C() #returns object with board's designated i2c bus(es)
+        self.imu = adafruit_bno055.BNO055_I2C(i2c) #creates IMU sensor object for snesnor connected to i2c bus
+
         #Adds heading row to new csv file 
-        #If no file named imu_data.csv, creates a new file on beaglebone
-        if not os.path.isfile('./imu_data.csv'):
-            with open('./imu_data.csv', 'w', newline='') as csvfile:
+        if not os.path.isfile(imu_file):
+            with open(imu_file, 'w', newline='') as csvfile:
                 self.writer = csv.writer(csvfile, delimiter='|')
                 self.writer.writerow(['time_stamp', 'linear acceleration', 'magnetomer', 'gyroscope', 'euler angle', 'quaternion', 'acceleration', 'gravity' ])
                 #Timestamp format: MM/DD/YYYY hour:min:sec
@@ -25,7 +25,7 @@ class IMUMonitor:
     def monitor_bus(self):
         while True:
 
-            with open('./imu_data.csv', 'a', newline='') as csvfile:
+            with open(imu_file, 'a', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(["{}".format(datetime.datetime.now()), 
                                  "{}".format(self.imu.linear_acceleration),
@@ -37,7 +37,7 @@ class IMUMonitor:
                                  "{}".format(self.imu.gravity)
                                         ])
                 print("Logged IMU data @{}".format(datetime.datetime.now()))
-                time.sleep(1)
+                time.sleep(0.05)
 
 def main():
     monitor = IMUMonitor()

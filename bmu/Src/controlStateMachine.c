@@ -48,6 +48,10 @@ uint32_t systemUpCheck(uint32_t event);
 uint32_t systemNotReady(uint32_t event);
 uint32_t cockpitBRBPressed(uint32_t event);
 uint32_t cockpitBRBReleased(uint32_t event);
+uint32_t startBalance(uint32_t event);
+uint32_t balanceStopRequest(uint32_t event);
+uint32_t stopBalance(uint32_t event);
+uint32_t balanceDone(uint32_t event);
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
@@ -55,12 +59,18 @@ Transition_t transitions[] = {
     { STATE_Wait_System_Up, EV_FaultMonitorReady, &systemUpCheck },
     { STATE_Wait_System_Up, EV_ANY, &systemNotReady },
 
+    //Balance
+    { STATE_HV_Disable, EV_Balance_Start, &startBalance }, // A request was made via the CLI to start cell balancing
+    { STATE_Balancing,  EV_Balance_Stop, &balanceStopRequest }, //A request was made via the CLI to request stop. Once the battery task exits the balancing loop it will send an EV_Notification_Stop
+    { STATE_Balancing,  EV_Notification_Stop, &stopBalance }, // Cell balancing was stopped and battery task is back to normal
+    { STATE_Balancing, EV_Notification_Done, &balanceDone }, // Cell balancing is done and battery task is back to normal
+
     // Charge
     { STATE_HV_Disable, EV_Enter_Charge_Mode, &enterChargeMode },
     { STATE_HV_Enable, EV_Charge_Start, &startCharge },
-    { STATE_Charging, EV_Charge_Stop, &stopCharge },
-    { STATE_Charging, EV_Charge_Done, &chargeDone }, // Takes precedence over next transition
-    { STATE_ANY, EV_Charge_Stop, &controlDoNothing }, // Must be after charging charge stop
+    { STATE_Charging, EV_Notification_Stop, &stopCharge },
+    { STATE_Charging, EV_Notification_Done, &chargeDone }, // Takes precedence over next transition
+    { STATE_ANY, EV_Notification_Stop, &controlDoNothing }, // Must be after charging charge stop
 
     // PCDC
     { STATE_HV_Disable, EV_HV_Toggle, &startPrecharge },
@@ -336,6 +346,37 @@ uint32_t stopPrecharge(uint32_t event)
     return STATE_HV_Disable;
 }
 
+//A start balance command was issued from the CLI
+uint32_t startBalance(uint32_t event)
+{
+    DEBUG_PRINT("Starting cell balancing\n");
+    xTaskNotify(BatteryTaskHandle, (1<<BALANCE_START_NOTIFICATION), eSetBits);
+    return STATE_Balancing;
+}
+
+//A request was made via the CLI to request stop. Once the battery task exits the balancing loop it will send an EV_Notification_Stop
+uint32_t balanceStopRequest(uint32_t event)
+{
+    DEBUG_PRINT("Sent request to stop cell balancing\n");
+    xTaskNotify(BatteryTaskHandle, (1<<BATTERY_STOP_NOTIFICATION), eSetBits);
+
+    // Stay in charging state until we receive charge done event
+    return STATE_Balancing;
+}
+
+//Battery Task is out of balancing loop and battery task is back to normal
+uint32_t stopBalance(uint32_t event)
+{
+    DEBUG_PRINT("Cell balancing stopped\n");
+    return STATE_HV_Disable;
+}
+
+uint32_t balanceDone(uint32_t event)
+{
+    DEBUG_PRINT("Done balancing\n");
+    return STATE_HV_Disable;
+}
+
 uint32_t enterChargeMode(uint32_t event)
 {
     DEBUG_PRINT("Entering charge mode\n");
@@ -367,7 +408,7 @@ uint32_t startCharge(uint32_t event)
 uint32_t stopCharge(uint32_t event)
 {
     DEBUG_PRINT("Stopping charge\n");
-    xTaskNotify(BatteryTaskHandle, (1<<CHARGE_STOP_NOTIFICATION), eSetBits);
+    xTaskNotify(BatteryTaskHandle, (1<<BATTERY_STOP_NOTIFICATION), eSetBits);
 
     // Stay in charging state until we receive charge done event
     return STATE_Charging;

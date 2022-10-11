@@ -73,6 +73,19 @@ BO_ 2281835522 TC_Torque_Adjustment_Right: 8 VCU_F7
 
 BO_ 2281769986 TC_Torque_Adjustment_Left: 8 VCU_F7
  SG_ Torque_Adjustment_Left : 0|64@1- (1,-0) [-1.7E+308|1.7E+308] ""  VCU_BeagleBone
+BO_ 2215641611 WSBRR_Sensors: 8 WSBRR
+ SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+
+BO_ 2215641610 WSBRL_Sensors: 8 WSBRL
+ SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+
+BO_ 2215641609 WSBFR_Sensors: 8 WSBFR
+ SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+ SG_ FR_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_F7,VCU_BeagleBone
+
+BO_ 2215641608 WSBFL_Sensors: 8 WSBFL
+ SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
+ SG_ FL_Speed : 32|16@1- (0.0625,0) [-2048|2047.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
 BO_ 2281835521 BMU_BatteryChecks: 8 BMU
  SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -91,20 +104,6 @@ BO_ 2287209473 Discharge_Data: 8 BMU
  SG_ VBus_Data : 32|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VBatt_Data : 16|16@1+ (0.01,0) [0|655.35] "" Vector__XXX
  SG_ DischargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
-
-BO_ 2272736804 WSBRR_Sensors: 8 WSBRR
- SG_ RR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
-
-BO_ 2272736803 WSBRL_Sensors: 8 WSBRL
- SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
-
-BO_ 2272736802 WSBFR_Sensors: 8 WSBFR
- SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
- SG_ FR_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
-
-BO_ 2272736801 WSBFL_Sensors: 8 WSBFL
- SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
- SG_ FL_Speed : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
 
 BO_ 2297236481 BMU_Interlock_Loop_Status: 8 BMU
  SG_ BMU_checkFailed : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
@@ -506,7 +505,7 @@ BO_ 2240348018 TempMotorRight: 8 MCRight
  SG_ TempMotorDeltaRight : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2240216946 SpeedFeedbackRight: 8 MCRight
- SG_ SpeedMotorRight : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ SpeedMotorRight : 0|16@1+ (1,-0) [0|131071] "RPM"  VCU_BeagleBone,VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|255] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -566,7 +565,7 @@ BO_ 2241396593 TempMotorLeft: 8 MCLeft
  SG_ TempMotorDeltaLeft : 12|12@1+ (1,-640) [-640|3455] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2241265521 SpeedFeedbackLeft: 8 MCLeft
- SG_ SpeedMotorLeft : 0|16@1+ (1,-32768) [-32768|32767] "RPM"  VCU_BeagleBone,VCU_F7
+ SG_ SpeedMotorLeft : 0|16@1+ (1,0) [0|131071] "RPM"  VCU_BeagleBone,VCU_F7
  SG_ PRO_CAN_CRC : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_COUNT : 48|4@1+ (1,0) [0|0] "" Vector__XXX
  SG_ PRO_CAN_RES : 52|4@1+ (1,0) [0|0] "" Vector__XXX
@@ -608,18 +607,6 @@ BO_ 2240835842 TorqueLimitLeft: 8 VCU_F7
  SG_ TorqueLimitDriveLeft : 32|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCLeft
  SG_ TorqueLimitBrakingLeft : 16|16@1+ (0.0625,0) [0|4095.9375] "NM"  VCU_BeagleBone,MCLeft
  SG_ TorqueDemandLeft : 0|16@1+ (0.0625,-2048) [-2048|2047.9375] "NM"  VCU_BeagleBone,MCLeft
-
-BO_ 2550137361 WSBRR_WheelData: 8 WSBRR
- SG_ StrainZRightRear : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainYRightRear : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainXRightRear : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ SpeedWheelRightBack : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
-
-BO_ 2550137360 WSBRL_WheelData: 8 WSBRL
- SG_ StrainZLeftRear : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainYLeftRear : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainXLeftRear : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ SpeedWheelLeftBack : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
 
 BO_ 2281701889 BMU_stateBatteryHV: 8 BMU
  SG_ PowerBatteryHV : 42|22@1- (0.01,0) [0|0] "W"  VCU_BeagleBone,VCU_F7
@@ -665,19 +652,7 @@ BO_ 2214596611 PDU_DCDC_Status: 8 PDU
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
  SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
 
-BO_ 2550137352 WSBFL_WheelData: 8 WSBFL
- SG_ StrainZLeftFront : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainYLeftFront : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainXLeftFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ SpeedWheelLeftFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
-
-BO_ 2550137353 WSBFR_WheelData: 8 WSBFR
- SG_ StrainZRightFront : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainYRightFront : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ StrainXRightFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
- SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
-
-BO_TX_BU_ 2298416383 : WSBFR,WSBRL,WSBRR,WSBFL,BMU,DCU,PDU,VCU_F7;
+BO_TX_BU_ 2298416383 : BMU,DCU,PDU,VCU_BeagleBone,WSBFL,WSBFR,WSBRL,WSBRR,VCU_F7;
 
 
 CM_ BU_ MCLeft "5_2_Left Inverter";

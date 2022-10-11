@@ -380,6 +380,7 @@ BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
     }
     return pdFALSE;
 }
+
 static const CLI_Command_Definition_t printStateCommandDefinition =
 {
     "state",
