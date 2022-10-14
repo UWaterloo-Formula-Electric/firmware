@@ -39,12 +39,11 @@ void powerTask(void *pvParameters)
             {
                 if(fsmGetState(&coolingFsmHandle) == COOL_STATE_ON){
                     fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
-                    sendDTC_ERROR_DCDC_Shutoff(); 
                 }
                 if(fsmGetState(&motorFsmHandle) == MTR_STATE_Motors_On){
                     fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
-                    sendDTC_ERROR_DCDC_Shutoff();
                 }
+                sendDTC_ERROR_DCDC_Shutoff();
                 DEBUG_PRINT("Switched to battery\n");
             }
             DC_DC_state = newDCDCState;
