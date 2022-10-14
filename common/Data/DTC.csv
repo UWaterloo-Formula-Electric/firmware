@@ -51,4 +51,5 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throttle reached reset point after BrakeWhileThrottle Error, Throttle Re engaged as per EV.3.4(FSAE)"
 51,CELL_TEMP_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp low
 52,CELL_TEMP_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
-53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,"VCU_BEAGLEBONE",file_spec,Error_Handler called on specifier
+53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
+54,DCDC_Shutoff,PDU,3,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,DCDC shutoff

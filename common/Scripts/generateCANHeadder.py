@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python
 from __future__ import print_function
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
