@@ -38,7 +38,7 @@ void powerTask(void *pvParameters)
             else
             {
                 if(fsmGetState(&coolingFsmHandle) == COOL_STATE_ON){
-                    fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
+                    fsmSendEvent(&motorFsmHandle, COOL_EV_EM_DISABLE, portMAX_DELAY);
                 }
                 if(fsmGetState(&motorFsmHandle) == MTR_STATE_Motors_On){
                     fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
