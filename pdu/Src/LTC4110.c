@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include "pdu_can.h"
 #include "watchdog.h"
+#include "pdu_dtc.h"
 
 volatile bool DC_DC_state = false;
 
@@ -24,10 +25,10 @@ void powerTask(void *pvParameters)
     // Delay to allow system to turn on
     vTaskDelay(100);
 
+    
     while (1)
     {
         bool newDCDCState = IS_DC_DC_ON;
-
 
         if (newDCDCState != DC_DC_state) {
             if (newDCDCState)
@@ -36,6 +37,13 @@ void powerTask(void *pvParameters)
             }
             else
             {
+                if(fsmGetState(&coolingFsmHandle) == COOL_STATE_ON){
+                    fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
+                }
+                if(fsmGetState(&motorFsmHandle) == MTR_STATE_Motors_On){
+                    fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
+                }
+                sendDTC_ERROR_DCDC_Shutoff();
                 DEBUG_PRINT("Switched to battery\n");
             }
             DC_DC_state = newDCDCState;

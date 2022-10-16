@@ -366,7 +366,7 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (true) {
+    if (DC_DC_state) {
         if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
             MC_LEFT_ENABLE;
             MC_RIGHT_ENABLE;
@@ -505,6 +505,7 @@ uint32_t emEnable(uint32_t event) {
 		return COOL_STATE_WAIT;
     } else {
         DEBUG_PRINT("Not turning cooling on from em enable, DC-DC off\n");
+        sendDTC_WARNING_PDU_EM_EN_BLOCKED_DCDC_OFF();
         return COOL_STATE_OFF;
     }
 }
