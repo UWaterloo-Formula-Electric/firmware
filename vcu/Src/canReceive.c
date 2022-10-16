@@ -108,3 +108,16 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
             break;
     }
 }
+
+void CAN_Msg_PDU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
+    switch (DTC_CODE)
+    {
+        case ERROR_DCDC_Shutoff:
+            //The DCDC unexpectedly stopped working. The PDU turned off cooling and the motors, now disable EM
+            fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+            break;
+        default:
+            // Do nothing, other events handled by fatal callback
+            break;
+    }
+}
