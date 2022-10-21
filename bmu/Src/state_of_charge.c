@@ -18,7 +18,7 @@
 // Units A-s
 static const float TOTAL_CAPACITY = 74700.0f;
 
-static float capacity_startup = 0.0f;
+static float capacity_startup = 1.0f;
 
 // Units A-s
 static volatile float IBus_integrated = 0.0f;
@@ -29,7 +29,7 @@ static float interpolateLut(float value, float lut_min, float lut_step, uint8_t 
 // In amp seconds
 void integrate_bus_current(float IBus, float period_ms)
 {
-	IBus_integrated += IBus * (period_ms)/1000.0;
+	IBus_integrated += IBus * (period_ms/1000.0);
 }
 
 
