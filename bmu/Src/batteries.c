@@ -502,7 +502,7 @@ void HVMeasureTask(void *pvParamaters)
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
         }
-		integrate_bus_current(IBus, (float)(xTaskGetTickCount() - xLastWakeTime));
+		integrate_bus_current(IBus, (float)HV_MEASURE_TASK_PERIOD_MS);
 	
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, HV_MEASURE_TASK_PERIOD_MS);
