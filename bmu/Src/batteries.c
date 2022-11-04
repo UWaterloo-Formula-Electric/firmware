@@ -491,7 +491,7 @@ void HVMeasureTask(void *pvParamaters)
             CurrentBusHV = IBus;
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
-            publishVbatt = VBatt;
+            AMS_PackVoltage = VBatt;
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
         }
