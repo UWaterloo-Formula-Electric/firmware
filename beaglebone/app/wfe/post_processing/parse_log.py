@@ -6,6 +6,8 @@ import codecs
 
 
 def sort_csv(csv_reader, column, rev=False):
+    # for a in csv_reader:
+    #     print(a)
     return sorted(csv_reader, key = lambda row: row[column], reverse=rev)
 
 def signal_filter(input_signal, signal_l, regex_l):
@@ -18,15 +20,15 @@ def signal_filter(input_signal, signal_l, regex_l):
 
 def filter(src_file, signals_l, regex_l):
     filtered_data = []
-    with open(src_file, 'r') as f:
-        reader = csv.reader(f)
-        sorted_csv = sort_csv(reader, 0)
-        try:
-            for row in sorted_csv:
-                if signal_filter(row[1], signals_l, regex_l):
-                    filtered_data.append(row)
-        except:
-            pass
+    # with open(src_file, 'r') as f:
+    csv_reader = csv.reader(codecs.open(src_file, 'rU', 'utf-16'))
+    sorted_csv = sort_csv(csv_reader, 0)
+    try:
+        for row in sorted_csv:
+            if signal_filter(row[1], signals_l, regex_l):
+                filtered_data.append(row)
+    except:
+        pass
     return filtered_data
 
 
