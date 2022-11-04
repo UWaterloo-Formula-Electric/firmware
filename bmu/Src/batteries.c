@@ -173,13 +173,6 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
 
 /**
- * Set to true if we've already sent a low voltage warning for this cell to
- * stop repeated warnings being sent. Reset to false on init or when cell
- * voltage increases above low voltage warning limit
- */
-bool warningSentForCellVoltage[NUM_VOLTAGE_CELLS];
-
-/**
  * Set to true if we've already sent a high temperature warning for this cell to
  * stop repeated warnings being sent. Reset to false on init or when cell
  * voltage increases above high temperature warning limit
@@ -658,7 +651,6 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       VoltageCell[i] = initVoltage;
-      warningSentForCellVoltage[i] = false;
    }
    for (int i=0; i < NUM_TEMP_CELLS; i++)
    {
@@ -809,8 +801,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    static uint8_t thermistor_lag_counter = 0;
    enterAdjustedCellVoltages();
 
-   // We should only send a warning at max every cycle otherwise we could trigger a watchdog timeout
-   bool warning_dtc_sent_this_period = false;
+   static bool warning_dtc_sent = false;
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
 	  // We have 2 basically confidence measurements
@@ -829,14 +820,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
          rc = HAL_ERROR;
       } else if (measure_high < LIMIT_LOWVOLTAGE_WARNING) {
-         if (!warningSentForCellVoltage[i] && !warning_dtc_sent_this_period) {
+         if (!warning_dtc_sent) {
             ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
             sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
-            warningSentForCellVoltage[i] = true;
-            warning_dtc_sent_this_period = true;
+            warning_dtc_sent = true;
          }
-      } else if (warningSentForCellVoltage[i] == true) {
-         warningSentForCellVoltage[i] = false;
       }
 
       // Update max voltage
