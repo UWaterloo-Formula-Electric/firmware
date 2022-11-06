@@ -510,9 +510,7 @@ void mainTaskFunction(void const * argument){
 
 uint32_t defaultTransition(uint32_t event)
 {
-    ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
-                fsmGetState(&DCUFsmHandle), event);
-
+    ERROR_PRINT("No transition function registered for state\n");
     return fsmGetState(&DCUFsmHandle);
 }
 
