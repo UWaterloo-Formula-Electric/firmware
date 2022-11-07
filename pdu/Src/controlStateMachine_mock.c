@@ -352,7 +352,7 @@ BaseType_t printPowerStates(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 
-    COMMAND_OUTPUT("States:\n DC present:%d\n", IS_DC_DC_ON);
+    COMMAND_OUTPUT("States:\n DC present:%d, BMGR1: %d, BMGR2: %d, BMGR3:%d\n", IS_DC_DC_ON, BMGR_GPIO1_STATE, BMGR_GPIO2_STATE, BMGR_GPIO3_STATE);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t printPowerStatesCommandDefinition =

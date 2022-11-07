@@ -102,7 +102,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PAPin PAPin PAPin */
   GPIO_InitStruct.Pin = BMGR_GPIO3_Pin|BMGR_GPIO2_Pin|BMGR_GPIO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
