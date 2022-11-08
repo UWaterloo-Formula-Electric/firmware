@@ -9,6 +9,7 @@
 #include "adc.h"
 #include <stdbool.h>
 #include "pdu_can.h"
+#include "pdu_dtc.h"
 #include "watchdog.h"
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
@@ -114,6 +115,8 @@ void sensorTask(void *pvParameters)
     // Delay to allow adc readings to start
     vTaskDelay(100);
 
+    uint8_t lowBattery = pdFALSE;
+
     while (1)
     {
         /*
@@ -133,6 +136,11 @@ void sensorTask(void *pvParameters)
         if (sendCAN_LV_Bus_Measurements() != HAL_OK)
         {
             ERROR_PRINT("Failed to send bus measurements on can!\n");
+        }
+
+        if (lowBattery == pdFALSE && readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {
+            lowBattery = pdTRUE; 
+            sendDTC_WARNING_LV_Battery_Low();
         }
 
 #ifdef ENABLE_LV_CUTTOFF
