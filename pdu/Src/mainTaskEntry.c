@@ -4,13 +4,16 @@
 #include "bsp.h"
 #include "debug.h"
 
+#define MAIN_TASK_PERIOD 1000
+
 void mainTaskFunction(void const * argument)
 {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     printf("Starting up!!\n");
     while (1) {
         /*printf("Hello\n");*/
         HAL_GPIO_TogglePin(DEBUG_LED_PORT, DEBUG_LED_PIN);
 
-        vTaskDelay(1000);
+        vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }
 }

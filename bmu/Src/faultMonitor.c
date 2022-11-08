@@ -228,6 +228,7 @@ void faultMonitorTask(void *pvParameters)
    }
 	
    bool cbrb_pressed = false;
+   TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1)
    {
 		if (getHVIL_Status() == false)
@@ -273,13 +274,12 @@ void faultMonitorTask(void *pvParameters)
 		}
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);
-		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+		vTaskDelayUntil(&xLastWakeTime, FAULT_MEASURE_TASK_PERIOD);
    }
 
 #else
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
-
    while (1) {
 		vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
    }

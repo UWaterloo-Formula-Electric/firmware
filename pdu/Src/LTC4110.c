@@ -25,7 +25,7 @@ void powerTask(void *pvParameters)
     // Delay to allow system to turn on
     vTaskDelay(100);
 
-    
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1)
     {
         bool newDCDCState = IS_DC_DC_ON;
@@ -49,6 +49,6 @@ void powerTask(void *pvParameters)
             DC_DC_state = newDCDCState;
         }
         watchdogTaskCheckIn(5);
-        vTaskDelay(POWER_TASK_INTERVAL_MS);
+        vTaskDelayUntil(&xLastWakeTime, POWER_TASK_INTERVAL_MS);
     }
 }

@@ -49,6 +49,7 @@ HAL_StatusTypeDef sensorTaskInit()
  */
 void sensorTask(void *pvParameters)
 {
+    
     if (registerTaskToWatch(3, 2*pdMS_TO_TICKS(SENSOR_TASK_PERIOD), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register battery task with watchdog!\n");
@@ -60,6 +61,7 @@ void sensorTask(void *pvParameters)
        Error_Handler();
     }
 
+   TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1)
    {
       BrakePressureBMU = brakeAndHVILVals[BRAKE_ADC_CHANNEL] / BRAKE_ADC_DIVIDER;
@@ -68,6 +70,6 @@ void sensorTask(void *pvParameters)
       }
 
       watchdogTaskCheckIn(3);
-      vTaskDelay(SENSOR_TASK_PERIOD);
+      vTaskDelayUntil(&xLastWakeTime, SENSOR_TASK_PERIOD);
    }
 }

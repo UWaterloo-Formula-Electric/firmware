@@ -39,6 +39,7 @@ void ledTask(void *pvParameters)
 {
     bool already_errored = false;
     uint32_t blink_period = pdMS_TO_TICKS(DEFAULT_LED_BLINK_PERIOD_MS);
+    TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1)
     {
@@ -101,7 +102,7 @@ void ledTask(void *pvParameters)
 			ENDURANCE_LED_OFF;
 		}
 
-        vTaskDelay(blink_period);
+        vTaskDelayUntil(&xLastWakeTime, blink_period);
     }
 }
 

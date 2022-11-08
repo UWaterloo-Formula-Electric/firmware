@@ -21,10 +21,11 @@ void mainTaskFunction(void const * argument)
     
     DEBUG_PRINT("Started Up");
 
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         HAL_GPIO_TogglePin(DEBUG_LED_PORT, DEBUG_LED_PIN);
 
         watchdogTaskCheckIn(MAIN_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(MAIN_TASK_PERIOD_MS));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD_MS));
     }
 }

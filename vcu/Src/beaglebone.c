@@ -3,6 +3,8 @@
 #include "task.h"
 #include "debug.h"
 
+#define BB_TASK_PERIOD 10000
+
 HAL_StatusTypeDef beagleboneOff()
 {
     PP_BB_DISABLE;
@@ -42,7 +44,8 @@ void bbTask(void *pvParameters)
     ERROR_PRINT("Failed to power on beaglebone!\n");
   }
 
+  TickType_t xLastWakeTime = xTaskGetTickCount();
   while (1) {
-    vTaskDelay(10000);
+    vTaskDelayUntil(&xLastWakeTime, BB_TASK_PERIOD);
   }
 }

@@ -470,11 +470,11 @@ void HVMeasureTask(void *pvParamaters)
     }
 
     uint32_t lastStateBusHVSend = 0;
-    TickType_t xLastWakeTime = xTaskGetTickCount();
 
     float VBus;
     float VBatt;
     float IBus;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
             ERROR_PRINT("Failed to read bus voltages and current!\n");
@@ -535,6 +535,7 @@ void imdTask(void *pvParamaters)
      ERROR_PRINT("Failed to register imd task with watchdog!\n");
      Error_Handler();
    }
+   TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1) {
       imdStatus =  get_imd_status();
 
@@ -579,7 +580,7 @@ void imdTask(void *pvParamaters)
       }
 
       watchdogTaskCheckIn(IMD_TASK_ID);
-      vTaskDelay(IMD_TASK_PERIOD_MS);
+      vTaskDelayUntil(&xLastWakeTime, IMD_TASK_PERIOD_MS);
    }
 #else
    // Notify control fsm that IMD is ready
@@ -675,10 +676,11 @@ void BatteryTaskError()
     AMS_CONT_OPEN;
 #endif
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         // Suspend this task while still updating watchdog
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }
 
@@ -1654,6 +1656,7 @@ void clearSendOnlyOneCell()
 void canSendCellTask(void *pvParameters)
 {
   uint32_t cellIdxToSend = 0;
+  TickType_t xLastWakeTime = xTaskGetTickCount();
 
   while (1) {
     if (sendOneCellVoltAndTemp) {
@@ -1671,6 +1674,6 @@ void canSendCellTask(void *pvParameters)
     cellIdxToSend += 3;
     cellIdxToSend = cellIdxToSend % NUM_VOLTAGE_CELLS;
 
-    vTaskDelay(pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
   }
 }

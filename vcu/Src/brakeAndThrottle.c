@@ -43,7 +43,7 @@
 /*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
 #define VCU_DATA_PUBLISH_TIME_MS 200
-
+#define ADC_DELAY_PERIOD 500
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 

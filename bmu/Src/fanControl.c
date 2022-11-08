@@ -79,8 +79,9 @@ void fanTask()
     Error_Handler();
   }
 
+  TickType_t xLastWakeTime = xTaskGetTickCount();
   while (1) {
     setFan();
-    vTaskDelay(pdMS_TO_TICKS(FAN_TASK_PERIOD_MS));
+    vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(FAN_TASK_PERIOD_MS));
   }
 }
