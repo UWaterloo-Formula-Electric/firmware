@@ -109,6 +109,11 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
     }
 }
 
+void CAN_Msg_UartOverCanConfig_Callback()
+{
+    isUartOverCanEnabled = UartOverCanConfigSignal & 0x1;
+}
+
 void CAN_Msg_PDU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
     switch (DTC_CODE)
     {

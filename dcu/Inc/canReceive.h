@@ -8,3 +8,4 @@ bool getHVState();
 bool getEMState();
 
 #endif /* end of include guard: CANRECEIVE_H */
+

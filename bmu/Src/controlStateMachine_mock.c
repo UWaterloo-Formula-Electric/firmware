@@ -34,6 +34,21 @@ extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
 
+BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    COMMAND_OUTPUT("isUartOverCanEnabled: %u\n", isUartOverCanEnabled);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t debugUartOverCanCommandDefinition =
+{
+    "isUartOverCanEnabled",
+    "isUartOverCanEnabled help string",
+    debugUartOverCan,
+    0 /* Number of parameters */
+};
+
 BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -997,6 +1012,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     cliSetVBus(0);
     cliSetIBus(0);
 
+    if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&printHVMeasurementsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

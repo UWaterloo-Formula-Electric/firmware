@@ -1,7 +1,7 @@
 BUILD_TARGET = wsb
 BOARD_ARCHITECTURE = F0
 
-COMMON_LIB_SRC = userCan.c debug.c state_machine.c CRC_CALC.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c
+COMMON_LIB_SRC = userCan.c debug.c state_machine.c CRC_CALC.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c canReceiveCommon.c
 COMMON_F0_LIB_SRC = userCanF0.c
 
 

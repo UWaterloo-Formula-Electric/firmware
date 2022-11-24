@@ -19,6 +19,8 @@
 // Buffer to receive uart characters (1 byte)
 uint8_t uartDMA_rxBuffer = '\000';
 
+uint8_t isUartOverCanEnabled = 0;
+
 QueueHandle_t printQueue;
 QueueHandle_t uartRxQueue;
 
@@ -483,10 +485,29 @@ void printTask(void *pvParameters)
 
     for ( ;; )
     {
-        if (xQueueReceive(printQueue, buffer, portMAX_DELAY) == pdTRUE)
+        if (xQueueReceive(printQueue, (uint8_t*) buffer, portMAX_DELAY) == pdTRUE)
         {
-            int len = strlen(buffer);
-            HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*)buffer, len, UART_PRINT_TIMEOUT);
+            uint64_t len = strlen(buffer);
+            HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*) buffer, len, UART_PRINT_TIMEOUT);
+
+            if(isUartOverCanEnabled)
+            {
+                // send message length
+                UartOverCanRX = len;
+                sendCAN_UartOverCanRx();
+                
+                // Send CLI response to the CAN
+                const uint16_t chunkLen = 4; // bytes per CAN message
+				for(uint16_t a = 0; a < len; a += chunkLen)
+				{
+                    UartOverCanRX = buffer[a];
+                    for (uint16_t i = 0; i < chunkLen && a + i < len; i++)
+                    {
+                        UartOverCanRX |= buffer[a + i] << (i * 8);
+                    }
+					sendCAN_UartOverCanRx();
+				}
+            }
         }
     }
 }

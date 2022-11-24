@@ -69,6 +69,15 @@ BO_ 2287471618 SpeedMotorKPH: 8 VCU_F7
  SG_ SpeedMotorRightKPH : 16|16@1- (1,0) [0|0] "kph"  VCU_BeagleBone
  SG_ SpeedMotorLeftKPH : 0|16@1- (1,0) [0|0] "kph"  VCU_BeagleBone
 
+BO_ 2214986495 UartOverCanRx: 4 PDU
+ SG_ UartOverCanRX : 0|32@1- (1,0) [0|4294967295] ""  VCU_BeagleBone
+
+BO_ 2215051010 UartOverCanTx: 1 VCU_BeagleBone
+ SG_ UartOverCanTX : 0|8@1- (1,0) [0|0] ""  VCU_F7,WSBRR,WSBRL,WSBFR,WSBFL,BMU,DCU,PDU
+
+BO_ 2214985474 UartOverCanConfig: 1 VCU_BeagleBone
+ SG_ UartOverCanConfigSignal : 0|8@1- (1,0) [0|0] ""  VCU_F7,WSBRR,WSBRL,WSBFR,WSBFL,PDU,DCU,BMU
+
 BO_ 2282032130 TC_wheelSpeed_right: 8 VCU_F7
  SG_ VCU_wheelSpeed_RR : 0|32@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
@@ -663,6 +672,19 @@ BO_ 2214596611 PDU_DCDC_Status: 8 PDU
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
  SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
 
+BO_ 2550137352 WSBFL_WheelData: 8 WSBFL
+ SG_ StrainZLeftFront : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ StrainYLeftFront : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ StrainXLeftFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ SpeedWheelLeftFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+BO_ 2550137353 WSBFR_WheelData: 8 WSBFR
+ SG_ StrainZRightFront : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ StrainYRightFront : 30|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ StrainXRightFront : 18|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
+ SG_ SpeedWheelRightFront : 0|18@1- (0.00068664812716723,60) [-30.0003433240632|149.999656675936] "rad/s"  VCU_BeagleBone,VCU_F7
+
+BO_TX_BU_ 2214986495 : BMU,ChargeCart,DCU,MCLeft,MCRight,VCU_F7,WSBFL,WSBFR,WSBRL,WSBRR,PDU;
 BO_TX_BU_ 2298416383 : BMU,DCU,PDU,VCU_BeagleBone,WSBFL,WSBFR,WSBRL,WSBRR,VCU_F7;
 
 

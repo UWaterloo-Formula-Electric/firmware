@@ -65,3 +65,8 @@ void CAN_Msg_ChargeCart_ButtonEvents_Callback()
         fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
     }
 }
+
+void CAN_Msg_UartOverCanConfig_Callback()
+{
+	isUartOverCanEnabled = UartOverCanConfigSignal & 0x2;	
+}

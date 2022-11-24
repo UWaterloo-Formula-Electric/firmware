@@ -89,7 +89,9 @@
     } while(0)
 
 extern QueueHandle_t printQueue;
+extern QueueHandle_t uartRxQueue;
 
+extern uint8_t isUartOverCanEnabled;
 /* 
  * Receive and CLI functions and defines
  *
