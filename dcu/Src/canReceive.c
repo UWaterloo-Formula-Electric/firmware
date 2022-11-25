@@ -21,8 +21,6 @@
 #include "cmsis_os.h"
 #include "dcu_dtc.h"
 
-extern osThreadId mainTaskHandle;
-
 /**
  * Get current HV power state, updated from BMU CAN messages
  */

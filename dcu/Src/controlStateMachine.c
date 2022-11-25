@@ -15,8 +15,6 @@
 #define MAIN_TASK_ID 1
 #define MAIN_TASK_PERIOD_MS 1000
 
-extern osThreadId mainTaskHandle;
-
 #define BUZZER_LENGTH_MS 2000
 TimerHandle_t buzzerSoundTimer;
 
@@ -206,13 +204,20 @@ int sendTCToggleMsg(void)
 
 uint32_t toggleTC(uint32_t event)
 {
-	DEBUG_PRINT("Toggling TC\n");
 	if(sendTCToggleMsg() != HAL_OK)
 	{
         ERROR_PRINT("Failed to send TC Toggle button event!\n");
         Error_Handler();
 	}
 	TC_on = !TC_on;
+    if (TC_on)
+    {
+	    DEBUG_PRINT("TC off\n");
+    }
+    else 
+    {
+	    DEBUG_PRINT("TC on\n");
+    }
 	return STATE_EM_Enable;
 }
 
@@ -514,4 +519,8 @@ uint32_t defaultTransition(uint32_t event)
     return fsmGetState(&DCUFsmHandle);
 }
 
+uint8_t getTC(void)
+{
+    return TC_on;
+}
 

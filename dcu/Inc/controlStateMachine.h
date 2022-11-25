@@ -31,4 +31,6 @@ extern bool endurance_on;
 FSM_Handle_Struct DCUFsmHandle;
 HAL_StatusTypeDef dcuFsmInit();
 
+uint8_t getTC(void);
+
 #endif

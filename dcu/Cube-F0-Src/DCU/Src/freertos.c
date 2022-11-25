@@ -186,7 +186,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
+  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 512);
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of watchdogTaskNam */
@@ -198,7 +198,7 @@ void MX_FREERTOS_Init(void) {
   printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
 
   /* definition and creation of cliTaskName */
-  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 256);
+  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 512);
   cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
 
   /* definition and creation of led */
