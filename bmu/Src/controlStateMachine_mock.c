@@ -33,6 +33,7 @@
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
+extern float adjustedCellIR;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -1006,6 +1007,49 @@ static const CLI_Command_Definition_t socCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t getCellIRCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	COMMAND_OUTPUT("AdjustedCellIR: %f (default %f)\n", adjustedCellIR, ADJUSTED_CELL_IR_DEFAULT);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getCellIRCommandDefinition =
+{
+    "getCellIR",
+    "getCellIR:\r\n \r\n",
+    getCellIRCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t setCellIRCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *newCellIR = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    float cellIR;
+    sscanf(newCellIR, "%f", &cellIR);
+
+    if (cellIR < 0.0 || cellIR > 0.01){
+        COMMAND_OUTPUT("invalid cell IR [0,0.01]\r\n");
+    }else{
+	    adjustedCellIR = cellIR;
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t setCellIRCommandDefinition =
+{
+    "setCellIR",
+    "setCellIR: [0,0.01]\r\n \r\n",
+    setCellIRCommand,
+    1 /* Number of parameters */
+};
+
+
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     cliSetVBatt(0);
@@ -1147,6 +1191,13 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getStateBusHVSendPeriodCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&getCellIRCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setCellIRCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
 
     return HAL_OK;
 }
