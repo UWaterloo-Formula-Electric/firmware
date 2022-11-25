@@ -441,10 +441,12 @@ BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
     uint64_t maxTorqueDemand;
     sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
 
-    setTorqueLimit(maxTorqueDemand);
-
-    COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand);
-
+    if(maxTorqueDemand > 30){
+        COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 30");
+    }else{
+        setTorqueLimit(maxTorqueDemand);    
+        COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand); 
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t torqueDemandMaxCommandDefinition =
