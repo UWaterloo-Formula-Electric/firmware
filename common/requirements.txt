@@ -7,4 +7,3 @@ sphinx-rtd-theme==0.5.0
 breathe==4.23.0
 PyQt5==5.15.6
 matplotlib==3.3.4
-json==2.0.9
