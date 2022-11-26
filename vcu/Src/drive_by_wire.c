@@ -215,6 +215,8 @@ uint32_t EM_Fault(uint32_t event)
                 if (currentState == STATE_EM_Disable) {
                     DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
                 } else {
+                    //disable TC
+                    disable_TC();
                     DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
                 }
                 newState = STATE_EM_Disable;

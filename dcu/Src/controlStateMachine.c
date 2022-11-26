@@ -136,6 +136,7 @@ Transition_t transitions[] = {
     // Can occur when contactors open while EM enabled
     {STATE_EM_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
 
+	{STATE_EM_Enable,	  EV_HV_Toggle,			  &toggleHV},
 	{STATE_EM_Enable,	  EV_TC_Toggle,			  &toggleTC},
 	{STATE_EM_Enable,	  EV_Endurance_Mode_Toggle,&toggleEnduranceMode},
 	{STATE_EM_Enable,	  EV_Endurance_Lap_Toggle,&toggleEnduranceLap},
