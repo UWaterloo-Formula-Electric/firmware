@@ -4,6 +4,7 @@
 #include "stdbool.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "cmsis_os.h"
 #include "debug.h"
 #include "state_machine.h"
 #include "timers.h"
@@ -18,15 +19,7 @@
 
 #define DRIVE_BY_WIRE_TASK_ID 1
 
-// While the motors are starting, increase the watchdog timeout to allow
-// delays to wait for motor controllers to start up
-#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS ((2 * INVERTER_ON_TIMEOUT_MS) + MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
-#define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 100)
-
-#define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
-
 FSM_Handle_Struct fsmHandle;
-TimerHandle_t throttleUpdateTimer;
 
 uint32_t runSelftTests(uint32_t event);
 uint32_t EM_Enable(uint32_t event);
@@ -38,6 +31,8 @@ uint32_t DefaultTransition(uint32_t event);
 void throttleTimerCallback(TimerHandle_t timer);
 HAL_StatusTypeDef MotorStart();
 HAL_StatusTypeDef MotorStop();
+
+extern osThreadId throttlePollingHandle;
 
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
@@ -53,7 +48,6 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_DCU_Can_Timeout, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
-    { STATE_EM_Enable, EV_Throttle_Poll, &EM_Update_Throttle },
     { STATE_Failure_Fatal, EV_ANY, &doNothing },
     { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
@@ -62,17 +56,6 @@ Transition_t transitions[] = {
 HAL_StatusTypeDef driveByWireInit()
 {
     FSM_Init_Struct init;
-
-    throttleUpdateTimer = xTimerCreate("ThrottleTimer",
-                                       pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS),
-                                       pdTRUE /* Auto Reload */,
-                                       0,
-                                       throttleTimerCallback);
-
-    if (throttleUpdateTimer == NULL) {
-        ERROR_PRINT("Failed to create throttle timer\n");
-        return HAL_ERROR;
-    }
 
     init.maxStateNum = STATE_ANY;
     init.maxEventNum = EV_ANY;
@@ -88,7 +71,7 @@ HAL_StatusTypeDef driveByWireInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(1, pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS),
+    if (registerTaskToWatch(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS),
                             true, &fsmHandle) != HAL_OK)
     {
         return HAL_ERROR;
@@ -123,6 +106,7 @@ uint32_t runSelftTests(uint32_t event)
     
     if (brakeAndThrottleStart() != HAL_OK)
     {
+        sendDTC_CRITICAL_Throtte_Failure(3);
         return EM_Fault(EV_Throttle_Failure);
     }
 
@@ -183,6 +167,8 @@ uint32_t EM_Enable(uint32_t event)
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();
 
+    xTaskNotifyGive(throttlePollingHandle);
+
     return state;
 }
 
@@ -220,7 +206,6 @@ uint32_t EM_Fault(uint32_t event)
             break;
         case EV_Throttle_Failure:
             {
-                sendDTC_CRITICAL_Throtte_Failure();
                 DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
@@ -271,23 +256,6 @@ uint32_t EM_Fault(uint32_t event)
     return newState;
 }
 
-uint32_t EM_Update_Throttle(uint32_t event)
-{
-    if (fsmGetState(&fsmHandle) != STATE_EM_Enable) {
-        ERROR_PRINT("Shouldn't be updating throttle when not in em enabled state\n");
-        return fsmGetState(&fsmHandle);
-    }
-    if (outputThrottle() != HAL_OK) {
-        ERROR_PRINT("Throttle update failed, trans to fatal\n");
-        if (MotorStop() != HAL_OK) {
-            ERROR_PRINT("Failed to stop motors\n");
-        }
-        return STATE_Failure_Fatal;
-    }
-
-    return STATE_EM_Enable;
-}
-
 uint32_t DefaultTransition(uint32_t event)
 {
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
@@ -298,13 +266,6 @@ uint32_t DefaultTransition(uint32_t event)
         ERROR_PRINT("Failed to stop motors\n");
     }
     return STATE_Failure_Fatal;
-}
-
-void throttleTimerCallback(TimerHandle_t timer)
-{
-    if (fsmSendEvent(&fsmHandle, EV_Throttle_Poll, 0) != HAL_OK) {
-        ERROR_PRINT("Failed to process throttle poll event\n");
-    }
 }
 
 HAL_StatusTypeDef turnOnMotorControllers() {
@@ -381,11 +342,6 @@ HAL_StatusTypeDef MotorStart()
         return rc;
     }
 
-    if (xTimerStart(throttleUpdateTimer, 100) != pdPASS) {
-        ERROR_PRINT("Failed to start throttle update timer\n");
-        return HAL_TIMEOUT;
-    }
-
 
     // Change back timeout
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
@@ -399,15 +355,10 @@ HAL_StatusTypeDef MotorStart()
 HAL_StatusTypeDef MotorStop()
 {
     DEBUG_PRINT("Stopping motors\n");
-    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
 
     if (mcShutdown() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
-        return HAL_ERROR;
-    }
-
-    if (xTimerStop(throttleUpdateTimer, 100) != pdPASS) {
-        ERROR_PRINT("Failed to stop throttle update timer\n");
         return HAL_ERROR;
     }
 

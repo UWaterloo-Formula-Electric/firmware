@@ -10,7 +10,7 @@
 
 #define ENDURANCE_MODE_TASK_ID 2
 #define ENDURANCE_MODE_TASK_PERIOD (500)
-#define ENDURANCE_MODE_FLAG_BIT (1)
+#define ENDURANCE_MODE_FLAG_BIT (0)
 // Reminder these are per motor
 #define DISCHARGE_CURRENT_MAX_A (30.0f)
 #define DISCHARGE_CURRENT_MIN_A (5.0f)

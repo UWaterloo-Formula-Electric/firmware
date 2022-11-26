@@ -1,51 +1,20 @@
 #include "brakeAndThrottle.h"
 #include "debug.h"
+#include "FreeRTOS.h"
+#include "watchdog.h"
 #include "motorController.h"
 #include "vcu_F7_can.h"
 #include "vcu_F7_dtc.h"
+#include "drive_by_wire.h"
+#include "state_machine.h"
+#include "drive_by_wire.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
 #endif
 
-#define MIN_BRAKE_PRESSED_VAL_PERCENT 10
-#define MIN_BRAKE_PRESSED_HARD_VAL_PERCENT 40
-#define MAX_ZERO_THROTTLE_VAL_PERCENT 1
-
-#define TPS_TOLERANCE_PERCENT 10
-#define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
-#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
-
-#define THROTT_A_LOW (1835)
-#define THROTT_B_LOW (570)
-
-#define THROTT_A_HIGH (2142)
-#define THROTT_B_HIGH (915)
-
-#define BRAKE_POS_LOW (1117)
-#define BRAKE_POS_HIGH (1410)
-
-#define STEERING_POT_LOW (35) //Pot value when the wheel is all the way to the left
-#define STEERING_POT_HIGH (3660) //Pot value when the wheel is all the way to the right
-
-#define STEERING_POT_CENTER (((STEERING_POT_HIGH-STEERING_POT_LOW)/2) + STEERING_POT_LOW) //The pot value while the wheel is neutral
-#define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER/(100)) //Scale the pot value to range (-100,100) 
-#define STEERING_POT_OFFSET (STEERING_POT_CENTER)
-
-/*#define THROTT_A_LOW (0xd44)*/
-/*#define THROTT_B_LOW (0x5d2)*/
-
-/*#define THROTT_A_HIGH (0xf08)*/
-/*#define THROTT_B_HIGH (0x71f)*/
-
-#define MAX_THROTTLE_A_DEADZONE (200)
-#define MAX_THROTTLE_B_DEADZONE (200)
-/*#define MAX_THROTTLE_DEADZONE (0x20)*/
-
-#define VCU_DATA_PUBLISH_TIME_MS 200
-#define ADC_DELAY_PERIOD 500
-
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
+static float throttlePercentReading = 0.0f;
 
 HAL_StatusTypeDef startADCConversions()
 {
@@ -142,8 +111,7 @@ bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_perc
     }
 }
 
-
-// Get the throttle posiition as a percent
+// Get the throttle position as a percent
 // @ret False if implausibility, true otherwise
 bool getThrottlePositionPercent(float *throttleOut)
 {
@@ -222,21 +190,6 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
 }
 
 /* Public Functions */
-HAL_StatusTypeDef outputThrottle() {
-    float throttle;
-
-    ThrottleStatus_t rc = getNewThrottle(&throttle);
-
-    if (rc == THROTTLE_FAULT) {
-        return HAL_ERROR;
-    } else if (rc == THROTTLE_DISABLED) {
-        DEBUG_PRINT("Throttle disabled due brake pressed\n");
-    }
-
-    sendThrottleValueToMCs(throttle, getSteeringAngle());
-
-    return HAL_OK;
-}
 
 bool isBrakePressedHard()
 {
@@ -286,7 +239,6 @@ int getSteeringAngle() {
   return (steeringPotVal-STEERING_POT_OFFSET) / STEERING_SCALE_DIVIDER;
 }
 
-
 HAL_StatusTypeDef brakeAndThrottleStart()
 {
     if (startADCConversions() != HAL_OK)
@@ -300,14 +252,12 @@ HAL_StatusTypeDef brakeAndThrottleStart()
 
 void canPublishTask(void *pvParameters)
 {
-  float throttle;
   while (1) {
     // Delay to allow first ADC readings to come in
     vTaskDelay(500);
 
     // Update value to be sent over can
-    getThrottlePositionPercent(&throttle);
-    ThrottlePercent = throttle;
+    ThrottlePercent = throttlePercentReading;
     brakePressure = getBrakePressure();
     SteeringAngle = getSteeringAngle();
     BrakePercent = getBrakePositionPercent();
@@ -317,4 +267,72 @@ void canPublishTask(void *pvParameters)
     }
     vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
   }
+}
+
+
+void pollThrottle(TickType_t* xLastWakeTime)
+{
+    while(1)
+    {
+        //Wait until EM is enabled
+        if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
+        {
+            throttlePercentReading = 0;
+            return;
+        }
+        ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
+    
+        if (rc != THROTTLE_OK)
+        {
+            if (rc == THROTTLE_FAULT) {
+                sendDTC_CRITICAL_Throtte_Failure(0);
+                DEBUG_PRINT("Throttle value out of range\n");
+            } else if (rc == THROTTLE_DISABLED) {
+                sendDTC_CRITICAL_Throtte_Failure(1);
+                DEBUG_PRINT("Throttle disabled as brake pressed\n");
+            } else {
+                sendDTC_CRITICAL_Throtte_Failure(2);
+                DEBUG_PRINT("Unknown throttle error\r\n");
+            }
+            fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+            return;
+        }
+
+        sendThrottleValueToMCs(throttlePercentReading, getSteeringAngle());
+
+        watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
+        vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
+    }
+}
+
+void throttlePollingTask(void) 
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    if (registerTaskToWatch(THROTTLE_POLLING_TASK_ID, 2*pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    {
+        ERROR_PRINT("ERROR: Failed to init throttle polling task, suspending throttle polling task\n");
+		while(1);
+    }
+
+    while (1)
+    {
+        uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
+
+        if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
+        {
+            //Start polling throttle and send to MC
+            watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));
+            watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
+            pollThrottle(&xLastWakeTime);
+            watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_TASK_PERIOD_MS));
+        }
+        else
+        {
+            // The flag was never actually set, we just hit the timeout	
+        }
+
+        watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
+    }
 }

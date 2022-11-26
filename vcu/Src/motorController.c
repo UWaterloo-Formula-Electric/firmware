@@ -259,8 +259,8 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
     // Throttle adjustments for torque vectoring (only if steeringAngle is outside the dead zone)
     // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
     if (!is_wheel_within_deadzone(steeringAngle)) {
-            throttleRight += (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-            throttleLeft -= (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+            throttleRight -= (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+            throttleLeft += (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
         }
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
