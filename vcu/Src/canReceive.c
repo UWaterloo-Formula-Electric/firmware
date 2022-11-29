@@ -109,6 +109,33 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
     }
 }
 
+void CAN_Msg_TempInverterLeft_Callback() {
+    static uint32_t lastLeftInverterDTC = 0;
+	if (pdMS_TO_TICKS(xTaskGetTickCountFromISR() - lastLeftInverterDTC) <= 2500)
+    {
+		return;
+	}
+	if (StateInverterLeft == 0x25)
+    {
+		sendDTC_WARNING_MOTOR_CONTROLLERS_FAULT_OFF(1);
+	    lastLeftInverterDTC = xTaskGetTickCountFromISR();
+	}
+}
+
+void CAN_Msg_TempInverterRight_Callback() {
+    static uint32_t lastRightInverterDTC = 0;
+	if (pdMS_TO_TICKS(xTaskGetTickCountFromISR() - lastRightInverterDTC) <= 2500)
+    {
+		return;
+	}
+	if (StateInverterRight == 0x25)
+    {
+		sendDTC_WARNING_MOTOR_CONTROLLERS_FAULT_OFF(0);
+	    lastRightInverterDTC = xTaskGetTickCountFromISR();
+	}
+}
+
+
 void CAN_Msg_UartOverCanConfig_Callback()
 {
     isUartOverCanEnabled = UartOverCanConfigSignal & 0x1;
