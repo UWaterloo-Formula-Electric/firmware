@@ -24,7 +24,7 @@
 #define FAN_MAX_DUTY_PERCENT 1.0
 #define FAN_ON_DUTY_PERCENT 0.2
 #define FAN_PERIOD_COUNT 400
-#define FAN_TASK_PERIOD_MS 100
+#define FAN_TASK_PERIOD_MS 1000
 
 uint32_t calculateFanPeriod()
 {

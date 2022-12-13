@@ -959,11 +959,9 @@ HAL_StatusTypeDef stopCharging()
 HAL_StatusTypeDef stopBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    if (batt_unset_balancing_all_cells() != HAL_OK) {
-        return HAL_ERROR;
-    }
+    batt_unset_balancing_all_cells();
 #endif
-
+    
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
     if (batt_write_config() != HAL_OK) {
         return HAL_ERROR;
@@ -994,7 +992,8 @@ HAL_StatusTypeDef pauseBalance()
     }
 
     if (stopBalance() != HAL_OK) {
-        ERROR_PRINT("Failed to pause balance\n");
+        ERROR_PRINT("Failed to stop balance\n");
+        return HAL_ERROR;
     }
 #endif
 
@@ -1423,6 +1422,7 @@ void batteryTask(void *pvParameter)
                         fsmSendEvent(&fsmHandle, EV_Notification_Done, 20);
                     } else if (chargeRc == CHARGE_STOPPED) {
                         DEBUG_PRINT("Stopped charge/balancing\n");
+                        fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
                     } else {
                         ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
