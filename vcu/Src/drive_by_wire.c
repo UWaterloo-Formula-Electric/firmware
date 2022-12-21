@@ -233,13 +233,13 @@ uint32_t EM_Fault(uint32_t event)
         case EV_Fatal:
             {
                 DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
-                sendDTC_FATAL_VCU_F7_ERROR();
+                sendDTC_FATAL_VCU_F7_EV_FATAL();
                 newState = STATE_Failure_Fatal;
             }
             break;
         default:
             {
-                sendDTC_FATAL_VCU_F7_ERROR();
+                sendDTC_FATAL_VCU_F7_EM_ENABLED_ERROR();
                 DEBUG_PRINT("EM Enabled, unknown event %lu\n", event);
             }
             break;
@@ -263,7 +263,7 @@ uint32_t DefaultTransition(uint32_t event)
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
                 fsmGetState(&fsmHandle), event);
 
-    sendDTC_FATAL_VCU_F7_ERROR();
+    sendDTC_FATAL_VCU_F7_NoTransition();
     if (MotorStop() != HAL_OK) {
         ERROR_PRINT("Failed to stop motors\n");
     }

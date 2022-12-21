@@ -83,6 +83,7 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
 
 void DTC_Fatal_Callback(BoardIDs board)
 {
+    DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
     fsmSendEventUrgentISR(&fsmHandle, EV_Fatal);
 }
 
