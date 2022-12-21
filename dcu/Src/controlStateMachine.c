@@ -119,6 +119,7 @@ Transition_t transitions[] = {
     {STATE_HV_Disable,    EV_HV_Toggle,           &toggleHV},
     {STATE_HV_Toggle,     EV_CAN_Recieve_HV,      &hvControl},
     {STATE_HV_Toggle,     EV_HV_Toggle,           &doNothing},
+    {STATE_HV_Toggle,     EV_CAN_Recieve_EM,      &doNothing},
     {STATE_HV_Enable,     EV_EM_Toggle,           &toggleEM},
 
     {STATE_EM_Toggle,     EV_CAN_Recieve_EM,      &emControl},
@@ -137,7 +138,7 @@ Transition_t transitions[] = {
     {STATE_EM_Enable,     EV_CAN_Recieve_HV,      &updateFromCAN},
 
 	{STATE_EM_Enable,	  EV_HV_Toggle,			  &toggleHV},
-	{STATE_EM_Enable,	  EV_TC_Toggle,			  &toggleTC},
+	{STATE_ANY,	          EV_TC_Toggle,			  &toggleTC},
 	{STATE_EM_Enable,	  EV_Endurance_Mode_Toggle,&toggleEnduranceMode},
 	{STATE_EM_Enable,	  EV_Endurance_Lap_Toggle,&toggleEnduranceLap},
 
@@ -205,6 +206,14 @@ int sendTCToggleMsg(void)
 
 uint32_t toggleTC(uint32_t event)
 {
+    uint32_t currentState = fsmGetState(&DCUFsmHandle);
+    if (currentState != STATE_EM_Enable)
+    {
+        //Can't enable TC unless at EM
+        return currentState;
+    }
+
+
 	if(sendTCToggleMsg() != HAL_OK)
 	{
         ERROR_PRINT("Failed to send TC Toggle button event!\n");
@@ -213,11 +222,13 @@ uint32_t toggleTC(uint32_t event)
 	TC_on = !TC_on;
     if (TC_on)
     {
-	    DEBUG_PRINT("TC off\n");
+        TC_LED_ON;
+	    DEBUG_PRINT("TC on\n");
     }
     else 
     {
-	    DEBUG_PRINT("TC on\n");
+        TC_LED_OFF;
+	    DEBUG_PRINT("TC off\n");
     }
 	return STATE_EM_Enable;
 }
@@ -248,6 +259,12 @@ uint32_t toggleEnduranceLap(uint32_t event)
 
 uint32_t toggleHV(uint32_t event)
 {
+    if (fsmGetState(&DCUFsmHandle) == STATE_EM_Enable)
+    {
+        TC_LED_OFF;
+        TC_on = false;
+    }
+
     DEBUG_PRINT("Sending HV Toggle button event\n");
     if (sendHVToggleMsg() != HAL_OK)
     {
@@ -311,6 +328,7 @@ uint32_t emControl(uint32_t event)
         DEBUG_PRINT("Response from VCU: EM Disabled\n");
 
         //Turn off TC button
+        TC_LED_OFF;
         TC_on = false;
         return STATE_HV_Enable;
     }
@@ -516,8 +534,39 @@ void mainTaskFunction(void const * argument){
 
 uint32_t defaultTransition(uint32_t event)
 {
-    ERROR_PRINT("No transition function registered for state\n");
-    return fsmGetState(&DCUFsmHandle);
+    ERROR_PRINT("No transition function registered for ");
+    uint32_t currentState = fsmGetState(&DCUFsmHandle);
+
+    //Need to do it like this since we can't do string interpolation which causes stack overflows
+    if (currentState == STATE_Self_Test)
+    {
+        ERROR_PRINT("Self_Test state\r\n");
+    }
+    else if (currentState == STATE_HV_Disable)
+    {
+        ERROR_PRINT("HV_Disable state\r\n");
+    }
+    else if (currentState == STATE_HV_Toggle)
+    {
+        ERROR_PRINT("HV_Toggle state\r\n");
+    }
+    else if (currentState == STATE_HV_Enable)
+    {
+        ERROR_PRINT("HV_Enable state\r\n");
+    }
+    else if (currentState == STATE_EM_Toggle)
+    {
+        ERROR_PRINT("EM_Toggle state\r\n");
+    }
+    else if (currentState == STATE_EM_Enable)
+    {
+        ERROR_PRINT("EM_Enable state\r\n");
+    }
+    else if (currentState == STATE_Failure_Fatal)
+    {
+        ERROR_PRINT("Failure_Fatal state\r\n");
+    }
+    return currentState;
 }
 
 uint8_t getTC(void)

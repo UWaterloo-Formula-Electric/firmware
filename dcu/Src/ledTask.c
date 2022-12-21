@@ -84,14 +84,6 @@ void ledTask(void *pvParameters)
             default:
                 break;
         }
-        if(TC_on)
-		{
-			TC_LED_ON;
-		}
-		else
-		{
-			TC_LED_OFF;
-		}
 
 		if(endurance_on)
 		{
