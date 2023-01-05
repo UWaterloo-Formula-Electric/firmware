@@ -1,0 +1,59 @@
+{
+    "periodic_messages": [
+        {
+            "name": "BMU_batteryStatusHV",
+            "signals": {
+                "StateBMS": 0,
+                "TempCellMin": 0,
+                "TempCellMax": 12,
+                "StateBatteryPowerHV": 0,
+                "StateBatteryHealthHV": 0,
+                "StateBatteryChargeHV": 23
+            },
+            "period_ms": 1000,
+            "time": 0
+        }
+    ],
+    "one_time_messages": [
+        {
+            "name": "BMU_stateBusHV",
+            "signals": {
+                "CurrentBusHV": 0,
+                "VoltageCellMin": 6,
+                "VoltageCellMax": 0,
+                "VoltageBusHV": 0
+            },
+            "time": 100
+        },
+        {
+            "name": "SpeedFeedbackRight",
+            "signals": {
+                "SpeedMotorRight": 150,
+                "PRO_CAN_CRC": 0,
+                "PRO_CAN_COUNT": 0,
+                "PRO_CAN_RES": 0
+            },
+            "time": 1000
+        },
+        {
+            "name": "SpeedFeedbackLeft",
+            "signals": {
+                "SpeedMotorLeft": 150,
+                "PRO_CAN_CRC": 0,
+                "PRO_CAN_COUNT": 0,
+                "PRO_CAN_RES": 0
+            },
+            "time": 2000
+        },
+        {
+            "name": "BMU_DTC",
+            "signals": {
+                "DTC_Severity": 1,
+                "DTC_CODE": 51,
+                "DTC_Data": 31
+
+            },
+            "time": 300
+        }
+    ]
+}

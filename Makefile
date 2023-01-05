@@ -8,6 +8,8 @@ all: bmu dcu pdu vcu wsb
 beaglebone:;
 	make -C beaglebone/os/
 
+dashboard:;
+	make -C beaglebone/app/wfe/dashboard/
 
 include bmu/board.mk
 include dcu/board.mk

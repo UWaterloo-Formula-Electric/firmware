@@ -31,6 +31,17 @@
             },
             "period_ms": 250,
             "time": 500
+        },
+	    {
+            "name": "PDU_DTC",
+            "signals": {
+                "DTC_Severity": 1,
+                "DTC_CODE": 19,
+                "DTC_Data": 7
+
+            },
+            "period_ms": 50,
+            "time": 300
         }
     ],
     "one_time_messages": [
