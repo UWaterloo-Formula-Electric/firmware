@@ -286,11 +286,11 @@ static const CLI_Command_Definition_t emToggleCommandDefinition =
     0 /* Number of parameters */
 };
 
-extern float kP;
+extern float tc_kP;
 extern float error_floor;
 extern float adjustment_torque_floor;
 
-BaseType_t setKp(char *writeBuffer, size_t writeBufferLength,
+BaseType_t setTcKp(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
@@ -298,16 +298,16 @@ BaseType_t setKp(char *writeBuffer, size_t writeBufferLength,
 
     float tmpKp = 0.0f;
     sscanf(param, "%f", &tmpKp);
-    kP = tmpKp;
+    tc_kP = tmpKp;
 
-    COMMAND_OUTPUT("setting kP %f\n", kP);
+    COMMAND_OUTPUT("Setting kP %f\n", tc_kP);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setKpCommandDefinition =
 {
-    "setKp",
-    "setKp <kP>:\r\n set TC kP value\r\n",
-    setKp,
+    "setTcKp",
+    "setTcKp <kP>:\r\n set TC kP value\r\n",
+    setTcKp,
     1 /* Number of parameters */
 };
 

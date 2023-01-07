@@ -20,8 +20,8 @@ static float initial_soc = 0.0f;
 static uint32_t num_laps = 0;
 static uint32_t num_laps_to_complete = NUMBER_OF_LAPS_TO_COMPLETE_DEFAULT*(ENDURANCE_MODE_BUFFER);
 static bool in_endurance_mode = false;
-static const float kP = 200.0f;
-static const float kI = 0.2f;
+static const float em_kP = 200.0f;
+static const float em_kI = 0.2f;
 extern osThreadId enduranceModeHandle;
 
 void endurance_mode_EM_callback(void)
@@ -81,7 +81,7 @@ static HAL_StatusTypeDef compute_discharge_limit(float * current_limit)
 		error_accum += error;
 	}
 	
-	float output_current = last_output_current - (error*kP + error_accum*kI);
+	float output_current = last_output_current - (error*em_kP + error_accum*em_kI);
 	*current_limit = clamp_motor_current(output_current);	
 	last_output_current = *current_limit;
 	return HAL_OK;

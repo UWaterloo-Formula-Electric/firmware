@@ -32,7 +32,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define RPM_TO_KPH(rpm) ((rpm)*HOUR_TO_MIN*WHEEL_CIRCUMFERENCE*M_TO_KM*GEAR_RATIO)
 
 // For every 1rad/s, decrease torque by kP
-#define kP_DEFAULT (0.1f)
+#define TC_kP_DEFAULT (0.1f)
 
 // With our tire radius, rads/s ~ km/h
 #define ERROR_FLOOR_RADS_DEFAULT (20.0f)
@@ -76,7 +76,7 @@ static float get_RL_speed()
 	return RPM_TO_RADS(val - MC_ENCODER_OFFSET);
 }
 
-float kP = kP_DEFAULT;
+float tc_kP = TC_kP_DEFAULT;
 float error_floor = ERROR_FLOOR_RADS_DEFAULT;
 float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
 
@@ -133,16 +133,16 @@ void tractionControlTask(void *pvParameters)
 			{
 				if (error_left > error_right)
 				{
-					torque_adjustment = (error_left - error_floor) * kP;
+					torque_adjustment = (error_left - error_floor) * tc_kP;
 				}
 				else
 				{
-					torque_adjustment = (error_right - error_floor) * kP;
+					torque_adjustment = (error_right - error_floor) * tc_kP;
 				}
 			}
 
-			Torque_Adjustment_Right = (uint32_t) (error_right * kP);
-			Torque_Adjustment_Left = (uint32_t) (error_left * kP);
+			Torque_Adjustment_Right = (uint32_t) (error_right * tc_kP);
+			Torque_Adjustment_Left = (uint32_t) (error_left * tc_kP);
 			sendCAN_TC_Torque_Adjustment_Left();
 			sendCAN_TC_Torque_Adjustment_Right();
 
