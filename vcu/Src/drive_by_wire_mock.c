@@ -496,7 +496,7 @@ BaseType_t mcInitCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t mcInitCommandDefinition =
 {
     "mcInit",
-    "mcInit :\r\n  Set max speed (rpm)\r\n",
+    "mcInit :\r\n  Start motor controllers\r\n",
     mcInitCommand,
     0 /* Number of parameters */
 };
