@@ -1,9 +1,10 @@
 bitstruct==6.0.0
 cantools==35.0.0
-pyparsing==2.2.0
+pyparsing==3.0.9
 python-can==3.3.0
 sphinx==3.3.1
 sphinx-rtd-theme==0.5.0
 breathe==4.23.0
 PyQt5==5.15.6
 matplotlib==3.3.4
+slash==1.13.0

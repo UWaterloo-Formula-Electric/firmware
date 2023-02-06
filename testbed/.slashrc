@@ -1,0 +1,19 @@
+import slash
+from testbeds.hil_testbed import *
+
+@slash.plugins.active
+class ParamsPlugin(slash.plugins.PluginInterface):
+	def get_name(self):
+		return "Param Parsing Algorithm"
+
+	def configure_argument_parser(self, parser):
+		parser.add_argument('-t', '--testbed', help='testbed to use')
+
+	def configure_from_parsed_args(self, args):
+		self.testbed_name = args.testbed
+		if self.testbed_name is None:
+			self.testbed_name = "VehicleHIL"
+
+	def session_start(self):
+		slash.g.can_listeners = dict()
+		slash.g.testbed = globals()[self.testbed_name]()

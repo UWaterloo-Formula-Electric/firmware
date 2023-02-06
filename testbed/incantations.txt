@@ -1,0 +1,21 @@
+# Notes
+- Run tests in testbed/ folder
+- See slash docs for more information https://slash.readthedocs.io/en/master/slash_run.html
+
+# Run Interactive Session
+slash -i
+
+# Run HIL Tests
+slash run tests/<path_to_test> --testbed <TestbedName>
+
+# e.g: Run VehicleHIL test
+slash run tests/test_setup.py --testbed VehicleHIL
+
+# You can bulk tests together in test suites <text files>
+slash run -f <path_to_bulk_tests>.txt
+
+where <path_to_bulk_tests>.txt looks like this:
+"""
+tests/path_to_test1.py
+tests/path_to_test2.py
+"""
