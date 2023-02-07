@@ -409,7 +409,7 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t controlFansCommandDefinition =
 {
     "controlFans",
-    "controlFans:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
+    "controlFans <0|1|2|3>:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
     controlFans,
     1 /* Number of parameters */
 };
@@ -445,7 +445,7 @@ BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t controlPumpsCommandDefinition =
 {
     "controlPumps",
-    "controlPumps:\r\n  Controls the power to the pumps \r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
+    "controlPumps <0|1|2|3>:\r\n  Controls the power to the pumps \r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
     controlPumps,
     1 /* Number of parameters */
 };
