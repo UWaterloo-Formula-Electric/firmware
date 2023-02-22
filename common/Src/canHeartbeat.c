@@ -74,13 +74,10 @@ void enableHeartbeat()
 
 HAL_StatusTypeDef checkAllHeartbeats()
 {
-#if BOARD_TYPE == NUCLEO_F7
+#if IS_BOARD_NUCLEO_F7
     return HAL_OK;
 #endif
 
-    // DCU does weird things with CAN, so for now don't report CAN heartbeat
-    // errors
-#if BOARD_ID != ID_DCU
     if (heartbeatEnabled)
     {
         uint32_t curTick = xTaskGetTickCount();
@@ -129,7 +126,6 @@ HAL_StatusTypeDef checkAllHeartbeats()
         }
 #endif
     }
-#endif
 
     return HAL_OK;
 }
