@@ -3,6 +3,14 @@ image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 pipelines:
   pull-requests:
     '**':
+      - step:
+          name: 'Build all firmware code'
+          script:
+            - pip install -r common/requirements.txt
+            - make all
+          artifacts:
+            - Gen/**
+
       - parallel: #Run the linter - download raw output to see all logs
           - step:
               name: 'Getting output from linter'
@@ -34,6 +42,8 @@ pipelines:
               script:
                 - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I wsb/Inc wsb/Src 
 
+  branches:
+    main:
       - step:
           name: 'Build all firmware code'
           script:
@@ -42,8 +52,6 @@ pipelines:
           artifacts:
             - Gen/**
             
-  branches:
-    main:
       - parallel: #Run the linter - download raw output to see all logs
           - step:
               name: 'Getting output from linter'
@@ -73,12 +81,4 @@ pipelines:
           - step:
               name: 'Lint WSB'
               script:
-                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I wsb/Inc wsb/Src 
-
-      - step:
-          name: 'Build all firmware code'
-          script:
-            - pip install -r common/requirements.txt
-            - make all
-          artifacts:
-            - Gen/**
+                - cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I wsb/Inc wsb/Src
