@@ -1,0 +1,24 @@
+board_cfg:
+    src_dirs:
+        - '../../vcu/Src/'
+        - '../../Gen/vcu/Src/'
+    include_dirs:
+        - '../../vcu/Inc/'
+        - '../../vcu/Src/'
+        - '../../Gen/vcu_F7/Inc/'
+        - '../../Gen/vcu_F7/Src/'
+        - 'MockIncludes/'
+        - 'MockCallbacks/'
+    unit_tests_paths:
+        - './'
+    compiler_flags:
+        defines:
+            prefix: '-D'
+            items:
+                - "STM32F767xx"
+                - "BOARD_NAME=vcu_F7"
+                - "BOARD_TYPE_F7=1"
+                - "BOARD_ID=ID_VCU_F7"
+                - "BOARD_VERSION=1"
+                - "USE_HAL_DRIVER"
+                - "BOARD_TYPE=F7"

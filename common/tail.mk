@@ -55,6 +55,11 @@ RED_COLOR = "\\033[91m"
 NO_COLOR = "\\033[0m"
 endif
 
+# Test variables
+TEST_DIR = unit-tests/$(COMMON_LIB_DIR)/
+TEST_BUILD_DIR = unit-tests/$(COMMON_LIB_DIR)/build
+TEST_TARGETS := bmu dcu pdu vcu
+TEST_TARGET ?= none
 
 # Linter variables
 LINT_DIR = Lint
@@ -270,6 +275,7 @@ clean:
 	$(RM) $(BIN_DIR_NAME)
 	$(RM) $(DEPDIR_BASE)
 	$(RM) $(GEN_DIR)
+	$(RM) $(TEST_BUILD_DIR)
 	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(DELETE_CTU_FILES);)
 
 #
@@ -279,6 +285,17 @@ init:
 	git config core.hooksPath $(GITHOOKS_DIR)
 	git submodule init
 	git submodule update
+
+test:
+ifneq ($(filter $(TEST_TARGET), $(TEST_TARGETS)),)
+	@echo "Unit testing on: $(TEST_TARGET)"
+	@make $(TEST_TARGET)
+	@make -C $(TEST_DIR) $(TEST_TARGET)
+else
+	@echo "Unit testing on: $(TEST_TARGETS)"
+	@make $(TEST_TARGETS)
+	@make -C $(TEST_DIR) $(TEST_TARGETS)
+endif
 
 lint:
 	@mkdir -p $(LINT_DIR)

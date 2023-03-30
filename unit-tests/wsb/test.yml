@@ -1,0 +1,29 @@
+board_cfg:
+    src_dirs:
+        - '../../wsb/Src/'
+        - '../../Gen/wsb/Src/'
+    include_dirs:
+        - '../../wsb/Inc/'
+        - '../../wsb/Src/'
+        - '../../Gen/wsbfl/Inc/'
+        - '../../Gen/wsbfl/Src/'
+        - '../../Gen/wsbfr/Inc/'
+        - '../../Gen/wsbfr/Src/'
+        - '../../Gen/wsbrl/Inc/'
+        - '../../Gen/wsbrl/Src/'
+        - '../../Gen/wsbrr/Inc/'
+        - '../../Gen/wsbrr/Src/'
+        - 'MockIncludes/'
+    unit_tests_paths:
+        - './'
+    compiler_flags:
+        defines:
+            prefix: '-D'
+            items:
+                - "STM32F072xB" #check this
+                - "BOARD_NAME=wsb" #needs verification
+                - "BOARD_TYPE_F0=1"
+                - "BOARD_ID=ID_WSB" #board IDs are ID_WSBFL, ID_WSBFR.....
+                - "BOARD_VERSION=1"
+                - "USE_HAL_DRIVER"
+                - "BOARD_TYPE=F0"

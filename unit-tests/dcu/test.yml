@@ -1,0 +1,23 @@
+board_cfg:
+    src_dirs:
+        - '../../dcu/Src/'
+        - '../../Gen/dcu/Src/'
+    include_dirs:
+        - '../../dcu/Inc/'
+        - '../../dcu/Src/'
+        - '../../Gen/dcu/Inc/'
+        - '../../Gen/dcu/Src/'
+        - 'MockIncludes/'
+    unit_tests_paths:
+        - './'
+    compiler_flags:
+        defines:
+            prefix: '-D'
+            items:
+                - "STM32F072xB"
+                - "BOARD_NAME=dcu"
+                - "BOARD_TYPE_F0=1"
+                - "BOARD_ID=ID_DCU"
+                - "BOARD_VERSION=1"
+                - "USE_HAL_DRIVER"
+                - "BOARD_TYPE=F0"

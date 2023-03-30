@@ -1,0 +1,23 @@
+board_cfg:
+    src_dirs:
+        - '../../bmu/Src/'
+        - '../../Gen/bmu/Src/'
+    include_dirs:
+        - '../../bmu/Inc/'
+        - '../../bmu/Src/'
+        - '../../Gen/bmu/Inc/'
+        - '../../Gen/bmu/Src/'
+        - 'MockIncludes/'
+    unit_tests_paths:
+        - './'
+    compiler_flags:
+        defines:
+            prefix: '-D'
+            items:
+                - "STM32F767xx"
+                - "BOARD_NAME=bmu"
+                - "BOARD_TYPE_F7=1"
+                - "BOARD_ID=ID_BMU"
+                - "BOARD_VERSION=1"
+                - "USE_HAL_DRIVER"
+                - "BOARD_TYPE=F7"

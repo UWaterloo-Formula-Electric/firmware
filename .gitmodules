@@ -1,0 +1,3 @@
+[submodule "unit-tests/test-core/cmock"]
+	path = unit-tests/test-core/cmock
+	url = https://github.com/ThrowTheSwitch/CMock

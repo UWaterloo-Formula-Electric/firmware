@@ -1,0 +1,57 @@
+# gcc compiler instead of arm-none-eabi-gcc
+# Can't run ARM code on x86
+compiler:
+  path: gcc 
+  src_dirs:
+      - '../../common/Src/'
+  unit_tests_paths: &unit_tests_paths 
+      - 'test/'
+  build_path: &build_path './build/'
+  options:
+    - -c
+    - -m32
+    - -g
+  includes:
+    prefix: '-I'
+    items:
+      - *unit_tests_paths
+      - 'build/mocks/'
+      - 'test/MockIncludes/'
+      - 'test/MockCallbacks/'
+      - '../test-core/cmock/vendor/unity/src/'
+      - '../test-core/cmock/src/'
+      - '../../common/Inc/'
+      - '../../common/Src/'
+  defines:
+    prefix: '-D'
+    items:
+      - __monitor
+  object_files:
+    prefix: '-o'
+    extension: '.o'
+    destination: *build_path
+linker:
+  path: gcc 
+  options:
+    - -lm
+    - -m32
+    - -pthread
+  includes:
+    prefix: '-I'
+  object_files:
+    path: *build_path
+    extension: '.o'
+  bin_files:
+    prefix: '-o'
+    extension: '.out'
+    destination: *build_path
+:cmock:
+  :plugins: [callback,ignore]
+  :mock_path: './build/mocks'
+  :mock_prefix: 'Mock_'
+  :includes: ["FreeRTOS.h"]
+  :c_calling_conventions:
+    - PRIVILEGED_FUNCTION
+tests:
+    prefix: 'test_'
+colour: true
