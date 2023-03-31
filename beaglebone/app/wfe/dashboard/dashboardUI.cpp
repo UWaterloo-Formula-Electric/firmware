@@ -8,7 +8,7 @@ WfeDashboardUI::WfeDashboardUI(QApplication& app, std::shared_ptr<QueueData> dat
     this->setWindowTitle("WFE Dashboard");
 
     // Set window size
-    this->setGeometry(10,10,WIDTH, HEIGHT);
+    this->setGeometry(10, 10, WIDTH, HEIGHT);
 
     // Set window position to center of screen
     QRect qtRectangle = this->frameGeometry();
@@ -89,15 +89,20 @@ void WfeDashboardUI::update() {
 }
 
 void WfeDashboardUI::paintEvent(QPaintEvent *) {
-        QPainter qp(this);
-        modeDisplay->draw(qp);
-        batteryDisplay->draw(qp);
-        speedDisplay->draw(qp);
-        tempDisplay->draw(qp);
-        voltageDisplay->draw(qp);
-        errorDisplay->draw(qp);
-        speedDial->draw(qp);
-        tempDial->draw(qp);
-        voltageDial->draw(qp);
+    QPainter qp(this);
+    QMatrix matrix;
+    matrix.translate(WIDTH, HEIGHT);
+    matrix.scale(-1, -1);
+    qp.setMatrix(matrix);
+
+    modeDisplay->draw(qp);
+    batteryDisplay->draw(qp);
+    speedDisplay->draw(qp);
+    tempDisplay->draw(qp);
+    voltageDisplay->draw(qp);
+    errorDisplay->draw(qp);
+    speedDial->draw(qp);
+    tempDial->draw(qp);
+    voltageDial->draw(qp);
 }
 
