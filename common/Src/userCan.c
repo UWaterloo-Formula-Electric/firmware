@@ -307,7 +307,7 @@ void canTask(void *pvParameters)
             vTaskDelay(10);
             continue;
         }
-
+        
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {

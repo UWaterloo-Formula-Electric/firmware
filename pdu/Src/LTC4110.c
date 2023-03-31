@@ -28,7 +28,7 @@ void powerTask(void *pvParameters)
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1)
     {
-        bool newDCDCState = IS_DC_DC_ON;
+        bool newDCDCState = CHECK_DC_DC_ON_PIN;
 
         if (newDCDCState != DC_DC_state) {
             if (newDCDCState)

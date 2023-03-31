@@ -11,6 +11,9 @@
 #include "pdu_can.h"
 #include "pdu_dtc.h"
 #include "watchdog.h"
+#include "bsp.h"
+
+#define READY_FOR_PUBLISH(TICKCOUNT, LAST_TIME, INTERVAL) ((TICKCOUNT) - (LAST_TIME) >= pdMS_TO_TICKS(INTERVAL))
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -28,6 +31,105 @@ const char *channelNames[] = {  "Fan Right",
                             "Pump Right",
                             "BMU",
                             "WSB"};
+
+void setFuseStatusSignal(PDU_Channels_t channel, uint8_t status) {
+    if (channel < NUM_PDU_CHANNELS) {
+        switch (channel) {
+            case Fan_Right_Channel:
+                FuseBlownFanRight = status;
+                break;
+            case DCU_Channel:
+                FuseBlownDCUChannel = status;
+                break;
+            case MC_Left_Channel:
+                FuseBlownMCLeft = status;
+                break;
+            case Pump_Left_Channel:
+                FuseBlownPumpLeft = status;
+                break;
+            case Fan_Left_Channel:
+                FuseBlownFanLeft = status;
+                break;
+            case VCU_Channel:
+                FuseBlownVCUChannel = status;
+                break;
+            case Brake_Light_Channel:
+                FuseBlownBrakeLight = status;
+                break;
+            case AUX_Channel:
+                FuseBlownAUX = status;
+                break;
+            case MC_Right_Channel:
+                FuseBlownMCRight = status;
+                break;
+            case Pump_Right_Channel:
+                FuseBlownPumpRight = status;
+                break;
+            case BMU_Channel:
+                FuseBlownBMUChannel = status;
+                break;
+            case WSB_Channel:
+                FuseBlownWSBChannel = status;
+                break;
+            case LV_Current:
+                break;
+            case LV_Voltage:
+                break;
+            default:
+                DEBUG_PRINT("Channel not handled by code\n");
+                break;
+        }
+    }
+}
+
+void setChannelCurrentSignal(PDU_Channels_t channel, float current) {
+    if (channel < NUM_PDU_CHANNELS) {
+        switch (channel) {
+            case Fan_Right_Channel:
+                ChannelCurrentFanRight = current;
+                break;
+            case DCU_Channel:
+                ChannelCurrentDCU = current;
+                break;
+            case MC_Left_Channel:
+                ChannelCurrentMCLeft = current;
+                break;
+            case Pump_Left_Channel:
+                ChannelCurrentPumpLeft = current;
+                break;
+            case Fan_Left_Channel:
+                ChannelCurrentFanLeft = current;
+                break;
+            case VCU_Channel:
+                ChannelCurrentVCU = current;
+                break;
+            case Brake_Light_Channel:
+                ChannelCurrentBrakeLight = current;
+                break;
+            case AUX_Channel:
+                ChannelCurrentAUX = current;
+                break;
+            case MC_Right_Channel:
+                ChannelCurrentMCRight = current;
+                break;
+            case Pump_Right_Channel:
+                ChannelCurrentPumpRight = current;
+                break;
+            case BMU_Channel:
+                ChannelCurrentBMU = current;
+                break;
+            case WSB_Channel:
+                ChannelCurrentWSB = current;
+                break;
+            case LV_Current:
+            case LV_Voltage:
+                break;
+            default:
+                DEBUG_PRINT("Channel not handled by code\n");
+                break;
+        }
+    }
+}
 
 HAL_StatusTypeDef startADCConversions()
 {
@@ -162,5 +264,83 @@ void sensorTask(void *pvParameters)
 
         watchdogTaskCheckIn(4);
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
+    }
+}
+
+void canPublishCurrent() {
+    for (PDU_Channels_t channel = 0; channel < NUM_PDU_CHANNELS; channel++) {
+        setChannelCurrentSignal(channel, readCurrent(channel));
+    }
+    if (sendCAN_PDU_Fan_and_Pump_Current() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Fan_and_Pump_Current msg failed! \n");
+    }
+    if (sendCAN_PDU_Current_Readings() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Current_Readings msg failed! \n");
+    }
+    if (sendCAN_PDU_Board_Channels_Current() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Board_Channels_Current msg failed! \n");
+    }
+}
+
+void canPublishFuseStatus() {
+    for (PDU_Channels_t channel = 0; channel < NUM_PDU_CHANNELS; channel++) {
+        float channelCurrent = readCurrent(channel);
+        uint8_t fuseStatus = checkBlownFuse(channelCurrent);
+        setFuseStatusSignal(channel, fuseStatus);
+    }
+    if (sendCAN_PDU_Fuse_Status() != HAL_OK) {
+        ERROR_PRINT("Publish PDU fuse statuses failed!\n");
+    }
+}
+
+void canPublishPowerStates() {
+    DC_DC_ON = CHECK_DC_DC_ON_PIN;
+    BMGR1_State = CHECK_BMGR_GPIO1_PIN_STATE;
+    BMGR2_State = CHECK_BMGR_GPIO2_PIN_STATE;
+    BMGR3_State = CHECK_BMGR_GPIO3_PIN_STATE;
+    if (sendCAN_PDU_Power_States() != HAL_OK) {
+        ERROR_PRINT("Failed to send the PDU power states on the CAN bus!\n");
+    }
+}
+
+void canPublishPeriod1s() {
+    canPublishCurrent();
+}
+
+void canPublishPeriod5s() {
+    canPublishPowerStates();
+}
+
+void canPublishPeriod10s() {
+    canPublishFuseStatus();
+}
+
+void canPublishTask(void const * argument) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    uint32_t LastPublishTime_1s = 0;
+    uint32_t LastPublishTime_5s = 0;
+    uint32_t LastPublishTime_10s = 0;
+
+    while (1) {
+        // Publish current measurements every 1 second
+        uint32_t currentTickCount = xTaskGetTickCount();
+        if (READY_FOR_PUBLISH(currentTickCount, LastPublishTime_1s, 1000)) {
+            canPublishPeriod1s();
+            LastPublishTime_1s = currentTickCount;
+        }
+
+        // Publish the PDU power states every 5 seconds
+        if (READY_FOR_PUBLISH(currentTickCount, LastPublishTime_5s, 5000)) {
+            canPublishPeriod5s();
+            LastPublishTime_5s = currentTickCount;
+        }
+
+        // Publish if fuse is blown every 10 seconds
+        if (READY_FOR_PUBLISH(currentTickCount, LastPublishTime_10s, 10000)) {
+            canPublishPeriod10s();
+            LastPublishTime_10s = currentTickCount;
+        }
+
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(PDU_PUBLISH_PERIOD_MS));
     }
 }

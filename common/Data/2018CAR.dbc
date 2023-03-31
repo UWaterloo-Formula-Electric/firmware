@@ -65,6 +65,44 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
+BO_ 2290355203 PDU_Board_Channels_Current: 8 PDU
+ SG_ ChannelCurrentWSB : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentVCU : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentDCU : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentBMU : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+
+BO_ 2290945027 PDU_Current_Readings: 8 PDU
+ SG_ ChannelCurrentMCRight : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentMCLeft : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentBrakeLight : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2284129283 PDU_Fan_and_Pump_Current: 8 PDU
+ SG_ ChannelCurrentPumpRight : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentPumpLeft : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentFanRight : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentFanLeft : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+
+BO_ 2293566467 PDU_Fuse_Status: 2 PDU
+ SG_ FuseBlownWSBChannel : 12|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownVCUChannel : 11|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownPumpRight : 10|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownPumpLeft : 9|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownMCRight : 8|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownMCLeft : 7|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownFanRight : 5|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownFanLeft : 4|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownDCUChannel : 3|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownBrakeLight : 2|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownBMUChannel : 1|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownAUX : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+
+BO_ 2292190211 PDU_Power_States: 1 PDU
+ SG_ BMGR3_State : 2|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ BMGR2_State : 1|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ BMGR1_State : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ DC_DC_ON : 3|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+
 BO_ 2287471618 SpeedMotorKPH: 8 VCU_F7
  SG_ SpeedMotorRightKPH : 16|16@1- (1,0) [0|0] "kph"  VCU_BeagleBone
  SG_ SpeedMotorLeftKPH : 0|16@1- (1,0) [0|0] "kph"  VCU_BeagleBone

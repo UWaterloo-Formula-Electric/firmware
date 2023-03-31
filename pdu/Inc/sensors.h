@@ -28,6 +28,10 @@ typedef enum PDU_Channels_t {
 const char *channelNames[NUM_PDU_CHANNELS];
 
 #define SENSOR_READ_PERIOD_MS 500
+#define PDU_CURRENT_PUBLISH_PERIOD_MS 1000
+#define PDU_POWER_STATES_PUBLISH_PERIOD_MS 5000
+#define PDU_FUSE_STATUS_PUBLISH_PERIOD_MS 10000
+#define PDU_PUBLISH_PERIOD_MS 1000
 
 /*
  * Sensor Valid Range˙
