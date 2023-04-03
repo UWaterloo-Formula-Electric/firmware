@@ -897,7 +897,7 @@ static const CLI_Command_Definition_t forceChargeModeCommandDefinition =
     1 /* Number of parameters */
 };
 
-extern volatile float LIMIT_OVERVOLTAGE;
+extern volatile float limit_overvoltage;
 BaseType_t setOverVoltageLimitCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -907,7 +907,7 @@ BaseType_t setOverVoltageLimitCommand(char *writeBuffer, size_t writeBufferLengt
 
     float limit;
     sscanf(cellIdxString, "%f", &limit);
-	LIMIT_OVERVOLTAGE = limit;
+	limit_overvoltage = limit;
     return pdFALSE;
 }
 
@@ -919,7 +919,7 @@ static const CLI_Command_Definition_t setOverVoltageLimitCommandDefinition =
     1 /* Number of parameters */
 };
 
-extern volatile float LIMIT_UNDERVOLTAGE;
+extern volatile float limit_undervoltage;
 BaseType_t setUnderVoltageLimitCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -929,7 +929,7 @@ BaseType_t setUnderVoltageLimitCommand(char *writeBuffer, size_t writeBufferLeng
 
     float limit;
     sscanf(cellIdxString, "%f", &limit);
-	LIMIT_UNDERVOLTAGE = limit;
+	limit_undervoltage = limit;
     return pdFALSE;
 }
 
