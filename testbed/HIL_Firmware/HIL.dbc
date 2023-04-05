@@ -1,0 +1,78 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: VCU_HIL
+
+
+BO_ 2282095121 Message_status: 1 Vector__XXX
+ SG_ Throttle_B_status : 4|1@1- (1,0) [0|1] "" Vector__XXX
+ SG_ Throttle_A_status : 3|1@1- (1,0) [0|1] "" Vector__XXX
+ SG_ Steering_status : 2|1@1- (1,0) [0|1] "" Vector__XXX
+ SG_ Brake_pos_status : 1|1@1- (1,0) [0|1] "" Vector__XXX
+ SG_ Brake_Pres_status : 0|1@1- (1,0) [0|1] "" Vector__XXX
+
+BO_ 2282029585 Steering_raw: 2 Vector__XXX
+ SG_ Steering_raw : 0|12@1- (1,0) [0|3300] ""  VCU_HIL
+
+BO_ 2281964049 Brake_position: 2 Vector__XXX
+ SG_ Brake_position : 0|12@1+ (1,0) [0|3300] ""  VCU_HIL
+
+BO_ 2281898513 Brake_pres_raw: 2 Vector__XXX
+ SG_ Brake_Pres_Raw : 0|12@1+ (1,0) [0|3300] ""  VCU_HIL
+
+BO_ 2281832977 Throttle_position_B: 2 Vector__XXX
+ SG_ Throttle_position_B : 0|12@1+ (1,0) [0|3300] ""  VCU_HIL
+
+BO_ 2281767441 Throttle_position_A: 2 Vector__XXX
+ SG_ Throttle_position_A : 0|12@1+ (1,0) [0|3300] ""  VCU_HIL
+
+
+
+CM_ SG_ 2281964049 Brake_position "Brake_position has a range of digital values from 0-4095 (12 bits)
+To calculate digital value for an analog output, Vdigital=Vanalog/stepV
+StepV=Vref/(2^n-1) where n is the number of bits and Vref is the supplied voltage";
+CM_ SG_ 2281898513 Brake_Pres_Raw "Brake_Pres_Raw has a range of digital values from 0-255 (8 bits)
+To calculate digital value for an analog output, Vdigital=Vanalog/stepV
+StepV=Vref/(2^n-1) where n is the number of bits and Vref is the supplied voltage";
+CM_ SG_ 2281832977 Throttle_position_B "Throttle values have a range of digital values from 0-4095 (12 bits)
+To calculate digital value for an analog output, Vdigital=Vanalog/stepV
+StepV=Vref/(2^n-1) where n is the number of bits and Vref is the supplied voltage";
+CM_ SG_ 2281767441 Throttle_position_A "Throttle values have a range of digital values from 0-4095 (12 bits)
+To calculate digital value for an analog output, Vdigital=Vanalog/stepV
+StepV=Vref/(2^n-1) where n is the number of bits and Vref is the supplied voltage
+";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+
