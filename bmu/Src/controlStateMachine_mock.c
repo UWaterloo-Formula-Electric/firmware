@@ -33,7 +33,6 @@
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
 extern uint32_t brakeAndHVILVals[2];
-extern float adjustedCellIR;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -396,12 +395,12 @@ BaseType_t maxChargeCurrentCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
-    float current;
+    int32_t current;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(param, "%f", &current);
+    sscanf(param, "%ld", &current);
 
-    COMMAND_OUTPUT("setting max charge current %f\n", current);
+    COMMAND_OUTPUT("setting max charge current %ld\n", current);
     if (setMaxChargeCurrent(current) != HAL_OK) {
         ERROR_PRINT("Failed to set max charge current\n");
     }
@@ -564,10 +563,10 @@ static const CLI_Command_Definition_t setPCDCCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t getStateBusHVSendPeriod(char *writeBuffer, size_t writeBufferLength,
+BaseType_t getStateBusHVSendPeriodCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    uint32_t current_period = cliGetStateBusHVSendPeriod();
+    uint32_t current_period = getStateBusHVSendPeriod();
     COMMAND_OUTPUT("The current state bus HV CAN send period: %lu\r\n", current_period);
 
     return pdFALSE;
@@ -576,32 +575,26 @@ static const CLI_Command_Definition_t getStateBusHVSendPeriodCommandDefinition =
 {
     "getStateBusHVSendPeriod",
     "getStateBusHVSendPeriod:\r\n Get the state bus HV CAN send period\r\n",
-    getStateBusHVSendPeriod,
+    getStateBusHVSendPeriodCommand,
     0 /* Number of parameters */
 };
 
-BaseType_t setStateBusHVSendPeriod(char *writeBuffer, size_t writeBufferLength,
+BaseType_t setStateBusHVSendPeriodCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
-    uint32_t period_ms;
-
+    int32_t period_ms;
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    if (idxParam[0] == '-') {
-        COMMAND_OUTPUT("The publishing time (in ms) must be greater than 0");
-    } else {
-        sscanf(idxParam, "%lu", &period_ms);
-        cliSetStateBusHVSendPeriod(period_ms);
-    }
-
+    sscanf(idxParam, "%ld", &period_ms);
+    uint32_t period = setStateBusHVSendPeriod(period_ms);
+    COMMAND_OUTPUT("StateBusHVSendPeriod is %lu\r\n", period);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setStateBusHVSendPeriodCommandDefinition =
 {
     "setStateBusHVSendPeriod",
     "setStateBusHVSendPeriod <period>:\r\n  set the period/interval for sending state bus HV CAN messages\r\n",
-    setStateBusHVSendPeriod,
+    setStateBusHVSendPeriodCommand,
     1 /* Number of parameters */
 };
 
@@ -1010,7 +1003,8 @@ static const CLI_Command_Definition_t socCommandDefinition =
 BaseType_t getCellIRCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-	COMMAND_OUTPUT("AdjustedCellIR: %f (default %f)\n", adjustedCellIR, ADJUSTED_CELL_IR_DEFAULT);
+    float seriesCellIR = getSeriesCellIR();
+    COMMAND_OUTPUT("SeriesCellIR: %f (default %f)\r\n", seriesCellIR, SERIES_CELL_IR_DEFAULT);
     return pdFALSE;
 }
 
@@ -1028,13 +1022,11 @@ BaseType_t setCellIRCommand(char *writeBuffer, size_t writeBufferLength,
     BaseType_t paramLen;
     const char *newCellIR = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    float cellIR;
-    sscanf(newCellIR, "%f", &cellIR);
-
-    if (cellIR < 0.0 || cellIR > 0.01){
-        COMMAND_OUTPUT("invalid cell IR [0,0.01]\r\n");
-    }else{
-	    adjustedCellIR = cellIR;
+    float cellIR_v = 0;
+    sscanf(newCellIR, "%f", &cellIR_v);
+    if (setSeriesCellIR(cellIR_v) != HAL_OK)
+    {
+        ERROR_PRINT("New cellIR value out of range. Range should be [0, 0.01]]\r\n");
     }
 
     return pdFALSE;

@@ -33,7 +33,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 
 // For every 1rad/s, decrease torque by kP
 #define TC_kP_DEFAULT (0.1f)
-#define TC_MIN_PERCENT_ERROR (0.05f)
+#define TC_MIN_PERCENT_ERROR_DEFAULT (0.05f)
 
 // With our tire radius, rads/s ~ km/h
 #define TC_ABS_ERROR_FLOOR_RAD_S_DEFAULT (5.0f)
@@ -77,10 +77,10 @@ static float get_wheel_speed_RL_RAD_S()
 	return RPM_TO_RADS(val - MC_ENCODER_OFFSET);
 }
 
-float tc_kP = TC_kP_DEFAULT;
-float tc_error_floor_rad_s = TC_ABS_ERROR_FLOOR_RAD_S_DEFAULT;
-float tc_min_percent_error = TC_MIN_PERCENT_ERROR;
-float tc_torque_max_floor = TC_TORQUE_MAX_FLOOR_DEFAULT;
+static float tc_kP = TC_kP_DEFAULT;
+static float tc_error_floor_rad_s = TC_ABS_ERROR_FLOOR_RAD_S_DEFAULT;
+static float tc_min_percent_error = TC_MIN_PERCENT_ERROR_DEFAULT;
+static float tc_torque_max_floor = TC_TORQUE_MAX_FLOOR_DEFAULT;
 
 void tractionControlTask(void *pvParameters)
 {
@@ -90,7 +90,7 @@ void tractionControlTask(void *pvParameters)
 		while(1);
 	}
 
-	float torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+	float max_torque_demand = MAX_TORQUE_DEMAND_DEFAULT;
 	float torque_adjustment = 0;
 	float wheel_speed_FR_RAD_S = 0.0f; //front right wheel speed
 	float wheel_speed_FL_RAD_S = 0.0f; //front left wheel speed
@@ -104,7 +104,7 @@ void tractionControlTask(void *pvParameters)
 
 	while(1)
 	{
-		torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+		max_torque_demand = get_max_torque_demand();
 
 		wheel_speed_FR_RAD_S = get_wheel_speed_FR_RAD_S(); 
 		wheel_speed_FL_RAD_S = get_wheel_speed_FL_RAD_S(); 
@@ -146,15 +146,15 @@ void tractionControlTask(void *pvParameters)
 			}
 
 			//clamp values
-			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
-			if(torque_max < tc_torque_max_floor)
+			max_torque_demand -= torque_adjustment;
+			if(max_torque_demand < tc_torque_max_floor)
 			{
-				torque_max = tc_torque_max_floor;
+				max_torque_demand = tc_torque_max_floor;
 			}
-			else if(torque_max > MAX_TORQUE_DEMAND_DEFAULT)
+			else if(max_torque_demand > max_torque_demand)
 			{
 				// Whoa error in TC (front wheel is spinning faster than rear)
-				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+				max_torque_demand = get_max_torque_demand();
 			}
 
 			Torque_Adjustment_Left = (uint32_t) desired_torque_adjustment_right;
@@ -165,15 +165,81 @@ void tractionControlTask(void *pvParameters)
 			TC_AbsErrorRight_RAD_S = (uint16_t) wheel_speed_abs_error_right;
 			TC_SlipPercentLeft = (uint8_t) wheel_speed_percent_error_left;
 			TC_SlipPercentRight = (uint8_t) wheel_speed_percent_error_right;
-			Torque_Max = (uint8_t)torque_max;
+			Torque_Max = (uint8_t)max_torque_demand;
 			sendCAN_TractionControl_Debug();
 		}
 
-		setTorqueLimit(torque_max);
+		setTorqueLimit(max_torque_demand);
 
 		// Always poll at almost exactly PERIOD
         watchdogTaskCheckIn(TRACTION_CONTROL_TASK_ID);
 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS));
 	}
 
+}
+
+HAL_StatusTypeDef set_tc_kP(float tc_kP_value)
+{
+	if(tc_kP_value < 0 || tc_kP_value > 1)
+	{
+		ERROR_PRINT("Failed to set tc_kP value\nThe range is [0, 1]]\r\n");
+		return HAL_ERROR;
+	}
+    tc_kP = tc_kP_value;
+	DEBUG_PRINT("Set kP to: %f\r\n", tc_kP);
+	return HAL_OK;
+}
+
+void set_TC_enabled(bool tc_bool)
+{
+	tc_on = tc_bool;
+}
+
+bool get_tc(void)
+{
+	return tc_on;
+}
+
+float get_tc_kP(void)
+{
+	return tc_kP;
+}
+
+float get_tc_error_floor_rad_s(void)
+{
+	return tc_error_floor_rad_s;
+}
+
+float get_tc_min_percent_error(void)
+{
+	return tc_min_percent_error;
+}
+
+float get_tc_torque_max_floor(void)
+{
+	return tc_torque_max_floor;
+}
+
+void set_tc_error_floor_rad_s(float input)
+{
+	if (input > 1.0f && input < 30.0f)
+	{
+		tc_error_floor_rad_s = input;
+	}
+}
+
+void set_tc_min_percent_error(float input)
+{
+	if (input > 0.0f)
+	{
+		tc_min_percent_error = input;
+	}
+}
+
+void set_tc_torque_max_floor(float input)
+{
+	if (input > 0.0f)
+	{
+		tc_torque_max_floor = input;
+	}
 }

@@ -14,11 +14,13 @@
 #define SOC_HIGH_VOLTAGE_SOC_CUTOFF (0.942f) // Ramp up to around all cells 4V
 #define SOC_LOW_VOLTAGE_SOC_CUTOFF (0.06144f) // Ramp down when all cells around 3V
 
+#define CAPACITY_STARTUP (1.0f)
+
 
 // Units A-s
 static const float TOTAL_CAPACITY = 74700.0f;
 
-static float capacity_startup = 1.0f;
+static float capacity_startup = CAPACITY_STARTUP;
 
 // Units A-s
 static volatile float IBus_integrated = 0.0f;
@@ -161,4 +163,41 @@ static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage)
 	HAL_StatusTypeDef ret = getPackVoltage(&temp);
 	*segmentVoltage = (temp / (float)NUM_BOARDS);
 	return ret;
+}
+
+/**
+ * @brief Set startup capacity value
+ *
+ * @param capacity: The value to set for startup capacity
+ *
+ * @return HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef setCapacityStartup(float capacity)
+{
+	if(capacity < 0.0f || capacity > TOTAL_CAPACITY)
+	{
+		ERROR_PRINT("Startup capacity out of range [0, %f]\r\n", TOTAL_CAPACITY);
+		return HAL_ERROR;
+	}
+	capacity_startup = capacity;
+	DEBUG_PRINT("Set capacity_startup to: %f\r\n", capacity_startup);
+	return HAL_OK;
+}
+
+float getCapacityStartup(void)
+{
+	return capacity_startup;
+}
+
+void setIBusIntegrated(float input)
+{
+	if (input >= 0.0f)
+	{
+		IBus_integrated = input;
+	}
+}
+
+float getIBusIntegrated(void)
+{
+	return IBus_integrated;
 }

@@ -25,4 +25,3 @@ void DTC_Fatal_Callback(BoardIDs board) {
     DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
     fsmSendEventUrgentISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
 }
-

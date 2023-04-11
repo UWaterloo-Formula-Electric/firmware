@@ -6,6 +6,7 @@
 #include "string.h"
 #include "inttypes.h"
 #include "drive_by_wire.h"
+#include "brakeAndThrottle.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
@@ -30,6 +31,11 @@
 // Torque vectoring dead zone angle boundaries
 #define TV_DEADZONE_END_RIGHT 10
 #define TV_DEADZONE_END_LEFT -10
+
+static float tv_deadzone_end_right = TV_DEADZONE_END_RIGHT;
+static float tv_deadzone_end_left = TV_DEADZONE_END_LEFT;
+static float torque_vector_factor = TORQUE_VECTOR_FACTOR;
+static float max_torque_demand = MAX_TORQUE_DEMAND_DEFAULT;
 
 MotorControllerProcanSettings mcLeftSettings = {0};
 MotorControllerProcanSettings mcRightSettings = {0};
@@ -64,7 +70,7 @@ HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
 HAL_StatusTypeDef initMotorControllerProcanSettings()
 {
     mcLeftSettings.InverterCommand = 0;
-    mcLeftSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
+    mcLeftSettings.DriveTorqueLimit = max_torque_demand;
     mcLeftSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
     mcLeftSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
     mcLeftSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
@@ -72,10 +78,10 @@ HAL_StatusTypeDef initMotorControllerProcanSettings()
     mcLeftSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
     mcLeftSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
     mcLeftSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
-    mcLeftSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+    mcLeftSettings.MaxTorqueDemand = max_torque_demand;
 
     mcRightSettings.InverterCommand = 0;
-    mcRightSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
+    mcRightSettings.DriveTorqueLimit = max_torque_demand;
     mcRightSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
     mcRightSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
     mcRightSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
@@ -83,7 +89,7 @@ HAL_StatusTypeDef initMotorControllerProcanSettings()
     mcRightSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
     mcRightSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
     mcRightSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
-    mcRightSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
+    mcRightSettings.MaxTorqueDemand = max_torque_demand;
 
     return HAL_OK;
 }
@@ -120,7 +126,7 @@ HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
 }
 
 // TODO: Probably need to set speed limits after init
-HAL_StatusTypeDef mcInit()
+HAL_StatusTypeDef mcInit(void)
 {
 	DEBUG_PRINT("Discharging MCs for 1 second before turning on\n");
 
@@ -203,7 +209,7 @@ HAL_StatusTypeDef mcInit()
     return HAL_OK;
 }
 
-HAL_StatusTypeDef mcShutdown()
+HAL_StatusTypeDef mcShutdown(void)
 {
     if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
@@ -242,8 +248,8 @@ float limit(float in, float min, float max)
 }
 
 bool is_wheel_within_deadzone(int steeringAngle) {
-    if (steeringAngle >= TV_DEADZONE_END_LEFT && 
-        steeringAngle <= TV_DEADZONE_END_RIGHT) {
+    if (steeringAngle >= tv_deadzone_end_left && 
+        steeringAngle <= tv_deadzone_end_right) {
             return true;
     }
     return false;
@@ -259,8 +265,8 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
     // Throttle adjustments for torque vectoring (only if steeringAngle is outside the dead zone)
     // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
     if (!is_wheel_within_deadzone(steeringAngle)) {
-            throttleRight -= (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-            throttleLeft += (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+            throttleRight -= (throttle * steeringAngle * torque_vector_factor);
+            throttleLeft += (throttle * steeringAngle * torque_vector_factor);
         }
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
@@ -344,4 +350,62 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
     }
 
     return HAL_OK;
+}
+
+void set_tv_deadzone_end_right(float tv_deadzone_end_right_value)
+{
+    if (tv_deadzone_end_right_value < 0 || tv_deadzone_end_right_value > 100)
+    {
+        ERROR_PRINT("Failed to set tv_deadzone_end_right\nThe range is [0, 100]\r\n");
+    }
+    tv_deadzone_end_right = tv_deadzone_end_right_value;
+    DEBUG_PRINT("Set tv_deadzone_end_right to: %f\r\n", tv_deadzone_end_right);
+}
+
+void set_tv_deadzone_end_left(float tv_deadzone_end_left_value)
+{
+    if (tv_deadzone_end_left_value < -100 || tv_deadzone_end_left_value > 0)
+    {
+        ERROR_PRINT("Failed to set tv_deadzone_end_left\nThe range is [-100,0]\r\n");
+    }
+    tv_deadzone_end_left = tv_deadzone_end_left_value;
+    DEBUG_PRINT("Set tv_deadzone_end_left to: %f\r\n", tv_deadzone_end_left);
+}
+
+void set_torque_vector_factor(float torque_vector_factor_value)
+{
+    torque_vector_factor = torque_vector_factor_value;
+    DEBUG_PRINT("Set torque_vector_factor to: %f\r\n", torque_vector_factor);
+}
+
+void set_max_torque_demand(float max_torque_demand_default_value){
+    if (max_torque_demand_default_value > 0.0f && max_torque_demand_default_value <= 30.0f)
+    {
+        max_torque_demand = max_torque_demand_default_value;
+    }
+    DEBUG_PRINT("Set max_torque_demand to: %f\r\n", max_torque_demand);
+}
+
+float get_torque_vector_factor(void)
+{
+    DEBUG_PRINT("Torque_vector_factor: %f (default %f)\r\n", torque_vector_factor, TORQUE_VECTOR_FACTOR);
+    return torque_vector_factor;
+}
+
+float get_max_torque_demand(void)
+{
+    // DEBUG_PRINT("Max_torque_demand: %f (default %d)\n", max_torque_demand, MAX_TORQUE_DEMAND_DEFAULT);
+    return max_torque_demand;
+}
+
+float get_tv_deadzone_end_right(void)
+{
+    DEBUG_PRINT("Tv_deadzone_end_right: %f (default %d)\r\n", tv_deadzone_end_right, TV_DEADZONE_END_RIGHT);
+    return tv_deadzone_end_right;
+}
+
+float get_tv_deadzone_end_left(void)
+{
+    DEBUG_PRINT("Tv_deadzone_end_left: %f (default %d)\r\n", tv_deadzone_end_left, TV_DEADZONE_END_LEFT);
+    return tv_deadzone_end_left;
 }

@@ -60,14 +60,14 @@
 extern osThreadId BatteryTaskHandle;
 
 /// Charging current limit
-float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
+static float maxChargeCurrent = MAX_CHARGE_CURRENT_DEFAULT;
 
-float adjustedCellIR = ADJUSTED_CELL_IR_DEFAULT;
+static float seriesCellIR = SERIES_CELL_IR_DEFAULT;
 
 /**
  * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
  */
-float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
+const float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
 
 // Limits for Under/Over Voltage - Can be overwritten from the CLI
 volatile float limit_overvoltage = DEFAULT_LIMIT_OVERVOLTAGE;
@@ -333,15 +333,19 @@ HAL_StatusTypeDef cliSetIBus(float IBus)
  *
  * @param period The period of time, in milliseconds
  */
-void cliSetStateBusHVSendPeriod(uint32_t period)
+uint32_t setStateBusHVSendPeriod(int32_t period)
 {
-    StateBusHVSendPeriod = period;
+    if (period > 0)
+    {
+        StateBusHVSendPeriod = (uint32_t)period;
+    }
+    return StateBusHVSendPeriod;
 }
 
 /**
  * @brief Allows getting of the interval for sending state bus HV CAN messages
  */
-uint32_t cliGetStateBusHVSendPeriod() 
+uint32_t getStateBusHVSendPeriod() 
 {
     return StateBusHVSendPeriod;
 }
@@ -530,7 +534,7 @@ void enterAdjustedCellVoltages(void)
 	getIBus(&bus_current_A);
 	for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
 	{
-		AdjustedVoltageCell[cell] = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
+		AdjustedVoltageCell[cell] = VoltageCell[cell] + (bus_current_A * seriesCellIR);
 	}
 }
 /**
@@ -881,21 +885,55 @@ HAL_StatusTypeDef initPackVoltageQueue()
 /**
  * @brief Sets the maximum current for the charger
  *
- * @param maxCurrent The maximum current, in Amps
+ * @param maxCurrent: The maximum current, in Amps
  *
- * @return HAL_StatusTypeDef
+ * @return Return HAL_OK when maxCurrent is from 0 ~ 100, return HAL_ERROR otherwise
  */
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent)
 {
   // Range check, arbitrary max that probable will never need to be changed
-  if (maxCurrent <= 0 || maxCurrent >= 100)
+  if (maxCurrent <= 0.0f || maxCurrent >= 100.0f)
   {
+    ERROR_PRINT("Out of range (0, 100)\r\n");
     return HAL_ERROR;
   }
-
   maxChargeCurrent = maxCurrent;
-
+  DEBUG_PRINT("Set maxChargeCurrent to: %f\r\n", maxChargeCurrent);
   return HAL_OK;
+}
+
+float getMaxChargeCurrent(void)
+{
+    return maxChargeCurrent;
+}
+
+/**
+ * @brief Sets the adjust factor for cell internal resistance
+ *
+ * @param cellIR_v: The adjust factor for cell internal resistance
+ *
+ * @return Return HAL_OK when cellIR_v is from 0 ~ 0.01, return HAL_ERROR otherwise
+ */
+HAL_StatusTypeDef setSeriesCellIR(float cellIR_v)
+{
+    // Range check
+    if (cellIR_v < 0.0 || cellIR_v > 0.01)
+    {
+        return HAL_ERROR;
+    }
+    seriesCellIR = cellIR_v;
+    DEBUG_PRINT("Setting seriesCellIR to: %f\r\n", seriesCellIR);
+    return HAL_OK;
+}
+
+/**
+ * @brief Return the value of adjust factor for cell internal resistance
+ *
+ */
+
+float getSeriesCellIR(void)
+{
+    return seriesCellIR;
 }
 
 /**
