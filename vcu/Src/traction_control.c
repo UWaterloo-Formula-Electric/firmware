@@ -20,7 +20,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define MC_ENCODER_OFFSET 32768
 
 #define TRACTION_CONTROL_TASK_ID 3
-#define TRACTION_CONTROL_TASK_PERIOD_MS 200
+#define TRACTION_CONTROL_TASK_PERIOD_MS 10
 #define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
 // Macros for converting RPM to KPH
@@ -33,10 +33,11 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 
 // For every 1rad/s, decrease torque by kP
 #define TC_kP_DEFAULT (0.1f)
+#define TC_MIN_PERCENT_ERROR (0.05f)
 
 // With our tire radius, rads/s ~ km/h
-#define ERROR_FLOOR_RADS_DEFAULT (20.0f)
-#define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (2.0f)
+#define TC_ABS_ERROR_FLOOR_RAD_S_DEFAULT (5.0f)
+#define TC_TORQUE_MAX_FLOOR_DEFAULT (2.0f)
 
 static bool tc_on = false;
 
@@ -50,26 +51,26 @@ void toggle_TC(void)
 	tc_on = !tc_on;
 }
 
-static float get_FR_speed()
+static float get_wheel_speed_FR_RAD_S()
 {
 	//Value comes from WSB
-	return FR_Speed;
+	return FR_Speed_RAD_S;
 }
 
-static float get_FL_speed()
+static float get_wheel_speed_FL_RAD_S()
 {
 	//Value comes from WSB
-	return FL_Speed;
+	return FL_Speed_RAD_S;
 }
 
-static float get_RR_speed()
+static float get_wheel_speed_RR_RAD_S()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorRight;
 	return RPM_TO_RADS(val - MC_ENCODER_OFFSET);
 }
 
-static float get_RL_speed()
+static float get_wheel_speed_RL_RAD_S()
 {
 	//Value comes from MC
 	int64_t val = SpeedMotorLeft;
@@ -77,8 +78,9 @@ static float get_RL_speed()
 }
 
 float tc_kP = TC_kP_DEFAULT;
-float error_floor = ERROR_FLOOR_RADS_DEFAULT;
-float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
+float tc_error_floor_rad_s = TC_ABS_ERROR_FLOOR_RAD_S_DEFAULT;
+float tc_min_percent_error = TC_MIN_PERCENT_ERROR;
+float tc_torque_max_floor = TC_TORQUE_MAX_FLOOR_DEFAULT;
 
 void tractionControlTask(void *pvParameters)
 {
@@ -89,33 +91,29 @@ void tractionControlTask(void *pvParameters)
 	}
 
 	float torque_max = MAX_TORQUE_DEMAND_DEFAULT;
-	float torque_adjustment = adjustment_torque_floor;
-	float FR_speed = 0.0f; //front right wheel speed
-	float FL_speed = 0.0f; //front left wheel speed
-	float RR_speed = 0.0f; //rear right wheel speed
-	float RL_speed = 0.0f; //rear left wheel speed
-	float error_left = 0.0f; //error between left rear and front
-	float error_right = 0.0f; //error between right rear and front
+	float torque_adjustment = 0;
+	float wheel_speed_FR_RAD_S = 0.0f; //front right wheel speed
+	float wheel_speed_FL_RAD_S = 0.0f; //front left wheel speed
+	float wheel_speed_RR_RAD_S = 0.0f; //rear right wheel speed
+	float wheel_speed_RL_RAD_S = 0.0f; //rear left wheel speed
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 
 	//initialized variables so that speed is 0 on startup 
-	SpeedMotorRight = MC_ENCODER_OFFSET;
-	SpeedMotorLeft = MC_ENCODER_OFFSET; 
+	wheel_speed_RR_RAD_S = MC_ENCODER_OFFSET;
+	wheel_speed_RL_RAD_S = MC_ENCODER_OFFSET; 
 
 	while(1)
 	{
 		torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 
-		FR_speed = get_FR_speed(); 
-		FL_speed = get_FL_speed(); 
-		RR_speed = get_RR_speed(); 
-		RL_speed = get_RL_speed(); 
+		wheel_speed_FR_RAD_S = get_wheel_speed_FR_RAD_S(); 
+		wheel_speed_FL_RAD_S = get_wheel_speed_FL_RAD_S(); 
+		wheel_speed_RR_RAD_S = get_wheel_speed_RR_RAD_S(); 
+		wheel_speed_RL_RAD_S = get_wheel_speed_RL_RAD_S(); 
 
-		VCU_wheelSpeed_RR = RR_speed;
-		sendCAN_TC_wheelSpeed_right();
-
-		VCU_wheelSpeed_RL = RL_speed;
-		sendCAN_TC_wheelSpeed_left();
+		WheelSpeedRR_RAD_S = wheel_speed_RR_RAD_S;
+		WheelSpeedRL_RAD_S = wheel_speed_RL_RAD_S;
+		sendCAN_TractionControl_RearWheelSpeed();
 
 		SpeedMotorRightKPH = RPM_TO_KPH(((int64_t)SpeedMotorRight) - MC_ENCODER_OFFSET);
 		SpeedMotorLeftKPH = RPM_TO_KPH(((int64_t)SpeedMotorLeft) - MC_ENCODER_OFFSET);
@@ -124,41 +122,51 @@ void tractionControlTask(void *pvParameters)
 		if(tc_on)
 		{
 			torque_adjustment = 0.0f;
+			const float wheel_speed_abs_error_left = (wheel_speed_RL_RAD_S - wheel_speed_FL_RAD_S);
+			const float wheel_speed_abs_error_right = (wheel_speed_RR_RAD_S - wheel_speed_FR_RAD_S);
+			const float wheel_speed_percent_error_left = (wheel_speed_abs_error_left / wheel_speed_RL_RAD_S);
+			const float wheel_speed_percent_error_right = (wheel_speed_abs_error_right / wheel_speed_RR_RAD_S);
+			const bool tc_active_left = ((wheel_speed_abs_error_left > tc_error_floor_rad_s) && (wheel_speed_percent_error_left > tc_min_percent_error));
+			const bool tc_active_right = ((wheel_speed_abs_error_right > tc_error_floor_rad_s) && (wheel_speed_percent_error_right > tc_min_percent_error));
+			const float desired_torque_adjustment_left = (wheel_speed_abs_error_left - tc_error_floor_rad_s) * tc_kP;
+			const float desired_torque_adjustment_right = (wheel_speed_abs_error_right - tc_error_floor_rad_s) * tc_kP;
 
-			error_left = RL_speed - FL_speed;
-			error_right = RR_speed - FR_speed;
 
 			//calculate error. This is a P-controller
-			if(error_left > error_floor || error_right > error_floor)
+			if(tc_active_left || tc_active_right)
 			{
-				if (error_left > error_right)
+				if (wheel_speed_abs_error_left > wheel_speed_abs_error_right)
 				{
-					torque_adjustment = (error_left - error_floor) * tc_kP;
+					torque_adjustment = desired_torque_adjustment_left;
 				}
 				else
 				{
-					torque_adjustment = (error_right - error_floor) * tc_kP;
+					torque_adjustment = desired_torque_adjustment_right;
 				}
 			}
 
-			Torque_Adjustment_Right = (uint32_t) (error_right * tc_kP);
-			Torque_Adjustment_Left = (uint32_t) (error_left * tc_kP);
-			sendCAN_TC_Torque_Adjustment_Left();
-			sendCAN_TC_Torque_Adjustment_Right();
-
 			//clamp values
 			torque_max = MAX_TORQUE_DEMAND_DEFAULT - torque_adjustment;
-			if(torque_max < adjustment_torque_floor)
+			if(torque_max < tc_torque_max_floor)
 			{
-				torque_max = adjustment_torque_floor;
+				torque_max = tc_torque_max_floor;
 			}
 			else if(torque_max > MAX_TORQUE_DEMAND_DEFAULT)
 			{
 				// Whoa error in TC (front wheel is spinning faster than rear)
 				torque_max = MAX_TORQUE_DEMAND_DEFAULT;
 			}
-			Torque_Max = (uint32_t)torque_max;
-			sendCAN_TC_Torque_Max();
+
+			Torque_Adjustment_Left = (uint32_t) desired_torque_adjustment_right;
+			Torque_Adjustment_Right = (uint32_t) desired_torque_adjustment_left;
+			sendCAN_TractionControl_TorqueAdjustment();
+
+			TC_AbsErrorLeft_RAD_S = (uint16_t) wheel_speed_abs_error_left;
+			TC_AbsErrorRight_RAD_S = (uint16_t) wheel_speed_abs_error_right;
+			TC_SlipPercentLeft = (uint8_t) wheel_speed_percent_error_left;
+			TC_SlipPercentRight = (uint8_t) wheel_speed_percent_error_right;
+			Torque_Max = (uint8_t)torque_max;
+			sendCAN_TractionControl_Debug();
 		}
 
 		setTorqueLimit(torque_max);
