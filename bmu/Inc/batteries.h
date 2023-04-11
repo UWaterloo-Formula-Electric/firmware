@@ -106,6 +106,12 @@
 #define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
 #define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
 
+/* 
+ * canSendTask sends in multiples of 3 as 8 bits must be used for the muxIndex leaving 56 data bits for cell readings of 16 bits each
+ * Therefore cell readings are send in groups of 3.
+ */
+#define CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP 3
+
 /**
  * Return of balance charge function
  */

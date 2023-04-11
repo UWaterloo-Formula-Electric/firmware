@@ -1551,6 +1551,15 @@ void clearSendOnlyOneCell()
   sendOneCellVoltAndTemp = false;
 }
 
+// Round up input to the nearest multiple. 
+// ex. roundUpNearestMultiple(7, 100) = 100
+//     roundUpNearestMultiple(117, 100) = 200
+//     roundUpNearestMultiple(70, 3) = 72 (our use case for cell indexing)
+static inline uint8_t roundUpNearestMultiple(uint8_t input, uint8_t multiple)
+{
+    return (multiple <= 1 || input % multiple == 0) ? input : input + (multiple - (input % multiple));
+}
+
 /**
  * @brief Sends the cell voltages and temperatures over CAN
  *
@@ -1562,9 +1571,9 @@ void canSendCellTask(void *pvParameters)
 
   while (1) {
     if (sendOneCellVoltAndTemp) {
-      // The cell index for sending should be a multiple of 3, as the cells are
-      // sent in groups of 3
-      cellIdxToSend = cellToSend - (cellToSend % 3);
+      // The cell index for sending should be a multiple of CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP, as the cells are
+      // sent in groups of CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP
+      cellIdxToSend = cellToSend - (cellToSend % CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP);
     }
 
     sendCAN_BMU_CellVoltage(cellIdxToSend);
@@ -1572,9 +1581,12 @@ void canSendCellTask(void *pvParameters)
     sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
     // Move on to next cells
-    // 3 Cells per CAN message
-    cellIdxToSend += 3;
-    cellIdxToSend = cellIdxToSend % NUM_VOLTAGE_CELLS;
+    // CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP Cells per CAN message
+    cellIdxToSend += CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP;
+    if (cellIdxToSend >= roundUpNearestMultiple(NUM_VOLTAGE_CELLS, CAN_SEND_CELL_NUM_CELLS_PER_MUX_GROUP))
+    {
+        cellIdxToSend = 0;
+    }
 
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CAN_CELL_SEND_PERIOD_MS));
   }
