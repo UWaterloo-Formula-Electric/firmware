@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -54,9 +54,8 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, LED_R_Pin|LED_Y_Pin|LED_B_Pin|MC_LED_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
-                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
-                          |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, IMD_LED_EN_Pin|AMS_LED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
+                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LVL_SHIFT_EN_GPIO_Port, LVL_SHIFT_EN_Pin, GPIO_PIN_RESET);
@@ -84,11 +83,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin PBPin PBPin PBPin
-                           PBPin PBPin */
-  GPIO_InitStruct.Pin = IMD_LED_EN_Pin|AMS_LED_RED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
-                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_RED_EN_Pin
-                          |MOT_LED_GR_EN_Pin|AMS_LED_GR_EN_Pin;
+                           PBPin PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = IMD_LED_EN_Pin|AMS_LED_EN_Pin|BUZZER_EN_Pin|TC_LED_EN_Pin
+                          |ENDURANCE_MODE_LED_EN_Pin|HV_LED_EN_Pin|EV_LED_EN_Pin|MOT_LED_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
