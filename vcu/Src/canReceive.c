@@ -15,7 +15,6 @@
 
 #include "endurance_mode.h"
 #include "traction_control.h"
-#include "motorController.h"
 
 /*
  * External Board Statuses:
@@ -157,109 +156,4 @@ void CAN_Msg_PDU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
             // Do nothing, other events handled by fatal callback
             break;
     }
-}
-
-void CAN_Msg_WiCAN_SetVCU_Callback() 
-{
-    switch (WiCANSetVCUEnum)
-    {
-        case VCU_CAN_CONFIGURED_INITIAL_SOC:
-        {
-            float newInitialSOC = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_initial_soc(newInitialSOC);
-            break;
-        }
-        case VCU_CAN_CONFIGURED_NUM_LAPS:
-            set_num_laps_completed((uint32_t)WiCANSetVCUValue);
-            break;
-
-        case VCU_CAN_CONFIGURED_NUM_LAPS_TO_COMPLETE:
-        {
-            float newNumLapsToComplete = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_laps_to_complete(newNumLapsToComplete);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_IN_ENDURANCE_MODE:
-            set_in_endurance_mode((bool)WiCANSetVCUValue);
-            break;
-
-        case VCU_CAN_CONFIGURED_EM_KP:
-        {
-            float newEMKp = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_em_kP(newEMKp);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_EM_KI:
-        {
-            float newEMKi = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_em_kI(newEMKi);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TC_ON:
-            set_TC_enabled((bool)WiCANSetVCUValue);
-            break;
-
-        case VCU_CAN_CONFIGURED_TC_KP:
-        {
-            float newEMKp = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tc_kP(newEMKp);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TC_ERROR_FLOOR_RAD_S:
-        {
-            float newTCErrorFloorRADS = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tc_error_floor_rad_s(newTCErrorFloorRADS);
-            break;
-        }
-        
-        case VCU_CAN_CONFIGURED_TC_MIN_PERCENT_ERROR:
-        {
-            float newTCMinPercentError = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tc_min_percent_error(newTCMinPercentError);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TC_TORQUE_MAX_FLOOR:
-        {
-            float newTCTorqueMaxFloor = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tc_torque_max_floor(newTCTorqueMaxFloor);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TV_DEAD_ZONE_END_RIGHT:
-        {
-            float newTVDeadZoneEndRight = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tv_deadzone_end_right(newTVDeadZoneEndRight);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TV_DEAD_ZONE_END_LEFT:
-        {
-            float newTVDeadZoneEndLeft = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_tv_deadzone_end_left(newTVDeadZoneEndLeft);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_TORQUE_VECTOR_FACTOR:
-        {
-            float newTorqueVectorFactor = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_torque_vector_factor(newTorqueVectorFactor);
-            break;
-        }
-
-        case VCU_CAN_CONFIGURED_MAX_TORQUE_DEMAND:
-        {
-            float newMaxTorqueDemand = WiCANSetVCUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            set_max_torque_demand(newMaxTorqueDemand);
-            break;
-        }
-
-        default:
-            DEBUG_PRINT("VCU variable %lu not supported\r\n", (uint32_t) WiCANSetVCUEnum);
-            break;
-        }
 }

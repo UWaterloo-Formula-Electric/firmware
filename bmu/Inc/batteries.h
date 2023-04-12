@@ -51,7 +51,7 @@
 // A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
 // This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
 // Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
-#define SERIES_CELL_IR_DEFAULT (0.00286F)
+#define ADJUSTED_CELL_IR_DEFAULT (0.00286F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
@@ -90,7 +90,7 @@
 #define CHARGE_CART_HEARTBEAT_MAX_PERIOD (1000)
 
 /// Default charging current limit (Amps)
-#define MAX_CHARGE_CURRENT_DEFAULT (5.0f)
+#define CHARGE_DEFAULT_MAX_CURRENT 5
 
 /**
  * Period at which cell SoCs are checked to determine which cells to balance.
@@ -139,9 +139,6 @@ typedef enum Charge_Notifications_t {
 HAL_StatusTypeDef getIBus(float *IBus);
 HAL_StatusTypeDef getVBatt(float *VBatt);
 HAL_StatusTypeDef getVBus(float *VBus);
-float getMaxChargeCurrent(void);
-float getSeriesCellIR(void);
-uint32_t getStateBusHVSendPeriod(void);
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
@@ -149,12 +146,11 @@ HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueue();
 float map_range_float(float in, float low, float high, float low_out, float high_out);
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
-HAL_StatusTypeDef setSeriesCellIR(float cellIR);
 void setSendOnlyOneCell(int cellIdx);
 void clearSendOnlyOneCell();
 HAL_StatusTypeDef cliSetVBatt(float VBatt);
 HAL_StatusTypeDef cliSetVBus(float VBus);
 HAL_StatusTypeDef cliSetIBus(float IBus);
-uint32_t setStateBusHVSendPeriod(int32_t period);
-uint32_t getStateBusHVSendPeriod();
+void cliSetStateBusHVSendPeriod(uint32_t period);
+uint32_t cliGetStateBusHVSendPeriod();
 #endif /* end of include guard: BATTERIES_H */

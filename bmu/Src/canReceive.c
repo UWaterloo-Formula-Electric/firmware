@@ -8,7 +8,6 @@
   *****************************************************************************
   */
 
-#include "batteries.h"
 #include "canReceive.h"
 
 #include "userCan.h"
@@ -17,7 +16,6 @@
 #include "boardTypes.h"
 
 #include "controlStateMachine.h"
-#include "state_of_charge.h"
 
 #include "bmu_can.h"
 
@@ -71,37 +69,4 @@ void CAN_Msg_ChargeCart_ButtonEvents_Callback()
 void CAN_Msg_UartOverCanConfig_Callback()
 {
 	isUartOverCanEnabled = UartOverCanConfigSignal & 0x2;	
-}
-
-void CAN_Msg_WiCAN_SetBMU_Callback()
-{
-    switch (WiCANSetBMUEnum)
-    {
-        case BMU_CAN_CONFIGURED_MAX_CHARGE_CURRENT:
-            setMaxChargeCurrent(WiCANSetBMUValue);
-            break;
-        
-        case BMU_CAN_CONFIGURED_SERIES_CELL_IR:
-            setSeriesCellIR(WiCANSetBMUValue);
-            break;
-
-        case BMU_CAN_CONFIGURED_STATE_BUS_HV_SEND_PERIOD:
-            setStateBusHVSendPeriod(WiCANSetBMUValue);
-            break;
-
-        case BMU_CAN_CONFIGURED_CAPACITY_STARTUP:
-            setCapacityStartup(WiCANSetBMUValue);
-            break;
-
-        case BMU_CAN_CONFIGURED_IBUS_INTEGRATED:
-        {
-            float newIbusIntegrated = WiCANSetBMUValue * WIRELESS_CAN_FLOAT_SCALAR;
-            setIBusIntegrated(newIbusIntegrated);
-            break;
-        }
-
-        default:
-            DEBUG_PRINT("BMU variable %lu not supported\r\n", (uint32_t)WiCANSetBMUEnum);
-            break;
-        }
 }

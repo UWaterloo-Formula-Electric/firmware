@@ -295,8 +295,7 @@ BaseType_t setTcKp(char *writeBuffer, size_t writeBufferLength,
 
     float tmpKp = 0.0f;
     sscanf(param, "%f", &tmpKp);
-    set_tc_kP(tmpKp);
-    float tc_kP = get_tc_kP();
+    tc_kP = tmpKp;
 
     COMMAND_OUTPUT("Setting kP %f\n", tc_kP);
     return pdFALSE;
@@ -314,11 +313,10 @@ BaseType_t setTcAbsErrorFloor(char *writeBuffer, size_t writeBufferLength,
 {
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-    float tc_error_floor_rad_s;
-    sscanf(param, "%f", &tc_error_floor_rad_s);
-    set_tc_error_floor_rad_s(tc_error_floor_rad_s);
 
-    COMMAND_OUTPUT("set error floor to %f rad/s \n", tc_error_floor_rad_s);
+    sscanf(param, "%f", &tc_error_floor_rad_s);
+
+    COMMAND_OUTPUT("setting error floor rad/s %f\n", tc_error_floor_rad_s);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setTcAbsErrorFloorCommandDefinition =
@@ -344,8 +342,8 @@ BaseType_t setTcTorqueDemandFloor(char *writeBuffer, size_t writeBufferLength,
     }
     else
     {
-        set_tc_torque_max_floor(new_tc_torque_max_floor);
-        COMMAND_OUTPUT("set error floor %f\n", get_tc_torque_max_floor());
+        tc_torque_max_floor = new_tc_torque_max_floor;
+        COMMAND_OUTPUT("set error floor %f\n", tc_torque_max_floor);
     }
     return pdFALSE;
 }
@@ -372,8 +370,8 @@ BaseType_t setTcMinPercentError(char *writeBuffer, size_t writeBufferLength,
     }
     else
     {
-        set_tc_min_percent_error(new_tc_min_percent_error);
-        COMMAND_OUTPUT("set error floor %f\n", get_tc_min_percent_error());
+        tc_min_percent_error = new_tc_min_percent_error;
+        COMMAND_OUTPUT("set error floor %f\n", tc_min_percent_error);
     }
     return pdFALSE;
 }

@@ -33,21 +33,13 @@ typedef struct MotorControllerProcanSettings {
 
 extern uint64_t maxTorqueDemand;
 
-HAL_StatusTypeDef mcInit(void);
+HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle);
-HAL_StatusTypeDef mcShutdown(void);
-HAL_StatusTypeDef initMotorControllerProcanSettings(void);
+HAL_StatusTypeDef mcShutdown();
+HAL_StatusTypeDef initMotorControllerProcanSettings();
 HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings);
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);
-void set_tv_deadzone_end_right(float tv_deadzone_end_right_value);
-void set_tv_deadzone_end_left(float tv_deadzone_end_left_value);
-void set_torque_vector_factor(float torque_vector_factor_value);
-void set_max_torque_demand(float max_torque_demand_default_value);
-float get_torque_vector_factor(void);
-float get_max_torque_demand(void);
-float get_tv_deadzone_end_right(void);
-float get_tv_deadzone_end_left(void);
 
 #endif /* end of include guard: MOTORCONTROLLER_H */

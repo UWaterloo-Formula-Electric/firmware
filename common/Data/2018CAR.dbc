@@ -65,14 +65,6 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ CurrentHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
-BO_ 2215316482 WiCAN_FeedbackVCU: 8 VCU_F7
- SG_ WiCANFeedbackVCUValue : 32|32@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ WiCANFeedbackVCUEnum : 0|32@1+ (1,0) [0|0] ""  VCU_BeagleBone
-
-BO_ 2215316481 WiCAN_FeedbackBMU: 8 BMU
- SG_ WiCANFeedbackBMUValue : 32|32@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ WiCANFeedbackBMUEnum : 0|32@1+ (1,0) [0|0] ""  VCU_BeagleBone
-
 BO_ 2290355203 PDU_Board_Channels_Current: 8 PDU
  SG_ ChannelCurrentWSB : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
  SG_ ChannelCurrentVCU : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
@@ -125,14 +117,6 @@ BO_ 2281901058 TractionControl_TorqueAdjustment: 8 VCU_F7
 BO_ 2281835522 TractionControl_RearWheelSpeed: 8 VCU_F7
  SG_ WheelSpeedRR_RAD_S : 32|32@1+ (1,0) [0|0] ""  VCU_BeagleBone
  SG_ WheelSpeedRL_RAD_S : 0|32@1+ (1,0) [0|0] ""  VCU_BeagleBone
-
-BO_ 2215248396 WiCAN_SetVCU: 8 VCU_BeagleBone
- SG_ WiCANSetVCUValue : 32|32@1- (1,0) [-2147483648|2147483647] ""  VCU_F7
- SG_ WiCANSetVCUEnum : 0|32@1+ (1,0) [0|0] ""  VCU_F7
-
-BO_ 2215248140 WiCAN_SetBMU: 8 VCU_BeagleBone
- SG_ WiCANSetBMUValue : 32|32@1- (1,0) [-2147483648|2147483647] ""  BMU
- SG_ WiCANSetBMUEnum : 0|32@1+ (1,0) [0|0] ""  BMU
 
 BO_ 2287471618 SpeedMotorKPH: 8 VCU_F7
  SG_ SpeedMotorRightKPH : 16|16@1- (1,0) [0|0] "kph"  VCU_BeagleBone
