@@ -9,33 +9,9 @@
 #include "driver/twai.h"
 #include "main.h"
 #include "dac.h"
+#include "canReceive.h"
 
 //https://www.freertos.org/a00116.html
-
-void can_rx_task (void * pvParameters){
-
-    rx_vcu_hil = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
-
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-
-    BaseType_t error;
-    
-    while(1) {
-
-        if(twai_receive(&rx_msg,portMAX_DELAY)!= ESP_OK){
-            printf("failed to receive message\n");
-        }
-        //https://www.freertos.org/a00117.html
-        //printf("CAN message once receive: %lu\n", rx_msg.identifier);
-        error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
-        if(error != pdPASS){
-            printf("failed to send message to queue\n");
-        }
-        printf("message sent\n");
-
-        vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL);
-    }
-}
 
 void proccess_rx_task (void * pvParameters){
 
@@ -47,12 +23,13 @@ void proccess_rx_task (void * pvParameters){
 
         switch (can_msg.identifier){
             case 134480401:     //Brake position
-                dbyte1 = can_msg.data[1];
-                dbyte2 = can_msg.data[2];
-                dbyte1 = dbyte1 << 8;
-                dbyte1 |= 0b0000000011111111;
-                dbyte1 &= dbyte2;
-                set6551Voltage(dbyte1, brakePos_ID);
+                dbyte1 = can_msg.data[0];
+                dbyte2 = can_msg.data[1];
+                dbyte2 = dbyte2 << 8;
+                dbyte2 |= 0b0000000011111111;
+                dbyte1 |= 0b1111111100000000;
+                dbyte2 &= dbyte1;
+                set6551Voltage(dbyte2, brakePos_ID);
                 break;
             case 134414865:     //Brake pres raw
                 dbyte1 = can_msg.data[0];
@@ -82,12 +59,13 @@ void proccess_rx_task (void * pvParameters){
                 set6551Voltage(dbyte2, throttleB_ID);
                 break;
             case 134545937:     //Steer Raw
-                dbyte1 = can_msg.data[1];
-                dbyte2 = can_msg.data[2];
-                dbyte1 = dbyte1 << 8;
-                dbyte1 |= 0b0000000011111111;
-                dbyte1 &= dbyte2;
-                set6551Voltage(dbyte1, throttleB_ID);
+                dbyte1 = can_msg.data[0];
+                dbyte2 = can_msg.data[1];
+                dbyte2 = dbyte2 << 8;
+                dbyte2 |= 0b0000000011111111;
+                dbyte1 |= 0b1111111100000000;
+                dbyte2 &= dbyte1;
+                set6551Voltage(dbyte2, steerRaw_ID);
             default:
                 break;
         }

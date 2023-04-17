@@ -94,13 +94,11 @@ int set6551Voltage (float voltage, uint32_t id){
         }
     }
     
-    //printf("Setting DAC with id %ld to %f mV\n", id, voltage);
     //convert voltage from mV to V
     uint16_t Vout=(voltage/1000)/STEPV12;
     
     //D11 to D4 are placed into a second byte, while truncading the last 4 bits of data
     uint8_t Byte1 = Vout>>4;
-    // &= operation to set all bits to 0 above D3
     Vout &= 0b00001111;
     uint8_t Byte2 = Vout<<4;
 
