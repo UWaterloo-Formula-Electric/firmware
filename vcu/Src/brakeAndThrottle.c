@@ -63,9 +63,9 @@ int map_range(int in, int low, int high, int low_out, int high_out) {
 }
 
 float getBrakePositionPercent()
-{
-    return map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
-                           BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
+{	
+    return map_range(   brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
+                        BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
@@ -119,6 +119,12 @@ bool getThrottlePositionPercent(float *throttleOut)
     float throttle;
     (*throttleOut) = 0;
 
+
+    ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
+    ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+    BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+    sendCAN_VCU_ADCReadings();
+
     // Read both TPS sensors
     if (is_throttle1_in_range(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX])
         && is_throttle2_in_range(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]))
@@ -158,7 +164,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     (*throttleOut) = 0;
 
     if (!getThrottlePositionPercent(&throttle)) {
-      DEBUG_PRINT("Throttle error\n");
+        DEBUG_PRINT("Throttle error\n");
         return THROTTLE_FAULT;
     }
 
@@ -252,23 +258,23 @@ HAL_StatusTypeDef brakeAndThrottleStart()
 
 void canPublishTask(void *pvParameters)
 {
-  while (1) {
     // Delay to allow first ADC readings to come in
     vTaskDelay(500);
+    while (1) {
 
-    // Update value to be sent over can
-    ThrottlePercent = throttlePercentReading;
-    brakePressure = getBrakePressure();
-    SteeringAngle = getSteeringAngle();
-    BrakePercent = getBrakePositionPercent();
+        // Update value to be sent over can
+        ThrottlePercent = throttlePercentReading;
+        brakePressure = getBrakePressure();
+        SteeringAngle = getSteeringAngle();
+        BrakePercent = getBrakePositionPercent();
+        BrakeWhileThrottle = throttleAndBrakePressedError;
 
-    if (sendCAN_VCU_Data() != HAL_OK) {
-      ERROR_PRINT("Failed to send vcu can data\n");
+        if (sendCAN_VCU_Data() != HAL_OK) {
+            ERROR_PRINT("Failed to send vcu can data\n");
+        }
+        vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
     }
-    vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
-  }
 }
-
 
 void pollThrottle(TickType_t* xLastWakeTime)
 {
@@ -312,7 +318,7 @@ void throttlePollingTask(void)
     if (registerTaskToWatch(THROTTLE_POLLING_TASK_ID, 2*pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("ERROR: Failed to init throttle polling task, suspending throttle polling task\n");
-		while(1);
+        while(1);
     }
 
     while (1)

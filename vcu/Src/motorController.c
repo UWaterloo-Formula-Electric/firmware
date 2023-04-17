@@ -33,6 +33,8 @@
 
 MotorControllerProcanSettings mcLeftSettings = {0};
 MotorControllerProcanSettings mcRightSettings = {0};
+// This is bad but a band-aid, we should really create a good way and check inverter status
+volatile bool motors_active = false;
 
 float min(float a, float b)
 {
@@ -45,6 +47,7 @@ float min(float a, float b)
 
 HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
 {
+	
     mcRightSettings.InverterCommand = commandVal;
     InverterCommandRight = mcRightSettings.InverterCommand;
     SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
@@ -199,12 +202,16 @@ HAL_StatusTypeDef mcInit()
         ERROR_PRINT("Failed to send enable bridge command to MC right");
         return HAL_ERROR;
     }
+    motors_active = true;
 
     return HAL_OK;
 }
 
 HAL_StatusTypeDef mcShutdown()
 {
+	motors_active = false;
+	// Wait for final throttle messages to exit our CAN queue
+    vTaskDelay(pdMS_TO_TICKS(250));
     if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
         ERROR_PRINT("Failed to send init disable bridge command to MC Left");
         return HAL_ERROR;
@@ -241,27 +248,19 @@ float limit(float in, float min, float max)
     return min;
 }
 
-bool is_wheel_within_deadzone(int steeringAngle) {
-    if (steeringAngle >= TV_DEADZONE_END_LEFT && 
-        steeringAngle <= TV_DEADZONE_END_RIGHT) {
-            return true;
-    }
-    return false;
-}
-
 HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 {
+
+	if(!motors_active)
+	{
+        
+		return HAL_OK;
+	}
+
     float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
 
-    float throttleRight = throttle;
-    float throttleLeft = throttle;
-
-    // Throttle adjustments for torque vectoring (only if steeringAngle is outside the dead zone)
-    // Assumes that positive angle => CW rotation (right turn), negative angle => CCW rotation (left turn)
-    if (!is_wheel_within_deadzone(steeringAngle)) {
-            throttleRight -= (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-            throttleLeft += (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-        }
+	float throttleRight = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+	float throttleLeft = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);

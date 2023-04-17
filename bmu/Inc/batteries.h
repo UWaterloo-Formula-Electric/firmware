@@ -10,9 +10,8 @@
  * Battery task Defines and Variables
  */
 
-// This is subject to change and is expected to be 50ms
-// I moved it to 75ms to be safe
-#define BATTERY_TASK_PERIOD_MS 75
+// This is subject to change and is expected to be 100ms
+#define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_CHARGE_TASK_PERIOD_MS 2000
 #define BATTERY_TASK_ID 2
 
@@ -51,7 +50,7 @@
 // A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
 // This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
 // Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
-#define ADJUSTED_CELL_IR_DEFAULT (0.00286F)
+#define ADJUSTED_CELL_IR_DEFAULT (0.00486F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)
@@ -106,6 +105,13 @@
 #define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
 #define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
 
+/* 
+ * canSendTask sends in multiples of 3 as 8 bits must be used for the muxIndex leaving 56 data bits for cell readings of 16 bits each
+ * Therefore cell readings are send in groups of 3.
+ */
+
+#define CAN_TX_CELL_GROUP_LEN 3
+
 /**
  * Return of balance charge function
  */
@@ -137,7 +143,8 @@ HAL_StatusTypeDef getVBus(float *VBus);
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
 HAL_StatusTypeDef getPackVoltage(float *packVoltage);
-HAL_StatusTypeDef initPackVoltageQueue();
+HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
+HAL_StatusTypeDef initPackVoltageQueues();
 float map_range_float(float in, float low, float high, float low_out, float high_out);
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
 void setSendOnlyOneCell(int cellIdx);

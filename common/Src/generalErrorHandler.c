@@ -6,6 +6,7 @@
 #include "string.h"
 #include "generalErrorHandler.h"
 #include "watchdog.h"
+#include "debug.h"
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
@@ -36,7 +37,6 @@ HAL_StatusTypeDef resetUART()
 
 // Flag to ensure we only trigger error handling once
 bool errorOccured = false;
-
 void _handleError(char *file, int line)
 {
 #ifndef PRODUCTION_ERROR_HANDLING
@@ -71,7 +71,7 @@ void _handleError(char *file, int line)
 #else
   if (!errorOccured) {
     HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
-
+	
 #if !BOARD_IS_WSB(BOARD_ID)
 	sendDTC_WARNING_ERROR_HANDLER(line);
     SEND_FATAL_DTC();
@@ -80,7 +80,6 @@ void _handleError(char *file, int line)
 #endif
     // Trigger whatever error handling this board has
     DTC_Fatal_Callback(BOARD_ID);
-
     errorOccured = true;
   }
 #endif

@@ -29,7 +29,7 @@ void endurance_mode_EM_callback(void)
 	static bool has_set_initial_soc = false;
 	if(!has_set_initial_soc)
 	{	
-		initial_soc = StateBatteryChargeHV;
+		initial_soc = StateBatteryChargeHV/100.0f;
 		has_set_initial_soc = true;
 	}
 }

@@ -26,8 +26,6 @@
 
 void selfTestLEDs(void);
 void flashLED(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
-void flashDualLED(GPIO_TypeDef* GPIOx1, uint16_t GPIO_Pin1,
-                  GPIO_TypeDef* GPIOx2, uint16_t GPIO_Pin2);
 
 /**
  * @brief Task function for led task
@@ -100,17 +98,13 @@ void ledTask(void *pvParameters)
 
 void selfTestLEDs(void)
 {
-    flashDualLED(MOT_LED_RED_EN_GPIO_Port, MOT_LED_RED_EN_Pin,
-                 MOT_LED_GR_EN_GPIO_Port, MOT_LED_GR_EN_Pin);
-
+    flashLED(MOT_LED_EN_GPIO_Port, MOT_LED_EN_Pin);
     flashLED(IMD_LED_EN_GPIO_Port, IMD_LED_EN_Pin);
     flashLED(TC_LED_EN_GPIO_Port, TC_LED_EN_Pin);
     flashLED(HV_LED_EN_GPIO_Port, HV_LED_EN_Pin);
     flashLED(EV_LED_EN_GPIO_Port, EV_LED_EN_Pin);
     flashLED(ENDURANCE_LED_GPIO_Port, ENDURANCE_LED_Pin);
-    flashDualLED(AMS_LED_RED_EN_GPIO_Port, AMS_LED_RED_EN_Pin,
-                 AMS_LED_GR_EN_GPIO_Port, AMS_LED_GR_EN_Pin);
-    // OVERTEMP
+    flashLED(AMS_LED_EN_GPIO_Port, AMS_LED_EN_Pin);
     flashLED(MC_LED_EN_GPIO_Port, MC_LED_EN_Pin);
 }
 
@@ -119,16 +113,5 @@ void flashLED(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
     HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_SET);
     vTaskDelay(pdMS_TO_TICKS(FLASH_DURATION_MS));
     HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(FLASH_DURATION_MS));
-}
-
-void flashDualLED(GPIO_TypeDef* GPIOx1, uint16_t GPIO_Pin1,
-                  GPIO_TypeDef* GPIOx2, uint16_t GPIO_Pin2)
-{
-    HAL_GPIO_WritePin(GPIOx1, GPIO_Pin1, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOx2, GPIO_Pin2, GPIO_PIN_SET);
-    vTaskDelay(pdMS_TO_TICKS(FLASH_DURATION_MS));
-    HAL_GPIO_WritePin(GPIOx1, GPIO_Pin1, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOx2, GPIO_Pin2, GPIO_PIN_RESET);
     vTaskDelay(pdMS_TO_TICKS(FLASH_DURATION_MS));
 }

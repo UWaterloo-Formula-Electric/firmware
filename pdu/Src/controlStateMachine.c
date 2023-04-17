@@ -368,26 +368,23 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (DC_DC_state) {
-        if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
-            MC_LEFT_ENABLE;
-            MC_RIGHT_ENABLE;
-        }
+    if (fsmGetState(&motorFsmHandle) != MTR_STATE_Motors_On) {
+        MC_LEFT_ENABLE;
+        MC_RIGHT_ENABLE;
+    }
 
-        StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
-        StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
+    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
+    StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
 
-        if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
-            ERROR_PRINT("Failed to send pdu channel status CAN message\n");
-            return motorsOff(MTR_EV_EM_DISABLE);
-        }
-        return MTR_STATE_Motors_On;
-    } else {
-        // Don't allow motors to turn on without DC-DC power
-        // Lack of response to VCU will cause timeout, and then can try again
-        ERROR_PRINT("Not turning on the motors because DCDC off\r\n");
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+        return motorsOff(MTR_EV_EM_DISABLE);
+    }
+    return MTR_STATE_Motors_On;
+
+    if (!DC_DC_ON)
+    {
         sendDTC_WARNING_PDU_EM_EN_BLOCKED_DCDC_OFF();
-        return MTR_STATE_Motors_Off;
     }
 }
 

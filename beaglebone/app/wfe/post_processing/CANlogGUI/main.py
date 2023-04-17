@@ -2,6 +2,7 @@
 import json
 import sys
 import re
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QMessageBox
@@ -63,14 +64,15 @@ def showGraph():
      args_dict["MaxYInput"] = ui.MaxYInput.text()
      args_dict["MinYInput"] = ui.MinYInput.text()
      # print(args_dict)
-
-     graph(checked_data_dict, args_dict)
+     ret_val = graph(checked_data_dict, args_dict)
+     if (not ret_val == "Success"):
+          error("Please check data type for : " + ret_val)
 
 def getSignalNames():
      if (ui.FileLocation.toPlainText() != ''):
           if (ui.FileLocation.find(".log")):
                # print("log signal names")
-               data_dict = json.loads(logToJsonDict(ui.FileLocation.toPlainText(), "../../../../../common/Data/2018CAR.dbc"))
+               data_dict = json.loads(logToJsonDict(ui.FileLocation.toPlainText(), ui.DBCFile.text()))
           elif(ui.FileLocation.find(".csv")):
                # print("csv signal names")
                data_dict = csvToDict(ui.FileLocation.toPlainText())
@@ -89,13 +91,23 @@ def loadExtraUiLogic(ui):
 
 def selectFile():
      fileLocation = QFileDialog.getOpenFileName(None, "Select file", "CAN Log File", "Log file (*.log);;CSV Log file (*.csv);; All Files (*.*)")[0]
-     if fileLocation != "":
+     filename = ""
+     if "_MEIPASS2" in os.environ and fileLocation != "":
+          filename = os.path.join(os.environ["_MEIPASS2"], fileLocation)
+     if filename != "":
+          ui.FileLocation.setText(filename)
+     else:
           ui.FileLocation.setText(fileLocation)
      loadSignalList(ui.CANSignals, getSignalNames())
 
 def selectDBC():
      fileLocation = QFileDialog.getOpenFileName(None, "Select file", "DBC file (.dbc)", "*.dbc")[0]
-     if fileLocation != "":
+     filename = ""
+     if "_MEIPASS2" in os.environ and fileLocation != "":
+          filename = os.path.join(os.environ["_MEIPASS2"], fileLocation)
+     if filename != "":
+          ui.DBCFile.setText(filename)
+     else:
           ui.DBCFile.setText(fileLocation)
 
 def loadSignalList(treeWidget, data_list):

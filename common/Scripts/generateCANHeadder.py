@@ -436,10 +436,6 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
     structInstanceName = 'new_{name}'.format(name=msg.name)
     fWrite('    struct {structName} {instanceName} = {{0}};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
 
-    if proCAN:
-        fWrite('    {structName}.PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT++;'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
-        fWrite('    {msgName}_PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT % 16;'.format(msgName=msg.name), sourceFileHandle)
-        fWrite('    {structName}.PRO_CAN_CRC = calculate_base_CRC((void *) &{structName})^{msgName}_PRO_CAN_SEED;\n'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
 
     for signal in msg.signals:
         if multiplexed:
@@ -460,6 +456,10 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
         else:
             sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
             fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
+    if proCAN:
+        fWrite('    {structName}.PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT++;'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
+        fWrite('    {msgName}_PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT % 16;'.format(msgName=msg.name), sourceFileHandle)
+        fWrite('    {structName}.PRO_CAN_CRC = calculate_base_CRC((void *) &{structName})^{msgName}_PRO_CAN_SEED;\n'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
 
     sendFunctionName = ''
     if isChargerMsg:

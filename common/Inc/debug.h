@@ -5,6 +5,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "stdio.h"
+#include "generalErrorHandler.h"
 
 #ifdef DEBUG_ON
 #define DEBUG_PRINT(...) _DEBUG_PRINT(__VA_ARGS__)
@@ -58,7 +59,7 @@
 #define _DEBUG_PRINT(...) \
     do { \
         if (!printQueue) { \
-            Error_Handler(); \
+            handleError(); \
         } \
         char buf[PRINT_QUEUE_STRING_SIZE] = {0}; \
         snprintf(buf, PRINT_QUEUE_STRING_SIZE, __VA_ARGS__); \
@@ -81,7 +82,7 @@
 #define _DEBUG_PRINT_ISR(...) \
     do { \
         if (!printQueue) { \
-            Error_Handler(); \
+            handleError(); \
         } \
         char buf[PRINT_QUEUE_STRING_SIZE] = {0}; \
         snprintf(buf, PRINT_QUEUE_STRING_SIZE, __VA_ARGS__); \

@@ -21,27 +21,27 @@ void heartbeatReceived(BoardIDs board)
     switch (board) {
         case ID_DCU:
             {
-                lastDCU_Heartbeat_ticks = xTaskGetTickCount();
+                lastDCU_Heartbeat_ticks = xTaskGetTickCountFromISR();
                 break;
             }
         case ID_PDU:
             {
-                lastPDU_Heartbeat_ticks = xTaskGetTickCount();
+                lastPDU_Heartbeat_ticks = xTaskGetTickCountFromISR();
                 break;
             }
         case ID_BMU:
             {
-                lastBMU_Heartbeat_ticks = xTaskGetTickCount();
+                lastBMU_Heartbeat_ticks = xTaskGetTickCountFromISR();
                 break;
             }
         case ID_VCU_F7:
             {
-                lastVCU_F7_Heartbeat_ticks = xTaskGetTickCount();
+                lastVCU_F7_Heartbeat_ticks = xTaskGetTickCountFromISR();
                 break;
             }
         case ID_ChargeCart:
             {
-                lastChargeCart_Heartbeat_ticks = xTaskGetTickCount();
+                lastChargeCart_Heartbeat_ticks = xTaskGetTickCountFromISR();
                 break;
             }
         default:
@@ -81,7 +81,6 @@ HAL_StatusTypeDef checkAllHeartbeats()
     if (heartbeatEnabled)
     {
         uint32_t curTick = xTaskGetTickCount();
-
 #if BOARD_ID != ID_DCU
         if (DCU_heartbeatEnabled) {
             if (curTick - lastDCU_Heartbeat_ticks >= HEARTBEAT_TIMEOUT_TICKS)

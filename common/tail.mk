@@ -330,7 +330,7 @@ load: $(BOARD_NAME)
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(LOAD_BIN_FILE) 0x8000000" -c "verify_image $(LOAD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
 # Use this if you want gdb to be rtos thread aware
-connect-rtos: load-debug
+connect-rtos: 
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c "stm32f7x.cpu configure -rtos FreeRTOS" -c init -c "reset halt" -c halt
 
 # use this to debug stuff before rtos starts
@@ -339,7 +339,7 @@ connect: load
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
 
 gdb: 
-	arm-none-eabi-gdb --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(LOAD_ELF_FILE)
+	gdb-multiarch --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(LOAD_ELF_FILE)
 
 endif # LOAD_TARGET == BUILD_TARGET
 

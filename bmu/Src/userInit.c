@@ -71,7 +71,7 @@ void userInit()
         Error_Handler();
     }
 
-    if (initPackVoltageQueue() != HAL_OK) {
+    if (initPackVoltageQueues() != HAL_OK) {
         Error_Handler();
     }
 #if IS_BOARD_F7

@@ -195,7 +195,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 /* USER CODE END 4 */
 
 /**
@@ -206,7 +205,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  _handleError(__FILE__, __LINE__);
+	handleError();
   /* USER CODE END Error_Handler_Debug */
 }
 
