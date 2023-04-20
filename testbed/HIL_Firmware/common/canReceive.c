@@ -26,17 +26,20 @@ void can_rx_task (void * pvParameters){
     
     while(1) {
 
-        if(twai_receive(&rx_msg,portMAX_DELAY)!= ESP_OK){
+        if(twai_receive(&rx_msg,portMAX_DELAY)!= ESP_OK)
+        {
             printf("failed to receive message\n");
         }
         //https://www.freertos.org/a00117.html
-        //printf("CAN message once receive: %lu\n", rx_msg.identifier);
         error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
-        if(error != pdPASS){
+        if(error != pdPASS)
+        {
             printf("failed to send message to VCU HIL\n");
         }
+        
         error = xQueueSend(rx_pdu_hil, &rx_msg, portMAX_DELAY);
-        if(error != pdPASS){
+        if(error != pdPASS)
+        {
             printf("failed to send message to PDU HIL\n");
         }
 

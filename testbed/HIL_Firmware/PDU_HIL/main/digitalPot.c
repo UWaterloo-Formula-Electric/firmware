@@ -7,7 +7,9 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 
-int setPotResitance (uint8_t resistance)
+//Digital pot being used https://www.analog.com/media/en/technical-documentation/data-sheets/AD5260_5262.pdf
+
+void setPotResitance (uint8_t resistance)
 {
     
 }

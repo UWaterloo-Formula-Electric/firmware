@@ -4,7 +4,7 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.16)
 
-set(EXTRA_COMPONENT_DIRS "/Users/danielbishara/firmware/testbed/HIL_Firmware/common")
+set(EXTRA_COMPONENT_DIRS "$/../../common")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(VCU_HIL)

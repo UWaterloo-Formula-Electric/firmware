@@ -9,6 +9,11 @@
 #include "driver/spi_master.h"
 #include "driver/dac_oneshot.h"
 
+spi_device_handle_t throttle_A;
+spi_device_handle_t throttle_B;
+spi_device_handle_t brake_pos;
+spi_device_handle_t steer_raw;
+
 twai_message_t message_status = {
     .identifier = 0x8060211,
     .extd = 1,
@@ -40,11 +45,7 @@ int setDacVoltage(float voltage)
     }
 
     uint8_t Vout=(voltage/1000)/STEPV8;
-
-    printf("step voltage is %f", STEPV8);
-    printf("voltage is %f\n", voltage);
-    printf("vout is %d\n", Vout);
-
+    
     //checking if channel already initialized
     if(channel1==false){
         dac_oneshot_new_channel(&chan0_cfg, &chan0_handle);
@@ -111,7 +112,8 @@ int set6551Voltage (float voltage, uint32_t id){
         .flags = SPI_TRANS_USE_TXDATA,
     };
 
-    esp_err_t fault = NULL;
+    esp_err_t fault = 0;
+
     if(id == brakePos_ID){
         fault = spi_device_transmit(brake_pos, &trans);
         message_status.data[0] = 2;

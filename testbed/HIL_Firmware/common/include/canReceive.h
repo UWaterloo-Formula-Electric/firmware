@@ -6,11 +6,14 @@
 #define CAN_RX_TASK_INTERVAL 1
 #define PROCCESS_RX_TASK_INTERVAL 1
 
-twai_message_t rx_msg;
-twai_message_t can_msg;
+#include "driver/twai.h"
+#include "freertos/queue.h"
 
-QueueHandle_t rx_vcu_hil;
-QueueHandle_t rx_pdu_hil;
+extern twai_message_t rx_msg;
+extern twai_message_t can_msg;
+
+extern QueueHandle_t rx_vcu_hil;
+extern QueueHandle_t rx_pdu_hil;
 
 void can_rx_task (void * pvParameters);
 

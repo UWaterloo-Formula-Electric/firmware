@@ -36,9 +36,9 @@ typedef enum dacID{
     steerRaw_ID,
 }dacID;
 
-static spi_device_handle_t throttle_A;
-static spi_device_handle_t throttle_B;
-static spi_device_handle_t brake_pos;
-static spi_device_handle_t steer_raw;
+extern spi_device_handle_t throttle_A;
+extern spi_device_handle_t throttle_B;
+extern spi_device_handle_t brake_pos;
+extern spi_device_handle_t steer_raw;
 
 #endif
