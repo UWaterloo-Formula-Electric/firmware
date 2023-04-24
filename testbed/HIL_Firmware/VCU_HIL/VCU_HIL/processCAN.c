@@ -10,18 +10,19 @@
 #include "userInit.h"
 #include "dac.h"
 #include "canReceive.h"
-#include "proccessCAN.h"
+#include "processCAN.h"
 
 static uint16_t dbyte1;
 static uint16_t dbyte2;
 
-void proccess_rx_task (void * pvParameters)
+void process_rx_task (void * pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while(1)
     {
         xQueueReceive(rx_vcu_hil, &can_msg, portMAX_DELAY);
+        xQueueReceive(rx_pdu_hil, &doNothing_msg, portMAX_DELAY);
 
         switch (can_msg.identifier)
         {
@@ -74,6 +75,6 @@ void proccess_rx_task (void * pvParameters)
                 break;
         }
 
-        vTaskDelayUntil(&xLastWakeTime, PROCCESS_RX_TASK_INTERVAL);
+        vTaskDelayUntil(&xLastWakeTime, PROCESS_RX_TASK_INTERVAL);
     }
 }

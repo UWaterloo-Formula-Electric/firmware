@@ -11,6 +11,7 @@
 
 twai_message_t rx_msg;
 twai_message_t can_msg;
+twai_message_t doNothing_msg;
 
 QueueHandle_t rx_vcu_hil;
 QueueHandle_t rx_pdu_hil;
@@ -30,7 +31,7 @@ void can_rx_task (void * pvParameters){
         {
             printf("failed to receive message\n");
         }
-        //https://www.freertos.org/a00117.html
+        
         error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
         if(error != pdPASS)
         {

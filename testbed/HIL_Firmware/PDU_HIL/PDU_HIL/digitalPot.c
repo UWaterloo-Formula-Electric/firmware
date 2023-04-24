@@ -13,9 +13,3 @@ void setPotResitance (uint8_t resistance)
 {
     
 }
-
-
-void app_main(void)
-{
-
-}
