@@ -11,7 +11,6 @@
 
 twai_message_t rx_msg;
 twai_message_t can_msg;
-twai_message_t doNothing_msg;
 
 QueueHandle_t rx_vcu_hil;
 QueueHandle_t rx_pdu_hil;
@@ -32,17 +31,21 @@ void can_rx_task (void * pvParameters){
             printf("failed to receive message\n");
         }
         
-        error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
-        if(error != pdPASS)
-        {
-            printf("failed to send message to VCU HIL\n");
-        }
+        #ifdef VCU_HIL_ID
+            error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
+            if(error != pdPASS)
+            {
+                printf("failed to send message to VCU HIL\n");
+            }
+        #endif
         
-        error = xQueueSend(rx_pdu_hil, &rx_msg, portMAX_DELAY);
-        if(error != pdPASS)
-        {
-            printf("failed to send message to PDU HIL\n");
-        }
+        #ifdef PDU_HIL_ID
+            error = xQueueSend(rx_pdu_hil, &rx_msg, portMAX_DELAY);
+            if(error != pdPASS)
+            {
+                printf("failed to send message to PDU HIL\n");
+            }
+        #endif
 
         vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL);
     }
