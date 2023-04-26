@@ -12,16 +12,20 @@
 
 //Digital pot being used https://www.analog.com/media/en/technical-documentation/data-sheets/AD5260_5262.pdf
 
-int setPotResitance (uint16_t resistance)
+int setPotResitance (uint32_t resistance)
 {
     uint8_t out_value = 0;
 
-    if (resistance > POT_LIMIT)
+    if (resistance > POT_MAX)
     {
-        resistance = POT_LIMIT;
+        resistance = POT_MAX;
+    }
+    else if (resistance < POT_MIN)
+    {
+        resistance = POT_MIN;
     }
 
-    out_value = ((resistance - WIPER_RESISTANCE_OHM)/NOMINAL_RESISTANCE_OHM)*POT_LIMIT;
+    out_value = ((resistance - WIPER_RESISTANCE_OHM)/NOMINAL_RESISTANCE_OHM)*MAX_DIGITAL_VALUE;
 
     spi_transaction_t trans = {
         .tx_data [0] = out_value,

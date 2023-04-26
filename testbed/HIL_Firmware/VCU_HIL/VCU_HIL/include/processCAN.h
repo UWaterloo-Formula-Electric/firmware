@@ -1,10 +1,6 @@
 #ifndef PROCESS_CAN_H
 #define PROCESS_CAN_H
 
-#ifndef VCU_HIL_ID
-#define VCU_HIL_ID
-#endif
-
 #define PROCESS_RX_TASK_INTERVAL 1
 
 void process_rx_task (void * pvParameters);
