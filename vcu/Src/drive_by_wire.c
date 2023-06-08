@@ -34,6 +34,7 @@ HAL_StatusTypeDef MotorStop();
 
 extern osThreadId throttlePollingHandle;
 
+
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_EM_Disable, EV_EM_Toggle, &EM_Enable },
@@ -176,11 +177,15 @@ uint32_t EM_Fault(uint32_t event)
 {
     int newState = STATE_Failure_Fatal;
     int currentState = fsmGetState(&fsmHandle);
+    
+    EMFaultEvent = event;
+    sendCAN_VCU_EM_Fault();
 
     if (fsmGetState(&fsmHandle) == STATE_Failure_Fatal) {
         DEBUG_PRINT("EM Fault, already in fatal failure state\n");
         return STATE_Failure_Fatal;
     }
+
 
     switch (event) {
         case EV_Bps_Fail:
@@ -350,7 +355,6 @@ HAL_StatusTypeDef MotorStart()
                               pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
 
     DEBUG_PRINT("MCs started up\n");
-
     return HAL_OK;
 }
 

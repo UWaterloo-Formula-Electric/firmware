@@ -13,20 +13,20 @@
 
 // Task Information
 #define POLL_SENSORS_TASK_ID 2
-#define POLL_SENSORS_PERIOD_MS 100
+#define POLL_SENSORS_PERIOD_MS 10
 
 
 // Encoder Information
 #define ENCODER_COUNTER (__HAL_TIM_GET_COUNTER(&ENCODER_TIM_HANDLE))
-#define ENCODER_PULSES_PER_REVOLUTION (1280)
+#define ENCODER_PULSES_PER_REVOLUTION (1280.0f*2.0f)
 #define WHEEL_DIAMETER_MM (525)
 
 // About a 0.6% error due to integer rounding of PI
 // Increasing scale of PI does not improve accuracy
 #define PI_SCALE (100)
 #define PI_SCALED (314)
-#define ENCODER_COUNT_TO_MM(count) ((count*(WHEEL_DIAMETER_MM*PI_SCALED/PI_SCALE))/ENCODER_PULSES_PER_REVOLUTION)
-#define ENCODER_COUNT_TO_RADS_S(delta_count, period) (((2*PI_SCALED*delta_count)/(ENCODER_PULSES_PER_REVOLUTION*PI_SCALE))/(period))
+#define ENCODER_COUNT_TO_MM(count) (((count)*(WHEEL_DIAMETER_MM*PI_SCALED/PI_SCALE))/ENCODER_PULSES_PER_REVOLUTION)
+#define ENCODER_COUNT_TO_RADS_S(delta_count, period) (((2*PI_SCALED*(delta_count))/(ENCODER_PULSES_PER_REVOLUTION*PI_SCALE))/(period))
 
 typedef struct {
 	volatile uint32_t encoder_counts;
@@ -45,7 +45,7 @@ static void poll_encoder(void)
 
 	// TIM3 uses lower 16 bits
 	uint16_t current_count = ENCODER_COUNTER;
-	uint32_t count_diff = current_count - last_count;
+	uint32_t count_diff = (uint16_t)(current_count - last_count);
 	sensors_data.encoder_counts += count_diff;
 	sensors_data.encoder_mm = ENCODER_COUNT_TO_MM(sensors_data.encoder_counts);
 	sensors_data.encoder_speed = ENCODER_COUNT_TO_RADS_S(count_diff, (float)(POLL_SENSORS_PERIOD_MS)/1000.0f);

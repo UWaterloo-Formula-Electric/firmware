@@ -158,7 +158,7 @@ static float interpolateLut(float value, float lut_min, float lut_step, uint8_t 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage)
 {
 	float temp = 0.0f;
-	HAL_StatusTypeDef ret = getPackVoltage(&temp);
+	HAL_StatusTypeDef ret = getAdjustedPackVoltage(&temp);
 	*segmentVoltage = (temp / (float)NUM_BOARDS);
 	return ret;
 }

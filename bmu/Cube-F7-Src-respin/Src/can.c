@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -71,15 +71,15 @@ void MX_CAN3_Init(void)
 
   /* USER CODE END CAN3_Init 1 */
   hcan3.Instance = CAN3;
-  hcan3.Init.Prescaler = 10;
+  hcan3.Init.Prescaler = 5;
   hcan3.Init.Mode = CAN_MODE_NORMAL;
   hcan3.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan3.Init.TimeSeg1 = CAN_BS1_8TQ;
-  hcan3.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan3.Init.TimeSeg1 = CAN_BS1_13TQ;
+  hcan3.Init.TimeSeg2 = CAN_BS2_6TQ;
   hcan3.Init.TimeTriggeredMode = DISABLE;
-  hcan3.Init.AutoBusOff = DISABLE;
-  hcan3.Init.AutoWakeUp = DISABLE;
-  hcan3.Init.AutoRetransmission = DISABLE;
+  hcan3.Init.AutoBusOff = ENABLE;
+  hcan3.Init.AutoWakeUp = ENABLE;
+  hcan3.Init.AutoRetransmission = ENABLE;
   hcan3.Init.ReceiveFifoLocked = DISABLE;
   hcan3.Init.TransmitFifoPriority = DISABLE;
   if (HAL_CAN_Init(&hcan3) != HAL_OK)

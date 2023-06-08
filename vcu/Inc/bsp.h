@@ -4,7 +4,6 @@
 #include "boardTypes.h"
 #include "main.h"
 #include "can.h"
-#include "crc.h"
 #include "tim.h"
 #include "iwdg.h"
 #include <stdbool.h>

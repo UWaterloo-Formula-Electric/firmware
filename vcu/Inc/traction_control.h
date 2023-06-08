@@ -8,5 +8,8 @@ extern float tc_min_percent_error;
 
 void toggle_TC(void);
 void disable_TC(void);
-
-#endif /* TRACTION_CONTROL_H */
+extern float tc_kP;
+extern float tc_kI;
+extern float tc_kD;
+extern float desired_slip;
+#endif

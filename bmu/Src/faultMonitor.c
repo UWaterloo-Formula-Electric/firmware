@@ -223,54 +223,56 @@ void faultMonitorTask(void *pvParameters)
 
    if (registerTaskToWatch(FAULT_TASK_ID, 2*pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK)
    {
-     ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
-     Error_Handler();
+		ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
+		Error_Handler();
    }
 	
-   bool cbrb_pressed = false;
+   bool last_cbrb_ok = false;
    TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1)
    {
 		if (getHVIL_Status() == false)
 		{
-         ERROR_PRINT("Fault Monitor: HVIL broken!\n");
-         BMU_checkFailed = HVIL_FAILED_BIT;
-         sendCAN_BMU_Interlock_Loop_Status();
+			ERROR_PRINT("Fault Monitor: HVIL broken!\n");
+			BMU_checkFailed = HVIL_FAILED_BIT;
+			sendCAN_BMU_Interlock_Loop_Status();
 
-         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-         while (1) {
-            watchdogTaskCheckIn(FAULT_TASK_ID);
-            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-         }
+			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			while (1) {
+				watchdogTaskCheckIn(FAULT_TASK_ID);
+				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+			}
 		}
 
 		bool il_ok = getIL_Status();
 		bool cbrb_ok = getCBRB_IL_Status();
-		if(!cbrb_ok && !cbrb_pressed)
+		bool hvd_ok = getHVD_Status();
+		if((!cbrb_ok && hvd_ok) && !last_cbrb_ok)
 		{	
-         ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
-         BMU_checkFailed = CBRB_FAILED_BIT;
-         sendCAN_BMU_Interlock_Loop_Status();
+			ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
+			BMU_checkFailed = CBRB_FAILED_BIT;
+			sendCAN_BMU_Interlock_Loop_Status();
 
-         fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
-         cbrb_pressed = true;
+			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+			last_cbrb_ok = true;
 		}
-		else if (cbrb_ok && cbrb_pressed)
+		else if (cbrb_ok && last_cbrb_ok)
 		{
-         fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
-         cbrb_pressed = false;
+			fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
+			last_cbrb_ok = false;
 		}
-		else if (!il_ok && cbrb_ok)
+		
+		if ((!hvd_ok) || (!il_ok && cbrb_ok))
 		{
-         ERROR_PRINT("Fault Monitor: IL broken!\n");
-         BMU_checkFailed = IL_FAILED_BIT;
-         sendCAN_BMU_Interlock_Loop_Status();
+			ERROR_PRINT("Fault Monitor: IL broken!\n");
+			BMU_checkFailed = IL_FAILED_BIT;
+			sendCAN_BMU_Interlock_Loop_Status();
 
-         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-         while (1) {
-            watchdogTaskCheckIn(FAULT_TASK_ID);
-            vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-         }
+			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			while (1) {
+				watchdogTaskCheckIn(FAULT_TASK_ID);
+				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+			}
 		}
 
 		watchdogTaskCheckIn(FAULT_TASK_ID);

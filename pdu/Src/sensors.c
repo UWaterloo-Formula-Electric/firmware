@@ -13,6 +13,7 @@
 #include "watchdog.h"
 #include "bsp.h"
 
+#define LV_BATTERY_VOLTAGE_LOW_DTC_PERIOD_MS 60000
 #define READY_FOR_PUBLISH(TICKCOUNT, LAST_TIME, INTERVAL) ((TICKCOUNT) - (LAST_TIME) >= pdMS_TO_TICKS(INTERVAL))
 
 volatile uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
@@ -213,23 +214,10 @@ void sensorTask(void *pvParameters)
 
     // Delay to allow adc readings to start
     vTaskDelay(100);
-
-    uint8_t lowBattery = pdFALSE;
+    TickType_t lastLvBattLowSent = xTaskGetTickCount();
 
     while (1)
     {
-        /*
-         *StateBatteryChargeLV=100;
-         *StateBatteryHealthLV=100;
-         *StateBatteryPowerLV=100;
-         *VoltageBusLV= readBusVoltage() * 1000; // Bus voltage is sent as mV
-         *[>DEBUG_PRINT("Bus Voltage %f\n", readBusVoltage());<]
-         *if (sendCAN_PDU_batteryStatusLV() != HAL_OK)
-         *{
-         *    ERROR_PRINT("Failed to send battery status on can!\n");
-         *}
-         */
-
         CurrentBusLV = readBusCurrent() * 1000;
         VoltageBusLV = readBusVoltage() * 1000;
         if (sendCAN_LV_Bus_Measurements() != HAL_OK)
@@ -237,30 +225,16 @@ void sensorTask(void *pvParameters)
             ERROR_PRINT("Failed to send bus measurements on can!\n");
         }
 
-        if (lowBattery == pdFALSE && readBusVoltage() <= LOW_VOLTAGE_LIMIT_VOLTS) {
-            lowBattery = pdTRUE; 
-            sendDTC_WARNING_LV_Battery_Low();
-        }
-
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
             ERROR_PRINT("LV Current exceeded max value\n");
             // TODO: Should we do anything?
         }
 
-         /*DEBUG_PRINT("Channel currents:\n");*/
-         /*for (int i=0; i<NUM_PDU_CHANNELS; i++) {*/
-             /*if (i == LV_Current || i == LV_Voltage) {*/
-                 /*continue;*/
-             /*}*/
-
-             /*if (i == DCU_Channel) {*/
-                 /*float channelCurrent = readCurrent(i);*/
-                 /*DEBUG_PRINT("Channel %i: %f A\n", i, channelCurrent);*/
-             /*}*/
-
-
-             /*// TODO: Log current*/
-         /*}*/
+        if ((xTaskGetTickCount() - lastLvBattLowSent) > LV_BATTERY_VOLTAGE_LOW_DTC_PERIOD_MS && VoltageBusLV < 11.0f)
+        {
+            sendDTC_WARNING_LV_Battery_Low();
+            lastLvBattLowSent = xTaskGetTickCount();
+        }
 
         watchdogTaskCheckIn(4);
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));

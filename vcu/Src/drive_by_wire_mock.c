@@ -287,102 +287,6 @@ static const CLI_Command_Definition_t emToggleCommandDefinition =
     0 /* Number of parameters */
 };
 
-BaseType_t setTcKp(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    float tmpKp = 0.0f;
-    sscanf(param, "%f", &tmpKp);
-    tc_kP = tmpKp;
-
-    COMMAND_OUTPUT("Setting kP %f\n", tc_kP);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t setTcKpCommandDefinition =
-{
-    "setTcKp",
-    "setTcKp <kP>:\r\n set TC kP value\r\n",
-    setTcKp,
-    1 /* Number of parameters */
-};
-
-BaseType_t setTcAbsErrorFloor(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    sscanf(param, "%f", &tc_error_floor_rad_s);
-
-    COMMAND_OUTPUT("setting error floor rad/s %f\n", tc_error_floor_rad_s);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t setTcAbsErrorFloorCommandDefinition =
-{
-    "setTcAbsErrorFloor",
-    "setTcAbsErrorFloor <errorFloor>:\r\n set TC error floor value (0,inf)\r\n",
-    setTcAbsErrorFloor,
-    1 /* Number of parameters */
-};
-
-BaseType_t setTcTorqueDemandFloor(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-    float new_tc_torque_max_floor = 0.0f;
-
-    sscanf(param, "%f", &new_tc_torque_max_floor);
-    
-    if (new_tc_torque_max_floor <= 0 || new_tc_torque_max_floor > MAX_TORQUE_DEMAND_DEFAULT)
-    {
-        COMMAND_OUTPUT("invalid torque demand floor. Must be (0,30]. You gave: %f\n", new_tc_torque_max_floor);
-    }
-    else
-    {
-        tc_torque_max_floor = new_tc_torque_max_floor;
-        COMMAND_OUTPUT("set error floor %f\n", tc_torque_max_floor);
-    }
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t setTcTorqueDemandFloorCommandDefinition =
-{
-    "setTcTorqueDemandFloor",
-    "setTcTorqueDemandFloor <torqueDemand>:\r\n set TC torque demand floor value (0,30]\r\n",
-    setTcTorqueDemandFloor,
-    1 /* Number of parameters */
-};
-
-BaseType_t setTcMinPercentError(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-    float new_tc_min_percent_error = 0.0f;
-
-    sscanf(param, "%f", &new_tc_min_percent_error);
-    
-    if (new_tc_min_percent_error <= 0 || new_tc_min_percent_error > MAX_TORQUE_DEMAND_DEFAULT)
-    {
-        COMMAND_OUTPUT("invalid torque demand floor. Must be (0,30]. You gave: %f\n", new_tc_min_percent_error);
-    }
-    else
-    {
-        tc_min_percent_error = new_tc_min_percent_error;
-        COMMAND_OUTPUT("set error floor %f\n", tc_min_percent_error);
-    }
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t setTcMinPercentErrorCommandDefinition =
-{
-    "setTcMinPercentError",
-    "setTcMinPercentError <percentError>:\r\n set TC torque demand floor value [0,1]\r\n",
-    setTcMinPercentError,
-    1 /* Number of parameters */
-};
-
 BaseType_t fakeHVStateChange(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -550,18 +454,6 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&emToggleCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&setTcKpCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&setTcAbsErrorFloorCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&setTcTorqueDemandFloorCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&setTcMinPercentErrorCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hvStateCommandDefinition) != pdPASS) {
