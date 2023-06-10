@@ -2,6 +2,7 @@
 #include "dac.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_err.h"
 #include "esp_system.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
@@ -33,6 +34,8 @@ static dac_oneshot_config_t chan0_cfg = {
 
 int setDacVoltage(float voltage)
 {
+    esp_err_t fault = 0;
+
     //above Vref, set to Vref, below 0 set to 0 
     if(voltage>VREF || voltage<0){
         if(voltage>VREF){
@@ -52,10 +55,18 @@ int setDacVoltage(float voltage)
         channel1 = true;
     }
     
-    ESP_ERROR_CHECK(dac_oneshot_output_voltage(chan0_handle,Vout));
+    fault = dac_oneshot_output_voltage(chan0_handle,Vout);
+    if(fault==ESP_OK)
+    {
+        message_status.data[0] = 1;
+        twai_transmit(&message_status,portMAX_DELAY);
+        printf("setting voltage to %fV in channel 1\n", voltage); 
 
-    printf("setting voltage to %fV in channel 1\n", voltage);
-    return ESP_OK;
+        return ESP_OK;  
+    }
+    
+    printf("Failed to set brake pres raw\r\n");
+    return ESP_FAIL;
 }
 
 int deleteChannel(uint32_t channel)

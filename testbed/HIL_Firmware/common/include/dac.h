@@ -6,7 +6,7 @@
 #define BYTE0 0x02
 #define TXLENGTH 24
 #define VREF 3300.0
-#define MAXSTEPS12 2047
+#define MAXSTEPS12 2048
 #define MAXSTEPS8 255
 
 int setDacVoltage(float voltage);
