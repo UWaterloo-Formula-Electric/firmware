@@ -75,32 +75,7 @@ int setDacVoltage(float voltage)
     return ESP_FAIL;
 }
 
-int deleteChannel(uint32_t channel)
-{
-    if(channel != 2 && channel != 1)
-    {
-        printf("Error! expecting channel 1 or 2!\n");
-        return ESP_ERR_INVALID_ARG;
-    }
-
-    if(channel==1){
-        if(channel1==true){
-
-            dac_oneshot_del_channel(chan0_handle);
-            channel1 = false;
-            printf("channel %ld has been deleted\n", channel);
-            return ESP_OK;
-        }
-        printf("ERROR! cannot delete channel that is not allocated\n");
-        return ESP_ERR_INVALID_STATE;
-    }
-
-    printf("ERROR! cannot delete channel that is not allocated\n");
-    
-    return ESP_FAIL;
-}
-
-int set6551Voltage (float voltage, uint32_t id)
+int set6551Voltage (float voltage, dacID id)
 {
 
     //above 4095, set to 4095, below 0 set to 0 

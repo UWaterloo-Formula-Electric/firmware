@@ -9,16 +9,15 @@
 #define MAXSTEPS12 2048
 #define MAXSTEPS8 255
 
-int setDacVoltage(float voltage);
-int deleteChannel(uint32_t channel);
-int set6551Voltage (float voltage, uint32_t id);
-
 typedef enum dacID{
     throttleA_ID = 0,
     throttleB_ID,
     brakePos_ID,
     steerRaw_ID,
 }dacID;
+
+int setDacVoltage(float voltage);
+int set6551Voltage (float voltage, dacID id);
 
 extern spi_device_handle_t throttle_A;
 extern spi_device_handle_t throttle_B;
