@@ -129,10 +129,13 @@ IMDMeasurements get_imd_measurements(void) {
 
 IMDStatus _imd_status(uint32_t freq_mHz, uint32_t duty){
   IMDStatus status = IMDSTATUS_Invalid;
-
   if ((freq_mHz > 9500) && (freq_mHz < 10500)){
-    if ((duty > 5) && (duty < 95)){
+    if ((duty > 5) && (duty < 84)){
       status = IMDSTATUS_Normal;
+    }
+    else if(duty >= 84)
+    {
+      status = IMDSTATUS_Fault_Earth;
     }
   } else if ((freq_mHz > 19000) && (freq_mHz < 21000)){
     if ((duty > 5) && (duty < 95)){
@@ -144,14 +147,17 @@ IMDStatus _imd_status(uint32_t freq_mHz, uint32_t duty){
     } else if ((duty > 90) && (duty < 95)){
       status = IMDSTATUS_SST_Bad;
     }
-  }else if ((freq_mHz > 38000) && (freq_mHz < 42000)){
+  } else if ((freq_mHz > 38000) && (freq_mHz < 42000)){
     if ((duty > 47) && (duty < 53)){
       status = IMDSTATUS_Device_Error;
     }
-  }else if ((freq_mHz > 47500) && (freq_mHz < 52500)){
+  } else if ((freq_mHz > 47500) && (freq_mHz < 52500)){
     if ((duty > 47) && (duty < 53)){
       status = IMDSTATUS_Fault_Earth;
     }
+  } else{
+	  DEBUG_PRINT("--- Unhandled IMD Freq ---\n");
+	  DEBUG_PRINT("freq_mHz %lu, duty %lu\n", freq_mHz, duty);
   }
 
   return status;

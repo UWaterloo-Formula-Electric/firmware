@@ -34,7 +34,7 @@
 #define CAN_P0_QUEUE_LEN 10
 #define CAN_P1_QUEUE_LEN 15
 #define CAN_P2_QUEUE_LEN 10
-#define CAN_P3_QUEUE_LEN 5
+#define CAN_P3_QUEUE_LEN 15
 #elif IS_BOARD_F0_FAMILY
 #define CAN_P0_QUEUE_LEN 2
 #define CAN_P1_QUEUE_LEN 2
@@ -161,8 +161,7 @@ HAL_StatusTypeDef canSendCANMessage(uint32_t id, CAN_HandleTypeDef *hcan)
     if (freeMailboxes == 0) {
         return HAL_ERROR;
     }
-
-    if (freeMailboxes == 1) {
+	else if (freeMailboxes == 1) {
         if (priority == 0 || priority == 1) {
             // Allow high priority messages to send
             return HAL_OK;
@@ -311,7 +310,7 @@ void canTask(void *pvParameters)
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
-            /*DEBUG_PRINT("All mailboxes full, waiting\n");*/
+            DEBUG_PRINT("All mailboxes full, waiting\n");
             // Give semaphore again, since we haven't sent this message
             if (xSemaphoreGive(CAN_Msg_Semaphore) != pdTRUE)
             {
@@ -328,7 +327,7 @@ void canTask(void *pvParameters)
          * send the next highest priority message
          */
         if (xQueueReceive(CAN_Priority0_Queue, &msg, 0) == pdTRUE) {
-            /*DEBUG_PRINT("Sending msg priority 0\n");*/
+            //DEBUG_PRINT("Sending msg priority 0\n");
             if (sendCanMessageInternal(msg.id, msg.len, msg.data) != HAL_OK)
             {
                 ERROR_PRINT("Failed to send CAN message\n");
@@ -337,7 +336,7 @@ void canTask(void *pvParameters)
         }
 
         if (xQueueReceive(CAN_Priority1_Queue, &msg, 0) == pdTRUE) {
-            /*DEBUG_PRINT("Sending msg priority 1\n");*/
+            //DEBUG_PRINT("Sending msg priority 1\n");
             if (sendCanMessageInternal(msg.id, msg.len, msg.data) != HAL_OK)
             {
                 ERROR_PRINT("Failed to send CAN message\n");
@@ -346,7 +345,7 @@ void canTask(void *pvParameters)
         }
 
         if (xQueueReceive(CAN_Priority2_Queue, &msg, 0) == pdTRUE) {
-            /*DEBUG_PRINT("Sending msg priority 2\n");*/
+            //DEBUG_PRINT("Sending msg priority 2\n");
             if (sendCanMessageInternal(msg.id, msg.len, msg.data) != HAL_OK)
             {
                 ERROR_PRINT("Failed to send CAN message\n");
@@ -355,7 +354,7 @@ void canTask(void *pvParameters)
         }
 
         if (xQueueReceive(CAN_Priority3_Queue, &msg, 0) == pdTRUE) {
-            /*DEBUG_PRINT("Sending msg priority 3\n");*/
+            //DEBUG_PRINT("Sending msg priority 3\n");
             if (sendCanMessageInternal(msg.id, msg.len, msg.data) != HAL_OK)
             {
                 ERROR_PRINT("Failed to send CAN message\n");

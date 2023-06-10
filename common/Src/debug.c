@@ -72,7 +72,7 @@ void cliTask(void *pvParameters)
         char rxBuffer;
         if (xQueueReceive(uartRxQueue, &rxBuffer, portMAX_DELAY) != pdTRUE) {
             ERROR_PRINT("Error Receiving from UART Rx Queue\n");
-            Error_Handler();
+            handleError();
         }
 
         if( rxBuffer == '\n' )

@@ -52,7 +52,6 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -67,6 +66,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -98,8 +98,8 @@ void Error_Handler(void);
 #define BTN_ENDURANCE_TOGGLE_READ_EXTI_IRQn EXTI4_15_IRQn
 #define IMD_LED_EN_Pin GPIO_PIN_0
 #define IMD_LED_EN_GPIO_Port GPIOB
-#define AMS_LED_RED_EN_Pin GPIO_PIN_1
-#define AMS_LED_RED_EN_GPIO_Port GPIOB
+#define AMS_LED_EN_Pin GPIO_PIN_1
+#define AMS_LED_EN_GPIO_Port GPIOB
 #define BUZZER_EN_Pin GPIO_PIN_2
 #define BUZZER_EN_GPIO_Port GPIOB
 #define BTN_TC_READ_Pin GPIO_PIN_10
@@ -128,12 +128,8 @@ void Error_Handler(void);
 #define HV_LED_EN_GPIO_Port GPIOB
 #define EV_LED_EN_Pin GPIO_PIN_4
 #define EV_LED_EN_GPIO_Port GPIOB
-#define MOT_LED_RED_EN_Pin GPIO_PIN_5
-#define MOT_LED_RED_EN_GPIO_Port GPIOB
-#define MOT_LED_GR_EN_Pin GPIO_PIN_6
-#define MOT_LED_GR_EN_GPIO_Port GPIOB
-#define AMS_LED_GR_EN_Pin GPIO_PIN_7
-#define AMS_LED_GR_EN_GPIO_Port GPIOB
+#define MOT_LED_EN_Pin GPIO_PIN_5
+#define MOT_LED_EN_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
