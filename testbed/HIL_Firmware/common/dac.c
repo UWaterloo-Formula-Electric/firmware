@@ -7,7 +7,6 @@
 #include "driver/twai.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
-#include "driver/spi_master.h"
 #include "driver/dac_oneshot.h"
 
 spi_device_handle_t throttle_A;
@@ -77,7 +76,6 @@ int setDacVoltage(float voltage)
 
 int set6551Voltage (float voltage, dacID id)
 {
-
     //above 4095, set to 4095, below 0 set to 0 
     if(voltage>VREF || voltage<0)
     {

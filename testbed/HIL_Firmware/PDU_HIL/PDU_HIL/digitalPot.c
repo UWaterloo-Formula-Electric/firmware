@@ -5,7 +5,6 @@
 #include "driver/twai.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
-#include "driver/spi_master.h"
 #include "esp_err.h"
 #include "digitalPot.h"
 #include "userInit.h"
@@ -20,9 +19,9 @@ int setPotResitance (uint32_t resistance)
     {
         resistance = POT_MAX;
     }
-    else if (resistance < POT_MIN)
+    else if (resistance < WIPER_RESISTANCE_OHM)
     {
-        resistance = POT_MIN;
+        resistance = WIPER_RESISTANCE_OHM;
     }
 
     out_value = ((resistance - WIPER_RESISTANCE_OHM)/NOMINAL_RESISTANCE_OHM)*MAX_DIGITAL_VALUE;
