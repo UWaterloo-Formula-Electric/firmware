@@ -47,7 +47,7 @@ BO_ 2282098449 VCU_Message_status: 1 VCU_HIL
  SG_ Throttle_A_status : 3|1@1+ (1,0) [0|1] ""  Computer
  SG_ Steering_status : 2|1@1+ (1,0) [0|1] ""  Computer
  SG_ Brake_pos_status : 1|1@1+ (1,0) [0|1] ""  Computer
- SG_ Brake_Pres_status : 0|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Brake_pres_status : 0|1@1+ (1,0) [0|1] ""  Computer
 
 BO_ 2214924559 Steering_raw: 2 Computer
  SG_ Steering_raw : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
@@ -56,7 +56,7 @@ BO_ 2214859023 Brake_position: 2 Computer
  SG_ Brake_position : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
 
 BO_ 2214793487 Brake_pres_raw: 2 Computer
- SG_ Brake_Pres_Raw : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+ SG_ Brake_pres_raw : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
 
 BO_ 2214727951 Throttle_position_B: 2 Computer
  SG_ Throttle_position_B : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL

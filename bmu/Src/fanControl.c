@@ -29,7 +29,6 @@
 uint32_t calculateFanPeriod()
 {
   // PWM Output is inverted from what we generate from PROC
-
   // Full fan while charging
   if (fsmGetState(&fsmHandle) == STATE_Charging || fsmGetState(&fsmHandle) == STATE_Balancing) {
     /*DEBUG_PRINT("Charging fans\n");*/

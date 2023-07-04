@@ -2,11 +2,11 @@
 #include "dac.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_err.h"
 #include "esp_system.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
-#include "driver/spi_master.h"
 #include "driver/dac_oneshot.h"
 
 spi_device_handle_t throttle_A;
@@ -14,7 +14,8 @@ spi_device_handle_t throttle_B;
 spi_device_handle_t brake_pos;
 spi_device_handle_t steer_raw;
 
-twai_message_t message_status = {
+twai_message_t message_status = 
+{
     .identifier = 0x8060F11,
     .extd = 1,
     .data_length_code = 1,
@@ -27,19 +28,25 @@ const double STEPV8 = (VREF/1000)/MAXSTEPS8;
 static bool channel1=false;
 
 static dac_oneshot_handle_t chan0_handle;
-static dac_oneshot_config_t chan0_cfg = {
+static dac_oneshot_config_t chan0_cfg = 
+{
     .chan_id = DAC_CHAN_0,
 };
 
 int setDacVoltage(float voltage)
 {
+    esp_err_t fault = 0;
+
     //above Vref, set to Vref, below 0 set to 0 
-    if(voltage>VREF || voltage<0){
-        if(voltage>VREF){
+    if(voltage>VREF || voltage<0)
+    {
+        if(voltage>VREF)
+        {
             printf("voltage too high\n");
             voltage=VREF;
         }
-        else{
+        else
+        {
             voltage=0;
         }
     }
@@ -47,50 +54,37 @@ int setDacVoltage(float voltage)
     uint8_t Vout=(voltage/1000)/STEPV8;
     
     //checking if channel already initialized
-    if(channel1==false){
+    if(channel1==false)
+    {
         dac_oneshot_new_channel(&chan0_cfg, &chan0_handle);
         channel1 = true;
     }
     
-    ESP_ERROR_CHECK(dac_oneshot_output_voltage(chan0_handle,Vout));
+    fault = dac_oneshot_output_voltage(chan0_handle,Vout);
+    if(fault==ESP_OK)
+    {
+        message_status.data[0] = 1;
+        twai_transmit(&message_status,portMAX_DELAY);
+        printf("setting voltage to %fV in channel 1\n", voltage); 
 
-    printf("setting voltage to %fV in channel 1\n", voltage);
-    return ESP_OK;
-}
-
-int deleteChannel(uint32_t channel)
-{
-    if(channel != 2 && channel != 1){
-        printf("Error! expecting channel 1 or 2!\n");
-
-        return ESP_ERR_INVALID_ARG;
+        return ESP_OK;  
     }
-
-    if(channel==1){
-        if(channel1==true){
-
-            dac_oneshot_del_channel(chan0_handle);
-            channel1 = false;
-            printf("channel %ld has been deleted\n", channel);
-            return ESP_OK;
-        }
-        printf("ERROR! cannot delete channel that is not allocated\n");
-        return ESP_ERR_INVALID_STATE;
-    }
-
-    printf("ERROR! cannot delete channel that is not allocated\n");
     
+    printf("Failed to set brake pres raw\r\n");
     return ESP_FAIL;
 }
 
-int set6551Voltage (float voltage, uint32_t id){
-
+int set6551Voltage (float voltage, dacID id)
+{
     //above 4095, set to 4095, below 0 set to 0 
-    if(voltage>VREF || voltage<0){
-        if(voltage>VREF){
+    if(voltage>VREF || voltage<0)
+    {
+        if(voltage>VREF)
+        {
             voltage=VREF;
         }
-        else{
+        else
+        {
             voltage=0;
         }
     }
@@ -104,7 +98,8 @@ int set6551Voltage (float voltage, uint32_t id){
     uint8_t Byte2 = Vout<<4;
 
     //data is less than 32 bits so must set each individual byte in tx_data and set SPI_TRANS_USE_TXDATA
-    spi_transaction_t trans = {
+    spi_transaction_t trans = 
+    {
         .tx_data [0] = BYTE0,
         .tx_data [1] = Byte1,
         .tx_data [2] = Byte2,
@@ -114,24 +109,29 @@ int set6551Voltage (float voltage, uint32_t id){
 
     esp_err_t fault = 0;
 
-    if(id == brakePos_ID){
+    if(id == brakePos_ID)
+    {
         fault = spi_device_transmit(brake_pos, &trans);
         message_status.data[0] = 2;
     }
-    else if(id == throttleA_ID){
+    else if(id == throttleA_ID)
+    {
         fault = spi_device_transmit(throttle_A, &trans);
         message_status.data[0] = 8;
     }
-    else if(id  == throttleB_ID){
+    else if(id  == throttleB_ID)
+    {
         fault = spi_device_transmit(throttle_B, &trans);
         message_status.data[0] = 16;
     }
-    else if(id  == steerRaw_ID){
+    else if(id  == steerRaw_ID)
+    {
         fault = spi_device_transmit(steer_raw, &trans);
         message_status.data[0] = 4;
     }
 
-    if(fault != ESP_OK){
+    if(fault != ESP_OK)
+    {
         printf("Failed transmit data\n");
         return ESP_FAIL;
     }

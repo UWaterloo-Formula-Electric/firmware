@@ -35,17 +35,6 @@ void powerTask(void *pvParameters)
             {
                 DEBUG_PRINT("switched to DC to DC\n");
             }
-            else
-            {
-                if(fsmGetState(&coolingFsmHandle) == COOL_STATE_ON){
-                    fsmSendEvent(&motorFsmHandle, COOL_EV_EM_DISABLE, portMAX_DELAY);
-                }
-                if(fsmGetState(&motorFsmHandle) == MTR_STATE_Motors_On){
-                    fsmSendEvent(&motorFsmHandle, MTR_EV_EM_DISABLE, portMAX_DELAY);
-                }
-                sendDTC_ERROR_DCDC_Shutoff();
-                DEBUG_PRINT("Switched to battery\n");
-            }
             DC_DC_state = newDCDCState;
         }
         watchdogTaskCheckIn(5);

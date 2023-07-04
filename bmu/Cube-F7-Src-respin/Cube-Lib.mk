@@ -48,7 +48,6 @@ Src/tim.c \
 Src/usart.c \
 Src/stm32f7xx_it.c \
 Src/stm32f7xx_hal_msp.c \
-Src/stm32f7xx_hal_timebase_tim.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \

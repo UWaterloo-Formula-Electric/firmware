@@ -6,6 +6,5 @@
 
 bool getHvEnableState();
 bool getMotorControllersStatus();
-uint32_t lastBrakeValReceiveTimeTicks;
 
 #endif /* USER_CAN_H_ */

@@ -22,7 +22,6 @@
 #include "cmsis_os.h"
 #include "adc.h"
 #include "can.h"
-#include "crc.h"
 #include "dma.h"
 #include "iwdg.h"
 #include "tim.h"
@@ -108,7 +107,6 @@ int main(void)
   MX_ADC1_Init();
   MX_IWDG_Init();
   MX_TIM6_Init();
-  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
@@ -205,7 +203,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  _handleError(__FILE__, __LINE__);
+  	handleError();
   /* USER CODE END Error_Handler_Debug */
 }
 
