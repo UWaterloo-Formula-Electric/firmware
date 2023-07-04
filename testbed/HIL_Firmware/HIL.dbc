@@ -36,10 +36,13 @@ BS_:
 BU_: Computer PDU_HIL VCU_HIL
 
 
+BO_ 2281836306 PDU_message_status: 1 PDU_HIL
+ SG_ Batt_thermistor_status : 0|1@1+ (1,0) [0|1] ""  Computer
+
 BO_ 2214662671 Batt_thermistor: 3 Computer
  SG_ Batt_thermistor : 0|18@1+ (1,0) [60|200060] "Ohm"  PDU_HIL
 
-BO_ 2282098449 Message_status: 1 VCU_HIL
+BO_ 2282098449 VCU_Message_status: 1 VCU_HIL
  SG_ Throttle_B_status : 4|1@1+ (1,0) [0|1] ""  Computer
  SG_ Throttle_A_status : 3|1@1+ (1,0) [0|1] ""  Computer
  SG_ Steering_status : 2|1@1+ (1,0) [0|1] ""  Computer
