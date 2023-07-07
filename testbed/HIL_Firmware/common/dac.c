@@ -16,7 +16,7 @@ spi_device_handle_t steer_raw;
 
 twai_message_t message_status = 
 {
-    .identifier = 0x8060F11,
+    .identifier = 0x8060F02,
     .extd = 1,
     .data_length_code = 1,
 };

@@ -25,7 +25,7 @@ void process_rx_task (void * pvParameters)
 
         switch (can_msg.identifier)
         {
-            case 67375375:     //Brake position
+            case 0x404020F:     //Brake position
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
@@ -34,7 +34,7 @@ void process_rx_task (void * pvParameters)
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, brakePos_ID);
                 break;
-            case 67309839:     //Brake pres raw
+            case 0x403020F:     //Brake pres raw
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
@@ -43,7 +43,7 @@ void process_rx_task (void * pvParameters)
                 dbyte2 &= dbyte1;
                 setDacVoltage(dbyte2);
                 break;
-            case 67178767:     //Throttle A 
+            case 0x401020F:     //Throttle A 
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
@@ -52,7 +52,7 @@ void process_rx_task (void * pvParameters)
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, throttleA_ID);
                 break;
-            case 67244303:     //Throttle B
+            case 0x402020F:     //Throttle B
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
@@ -61,7 +61,7 @@ void process_rx_task (void * pvParameters)
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, throttleB_ID);
                 break;
-            case 67440911:     //Steer Raw
+            case 0x405020F:     //Steer Raw
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;

@@ -13,7 +13,7 @@
 
 twai_message_t message_status = 
 {
-    .identifier = 0x8020F12,
+    .identifier = 0x8020F03,
     .extd = 1,
     .data_length_code = 1,
 };

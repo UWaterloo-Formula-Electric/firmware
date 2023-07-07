@@ -26,7 +26,7 @@ void process_rx_task (void * pvParameters)
 
         switch (can_msg.identifier)
         {
-            case 67179023: //Battery Thermistor
+            case 0x401030f: //Battery Thermistor
                 dByte0 = can_msg.data[0];
                 dByte1 = can_msg.data[1];
                 dByte2 = can_msg.data[2];
