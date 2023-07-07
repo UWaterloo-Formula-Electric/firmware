@@ -11,6 +11,7 @@
 #include "canReceive.h"
 #include "userInit.h"
 #include "processCAN.h"
+#include "digitalPot.h"
 
 spi_device_handle_t pot;
 
@@ -103,7 +104,7 @@ int spi_init(void)
     };
 
     spi_device_interface_config_t POTcfg={
-        .clock_speed_hz=20*1000*1000,           //Clock out at 10 MHz
+        .clock_speed_hz=25*1000*1000,           //Clock out at 25 MHz
         .mode=0,                                //SPI mode 0
         .spics_io_num=POT_CS,                   //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time
@@ -121,13 +122,14 @@ int spi_init(void)
         printf("failed to init device\n");
     }
 
+    setPotResistance(0);
+
     return ESP_OK;
 }
 
 void app_main(void)
 {
-    taskRegister();
     CAN_init();
     spi_init();
-
+    taskRegister();
 }

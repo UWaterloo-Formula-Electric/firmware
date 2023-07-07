@@ -37,7 +37,7 @@ void process_rx_task (void * pvParameters)
                 dByte2 = dByte2 << 16;
                 dByte2 |= 0b000000001111111111111111;
                 dByte2 &= dByte1;
-                setPotResitance(dByte2);
+                setPotResistance(dByte2);
                 break;
             default:
                 break;

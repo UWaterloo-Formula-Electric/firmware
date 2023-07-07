@@ -8,6 +8,6 @@
 #define LSB_OHM ((1*NOMINAL_RESISTANCE_OHM)/MAX_DIGITAL_VALUE+WIPER_RESISTANCE_OHM) //841 OHM
 #define POT_MAX NOMINAL_RESISTANCE_OHM-LSB_OHM+WIPER_RESISTANCE_OHM //199,219 OHM
 
-int setPotResitance (uint32_t resistance);
+int setPotResistance (uint32_t resistance);
 
 #endif

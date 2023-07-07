@@ -18,7 +18,7 @@ twai_message_t message_status =
     .data_length_code = 1,
 };
 
-int setPotResitance (uint32_t resistance)
+int setPotResistance (uint32_t resistance)
 {
     uint8_t out_value = 0;
 
