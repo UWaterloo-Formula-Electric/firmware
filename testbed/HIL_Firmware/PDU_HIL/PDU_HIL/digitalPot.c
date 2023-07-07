@@ -11,6 +11,13 @@
 
 //Digital pot being used https://www.analog.com/media/en/technical-documentation/data-sheets/AD5260_5262.pdf
 
+twai_message_t message_status = 
+{
+    .identifier = 0x8020F12,
+    .extd = 1,
+    .data_length_code = 1,
+};
+
 int setPotResitance (uint32_t resistance)
 {
     uint8_t out_value = 0;
@@ -24,7 +31,12 @@ int setPotResitance (uint32_t resistance)
         resistance = WIPER_RESISTANCE_OHM;
     }
 
-    out_value = ((resistance - WIPER_RESISTANCE_OHM)/NOMINAL_RESISTANCE_OHM)*MAX_DIGITAL_VALUE;
+    //print statements for debugging, will be removed
+    printf("resistance is %ld\r\n", resistance);
+
+    out_value = ((resistance - WIPER_RESISTANCE_OHM)*MAX_DIGITAL_VALUE)/NOMINAL_RESISTANCE_OHM;
+
+    printf("digi value is %d\r\n", out_value);
 
     spi_transaction_t trans = {
         .tx_data [0] = out_value,
@@ -35,12 +47,14 @@ int setPotResitance (uint32_t resistance)
     esp_err_t fault = 0;
 
     fault = spi_device_transmit(pot, &trans);
+    message_status.data[0] = 1;
     if(fault != ESP_OK)
     {
         printf("Failed transmit data\n");
         return ESP_FAIL;
     }
 
+    twai_transmit(&message_status, portMAX_DELAY);
     return ESP_OK;
 
 }
