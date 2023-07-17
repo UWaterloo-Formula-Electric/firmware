@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include "dac.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "esp_err.h"
-#include "esp_system.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
-#include "driver/gpio.h"
 #include "driver/dac_oneshot.h"
 
 spi_device_handle_t throttle_A;
@@ -14,8 +11,7 @@ spi_device_handle_t throttle_B;
 spi_device_handle_t brake_pos;
 spi_device_handle_t steer_raw;
 
-twai_message_t message_status = 
-{
+twai_message_t message_status = {
     .identifier = 0x8060F02,
     .extd = 1,
     .data_length_code = 1,
@@ -28,8 +24,7 @@ const double STEPV8 = (VREF/1000)/MAXSTEPS8;
 static bool channel1=false;
 
 static dac_oneshot_handle_t chan0_handle;
-static dac_oneshot_config_t chan0_cfg = 
-{
+static dac_oneshot_config_t chan0_cfg = {
     .chan_id = DAC_CHAN_0,
 };
 
@@ -76,7 +71,7 @@ int setDacVoltage(float voltage)
 
 int set6551Voltage (float voltage, dacID id)
 {
-    //above 4095, set to 4095, below 0 set to 0 
+    //clamp values
     if(voltage>VREF || voltage<0)
     {
         if(voltage>VREF)
