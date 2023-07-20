@@ -11,8 +11,11 @@ spi_device_handle_t throttle_B;
 spi_device_handle_t brake_pos;
 spi_device_handle_t steer_raw;
 
+//retain 4 least significant bits
+static uint8_t Vout_mask = 0X0F;
+
 twai_message_t message_status = {
-    .identifier = 0x8060F02,
+    .identifier = MESSAGE_STATUS,
     .extd = 1,
     .data_length_code = 1,
 };
@@ -33,7 +36,7 @@ int setDacVoltage(float voltage)
     esp_err_t fault = 0;
 
     //above Vref, set to Vref, below 0 set to 0 
-    if(voltage>VREF || voltage<0)
+    if(voltage > VREF || voltage < 0)
     {
         if(voltage>VREF)
         {
@@ -55,11 +58,11 @@ int setDacVoltage(float voltage)
         channel1 = true;
     }
     
-    fault = dac_oneshot_output_voltage(chan0_handle,Vout);
-    if(fault==ESP_OK)
+    fault = dac_oneshot_output_voltage(chan0_handle, Vout);
+    if(fault == ESP_OK)
     {
         message_status.data[0] = 1;
-        twai_transmit(&message_status,portMAX_DELAY);
+        twai_transmit(&message_status, portMAX_DELAY);
         printf("setting voltage to %fV in channel 1\n", voltage); 
 
         return ESP_OK;  
@@ -72,15 +75,15 @@ int setDacVoltage(float voltage)
 int set6551Voltage (float voltage, dacID id)
 {
     //clamp values
-    if(voltage>VREF || voltage<0)
+    if(voltage > VREF || voltage < 0)
     {
-        if(voltage>VREF)
+        if(voltage > VREF)
         {
-            voltage=VREF;
+            voltage = VREF;
         }
         else
         {
-            voltage=0;
+            voltage = 0;
         }
     }
     
@@ -89,7 +92,7 @@ int set6551Voltage (float voltage, dacID id)
     
     //D11 to D4 are placed into a second byte, while truncading the last 4 bits of data
     uint8_t Byte1 = Vout>>4;
-    Vout &= 0b00001111;
+    Vout &= Vout_mask;
     uint8_t Byte2 = Vout<<4;
 
     //data is less than 32 bits so must set each individual byte in tx_data and set SPI_TRANS_USE_TXDATA
@@ -104,25 +107,26 @@ int set6551Voltage (float voltage, dacID id)
 
     esp_err_t fault = 0;
 
-    if(id == brakePos_ID)
+    switch (id)
     {
-        fault = spi_device_transmit(brake_pos, &trans);
-        message_status.data[0] = 2;
-    }
-    else if(id == throttleA_ID)
-    {
-        fault = spi_device_transmit(throttle_A, &trans);
-        message_status.data[0] = 8;
-    }
-    else if(id  == throttleB_ID)
-    {
-        fault = spi_device_transmit(throttle_B, &trans);
-        message_status.data[0] = 16;
-    }
-    else if(id  == steerRaw_ID)
-    {
-        fault = spi_device_transmit(steer_raw, &trans);
-        message_status.data[0] = 4;
+        case brakePos_ID:
+            fault = spi_device_transmit(brake_pos, &trans);
+            message_status.data[0] = BRAKE_POS_IS_SET;
+            break;
+        case steerRaw_ID:
+            fault = spi_device_transmit(steer_raw, &trans);
+            message_status.data[0] = STEER_RAW_IS_SET;
+            break;
+        case throttleA_ID:
+            fault = spi_device_transmit(throttle_A, &trans);
+            message_status.data[0] = THROTTLE_A_IS_SET;
+            break;
+        case throttleB_ID:
+            fault = spi_device_transmit(throttle_B, &trans);
+            message_status.data[0] = THROTTLE_B_IS_SET;
+            break;
+        default:
+            break;
     }
 
     if(fault != ESP_OK)
@@ -131,6 +135,6 @@ int set6551Voltage (float voltage, dacID id)
         return ESP_FAIL;
     }
     
-    twai_transmit(&message_status,portMAX_DELAY);
+    twai_transmit(&message_status, portMAX_DELAY);
     return ESP_OK;
 }

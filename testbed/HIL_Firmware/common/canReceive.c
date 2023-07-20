@@ -9,13 +9,13 @@
 twai_message_t rx_msg;
 twai_message_t can_msg;
 
-QueueHandle_t rx_vcu_hil;
-QueueHandle_t rx_pdu_hil;
+QueueHandle_t vcu_hil_queue;
+QueueHandle_t pdu_hil_queue;
 
 void can_rx_task (void * pvParameters){
 
-    rx_vcu_hil = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
-    rx_pdu_hil = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
+    vcu_hil_queue = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
+    pdu_hil_queue = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
@@ -29,7 +29,7 @@ void can_rx_task (void * pvParameters){
         }
         
         #ifdef VCU_HIL_ID
-            error = xQueueSend(rx_vcu_hil, &rx_msg, portMAX_DELAY);
+            error = xQueueSend(vcu_hil_queue, &rx_msg, portMAX_DELAY);
             if(error != pdPASS)
             {
                 printf("failed to send message to VCU HIL\n");
@@ -37,7 +37,7 @@ void can_rx_task (void * pvParameters){
         #endif
         
         #ifdef PDU_HIL_ID
-            error = xQueueSend(rx_pdu_hil, &rx_msg, portMAX_DELAY);
+            error = xQueueSend(pdu_hil_queue, &rx_msg, portMAX_DELAY);
             if(error != pdPASS)
             {
                 printf("failed to send message to PDU HIL\n");

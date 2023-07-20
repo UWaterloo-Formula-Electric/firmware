@@ -12,58 +12,62 @@
 static uint16_t dbyte1;
 static uint16_t dbyte2;
 
+//reassemble data into a 16 bit uint to pass in desired voltage into set dac function
+static uint16_t dbyte2_mask = 0x00FF;
+static uint16_t dbyte1_mask = 0xFF00;
+
 void process_rx_task (void * pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while(1)
     {
-        xQueueReceive(rx_vcu_hil, &can_msg, portMAX_DELAY);
+        xQueueReceive(vcu_hil_queue, &can_msg, portMAX_DELAY);
 
         switch (can_msg.identifier)
         {
-            case 0x404020F:     //Brake position
+            case BRAKE_POS:     //Brake position
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
-                dbyte2 |= 0b0000000011111111;
-                dbyte1 |= 0b1111111100000000;
+                dbyte2 |= dbyte2_mask;
+                dbyte1 |= dbyte1_mask;
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, brakePos_ID);
                 break;
-            case 0x403020F:     //Brake pres raw
+            case BRAKE_PRES_RAW:     //Brake pres raw
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
-                dbyte2 |= 0b0000000011111111;
-                dbyte1 |= 0b1111111100000000;
+                dbyte2 |= dbyte2_mask;
+                dbyte1 |= dbyte1_mask;
                 dbyte2 &= dbyte1;
                 setDacVoltage(dbyte2);
                 break;
-            case 0x401020F:     //Throttle A 
+            case THROTTLE_A:     //Throttle A 
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
-                dbyte2 |= 0b0000000011111111;
-                dbyte1 |= 0b1111111100000000;
+                dbyte2 |= dbyte2_mask;
+                dbyte1 |= dbyte1_mask;
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, throttleA_ID);
                 break;
-            case 0x402020F:     //Throttle B
+            case THROTTLE_B:     //Throttle B
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
-                dbyte2 |= 0b0000000011111111;
-                dbyte1 |= 0b1111111100000000;
+                dbyte2 |= dbyte2_mask;
+                dbyte1 |= dbyte1_mask;
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, throttleB_ID);
                 break;
-            case 0x405020F:     //Steer Raw
+            case STEER_RAW:     //Steer Raw
                 dbyte1 = can_msg.data[0];
                 dbyte2 = can_msg.data[1];
                 dbyte2 = dbyte2 << 8;
-                dbyte2 |= 0b0000000011111111;
-                dbyte1 |= 0b1111111100000000;
+                dbyte2 |= dbyte2_mask;
+                dbyte1 |=dbyte1_mask;
                 dbyte2 &= dbyte1;
                 set6551Voltage(dbyte2, steerRaw_ID);
                 break;
