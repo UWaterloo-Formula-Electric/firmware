@@ -4,6 +4,8 @@
 #define PIN_NUM_CLK 39
 #define PIN_NUM_MOSI 40
 #define POT_CS 41
+#define POT_NSHUTDOWN 17 // Active Low
+#define POT_NSET_MID 18  // Active Low
 
 #include "driver/spi_master.h"
 

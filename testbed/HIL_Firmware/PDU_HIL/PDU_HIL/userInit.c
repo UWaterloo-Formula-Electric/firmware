@@ -18,8 +18,9 @@ spi_device_handle_t pot;
 void taskRegister (void)
 {
     BaseType_t xReturned;
-    TaskHandle_t can_rx;
-    TaskHandle_t can_process;
+    TaskHandle_t can_rx_task_handler;
+    TaskHandle_t can_process_task_handler;
+    TaskHandle_t pot_task_handler;
 
     xReturned = xTaskCreate(
         can_rx_task,
@@ -27,7 +28,7 @@ void taskRegister (void)
         4000,
         ( void * ) 1,
         configMAX_PRIORITIES-1,
-        &can_rx
+        &can_rx_task_handler
     );
 
     if(xReturned != pdPASS)
@@ -41,12 +42,26 @@ void taskRegister (void)
         4000,
         ( void * ) 1,
         configMAX_PRIORITIES-1,
-        &can_process
+        &can_process_task_handler
     );
 
     if(xReturned != pdPASS)
     {
         printf("Failed to register process_rx_task to RTOS");
+    }
+
+    xReturned = xTaskCreate(
+        pot_task,
+        "POT_TASK",
+        4000,
+        ( void * ) 1,
+        configMAX_PRIORITIES-1,
+        &pot_task_handler
+    );
+
+    if(xReturned != pdPASS)
+    {
+        printf("Failed to register pot_task to RTOS");
     }
 }
 
@@ -122,14 +137,23 @@ int spi_init(void)
         printf("failed to init device\n");
     }
 
-    setPotResistance(0);
-
     return ESP_OK;
+}
+
+void pot_init(void)
+{
+    gpio_set_direction(POT_NSHUTDOWN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(POT_NSET_MID, GPIO_MODE_OUTPUT);
+    gpio_set_level(POT_NSHUTDOWN, 1);   //Active low signal
+    gpio_set_level(POT_NSET_MID, 1);    //Active low signal
+
+    setPotResistance(0);
 }
 
 void app_main(void)
 {
     CAN_init();
     spi_init();
+    pot_init();
     taskRegister();
 }
