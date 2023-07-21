@@ -81,5 +81,5 @@ void DTC_Fatal_Callback(BoardIDs board)
 }
 
 void CAN_Msg_UartOverCanConfig_Callback() {
-    isUartOverCanEnabled = isUartOverCanEnabled & 0x8;
+    isUartOverCanEnabled = UartOverCanConfigSignal & 0x8;
 }
