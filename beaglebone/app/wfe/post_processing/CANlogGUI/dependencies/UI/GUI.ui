@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>436</width>
+    <width>582</width>
     <height>433</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>20</x>
      <y>130</y>
-     <width>221</width>
+     <width>361</width>
      <height>251</height>
     </rect>
    </property>
@@ -31,7 +31,7 @@
   <widget class="QPushButton" name="SelectFile">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>270</x>
      <y>90</y>
      <width>105</width>
      <height>32</height>
@@ -59,7 +59,7 @@
     <rect>
      <x>20</x>
      <y>30</y>
-     <width>221</width>
+     <width>361</width>
      <height>51</height>
     </rect>
    </property>
@@ -67,7 +67,7 @@
   <widget class="QPushButton" name="GraphBtn">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>450</x>
      <y>390</y>
      <width>113</width>
      <height>32</height>
@@ -77,10 +77,10 @@
     <string>Graph</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>260</x>
+     <x>400</x>
      <y>10</y>
      <width>161</width>
      <height>349</height>
