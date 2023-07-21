@@ -19,3 +19,20 @@ where <path_to_bulk_tests>.txt looks like this:
 tests/path_to_test1.py
 tests/path_to_test2.py
 """
+
+How to run tests
+----------------
+Setup slcan:
+"sudo -dmesg -w" // which dev port to use, its usually ttyACMXX where XX is a number
+"sudo slcand -l -s6 -S 230400 /dev/ttyACMXX"
+"sudo ip link set up slcan0"
+
+There is a python script called setup_can.py that automatically sets up the slcan0 bus.
+Execute it like this:
+"sudo su" in firmware/testbed folder // need to be super user to Execute
+"python setup_can.py"
+
+Run a test:
+"sudo su" in firmware/testbed
+"whereis slash" // I can't remember where it is currently located (TODO make this part of path)
+"path/to/slash run tests/test_can.py --testbed VehicleHIL"
