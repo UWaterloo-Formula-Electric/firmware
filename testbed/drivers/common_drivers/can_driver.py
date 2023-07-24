@@ -1,17 +1,20 @@
 import cantools
 from drivers.common_drivers.driver import TestbedDriver
+from drivers.dtc_logger import DTCLogger
 import can
 from slash import logger
 import slash
+from typing import Dict, Callable
 from can.interfaces.socketcan.socketcan import SocketcanBus
 
 
 class CANListener(can.Listener):
-    def __init__(self):
+    def __init__(self, dtc_logger: DTCLogger = None):
         super().__init__()
-        self.callbacks = {}
+        self.callbacks: Dict[int, Callable] = {}
+        self.dtc_logger = dtc_logger
         self._enabled = False
-
+        
     def register_callback(self, board_id, func_callback):
         assert board_id not in self.callbacks
         self.callbacks[board_id] = func_callback
@@ -20,14 +23,22 @@ class CANListener(can.Listener):
         if not self._enabled:
             return
         board_id = msg.arbitration_id & 0xff
-        assert board_id in self.callbacks, f"{board_id} not in {self.callbacks}, can_id: {hex(msg.arbitration_id)}"
-        self.callbacks[board_id](msg)
+        
+        priority_mask = 0b111 << 26
+        is_dtc = (msg.arbitration_id & priority_mask) == 0
+        
+        if is_dtc and self.dtc_logger is not None:
+            self.dtc_logger.log_dtc(msg)
+        else:
+            assert board_id in self.callbacks, f"{board_id} not in {self.callbacks}, can_id: {hex(msg.arbitration_id)}"
+            self.callbacks[board_id](msg)
 
     def enable(self):
         self._enabled = True
     
     def disable(self):
         self._enabled = False
+
 
 
 class CANDriver(TestbedDriver):
@@ -76,6 +87,7 @@ class VehicleBoard(CANDriver):
         self._bus = slash.g.vehicle_bus
         self.db = slash.g.vehicle_db
         slash.g.vehicle_listener.register_callback(self.can_id, self.can_msg_rx)
+        self.dtc_logger = slash.g.vehicle_dtc_logger # So the user can access in tests
 
 
 class HILBoard(CANDriver):

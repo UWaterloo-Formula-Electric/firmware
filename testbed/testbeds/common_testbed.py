@@ -1,5 +1,5 @@
 import time
-from typing import List, Callable
+from typing import List, Callable, Dict
 import cantools
 import slash
 from can.interfaces.socketcan.socketcan import SocketcanBus
@@ -15,9 +15,9 @@ class HWManifestItem:
     @classObj: Class object of the board driver, ex: VCU
     '''
 
-    def __init__(self, name: str, can_id: int):
-        self.name = name
-        self.can_id = can_id
+    def __init__(self, name: str, can_id_enum):
+        self.name: str = name
+        self.can_id: int = can_id_enum.value
 
     def __repr__(self) -> str:
         return f"HWManifestItem(name={self.name}, can_id={self.can_id})"
@@ -38,7 +38,7 @@ class Testbed:
             slash.g.vehicle_bus = VectorBus(channel=1)
             assert slash.g.vehicle_bus is not None, "Vehicle bus not initialized"
 
-            slash.g.vehicle_listener = CANListener()
+            slash.g.vehicle_listener = CANListener(dtc_logger=slash.g.vehicle_dtc_logger)
             slash.g.vehicle_listener.disable()
             can.Notifier(slash.g.vehicle_bus, [slash.g.vehicle_listener])
 

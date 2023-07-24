@@ -1,5 +1,6 @@
 import slash
 from testbeds.common_testbed import Testbed, HWManifestItem
+from hil_constants import VehicleBoardId, HilBoardId
 
 class HILTestbed(Testbed):
     pass
@@ -7,24 +8,24 @@ class HILTestbed(Testbed):
 
 class VehicleHIL(HILTestbed):
     vehicle_manifest = [
-        HWManifestItem("bmu", 1),
-        HWManifestItem("vcu", 2),
-        HWManifestItem("pdu", 3),
-        HWManifestItem("charge_cart", 4),
-        HWManifestItem("motor_l", 5),
-        HWManifestItem("motor_r", 6),
-        HWManifestItem("dcu", 7),
-        HWManifestItem("wsb_fl", 8),
-        HWManifestItem("wsb_fr", 9),
-        HWManifestItem("wsb_rl", 10),
-        HWManifestItem("wsb_rr", 11),
-        HWManifestItem("beaglebone", 12),
-        HWManifestItem("imu", 13),
-        HWManifestItem("charger", 14),
-        HWManifestItem("debug", 15),
+        HWManifestItem("bmu", VehicleBoardId.BMU),
+        HWManifestItem("vcu", VehicleBoardId.VCU),
+        HWManifestItem("pdu", VehicleBoardId.PDU),
+        HWManifestItem("charge_cart", VehicleBoardId.CHARGE_CART),
+        HWManifestItem("motor_l", VehicleBoardId.MOTOR_L),
+        HWManifestItem("motor_r", VehicleBoardId.MOTOR_R),
+        HWManifestItem("dcu", VehicleBoardId.DCU),
+        HWManifestItem("wsb_fl", VehicleBoardId.WSB_FL),
+        HWManifestItem("wsb_fr", VehicleBoardId.WSB_FR),
+        HWManifestItem("wsb_rl", VehicleBoardId.WSB_RL),
+        HWManifestItem("wsb_rr", VehicleBoardId.WSB_RR),
+        HWManifestItem("beaglebone", VehicleBoardId.BEAGLEBONE),
+        HWManifestItem("imu", VehicleBoardId.IMU),
+        HWManifestItem("charger", VehicleBoardId.CHARGER),
+        HWManifestItem("debug", VehicleBoardId.DEBUG),
     ]
     hil_manifest = [
-        HWManifestItem("vcu_hil", 0x2),
+        HWManifestItem("vcu_hil", HilBoardId.VCU_HIL),
     ]
     
 
