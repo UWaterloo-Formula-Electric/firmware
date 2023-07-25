@@ -1,6 +1,8 @@
 #ifndef PDU_OUTPUTS_H
 #define PDU_OUTPUTS_H
 
+#define RELAY_PDU_OUTPUT_INTERVAL 100
+
 #define POW_AUX 7
 #define POW_BRAKE_LIGHT 15
 #define BATTERY_RAW 16
@@ -16,7 +18,7 @@
 
 #define RELAY_PDU_OUTPUTS 0x8030F03
 
-void relayPduOutputs(void*);
+void relayPduOutputs(void * pvParameters);
 extern void (*relayPduPtr)(void*);
 
 typedef enum pdu_out_status_bits{

@@ -5,7 +5,6 @@
 #include "esp_err.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
-#include "esp_intr_alloc.h"
 #include "canReceive.h"
 #include "userInit.h"
 #include "processCAN.h"
@@ -19,7 +18,7 @@ void taskRegister (void)
     BaseType_t xReturned;
     TaskHandle_t can_rx_task_handler;
     TaskHandle_t can_process_task_handler;
-    TaskHandle_t pot_task_handler;
+    TaskHandle_t relay_pdu_outputs_handler;
 
     xReturned = xTaskCreate(
         can_rx_task,
@@ -47,6 +46,20 @@ void taskRegister (void)
     if(xReturned != pdPASS)
     {
         printf("Failed to register process_rx_task to RTOS");
+    }
+
+    xReturned = xTaskCreate(
+        relayPduOutputs,
+        "CAN_PROCESS_TASK",
+        4000,
+        ( void * ) 1,
+        configMAX_PRIORITIES-1,
+        &relay_pdu_outputs_handler
+    );
+
+    if(xReturned != pdPASS)
+    {
+        printf("Failed to register relayPduOutputs to RTOS");
     }
 }
 
@@ -149,21 +162,6 @@ void pdu_input_init(void)
     gpio_set_direction(POW_RIGHT_PUMP, GPIO_MODE_INPUT);
     gpio_set_direction(POW_VCU, GPIO_MODE_INPUT);
     gpio_set_direction(BATTERY_RAW, GPIO_MODE_INPUT);
-
-    gpio_set_intr_type(POW_AUX,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_BMU,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_BRAKE_LIGHT,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_DCU,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_LEFT_FAN,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_LEFT_PUMP,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_MC_LEFT,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_MC_RIGHT,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_RIGHT_FAN,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_RIGHT_PUMP,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(POW_VCU,GPIO_INTR_ANYEDGE);
-    gpio_set_intr_type(BATTERY_RAW,GPIO_INTR_ANYEDGE);
-
-    gpio_isr_register(relayPduPtr,NULL,ESP_INTR_FLAG_LEVEL1,NULL);
 }
 
 void app_main(void)
