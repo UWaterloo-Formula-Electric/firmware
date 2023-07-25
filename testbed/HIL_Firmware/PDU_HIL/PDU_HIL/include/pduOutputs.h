@@ -14,6 +14,8 @@
 #define POW_LEFT_FAN 37
 #define POW_RIGHT_FAN 38
 
+#define RELAY_PDU_OUTPUTS 0x8030F03
+
 void relayPduOutputs(void*);
 extern void (*relayPduPtr)(void*);
 

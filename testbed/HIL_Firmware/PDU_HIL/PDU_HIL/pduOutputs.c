@@ -23,7 +23,7 @@ void (*relayPduPtr)(void*) = &relayPduOutputs;
 
 twai_message_t pdu_outputs =
 {
-    .identifier = 0,
+    .identifier = RELAY_PDU_OUTPUTS,
     .extd = 1,
     .data_length_code = 2,
 };
