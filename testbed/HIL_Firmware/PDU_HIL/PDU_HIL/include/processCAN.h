@@ -2,6 +2,7 @@
 #define PROCESS_CAN_H
 
 #define PROCESS_RX_TASK_INTERVAL 1
+#define BATTERY_THERMISTOR 0x401030f
 
 void process_rx_task (void * pvParameters);
 

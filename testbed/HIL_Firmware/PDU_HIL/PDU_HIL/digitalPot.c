@@ -13,7 +13,7 @@
 
 twai_message_t message_status = 
 {
-    .identifier = 0x8020F03,
+    .identifier = PDU_MESSAGE_STATUS,
     .extd = 1,
     .data_length_code = 1,
 };
@@ -47,7 +47,7 @@ int setPotResistance (uint32_t resistance)
     esp_err_t fault = 0;
 
     fault = spi_device_transmit(pot, &trans);
-    message_status.data[0] = 1;
+    message_status.data[0] = POT_IS_SET;
     if(fault != ESP_OK)
     {
         printf("Failed transmit data\n");
