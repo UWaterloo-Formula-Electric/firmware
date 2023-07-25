@@ -36,6 +36,20 @@ BS_:
 BU_: Computer PDU_HIL VCU_HIL
 
 
+BO_ 2281901827 Relay_PDU_outputs: 2 PDU_HIL
+ SG_ Pow_right_fan : 11|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_left_fan : 10|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_right_pump : 9|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_left_pump : 8|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_MC_right : 7|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Battery_raw : 2|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_dcu : 5|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_MC_left : 6|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_vcu : 4|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_bmu : 3|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_brake_light : 1|1@1+ (1,0) [0|1] ""  Computer
+ SG_ Pow_AUX : 0|1@1+ (1,0) [0|1] ""  Computer
+
 BO_ 2281836291 PDU_message_status: 1 PDU_HIL
  SG_ Batt_thermistor_status : 0|1@1+ (1,0) [0|1] ""  Computer
 
