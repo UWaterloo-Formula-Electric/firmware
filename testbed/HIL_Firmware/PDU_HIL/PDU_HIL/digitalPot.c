@@ -13,40 +13,10 @@
 
 twai_message_t message_status = 
 {
-    .identifier = 0x8020F03,
+    .identifier = PDU_MESSAGE_STATUS,
     .extd = 1,
     .data_length_code = 1,
 };
-
-void pot_task (void * pvParameters)
-{
-    uint8_t val = 0;
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-
-    spi_transaction_t trans = {
-        .tx_data [0] = val,
-        .length = 8,
-        .flags = SPI_TRANS_USE_TXDATA,
-    };
-
-    while(1)
-    {
-        printf("val: %u", val);
-        trans.tx_data[0] = val;
-
-        esp_err_t fault = 0;
-
-        fault = spi_device_transmit(pot, &trans);
-        message_status.data[0] = 1;
-        if(fault != ESP_OK)
-        {
-            printf("Failed transmit data\n");
-        }
-
-        val += 1;
-        vTaskDelayUntil(&xLastWakeTime, 100);
-    }
-}
 
 int setPotResistance (uint32_t resistance)
 {
@@ -77,7 +47,7 @@ int setPotResistance (uint32_t resistance)
     esp_err_t fault = 0;
 
     fault = spi_device_transmit(pot, &trans);
-    message_status.data[0] = 1;
+    message_status.data[0] = POT_IS_SET;
     if(fault != ESP_OK)
     {
         printf("Failed transmit data\n");

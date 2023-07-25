@@ -16,6 +16,10 @@ static uint32_t dByte0 = 0;
 static uint32_t dByte1 = 0;
 static uint32_t dByte2 = 0;
 
+static uint32_t dByte0_mask = 0xFFFF00;
+static uint32_t dByte1_mask = 0xFF00FF;
+static uint32_t dByte2_mask = 0x00FFFF;
+
 void process_rx_task (void * pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -26,16 +30,16 @@ void process_rx_task (void * pvParameters)
 
         switch (can_msg.identifier)
         {
-            case 0x401030f: //Battery Thermistor
+            case BATTERY_THERMISTOR: //Battery Thermistor
                 dByte0 = can_msg.data[0];
                 dByte1 = can_msg.data[1];
                 dByte2 = can_msg.data[2];
-                dByte0 |= 0b111111111111111100000000;
+                dByte0 |= dByte0_mask;
                 dByte1 = dByte1 << 8;
-                dByte1 |= 0b111111110000000011111111;
+                dByte1 |= dByte1_mask;
                 dByte1 &= dByte0;
                 dByte2 = dByte2 << 16;
-                dByte2 |= 0b000000001111111111111111;
+                dByte2 |= dByte2_mask;
                 dByte2 &= dByte1;
                 setPotResistance(dByte2);
                 break;

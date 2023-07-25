@@ -2,16 +2,15 @@
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/semphr.h"
 #include "esp_err.h"
-#include "esp_log.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
+#include "esp_intr_alloc.h"
 #include "canReceive.h"
 #include "userInit.h"
 #include "processCAN.h"
 #include "digitalPot.h"
+#include "pduOutputs.h"
 
 spi_device_handle_t pot;
 
@@ -48,20 +47,6 @@ void taskRegister (void)
     if(xReturned != pdPASS)
     {
         printf("Failed to register process_rx_task to RTOS");
-    }
-
-    xReturned = xTaskCreate(
-        pot_task,
-        "POT_TASK",
-        4000,
-        ( void * ) 1,
-        configMAX_PRIORITIES-1,
-        &pot_task_handler
-    );
-
-    if(xReturned != pdPASS)
-    {
-        printf("Failed to register pot_task to RTOS");
     }
 }
 
@@ -150,10 +135,42 @@ void pot_init(void)
     setPotResistance(0);
 }
 
+void pdu_input_init(void)
+{
+    gpio_set_direction(POW_AUX, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_BMU, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_BRAKE_LIGHT, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_DCU, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_LEFT_FAN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_LEFT_PUMP, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_MC_LEFT, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_MC_RIGHT, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_RIGHT_FAN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_RIGHT_PUMP, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_VCU, GPIO_MODE_INPUT);
+    gpio_set_direction(BATTERY_RAW, GPIO_MODE_INPUT);
+
+    gpio_set_intr_type(POW_AUX,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_BMU,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_BRAKE_LIGHT,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_DCU,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_LEFT_FAN,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_LEFT_PUMP,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_MC_LEFT,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_MC_RIGHT,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_RIGHT_FAN,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_RIGHT_PUMP,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(POW_VCU,GPIO_INTR_ANYEDGE);
+    gpio_set_intr_type(BATTERY_RAW,GPIO_INTR_ANYEDGE);
+
+    gpio_isr_register(relayPduPtr,NULL,ESP_INTR_FLAG_LEVEL1,NULL);
+}
+
 void app_main(void)
 {
     CAN_init();
     spi_init();
     pot_init();
+    pdu_input_init();
     taskRegister();
 }
