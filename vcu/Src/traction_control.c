@@ -114,12 +114,14 @@ static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	VCU_wheelSpeed_RL = wheel_data->RL;
 	VCU_wheelSpeed_RR = wheel_data->RR;
 	sendCAN_RearWheelSpeedRADS();
+	vTaskDelay(2); // Added to prevent CAN mailbox full
 
 	FLSpeedKPH = RADS_TO_KPH(wheel_data->FL);
 	FRSpeedKPH = RADS_TO_KPH(wheel_data->FR);
 	RLSpeedKPH = RADS_TO_KPH(wheel_data->RL);
 	RRSpeedKPH = RADS_TO_KPH(wheel_data->RR);
 	sendCAN_WheelSpeedKPH();
+	vTaskDelay(2); // Added to prevent CAN mailbox full
 
 	TCTorqueMax = tc_data->torque_max;
 	TCTorqueAdjustment = tc_data->torque_adjustment;
