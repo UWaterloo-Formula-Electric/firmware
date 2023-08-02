@@ -42,7 +42,7 @@ extern const BoardTypes_t boardType;
 #define ID_WSBRL         10
 #define ID_WSBRR         11
 #define ID_VCU_BeagleBone 12
-#define ID_IMU           13
+#define ID_CELLTESTER    13
 #define ID_Charger       14
 #define ID_Computer      15
 
