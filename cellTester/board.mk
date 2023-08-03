@@ -172,49 +172,11 @@ $(BIN_DIR)/%.o: %.S
 #$(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
 
-$(BOARD_NAME)_pre-build:
-	@echo -e "$(BLUE_COLOR)Building Board: $(RED_COLOR)$(CURR_BOARD) $(NO_COLOR)"
-
-ifndef BUILD_ONLY_ONCE
-
 clean:
 	$(RM) $(BIN_DIR_NAME)
 	$(RM) $(DEPDIR_BASE)
 	$(RM) $(TEST_BUILD_DIR)
 	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(DELETE_CTU_FILES);)
-
-#
-# Initialization 
-#
-init:
-	git config core.hooksPath $(GITHOOKS_DIR)
-	git submodule init
-	git submodule update
-
-test:
-ifneq ($(filter $(TEST_TARGET), $(TEST_TARGETS)),)
-	@echo "Unit testing on: $(TEST_TARGET)"
-	@make $(TEST_TARGET)
-	@make -C $(TEST_DIR) $(TEST_TARGET)
-else
-	@echo "Unit testing on: $(TEST_TARGETS)"
-	@make $(TEST_TARGETS)
-	@make -C $(TEST_DIR) $(TEST_TARGETS)
-endif
-
-lint:
-	@mkdir -p $(LINT_DIR)
-ifneq ($(filter $(LINT_TARGET), $(LINT_TARGETS)),)
-	@echo "Running linter on: $(LINT_TARGET)"
-	@$(RUN_LINTER)
-else
-	@echo "Running linter on: $(LINT_TARGETS)"
-	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(RUN_LINTER))
-endif
-
-BUILD_ONLY_ONCE = 1
-
-endif
 
 
 ifneq (,$(filter $(LOAD_TARGET), $(BOARD_NAME) $(BUILD_TARGET)))
