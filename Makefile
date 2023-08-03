@@ -3,7 +3,7 @@ BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
 
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
-all: bmu dcu pdu vcu wsb
+all: bmu dcu pdu vcu wsb cellTester
  
 beaglebone:;
 	make -C beaglebone/os/
