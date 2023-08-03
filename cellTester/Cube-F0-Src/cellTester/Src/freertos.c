@@ -49,6 +49,7 @@
 /* USER CODE END Variables */
 osThreadId mainTaskHandle;
 osThreadId printTaskNameHandle;
+osThreadId watchDogTaskNamHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -57,6 +58,7 @@ osThreadId printTaskNameHandle;
 
 void mainTaskFunction(void const * argument);
 extern void printTask(void const * argument);
+extern void watchdogTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -153,6 +155,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of printTaskName */
   osThreadDef(printTaskName, printTask, osPriorityLow, 0, 128);
   printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of watchDogTaskNam */
+  osThreadDef(watchDogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
+  watchDogTaskNamHandle = osThreadCreate(osThread(watchDogTaskNam), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

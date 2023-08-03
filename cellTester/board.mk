@@ -3,7 +3,7 @@ BOARD_NAME = cellTester
 BOARD_NAME_UPPER = CELLTESTER
 BOARD_ARCHITECTURE = F0
 
-COMMON_LIB_SRC := debug.c CRC_CALC.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c
+COMMON_LIB_SRC := debug.c CRC_CALC.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c state_machine.c
 
 CUBE_F0_MAKEFILE_PATH := $(BOARD_NAME)/Cube-F0-Src/cellTester/
 
@@ -174,13 +174,6 @@ $(BIN_DIR)/%.o: %.S
 
 $(BOARD_NAME)_pre-build:
 	@echo -e "$(BLUE_COLOR)Building Board: $(RED_COLOR)$(CURR_BOARD) $(NO_COLOR)"
-
-clean:
-	$(RM) $(BIN_DIR_NAME)
-	$(RM) $(DEPDIR_BASE)
-	$(RM) $(TEST_BUILD_DIR)
-	@$(foreach LINT_TARGET, $(LINT_TARGETS), $(DELETE_CTU_FILES);)
-
 
 ifneq (,$(filter $(LOAD_TARGET), $(BOARD_NAME) $(BUILD_TARGET)))
 LOAD_BOARD_ARCH := $(BOARD_ARCHITECTURE)
