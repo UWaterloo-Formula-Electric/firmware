@@ -172,6 +172,9 @@ $(BIN_DIR)/%.o: %.S
 #$(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
 
+$(BOARD_NAME)_pre-build:
+	@echo -e "$(BLUE_COLOR)Building Board: $(RED_COLOR)$(CURR_BOARD) $(NO_COLOR)"
+
 clean:
 	$(RM) $(BIN_DIR_NAME)
 	$(RM) $(DEPDIR_BASE)
