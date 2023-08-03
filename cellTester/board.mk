@@ -229,17 +229,8 @@ LOAD_BIN_FILE := $(BIN_FILE)
 LOAD_ELF_FILE := $(ELF_FILE)
 
 
-load: $(BOARD_NAME)
+load_cell: $(BOARD_NAME)
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(LOAD_BIN_FILE) 0x8000000" -c "verify_image $(LOAD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
-
-# use this to debug stuff before rtos starts
-
-connect: load
-	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt
-
-gdb: 
-	gdb-multiarch --eval-command="target remote localhost:3333" --eval-command="monitor reset halt" $(LOAD_ELF_FILE)
-
 
 #
 # Include dependencies
