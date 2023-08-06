@@ -70,8 +70,8 @@ void temperatureTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // May need to reverse
-    const I2C_HandleTypeDef *cell_i2c_module = &hi2c1;
-    const I2C_HandleTypeDef *fuse_i2c_module = &hi2c2;
+    I2C_HandleTypeDef *cell_i2c_module = &hi2c1;
+    I2C_HandleTypeDef *fuse_i2c_module = &hi2c2;
 
     // Configure ADCs
     if (mcp3425_configure(cell_i2c_module) != HAL_OK) {
