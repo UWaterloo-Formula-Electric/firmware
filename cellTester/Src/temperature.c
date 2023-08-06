@@ -5,6 +5,10 @@
 #include "mcp3425.h"
 #include <math.h>
 
+// May need to reverse
+I2C_HandleTypeDef *cell_i2c_hdr = &hi2c1;
+I2C_HandleTypeDef *fuse_i2c_hdr = &hi2c2;
+
 // Steinhart-Hart equation (https://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation)
 float temp_steinhart_hart(float resistance) {
     float ln_R = log(resistance);
@@ -39,10 +43,19 @@ float adc_to_volts(int16_t adc_ticks) {
     return voltage;
 }
 
+HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
+    HAL_StatusTypeDef ready_status = mcp3425_device_ready(i2c_hdr);
+    HAL_StatusTypeDef config_status = mcp3425_device_configure(i2c_hdr);
 
-float read_thermistor(I2C_HandleTypeDef *i2c_module) {
+    if (ready_status != HAL_OK || config_status != HAL_OK) {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
+}
+
+float read_thermistor(I2C_HandleTypeDef *i2c_hdr) {
     int16_t adc_result;
-    if (mcp3425_read(i2c_module, &adc_result) != HAL_OK) {
+    if (mcp3425_read(i2c_hdr, &adc_result) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temp from adc");
         return -1;
     }
@@ -59,21 +72,17 @@ void temperatureTask(void *pvParameters) {
     uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    // May need to reverse
-    I2C_HandleTypeDef *cell_i2c_module = &hi2c1;
-    I2C_HandleTypeDef *fuse_i2c_module = &hi2c2;
-
     // Configure ADCs
-    if (mcp3425_configure(cell_i2c_module) != HAL_OK) {
-        ERROR_PRINT("Cell temp i2c init fail");
+    if (thermistor_adc_init(cell_i2c_hdr) != HAL_OK) {
+        ERROR_PRINT("Failed to init cell temp adc\n");
     }
-    if (mcp3425_configure(fuse_i2c_module) != HAL_OK) {
-        ERROR_PRINT("Fuse temp i2c init fail");
+    if (thermistor_adc_init(fuse_i2c_hdr) != HAL_OK) {
+        ERROR_PRINT("Failed to init fuse temp adc\n");
     }
 
     while (1) {
-        float cell_temp = read_thermistor(cell_i2c_module);
-        float fuse_temp = read_thermistor(fuse_i2c_module);
+        float cell_temp = read_thermistor(cell_i2c_hdr);
+        float fuse_temp = read_thermistor(fuse_i2c_hdr);
 
         DEBUG_PRINT("cell temp: %f\n", cell_temp);
         DEBUG_PRINT("fuse temp: %f\n", fuse_temp);

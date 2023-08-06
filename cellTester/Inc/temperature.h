@@ -9,7 +9,7 @@
 #define VOLTAGE_IN 3.3f
 #define ADC_MAX 32767.0f
 
-#define TEMPERATURE_PERIOD_MS 500
+#define TEMPERATURE_PERIOD_MS 1000
 
 // Constants of Steinhart-Hart equation, calculated from samples from R-T table
 #define A 0.0011144534f
@@ -25,6 +25,7 @@ float temp_steinhart_hart(float resistance);
 float temp_beta(float resistance);
 float ntc_V_to_R(float voltage);
 float adc_to_volts(int16_t adc_ticks);
-float read_thermistor(I2C_HandleTypeDef *i2c_module);
+HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);
+float read_thermistor(I2C_HandleTypeDef *i2c_hdr);
 
 #endif
