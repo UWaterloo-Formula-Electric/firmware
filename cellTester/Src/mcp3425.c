@@ -23,7 +23,7 @@ HAL_StatusTypeDef mcp3425_read(I2C_HandleTypeDef *i2cmodule, int16_t *data_out) 
     const uint8_t address_byte = (DEVICE_CODE << 4) + 1;
     uint8_t rbuffer[2] = {0, 0};
 
-    status = HAL_I2C_Master_Transmit(i2cmodule, address_byte, rbuffer, sizeof(rbuffer), HAL_MAX_DELAY);
+    status = HAL_I2C_Master_Receive(i2cmodule, address_byte, rbuffer, sizeof(rbuffer), HAL_MAX_DELAY);
     if (status != HAL_OK) {
         ERROR_PRINT("Error reading thermistor ADC");
         return HAL_ERROR;
