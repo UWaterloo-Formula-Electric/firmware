@@ -51,7 +51,7 @@ float adc_to_volts(int16_t adc_ticks) {
 
 
 float read_thermistor(I2C_HandleTypeDef *i2cmodule) {
-    uint8_t adc_result;
+    int16_t adc_result;
     if (mcp3425_read(i2c_module, &adc_result) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temp from adc");
         return -1;

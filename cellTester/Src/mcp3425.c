@@ -1,5 +1,6 @@
 #include "mcp3425.h"
 #include "debug.h"
+#include "i2c.h"
 
 HAL_StatusTypeDef mcp3425_configure(I2C_HandleTypeDef *i2cmodule) {
     HAL_StatusTypeDef status;
@@ -15,12 +16,12 @@ HAL_StatusTypeDef mcp3425_configure(I2C_HandleTypeDef *i2cmodule) {
 }
 
 // Also write the adc reading to provided address
-HAL_StatusTypeDef mcp3425_read(I2C_HandleTypeDef *i2cmodule, uint16_t *data_out) {
+HAL_StatusTypeDef mcp3425_read(I2C_HandleTypeDef *i2cmodule, int16_t *data_out) {
     HAL_StatusTypeDef status;
     int16_t adc_raw;
     // According to datasheet
     const uint8_t address_byte = (DEVICE_CODE << 4) + 1;
-    uint8_t rbuffer[2] = {0};
+    uint8_t rbuffer[2] = {0, 0};
 
     status = HAL_I2C_Master_Transmit(i2cmodule, address_byte, rbuffer, sizeof(rbuffer), HAL_MAX_DELAY);
     if (status != HAL_OK) {
