@@ -5,16 +5,6 @@
 #include "mcp3425.h"
 #include <math.h>
 
-// Constants of Steinhart-Hart equation, calculated from samples from R-T table
-#define A 0.0011144534f
-#define B 0.0002364747f
-#define C 0.0000000787784f
-
-// Beta (K) 0-50 C (from the USP10982 datasheet)
-#define BETA 3892
-#define R1 10000
-#define T1 298.15 // 25 Celsius
-
 // Steinhart-Hart equation (https://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation)
 float temp_steinhart_hart(float resistance) {
     float ln_R = log(resistance);
