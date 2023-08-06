@@ -46,21 +46,20 @@ float ntc_V_to_R(float voltage) {
 float adc_to_volts(int16_t adc_ticks) {
     float scaled_percentage = adc_ticks / ADC_MAX;
     float voltage = scaled_percentage * VOLTAGE_REF;
-    return voltage
+    return voltage;
 }
 
 
-float read_thermistor(I2C_HandleTypeDef *i2cmodule) {
+float read_thermistor(I2C_HandleTypeDef *i2c_module) {
     int16_t adc_result;
     if (mcp3425_read(i2c_module, &adc_result) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temp from adc");
         return -1;
-    } else {
-        float voltage = adc_to_volts(adc_result);
-        float resistance = ntc_V_to_R(voltage);
-        float temperature_celsius = temp_steinhart_hart(resistance);
-        return temperature_celsius;
     }
+    float voltage = adc_to_volts(adc_result);
+    float resistance = ntc_V_to_R(voltage);
+    float temperature_celsius = temp_steinhart_hart(resistance);
+    return temperature_celsius;
 }
 
 // FreeRTOS task to periodically check thermistor temperatures
@@ -71,15 +70,15 @@ void temperatureTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // May need to reverse
-    const I2C_HandleTypeDef cell_i2c_module* = &hi2c1
-    const I2C_HandleTypeDef fuse_i2c_module* = &hi2c2
+    const I2C_HandleTypeDef cell_i2c_module* = &hi2c1;
+    const I2C_HandleTypeDef fuse_i2c_module* = &hi2c2;
 
     // Configure ADCs
     if (mcp3425_configure(cell_i2c_module) != HAL_OK) {
-        ERROR_PRINT("Cell temp i2c init fail")
+        ERROR_PRINT("Cell temp i2c init fail");
     }
     if (mcp3425_configure(fuse_i2c_module) != HAL_OK) {
-        ERROR_PRINT("Fuse temp i2c init fail")
+        ERROR_PRINT("Fuse temp i2c init fail");
     }
 
     while (1) {
