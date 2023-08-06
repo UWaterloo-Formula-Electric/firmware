@@ -7,7 +7,7 @@ HAL_StatusTypeDef mcp3425_configure(I2C_HandleTypeDef *i2cmodule) {
     const uint8_t address_byte = DEVICE_CODE << 4; // R/W bit is 0
     const uint8_t config_byte = 0b10011000; // 16 bit resolution + default configs
 
-    status = HAL_I2C_Master_Transmit(i2cmodule, address_byte, config_byte, 1, HAL_MAX_DELAY);
+    status = HAL_I2C_Master_Transmit(i2cmodule, address_byte, &config_byte, 1, HAL_MAX_DELAY);
     if (status != HAL_OK) {
         ERROR_PRINT("Could not configure cell tester adc over i2c\n");
         return HAL_ERROR;
