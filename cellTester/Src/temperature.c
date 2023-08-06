@@ -2,11 +2,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
+#include "mcp3425.h"
 #include <math.h>
-
-// MCP3425
-const uint8_t device_code = 0b1101;
-const uint8_t address_byte = device_code << 4; // address bits = 000 programmed at factory
 
 // Constants of Steinhart-Hart equation, calculated from samples from R-T table
 #define A 0.0011144534f
@@ -39,27 +36,58 @@ float temp_beta(float resistance) {
 
 // Voltage to Resistance (Wheastone Bridge equation)
 // https://www.ametherm.com/thermistor/ntc-thermistors-temperature-measurement-with-wheatstone-bridge
-float NTC_V_to_R(float voltage) {
+float ntc_V_to_R(float voltage) {
     // R1 == R2 == R3
     float R_t = R1 * (((VOLTAGE_IN*R1) - (voltage*(2*R1))) 
                         /((VOLTAGE_IN*R1) + (voltage*(2*R1))));
     return R_t;
 }
 
-float NTC_ADC_to_V(int ADC_ticks) {
-
+float adc_to_volts(int16_t adc_ticks) {
+    float scaled_percentage = adc_ticks / ADC_MAX;
+    float voltage = scaled_percentage * VOLTAGE_REF;
+    return voltage
 }
 
 
-// FreeRTOS task to periodically check thermistor temperature
+float read_thermistor(I2C_HandleTypeDef *i2cmodule) {
+    uint8_t adc_result;
+    if (mcp3425_read(i2c_module, &adc_result) != HAL_OK) {
+        ERROR_PRINT("Failed to read cell temp from adc");
+        return -1;
+    } else {
+        float voltage = adc_to_volts(adc_result);
+        float resistance = ntc_V_to_R(voltage);
+        float temperature_celsius = temp_steinhart_hart(resistance);
+        return temperature_celsius;
+    }
+}
+
+// FreeRTOS task to periodically check thermistor temperatures
+// todo - maybe: break the two thermistors into two tasks?
+// uart transmit the data out?
 void temperatureTask(void *pvParameters) {
     uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    int16_t adc_data;
+    // May need to reverse
+    const I2C_HandleTypeDef cell_i2c_module* = &hi2c1
+    const I2C_HandleTypeDef fuse_i2c_module* = &hi2c2
+
+    // Configure ADCs
+    if (mcp3425_configure(cell_i2c_module) != HAL_OK) {
+        ERROR_PRINT("Cell temp i2c init fail")
+    }
+    if (mcp3425_configure(fuse_i2c_module) != HAL_OK) {
+        ERROR_PRINT("Fuse temp i2c init fail")
+    }
 
     while (1) {
+        float cell_temp = read_thermistor(cell_i2c_module);
+        float fuse_temp = read_thermistor(fuse_i2c_module);
 
+        // todo - log and/or transmit the data via UART?
+        
         vTaskDelayUntil(&xLastWakeTime, temp_period);
     }
 }
