@@ -1,5 +1,6 @@
 #include "temperature.h"
-#include "debug.h"
+#include "FreeRTOS.h"
+#include "task.h"
 #include <math.h>
 
 // MCP3425
