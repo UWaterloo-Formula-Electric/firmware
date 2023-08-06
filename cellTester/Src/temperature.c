@@ -45,7 +45,7 @@ float adc_to_volts(int16_t adc_ticks) {
 
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
     HAL_StatusTypeDef ready_status = mcp3425_device_ready(i2c_hdr);
-    HAL_StatusTypeDef config_status = mcp3425_device_configure(i2c_hdr);
+    HAL_StatusTypeDef config_status = mcp3425_configure(i2c_hdr);
 
     if (ready_status != HAL_OK || config_status != HAL_OK) {
         return HAL_ERROR;
