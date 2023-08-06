@@ -86,6 +86,9 @@ void temperatureTask(void *pvParameters) {
         float cell_temp = read_thermistor(cell_i2c_module);
         float fuse_temp = read_thermistor(fuse_i2c_module);
 
+        DEBUG_PRINT("cell temp: %f\n", cell_temp);
+        DEBUG_PRINT("fuse temp: %f\n", fuse_temp);
+
         // todo - log and/or transmit the data via UART?
         
         vTaskDelayUntil(&xLastWakeTime, temp_period);
