@@ -100,3 +100,5 @@ void temperatureTask(void *pvParameters) {
         vTaskDelayUntil(&xLastWakeTime, temp_period);
     }
 }
+
+void fetControlTask(void *pvParameters) {while(1){}}
