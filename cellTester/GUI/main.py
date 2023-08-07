@@ -25,24 +25,30 @@ def get_characterization():
     # Expected format: "time, isCharacterization, voltage, current, temperature"
     # Uncomment for real data
     # data = ct_port.readline().decode("ascii").strip()
-    data = "13502, 1, 4.000, 2.000, 25.00"
+    data = "13502, 1, 0.5, 4.000, 2.000, 25.00"
 
     data = data.split(", ")
-    return int(data[0]), bool(int(data[1])), float(data[2]), float(data[3]), float(data[4])
-    
-csv_df = pd.DataFrame(columns=["Time Stamp", "isCharacterization", "Cell Voltage", "Cell Current", "Cell Temperature"])
+    return int(data[0]), bool(int(data[1])), float(data[2]), float(data[3]), float(data[4]), float(data[5])
+
+def calculate_internal_R(v_oc, v, i):
+    SHUNT_R = 100e-6
+    MOSFET_R = 0.85e-3
+    LOAD_R = SHUNT_R + MOSFET_R
+    return v_oc / i - LOAD_R
+
+csv_df = pd.DataFrame(columns=["Time Stamp", "isCharacterization", "PWM Duty Cycle [%]", "Cell Voltage", "Cell Current", "Cell Temperature"])
 
 csv_file = open("../CellData/continuous_cell_data.csv", "w", newline='')
 writer = csv.writer(csv_file)
-writer.writerow(["Time Stamp", "isCharacterization", "Cell Voltage", "Cell Current", "Cell Temperature"])
+writer.writerow(csv_df.columns)
 
 sg.theme('Dark')
 # All the stuff inside your window.
 layout = [
     [sg.Text('Characterization:'), sg.Text('False', key='characterization')],
     [sg.Text('Voltage [V]:'), sg.Text('0.0', key='cell_V')],
-    [sg.Text('Current [I]:'), sg.Text('0.0', key='cell_I')],
-    [sg.Text('Calculated Resitance [Ω]:'), sg.Text('0.0', key='cell_R')],
+    [sg.Text('Current [A]:'), sg.Text('0.0', key='cell_I')],
+    [sg.Text('Calculated Internal Resitance [Ω]:'), sg.Text('0.0', key='cell_R')],
     [sg.Text('Temperature [°C]:'), sg.Text('0.0', key='cell_T')],
     [sg.Button('Start'), sg.Button('Stop')],
     [sg.Text('File Name:'), sg.InputText('cell_1.csv', key='file_name')],
@@ -69,14 +75,19 @@ while True:
         window['file_name'].update(value=f"cell_{cell_number+1}.csv")
     else:
         # Get data
-        data = get_characterization()        
+        data = get_characterization()
+        print(data)     
         # Update values
-        time_stamp, isCharacterization, v, i, temp = data
+        time_stamp, isCharacterization, duty_cycle, v, i, temp = data
+        window['characterization'].update(value=isCharacterization)
         window['cell_V'].update(value=v)
         window['cell_I'].update(value=i)
         window['cell_T'].update(value=temp)
-        window['cell_R'].update(value=v/(i+1e-10)) # Probably update this with some better offset
-        window['characterization'].update(value=isCharacterization)
+
+        v_oc = csv_df.loc[csv_df["PWM Duty Cycle [%]"] <= 0.5]["Cell Voltage"].mean()
+        internal_R = calculate_internal_R(v_oc, v, i)
+        window['cell_R'].update(value=internal_R) 
+        
         # Log data
         if isCharacterization:
             csv_df.loc[len(csv_df)] = data # type: ignore
