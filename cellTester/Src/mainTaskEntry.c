@@ -20,7 +20,7 @@
 #define MAIN_TASK_PERIOD 1000
 #define CELL_STABILIZATION_TIME_MS 10
 
-void printCellValues();
+void printCellValues(float pwmDutyCycle);
 
 void mainTaskFunction(void const* argument) {    
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -36,22 +36,23 @@ void mainTaskFunction(void const* argument) {
             for (float dutyCycle = 0; dutyCycle < 100; dutyCycle += 0.5) {
                 set_PWM_Duty_Cycle(&FET_TIM_HANDLE, dutyCycle);
                 vTaskDelay(pdMS_TO_TICKS(CELL_STABILIZATION_TIME_MS));
-                printCellValues();
+                printCellValues(dutyCycle);
                 vTaskDelay(pdMS_TO_TICKS(10));
             }
             isCharacterizationRunning = false;
             set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         }
-        printCellValues();
+        printCellValues(0);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
     }
 }
 
-void printCellValues() {
+void printCellValues(float pwmDutyCycle) {
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.2lf",
+    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf",
                 HAL_GetTick(),
                 isCharacterizationRunning,
+                pwmDutyCycle,
                 get_cell_voltage(),
                 get_cell_current(),
                 get_cell_temperature());
