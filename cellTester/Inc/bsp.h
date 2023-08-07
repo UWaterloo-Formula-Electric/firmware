@@ -16,7 +16,7 @@
 #define DEBUG_UART_HANDLE huart2
 #define IWDG_HANDLE hiwdg
 #define STATS_TIM_HANDLE htim2
-
+#define FET_TIM_HANDLE htim2
 #else
 
 #define STR_HELPER(x) #x
