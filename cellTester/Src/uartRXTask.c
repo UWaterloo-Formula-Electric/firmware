@@ -3,6 +3,7 @@
 #include "FreeRTOS.h"
 #include "debug.h"
 #include "uartRXTask.h"
+#include "fetControl.h"
 
 #define INPUT_BUFFER_SIZE (100)
 static char rxString[INPUT_BUFFER_SIZE];
@@ -76,6 +77,7 @@ BaseType_t processInput(char* inputString) {
         return pdFALSE;
     } else if (strncmp(inputString, "Stop", 4) == 0) {
         isCharacterizationRunning = false;
+        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         return pdFALSE;
     }
     return pdTRUE;
