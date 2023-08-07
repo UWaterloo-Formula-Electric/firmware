@@ -15,25 +15,20 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
+#include "main.h"
 #include "ade7913.h"
 
-//NEED TO WRITE MACROS FOR MASKS
-
-// If we are on the hitl, there is a different current shunt resistor
-//need to check if shunt resistor is same 
-extern bool HITL_Precharge_Mode;
-
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
-    HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_RESET);
-    HAL_StatusTypeDef status = HAL_SPI_Transmit(&HV_ADC_SPI_HANDLE, tdata, len, SPI_TIMEOUT);
-    HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_RESET);
+    HAL_StatusTypeDef status = HAL_SPI_Transmit(&ISO_ADC_SPI_HANDLE, tdata, len, SPI_TIMEOUT);
+    HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_SET);
     return status;
 }
 
 HAL_StatusTypeDef adc_spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int len) {
-    HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_RESET);
     HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&HV_ADC_SPI_HANDLE, tdata, rbuffer, len, SPI_TIMEOUT);
-    HAL_GPIO_WritePin(HV_ADC_SPI_NSS_GPIO_Port, HV_ADC_SPI_NSS_Pin , GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_SET);
     return status;
 }
 
@@ -46,7 +41,7 @@ uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
   //modifying address to datasheet format
   //should make macros for masks
   addr <<= 3;
-  addr |= 0x4; // Read Enable
+  addr |= READ_EN; // Read Enable
   tbuffer[0] = addr;
 
   status = adc_spi_tx_rx(tbuffer, rbuffer, 2);
@@ -68,7 +63,7 @@ HAL_StatusTypeDef adc_read(uint8_t addr, int32_t *dataOut){
 
   //modifying address to datasheet format
   addr <<= 3;
-  addr |= 0x4;
+  addr |= READ_EN;
   tbuffer[0] = addr;
 
   status = adc_spi_tx_rx(tbuffer, (uint8_t *)rbuffer, 4);
@@ -77,10 +72,6 @@ HAL_StatusTypeDef adc_read(uint8_t addr, int32_t *dataOut){
     ERROR_PRINT("---Error reading from ADC! Status code: %d\n", status);
     return HAL_ERROR;
   }
-
-  /*DEBUG_PRINT("0: 0x%X, 1: 0x%X, 2: 0x%X\n", rbuffer[1], rbuffer[2], rbuffer[3]);*/
-  //put data into an u32. Skipping rbuffer[0] bc it contains high impedance GARBAGE
-
 
   // shift to upper three bytes, then right-shift one byte to sign extend
   data |= (int32_t)rbuffer[1] << 24;
@@ -101,7 +92,7 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
 
   // modifying address to datasheet format
   addr <<= 3;
-  addr &= 0xF8; // setting bit 2 (READ_EN) to 0
+  addr &= WRITE_EN; // setting bit 2 (READ_EN) to 0
   tbuffer[0] = addr;
 
   //adding data to buffer
@@ -123,28 +114,10 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     return HAL_ERROR;
   }
 
-  /*DEBUG_PRINT("%ld, ", raw);*/
-
   float shuntVoltage = CURRENT_SCALE * ((float)raw);
-  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
   shuntVoltage += CURRENT_OFFSET;
-  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
-#ifdef DISABLE_HV_WARNINGS
-  // This should be "fixed"/removed when a smaller shunt resistor is found.
-  // With our current setup we probably surpass the "nominal maximum" 31.25mV of the ADC
-  // However, with this print statement in, the entire system crashes when we surpass 312.5A
-  if (fabs(shuntVoltage) > MAX_CURRENT_ADC_VOLTAGE) {
-    ERROR_PRINT("IBus outside adc range!\n");
-    *dataOut = 0;
-    return HAL_ERROR;
-  }
-#endif
+  shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CELL_TESTER);
 
-  if (HITL_Precharge_Mode) {
-    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_HITL);
-  } else {
-    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CAR);
-  }
   /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
   (*dataOut) = shuntVoltage;
 
@@ -158,7 +131,6 @@ HAL_StatusTypeDef adc_read_v1(float *dataOut) {
   }
 
   (*dataOut) = (VOLTAGE_1_SCALE * ((float)raw)) + VOLTAGE_1_OFFSET;
-
   return HAL_OK;
 }
 
@@ -194,7 +166,6 @@ HAL_StatusTypeDef hvadc_init()
   }
 
   // recomended by datasheet to read value after writing to double check
-  //correct value
   uint8_t cfgRead;
   if (adc_readbyte(ADDR_CFG, &cfgRead) != HAL_OK) {
     ERROR_PRINT("Error reading HV ADC config register\n");
