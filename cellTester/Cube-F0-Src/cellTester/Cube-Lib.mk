@@ -30,6 +30,8 @@ LIB_C_SOURCES =  \
 Src/main.c \
 Src/gpio.c \
 Src/tim.c \
+Src/i2c.c \
+Src/spi.c \
 Src/dma.c \
 Src/freertos.c \
 Src/usart.c \
@@ -46,6 +48,8 @@ Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c_ex.c \
+Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_spi.c \
+Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_spi_ex.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_gpio.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c \
 Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.c \

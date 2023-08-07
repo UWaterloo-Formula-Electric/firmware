@@ -50,6 +50,7 @@
 osThreadId mainTaskHandle;
 osThreadId printTaskNameHandle;
 osThreadId watchDogTaskNamHandle;
+osThreadId fetControlTaskNHandle;
 osThreadId temperatureHandle;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +61,7 @@ osThreadId temperatureHandle;
 void mainTaskFunction(void const * argument);
 extern void printTask(void const * argument);
 extern void watchdogTask(void const * argument);
+extern void fetControlTask(void const * argument);
 extern void temperatureTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -162,8 +164,12 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(watchDogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchDogTaskNamHandle = osThreadCreate(osThread(watchDogTaskNam), NULL);
 
+  /* definition and creation of fetControlTaskN */
+  osThreadDef(fetControlTaskN, fetControlTask, osPriorityNormal, 0, 128);
+  fetControlTaskNHandle = osThreadCreate(osThread(fetControlTaskN), NULL);
+
   /* definition and creation of temperature */
-  osThreadDef(temperature, temperatureTask, osPriorityHigh, 0, 100);
+  osThreadDef(temperature, temperatureTask, osPriorityNormal, 0, 128);
   temperatureHandle = osThreadCreate(osThread(temperature), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
