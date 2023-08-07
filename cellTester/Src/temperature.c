@@ -21,7 +21,7 @@ float temp_steinhart_hart(float resistance) {
 float temp_beta(float resistance) {
     float ln_R1_over_R2 = log(R1/resistance);
     float temp_K = 1 / (((-1 * ln_R1_over_R2)/BETA) + (1/T1));
-    float temp_C = temp_K - K_TO_C_CONVERSION;
+    float temp_C = KELVIN_TO_CELSIUS(temp_K);
     return temp_C;
 }
 
