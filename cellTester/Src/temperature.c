@@ -13,7 +13,7 @@ I2C_HandleTypeDef *fuse_i2c_hdr = &hi2c2;
 float temp_steinhart_hart(float resistance) {
     float ln_R = log(resistance);
     float temp_K = 1 / (A + (B * ln_R) + (C * ln_R * ln_R * ln_R));
-    float temp_C = temp_K - K_TO_C_CONVERSION;
+    float temp_C = KELVIN_TO_CELSIUS(temp_K);
     return temp_C;
 }
 
@@ -56,7 +56,7 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
 float read_thermistor(I2C_HandleTypeDef *i2c_hdr) {
     int16_t adc_result;
     if (mcp3425_adc_read(i2c_hdr, &adc_result) != HAL_OK) {
-        ERROR_PRINT("Failed to read cell temp from adc");
+        ERROR_PRINT("Failed to read from adc\n");
         return -1;
     }
     float voltage = adc_to_volts(adc_result);
@@ -69,7 +69,7 @@ float read_thermistor(I2C_HandleTypeDef *i2c_hdr) {
 // todo - maybe: break the two thermistors into two tasks?
 // uart transmit the data out?
 void temperatureTask(void *pvParameters) {
-    uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
+    const uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // Configure ADCs

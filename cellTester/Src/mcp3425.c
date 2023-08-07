@@ -47,7 +47,7 @@ HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc
         config_byte = rbuffer[2];
         if (config_byte & CONFIG_RDY_BIT_MASK) {
             // Output register has not been updated
-            DEBUG_PRINT("Output not updated by ADC\n")l
+            DEBUG_PRINT("Output not updated by ADC\n");
         }
     }
     (*save_adc_output_val) = adc_raw * MCP3425_PGA_GAIN;
