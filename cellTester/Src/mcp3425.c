@@ -5,7 +5,7 @@
 
 HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr) {
     HAL_StatusTypeDef status;
-    const uint8_t address_byte = ADDR_CODE << 1;
+    const uint8_t address_byte = MCP3425_ADDR_BYTE << 1;
 
     status = HAL_I2C_IsDeviceReady(i2c_hdr, address_byte, I2C_INIT_TRIALS, I2C_INIT_TIMEOUT);
     if (status != HAL_OK) {
@@ -16,10 +16,10 @@ HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr) {
 }
 
 HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
-    const uint8_t address_byte = ADDR_CODE << 1; 
-    uint8_t config_byte = CONFIG_BYTE;
+    const uint8_t address_byte = MCP3425_ADDR_BYTE << 1; 
+    uint8_t config_byte = MCP3425_CONFIG_BYTE;
 
-    HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(i2c_hdr, address_byte, &config_byte, CONFIG_BYTE_SIZE, HAL_MAX_DELAY);
+    HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(i2c_hdr, address_byte, &config_byte, MCP3425_CONFIG_BYTE_SIZE, HAL_MAX_DELAY);
     if (status != HAL_OK) {
         ERROR_PRINT("Could not configure cell tester adc over i2c\n");
         return HAL_ERROR;
@@ -31,7 +31,7 @@ HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
 HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc_output_val) {
     int16_t adc_raw;
     uint8_t config_byte;
-    const uint8_t address_byte = (ADDR_CODE << 1) | MCP3425_READ_BIT;
+    const uint8_t address_byte = (MCP3425_ADDR_BYTE << 1) | MCP3425_READ_BIT;
 
     uint8_t rbuffer[3] = {0};
 
@@ -45,7 +45,7 @@ HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc
         // Check RDY bit
         // 0 = Output register has been updated with the latest conversion data.
         config_byte = rbuffer[2];
-        if (config_byte & CONFIG_RDY_BIT_MASK) {
+        if (config_byte & MCP3425_CONFIG_RDY_BIT_MASK) {
             // Output register has not been updated
             DEBUG_PRINT("Output not updated by ADC\n");
         }

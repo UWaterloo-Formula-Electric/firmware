@@ -27,6 +27,6 @@ float temp_beta(float resistance);
 float ntc_V_to_R(float voltage);
 float adc_to_volts(int16_t adc_ticks);
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);
-float read_thermistor(I2C_HandleTypeDef *i2c_hdr);
+float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *temp_output_val);
 
 #endif

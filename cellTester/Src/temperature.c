@@ -53,16 +53,17 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
     return HAL_OK;
 }
 
-float read_thermistor(I2C_HandleTypeDef *i2c_hdr) {
+float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
     int16_t adc_result;
     if (mcp3425_adc_read(i2c_hdr, &adc_result) != HAL_OK) {
         ERROR_PRINT("Failed to read from adc\n");
-        return -1;
+        return HAL_ERROR;
     }
     float voltage = adc_to_volts(adc_result);
     float resistance = ntc_V_to_R(voltage);
     float temperature_celsius = temp_steinhart_hart(resistance);
-    return temperature_celsius;
+    (*output_temperature) = temperature_celsius;
+    return HAL_OK;
 }
 
 // FreeRTOS task to periodically check thermistor temperatures
@@ -81,8 +82,15 @@ void temperatureTask(void *pvParameters) {
     }
 
     while (1) {
-        float cell_temp = read_thermistor(cell_i2c_hdr);
-        float fuse_temp = read_thermistor(fuse_i2c_hdr);
+        float cell_temp_result;
+        float fuse_temp_result;
+
+        if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
+            DEBUG_PRINT("failed to read cell temp\n");
+        }
+        if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
+            DEBUG_PRINT("failed to read fuse temp\n");
+        }
 
         DEBUG_PRINT("cell temp: %f\n", cell_temp);
         DEBUG_PRINT("fuse temp: %f\n", fuse_temp);
