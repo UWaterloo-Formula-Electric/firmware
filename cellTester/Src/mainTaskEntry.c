@@ -40,6 +40,7 @@ void mainTaskFunction(void const* argument) {
                 vTaskDelay(pdMS_TO_TICKS(10));
             }
             isCharacterizationRunning = false;
+            set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         }
         printCellValues();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
