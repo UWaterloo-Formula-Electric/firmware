@@ -92,8 +92,8 @@ void temperatureTask(void *pvParameters) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }
 
-        DEBUG_PRINT("cell temp: %f\n", cell_temp);
-        DEBUG_PRINT("fuse temp: %f\n", fuse_temp);
+        DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+        DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
 
         // todo - log and/or transmit the data via UART?
         
