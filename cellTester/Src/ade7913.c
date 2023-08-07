@@ -1,6 +1,6 @@
 /**
   *****************************************************************************
-  * @file    ade7912.c
+  * @file    ade7913.c
   * @author  Richard Matthews
   * @brief   Function to read HV ADC.
   * @details Functions to read the HV ADC. The HV ADC measures the HV bus
@@ -15,51 +15,12 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "math.h"
+#include "ade7913.h"
 
-#define ADDR_CURRENT (0x00)
-#define ADDR_V1 (0x01)
-#define ADDR_V2 (0x02)
-
-#define ADDR_STATUS0 (0x9)
-#define RESET_ON_BIT (0x0)
-
-#define ADDR_CFG (0x8)
-#define ADC_FREQ_2KHZ (0x20)
-#define ADC_FREQ_1KHZ (0x30)
-#define ADC_LOW_BW_ENABLE (0x80)
-
-#define SPI_TIMEOUT 15
-
-#define DISABLE_ADC_WARNINGS
-
-// Voltage scale and offset convert to volts
-#define VOLTAGE_1_SCALE  (-0.000052670388F)
-#define VOLTAGE_1_OFFSET (20.451204825373F)
-
-#define VOLTAGE_2_SCALE  (-0.000052273823F)
-#define VOLTAGE_2_OFFSET (23.442233510687)
-
-/*#define VOLTAGE_1_SCALE  (1)*/
-/*#define VOLTAGE_1_OFFSET (1)*/
-
-/*#define VOLTAGE_2_SCALE  (1)*/
-/*#define VOLTAGE_2_OFFSET (1)*/
-
-// Current scale and offset current to volts, then we use shunt val to get
-// current in amps
-//
-// This used to be
-// CURRENT_SCALE (0.000000005332795540972819F)
-// CURRENT_OFFSET (-0.002105965908664F)
-// Calibration Resulted in different answers
-#define CURRENT_SCALE  (0.0000000055036067569447039)
-#define CURRENT_OFFSET (-0.0023230F)
-#define CURRENT_SHUNT_VAL_OHMS_HITL (0.000235F)
-#define CURRENT_SHUNT_VAL_OHMS_CAR (0.0001F)
-
-#define MAX_CURRENT_ADC_VOLTAGE (0.03125F)
+//NEED TO WRITE MACROS FOR MASKS
 
 // If we are on the hitl, there is a different current shunt resistor
+//need to check if shunt resistor is same 
 extern bool HITL_Precharge_Mode;
 
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
@@ -83,6 +44,7 @@ uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
   uint8_t tbuffer[2] = {0};
 
   //modifying address to datasheet format
+  //should make macros for masks
   addr <<= 3;
   addr |= 0x4; // Read Enable
   tbuffer[0] = addr;
@@ -231,6 +193,8 @@ HAL_StatusTypeDef hvadc_init()
     return HAL_ERROR;
   }
 
+  // recomended by datasheet to read value after writing to double check
+  //correct value
   uint8_t cfgRead;
   if (adc_readbyte(ADDR_CFG, &cfgRead) != HAL_OK) {
     ERROR_PRINT("Error reading HV ADC config register\n");
