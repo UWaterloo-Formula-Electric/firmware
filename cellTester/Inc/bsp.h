@@ -34,5 +34,4 @@
 // Comment out to remove error printing
 #define ERROR_PRINT_ON
 
-#define CONSOLE_PRINT_ON
 #endif /* __BSP_H */

@@ -13,7 +13,7 @@
 #include "task.h"
 #include "bsp.h"
 #include "debug.h"
-#include "fetControlTask.h"
+#include "fetControl.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )

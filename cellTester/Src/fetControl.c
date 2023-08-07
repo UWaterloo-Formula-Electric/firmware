@@ -1,6 +1,5 @@
-#include "fetControlTask.h"
+#include "fetControl.h"
 #include "stm32f0xx_hal.h"
-// #include "task.h"
 #include "debug.h"
 #include <math.h>
 
@@ -12,7 +11,7 @@ HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const f
         return HAL_ERROR;
     }
     // The duty cycle value is a percentage of the reload register value (ARR). Rounding is used.
-    uint32_t newRegVal = (uint32_t)roundf((double)(pwmHandle->Instance->ARR) * (duty_cycle * 0.01F));
+    uint32_t newRegVal = (uint32_t)roundf((pwmHandle->Instance->ARR) * (duty_cycle * 0.01F));
 
     // In case of the DC being calculated as higher than the reload register, cap it to the reload register
     if(newRegVal > pwmHandle->Instance->ARR){
@@ -21,7 +20,7 @@ HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const f
 
     PWM_Duty_Cycle = duty_cycle;
     // Assign the new DC count to the capture compare register.
-    pwmHandle->Instance->CCR1 = (uint32_t)(roundf(newRegVal));
+    pwmHandle->Instance->CCR1 = newRegVal;
     return HAL_OK;
 }
 
@@ -30,11 +29,4 @@ HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const f
 HAL_StatusTypeDef fetInit(){
     HAL_TIM_PWM_Start(&FET_TIM_HANDLE, TIM_CHANNEL_1);
     return set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
-}
-
-void fetControlTask(void const *argument) {
-    
-    while (1) {
-        DEBUG_PRINT("PWM Duty Cycle: %f", PWM_Duty_Cycle);
-    }
 }
