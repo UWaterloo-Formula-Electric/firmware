@@ -5,4 +5,6 @@
 double get_cell_voltage() { return 0; }
 double get_cell_temperature() { return 0; }
 double get_cell_current() { return 0; }
+
+void temperatureTask(void *args) {while(1);}
 #endif  // __MOCK_H__
