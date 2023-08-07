@@ -7,6 +7,8 @@
 #include "generalErrorHandler.h"
 #include "watchdog.h"
 #include "debug.h"
+
+#ifndef DISABLE_CAN_FEATURES
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
 
@@ -17,6 +19,7 @@
 
 #define SEND_FATAL_DTC CAT(sendDTC_FATAL_, CAT(BOARD_NAME_UPPER, _ERROR))
 #define SEND_CRITICAL_DTC CAT(sendDTC_CRITICAL_, CAT(BOARD_NAME_UPPER, _ERROR))
+#endif
 
 
 // Reset the debug uart
@@ -34,6 +37,36 @@ HAL_StatusTypeDef resetUART()
 
     return HAL_OK;
 }
+
+#ifdef DISABLE_CAN_FEATURES
+void _handleError(char *file, int line)
+{
+  const char errorStringFile[] = "Error!: File ";
+  const char errorStringLine[] = " line ";
+  char lineNumberString[10];
+
+  taskDISABLE_INTERRUPTS();
+
+  if (resetUART() != HAL_OK) {
+      // Can't really do anything else
+    while(1)
+    {
+      watchdogRefresh();
+    }
+  }
+
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringFile), strlen(errorStringFile), 1000);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)file), strlen(file), 1000);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)errorStringLine), strlen(errorStringLine), 1000);
+  snprintf(lineNumberString, sizeof(lineNumberString), "%d\n", line);
+  HAL_UART_Transmit(&DEBUG_UART_HANDLE, ((uint8_t *)lineNumberString), strlen(lineNumberString), 1000);
+
+  while(1)
+  {
+    watchdogRefresh();
+  }
+}
+#else
 
 // Flag to ensure we only trigger error handling once
 bool errorOccured = false;
@@ -84,3 +117,4 @@ void _handleError(char *file, int line)
   }
 #endif
 }
+#endif // DISABLE_CAN_FEATURES
