@@ -45,7 +45,7 @@ float adc_to_volts(int16_t adc_ticks) {
 
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
     HAL_StatusTypeDef ready_status = mcp3425_device_ready(i2c_hdr);
-    HAL_StatusTypeDef config_status = mcp3425_configure(i2c_hdr);
+    HAL_StatusTypeDef config_status = mcp3425_adc_configure(i2c_hdr);
 
     if (ready_status != HAL_OK || config_status != HAL_OK) {
         return HAL_ERROR;
@@ -55,7 +55,7 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
 
 float read_thermistor(I2C_HandleTypeDef *i2c_hdr) {
     int16_t adc_result;
-    if (mcp3425_read(i2c_hdr, &adc_result) != HAL_OK) {
+    if (mcp3425_adc_read(i2c_hdr, &adc_result) != HAL_OK) {
         ERROR_PRINT("Failed to read cell temp from adc");
         return -1;
     }
