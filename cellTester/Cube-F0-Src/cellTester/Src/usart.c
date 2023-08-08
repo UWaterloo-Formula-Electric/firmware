@@ -85,7 +85,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     /* USART2 DMA Init */
     /* USART2_RX Init */
-    hdma_usart2_rx.Instance = DMA1_Channel5;
+    hdma_usart2_rx.Instance = DMA1_Channel6;
     hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
@@ -97,6 +97,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     {
       Error_Handler();
     }
+
+    __HAL_DMA_REMAP_CHANNEL_ENABLE(DMA_REMAP_USART2_DMA_CH67);
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart2_rx);
 
