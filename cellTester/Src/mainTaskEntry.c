@@ -16,15 +16,41 @@
 #include "mock.h"
 #include "task.h"
 #include "uartRXTask.h"
+#include "ade7913.h"
+#include "temperature.h"
 
 #define MAIN_TASK_PERIOD 1000
 #define CELL_STABILIZATION_TIME_MS 10
 
-void printCellValues();
+void printCellValues(void);
+void printThermistorValues(void);
 
-void mainTaskFunction(void const* argument) {    
+void mainTaskFunction(void const* argument) {
+    // Wait for boot
+    vTaskDelay(pdMS_TO_TICKS(100));
     TickType_t xLastWakeTime = xTaskGetTickCount();
+
     DEBUG_PRINT("Starting up!!\n");
+
+    if (hvadc_init() != HAL_OK)
+    {
+        DEBUG_PRINT("HVADC init fail\n");
+        Error_Handler();
+    }
+    
+    // Configure ADCs    
+    if (thermistor_adc_init(cell_i2c_hdr) != HAL_OK)
+    {
+        DEBUG_PRINT("cell ADC init fail\n");
+        Error_Handler();
+    }
+    
+    if (thermistor_adc_init(fuse_i2c_hdr) != HAL_OK)
+    {
+        DEBUG_PRINT("fuse ADC init fail\n");
+        Error_Handler();
+    }
+    
     // Charecterization process:
     // 1. Start new characterization
     // 2. Increment cell current by changing pwm duty cycle
@@ -46,17 +72,40 @@ void mainTaskFunction(void const* argument) {
             set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         }
         printCellValues();
+        printThermistorValues();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
     }
 }
 
-void printCellValues() {
+void printCellValues(void) {
+    float v1 = 0.0f;
+    float v2 = 0.0f;
+    float I = 0.0f;
+    adc_read_v1(&v1);
+    adc_read_v2(&v2);
+    adc_read_current(&I);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
     DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf\n",
                 HAL_GetTick(),
                 isCharacterizationRunning,
                 get_PWM_Duty_Cycle(),
-                get_cell_voltage(),
-                get_cell_current(),
-                get_cell_temperature());
+                v1,
+                I,
+                v2);
+}
+
+void printThermistorValues(void)
+{
+    float cell_temp_result = 0.0f;
+    float fuse_temp_result = 0.0f;
+
+    if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
+        DEBUG_PRINT("failed to read cell temp\n");
+    }
+    DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+    
+    if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
+        DEBUG_PRINT("failed to read fuse temp\n");
+    }
+    DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
 }

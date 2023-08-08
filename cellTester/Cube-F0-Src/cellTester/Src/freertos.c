@@ -163,7 +163,7 @@ void MX_FREERTOS_Init(void) {
   watchDogTaskNamHandle = osThreadCreate(osThread(watchDogTaskNam), NULL);
 
   /* definition and creation of temperature */
-  osThreadDef(temperature, temperatureTask, osPriorityHigh, 0, 100);
+  osThreadDef(temperature, temperatureTask, osPriorityNormal, 0, 256);
   temperatureHandle = osThreadCreate(osThread(temperature), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
