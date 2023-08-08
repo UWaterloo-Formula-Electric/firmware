@@ -18,7 +18,7 @@ HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr) {
 }
 
 HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
-    const uint8_t address_byte = MCP3425_ADDR_BYTE; 
+    const uint8_t address_byte = (MCP3425_ADDR_BYTE << 1); 
     uint8_t config_byte = MCP3425_CONFIG_BYTE;
 
     // HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(i2c_hdr, address_byte, &config_byte, MCP3425_CONFIG_BYTE_SIZE, HAL_MAX_DELAY);
@@ -35,7 +35,7 @@ HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
 HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc_output_val) {
     int16_t adc_raw;
     uint8_t config_byte;
-    const uint8_t address_byte = (MCP3425_ADDR_BYTE << 1) | MCP3425_READ_BIT;
+    const uint8_t address_byte = (MCP3425_ADDR_BYTE << 1);
 
     // HAL_StatusTypeDef status = HAL_I2C_Master_Receive(i2c_hdr, address_byte, rbuffer, sizeof(rbuffer), HAL_MAX_DELAY);
     HAL_StatusTypeDef status = HAL_I2C_Master_Receive_DMA(i2c_hdr, address_byte, rbuffer, sizeof(rbuffer));
