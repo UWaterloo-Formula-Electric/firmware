@@ -47,8 +47,22 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
     // HAL_StatusTypeDef ready_status = mcp3425_device_ready(i2c_hdr);
     HAL_StatusTypeDef config_status = mcp3425_adc_configure(i2c_hdr);
 
+    // if (ready_status != HAL_OK)
+    // {
+    //     DEBUG_PRINT("ready failed\r\n");
+    //     return HAL_ERROR;
+    // }
+    // else
+    // {
+    //     DEBUG_PRINT("ready pass\r\n");
+    // }
     if (config_status != HAL_OK) {
+        DEBUG_PRINT("config failed\r\n");
         return HAL_ERROR;
+    }
+    else
+    {
+        DEBUG_PRINT("config pass\r\n");
     }
     return HAL_OK;
 }
@@ -74,12 +88,29 @@ void temperatureTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // Configure ADCs
-    if (thermistor_adc_init(cell_i2c_hdr) != HAL_OK) {
-        ERROR_PRINT("Failed to init cell temp adc\n");
-    }
-    if (thermistor_adc_init(fuse_i2c_hdr) != HAL_OK) {
-        ERROR_PRINT("Failed to init fuse temp adc\n");
-    }
+    HAL_StatusTypeDef cell;
+    HAL_StatusTypeDef fuse;
+    
+    do {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        cell = thermistor_adc_init(cell_i2c_hdr);
+        fuse = thermistor_adc_init(fuse_i2c_hdr);
+        if (cell != HAL_OK) {
+            ERROR_PRINT("Failed to init cell temp adc\n");
+        }
+        else
+        {
+            ERROR_PRINT("cell pass\r\n");
+        }
+        if (fuse != HAL_OK) {
+            ERROR_PRINT("Failed to init fuse temp adc\n");
+        }
+        else
+        {
+            ERROR_PRINT("fuse pass\r\n");
+        }
+
+    } while (fuse != HAL_OK || cell != HAL_OK);
 
     while (1) {
         float cell_temp_result;
@@ -88,13 +119,17 @@ void temperatureTask(void *pvParameters) {
         if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read cell temp\n");
         }
+        else
+        {
+            DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+        }
         if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }
-
-        DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
-        DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
-
+        else
+        {
+            DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
+        }
         // todo - log and/or transmit the data via UART?
         
         vTaskDelayUntil(&xLastWakeTime, temp_period);

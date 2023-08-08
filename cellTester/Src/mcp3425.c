@@ -7,7 +7,7 @@ uint8_t rbuffer[3] = {0U, 0U, 0U};
 
 HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr) {
     HAL_StatusTypeDef status;
-    const uint8_t address_byte = MCP3425_ADDR_BYTE;
+    const uint8_t address_byte = MCP3425_ADDR_BYTE << 1;
 
     status = HAL_I2C_IsDeviceReady(i2c_hdr, address_byte, I2C_INIT_TRIALS, I2C_INIT_TIMEOUT);
     if (status != HAL_OK) {
@@ -43,7 +43,7 @@ HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc
         ERROR_PRINT("Error reading thermistor ADC\n");
         return HAL_ERROR;
     } else {
-        vTaskDelay(100);
+        vTaskDelay(1000);
         adc_raw = (rbuffer[0] << 8) | rbuffer[1];
 
         // Check RDY bit
@@ -52,6 +52,10 @@ HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr, int16_t *save_adc
         if (config_byte & MCP3425_CONFIG_RDY_BIT_MASK) {
             // Output register has not been updated
             DEBUG_PRINT("Output not updated by ADC\n");
+        }
+        else
+        {
+            DEBUG_PRINT("ADC output updated %d\r\n", adc_raw);
         }
     }
     (*save_adc_output_val) = adc_raw * MCP3425_PGA_GAIN;
