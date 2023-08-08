@@ -88,41 +88,38 @@ void temperatureTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // Configure ADCs
-    HAL_StatusTypeDef cell;
+    // HAL_StatusTypeDef cell;
     HAL_StatusTypeDef fuse;
     
-    do {
-        vTaskDelay(pdMS_TO_TICKS(100));
-        cell = thermistor_adc_init(cell_i2c_hdr);
-        fuse = thermistor_adc_init(fuse_i2c_hdr);
-        if (cell != HAL_OK) {
-            ERROR_PRINT("Failed to init cell temp adc\n");
-        }
-        else
-        {
-            ERROR_PRINT("cell pass\r\n");
-        }
-        if (fuse != HAL_OK) {
-            ERROR_PRINT("Failed to init fuse temp adc\n");
-        }
-        else
-        {
-            ERROR_PRINT("fuse pass\r\n");
-        }
-
-    } while (fuse != HAL_OK || cell != HAL_OK);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    // cell = thermistor_adc_init(cell_i2c_hdr);
+    fuse = thermistor_adc_init(fuse_i2c_hdr);
+    // if (cell != HAL_OK) {
+    //     ERROR_PRINT("Failed to init cell temp adc\n");
+    // }
+    // else
+    // {
+    //     ERROR_PRINT("cell pass\r\n");
+    // }
+    if (fuse != HAL_OK) {
+        ERROR_PRINT("Failed to init fuse temp adc\n");
+    }
+    else
+    {
+        ERROR_PRINT("fuse pass\r\n");
+    }
 
     while (1) {
-        float cell_temp_result;
+        // float cell_temp_result;
         float fuse_temp_result;
 
-        if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
-            DEBUG_PRINT("failed to read cell temp\n");
-        }
-        else
-        {
-            DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
-        }
+        // if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
+        //     DEBUG_PRINT("failed to read cell temp\n");
+        // }
+        // else
+        // {
+        //     DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+        // }
         if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }

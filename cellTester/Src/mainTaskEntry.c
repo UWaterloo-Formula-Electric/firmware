@@ -19,7 +19,7 @@ void mainTaskFunction(void const * argument){
     DEBUG_PRINT("Starting up!!\n");
 
     for(;;) {
-        DEBUG_PRINT("Alive!\n");
-        vTaskDelay(1000);
+        // DEBUG_PRINT("Alive!\n");
+        vTaskDelay(10000);
     };
 }
