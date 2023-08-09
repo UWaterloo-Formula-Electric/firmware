@@ -44,18 +44,8 @@ float adc_to_volts(int16_t adc_ticks) {
 }
 
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
-    // HAL_StatusTypeDef ready_status = mcp3425_device_ready(i2c_hdr);
     HAL_StatusTypeDef config_status = mcp3425_adc_configure(i2c_hdr);
 
-    // if (ready_status != HAL_OK)
-    // {
-    //     DEBUG_PRINT("ready failed\r\n");
-    //     return HAL_ERROR;
-    // }
-    // else
-    // {
-    //     DEBUG_PRINT("ready pass\r\n");
-    // }
     if (config_status != HAL_OK) {
         DEBUG_PRINT("config failed\r\n");
         return HAL_ERROR;
@@ -68,12 +58,23 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
 }
 
 float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
-    int16_t adc_result;
-    if (mcp3425_adc_read(i2c_hdr, &adc_result) != HAL_OK) {
+    if (mcp3425_adc_read(i2c_hdr) != HAL_OK) {
         ERROR_PRINT("Failed to read from adc\n");
         return HAL_ERROR;
     }
-    float voltage = adc_to_volts(adc_result);
+
+    // DEBUG_PRINT("last adc output is: %d\r\n", save_adc_output_val);
+    int save_adc_output_val = 0;
+    if (i2c_hdr == cell_i2c_hdr)
+    {
+        save_adc_output_val = adc_1_output_val;
+    }
+    else if (i2c_hdr == fuse_i2c_hdr)
+    {
+        save_adc_output_val = adc_2_output_val;
+    }
+
+    float voltage = adc_to_volts(save_adc_output_val);
     float resistance = ntc_V_to_R(voltage);
     float temperature_celsius = temp_steinhart_hart(resistance);
     (*output_temperature) = temperature_celsius;
@@ -86,47 +87,28 @@ float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
 void temperatureTask(void *pvParameters) {
     const uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    float cell_temp_result = 0.0f;
+    float fuse_temp_result = 0.0f;
 
-    // Configure ADCs
-    // HAL_StatusTypeDef cell;
-    HAL_StatusTypeDef fuse;
-    
+    // Wait for boot
     vTaskDelay(pdMS_TO_TICKS(100));
-    // cell = thermistor_adc_init(cell_i2c_hdr);
-    fuse = thermistor_adc_init(fuse_i2c_hdr);
-    // if (cell != HAL_OK) {
-    //     ERROR_PRINT("Failed to init cell temp adc\n");
-    // }
-    // else
-    // {
-    //     ERROR_PRINT("cell pass\r\n");
-    // }
-    if (fuse != HAL_OK) {
-        ERROR_PRINT("Failed to init fuse temp adc\n");
-    }
-    else
-    {
-        ERROR_PRINT("fuse pass\r\n");
-    }
+
+    // Configure ADCs    
+    thermistor_adc_init(cell_i2c_hdr);
+    thermistor_adc_init(fuse_i2c_hdr);
+
+    vTaskDelay(100);
 
     while (1) {
-        // float cell_temp_result;
-        float fuse_temp_result;
 
-        // if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
-        //     DEBUG_PRINT("failed to read cell temp\n");
-        // }
-        // else
-        // {
-        //     DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
-        // }
+        if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
+            DEBUG_PRINT("failed to read cell temp\n");
+        }
+        DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
         if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }
-        else
-        {
-            DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
-        }
+        DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
         // todo - log and/or transmit the data via UART?
         
         vTaskDelayUntil(&xLastWakeTime, temp_period);

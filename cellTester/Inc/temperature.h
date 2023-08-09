@@ -10,7 +10,7 @@
 #define ADC_MAX 32767.0f
 #define KELVIN_TO_CELSIUS(K) ((K)-(K_TO_C_CONVERSION))
 
-#define TEMPERATURE_PERIOD_MS 1000
+#define TEMPERATURE_PERIOD_MS 100
 
 // Constants of Steinhart-Hart equation, calculated from samples from R-T table
 #define A 0.0011144534f
@@ -29,4 +29,6 @@ float adc_to_volts(int16_t adc_ticks);
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);
 float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *temp_output_val);
 
+extern I2C_HandleTypeDef *cell_i2c_hdr;
+extern I2C_HandleTypeDef *fuse_i2c_hdr;
 #endif
