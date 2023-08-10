@@ -31,9 +31,12 @@ void mainTaskFunction(void const* argument) {
     // 3. Wait for cell to stabilize
     // 4. Take measurement
     // 5. Repeat 2-4 until cell current is at max
+    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
     while (1) {
         if (isCharacterizationRunning) {
-            for (float dutyCycle = 0; dutyCycle < 100; dutyCycle += 0.5) {
+            for (float dutyCycle = 0; dutyCycle <= 100; dutyCycle += 0.5) {
+                if (!isCharacterizationRunning)
+                    break;
                 set_PWM_Duty_Cycle(&FET_TIM_HANDLE, dutyCycle);
                 vTaskDelay(pdMS_TO_TICKS(CELL_STABILIZATION_TIME_MS));
                 printCellValues(dutyCycle);
@@ -49,9 +52,9 @@ void mainTaskFunction(void const* argument) {
 
 void printCellValues(float pwmDutyCycle) {
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf",
+    DEBUG_PRINT("%lu, %lu, %.3lf, %.3lf, %.3lf, %.2lf\n",
                 HAL_GetTick(),
-                isCharacterizationRunning,
+                __HAL_TIM_GET_COMPARE(&FET_TIM_HANDLE, TIM_CHANNEL_1),
                 pwmDutyCycle,
                 get_cell_voltage(),
                 get_cell_current(),
