@@ -5,5 +5,5 @@
 
 HAL_StatusTypeDef fetInit();
 HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const float duty_cycle);
-
+float get_PWM_Duty_Cycle();
 #endif // __FET_CONTROL_H__

@@ -18,6 +18,10 @@ HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const f
     __HAL_TIM_SET_COMPARE(pwmHandle, TIM_CHANNEL_1, nextARR);
     return HAL_OK;
 }
+
+float get_PWM_Duty_Cycle() {
+    return PWM_Duty_Cycle;
+}
 // Sets the output to 0% duty cycle
 // No current draw
 HAL_StatusTypeDef fetInit() {
