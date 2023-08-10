@@ -52,9 +52,9 @@ void mainTaskFunction(void const* argument) {
 
 void printCellValues(float pwmDutyCycle) {
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %lu, %.3lf, %.3lf, %.3lf, %.2lf\n",
+    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf\n",
                 HAL_GetTick(),
-                __HAL_TIM_GET_COMPARE(&FET_TIM_HANDLE, TIM_CHANNEL_1),
+                isCharacterizationRunning,
                 pwmDutyCycle,
                 get_cell_voltage(),
                 get_cell_current(),
