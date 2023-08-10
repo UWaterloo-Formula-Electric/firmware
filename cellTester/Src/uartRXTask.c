@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "FreeRTOS.h"
 #include "debug.h"
 #include "uartRXTask.h"
@@ -78,6 +79,9 @@ BaseType_t processInput(char* inputString) {
     } else if (strncmp(inputString, "Stop", 4) == 0) {
         isCharacterizationRunning = false;
         set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
+        return pdFALSE;
+    } else if ('0' <= inputString[0] && inputString[0] <= '9' && atof(inputString) != 0){
+        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, (const float)atof(inputString));
         return pdFALSE;
     }
     return pdTRUE;
