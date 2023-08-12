@@ -1,7 +1,7 @@
 /**
   *****************************************************************************
   * @file    ade7913.c
-  * @author  Richard Matthews
+  * @author  Daniel Bishara
   * @brief   Function to read HV ADC.
   * @details Functions to read the cell Tester ADC. The cell tester ADC measures
   * current, and the cell voltage. ADC is connected to the cell tester over SPI.
