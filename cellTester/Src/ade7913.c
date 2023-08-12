@@ -3,9 +3,10 @@
   * @file    ade7913.c
   * @author  Richard Matthews
   * @brief   Function to read HV ADC.
-  * @details Functions to read the HV ADC. The HV ADC measures the HV bus
-  * current, HV bus voltage, and HV battery voltage. The HV ADC is connected to
-  * the cell tester over SPI.
+  * @details Functions to read the cell Tester ADC. The cell tester ADC measures
+  * current, and the cell voltage. ADC is connected to the cell tester over SPI.
+  * These functions were taken from the BMU as it uses the same ADC, but scales
+  * and offsets were modified to accodomate for different resistor values.
   *
   ******************************************************************************
   */
@@ -27,7 +28,7 @@ HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
 
 HAL_StatusTypeDef adc_spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int len) {
     HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_RESET);
-    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&HV_ADC_SPI_HANDLE, tdata, rbuffer, len, SPI_TIMEOUT);
+    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&ISO_ADC_SPI_HANDLE, tdata, rbuffer, len, SPI_TIMEOUT);
     HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_SET);
     return status;
 }
@@ -130,7 +131,8 @@ HAL_StatusTypeDef adc_read_v1(float *dataOut) {
     return HAL_ERROR;
   }
 
-  (*dataOut) = (VOLTAGE_1_SCALE * ((float)raw)) + VOLTAGE_1_OFFSET;
+  //DEBUG_PRINT("raw v1: %ld\r\n", raw);
+  (*dataOut) = VOLTAGE_1_SCALE*((float)raw + VOLTAGE_1_OFFSET);
   return HAL_OK;
 }
 
@@ -140,7 +142,8 @@ HAL_StatusTypeDef adc_read_v2(float *dataOut) {
     return HAL_ERROR;
   }
 
-  (*dataOut) = (VOLTAGE_2_SCALE * ((float)raw)) + VOLTAGE_2_OFFSET;
+  //DEBUG_PRINT("raw v2: %ld\r\n", raw);
+  (*dataOut) = VOLTAGE_2_SCALE*((float)raw + VOLTAGE_2_OFFSET);
   return HAL_OK;
 }
 
@@ -154,6 +157,7 @@ HAL_StatusTypeDef hvadc_init()
       ERROR_PRINT("Error reading HV ADC status register\n");
       return HAL_ERROR;
     }
+    ERROR_PRINT("waiting for ADC on\r\n");
     vTaskDelay(5);
   } while (status0 & (1<<RESET_ON_BIT));
 
@@ -178,4 +182,48 @@ HAL_StatusTypeDef hvadc_init()
   }
 
   return HAL_OK;
+}
+
+void fetControlTask(void *pvParamaters)
+{
+    while(1)
+    {
+        vTaskDelay(10000);
+    }
+}
+
+void temperatureTask(void *pvParamaters)
+{
+    hvadc_init();
+    HAL_StatusTypeDef v1_ret;
+    HAL_StatusTypeDef v2_ret;
+    HAL_StatusTypeDef I_ret;
+    float v1 = 0.0f;
+    float v2 = 0.0f;
+    float I = 0.0f;
+
+    while (1)
+    {
+        v1_ret = adc_read_v1(&v1);
+        v2_ret = adc_read_v2(&v2);
+        I_ret = adc_read_current(&I);
+        if (v1_ret != HAL_OK)
+        {
+            DEBUG_PRINT("v1 error\r\n");
+        }
+        else if (v2_ret != HAL_OK)
+        {
+            DEBUG_PRINT("v2 error\r\n");
+        }
+        else if (I_ret != HAL_OK)
+        {
+            DEBUG_PRINT("I error\r\n");
+        }
+        else
+        {
+            DEBUG_PRINT("v1: %f, v2: %f, I: %f\r\n", v1, v2, I);
+        }
+        
+        vTaskDelay(500);
+    }
 }
