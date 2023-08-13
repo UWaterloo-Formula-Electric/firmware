@@ -7,6 +7,7 @@
 #include "usart.h"
 #include "stdbool.h"
 #include "iwdg.h"
+#include "spi.h"
 
 // cppcheck-suppress misra-c2012-20.9
 #if IS_BOARD_F0
@@ -16,6 +17,7 @@
 #define DEBUG_UART_HANDLE huart2
 #define IWDG_HANDLE hiwdg
 // #define STATS_TIM_HANDLE htim2
+#define ISO_ADC_SPI_HANDLE hspi1
 #define FET_TIM_HANDLE htim2
 #else
 

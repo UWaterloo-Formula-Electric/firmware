@@ -16,15 +16,22 @@
 #include "mock.h"
 #include "task.h"
 #include "uartRXTask.h"
+#include "ade7913.h"
 
 #define MAIN_TASK_PERIOD 1000
 #define CELL_STABILIZATION_TIME_MS 10
 
 void printCellValues();
 
-void mainTaskFunction(void const* argument) {    
+void mainTaskFunction(void const* argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     DEBUG_PRINT("Starting up!!\n");
+
+    if (hvadc_init() != HAL_OK)
+    {
+        DEBUG_PRINT("HVADC init fail\n");
+        Error_Handler();
+    }
     // Charecterization process:
     // 1. Start new characterization
     // 2. Increment cell current by changing pwm duty cycle
@@ -51,12 +58,18 @@ void mainTaskFunction(void const* argument) {
 }
 
 void printCellValues() {
+    float v1 = 0.0f;
+    float v2 = 0.0f;
+    float I = 0.0f;
+    adc_read_v1(&v1);
+    adc_read_v2(&v2);
+    adc_read_current(&I);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
     DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf\n",
                 HAL_GetTick(),
                 isCharacterizationRunning,
                 get_PWM_Duty_Cycle(),
-                get_cell_voltage(),
-                get_cell_current(),
-                get_cell_temperature());
+                v1,
+                I,
+                v2);
 }
