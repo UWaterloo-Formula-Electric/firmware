@@ -51,17 +51,17 @@ HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr) {
     return HAL_OK;
 }
 
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-    if (hi2c->Instance==hi2c1.Instance)
-    {
-        DEBUG_PRINT_ISR("I2C TX 1\r\n");
-    }
-    else if (hi2c->Instance==hi2c2.Instance)
-    {
-        DEBUG_PRINT_ISR("I2C TX 2\r\n");
-    }
-}
+// void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+// {
+//     if (hi2c->Instance==hi2c1.Instance)
+//     {
+//         DEBUG_PRINT_ISR("I2C TX 1\r\n");
+//     }
+//     else if (hi2c->Instance==hi2c2.Instance)
+//     {
+//         DEBUG_PRINT_ISR("I2C TX 2\r\n");
+//     }
+// }
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {

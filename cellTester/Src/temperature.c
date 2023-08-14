@@ -49,10 +49,6 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
         DEBUG_PRINT("config failed\r\n");
         return HAL_ERROR;
     }
-    else
-    {
-        DEBUG_PRINT("config pass\r\n");
-    }
     return HAL_OK;
 }
 

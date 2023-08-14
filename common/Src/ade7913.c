@@ -177,7 +177,7 @@ HAL_StatusTypeDef hvadc_init() {
             ERROR_PRINT("Error reading HV ADC status register\n");
             return HAL_ERROR;
         }
-        ERROR_PRINT("waiting for hv ADC on bit\r\n");
+        // ERROR_PRINT("waiting for hv ADC on bit\r\n");
         vTaskDelay(5);
     } while (status0 & (1 << RESET_ON_BIT));
 

@@ -80,10 +80,9 @@ BaseType_t processInput(char* inputString) {
         isCharacterizationRunning = false;
         set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         return pdFALSE;
-    } else if (('0' <= inputString[0] && inputString[0] <= '9' && atof(inputString) != 0) ||
-               strncmp(inputString, "0", 1) == 0) {
-        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, (const float)atof(inputString));
-        return pdFALSE;
     }
-    return pdTRUE;
+    DEBUG_PRINT("%s\r\n", inputString);
+    
+    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, (const float)atof(inputString));
+    return pdFALSE;
 }
