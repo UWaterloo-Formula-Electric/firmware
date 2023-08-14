@@ -12,13 +12,34 @@
  */
 
 #include "ade7913.h"
-
-#include "FreeRTOS.h"
 #include "bsp.h"
 #include "debug.h"
-#include "main.h"
-#include "math.h"
+#include "FreeRTOS.h"
 #include "task.h"
+#include "math.h"
+#include "main.h"
+
+#define ADDR_CURRENT (0x00)
+#define ADDR_V1 (0x01)
+#define ADDR_V2 (0x02)
+
+#define ADDR_STATUS0 (0x9)
+#define RESET_ON_BIT (0x0)
+
+#define ADDR_CFG (0x8)
+#define ADC_FREQ_2KHZ (0x20)
+#define ADC_FREQ_1KHZ (0x30)
+#define ADC_LOW_BW_ENABLE (0x80)
+
+#define SPI_TIMEOUT 15
+
+#define DISABLE_ADC_WARNINGS
+
+
+#define MAX_CURRENT_ADC_VOLTAGE (0.03125F)
+
+#define READ_EN 0x4
+#define WRITE_EN 0xF8
 
 HAL_StatusTypeDef adc_spi_tx(uint8_t *tdata, unsigned int len) {
     HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin, GPIO_PIN_RESET);
@@ -41,7 +62,6 @@ uint8_t adc_readbyte(uint8_t addr, uint8_t *dataOut) {
     uint8_t tbuffer[2] = {0};
 
     // modifying address to datasheet format
-    // should make macros for masks
     addr <<= 3;
     addr |= READ_EN;  // Read Enable
     tbuffer[0] = addr;
@@ -118,7 +138,7 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
 
     float shuntVoltage = CURRENT_SCALE * ((float)raw);
     shuntVoltage += CURRENT_OFFSET;
-    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CELL_TESTER);
+    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS);
 
     /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
     (*dataOut) = shuntVoltage;
@@ -132,8 +152,8 @@ HAL_StatusTypeDef adc_read_v1(float *dataOut) {
         return HAL_ERROR;
     }
 
-    // DEBUG_PRINT("raw v1: %ld\r\n", raw);
-    (*dataOut) = VOLTAGE_1_SCALE * ((float)raw + VOLTAGE_1_OFFSET);
+    (*dataOut) = (VOLTAGE_1_SCALE * ((float)raw)) + VOLTAGE_1_OFFSET;    
+
     return HAL_OK;
 }
 
@@ -157,7 +177,7 @@ HAL_StatusTypeDef hvadc_init() {
             ERROR_PRINT("Error reading HV ADC status register\n");
             return HAL_ERROR;
         }
-        ERROR_PRINT("waiting for ADC on\r\n");
+        ERROR_PRINT("waiting for hv ADC on bit\r\n");
         vTaskDelay(5);
     } while (status0 & (1 << RESET_ON_BIT));
 

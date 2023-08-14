@@ -41,7 +41,7 @@
 #if IS_BOARD_F7
 #include "ltc_chip.h"
 #include "ltc_chip_interface.h"
-#include "ade7912.h"
+#include "ade7913.h"
 #include "imdDriver.h"
 #endif
 
