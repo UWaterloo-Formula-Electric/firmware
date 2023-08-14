@@ -67,7 +67,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
     if (hi2c->Instance == hi2c1.Instance)
     {        
-        DEBUG_PRINT_ISR("I2C RX 1\r\n");
+        // DEBUG_PRINT_ISR("I2C RX 1\r\n");
         int16_t adc_raw = (rbuffer_1[0] << 8) | rbuffer_1[1];
         // Check RDY bit
         // 0 = Output register has been updated with the latest conversion data.
@@ -82,7 +82,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
     }
     else if (hi2c->Instance == hi2c2.Instance)
     {
-        DEBUG_PRINT_ISR("I2C RX 2\r\n");
+        // DEBUG_PRINT_ISR("I2C RX 2\r\n");
         int16_t adc_raw = (rbuffer_2[0] << 8) | rbuffer_2[1];
         // Check RDY bit
         // 0 = Output register has been updated with the latest conversion data.

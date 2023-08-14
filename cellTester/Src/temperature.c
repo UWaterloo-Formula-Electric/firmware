@@ -5,7 +5,6 @@
 #include "mcp3425.h"
 #include <math.h>
 
-// May need to reverse
 I2C_HandleTypeDef *cell_i2c_hdr = &hi2c1;
 I2C_HandleTypeDef *fuse_i2c_hdr = &hi2c2;
 
@@ -105,6 +104,7 @@ void temperatureTask(void *pvParameters) {
             DEBUG_PRINT("failed to read cell temp\n");
         }
         DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+
         if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }
