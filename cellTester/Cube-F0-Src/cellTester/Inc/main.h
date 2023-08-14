@@ -67,6 +67,7 @@ void Error_Handler(void);
 #define ISO_ADC_MOSI_GPIO_Port GPIOA
 #define ISO_ADC_CS_Pin GPIO_PIN_7
 #define ISO_ADC_CS_GPIO_Port GPIOC
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

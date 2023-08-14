@@ -19,7 +19,7 @@
 #include "ade7913.h"
 #include "temperature.h"
 
-#define MAIN_TASK_PERIOD 1000
+#define MAIN_TASK_PERIOD 2
 #define CELL_STABILIZATION_TIME_MS 10
 
 void printCellValues(void);
