@@ -26,5 +26,5 @@ float get_PWM_Duty_Cycle() {
 // No current draw
 HAL_StatusTypeDef fetInit() {
     HAL_TIM_PWM_Start(&FET_TIM_HANDLE, TIM_CHANNEL_1);
-    return set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 50);
+    return set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
 }

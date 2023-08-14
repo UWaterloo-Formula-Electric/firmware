@@ -30,7 +30,7 @@ void mainTaskFunction(void const* argument) {
     vTaskDelay(pdMS_TO_TICKS(100));
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    DEBUG_PRINT("Starting up!!\n");
+    // DEBUG_PRINT("Starting up!!\n");
 
     if (hvadc_init() != HAL_OK)
     {
@@ -58,6 +58,8 @@ void mainTaskFunction(void const* argument) {
     // 4. Take measurement
     // 5. Repeat 2-4 until cell current is at max
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
+    DEBUG_PRINT("time (ms), isCharacterising, PWM duty (%%), v1 (V), v2 (V), Ishunt (A), Temp1 (C), Temp2 (C)\n");
+
     while (1) {
         if (isCharacterizationRunning) {
             for (float dutyCycle = 0; dutyCycle <= 100; dutyCycle += 0.5) {
@@ -85,8 +87,8 @@ void printCellValues(void) {
     adc_read_v2(&v2);
     adc_read_current(&I);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf\n",
-                HAL_GetTick(),
+    DEBUG_PRINT("%lu, %u, %.3lf, %.3lf, %.3lf, %.2lf, ",
+                HAL_GetTick()/1000,
                 isCharacterizationRunning,
                 get_PWM_Duty_Cycle(),
                 v1,
@@ -102,10 +104,10 @@ void printThermistorValues(void)
     if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
         DEBUG_PRINT("failed to read cell temp\n");
     }
-    DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
+    DEBUG_PRINT("%f, ", cell_temp_result);
     
     if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
         DEBUG_PRINT("failed to read fuse temp\n");
     }
-    DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
+    DEBUG_PRINT("%f\n", fuse_temp_result);
 }

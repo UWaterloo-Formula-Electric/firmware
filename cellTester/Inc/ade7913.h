@@ -1,42 +1,20 @@
 #ifndef ADE7013_H
 #define ADE7013_H
 
-//addresses set in data sheet
-#define ADDR_CURRENT (0x00)
-#define ADDR_V1 (0x01)
-#define ADDR_V2 (0x02)
-
-#define ADDR_STATUS0 (0x9)
-#define RESET_ON_BIT (0x0)
-
-#define ADDR_CFG (0x8)
-#define ADC_FREQ_2KHZ (0x20)
-#define ADC_FREQ_1KHZ (0x30)
-#define ADC_LOW_BW_ENABLE (0x80)
-
-#define SPI_TIMEOUT 15
-
-#define DISABLE_ADC_WARNINGS
+#include "stm32f0xx.h"
 
 // Voltage scale and offset convert to volts
 //Scale found by manually calculating using the equation
 #define VOLTAGE_1_SCALE ((0.00000884955752)/1.0093885)
-#define VOLTAGE_1_OFFSET -411949
+#define VOLTAGE_1_OFFSET (-411949 * VOLTAGE_1_SCALE)
 
-//#define VOLTAGE_2_SCALE  (-0.000052273823F)
 #define VOLTAGE_2_SCALE (0.00000602006984F)*1.4486644
-//#define VOLTAGE_2_OFFSET (23.442233510687)
 #define VOLTAGE_2_OFFSET (-458819)
 
 #define CURRENT_SCALE  (0.0000000055036067569447039)
-#define CURRENT_OFFSET (-0.0023230F)
-#define CURRENT_SHUNT_VAL_OHMS_HITL (0.000235F)
-#define CURRENT_SHUNT_VAL_OHMS_CELL_TESTER (0.0001F)
+#define CURRENT_OFFSET (-0.00229137)
 
-#define MAX_CURRENT_ADC_VOLTAGE (0.03125F)
-
-#define READ_EN 0x4
-#define WRITE_EN 0xF8
+#define CURRENT_SHUNT_VAL_OHMS (0.0001F)
 
 HAL_StatusTypeDef hvadc_init();
 HAL_StatusTypeDef adc_read(uint8_t addr, int32_t *dataOut);
