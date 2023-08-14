@@ -44,7 +44,8 @@ void MX_I2C1_Init(void);
 void MX_I2C2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+extern DMA_HandleTypeDef hdma_i2c1_rx;
+extern DMA_HandleTypeDef hdma_i2c2_rx;
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

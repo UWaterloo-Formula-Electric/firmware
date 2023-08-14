@@ -35,6 +35,7 @@ Src/spi.c \
 Src/dma.c \
 Src/freertos.c \
 Src/usart.c \
+Src/i2c.c \
 Src/stm32f0xx_it.c \
 Src/stm32f0xx_hal_msp.c \
 Src/iwdg.c \
