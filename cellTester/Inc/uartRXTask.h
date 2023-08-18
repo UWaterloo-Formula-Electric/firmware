@@ -2,7 +2,6 @@
 #define __UART_RXTASK_H
 
 #include "stm32f0xx_hal.h"
-
-bool isCharacterizationRunning = false;
+float getCurrentTarget(void);
 
 #endif // __UART_RXTASK_H
