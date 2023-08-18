@@ -81,8 +81,10 @@ BaseType_t processInput(char* inputString) {
         set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
         return pdFALSE;
     }
-    DEBUG_PRINT("%s\r\n", inputString);
+
+    float pwm = (const float)atof(inputString)/1000.0f;
+    DEBUG_PRINT("\r\nsetting to: %.4f\r\n", pwm);
     
-    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, (const float)atof(inputString));
+    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, pwm);
     return pdFALSE;
 }
