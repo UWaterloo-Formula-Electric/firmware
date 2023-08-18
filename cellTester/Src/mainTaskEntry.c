@@ -13,7 +13,6 @@
 #include "bsp.h"
 #include "debug.h"
 #include "fetControl.h"
-#include "mock.h"
 #include "task.h"
 #include "uartRXTask.h"
 #include "ade7913.h"

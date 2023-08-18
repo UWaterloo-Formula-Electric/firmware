@@ -16,7 +16,6 @@
 // TODO: Set these to the right values
 #define DEBUG_UART_HANDLE huart2
 #define IWDG_HANDLE hiwdg
-// #define STATS_TIM_HANDLE htim2
 #define ISO_ADC_SPI_HANDLE hspi1
 #define FET_TIM_HANDLE htim2
 #else
@@ -36,4 +35,5 @@
 // Comment out to remove error printing
 #define ERROR_PRINT_ON
 
+#define CONSOLE_PRINT_ON
 #endif /* __BSP_H */
