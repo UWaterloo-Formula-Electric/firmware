@@ -13,7 +13,6 @@
 #include "bsp.h"
 #include "debug.h"
 #include "fetControl.h"
-#include "mock.h"
 #include "task.h"
 #include "uartRXTask.h"
 #include "ade7913.h"
@@ -22,13 +21,22 @@
 #define MAIN_TASK_PERIOD 3
 #define CELL_STABILIZATION_TIME_MS 10
 
-void printCellValues(void);
+// Hardware defined constant
+#define CELL_TESTER_MIN_CURRENT_A 1.5f
+
+void updateFetDuty(float lastCurrentMeasurement);
+void getCellValues(float* current);
 void printThermistorValues(void);
+
+// fetDutyCycle = [0, 100]
+static float fetDutyCycle = 0.0f;
+static float kI_cellTester = 0.25f;
 
 void mainTaskFunction(void const* argument) {
     // Wait for boot
     vTaskDelay(pdMS_TO_TICKS(100));
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    float current = 0.0f;
 
     // DEBUG_PRINT("Starting up!!\n");
 
@@ -59,26 +67,49 @@ void mainTaskFunction(void const* argument) {
     // 5. Repeat 2-4 until cell current is at max
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
     DEBUG_PRINT("time (ms), isCharacterising, PWM duty (%%), v1 (V), v2 (V), Ishunt (A), Temp1 (C), Temp2 (C)\n");
-
     while (1) {
-        printCellValues();
+        getCellValues(&current);
         // printThermistorValues();
+
+        updateFetDuty(current);
+        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, fetDutyCycle);
+
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
     }
 }
 
-void printCellValues(void) {
+void updateFetDuty(float lastCurrentMeasurement)
+{
+    if (getCurrentTarget() <= CELL_TESTER_MIN_CURRENT_A)
+    {
+        fetDutyCycle = 0.0f;
+        return;
+    }
+
+    const float current_error = getCurrentTarget() - lastCurrentMeasurement;
+    fetDutyCycle += current_error * kI_cellTester;
+
+    if (fetDutyCycle < 0)
+    {
+        fetDutyCycle = 0;
+    }
+    else if (fetDutyCycle > 100)
+    {
+        fetDutyCycle = 100;
+    }
+}
+
+void getCellValues(float* current) {
     // float v1 = 0.0f;
     // float v2 = 0.0f;
-    float I = 0.0f;
     // adc_read_v1(&v1);
     // adc_read_v2(&v2);
-    adc_read_current(&I);
+    adc_read_current(current);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
     DEBUG_PRINT("%lu, %.3lf, %.3lf\n",
                 HAL_GetTick(),
                 get_PWM_Duty_Cycle(),
-                I);
+                *current);
 }
 
 void printThermistorValues(void)
