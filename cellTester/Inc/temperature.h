@@ -23,7 +23,6 @@
 #define T1 298.15 // 25 Celsius
 
 float temp_steinhart_hart(float resistance);
-float temp_beta(float resistance);
 float ntc_V_to_R(float voltage);
 float adc_to_volts(int16_t adc_ticks);
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);

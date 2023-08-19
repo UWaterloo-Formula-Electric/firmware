@@ -24,7 +24,6 @@
 
 #define MCP3425_RX_BUFFER_SIZE 3
 
-HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr);
 HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr);
 HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr);
 extern int16_t adc_1_output_val;

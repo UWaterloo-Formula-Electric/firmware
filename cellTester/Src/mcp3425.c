@@ -8,16 +8,6 @@ uint8_t rbuffer_1[MCP3425_RX_BUFFER_SIZE] = {0U, 0U, 0U};
 uint8_t rbuffer_2[MCP3425_RX_BUFFER_SIZE] = {0U, 0U, 0U};
 const uint8_t address_byte = ((MCP3425_ADDR_BYTE) << 1); 
 
-HAL_StatusTypeDef mcp3425_device_ready(I2C_HandleTypeDef *i2c_hdr) {
-    HAL_StatusTypeDef status;
-
-    status = HAL_I2C_IsDeviceReady(i2c_hdr, address_byte, I2C_INIT_TRIALS, I2C_INIT_TIMEOUT);
-    if (status != HAL_OK) {
-        ERROR_PRINT("ADC device not ready\n");
-        return HAL_ERROR;
-    } 
-    return HAL_OK;
-}
 
 HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
     uint8_t tx_payload[4] = {MCP3425_CONFIG_BYTE, 0x00, 0x00, 0x00};
@@ -30,6 +20,7 @@ HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
 
 int16_t adc_1_output_val = 0;
 int16_t adc_2_output_val = 0;
+
 // Also write the adc reading to provided address
 HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr) {
     uint8_t* rbuffer = NULL;
@@ -55,7 +46,6 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
     if (hi2c->Instance == hi2c1.Instance)
     {        
-        // DEBUG_PRINT_ISR("I2C RX 1\r\n");
         int16_t adc_raw = (rbuffer_1[0] << 8) | rbuffer_1[1];
         // Check RDY bit
         // 0 = Output register has been updated with the latest conversion data.
@@ -64,13 +54,11 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
             // Output register has not been updated
             DEBUG_PRINT_ISR("No MCP3425 ready bit\n");
         }
-        // save_adc_output_val = adc_raw * MCP3425_PGA_GAIN;
         adc_1_output_val = adc_raw;
         hdma_i2c1_rx.State = HAL_DMA_STATE_READY;
     }
     else if (hi2c->Instance == hi2c2.Instance)
     {
-        // DEBUG_PRINT_ISR("I2C RX 2\r\n");
         int16_t adc_raw = (rbuffer_2[0] << 8) | rbuffer_2[1];
         // Check RDY bit
         // 0 = Output register has been updated with the latest conversion data.
@@ -79,7 +67,6 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
             // Output register has not been updated
             DEBUG_PRINT_ISR("No MCP3425 ready bit\n");
         }
-        // save_adc_output_val = adc_raw * MCP3425_PGA_GAIN;
         adc_2_output_val = adc_raw;
         hdma_i2c2_rx.State = HAL_DMA_STATE_READY;
     }
