@@ -16,17 +16,6 @@ float temp_steinhart_hart(float resistance) {
     return temp_C;
 }
 
-// Simplified form of the Steinhart-Hart
-float temp_beta(float resistance) {
-    float ln_R1_over_R2 = log(R1/resistance);
-    float temp_K = 1 / (((-1 * ln_R1_over_R2)/BETA) + (1/T1));
-    float temp_C = KELVIN_TO_CELSIUS(temp_K);
-    return temp_C;
-}
-
-// Potential third (and more performant) method of deriving temperature from resistance
-// float temp_lookuptable(float resistance) {}
-
 // Voltage to Resistance (Wheastone Bridge equation)
 // https://www.ametherm.com/thermistor/ntc-thermistors-temperature-measurement-with-wheatstone-bridge
 float ntc_V_to_R(float voltage) {
@@ -58,7 +47,6 @@ float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
         return HAL_ERROR;
     }
 
-    // DEBUG_PRINT("last adc output is: %d\r\n", save_adc_output_val);
     int save_adc_output_val = 0;
     if (i2c_hdr == cell_i2c_hdr)
     {
@@ -95,25 +83,14 @@ void temperatureTask(void *pvParameters) {
     vTaskDelay(100);
 
     while (1) {
-
         if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read cell temp\n");
         }
-        DEBUG_PRINT("cell temp: %f\n", cell_temp_result);
 
         if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
             DEBUG_PRINT("failed to read fuse temp\n");
         }
-        DEBUG_PRINT("fuse temp: %f\n", fuse_temp_result);
-        // todo - log and/or transmit the data via UART?
         
         vTaskDelayUntil(&xLastWakeTime, temp_period);
-    }
-}
-
-void fetControlTask(void *pvParameters) {
-    while(1)
-    {
-        vTaskDelay(10000);
     }
 }
