@@ -26,7 +26,7 @@ void process_rx_task (void * pvParameters)
 
     while(1)
     {
-        xQueueReceive(rx_pdu_hil, &can_msg, portMAX_DELAY);
+        xQueueReceive(pdu_hil_queue, &can_msg, portMAX_DELAY);
 
         switch (can_msg.identifier)
         {
