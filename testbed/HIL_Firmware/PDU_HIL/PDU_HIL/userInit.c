@@ -50,7 +50,7 @@ void taskRegister (void)
 
     xReturned = xTaskCreate(
         relayPduOutputs,
-        "CAN_PROCESS_TASK",
+        "RELAY_PDU_OUTPUTS_TASK",
         4000,
         ( void * ) 1,
         configMAX_PRIORITIES-1,
