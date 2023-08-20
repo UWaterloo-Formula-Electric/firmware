@@ -1,8 +1,11 @@
 from readline import set_pre_input_hook
 import cantools
+import matplotlib
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
+
+matplotlib.use('qtagg')
 
 def toDict(src_file):
      db = cantools.database.load_file("../../../../../common/Data/2018CAR.dbc")
@@ -38,22 +41,35 @@ def graph(checked_data_dict, args):
         ax.plot(*zip(*checked_data_dict[signal]), label=signal)
 
     #check if users has inputed any constraints on graph
-    if (args['MaxXInput'] != ''):
-        MaxXInput = int(args['MaxXInput'])
+    if (args["MaxXInput"] != ""):
+        try:
+            MaxXInput = float(args["MaxXInput"])
+        except:
+            return "Max X Input"
         plt.xlim(right=MaxXInput)
-    if (args['MinXInput'] != ''):
-        MinXInput = int(args['MinXInput'])
+    if (args["MinXInput"] != ""):
+        try:
+            MinXInput = float(args["MinXInput"])
+        except:
+            return "Min X Input"
         plt.xlim(left=MinXInput)
-    if (args['MaxYInput'] != ''):
-        MaxYInput = int(args['MaxYInput'])
+    if (args["MaxYInput"] != ""):
+        try:
+            MaxYInput = float(args["MaxYInput"])
+        except:
+            return "Max Y Input"
         plt.ylim(top=MaxYInput)
-    if (args['MinYInput'] != ''):
-        MinYInput = int(args['MinYInput'])
+    if (args["MinYInput"] != ""):
+        try:
+            MinYInput = float(args["MinYInput"])
+        except:
+            return "Min Y Input"
         plt.ylim(bottom=MinYInput)
     ax.legend()
     plt.xlabel("Time")
 
     plt.show()
+    return "Success"
 
 import json
 from cantools.database.can.signal import NamedSignalValue
@@ -109,15 +125,27 @@ def logToJsonDict(logFilePath, dbcFile):
     return signals
 
 def csvToDict(csvFilePath):
-    with open(csvFilePath, "r") as csv_file:
-        lines = csv.reader(csv_file)
+    # For CSV file, the use of utf-8 or utf-16 may cause the program crush 
+    # due to the null character or unsupported character, so ignore errors here, 
+    # but we can still see the general trends of the data
+    with open(csvFilePath, "r", errors="ignore") as csv_file:
+        #remove null characters
+        lines = csv.reader(x.replace('\0', '') for x in csv_file)
         data_dict = {}
         for line in lines:
-            timestamp = line[0]
+            # If there is not enough data (3: timestamp, signal_name and value) in the current group, 
+            # skip this group
+            if(len(line) < 3):
+                continue
+            timestamp = float(line[0])
             signal_name = line[1]
             value = line[2]
             if (value == "Wait_System_Up"):
                 value = -1
+            try:
+                value = float(line[2])
+            except:
+                pass
             if (signal_name in data_dict.keys()):
                 data_dict[signal_name].append((timestamp,value))
             else:

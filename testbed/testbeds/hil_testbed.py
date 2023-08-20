@@ -1,23 +1,35 @@
 import slash
-from testbeds.common_testbed import Testbed
-
+from testbeds.common_testbed import Testbed, HWManifestItem
+from hil_constants import VehicleBoardId, HilBoardId
 
 class HILTestbed(Testbed):
     pass
 
-class VehicleHIL(HILTestbed):
-    def hw_manifest(self):
-        return {
-            "vcu": {
-                "driver": "VCU",
-                "can_interface": "can1"
-            },
-            "vcu_sim": {
-                "driver": "VCUSim",
-                "can_interface": "can2"
-            }
-        }
 
-@slash.fixture()
-def hil_testbed():
-    return slash.g.testbed 
+class VehicleHIL(HILTestbed):
+    vehicle_manifest = [
+        HWManifestItem("bmu", VehicleBoardId.BMU),
+        HWManifestItem("vcu", VehicleBoardId.VCU),
+        HWManifestItem("pdu", VehicleBoardId.PDU),
+        HWManifestItem("charge_cart", VehicleBoardId.CHARGE_CART),
+        HWManifestItem("motor_l", VehicleBoardId.MOTOR_L),
+        HWManifestItem("motor_r", VehicleBoardId.MOTOR_R),
+        HWManifestItem("dcu", VehicleBoardId.DCU),
+        HWManifestItem("wsb_fl", VehicleBoardId.WSB_FL),
+        HWManifestItem("wsb_fr", VehicleBoardId.WSB_FR),
+        HWManifestItem("wsb_rl", VehicleBoardId.WSB_RL),
+        HWManifestItem("wsb_rr", VehicleBoardId.WSB_RR),
+        HWManifestItem("beaglebone", VehicleBoardId.BEAGLEBONE),
+        HWManifestItem("imu", VehicleBoardId.IMU),
+        HWManifestItem("charger", VehicleBoardId.CHARGER),
+        HWManifestItem("debug", VehicleBoardId.DEBUG),
+    ]
+    hil_manifest = [
+        HWManifestItem("vcu_hil", HilBoardId.VCU_HIL),
+    ]
+    
+
+
+@slash.fixture
+def teststand():
+    return slash.g.testbed

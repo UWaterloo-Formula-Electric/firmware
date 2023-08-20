@@ -446,7 +446,7 @@ HAL_StatusTypeDef debugInit()
     }
 
     uartRxQueue = xQueueCreate(UART_RX_QUEUE_LENGTH, 1);
-    if (!printQueue)
+    if (!uartRxQueue)
     {
         return HAL_ERROR;
     }

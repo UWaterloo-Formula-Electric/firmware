@@ -8,6 +8,11 @@
 #define VREF 3300.0
 #define MAXSTEPS12 2048
 #define MAXSTEPS8 255
+#define MESSAGE_STATUS 0x8060F02
+#define BRAKE_POS_IS_SET 2
+#define STEER_RAW_IS_SET 4
+#define THROTTLE_A_IS_SET 8
+#define THROTTLE_B_IS_SET 16
 
 typedef enum dacID{
     throttleA_ID = 0,

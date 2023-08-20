@@ -1,6 +1,15 @@
 #include "boardTypes.h"
 #include "bsp.h"
 #include "debug.h"
+#if BOARD_ID  == ID_WSBFL
+	#include "wsbfl_can.h"
+#elif BOARD_ID  == ID_WSBFR
+	#include "wsbfr_can.h"
+#elif BOARD_ID  == ID_WSBRL
+	#include "wsbrl_can.h"
+#elif BOARD_ID  == ID_WSBRR
+	#include "wsbrr_can.h"
+#endif
 
 void DTC_Fatal_Callback(BoardIDs board)
 {
@@ -9,12 +18,12 @@ void DTC_Fatal_Callback(BoardIDs board)
 
 void CAN_Msg_UartOverCanConfig_Callback() {
 #if BOARD_ID  == ID_WSBFL
-	isUartOverCanEnabled = isUartOverCanEnabled & 0x10;
+	isUartOverCanEnabled = UartOverCanConfigSignal & 0x10;
 #elif BOARD_ID  == ID_WSBFR
-	isUartOverCanEnabled = isUartOverCanEnabled & 0x20;
+	isUartOverCanEnabled = UartOverCanConfigSignal & 0x20;
 #elif BOARD_ID  == ID_WSBRL
-	isUartOverCanEnabled = isUartOverCanEnabled & 0x40;
+	isUartOverCanEnabled = UartOverCanConfigSignal & 0x40;
 #elif BOARD_ID  == ID_WSBRR
-	isUartOverCanEnabled = isUartOverCanEnabled & 0x80;
+	isUartOverCanEnabled = UartOverCanConfigSignal & 0x80;
 #endif
 }
