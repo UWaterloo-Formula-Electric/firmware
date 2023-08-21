@@ -100,16 +100,22 @@ void updateFetDuty(float lastCurrentMeasurement)
 }
 
 void getCellValues(float* current) {
-    // float v1 = 0.0f;
-    // float v2 = 0.0f;
-    // adc_read_v1(&v1);
-    // adc_read_v2(&v2);
+    float fuse_temp_result = 0.0f;
+    // // float fuse_temp_result = 0.0f;
+
+    if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
+        DEBUG_PRINT("failed to read cell temp\n");
+    }
+
+    float v = 0.0f;
+    adc_read_v(&v);
     adc_read_current(current);
-    // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %.3lf, %.3lf\n",
+    // Timestamp, Voltage, Current, Temperature
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.2lf\n",
                 HAL_GetTick(),
-                get_PWM_Duty_Cycle(),
-                *current);
+                v,
+                *current,
+                fuse_temp_result);
 }
 
 void printThermistorValues(void)

@@ -168,9 +168,21 @@ HAL_StatusTypeDef adc_read_v2(float *dataOut) {
   return HAL_OK;
 }
 
-HAL_StatusTypeDef hvadc_init()
-{
-  uint8_t status0;
+HAL_StatusTypeDef adc_read_v(float *dataOut){
+    float v1, v2;
+    if (adc_read_v1(&v1) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    if (adc_read_v2(&v2) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    (*dataOut) = v2-v1;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef hvadc_init() {
+    uint8_t status0;
 
     // Wait for ADC to come out of reset
     do {
