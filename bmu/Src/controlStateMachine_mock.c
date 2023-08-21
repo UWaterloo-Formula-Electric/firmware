@@ -376,7 +376,7 @@ BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     uint8_t index;
-    index = fsmGetState(&fsmHandle);
+    index = fsmGetState(&fsmHandle)
     if ( index >= 0 && index < STATE_ANY ){
         COMMAND_OUTPUT("State: %s\n", BMU_states_string[index]);
     } else {
