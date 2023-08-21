@@ -1,0 +1,26 @@
+name: Lint Code
+
+on:
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
+
+    strategy:
+      matrix:
+        component: ["common", "BMU", "PDU", "DCU", "VCU", "WSB"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Display Cppcheck version
+        run: cppcheck --version
+
+      - name: Run linter
+        run: cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I ${{ matrix.component }}/Inc ${{ matrix.component }}/Src
