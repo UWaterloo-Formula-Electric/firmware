@@ -3,7 +3,7 @@ name: Lint Code
 on:
   pull_request:
     branches:
-      - "**"
+      - ""
 
 jobs:
   lint:
