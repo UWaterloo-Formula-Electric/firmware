@@ -63,34 +63,3 @@ float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
     (*output_temperature) = temperature_celsius;
     return HAL_OK;
 }
-
-// FreeRTOS task to periodically check thermistor temperatures
-// todo - maybe: break the two thermistors into two tasks?
-// uart transmit the data out?
-void temperatureTask(void *pvParameters) {
-    const uint32_t temp_period = pdMS_TO_TICKS(TEMPERATURE_PERIOD_MS);
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    float cell_temp_result = 0.0f;
-    float fuse_temp_result = 0.0f;
-
-    // Wait for boot
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    // Configure ADCs    
-    thermistor_adc_init(cell_i2c_hdr);
-    thermistor_adc_init(fuse_i2c_hdr);
-
-    vTaskDelay(100);
-
-    while (1) {
-        if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
-            DEBUG_PRINT("failed to read cell temp\n");
-        }
-
-        if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
-            DEBUG_PRINT("failed to read fuse temp\n");
-        }
-        
-        vTaskDelayUntil(&xLastWakeTime, temp_period);
-    }
-}

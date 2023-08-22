@@ -57,7 +57,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
     uint8_t config_byte = rbuffer[2];
     if (config_byte & MCP3425_CONFIG_RDY_BIT_MASK) {
         // Output register has not been updated
-        DEBUG_PRINT_ISR("No MCP3425 ready bit\n");
+        // DEBUG_PRINT_ISR("No MCP3425 ready bit\n");
     }
 
     if (hi2c->Instance == hi2c1.Instance)

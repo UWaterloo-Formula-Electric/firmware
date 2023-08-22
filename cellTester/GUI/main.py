@@ -1,4 +1,6 @@
+import math
 import csv
+from io import StringIO
 
 from serial.tools import list_ports
 from serial import Serial
@@ -13,7 +15,7 @@ from constants import VOLTAGE_OC_CURRENT_LIMIT
 ct_port = None
 for port, desc, hwid in list_ports.comports():
     if "STLink" in desc:
-        ct_port = Serial(port, 230400, timeout=1)
+        ct_port = Serial(port, 230400, timeout=None)
         break
 
 assert ct_port is not None, "No STLink found"
@@ -25,9 +27,20 @@ def set_current_target(current: float):
 
 def get_characterization():
     # Expected format: "timestamp, voltage, current, temperature"
-    data = ct_port.readline().decode("ascii").strip()
-    data = data.split(", ")
-    return int(data[0]), float(data[1]), float(data[2]), float(data[3])
+    raw_data = ct_port.read(ct_port.in_waiting)
+    # # find the text between last 2 newlines
+    last_newline = raw_data.rfind(b"\n")
+    second_last_newline = raw_data.rfind(b"\n", 0, last_newline)
+    raw_data = raw_data[second_last_newline+1:last_newline].decode("ascii")
+    data = raw_data.split(", ")
+    try:
+        return int(data[0]), float(data[1]), float(data[2]), float(data[3])
+    except ValueError:
+        if raw_data.startswith("desired current set to"):
+            return get_characterization()
+        raise
+    except IndexError:
+        raise ValueError(f"Invalid data: {raw_data}")
 
 
 cell_df = pd.DataFrame(columns=["Time Stamp", "Cell Open Circuit Voltage",
@@ -38,27 +51,44 @@ writer = csv.writer(csv_file)
 writer.writerow(cell_df.columns)
 isCharacterization = False
 
-sg.theme('Dark')
+
+sg.theme('DarkGrey14')
 # All the stuff inside your window.
 layout = [
-    [sg.Text('Characterization:'), sg.Text('False', key='characterization')],
-    [sg.Text('Voltage [V]:'), sg.Text('0.0', key='cell_V')],
-    [sg.Text('Current [A]:'), sg.Text('0.0', key='cell_I')],
-    [sg.Text('Calculated Internal Resitance [Ω]:'),
-     sg.Text('0.0', key='cell_R')],
-    [sg.Text('Temperature [°C]:'), sg.Text('0.0', key='cell_T')],
-    [sg.Button('Start'), sg.Button('Stop')],
-    [sg.Text('Request Current Draw:'),
-     sg.InputText('0.0', key='requested_curr_draw'),
-     sg.Button('Request Current Draw')],
-
-    [sg.Text('File Name:'), sg.InputText('cell_1.csv', key='file_name')],
-    [sg.Button('Save Characterization')]
-
+    [sg.Frame('Meters', [
+        [
+            sg.Frame('Voltage [V]', [[sg.Text(
+                '0.0', key='cell_V', s=10, justification='center', font=('Consolas', 30))]]),
+            sg.Frame('Current [A]', [[sg.Text('0.0', key='cell_I',
+                                              s=10, justification='center', font=('Consolas', 30))]])
+        ],
+        [
+            sg.Frame('Temperature [°C]', [[sg.Text(
+                '0.0', key='cell_T', s=10, justification='center', font=('Consolas', 30))]]),
+            sg.Frame('Derived Internal Resitance [Ω]', [[sg.Text(
+                '0.0', key='cell_R', s=10, justification='center', font=('Consolas', 30))]])
+        ]])
+    ],
+    [
+        sg.Frame('Request Current Draw', [
+            [sg.InputText('0.0', key='requested_curr_draw',
+                          size=18, justification='center')],
+            [sg.Button('Request', size=15)]
+        ]),
+        sg.Frame('Characterization', [
+            [sg.StatusBar('False', key='characterization',
+                     justification='center', s=13, font=('Consolas'))],
+            [sg.Button('Start', size=6), sg.Button('Stop', size=6)]
+        ]),
+        sg.Frame("Save Characterization", [
+            [sg.Text('File Name:'), sg.InputText('cell_1.csv', key='file_name', size=15)],
+            [sg.Button('Save Characterization', size=19)]
+        ])
+    ],   
 ]
 
 # Create the Window
-window = sg.Window('Cell Tester', layout, size=(800, 600))
+window = sg.Window('Cell Tester', layout, size=(500, 300))
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read(timeout=10)  # type: ignore
@@ -81,12 +111,15 @@ while True:
         set_current_target(float(values['requested_curr_draw']))
     else:
         # Get data
-        cell_data = CellData(*get_characterization())
+        try:
+            cell_data = CellData(*get_characterization())
+        except ValueError:
+            continue
         print(cell_data)
         # Update values
-        window['cell_V'].update(value=cell_data.voltage)
-        window['cell_I'].update(value=cell_data.current)
-        window['cell_T'].update(value=cell_data.temperature)
+        window['cell_V'].update(value=f"{cell_data.voltage:.3f}")
+        window['cell_I'].update(value=f"{cell_data.current:.3f}")
+        window['cell_T'].update(value=f"{cell_data.temperature:.2f}")
 
         # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
         cell_data.voltage_open_circuit = cell_df.loc[cell_df["Cell Current"] <=
