@@ -3,14 +3,7 @@
 
 #include <stdint.h>
 #include "boardTypes.h"
-
-#if IS_BOARD_F7
-    #include "stm32f7xx.h"
-#elif IS_BOARD_F0
-    #include "stm32f0xx.h"
-#else
-    #error "Board Type Not Recognized"
-#endif // BoardType
+#include "stm32f7xx.h"
 
 #define ISO_ADC_SPI_HANDLE HV_ADC_SPI_HANDLE
 #define ISO_ADC_CS_GPIO_Port HV_ADC_SPI_NSS_GPIO_Port

@@ -18,25 +18,30 @@
 #include "ade7913.h"
 #include "temperature.h"
 
-#define MAIN_TASK_PERIOD 3
+#define MAIN_TASK_PERIOD 5
 #define CELL_STABILIZATION_TIME_MS 10
 
 // Hardware defined constant
 #define CELL_TESTER_MIN_CURRENT_A 1.5f
+#define CELL_TEST_CURRENT_A 3.0f
 
+#define FET_CONTROL_KP 0.005f
+
+void updateCurrentTarget(void);
 void updateFetDuty(float lastCurrentMeasurement);
-void getCellValues(float* current);
+void getCellValues(float* current, float* v1, float* v2);
 void printThermistorValues(void);
 
 // fetDutyCycle = [0, 100]
-static float fetDutyCycle = 0.0f;
-static float kI_cellTester = 0.25f;
+static float fetDutyCycle = PWM_MAX_DUTY_NO_CURRENT;
 
 void mainTaskFunction(void const* argument) {
     // Wait for boot
     vTaskDelay(pdMS_TO_TICKS(100));
     TickType_t xLastWakeTime = xTaskGetTickCount();
     float current = 0.0f;
+    float hv_adc_v1 = 0.0f;
+    float hv_adc_v2 = 0.0f;
 
     // DEBUG_PRINT("Starting up!!\n");
 
@@ -66,28 +71,40 @@ void mainTaskFunction(void const* argument) {
     // 4. Take measurement
     // 5. Repeat 2-4 until cell current is at max
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
-    DEBUG_PRINT("time (ms), isCharacterising, PWM duty (%%), v1 (V), v2 (V), Ishunt (A), Temp1 (C), Temp2 (C)\n");
+    DEBUG_PRINT("Time (ms), IShunt (A), V1 (V), V2 (V)\n");
     while (1) {
-        getCellValues(&current);
+        getCellValues(&current, &hv_adc_v1, &hv_adc_v2);
         // printThermistorValues();
 
+        updateCurrentTarget();
         updateFetDuty(current);
-        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, fetDutyCycle);
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
     }
 }
 
+void updateCurrentTarget(void)
+{
+    switch (getCellTestStatus())
+    {
+        case CellTestStatus_RUNNING:
+            setCurrentTarget(CELL_TEST_CURRENT_A);
+            break;
+
+        case CellTestStatus_LOGGING:
+            setCurrentTarget(0.0f);
+            break;
+        
+        default:
+            // Lint
+            break;
+    }
+}
+
 void updateFetDuty(float lastCurrentMeasurement)
 {
-    if (getCurrentTarget() <= CELL_TESTER_MIN_CURRENT_A)
-    {
-        fetDutyCycle = 0.0f;
-        return;
-    }
-
     const float current_error = getCurrentTarget() - lastCurrentMeasurement;
-    fetDutyCycle += current_error * kI_cellTester;
+    fetDutyCycle += current_error * FET_CONTROL_KP;
 
     if (fetDutyCycle < 0)
     {
@@ -97,25 +114,20 @@ void updateFetDuty(float lastCurrentMeasurement)
     {
         fetDutyCycle = 100;
     }
+
+    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, fetDutyCycle);
 }
 
-void getCellValues(float* current) {
-    float fuse_temp_result = 0.0f;
-    // // float fuse_temp_result = 0.0f;
-
-    if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
-        DEBUG_PRINT("failed to read cell temp\n");
-    }
-
-    float v = 0.0f;
-    adc_read_v(&v);
+void getCellValues(float* current, float* v1, float* v2) {
+    adc_read_v1(v1);
+    adc_read_v2(v2);
     adc_read_current(current);
-    // Timestamp, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.2lf\n",
+    // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf\n",
                 HAL_GetTick(),
-                v,
                 *current,
-                fuse_temp_result);
+                *v1,
+                *v2);
 }
 
 void printThermistorValues(void)
@@ -132,4 +144,10 @@ void printThermistorValues(void)
         DEBUG_PRINT("failed to read fuse temp\n");
     }
     DEBUG_PRINT("%f\n", fuse_temp_result);
+}
+
+// Set duty cycle to lowest PWM duty that draws 0 current to improve response time of controller
+void resetFetDutyCycle(void)
+{
+    fetDutyCycle = PWM_MAX_DUTY_NO_CURRENT;
 }

@@ -2,16 +2,27 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "FreeRTOS.h"
+#include "task.h"
 #include "debug.h"
 #include "uartRXTask.h"
 #include "fetControl.h"
 
 #define INPUT_BUFFER_SIZE (100)
+
+#define CELL_TEST_LOGGING_DELAY 2000
+#define CELL_TEST_LOG_DELAY_FROM_START_MS CELL_TEST_LOGGING_DELAY
+#define CELL_TEST_LOG_TIME_MS 4000
+#define CELL_TEST_END_OF_CELL_TEST_FROM_START_MS (CELL_TEST_LOG_DELAY_FROM_START_MS + CELL_TEST_LOG_TIME_MS)
+#define CELL_TEST_END_OF_LOGGING_TIME_FROM_START_MS (CELL_TEST_END_OF_CELL_TEST_FROM_START_MS + CELL_TEST_LOGGING_DELAY)
+
 static char rxString[INPUT_BUFFER_SIZE];
 uint32_t rxIndex = 0;
-static float current_target = 0.0f;
+static float currentTarget = 0.0f;
 
-BaseType_t processInput(char* inputString);
+static TickType_t startCellTestTimeMs = 0;
+static TickType_t abortCellTestTimeMs = 0; // A stop request was made to abort the cell test if non zero
+
+static void processInput(char* inputString);
 
 void uartRXTask(void const* argument) {
     while (1) {
@@ -61,16 +72,114 @@ void uartRXTask(void const* argument) {
     }
 }
 
-BaseType_t processInput(char* inputString) {
-    current_target = (float)atof(inputString);
-    DEBUG_PRINT("desired current set to: %.4f\r\n", current_target);
-    
-    // Reset PWM
-    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
-    return pdFALSE;
+
+
+void processInput(char* inputString) {
+    bool isNumber = true;
+    bool processedPeriod = false; // Only allow one period for a numerical input
+    char* c = inputString;
+    while (*c != '\0')
+    {
+        DEBUG_PRINT("%c\r\n", *c);
+        // Check to see if its a number
+        if (*c < '0' || *c > '9')
+        {
+            // There can only be one period per decimal
+            if (!processedPeriod && *c == '.')
+            {
+                processedPeriod = true;
+            }
+            else
+            {
+                isNumber = false;
+                break;
+            }
+        }
+        ++c;
+    }
+
+    if (isNumber)
+    {
+        currentTarget = (float)atof(inputString);
+        resetFetDutyCycle();
+    }
+    else if (startCellTestTimeMs == 0 && strcmp(inputString, "start") == 0)
+    {
+        // This tells the GUI to start logging
+        DEBUG_PRINT("start\r\n");
+
+        // Can't start a cellTest if one is in progress
+        startCellTestTimeMs = xTaskGetTickCount();
+    }
+    else if (startCellTestTimeMs != 0 && strcmp(inputString, "stop") == 0)
+    {
+        abortCellTest();
+    }
+    else
+    {
+        DEBUG_PRINT("Unknown command\r\n");
+    }
+}
+
+CellTestStatus_E getCellTestStatus(void)
+{
+    const TickType_t timeSinceCellTestRequest = pdMS_TO_TICKS(xTaskGetTickCount() - startCellTestTimeMs);
+    if (abortCellTestTimeMs != 0U)
+    {
+        TickType_t timeSinceCellTestAbort = pdMS_TO_TICKS(xTaskGetTickCount() - abortCellTestTimeMs);
+        if (timeSinceCellTestAbort < CELL_TEST_LOGGING_DELAY)
+        {
+            return CellTestStatus_LOGGING;
+        }
+        else
+        {
+            // Tells the GUI to stop logging
+            DEBUG_PRINT("stop\r\n");
+
+            startCellTestTimeMs = 0U;
+            abortCellTestTimeMs = 0U;
+            return CellTestStatus_IDLE;
+        }
+    }
+    else if (startCellTestTimeMs == 0)
+    {
+        return CellTestStatus_IDLE;
+    }
+    else if (timeSinceCellTestRequest < CELL_TEST_LOG_DELAY_FROM_START_MS)
+    {
+        return CellTestStatus_REQUESTED;
+    }
+    else if (timeSinceCellTestRequest < CELL_TEST_END_OF_CELL_TEST_FROM_START_MS)
+    {
+        return CellTestStatus_RUNNING;
+    }
+    else if (timeSinceCellTestRequest < CELL_TEST_END_OF_LOGGING_TIME_FROM_START_MS)
+    {
+        return CellTestStatus_LOGGING;
+    }
+    else
+    {
+        // Cell test done, reset state
+        startCellTestTimeMs = 0U;
+
+        // Tells the GUI to stop logging
+        DEBUG_PRINT("stop\r\n");
+
+        return CellTestStatus_IDLE;
+    }
+}
+
+void abortCellTest(void)
+{
+    abortCellTestTimeMs = xTaskGetTickCount();
+}
+
+void setCurrentTarget(float newCurrentTarget)
+{
+    currentTarget = newCurrentTarget;
 }
 
 float getCurrentTarget(void)
 {
-    return current_target;
+    return currentTarget;
 }

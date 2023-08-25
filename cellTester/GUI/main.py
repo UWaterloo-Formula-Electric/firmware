@@ -5,11 +5,41 @@ from io import StringIO
 from serial.tools import list_ports
 from serial import Serial
 import pandas as pd
+import os
+import datetime
 
 import PySimpleGUI as sg
 
 from CellData import CellData
 from constants import VOLTAGE_OC_CURRENT_LIMIT
+
+RX_DATA_TYPE_CELL_TESTER_STATUS = 0
+RX_DATA_TYPE_LOGGING_DATA = 1
+
+
+def send_current_target(current: float):
+    ct_port.write(f"{current:.3}\n".encode("ascii"))
+
+
+def identify_data():
+    # Data with commas is data, otherwise consider it a status message from the cell tester
+    data = ct_port.readline().decode("ascii").strip()
+    data = data.split(", ")
+    if len(data) == 1:
+        return (RX_DATA_TYPE_CELL_TESTER_STATUS, data)
+    else:
+        return (RX_DATA_TYPE_LOGGING_DATA, data)
+
+
+def get_characterization(data):
+    # Expected format: "timestamp, voltage, current, temperature"
+    try:
+        ret = int(data[0]), float(data[1]), float(data[2]), float(data[3])
+    except:
+        print(data)
+        raise Exception("invalid data printed from cell tester") 
+    return ret
+
 
 # Find port and connect
 ct_port = None
@@ -20,116 +50,136 @@ for port, desc, hwid in list_ports.comports():
 
 assert ct_port is not None, "No STLink found"
 
+cell_df = pd.DataFrame(columns=["Time [ms]", "IShunt [A]", "V1 [V]", "V2 [V]"])
+logDir = "../CellData/"
+current_date = datetime.datetime.now()
+cellLogfile = current_date.strftime("%b-%d_%H-%M-%S") + "_cell_{cellNum}" + ".csv"
+isExist = os.path.exists(logDir)
+if not isExist:
+    os.mkdir(logDir)
 
-def set_current_target(current: float):
-    ct_port.write(f"{current:.3}\n".encode("ascii"))
-
-
-def get_characterization():
-    # Expected format: "timestamp, voltage, current, temperature"
-    raw_data = ct_port.read(ct_port.in_waiting)
-    # # find the text between last 2 newlines
-    last_newline = raw_data.rfind(b"\n")
-    second_last_newline = raw_data.rfind(b"\n", 0, last_newline)
-    raw_data = raw_data[second_last_newline+1:last_newline].decode("ascii")
-    data = raw_data.split(", ")
-    try:
-        return int(data[0]), float(data[1]), float(data[2]), float(data[3])
-    except ValueError:
-        if raw_data.startswith("desired current set to"):
-            return get_characterization()
-        raise
-    except IndexError:
-        raise ValueError(f"Invalid data: {raw_data}")
-
-
-cell_df = pd.DataFrame(columns=["Time Stamp", "Cell Open Circuit Voltage",
-                                "Cell Voltage", "Cell Current", "Cell Temperature", "Cell Internal Resistance"])
-
-csv_file = open("../CellData/continuous_cell_data.csv", "w", newline='')
-writer = csv.writer(csv_file)
-writer.writerow(cell_df.columns)
-isCharacterization = False
-
+cell_number = 1
+isTestingCell = False
 
 sg.theme('DarkGrey14')
 # All the stuff inside your window.
+
 layout = [
     [sg.Frame('Meters', [
         [
-            sg.Frame('Voltage [V]', [[sg.Text(
-                '0.0', key='cell_V', s=10, justification='center', font=('Consolas', 30))]]),
-            sg.Frame('Current [A]', [[sg.Text('0.0', key='cell_I',
-                                              s=10, justification='center', font=('Consolas', 30))]])
+            sg.Frame('Voltage [V]', [
+                [sg.Text('0.0', key='cell_V', size=10, justification='center', font=('Consolas', 30))]]),
+            sg.Frame('Current [A]', [
+                [sg.Text('0.0', key='cell_I', size=10, justification='center', font=('Consolas', 30))]])
         ],
         [
-            sg.Frame('Temperature [°C]', [[sg.Text(
-                '0.0', key='cell_T', s=10, justification='center', font=('Consolas', 30))]]),
-            sg.Frame('Derived Internal Resitance [Ω]', [[sg.Text(
-                '0.0', key='cell_R', s=10, justification='center', font=('Consolas', 30))]])
+            sg.Frame('Temperature [°C]', [
+                [sg.Text('0.0', key='cell_T', size=10, justification='center', font=('Consolas', 30))]]),
+            sg.Frame('Derived Internal Resitance [Ω]', [
+                [sg.Text('0.0', key='cell_R', size=10, justification='center', font=('Consolas', 30))]])
         ]])
     ],
     [
-        sg.Frame('Request Current Draw', [
-            [sg.InputText('0.0', key='requested_curr_draw',
-                          size=18, justification='center')],
-            [sg.Button('Request', size=15)]
-        ]),
-        sg.Frame('Characterization', [
-            [sg.StatusBar('False', key='characterization',
-                     justification='center', s=13, font=('Consolas'))],
-            [sg.Button('Start', size=6), sg.Button('Stop', size=6)]
-        ]),
-        sg.Frame("Save Characterization", [
-            [sg.Text('File Name:'), sg.InputText('cell_1.csv', key='file_name', size=15)],
-            [sg.Button('Save Characterization', size=19)]
+        sg.Frame('Is Logging Cell Data', [
+            [sg.StatusBar('False', key='isLogging', justification='center', size=12, font=('Consolas'))]]),
+        sg.Frame('Set Current Target [A]', [
+            [sg.InputText('0.0', key='set_current_target', size=10, justification='center'),
+             sg.Button('Update', size=10)]
+        ])
+    ],
+    [
+        sg.Frame("Cell Test Control", [
+            [sg.Text('File Name:')], 
+            [sg.InputText(cellLogfile.format(cellNum=cell_number), key='file_name', size=43)],
+            [sg.Button('Start Cell Test', size=19),
+             sg.Button('Stop Cell Test', size=19)]
         ])
     ],   
 ]
 
 # Create the Window
-window = sg.Window('Cell Tester', layout, size=(500, 300))
+window = sg.Window('Cell Tester', layout, size=(500, 375))
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read(timeout=10)  # type: ignore
     if event == sg.WIN_CLOSED:
         break
-    elif event == 'Start':
-        isCharacterization = True
-        window['characterization'].update(value='True')
-    elif event == 'Stop':
-        isCharacterization = False
-        window['characterization'].update(value='False')
-    elif event == 'Save Characterization':
+    elif event == 'Start Cell Test':
+        isExist = os.path.exists(logDir)
+        if not isExist:
+            os.mkdir(logDir)
+
         file_name = values['file_name']
         cell_df.to_csv(f'../CellData/{file_name}',
                        index=False, lineterminator='\n')
         cell_df.drop(cell_df.index, inplace=True)  # reset dataframe
-        cell_number = int(file_name.split("_")[1].split(".")[0])
-        window['file_name'].update(value=f"cell_{cell_number+1}.csv")
-    elif event == 'Request Current Draw':
-        set_current_target(float(values['requested_curr_draw']))
+
+        cell_logfile_csv = open(logDir + cellLogfile.format(cellNum=cell_number), "w", newline='')
+        cell_logfile_writer = csv.writer(cell_logfile_csv)
+        cell_logfile_writer.writerow(cell_df.columns)
+        cell_logfile_csv.flush()
+        
+        ct_port.write("start\r\n".encode("ascii"))
+    elif event == 'Stop Cell Test':
+        # Send stop command to cell tester board. Wait for ack from cell tester board before updating GUI logging indicator
+        ct_port.write("stop\r\n".encode("ascii"))
+    elif event == 'Update':
+        # Update Current Target
+        send_current_target(float(values['set_current_target']))
     else:
         # Get data
-        try:
-            cell_data = CellData(*get_characterization())
-        except ValueError:
-            continue
-        print(cell_data)
-        # Update values
-        window['cell_V'].update(value=f"{cell_data.voltage:.3f}")
-        window['cell_I'].update(value=f"{cell_data.current:.3f}")
-        window['cell_T'].update(value=f"{cell_data.temperature:.2f}")
+        (data_type, data) = identify_data()
+        if data_type == RX_DATA_TYPE_CELL_TESTER_STATUS:
+            print(data)
+            if (data[0] == "start"):
+                # Cell tester ack'ed the start cell test, start logging
+                window['isLogging'].update(value='True')
 
-        # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
-        cell_data.voltage_open_circuit = cell_df.loc[cell_df["Cell Current"] <=
-                                                     VOLTAGE_OC_CURRENT_LIMIT]["Cell Voltage"].mean()
-        window['cell_R'].update(value=cell_data.resistance)
+                # A cell test is in progress
+                isTestingCell = True
+            elif (data[0] == "stop"):
+                # Cell tester signified the end of cell test, stop logging
+                window['isLogging'].update(value='False')
+                
+                # Set up next file name
+                cell_number += 1
+                window['file_name'].update(value=cellLogfile.format(cellNum=cell_number))
 
-        # Log data
-        if isCharacterization:
-            cell_df.loc[len(cell_df)] = cell_data.formatted_data()
-        writer.writerow(cell_data.formatted_data())
+                # A cell test is not in progress
+                isTestingCell = False
+            else:
+                print("unknown command {}".format(data[0]))
+        elif data_type == RX_DATA_TYPE_LOGGING_DATA:
+            try:
+                raw_data = get_characterization(data)
+                cell_data = CellData(*raw_data)
+
+                # Update values
+                if cell_data.voltage > 0.1:
+                    window['cell_V'].update(value=cell_data.voltage)
+                if cell_data.current > 0.01:
+                    window['cell_I'].update(value=cell_data.current)
+                if cell_data.temperature > 1:
+                    window['cell_T'].update(value=cell_data.temperature)
+            
+                # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
+                cell_data.voltage_open_circuit = cell_df.loc[cell_df["IShunt [A]"] <=
+                                                                VOLTAGE_OC_CURRENT_LIMIT]["V1 [V]"].mean()
+                window['cell_R'].update(value=cell_data.resistance)
+            except Exception as e:
+                print(e)
+                continue
+
+            if isTestingCell:
+                try:
+                    # Log data
+                    cell_logfile_writer.writerow(cell_data.formatted_data())
+                    cell_logfile_csv.flush()
+                except Exception as e:
+                    print(e)
+                    continue
+        else:
+            print("data type {} is unhandled".format(data_type))
 
 window.close()
-csv_file.close()
+cell_logfile_csv.close()
