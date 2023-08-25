@@ -1,17 +1,17 @@
 /**
-  *****************************************************************************
-  * @file    ade7913.c
-  * @author  Daniel Bishara
-  * @brief   Function to read HV ADC.
-  * @details Functions to read the cell Tester ADC. The cell tester ADC measures
-  * current, and the cell voltage. ADC is connected to the cell tester over SPI.
-  * These functions were taken from the BMU as it uses the same ADC, but scales
-  * and offsets were modified to accodomate for different resistor values.
-  *
-  ******************************************************************************
-  */
+ *****************************************************************************
+ * @file    ade7913_common.c
+ * @author  Daniel Bishara
+ * @brief   Function to read HV ADC.
+ * @details Functions to read HV ADC. The cell tester ADC measures
+ * current, and the cell voltage. ADC is connected over SPI.
+ * These functions require scaling values provided in a ade7913 header file
+ * where offsets are modified to accodomate for different resistor values.
+ *
+ ******************************************************************************
+ */
 
-#include "ade7913.h"
+#include "ade7913_common.h"
 #include "bsp.h"
 #include "debug.h"
 #include "FreeRTOS.h"

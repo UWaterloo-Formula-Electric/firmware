@@ -29,6 +29,5 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data);
 HAL_StatusTypeDef adc_read_current(float *dataOut);
 HAL_StatusTypeDef adc_read_v1(float *dataOut);
 HAL_StatusTypeDef adc_read_v2(float *dataOut);
-HAL_StatusTypeDef adc_read_v(float *dataOut);
 
 #endif /* ADE7013_H*/

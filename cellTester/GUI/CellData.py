@@ -28,7 +28,10 @@ class CellData:
         return self._resistance
 
     def calculate_internal_R(self):
-        return self.voltage_open_circuit / self.current - LOAD_R
+        if self.current == 0:
+            return 0
+        else:
+            return (self.voltage_open_circuit / self.current) - LOAD_R
 
     def formatted_data(self):
         return self.time_stamp,  self.voltage_open_circuit, self.voltage, self.current, self.temperature, self.resistance
