@@ -34,4 +34,4 @@ class CellData:
             return (self.voltage_open_circuit / self.current) - LOAD_R
 
     def formatted_data(self):
-        return self.time_stamp,  self.voltage_open_circuit, self.voltage, self.current, self.temperature, self.resistance
+        return self.time_stamp, self.voltage_open_circuit, self.voltage, self.current, self.temperature, self.resistance

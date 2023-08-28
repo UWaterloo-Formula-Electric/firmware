@@ -11,20 +11,18 @@ import datetime
 import PySimpleGUI as sg
 
 from CellData import CellData
-from constants import VOLTAGE_OC_CURRENT_LIMIT
+from constants import *
+from CachedData import CachedData
 
-RX_DATA_TYPE_CELL_TESTER_STATUS = 0
-RX_DATA_TYPE_LOGGING_DATA = 1
+
 
 
 def send_current_target(current: float):
     ct_port.write(f"{current:.3}\n".encode("ascii"))
 
 
-def identify_data():
-    # Data with commas is data, otherwise consider it a status message from the cell tester
-    data = ct_port.readline().decode("ascii").strip()
-    data = data.split(", ")
+def identify_data(line: bytes):
+    data = line.decode("ascii").strip().split(", ")
     if len(data) == 1:
         return (RX_DATA_TYPE_CELL_TESTER_STATUS, data)
     else:
@@ -60,6 +58,7 @@ if not isExist:
 
 cell_number = 1
 isTestingCell = False
+cachedData = CachedData(ct_port)
 
 sg.theme('DarkGrey14')
 # All the stuff inside your window.
@@ -128,58 +127,58 @@ while True:
         send_current_target(float(values['set_current_target']))
     else:
         # Get data
-        (data_type, data) = identify_data()
-        if data_type == RX_DATA_TYPE_CELL_TESTER_STATUS:
-            print(data)
-            if (data[0] == "start"):
-                # Cell tester ack'ed the start cell test, start logging
-                window['isLogging'].update(value='True')
+        for line in cachedData.get_unread_lines():
+            (data_type, data) = identify_data(line)
+            if data_type == RX_DATA_TYPE_CELL_TESTER_STATUS:
+                print(data)
+                if (data[0] == "start"):
+                    # Cell tester ack'ed the start cell test, start logging
+                    window['isLogging'].update(value='True')
 
-                # A cell test is in progress
-                isTestingCell = True
-            elif (data[0] == "stop"):
-                # Cell tester signified the end of cell test, stop logging
-                window['isLogging'].update(value='False')
-                
-                # Set up next file name
-                cell_number += 1
-                window['file_name'].update(value=cellLogfile.format(cellNum=cell_number))
+                    # A cell test is in progress
+                    isTestingCell = True
+                elif (data[0] == "stop"):
+                    # Cell tester signified the end of cell test, stop logging
+                    window['isLogging'].update(value='False')
+                    
+                    # Set up next file name
+                    cell_number += 1
+                    window['file_name'].update(value=cellLogfile.format(cellNum=cell_number))
 
-                # A cell test is not in progress
-                isTestingCell = False
-            else:
-                print("unknown command {}".format(data[0]))
-        elif data_type == RX_DATA_TYPE_LOGGING_DATA:
-            try:
-                raw_data = get_characterization(data)
-                cell_data = CellData(*raw_data)
-
-                # Update values
-                if cell_data.voltage > 0.1:
-                    window['cell_V'].update(value=cell_data.voltage)
-                if cell_data.current > 0.01:
-                    window['cell_I'].update(value=cell_data.current)
-                if cell_data.temperature > 1:
-                    window['cell_T'].update(value=cell_data.temperature)
-            
-                # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
-                cell_data.voltage_open_circuit = cell_df.loc[cell_df["IShunt [A]"] <=
-                                                                VOLTAGE_OC_CURRENT_LIMIT]["V1 [V]"].mean()
-                window['cell_R'].update(value=cell_data.resistance)
-            except Exception as e:
-                print(e)
-                continue
-
-            if isTestingCell:
+                    # A cell test is not in progress
+                    isTestingCell = False
+                else:
+                    print(f"unknown command {data[0]}")
+            elif data_type == RX_DATA_TYPE_LOGGING_DATA:
                 try:
-                    # Log data
-                    cell_logfile_writer.writerow(cell_data.formatted_data())
-                    cell_logfile_csv.flush()
+                    cell_data = CellData(*get_characterization(data))
+
+                    # Update values
+                    if cell_data.voltage > 0.1:
+                        window['cell_V'].update(value=f"{cell_data.voltage:.3f}")
+                    if cell_data.current > 0.01:
+                        window['cell_I'].update(value=f"{cell_data.current:.3f}")
+                    if cell_data.temperature > 1:
+                        window['cell_T'].update(value=f"{cell_data.temperature:.2f}")
+                
+                    # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
+                    cell_data.voltage_open_circuit = cell_df.loc[cell_df["IShunt [A]"] <=
+                                                                    VOLTAGE_OC_CURRENT_LIMIT]["V1 [V]"].mean()
+                    window['cell_R'].update(value=cell_data.resistance)
                 except Exception as e:
                     print(e)
                     continue
-        else:
-            print("data type {} is unhandled".format(data_type))
+
+                if isTestingCell:
+                    try:
+                        # Log data
+                        cell_logfile_writer.writerow(cell_data.formatted_data())
+                        cell_logfile_csv.flush()
+                    except Exception as e:
+                        print(e)
+                        continue
+            else:
+                print("data type {} is unhandled".format(data_type))
 
 window.close()
 cell_logfile_csv.close()
