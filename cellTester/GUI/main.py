@@ -25,6 +25,8 @@ cell_data = CellData(timestamp_ms=0, current_A=0.0, voltage_V=0.0)
 open_circuit_cell_voltage = 0.0
 cell_number = 1
 isTestingCell = False
+error_message = "None"
+wasFault = False
 
 # The layout of the GUI
 sg.theme('DarkGrey14')
@@ -95,6 +97,10 @@ def get_characterization(data, open_circuit_cell_voltage):
         raise Exception("invalid data printed from cell tester") 
     return ret
 
+def set_error_message(msg):
+    if error_message != "None":
+        error_message = msg
+
 # Find port and connect
 for port, desc, hwid in list_ports.comports():
     if "STLink" in desc:
@@ -107,12 +113,12 @@ cachedData = CachedData(ct_port)
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
+    error_message = "None"
     event, values = window.read(timeout=10)  # type: ignore
     if event == sg.WIN_CLOSED:
         break
     elif event == 'Start Cell Test':
-        if (float(cell_data.voltage_V) < SAMSUMG_30Q_MIN_VOLTAGE):
-            window['errors'].update(value="Cell voltage must be >= 2.5V")
+        if wasFault:
             continue
 
         isExist = os.path.exists(LOG_DIR)
@@ -170,17 +176,23 @@ while True:
                 try:
                     cell_data = get_characterization(data, open_circuit_cell_voltage)
                     # Update values
-                    if cell_data.voltage_V > ZERO_VOLTAGE_THRESHOLD:
+                    if abs(cell_data.voltage_V) > ZERO_VOLTAGE_THRESHOLD:
                         window['cell_V'].update(value=f"{cell_data.voltage_V:.3f}")
-                    if cell_data.current_A > ZERO_CURRENT_THRESHOLD:
+                        if cell_data.voltage_V < 0:
+                            error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
+                        elif cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
+                            error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
+                    if abs(cell_data.current_A) > ZERO_CURRENT_THRESHOLD:
                         window['cell_I'].update(value=f"{cell_data.current_A:.3f}")
-                    if cell_data.temperature_C > ZERO_TEMPERATURE_THRESHOLD:
+                        if cell_data.current_A < 0:
+                            error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
+                    if abs(cell_data.temperature_C) > ZERO_TEMPERATURE_THRESHOLD:
                         window['cell_T'].update(value=f"{cell_data.temperature_C:.2f}")
-                    if cell_data.resistance_Ohm != float("inf"):
+                    if abs(cell_data.resistance_Ohm) != float("inf"):
                         window['cell_R'].update(value=f"{math.ceil(cell_data.resistance_Ohm*OHMS_TO_MILLIOHMS)}")
 
                     # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
-                    if cell_data.current_A <= VOLTAGE_OC_CURRENT_LIMIT:
+                    if cell_data.current_A >= 0 and cell_data.current_A <= VOLTAGE_OC_CURRENT_LIMIT:
                         open_circuit_cell_voltage = cell_data.voltage_V
 
                 except Exception as e:
@@ -198,7 +210,12 @@ while True:
                         continue
             else:
                 print("data type {} is unhandled".format(data_type))
-
+    if error_message == "None":
+        wasFault = False
+    else:
+        wasFault = True
+    window['errors'].update(value=error_message)
+    
 window.close()
 if cell_logfile_csv:
     cell_logfile_csv.close()
