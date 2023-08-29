@@ -43,7 +43,7 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
 
 float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
     if (mcp3425_adc_read(i2c_hdr) != HAL_OK) {
-        ERROR_PRINT("Failed to read from adc\n");
+        // ERROR_PRINT("Failed to read from adc\n");
         return HAL_ERROR;
     }
 

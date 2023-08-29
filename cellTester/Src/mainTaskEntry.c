@@ -18,7 +18,7 @@
 #include "ade7913.h"
 #include "temperature.h"
 
-#define MAIN_TASK_PERIOD_MS 3
+#define MAIN_TASK_PERIOD_MS 4
 #define CELL_STABILIZATION_TIME_MS 10
 
 // Hardware defined constant
@@ -30,7 +30,6 @@
 void updateCurrentTarget(void);
 void updateFetDuty(float lastCurrentMeasurement);
 void updateCellValues(float* current, float* v1, float* v2);
-void printThermistorValues(void);
 
 // fetDutyCycle = [0, 100]
 static float fetDutyCycle = PWM_MAX_DUTY_NO_CURRENT;
@@ -71,7 +70,7 @@ void mainTaskFunction(void const* argument) {
     // 4. Take measurement
     // 5. Repeat 2-4 until cell current is at max
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
-    DEBUG_PRINT("Time (ms), IShunt (A), V1 (V), V2 (V)\n");
+    DEBUG_PRINT("Time (ms), IShunt (A), V1 (V), V2 (V), T1 (C), T2 (C)\n");
     while (1) {
         updateCellValues(&current, &hv_adc_v1, &hv_adc_v2);
         // printThermistorValues();
@@ -119,31 +118,26 @@ void updateFetDuty(float lastCurrentMeasurement)
 }
 
 void updateCellValues(float* current, float* v1, float* v2) {
-    adc_read_v1(v1);
-    adc_read_v2(v2);
-    adc_read_current(current);
-    // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf\n",
-                HAL_GetTick(),
-                *current,
-                *v1,
-                *v2);
-}
 
-void printThermistorValues(void)
-{
     float cell_temp_result = 0.0f;
     float fuse_temp_result = 0.0f;
 
     if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
         DEBUG_PRINT("failed to read cell temp\n");
     }
-    DEBUG_PRINT("%f, ", cell_temp_result);
-    
     if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
-        DEBUG_PRINT("failed to read fuse temp\n");
+        // DEBUG_PRINT("failed to read fuse temp\n");
     }
-    DEBUG_PRINT("%f\n", fuse_temp_result);
+    adc_read_v1(v1);
+    adc_read_v2(v2);
+    adc_read_current(current);
+    // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf\r\n",
+                HAL_GetTick(),
+                *current,
+                *v1,
+                *v2,
+                cell_temp_result);
 }
 
 // Set duty cycle to lowest PWM duty that draws 0 current to improve response time of controller
