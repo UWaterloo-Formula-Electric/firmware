@@ -201,7 +201,7 @@ while True:
                         if cell_data.voltage_V < 0:
                             error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
                             print(error_message)
-                        elif cell_data.voltage_V >= 1 and cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
+                        elif cell_data.voltage_V >= ZERO_VOLTAGE_THRESHOLD and cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
                             error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
                             print(error_message)
                     
