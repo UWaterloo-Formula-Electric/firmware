@@ -1,5 +1,7 @@
 import math
 import csv
+import statistics
+
 from io import StringIO
 
 from serial.tools import list_ports
@@ -22,7 +24,13 @@ cellLogfile = current_date.strftime("%b-%d_%H-%M-%S") + "_cell_{cellNum}" + ".cs
 ct_port = None
 cell_logfile_csv = None
 cell_data = CellData(timestamp_ms=0, current_A=0.0, voltage_V=0.0)
-open_circuit_cell_voltage = 0.0
+open_circuit_cell_voltages = [0]*NUM_SAMPLES_IN_OPEN_CIRCUIT_AVERAGE
+open_circuit_cell_voltage_num_samples = 0
+
+current_average_for_display = [0]*NUM_SAMPLES_IN_CURRENT_AVERAGE
+current_average_for_display_sum = 0
+current_average_for_display_index = 0
+
 cell_number = 1
 isTestingCell = False
 error_message = "None"
@@ -101,6 +109,7 @@ def set_error_message(msg):
     if error_message != "None":
         error_message = msg
 
+
 # Find port and connect
 for port, desc, hwid in list_ports.comports():
     if "STLink" in desc:
@@ -120,11 +129,13 @@ while True:
     elif event == 'Start Cell Test':
         if wasFault:
             continue
-
+        
         isExist = os.path.exists(LOG_DIR)
         if not isExist:
             os.mkdir(LOG_DIR)
 
+        open_circuit_cell_voltages = [0]*NUM_SAMPLES_IN_OPEN_CIRCUIT_AVERAGE
+        open_circuit_cell_voltage_num_samples = 0
         cell_number = float(values['cell_number'])
 
         if cell_number.is_integer():
@@ -174,26 +185,43 @@ while True:
                     print(f"unknown command {data[0]}")
             elif data_type == RX_DATA_TYPE_LOGGING_DATA:
                 try:
-                    cell_data = get_characterization(data, open_circuit_cell_voltage)
-                    # Update values
+                    if open_circuit_cell_voltage_num_samples == 0:
+                        averageOpenCircuitVoltage = 0.0
+                    else: 
+                        if open_circuit_cell_voltage_num_samples > 10:
+                            averageOpenCircuitVoltage = sum(open_circuit_cell_voltages) / 10
+                        else:
+                            averageOpenCircuitVoltage = sum(open_circuit_cell_voltages) / open_circuit_cell_voltage_num_samples
+                    cell_data = get_characterization(data, averageOpenCircuitVoltage)
+                    # Update Voltage
                     if abs(cell_data.voltage_V) > ZERO_VOLTAGE_THRESHOLD:
                         window['cell_V'].update(value=f"{cell_data.voltage_V:.3f}")
                         if cell_data.voltage_V < 0:
                             error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
-                        elif cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
+                        elif cell_data.voltage_V >= 1 and cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
                             error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
-                    if abs(cell_data.current_A) > ZERO_CURRENT_THRESHOLD:
-                        window['cell_I'].update(value=f"{cell_data.current_A:.3f}")
-                        if cell_data.current_A < 0:
-                            error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
+                    
+                    # Update Current
+                    if cell_data.current_A < -ZERO_CURRENT_THRESHOLD:
+                        error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
+                    current_average_for_display_sum -= current_average_for_display[current_average_for_display_index]
+                    current_average_for_display[current_average_for_display_index] = cell_data.current_A
+                    current_average_for_display_sum += current_average_for_display[current_average_for_display_index]
+                    current_average_for_display_index = (current_average_for_display_index + 1) % NUM_SAMPLES_IN_CURRENT_AVERAGE
+                    window['cell_I'].update(value=f"{(current_average_for_display_sum / NUM_SAMPLES_IN_CURRENT_AVERAGE):.3f}")
+
+                    # Update temperature
                     if abs(cell_data.temperature_C) > ZERO_TEMPERATURE_THRESHOLD:
                         window['cell_T'].update(value=f"{cell_data.temperature_C:.2f}")
+                    
+                    # Update resistance
                     if abs(cell_data.resistance_Ohm) != float("inf"):
                         window['cell_R'].update(value=f"{math.ceil(cell_data.resistance_Ohm*OHMS_TO_MILLIOHMS)}")
 
                     # Open Circuit Voltage is whenever the current is less than VOLTAGE_OC_CURRENT_THRESHOLD
                     if cell_data.current_A >= 0 and cell_data.current_A <= VOLTAGE_OC_CURRENT_LIMIT:
-                        open_circuit_cell_voltage = cell_data.voltage_V
+                        open_circuit_cell_voltages[open_circuit_cell_voltage_num_samples % NUM_SAMPLES_IN_OPEN_CIRCUIT_AVERAGE] = cell_data.voltage_V
+                        open_circuit_cell_voltage_num_samples += 1
 
                 except Exception as e:
                     print("Logging Data Error")
