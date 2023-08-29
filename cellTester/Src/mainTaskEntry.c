@@ -18,7 +18,7 @@
 #include "ade7913.h"
 #include "temperature.h"
 
-#define MAIN_TASK_PERIOD 5
+#define MAIN_TASK_PERIOD_MS 3
 #define CELL_STABILIZATION_TIME_MS 10
 
 // Hardware defined constant
@@ -29,7 +29,7 @@
 
 void updateCurrentTarget(void);
 void updateFetDuty(float lastCurrentMeasurement);
-void getCellValues(float* current, float* v1, float* v2);
+void updateCellValues(float* current, float* v1, float* v2);
 void printThermistorValues(void);
 
 // fetDutyCycle = [0, 100]
@@ -73,13 +73,13 @@ void mainTaskFunction(void const* argument) {
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
     DEBUG_PRINT("Time (ms), IShunt (A), V1 (V), V2 (V)\n");
     while (1) {
-        getCellValues(&current, &hv_adc_v1, &hv_adc_v2);
+        updateCellValues(&current, &hv_adc_v1, &hv_adc_v2);
         // printThermistorValues();
 
         updateCurrentTarget();
         updateFetDuty(current);
 
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD_MS));
     }
 }
 
@@ -118,7 +118,7 @@ void updateFetDuty(float lastCurrentMeasurement)
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, fetDutyCycle);
 }
 
-void getCellValues(float* current, float* v1, float* v2) {
+void updateCellValues(float* current, float* v1, float* v2) {
     adc_read_v1(v1);
     adc_read_v2(v2);
     adc_read_current(current);

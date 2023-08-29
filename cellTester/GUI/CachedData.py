@@ -25,6 +25,3 @@ class CachedData:
         lines = self.lines
         self.lines = []
         return lines
-    
-    
-

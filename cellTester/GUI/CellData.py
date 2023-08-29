@@ -1,37 +1,27 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from constants import LOAD_R
-
 
 @dataclass
 class CellData:
-    time_stamp: int
-    voltage: float
+    time_stamp_ms: int
+    voltage_V: float
 
-    current: float
-    temperature: float
-    _voltage_open_circuit: Optional[float] = float("inf")
-    _resistance: Optional[float] = float("inf")
-
-    @property
-    def voltage_open_circuit(self) -> float:
-        return self._voltage_open_circuit
-
-    @voltage_open_circuit.setter
-    def voltage_open_circuit(self, value: float):
-        self._voltage_open_circuit = value
-
-    @property
-    def resistance(self) -> float:
-        self._resistance = self.calculate_internal_R()
-        return self._resistance
-
-    def calculate_internal_R(self):
-        if self.current == 0:
-            return 0
+    current_A: float
+    temperature_C: float
+    resistance_Ohm: Optional[float] 
+    def __init__(self, timestamp_ms, voltage_V, current_A, resistance_Ohm=None):
+        self.time_stamp_ms = timestamp_ms
+        self.voltage_V = voltage_V
+        self.current_A = current_A
+        self.temperature_C = 0.0
+        if resistance_Ohm:
+            self.resistance_Ohm = resistance_Ohm
         else:
-            return (self.voltage_open_circuit / self.current) - LOAD_R
+            self.resistance_Ohm = float("inf")
 
     def formatted_data(self):
-        return self.time_stamp, self.voltage_open_circuit, self.voltage, self.current, self.temperature, self.resistance
+        if self.resistance_Ohm != float("inf"):
+            return self.time_stamp_ms, self.current_A, self.voltage_V, self.resistance_Ohm
+        else:
+            return self.time_stamp_ms, self.current_A, self.voltage_V
