@@ -23,7 +23,7 @@
 
 // Hardware defined constant
 #define CELL_TESTER_MIN_CURRENT_A 1.5f
-#define CELL_TEST_CURRENT_A 3.0f
+#define CELL_TEST_CURRENT_A 9.0f
 
 #define FET_CONTROL_KP 0.005f
 
