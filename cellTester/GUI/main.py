@@ -198,7 +198,7 @@ while True:
                         window['cell_V'].update(value=f"{cell_data.voltage_V:.3f}")
                         if cell_data.voltage_V < 0:
                             error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
-                        elif cell_data.voltage_V >= 1 and cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
+                        elif cell_data.voltage_V >= ZERO_VOLTAGE_THRESHOLD and cell_data.voltage_V < SAMSUMG_30Q_MIN_VOLTAGE:
                             error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
                     
                     # Update Current
