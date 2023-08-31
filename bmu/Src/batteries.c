@@ -401,6 +401,7 @@ void HVMeasureTask(void *pvParamaters)
             CurrentBusHV = IBus;
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
+            vTaskDelay(2); // Added to prevent CAN mailbox full
             AMS_PackVoltage = VBatt;
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
@@ -1632,7 +1633,9 @@ void canSendCellTask(void *pvParameters)
         }
 
         sendCAN_BMU_CellVoltage(cellIdxToSend);
+        vTaskDelay(2); // Added to prevent CAN mailbox full
         sendCAN_BMU_CellVoltage_Adjusted(cellIdxToSend);
+        vTaskDelay(2); // Added to prevent CAN mailbox full
         sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
         // Move on to next cells
