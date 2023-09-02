@@ -6,7 +6,7 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 
 - [OpenProject Access](#open-project)
 - [SSH Key](#ssh-key-set-up)
-- [Vagrant (Windows Only)](<#Vagrant-Environment-Set-Up-(Windows-Users)>)
+- [Vagrant (Windows Only)](#Vagrant-Environment-Set-Up-for-Windows-Users)
 - [Mac OS](#mac-os-set-up)
 - [Linux](#linux-set-up)
 - [Other Resources](#other-resources)
@@ -19,7 +19,7 @@ We use Open Project for task management. (todo: add instructions on how to get a
 
 Please see [this page](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) for instructions. Feel free to message in #firmware on Slack with any questions!
 
-# Vagrant Environment Set Up (Windows Users)
+# Vagrant Environment Set Up for Windows Users
 
 ### Overview
 
