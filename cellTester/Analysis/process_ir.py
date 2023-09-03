@@ -15,7 +15,8 @@ ZERO_I_LOW_THRESHOLD = 0.1
 HIGH_I_THRESHOLD = 8.9
 DECLINE_I_THRESHOLD = 8.0
 
-CELL_OCV_COUNTER = 25 
+CELL_OCV_COUNTER = 25
+CONSTANT_IR_ADJUSTMENT = (0.120 + 0.140) / 9
 
 CELL_CSV_PATH = Path("../../../2024_CellData/")
 OUTPUT_FILENAME = "computed_ir.csv"
@@ -34,6 +35,7 @@ with open(CELL_CSV_PATH / OUTPUT_FILENAME, 'w') as out_f:
     csv_writer = csv.DictWriter(out_f, fieldnames=fieldnames)
     csv_writer.writeheader()
     for ir_idx, csv_fname in sorted_files.items():
+        print(f"Cell Number: {ir_idx}")
         with open(CELL_CSV_PATH / csv_fname) as csv_f:
             state = 0
             cnt = 0
@@ -46,7 +48,7 @@ with open(CELL_CSV_PATH / OUTPUT_FILENAME, 'w') as out_f:
                     if abs(float(row[CURRENT_COLUMN])) < ZERO_I_LOW_THRESHOLD and cnt < CELL_OCV_COUNTER:
                         mean_sum += float(row[VOLTAGE_COLUMN])
                         cnt += 1
-                    else:
+                    elif cnt != 0:
                         ocv = mean_sum / cnt
                     if float(row[CURRENT_COLUMN]) >= HIGH_I_THRESHOLD:
                         state = STATE_FULL_CURRENT
@@ -57,7 +59,7 @@ with open(CELL_CSV_PATH / OUTPUT_FILENAME, 'w') as out_f:
                         inst_ir = (ocv - float(row[VOLTAGE_COLUMN])) / float(row[CURRENT_COLUMN])
                         mean_sum += inst_ir
                         cnt += 1
-                        filtered_ir = mean_sum / cnt
+                        filtered_ir = mean_sum / cnt - CONSTANT_IR_ADJUSTMENT
                     if float(row[CURRENT_COLUMN]) <= DECLINE_I_THRESHOLD:
                         state = STATE_DONE
                 elif state == STATE_DONE:
