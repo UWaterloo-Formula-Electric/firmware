@@ -50,7 +50,7 @@
 osThreadId mainTaskHandle;
 osThreadId printTaskNameHandle;
 osThreadId watchDogTaskNamHandle;
-osThreadId temperatureHandle;
+osThreadId uartRXTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -60,7 +60,7 @@ osThreadId temperatureHandle;
 void mainTaskFunction(void const * argument);
 extern void printTask(void const * argument);
 extern void watchdogTask(void const * argument);
-extern void temperatureTask(void const * argument);
+extern void uartRXTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -162,9 +162,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(watchDogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchDogTaskNamHandle = osThreadCreate(osThread(watchDogTaskNam), NULL);
 
-  /* definition and creation of temperature */
-  osThreadDef(temperature, temperatureTask, osPriorityNormal, 0, 256);
-  temperatureHandle = osThreadCreate(osThread(temperature), NULL);
+  /* definition and creation of uartRXTaskName */
+  osThreadDef(uartRXTaskName, uartRXTask, osPriorityIdle, 0, 324);
+  uartRXTaskNameHandle = osThreadCreate(osThread(uartRXTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

@@ -8,10 +8,10 @@
 //where Vmax is the max differential voltage between
 //V1/V2 and Vm, the offset and scale were then manually calibrated
 //V1 and V2 max is 500 mV
-#define VOLTAGE_1_SCALE ((0.00000884955752)/1.0093885)
+#define VOLTAGE_1_SCALE (0.00000884955752 / 1.0093885)
 #define VOLTAGE_1_OFFSET (-411949 * VOLTAGE_1_SCALE)
 
-#define VOLTAGE_2_SCALE (0.00000602006984F)*1.4486644
+#define VOLTAGE_2_SCALE (0.00000602006984F * 1.4486644)
 #define VOLTAGE_2_OFFSET (-458819)
 
 //Scale found with same process as voltage channels

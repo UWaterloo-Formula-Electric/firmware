@@ -202,15 +202,6 @@ HAL_StatusTypeDef hvadc_init() {
     }
     ERROR_PRINT("waiting for ADC on\r\n");
     vTaskDelay(5);
-  } while (status0 & (1<<RESET_ON_BIT));
-
-  // Set up config register
-  uint8_t cfgWrite = ADC_LOW_BW_ENABLE | ADC_FREQ_1KHZ;
-  if (adc_write(ADDR_CFG, cfgWrite) != HAL_OK)
-  {
-    ERROR_PRINT("Failed to config HV ADC\n");
-    return HAL_ERROR;
-  }
 
   // recomended by datasheet to read value after writing to double check
   uint8_t cfgRead;
@@ -233,42 +224,4 @@ void fetControlTask(void *pvParamaters)
     {
         vTaskDelay(10000);
     }
-}
-
-void temperatureTask(void *pvParamaters)
-{
-    hvadc_init();
-    HAL_StatusTypeDef v1_ret;
-    HAL_StatusTypeDef v2_ret;
-    HAL_StatusTypeDef I_ret;
-    float v1 = 0.0f;
-    float v2 = 0.0f;
-    float I = 0.0f;
-
-    while (1)
-    {
-        v1_ret = adc_read_v1(&v1);
-        v2_ret = adc_read_v2(&v2);
-        I_ret = adc_read_current(&I);
-        if (v1_ret != HAL_OK)
-        {
-            DEBUG_PRINT("v1 error\r\n");
-        }
-        else if (v2_ret != HAL_OK)
-        {
-            DEBUG_PRINT("v2 error\r\n");
-        }
-        else if (I_ret != HAL_OK)
-        {
-            DEBUG_PRINT("I error\r\n");
-        }
-        else
-        {
-            DEBUG_PRINT("v1: %f, v2: %f, I: %f\r\n", v1, v2, I);
-        }
-        
-        vTaskDelay(500);
-    }
-
-    return HAL_OK;
 }
