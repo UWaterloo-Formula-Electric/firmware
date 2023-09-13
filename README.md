@@ -1,6 +1,6 @@
 # UWFE Firmware
 
-This is the firmware monorepo for the UW Formula Electric team. This repository contains vehicle board firmware, HIL board firmware, and our firmware validation testbed.
+This is the firmware monorepo for the UW Formula Electric team. This repository contains vehicle/HIL board firmware, cell tester firmware, and our firmware validation testbed.
 
 # Onboarding Instructions
 
@@ -10,14 +10,24 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 - [Mac OS](#mac-os-set-up)
 - [Linux](#linux-set-up)
 - [Other Resources](#other-resources)
+- [FAQ](#FAQ)
 
 # Open Project
 
-We use Open Project for task management. (todo: add instructions on how to get access lol)
+We use Open Project for task management. Steps to get set up:
+
+1. Visit http://owenbrake.com/pm
+2. Create an account with your school email
+3. Message your email in the new-members thread under #firmware on Slack, and a lead will add you to the project
 
 # SSH Key Set Up
 
-Please see [this page](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) for instructions. Feel free to message in #firmware on Slack with any questions!
+SSH key is used for access credentials (think of it as your username and password). Without it, you can't contribute to the repository.
+
+1. Create a SSH key by following the instructions [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+2. Add the SSH key to your GitHub account by following this [page](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+
+Note: You can skip this step if you already have a SSH key configured on GitHub
 
 # Vagrant Environment Set Up for Windows Users
 
@@ -59,27 +69,13 @@ vagrant reload
 (may take a while to complete)
 The commands above clone the vagrant repo which you only need to do this one time in your set up. The next time, you can just call `vagrant up`. When its done, you will see a login window pop up. Do not maximize the window when on the login page (for some reason, this causes it to freeze). Click on the user "vagrant" and login with the password: **vagrant**.
 
-The **shared/** directory in the VM is shared between your host computer (your lapptop) and the virtual environment. The location in your host computer is the path to where you cloned the vagrant repo.
+The **shared/** directory in the VM is shared between your host computer (your laptop) and the virtual environment. The location in your host computer is the path to where you cloned the vagrant repo.
 
 To turn off the machine, run `vagrant halt` in the same terminal.
 
-### Checking ST Link
-
-The Vagrantfile is configured to automatically attach the ST Link to the VM, but we should make sure.
-
-First, check that your host computer detects the STM32 board when it's connected. If it's detected, with the board still connected, go into the VM, open a terminal, and run:`lsusb`
-
-You should see the following output:
-
-```
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 002: ID 0483:374b STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-```
-
 ### Clone Firmware
 
-Clone the firmware repository into `shared/` directory. Navigate to where you cloned the **vagrant** repo.
+Clone the firmware repository into the `vagrant/shared/` directory on your host computer. Navigate to where you cloned the **vagrant** repo.
 
 ```
 cd shared
@@ -136,9 +132,8 @@ If you are able to successfully run `make all` within the /firmware repository, 
 ### Installation
 
 1. Install OpenOCD through [this link](https://sourceforge.net/projects/openocd/files/openocd/0.10.0/) or try the following command `sudo apt-get install openocd`
-2. If you want to use OpenOCD from Eclipse, follow the instruction under GNU/Linux (http://gnuarmeclipse.github.io/openocd/install/)
-3. Download the GNU ARM Embedded Toolchain (version:9-2019-q4-major) from [here](https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads)
-4. Once installed, follow the following commands to ensure you can access the toolchain
+2. Download the GNU ARM Embedded Toolchain (version:9-2019-q4-major) from [here](https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads)
+3. Once installed, follow the following commands to ensure you can access the toolchain
 
 ```
 # Peep your current PATH
@@ -173,3 +168,7 @@ git config --global user.name "your_name"
 2. CAN Bus tutorial: https://www.kvaser.com/can-protocol-tutorial/
 3. Learning C, plenty of resources online
 4. STM32CubeMX (may be useful) installation: https://www.st.com/en/development-tools/stm32cubemx.html
+
+# FAQ
+
+(will be updated over time, feel free to open a PR)
