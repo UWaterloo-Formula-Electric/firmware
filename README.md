@@ -138,7 +138,7 @@ If you are able to successfully run `make all` within the /firmware repository, 
 ```
 # Peep your current PATH
 echo $PATH
-# /usr/local/heroku/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:<BLA BLA BLA>
+# /usr/local/heroku/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:<PLACEHOLDER>
 # Change your PATH by appending the "bin" folder of the folder
 # NOTE: You should also add this line to ~/.bashrc or ~/.bash_profile (in your home directory)
 # so you don't have to remember to do this every time you want to compile firmware.
