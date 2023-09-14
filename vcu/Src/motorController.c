@@ -257,90 +257,12 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 		return HAL_OK;
 	}
 
-    float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
-
 	float throttleRight = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
 	float throttleLeft = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
 
     float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
     float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
 
-    TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
-    TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
-    TorqueDemandRight = torqueDemandR;
-
-    TorqueLimitDriveLeft = mcLeftSettings.DriveTorqueLimit;
-    TorqueLimitBrakingLeft = mcLeftSettings.BrakingTorqueLimit;
-    TorqueDemandLeft = torqueDemandL;
-
-    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
-    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
-    InverterCommandRight = mcRightSettings.InverterCommand; // Keep sending enable bridge command
-
-    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
-    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
-    InverterCommandLeft = mcLeftSettings.InverterCommand; // Keep sending enable bridge command
-
-    CurrentLimitDschrgInverterRight = mcRightSettings.DischargeCurrentLimit;
-    CurrentLimitChargeInverterRight = mcRightSettings.ChargeCurrentLimit;;
-
-    CurrentLimitDschrgInverterLeft = mcLeftSettings.DischargeCurrentLimit;
-    CurrentLimitChargeInverterLeft = mcLeftSettings.ChargeCurrentLimit;;
-
-    VoltageLimitHighInverterRight = mcRightSettings.HighVoltageLimit;
-    VoltageLimitLowInverterRight = mcRightSettings.LowVoltageLimit;;
-
-    VoltageLimitHighInverterLeft = mcLeftSettings.HighVoltageLimit;
-    VoltageLimitLowInverterLeft = mcLeftSettings.LowVoltageLimit;;
-
-    // Sevcon didn't explain what these are for, but said to set to 0
-    ActiveShortRight = 0;
-    ActiveShortLeft = 0;
-
-    if (sendCAN_TorqueLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send torque limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_TorqueLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send torque limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_SpeedLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send speed limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_SpeedLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send speed limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_CurrentLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send current limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_CurrentLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send current limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_VoltageLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send voltage limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_VoltageLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send voltage limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_AuxRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send aux right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_AuxLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send aux left\n");
-        return HAL_ERROR;
-    }
 
     return HAL_OK;
 }
