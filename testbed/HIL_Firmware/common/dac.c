@@ -6,13 +6,8 @@
 #include "driver/spi_master.h"
 #include "driver/dac_oneshot.h"
 
-spi_device_handle_t throttle_A;
-spi_device_handle_t throttle_B;
-spi_device_handle_t brake_pos;
-spi_device_handle_t steer_raw;
-
 //retain 4 least significant bits
-static uint8_t Vout_mask = 0X0F;
+#define V_OUT_MASK 0x0F;
 
 twai_message_t message_status = {
     .identifier = MESSAGE_STATUS,
@@ -20,9 +15,9 @@ twai_message_t message_status = {
     .data_length_code = 1,
 };
 
-//convert VREF from mV to V
-const double STEPV12 = (VREF/1000)/MAXSTEPS12;
-const double STEPV8 = (VREF/1000)/MAXSTEPS8;
+//convert V_REF from mV to V
+const double STEPV12 = (V_REF/1000)/MAX_STEPS_12;
+const double STEPV8 = (V_REF/1000)/MAX_STEPS_8;
 
 static bool channel1=false;
 
@@ -33,26 +28,26 @@ static dac_oneshot_config_t chan0_cfg = {
 
 int setDacVoltage(float voltage)
 {
-    esp_err_t fault = 0;
+    esp_err_t fault = ESP_OK;
 
     //above Vref, set to Vref, below 0 set to 0 
-    if(voltage > VREF || voltage < 0)
+    if(voltage > V_REF || voltage < 0.0f)
     {
-        if(voltage>VREF)
+        if(voltage > V_REF)
         {
             printf("voltage too high\n");
-            voltage=VREF;
+            voltage = V_REF;
         }
         else
         {
-            voltage=0;
+            voltage = 0.0f;
         }
     }
 
-    uint8_t Vout=(voltage/1000)/STEPV8;
+    uint8_t Vout = (voltage/1000)/STEPV8;
     
     //checking if channel already initialized
-    if(channel1==false)
+    if(channel1 == false)
     {
         dac_oneshot_new_channel(&chan0_cfg, &chan0_handle);
         channel1 = true;
@@ -72,56 +67,56 @@ int setDacVoltage(float voltage)
     return ESP_FAIL;
 }
 
-int set6551Voltage (float voltage, dacID id)
+int set6551Voltage (float voltage, DacId_E id)
 {
     //clamp values
-    if(voltage > VREF || voltage < 0)
+    if(voltage > V_REF || voltage < 0.0f)
     {
-        if(voltage > VREF)
+        if(voltage > V_REF)
         {
-            voltage = VREF;
+            voltage = V_REF;
         }
         else
         {
-            voltage = 0;
+            voltage = 0.0f;
         }
     }
     
     //convert voltage from mV to V
-    uint16_t Vout=(voltage/1000)/STEPV12;
+    uint16_t Vout = (voltage/1000)/STEPV12;
     
     //D11 to D4 are placed into a second byte, while truncading the last 4 bits of data
-    uint8_t Byte1 = Vout>>4;
-    Vout &= Vout_mask;
-    uint8_t Byte2 = Vout<<4;
+    uint8_t Byte_1 = Vout >> 4;
+    Vout &= V_OUT_MASK;
+    uint8_t Byte_2 = Vout << 4;
 
     //data is less than 32 bits so must set each individual byte in tx_data and set SPI_TRANS_USE_TXDATA
     spi_transaction_t trans = 
     {
-        .tx_data [0] = BYTE0,
-        .tx_data [1] = Byte1,
-        .tx_data [2] = Byte2,
-        .length = TXLENGTH,
+        .tx_data [0] = BYTE_0,
+        .tx_data [1] = Byte_1,
+        .tx_data [2] = Byte_2,
+        .length = TX_LENGTH,
         .flags = SPI_TRANS_USE_TXDATA,
     };
 
-    esp_err_t fault = 0;
+    esp_err_t fault = ESP_OK;
 
     switch (id)
     {
-        case brakePos_ID:
+        case DacId_brakePos:
             fault = spi_device_transmit(brake_pos, &trans);
             message_status.data[0] = BRAKE_POS_IS_SET;
             break;
-        case steerRaw_ID:
+        case DacId_steerRaws:
             fault = spi_device_transmit(steer_raw, &trans);
             message_status.data[0] = STEER_RAW_IS_SET;
             break;
-        case throttleA_ID:
+        case DacId_throttleA:
             fault = spi_device_transmit(throttle_A, &trans);
             message_status.data[0] = THROTTLE_A_IS_SET;
             break;
-        case throttleB_ID:
+        case DacId_throttleB:
             fault = spi_device_transmit(throttle_B, &trans);
             message_status.data[0] = THROTTLE_B_IS_SET;
             break;

@@ -9,13 +9,13 @@
 #include "canReceive.h"
 #include "processCAN.h"
 
-static uint16_t dbyte1;
-static uint16_t dbyte2;
+#define BYTE_1_MASK 0xFF00
+#define BYTE_2_MASK 0x00FF
+
+static uint16_t byte_1;
+static uint16_t byte_2;
 
 //reassemble data into a 16 bit uint to pass in desired voltage into set dac function
-static uint16_t dbyte2_mask = 0x00FF;
-static uint16_t dbyte1_mask = 0xFF00;
-
 void process_rx_task (void * pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -27,54 +27,54 @@ void process_rx_task (void * pvParameters)
         switch (can_msg.identifier)
         {
             case BRAKE_POS:     //Brake position
-                dbyte1 = can_msg.data[0];
-                dbyte2 = can_msg.data[1];
-                dbyte2 = dbyte2 << 8;
-                dbyte2 |= dbyte2_mask;
-                dbyte1 |= dbyte1_mask;
-                dbyte2 &= dbyte1;
-                set6551Voltage(dbyte2, brakePos_ID);
+                byte_1 = can_msg.data[0];
+                byte_2 = can_msg.data[1];
+                byte_2 = byte_2 << 8;
+                byte_2 |= BYTE_2_MASK;
+                byte_1 |= BYTE_1_MASK;
+                byte_2 &= byte_1;
+                set6551Voltage(byte_2, DacId_brakePos);
                 break;
             case BRAKE_PRES_RAW:     //Brake pres raw
-                dbyte1 = can_msg.data[0];
-                dbyte2 = can_msg.data[1];
-                dbyte2 = dbyte2 << 8;
-                dbyte2 |= dbyte2_mask;
-                dbyte1 |= dbyte1_mask;
-                dbyte2 &= dbyte1;
-                setDacVoltage(dbyte2);
+                byte_1 = can_msg.data[0];
+                byte_2 = can_msg.data[1];
+                byte_2 = byte_2 << 8;
+                byte_2 |= BYTE_2_MASK;
+                byte_1 |= BYTE_1_MASK;
+                byte_2 &= byte_1;
+                setDacVoltage(byte_2);
                 break;
             case THROTTLE_A:     //Throttle A 
-                dbyte1 = can_msg.data[0];
-                dbyte2 = can_msg.data[1];
-                dbyte2 = dbyte2 << 8;
-                dbyte2 |= dbyte2_mask;
-                dbyte1 |= dbyte1_mask;
-                dbyte2 &= dbyte1;
-                set6551Voltage(dbyte2, throttleA_ID);
+                byte_1 = can_msg.data[0];
+                byte_2 = can_msg.data[1];
+                byte_2 = byte_2 << 8;
+                byte_2 |= BYTE_2_MASK;
+                byte_1 |= BYTE_1_MASK;
+                byte_2 &= byte_1;
+                set6551Voltage(byte_2, DacId_throttleA);
                 break;
             case THROTTLE_B:     //Throttle B
-                dbyte1 = can_msg.data[0];
-                dbyte2 = can_msg.data[1];
-                dbyte2 = dbyte2 << 8;
-                dbyte2 |= dbyte2_mask;
-                dbyte1 |= dbyte1_mask;
-                dbyte2 &= dbyte1;
-                set6551Voltage(dbyte2, throttleB_ID);
+                byte_1 = can_msg.data[0];
+                byte_2 = can_msg.data[1];
+                byte_2 = byte_2 << 8;
+                byte_2 |= BYTE_2_MASK;
+                byte_1 |= BYTE_1_MASK;
+                byte_2 &= byte_1;
+                set6551Voltage(byte_2, DacId_throttleB);
                 break;
             case STEER_RAW:     //Steer Raw
-                dbyte1 = can_msg.data[0];
-                dbyte2 = can_msg.data[1];
-                dbyte2 = dbyte2 << 8;
-                dbyte2 |= dbyte2_mask;
-                dbyte1 |=dbyte1_mask;
-                dbyte2 &= dbyte1;
-                set6551Voltage(dbyte2, steerRaw_ID);
+                byte_1 = can_msg.data[0];
+                byte_2 = can_msg.data[1];
+                byte_2 = byte_2 << 8;
+                byte_2 |= BYTE_2_MASK;
+                byte_1 |= BYTE_1_MASK;
+                byte_2 &= byte_1;
+                set6551Voltage(byte_2, DacId_steerRaws);
                 break;
             default:
                 break;
         }
 
-        vTaskDelayUntil(&xLastWakeTime, PROCESS_RX_TASK_INTERVAL);
+        vTaskDelayUntil(&xLastWakeTime, PROCESS_RX_TASK_INTERVAL_MS);
     }
 }

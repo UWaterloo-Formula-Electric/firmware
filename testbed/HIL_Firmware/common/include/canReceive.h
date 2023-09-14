@@ -3,7 +3,7 @@
 
 #define MAX_QUEUE_LENGTH 50
 
-#define CAN_RX_TASK_INTERVAL 1
+#define CAN_RX_TASK_INTERVAL_MS 1
 
 #include "driver/twai.h"
 #include "freertos/queue.h"

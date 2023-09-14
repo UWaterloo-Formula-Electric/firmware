@@ -44,6 +44,6 @@ void can_rx_task (void * pvParameters){
             }
         #endif
 
-        vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL);
+        vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL_MS);
     }
 }

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -8,6 +9,10 @@
 #include "esp_err.h"
 #include "digitalPot.h"
 #include "userInit.h"
+
+#define PDU_MESSAGE_STATUS 0x8020F03
+
+bool PotStatus = false;
 
 //Digital pot being used https://www.analog.com/media/en/technical-documentation/data-sheets/AD5260_5262.pdf
 
@@ -31,12 +36,7 @@ int setPotResistance (uint32_t resistance)
         resistance = WIPER_RESISTANCE_OHM;
     }
 
-    //print statements for debugging, will be removed
-    printf("resistance is %ld\r\n", resistance);
-
     out_value = ((resistance - WIPER_RESISTANCE_OHM)*MAX_DIGITAL_VALUE)/NOMINAL_RESISTANCE_OHM;
-
-    printf("digi value is %d\r\n", out_value);
 
     spi_transaction_t trans = {
         .tx_data [0] = out_value,
@@ -47,14 +47,18 @@ int setPotResistance (uint32_t resistance)
     esp_err_t fault = 0;
 
     fault = spi_device_transmit(pot, &trans);
-    message_status.data[0] = POT_IS_SET;
+
     if(fault != ESP_OK)
     {
         printf("Failed transmit data\n");
-        return ESP_FAIL;
+        PotStatus = false;
+    }
+    else
+    {
+        PotStatus = true;
     }
 
+    message_status.data[0] = PotStatus;
     twai_transmit(&message_status, portMAX_DELAY);
     return ESP_OK;
-
 }

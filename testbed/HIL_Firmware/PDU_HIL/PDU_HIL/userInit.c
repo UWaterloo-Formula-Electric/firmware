@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_err.h"
@@ -15,10 +16,10 @@ spi_device_handle_t pot;
 
 void taskRegister (void)
 {
-    BaseType_t xReturned;
-    TaskHandle_t can_rx_task_handler;
-    TaskHandle_t can_process_task_handler;
-    TaskHandle_t relay_pdu_outputs_handler;
+    BaseType_t xReturned = pdPASS;
+    TaskHandle_t can_rx_task_handler = NULL;
+    TaskHandle_t can_process_task_handler = NULL;
+    TaskHandle_t relay_pdu_outputs_handler = NULL;
 
     xReturned = xTaskCreate(
         can_rx_task,
@@ -108,16 +109,19 @@ int spi_init(void)
 {
     printf("Initializing SPI bus\n");
 
+    memset(&pot, 0, sizeof(spi_device_handle_t));
+
     esp_err_t ret;
+
     spi_bus_config_t buscfg={
         .mosi_io_num=PIN_NUM_MOSI,
-        .sclk_io_num=PIN_NUM_CLK,
+        .sclk_io_num=POT_SPI_CLK_PIN,
         .quadwp_io_num=-1,
         .quadhd_io_num=-1,
     };
 
     spi_device_interface_config_t POTcfg={
-        .clock_speed_hz=25*1000*1000,           //Clock out at 25 MHz
+        .clock_speed_hz=25*HZ_PER_MHZ,           //Clock out at 25 MHz
         .mode=0,                                //SPI mode 0
         .spics_io_num=POT_CS,                   //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time
@@ -150,18 +154,18 @@ void pot_init(void)
 
 void pdu_input_init(void)
 {
-    gpio_set_direction(POW_AUX, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_BMU, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_BRAKE_LIGHT, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_DCU, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_LEFT_FAN, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_LEFT_PUMP, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_MC_LEFT, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_MC_RIGHT, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_RIGHT_FAN, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_RIGHT_PUMP, GPIO_MODE_INPUT);
-    gpio_set_direction(POW_VCU, GPIO_MODE_INPUT);
-    gpio_set_direction(BATTERY_RAW, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_AUX_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_BMU_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_BRAKE_LIGHT_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_DCU_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_LEFT_FAN_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_LEFT_PUMP_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_MC_LEFT_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_MC_RIGHT_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_RIGHT_FAN_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_RIGHT_PUMP_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(POW_VCU_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(BATTERY_RAW_PIN, GPIO_MODE_INPUT);
 }
 
 void app_main(void)

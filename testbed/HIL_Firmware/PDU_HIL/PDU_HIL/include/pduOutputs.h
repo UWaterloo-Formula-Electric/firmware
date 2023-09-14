@@ -3,37 +3,37 @@
 
 #define RELAY_PDU_OUTPUT_INTERVAL 100
 
-#define POW_AUX 7
-#define POW_BRAKE_LIGHT 15
-#define BATTERY_RAW 16
-#define POW_BMU 46
-#define POW_VCU 9
-#define POW_DCU 10
-#define POW_MC_LEFT 33
-#define POW_MC_RIGHT 34
-#define POW_LEFT_PUMP 35
-#define POW_RIGHT_PUMP 36
-#define POW_LEFT_FAN 37
-#define POW_RIGHT_FAN 38
+#define POW_AUX_PIN 7
+#define POW_BRAKE_LIGHT_PIN 15
+#define BATTERY_RAW_PIN 16
+#define POW_BMU_PIN 46
+#define POW_VCU_PIN 9
+#define POW_DCU_PIN 10
+#define POW_MC_LEFT_PIN 33
+#define POW_MC_RIGHT_PIN 34
+#define POW_LEFT_PUMP_PIN 35
+#define POW_RIGHT_PUMP_PIN 36
+#define POW_LEFT_FAN_PIN 37
+#define POW_RIGHT_FAN_PIN 38
 
 #define RELAY_PDU_OUTPUTS 0x8030F03
 
 void relayPduOutputs(void * pvParameters);
 extern void (*relayPduPtr)(void*);
 
-typedef enum pdu_out_status_bits{
-    aux = 0,
-    brake_light,
-    battery,
-    bmu,
-    vcu,
-    dcu,
-    mc_left,
-    mc_right,
-    left_pump,
-    right_pump,
-    left_fan,
-    right_fan,
-}pdu_out_status_bits;
+typedef enum PduOutStatusBits_E{
+    PduOutStatusBit_aux = 0,
+    PduOutStatusBit_brake_light,
+    PduOutStatusBit_battery,
+    PduOutStatusBit_bmu,
+    PduOutStatusBit_vcu,
+    PduOutStatusBit_dcu,
+    PduOutStatusBit_mc_left,
+    PduOutStatusBit_mc_right,
+    PduOutStatusBit_left_pump,
+    PduOutStatusBit_right_pump,
+    PduOutStatusBit_left_fan,
+    PduOutStatusBit_right_fan,
+}PduOutStatusBits_E;
 
 #endif

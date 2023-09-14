@@ -1,13 +1,14 @@
 #ifndef USER_INIT_H
 #define USER_INIT_H
 
-#define PIN_NUM_CLK 39
+#include "driver/spi_master.h"
+
+#define POT_SPI_CLK_PIN 39
 #define PIN_NUM_MOSI 40
 #define POT_CS 41
 #define POT_NSHUTDOWN 17 // Active Low
 #define POT_NSET_MID 18  // Active Low
-
-#include "driver/spi_master.h"
+#define HZ_PER_MHZ 1000*1000
 
 extern spi_device_handle_t pot;
 

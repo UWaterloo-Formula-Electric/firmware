@@ -12,13 +12,13 @@
 #include "processCAN.h"
 #include "digitalPot.h"
 
-static uint32_t dByte0 = 0;
-static uint32_t dByte1 = 0;
-static uint32_t dByte2 = 0;
+#define BYTE_0_MASK 0xFFFF00
+#define BYTE_1_MASK 0xFF00FF
+#define BYTE_2_MASK 0x00FFFF
 
-static uint32_t dByte0_mask = 0xFFFF00;
-static uint32_t dByte1_mask = 0xFF00FF;
-static uint32_t dByte2_mask = 0x00FFFF;
+static uint32_t byte_0 = 0U;
+static uint32_t byte_1 = 0U;
+static uint32_t byte_2 = 0U;
 
 void process_rx_task (void * pvParameters)
 {
@@ -30,23 +30,23 @@ void process_rx_task (void * pvParameters)
 
         switch (can_msg.identifier)
         {
-            case BATTERY_THERMISTOR: //Battery Thermistor
-                dByte0 = can_msg.data[0];
-                dByte1 = can_msg.data[1];
-                dByte2 = can_msg.data[2];
-                dByte0 |= dByte0_mask;
-                dByte1 = dByte1 << 8;
-                dByte1 |= dByte1_mask;
-                dByte1 &= dByte0;
-                dByte2 = dByte2 << 16;
-                dByte2 |= dByte2_mask;
-                dByte2 &= dByte1;
-                setPotResistance(dByte2);
+            case BATTERY_THERMISTOR:
+                byte_0 = can_msg.data[0];
+                byte_1 = can_msg.data[1];
+                byte_2 = can_msg.data[2];
+                byte_0 |= BYTE_0_MASK;
+                byte_1 = byte_1 << 8;
+                byte_1 |= BYTE_1_MASK;
+                byte_1 &= byte_0;
+                byte_2 = byte_2 << 16;
+                byte_2 |= BYTE_2_MASK;
+                byte_2 &= byte_1;
+                setPotResistance(byte_2);
                 break;
             default:
                 break;
         }
 
-        vTaskDelayUntil(&xLastWakeTime, PROCESS_RX_TASK_INTERVAL);
+        vTaskDelayUntil(&xLastWakeTime, PROCESS_RX_TASK_INTERVAL_MS);
     }
 }
