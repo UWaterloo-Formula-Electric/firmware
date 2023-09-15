@@ -11,8 +11,8 @@
  */
 
 // This is subject to change and is expected to be 100ms
-#define BATTERY_TASK_PERIOD_MS 100
-#define BATTERY_CHARGE_TASK_PERIOD_MS 2000
+#define BATTERY_TASK_PERIOD_MS 103
+#define BATTERY_CHARGE_TASK_PERIOD_MS 2003
 #define BATTERY_TASK_ID 2
 
 /**

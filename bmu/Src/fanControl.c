@@ -65,6 +65,7 @@ HAL_StatusTypeDef setFan()
   
   FanPeriod = duty;
   sendCAN_BMU_FanPeriod();
+  vTaskDelay(3); // Added to prevent CAN mailbox full
   return HAL_OK;
 }
 
