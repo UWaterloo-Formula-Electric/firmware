@@ -107,8 +107,22 @@ brew info open-cd
 
 4. install [the compiler toolchain](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-mac.tar.bz2?revision=d0d318de-b746-489f-98b0-9d89648ce910&hash=DB1DA90A2BC0E5A0D3FA92D4E7D2E9A6F4A2118D)
 5. Unzip the package you just installed and put it in the directory /Applications/ARM (you may need to create this directory)
-6. in the file /etc/paths add the directory /Applications/ARM/arm-none-eabi-gcc/bin. ([see the original instructions](https://gist.github.com/disposedtrolley/06d37e1db82b80ccf8c5d801eaa29373))
-7. Try to build the firmware, run `make all`
+6. Rename the folder name in the directory /Applications/ARM to arm-non-eabi-gcc (old name should be something like this: gcc-arm-none-eabi-9-2020-q2-update-mac)
+7. in the file /etc/paths add the directory /Applications/ARM/arm-none-eabi-gcc/bin. ([see the original instructions](https://gist.github.com/disposedtrolley/06d37e1db82b80ccf8c5d801eaa29373))
+    - In the terminal, enter: `sudo nano /etc/paths` which will open the paths file
+    - Add `/Applications/ARM/arm-none-eabi-gcc/bin` to the file
+    - Control + X ->  Enter Y -> Hit Enter to save the file
+    - Quit the terminal instance
+8. Try to build the firmware, run `make all`
+9. There are some security issues with ARM Mac when you run `make all`
+    - It should give you something about "file name" with an unverified developer message
+    - Please do **NOT** click delete the file -> click cancel
+    - Copy the file name such as "ar" or "as" and search the executable with the same name in the folder arm-none-eabi-gcc you just renamed
+    - Right-click on the executable -> click open -> click open again
+    - a terminal should open -> close the terminal -> run `make all` again
+    - If the file name is not an executable -> open it with a text editor
+    - Continue the above steps until it doesn't show you the message again (there are around 10~15 executables)
+
 
 ### Building the Firmware
 
