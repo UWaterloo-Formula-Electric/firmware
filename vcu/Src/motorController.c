@@ -45,23 +45,25 @@ float min(float a, float b)
     }
 }
 
+//todo-addison
 HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
 {
 	
     mcRightSettings.InverterCommand = commandVal;
-    InverterCommandRight = mcRightSettings.InverterCommand;
-    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
-    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
-    return sendCAN_SpeedLimitRight();
+    // InverterCommandRight = mcRightSettings.InverterCommand;
+    // SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
+    // SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
+    // return sendCAN_SpeedLimitRight();
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
 {
     mcLeftSettings.InverterCommand = commandVal;
-    InverterCommandLeft = mcLeftSettings.InverterCommand;
-    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
-    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
-    return sendCAN_SpeedLimitLeft();
+    // InverterCommandLeft = mcLeftSettings.InverterCommand;
+    // SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
+    // SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef initMotorControllerProcanSettings()
@@ -157,16 +159,17 @@ HAL_StatusTypeDef mcInit()
     DEBUG_PRINT("Starting MC Left...\n");
 
     uint32_t startTick = xTaskGetTickCount();
-    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
+    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) && true)
+        //    ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
         sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
+    // if ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
+    if (true) {
         ERROR_PRINT("Timeout waiting for MC Left to be ready to turn on\n");
-        ERROR_PRINT("StateInverterLeft %d\n", (uint8_t)(StateInverterLeft & INVERTER_STATE_MASK));
+        // ERROR_PRINT("StateInverterLeft %d\n", (uint8_t)(StateInverterLeft & INVERTER_STATE_MASK));
         return HAL_TIMEOUT;
     }
 
@@ -175,16 +178,17 @@ HAL_StatusTypeDef mcInit()
     DEBUG_PRINT("Starting MC Right...\n");
 
     startTick = xTaskGetTickCount();
-    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
+    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) && true)
+        //    ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
     {
         sendThrottleValueToMCs(0, 0);
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
+    // if ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
+        if (true){
         ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
-        ERROR_PRINT("StateInverterRight %d\n", (uint8_t)(StateInverterRight & INVERTER_STATE_MASK));
+        // ERROR_PRINT("StateInverterRight %d\n", (uint8_t)(StateInverterRight & INVERTER_STATE_MASK));
         return HAL_TIMEOUT;
     }
 
@@ -257,11 +261,11 @@ HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
 		return HAL_OK;
 	}
 
-	float throttleRight = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-	float throttleLeft = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+	// float throttleRight = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
+	// float throttleLeft = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
 
-    float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
-    float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
+    // float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
+    // float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
 
 
     return HAL_OK;

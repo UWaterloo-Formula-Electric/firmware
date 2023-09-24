@@ -27,7 +27,7 @@ void userInit()
     if (debugInit() != HAL_OK) {
         Error_Handler();
     }
-	generate_CRC_lookup_table();
+	// generate_CRC_lookup_table();
 
     if (driveByWireInit() != HAL_OK)
     {
