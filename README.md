@@ -120,8 +120,9 @@ sudo nano /etc/paths
 8. Try to build the firmware, run `make all`
    
 ### ARM Mac security issues
-There are some security issues with ARM Mac when you run `make all`
-  - It should give you something about "file name" with an unverified developer message
+1. If you are getting "Bad CPU type in executable" please install the Mac emulator by running ```softwareupdate --install-rosetta```
+2. There are some security issues with ARM Mac when you run `make all`
+  - Some messages like this: “arm-none-eabi” cannot be opened because the developer cannot be verified
   - Please do **NOT** click delete the file -> click cancel
   - Copy the file name such as "ar" or "as" and search the executable with the same name in the folder `arm-none-eabi-gcc` you just renamed
   - Right-click on the executable -> click open -> click open again
