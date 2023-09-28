@@ -107,7 +107,7 @@ brew info open-cd
 
 4. install [the compiler toolchain](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-mac.tar.bz2?revision=d0d318de-b746-489f-98b0-9d89648ce910&hash=DB1DA90A2BC0E5A0D3FA92D4E7D2E9A6F4A2118D)
 5. Unzip the package you just installed and put it in the directory `/Applications/ARM` (you may need to create the `ARM` directory)
-6. Rename the folder name in the directory `/Applications/ARM` to `arm-non-eabi-gcc` (old name should be something like this: `gcc-arm-none-eabi-9-2020-q2-update-mac`)
+6. Rename the folder name in the directory `/Applications/ARM` to `arm-none-eabi-gcc` (old name should be something like this: `gcc-arm-none-eabi-9-2020-q2-update-mac`)
 7. in the file `/etc/paths` add the directory `/Applications/ARM/arm-none-eabi-gcc/bin`. ([see the original instructions](https://gist.github.com/disposedtrolley/06d37e1db82b80ccf8c5d801eaa29373))
   - Enter following command to open paths file in `/etc/paths`:
 ```
@@ -120,8 +120,9 @@ sudo nano /etc/paths
 8. Try to build the firmware, run `make all`
    
 ### ARM Mac security issues
-There are some security issues with ARM Mac when you run `make all`
-  - It should give you something about "file name" with an unverified developer message
+1. If you are getting "Bad CPU type in executable" please install the Mac emulator by running ```softwareupdate --install-rosetta```
+2. There are some security issues with ARM Mac when you run `make all`
+  - Some messages like this: “arm-none-eabi” cannot be opened because the developer cannot be verified
   - Please do **NOT** click delete the file -> click cancel
   - Copy the file name such as "ar" or "as" and search the executable with the same name in the folder `arm-none-eabi-gcc` you just renamed
   - Right-click on the executable -> click open -> click open again
