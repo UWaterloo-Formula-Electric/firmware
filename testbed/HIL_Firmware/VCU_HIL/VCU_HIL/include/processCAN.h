@@ -2,13 +2,12 @@
 #define PROCESS_CAN_H
 
 #define PROCESS_RX_TASK_INTERVAL_MS 1
-#define BRAKE_POS 0x404020F
-#define BRAKE_PRES_RAW 0x403020F
-#define THROTTLE_A 0x401020F
-#define THROTTLE_B 0x402020F
-#define STEER_RAW 0x405020F
+#define BRAKE_POS_CAN_ID 0x404020F
+#define BRAKE_PRES_RAW_CAN_ID 0x403020F
+#define THROTTLE_A_CAN_ID 0x401020F
+#define THROTTLE_B_CAN_ID 0x402020F
+#define STEER_RAW_CAN_ID 0x405020F
 
 void process_rx_task (void * pvParameters);
 
-//End of PROCESS_CAN_H
-#endif
+#endif/*PROCESS_CAN_H*/

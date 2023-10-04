@@ -10,33 +10,29 @@
 #include "digitalPot.h"
 #include "userInit.h"
 
-#define PDU_MESSAGE_STATUS 0x8020F03
-
-bool PotStatus = false;
-
-//Digital pot being used https://www.analog.com/media/en/technical-documentation/data-sheets/AD5260_5262.pdf
+static bool PotReady = false;
 
 twai_message_t message_status = 
 {
-    .identifier = PDU_MESSAGE_STATUS,
-    .extd = 1,
-    .data_length_code = 1,
+    .identifier = PDU_MSG_STATUS_CAN_ID,
+    .extd = EXTENDED_MSG,
+    .data_length_code = POT_CAN_MSG_DATA_SIZE,
 };
 
-int setPotResistance (uint32_t resistance)
+void setPotResistance (uint32_t resistance)
 {
     uint8_t out_value = 0;
 
-    if (resistance > POT_MAX)
+    if (resistance > POT_MAX_OHM)
     {
-        resistance = POT_MAX;
+        resistance = POT_MAX_OHM;
     }
     else if (resistance < WIPER_RESISTANCE_OHM)
     {
         resistance = WIPER_RESISTANCE_OHM;
     }
 
-    out_value = ((resistance - WIPER_RESISTANCE_OHM)*MAX_DIGITAL_VALUE)/NOMINAL_RESISTANCE_OHM;
+    out_value = ((resistance - WIPER_RESISTANCE_OHM)*MAX_POT_DIGITAL_VALUE)/NOMINAL_RESISTANCE_OHM;
 
     spi_transaction_t trans = {
         .tx_data [0] = out_value,
@@ -51,14 +47,13 @@ int setPotResistance (uint32_t resistance)
     if(fault != ESP_OK)
     {
         printf("Failed transmit data\n");
-        PotStatus = false;
+        PotReady = false;
     }
     else
     {
-        PotStatus = true;
+        PotReady = true;
     }
 
-    message_status.data[0] = PotStatus;
+    message_status.data[0] = PotReady;
     twai_transmit(&message_status, portMAX_DELAY);
-    return ESP_OK;
 }

@@ -9,11 +9,8 @@
 #include "canReceive.h"
 #include "processCAN.h"
 
-#define BYTE_1_MASK 0xFF00
-#define BYTE_2_MASK 0x00FF
-
-static uint16_t byte_1;
-static uint16_t byte_2;
+static uint16_t byte_1 = 0U;
+static uint16_t byte_2 = 0U;
 
 //reassemble data into a 16 bit uint to pass in desired voltage into set dac function
 void process_rx_task (void * pvParameters)
@@ -26,52 +23,43 @@ void process_rx_task (void * pvParameters)
 
         switch (can_msg.identifier)
         {
-            case BRAKE_POS:     //Brake position
+            case BRAKE_POS_CAN_ID:     
                 byte_1 = can_msg.data[0];
                 byte_2 = can_msg.data[1];
                 byte_2 = byte_2 << 8;
-                byte_2 |= BYTE_2_MASK;
-                byte_1 |= BYTE_1_MASK;
-                byte_2 &= byte_1;
-                set6551Voltage(byte_2, DacId_brakePos);
+                byte_2 |= byte_1;
+                set6551Voltage(byte_2, DacId_BrakePos);
                 break;
-            case BRAKE_PRES_RAW:     //Brake pres raw
+            case BRAKE_PRES_RAW_CAN_ID:     
                 byte_1 = can_msg.data[0];
                 byte_2 = can_msg.data[1];
                 byte_2 = byte_2 << 8;
-                byte_2 |= BYTE_2_MASK;
-                byte_1 |= BYTE_1_MASK;
-                byte_2 &= byte_1;
+                byte_2 |= byte_1;
                 setDacVoltage(byte_2);
                 break;
-            case THROTTLE_A:     //Throttle A 
+            case THROTTLE_A_CAN_ID:     
                 byte_1 = can_msg.data[0];
                 byte_2 = can_msg.data[1];
                 byte_2 = byte_2 << 8;
-                byte_2 |= BYTE_2_MASK;
-                byte_1 |= BYTE_1_MASK;
-                byte_2 &= byte_1;
-                set6551Voltage(byte_2, DacId_throttleA);
+                byte_2 |= byte_1;
+                set6551Voltage(byte_2, DacId_ThrottleA);
                 break;
-            case THROTTLE_B:     //Throttle B
+            case THROTTLE_B_CAN_ID:    
                 byte_1 = can_msg.data[0];
                 byte_2 = can_msg.data[1];
                 byte_2 = byte_2 << 8;
-                byte_2 |= BYTE_2_MASK;
-                byte_1 |= BYTE_1_MASK;
-                byte_2 &= byte_1;
-                set6551Voltage(byte_2, DacId_throttleB);
+                byte_2 |= byte_1;
+                set6551Voltage(byte_2, DacId_ThrottleB);
                 break;
-            case STEER_RAW:     //Steer Raw
+            case STEER_RAW_CAN_ID:     
                 byte_1 = can_msg.data[0];
                 byte_2 = can_msg.data[1];
                 byte_2 = byte_2 << 8;
-                byte_2 |= BYTE_2_MASK;
-                byte_1 |= BYTE_1_MASK;
-                byte_2 &= byte_1;
-                set6551Voltage(byte_2, DacId_steerRaws);
+                byte_2 |= byte_1;
+                set6551Voltage(byte_2, DacId_SteerRaw);
                 break;
             default:
+                printf("CAN ID not recognized %ld\r\n", can_msg.identifier);
                 break;
         }
 
