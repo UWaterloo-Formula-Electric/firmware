@@ -9,7 +9,8 @@ HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, u
     txBuffer[0] = cmdByteLow;
     txBuffer[1] = cmdByteHigh;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-
+    // DEBUG_PRINT("transmitted PEC[0]: %x \n", txBuffer[COMMAND_SIZE]);
+    // DEBUG_PRINT("transmitted PEC[1]: %x \n", txBuffer[COMMAND_SIZE + 1]);
     return HAL_OK;
 }
 
@@ -84,8 +85,13 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     uint32_t pec_loc = dataSize;
     if (pec[0] == rxBuffer[pec_loc] && pec[1] == rxBuffer[pec_loc + 1])
     {
+        DEBUG_PRINT("CORRECT: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
+        DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         return HAL_OK;
     } else {
+        DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
+        DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
+        // failing here
         return HAL_ERROR;
     }
 }

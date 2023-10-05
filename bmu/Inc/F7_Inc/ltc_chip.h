@@ -21,11 +21,11 @@
 // TODO: Update these to 2021 values
 
 /// Number of AMS boards in system
-#define NUM_BOARDS                  5
+#define NUM_BOARDS                  1
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             14
+#define CELLS_PER_BOARD             10
 /// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       14
+#define THERMISTORS_PER_BOARD       10
 
 // This specifies which chip architecture we are using
 // 6812/6804
@@ -36,7 +36,7 @@
 #define LTC_CHIP LTC_CHIP_6804
 
 #if LTC_CHIP == LTC_CHIP_6804
-#define NUM_LTC_CHIPS_PER_BOARD 2
+#define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #else
@@ -69,7 +69,7 @@
 #if LTC_CHIP == LTC_CHIP_6804
 // We set this to 3 as the last 3 cell connections are actually CELL7 which is on the 2nd chip
 // If this changes in the future VOLTAGE_BLOCKS_PER_CHIP should be 4
-#define VOLTAGE_BLOCKS_PER_CHIP    3   // Number of voltage blocks per AMS board
+#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
 #elif LTC_CHIP == LTC_CHIP_6812
 #define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
 #endif

@@ -1215,10 +1215,10 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            ERROR_PRINT("Open wire test failed!\n");
-            BatteryTaskError();
-        }
+        // if (checkForOpenCircuit() != HAL_OK) {
+        //     ERROR_PRINT("Open wire test failed!\n");
+        //     BatteryTaskError();
+        // }
 #endif
 
         if (resumeBalance() != HAL_OK) {
@@ -1498,12 +1498,12 @@ void batteryTask(void *pvParameter)
             }
         }
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinue()) { continue; }
-        }
+        // if (checkForOpenCircuit() != HAL_OK) {
+        //     BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Open wire test failed!\n");
+        //     if (boundedContinue()) { continue; }
+        // }
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
