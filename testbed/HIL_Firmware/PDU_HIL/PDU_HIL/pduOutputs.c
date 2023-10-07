@@ -19,6 +19,10 @@ void relayPduOutputs(void * pvParameters)
 
     while(1)
     {
+        // clear bits
+        pdu_outputs.data[0] = 0;
+        pdu_outputs.data[1] = 0;
+
         pdu_outputs.data[0] |= gpio_get_level(POW_AUX_PIN) << PduOutStatusBit_Aux;
         pdu_outputs.data[0] |= gpio_get_level(POW_BRAKE_LIGHT_PIN) << PduOutStatusBit_BrakeLight;
         pdu_outputs.data[0] |= gpio_get_level(BATTERY_RAW_PIN) << PduOutStatusBit_Battery;

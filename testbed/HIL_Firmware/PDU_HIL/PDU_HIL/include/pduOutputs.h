@@ -18,7 +18,7 @@
 
 #define RELAY_PDU_OUTPUTS_CAN_ID 0x8030F03
 #define EXTENDED_MSG 1
-#define PDU_OUTPUT_CAN_MSG_DATA_SIZE 1 //size in bytes
+#define PDU_OUTPUT_CAN_MSG_DATA_SIZE 2 //size in bytes
 
 void relayPduOutputs(void * pvParameters);
 
