@@ -66,12 +66,3 @@ with open(CELL_CSV_PATH / OUTPUT_FILENAME, 'w') as out_f:
                     print(filtered_ir)
                     csv_writer.writerow({fieldnames[0]: ir_idx, fieldnames[1]: filtered_ir})
                     break
-
-
-
-
-        
-
-#with CELL_CSV_PATH.open() as f:
-#    csv_reader = csv.DictReader(f)
-

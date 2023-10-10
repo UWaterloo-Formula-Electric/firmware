@@ -1,5 +1,5 @@
-#ifndef MCP3425_DRIVER
-#define MCP3425_DRIVER
+#ifndef MCP3425_DRIVER_H
+#define MCP3425_DRIVER_H
 
 #include "debug.h"
 #include "i2c.h"
@@ -28,4 +28,4 @@ HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr);
 HAL_StatusTypeDef mcp3425_adc_read(I2C_HandleTypeDef *i2c_hdr);
 extern int16_t adc_1_output_val;
 extern int16_t adc_2_output_val;
-#endif
+#endif // MCP3425_DRIVER_H

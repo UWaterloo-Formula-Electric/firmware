@@ -1,9 +1,10 @@
+#include <math.h>
+
 #include "temperature.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
 #include "mcp3425.h"
-#include <math.h>
 
 I2C_HandleTypeDef *cell_i2c_hdr = &hi2c1;
 I2C_HandleTypeDef *fuse_i2c_hdr = &hi2c2;
@@ -41,7 +42,7 @@ HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr) {
     return HAL_OK;
 }
 
-float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
+HAL_StatusTypeDef read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
     if (mcp3425_adc_read(i2c_hdr) != HAL_OK) {
         // ERROR_PRINT("Failed to read from adc\n");
         return HAL_ERROR;

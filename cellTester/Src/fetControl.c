@@ -1,9 +1,8 @@
-#include "fetControl.h"
-
 #include <math.h>
 
 #include "debug.h"
 #include "stm32f0xx_hal.h"
+#include "fetControl.h"
 
 static float PWM_Duty_Cycle = 0;
 
@@ -13,6 +12,7 @@ HAL_StatusTypeDef set_PWM_Duty_Cycle(TIM_HandleTypeDef* const pwmHandle, const f
         return HAL_ERROR;
     }
     PWM_Duty_Cycle = duty_cycle;
+    // Get the Auto Reload Register value and set the compare register to a PWM percentage
     uint16_t currentARR = __HAL_TIM_GET_AUTORELOAD(pwmHandle);
     uint32_t nextARR = PWM_Duty_Cycle * currentARR /100.;
     __HAL_TIM_SET_COMPARE(pwmHandle, TIM_CHANNEL_1, nextARR);

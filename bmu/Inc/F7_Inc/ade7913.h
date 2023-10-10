@@ -1,5 +1,5 @@
-#ifndef ADE7013_H_
-#define ADE7013_H_
+#ifndef ADE7913_H_
+#define ADE7913_H_
 
 #include <stdint.h>
 #include "boardTypes.h"
@@ -29,4 +29,4 @@ HAL_StatusTypeDef adc_read_current(float *dataOut);
 HAL_StatusTypeDef adc_read_v1(float *dataOut);
 HAL_StatusTypeDef adc_read_v2(float *dataOut);
 
-#endif /* ADE7013_H_*/
+#endif /* ADE7913_H_*/

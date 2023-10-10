@@ -1,5 +1,5 @@
-#ifndef CELL_TESTER_TEMP
-#define CELL_TESTER_TEMP
+#ifndef CELL_TESTER_TEMP_H
+#define CELL_TESTER_TEMP_H
 
 #include "debug.h"
 #include "i2c.h"
@@ -26,8 +26,8 @@ float temp_steinhart_hart(float resistance);
 float ntc_V_to_R(float voltage);
 float adc_to_volts(int16_t adc_ticks);
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);
-float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *temp_output_val);
+HAL_StatusTypeDef read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *temp_output_val);
 
 extern I2C_HandleTypeDef *cell_i2c_hdr;
 extern I2C_HandleTypeDef *fuse_i2c_hdr;
-#endif
+#endif // CELL_TESTER_TEMP_H

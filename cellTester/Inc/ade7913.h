@@ -1,7 +1,12 @@
-#ifndef ADE7013_H
-#define ADE7013_H
+#ifndef ADE7913_H
+#define ADE7913_H
 
 #include "stm32f0xx.h"
+// THESE CONSTANTS WERE CALIBRATED WITH A WRONG raw -> VOLTAGE conversion
+// Formula used: dataOut = scale * (raw + offset)
+// Actual formula: dataOut = (scale * raw) + offset
+// THIS WILL NOT WORK FOR FUTURE CALIBRATIONS as the underlying 
+// formula was corrected in ade7913_common.c
 
 //Voltage scale and offset convert to volts
 //Scale found using the equation Vmax/2^23-1, 
@@ -30,4 +35,4 @@ HAL_StatusTypeDef adc_read_current(float *dataOut);
 HAL_StatusTypeDef adc_read_v1(float *dataOut);
 HAL_StatusTypeDef adc_read_v2(float *dataOut);
 
-#endif /* ADE7013_H*/
+#endif /* ADE7913_H*/
