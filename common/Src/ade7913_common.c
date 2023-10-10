@@ -163,8 +163,7 @@ HAL_StatusTypeDef adc_read_v2(float *dataOut) {
     return HAL_ERROR;
   }
 
-  //DEBUG_PRINT("raw v2: %ld\r\n", raw);
-  (*dataOut) = VOLTAGE_2_SCALE*((float)raw + VOLTAGE_2_OFFSET);
+  (*dataOut) = (VOLTAGE_2_SCALE * ((float)raw)) + VOLTAGE_2_OFFSET;
   return HAL_OK;
 }
 
@@ -216,12 +215,4 @@ HAL_StatusTypeDef hvadc_init() {
   }
 
   return HAL_OK;
-}
-
-void fetControlTask(void *pvParamaters)
-{
-    while(1)
-    {
-        vTaskDelay(10000);
-    }
 }
