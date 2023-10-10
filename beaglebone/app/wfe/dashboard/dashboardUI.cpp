@@ -90,10 +90,6 @@ void WfeDashboardUI::update() {
 
 void WfeDashboardUI::paintEvent(QPaintEvent *) {
     QPainter qp(this);
-    QMatrix matrix;
-    matrix.translate(WIDTH, HEIGHT);
-    matrix.scale(-1, -1);
-    qp.setMatrix(matrix);
 
     modeDisplay->draw(qp);
     batteryDisplay->draw(qp);
