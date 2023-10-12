@@ -268,9 +268,9 @@ HAL_StatusTypeDef batt_check_stat_A(void)
         DEBUG_PRINT("Checking chip status failed\n");
         return HAL_ERROR;
     }
-	DEBUG_PRINT("Status Register A: 0x");
+	DEBUG_PRINT("Status Register A: ");
 	for (int i = 0; i < register_size; i++) {
-		DEBUG_PRINT("%x", response_buffer[i]);
+		DEBUG_PRINT("0x%x ", response_buffer[i]);
 	}
 	DEBUG_PRINT(" ");
 	return HAL_OK;
