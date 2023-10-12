@@ -70,6 +70,9 @@
 #define ADOW_BYTE0 0x03
 #define ADOW_BYTE1(PUP) (0x28 | ((PUP)<<6))
 
+// debugging
+#define ADSTAT_BYTE0 0x05
+#define ADSTAT_BYTE1 0x69 // check SOC
 
 #define ADC_OPT(en) ((en) << 0) // Since we're using the normal 7kHz mode
 #define SWTRD(en) ((en) << 1) // We're not using the software time
@@ -242,7 +245,7 @@ HAL_StatusTypeDef batt_verify_config(){
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
 			DEBUG_PRINT("Config Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
-				DEBUG_PRINT("0x%x", config_buffer[board][ltc_chip][buff_byte]);
+				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch \n", board, ltc_chip, buff_byte);
 					return HAL_ERROR;
@@ -254,6 +257,24 @@ HAL_StatusTypeDef batt_verify_config(){
 	return HAL_OK;
 }
 
+HAL_StatusTypeDef batt_check_stat_A(void)
+{
+	uint8_t register_size = 2;
+    uint8_t response_buffer[register_size];
+	wakeup_sleep();
+	batt_broadcast_command(ADSTAT);
+	wakeup_idle();
+    if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
+        DEBUG_PRINT("Checking chip status failed\n");
+        return HAL_ERROR;
+    }
+	DEBUG_PRINT("Status Register A: 0x");
+	for (int i = 0; i < register_size; i++) {
+		DEBUG_PRINT("%x", response_buffer[i]);
+	}
+	DEBUG_PRINT(" ");
+	return HAL_OK;
+}
 
 HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, size_t board, size_t ltc_chip) {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -263,14 +284,7 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 	switch(curr_command) {
 		case(ADCV): 
 		{
-			if(broadcast)
-			{
-				command_byte_low = ADCV_BROADCAST_BYTE0;
-			}
-			else
-			{	
-				command_byte_low = ADCV_BYTE0;
-			}
+			command_byte_low = ADCV_BYTE0;
 			command_byte_high = ADCV_BYTE1;
 			break;
 		}
@@ -313,23 +327,11 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 			command_byte_high = ADOW_BYTE1(0);
 			break;
 		}
-		case(CLRCELL):
+		case(ADSTAT):
 		{
-			command_byte_low = CLRCELL_BYTE0;
-			command_byte_high = CLRCELL_BYTE1;
+			command_byte_low = ADSTAT_BYTE0;
+			command_byte_high = ADSTAT_BYTE1;
 			break;
-		}
-		case(READSTATA):
-		{
-			command_byte_low = RDSTATA_BYTE0;
-			command_byte_high = RDSTATA_BYTE1;
-			break;
-		}
-		case(READSTATB):
-		{
-			DEBUG_PRINT("REGISTER B \n");
-			command_byte_low = RDSTATB_BYTE0;
-			command_byte_high = RDSTATB_BYTE1;
 		}
 		default:
 			return HAL_ERROR;
@@ -364,8 +366,6 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
  * elapsed for readings to finish
  * Used for both batt_read_cell_voltages and open wire check
  */
-uint32_t temp = 0;
-uint32_t error_counter = 0;
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation)
 {
 
@@ -429,12 +429,9 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				// Voltage values for one block from one boards
 				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
 				bool failed_read = false;
-				temp++;
-				DEBUG_PRINT("***ATTEMPTING TO READ CELL REGISTER***\n");
+				//DEBUG_PRINT("***ATTEMPTING TO READ CELL REGISTER***\n");
 				//DEBUG_PRINT("Total invocation: %lu\n", temp);
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-					error_counter++;
-					//DEBUG_PRINT("batt_read_data error counter: %lu\n", error_counter);
 					failed_read = true;
 					// Tolerate up to 2 errors in a row, fail on 3
 #if PRINT_ALL_PEC_ERRORS != 0
@@ -462,12 +459,12 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				//DEBUG_PRINT("batt_read_data error counter: %lu\n", error_counter);
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
-					uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
-					//pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
-					if(voltage_terminal == 4 || voltage_terminal == 5)
-					{
-						continue;
-					}
+					// uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
+					// //pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
+					// if(voltage_terminal == 4 || voltage_terminal == 5)
+					// {
+					// 	continue;
+					// }
 
 					size_t registerIndex = cvreg * CELL_VOLTAGE_SIZE_BYTES;
 					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
@@ -496,7 +493,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 						}
 						else
 						{
-						
+							DEBUG_PRINT("Error: Reached an empty else statement\n");
 						}
 						
 					}

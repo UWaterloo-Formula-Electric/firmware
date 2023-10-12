@@ -14,9 +14,7 @@ typedef enum ltc_command_t {
 	ADAX,
 	ADOW_UP,
 	ADOW_DOWN,
-	CLRCELL,
-	READSTATA,
-	READSTATB,
+	ADSTAT,
 } ltc_command_t;
 
 typedef enum voltage_operation_t {
@@ -32,6 +30,7 @@ typedef struct open_wire_failure_t {
 void batt_init_chip_configs(void);
 HAL_StatusTypeDef batt_write_config(void);
 HAL_StatusTypeDef batt_verify_config(void);
+HAL_StatusTypeDef batt_check_stat_A(void);
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation);
 void batt_set_temp_config(size_t channel);
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command); 
