@@ -4,7 +4,7 @@ from testbeds.hil_testbed import *
 import cantools
 from can.interfaces.socketcan.socketcan import SocketcanBus
 
-from drivers.common_drivers.can_driver import CANListener, VehicleListener
+from drivers.common_drivers.can_driver import CANListener
 from drivers.dtc_logger import DTCLogger
 
 @slash.plugins.active

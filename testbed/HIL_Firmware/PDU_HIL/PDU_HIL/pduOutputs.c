@@ -31,10 +31,10 @@ void relayPduOutputs(void * pvParameters)
         pdu_outputs.data[0] |= gpio_get_level(POW_DCU_PIN) << PduOutStatusBit_Dcu;
         pdu_outputs.data[0] |= gpio_get_level(POW_MC_LEFT_PIN) << PduOutStatusBit_McLeft;
         pdu_outputs.data[0] |= gpio_get_level(POW_MC_RIGHT_PIN) << PduOutStatusBit_McRight;
-        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_PUMP_PIN) << PduOutStatusBit_LeftPump;
-        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_PUMP_PIN) << PduOutStatusBit_RightPump;
-        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_FAN_PIN) << PduOutStatusBit_LeftFan;
-        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_FAN_PIN) << PduOutStatusBit_RightFan;
+        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_PUMP_PIN) << (PduOutStatusBit_LeftPump - BYTE_SIZE);
+        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_PUMP_PIN) << (PduOutStatusBit_RightPump - BYTE_SIZE);
+        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_FAN_PIN) << (PduOutStatusBit_LeftFan - BYTE_SIZE);
+        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_FAN_PIN) << (PduOutStatusBit_RightFan - BYTE_SIZE);
 
         twai_transmit(&pdu_outputs, portMAX_DELAY);
 

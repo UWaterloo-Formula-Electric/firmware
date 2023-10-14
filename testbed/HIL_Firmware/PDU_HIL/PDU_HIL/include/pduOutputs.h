@@ -20,6 +20,8 @@
 #define EXTENDED_MSG 1
 #define PDU_OUTPUT_CAN_MSG_DATA_SIZE 2 //size in bytes
 
+#define BYTE_SIZE 8
+
 void relayPduOutputs(void * pvParameters);
 
 typedef enum PduOutStatusBits_E{
