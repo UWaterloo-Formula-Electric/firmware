@@ -59,3 +59,5 @@ beaglebone/os/Makefile
 ..config.tmp
 .config*
 
+# Cell Tester Log Files
+cellTester/CellData

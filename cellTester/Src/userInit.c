@@ -11,9 +11,9 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-
 #include "bsp.h"
 #include "debug.h"
+#include "fetControl.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -32,6 +32,11 @@ void userInit()
     }
     
     if (uartStartReceiving(&DEBUG_UART_HANDLE) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    if (fetInit() != HAL_OK)
     {
         Error_Handler();
     }

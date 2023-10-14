@@ -57,6 +57,17 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define FET_GATE_Pin GPIO_PIN_0
+#define FET_GATE_GPIO_Port GPIOA
+#define ISO_ADC_CLK_Pin GPIO_PIN_5
+#define ISO_ADC_CLK_GPIO_Port GPIOA
+#define ISO_ADC_MISO_Pin GPIO_PIN_6
+#define ISO_ADC_MISO_GPIO_Port GPIOA
+#define ISO_ADC_MOSI_Pin GPIO_PIN_7
+#define ISO_ADC_MOSI_GPIO_Port GPIOA
+#define ISO_ADC_CS_Pin GPIO_PIN_7
+#define ISO_ADC_CS_GPIO_Port GPIOC
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

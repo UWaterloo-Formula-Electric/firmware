@@ -522,6 +522,7 @@ void printTask(void *pvParameters)
 }
 
 
+#ifdef STATS_TIM_HANDLE
 /*
  * Run time stats timer setup
  * A 16 bit timer with clock source APB1 should be configured in cube
@@ -592,3 +593,4 @@ uint32_t getRunTimeCounterValue()
 
     return curCounterVal;
 }
+#endif
