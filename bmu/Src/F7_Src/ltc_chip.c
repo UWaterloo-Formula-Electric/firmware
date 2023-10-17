@@ -39,25 +39,29 @@ HAL_StatusTypeDef batt_init()
 
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
+    // if (batt_spi_wakeup(false /* not sleeping*/))
+    // {
+    //     return HAL_ERROR;
+    // }
+
+	wakeup_idle();
 	
-	batt_broadcast_command(ADCV);
+    batt_check_stat_A(); // added for debugging. Reading garbage as well
 
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    //vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+    vTaskDelay(50); // testing
+    //delay_us(500); // testing
+    //delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
-
+    
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {
         return HAL_ERROR;
     }
-
+    
     return HAL_OK;
 }
 
@@ -129,10 +133,10 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         ERROR_PRINT("Failed to read cell voltages\n");
         return HAL_ERROR;
     }
-    if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
-        ERROR_PRINT("Failed to read cell temperatures\n");
-        return HAL_ERROR;
-    }
+    // if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
+    //     ERROR_PRINT("Failed to read cell temperatures\n");
+    //     return HAL_ERROR;
+    // }
 
     return HAL_OK;
 }
