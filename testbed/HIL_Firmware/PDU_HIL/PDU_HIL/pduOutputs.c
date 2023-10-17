@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/twai.h"
@@ -20,8 +21,7 @@ void relayPduOutputs(void * pvParameters)
     while(1)
     {
         // clear bits
-        pdu_outputs.data[0] = 0;
-        pdu_outputs.data[1] = 0;
+        memset(&pdu_outputs.data, 0, sizeof(pdu_outputs.data));
 
         pdu_outputs.data[0] |= gpio_get_level(POW_AUX_PIN) << PduOutStatusBit_Aux;
         pdu_outputs.data[0] |= gpio_get_level(POW_BRAKE_LIGHT_PIN) << PduOutStatusBit_BrakeLight;
@@ -31,10 +31,10 @@ void relayPduOutputs(void * pvParameters)
         pdu_outputs.data[0] |= gpio_get_level(POW_DCU_PIN) << PduOutStatusBit_Dcu;
         pdu_outputs.data[0] |= gpio_get_level(POW_MC_LEFT_PIN) << PduOutStatusBit_McLeft;
         pdu_outputs.data[0] |= gpio_get_level(POW_MC_RIGHT_PIN) << PduOutStatusBit_McRight;
-        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_PUMP_PIN) << (PduOutStatusBit_LeftPump - BYTE_SIZE);
-        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_PUMP_PIN) << (PduOutStatusBit_RightPump - BYTE_SIZE);
-        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_FAN_PIN) << (PduOutStatusBit_LeftFan - BYTE_SIZE);
-        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_FAN_PIN) << (PduOutStatusBit_RightFan - BYTE_SIZE);
+        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_PUMP_PIN) << (PduOutStatusBit_LeftPump % 8);
+        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_PUMP_PIN) << (PduOutStatusBit_RightPump % 8);
+        pdu_outputs.data[1] |= gpio_get_level(POW_LEFT_FAN_PIN) << (PduOutStatusBit_LeftFan % 8);
+        pdu_outputs.data[1] |= gpio_get_level(POW_RIGHT_FAN_PIN) << (PduOutStatusBit_RightFan % 8);
 
         twai_transmit(&pdu_outputs, portMAX_DELAY);
 
