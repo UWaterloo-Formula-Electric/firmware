@@ -52,7 +52,7 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (0)
+#define PRINT_ALL_PEC_ERRORS (1)
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
@@ -101,6 +101,7 @@ bool batt_is_cell_balancing(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
+HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
 
 HAL_StatusTypeDef batt_init();

@@ -608,7 +608,7 @@ Precharge_Discharge_Return_t discharge()
 void pcdcTask(void *pvParameter)
 {
     uint32_t dbwTaskNotifications;
-    Precharge_Discharge_Return_t rc;
+    //Precharge_Discharge_Return_t rc;
 
     if (pcdcInit() != HAL_OK) {
         Error_Handler();
@@ -623,66 +623,66 @@ void pcdcTask(void *pvParameter)
                                               dbwTaskNotifications. */
                          portMAX_DELAY);  /* Timeout */
 
-        if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
+//         if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
 
-            DEBUG_PRINT("Skipping precharge/discharge due to stop\n");
+//             DEBUG_PRINT("Skipping precharge/discharge due to stop\n");
 
-        } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER) ||
-                   dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
-            DEBUG_PRINT("Starting precharge\n");
+//         } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER) ||
+//                    dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
+//             DEBUG_PRINT("Starting precharge\n");
 
-            if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
-#ifdef ENABLE_PRECHARGE_DISCHARGE
-                rc = precharge(PC_MotorControllers);
-#else
-                rc = PCDC_DONE;
-#endif
-            } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER)) {
-#ifdef ENABLE_PRECHARGE_DISCHARGE
-                rc = precharge(PC_Charger);
-#else
-                rc = PCDC_DONE;
-#endif
-            } else {
-                ERROR_PRINT("Unknown precharge type!");
-                rc = PCDC_ERROR;
-            }
+//             if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS)) {
+// #ifdef ENABLE_PRECHARGE_DISCHARGE
+//                 rc = precharge(PC_MotorControllers);
+// #else
+//                 rc = PCDC_DONE;
+// #endif
+//             } else if (dbwTaskNotifications & (1<<PRECHARGE_NOTIFICATION_CHARGER)) {
+// #ifdef ENABLE_PRECHARGE_DISCHARGE
+//                 rc = precharge(PC_Charger);
+// #else
+//                 rc = PCDC_DONE;
+// #endif
+//             } else {
+//                 ERROR_PRINT("Unknown precharge type!");
+//                 rc = PCDC_ERROR;
+//             }
 
-            if (rc == PCDC_DONE) {
-                DEBUG_PRINT("Precharge done\n");
-                fsmSendEvent(&fsmHandle, EV_Precharge_Finished, portMAX_DELAY);
-            } else if (rc == PCDC_ERROR) {
-                DEBUG_PRINT("Precharge Error\n");
-#ifdef ENABLE_PRECHARGE_DISCHARGE
-                discharge();
-#endif
-                fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
-            } else {
-                DEBUG_PRINT("Precharge Stopped\n");
-#ifdef ENABLE_PRECHARGE_DISCHARGE
-                discharge();
-#endif
-                // TODO: Is there anything to do if the precharge gets stopped?
-            }
+//             if (rc == PCDC_DONE) {
+//                 DEBUG_PRINT("Precharge done\n");
+//                 fsmSendEvent(&fsmHandle, EV_Precharge_Finished, portMAX_DELAY);
+//             } else if (rc == PCDC_ERROR) {
+//                 DEBUG_PRINT("Precharge Error\n");
+// #ifdef ENABLE_PRECHARGE_DISCHARGE
+//                 discharge();
+// #endif
+//                 fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
+//             } else {
+//                 DEBUG_PRINT("Precharge Stopped\n");
+// #ifdef ENABLE_PRECHARGE_DISCHARGE
+//                 discharge();
+// #endif
+//                 // TODO: Is there anything to do if the precharge gets stopped?
+//             }
 
-        } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
-#ifdef ENABLE_PRECHARGE_DISCHARGE
-            rc = discharge();
-#else
-            rc = PCDC_DONE;
-#endif
+//         } else if (dbwTaskNotifications & (1<<DISCHARGE_NOTIFICATION)) {
+// #ifdef ENABLE_PRECHARGE_DISCHARGE
+//             rc = discharge();
+// #else
+//             rc = PCDC_DONE;
+// #endif
 
-            if (rc != PCDC_DONE) {
-                ERROR_PRINT("Failed to discharge\n");
-                openAllContactors();
-                fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
-            } else {
-                fsmSendEvent(&fsmHandle, EV_Discharge_Finished, portMAX_DELAY);
-            }
+//             if (rc != PCDC_DONE) {
+//                 ERROR_PRINT("Failed to discharge\n");
+//                 openAllContactors();
+//                 fsmSendEvent(&fsmHandle, EV_PrechargeDischarge_Fail, portMAX_DELAY);
+//             } else {
+//                 fsmSendEvent(&fsmHandle, EV_Discharge_Finished, portMAX_DELAY);
+//             }
 
-        } else {
-            ERROR_PRINT("Unkown notification received 0x%lX\n", dbwTaskNotifications);
-        }
+//         } else {
+//             ERROR_PRINT("Unkown notification received 0x%lX\n", dbwTaskNotifications);
+//         }
     }
 }
 

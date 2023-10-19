@@ -80,7 +80,7 @@ void fanTask()
 
   TickType_t xLastWakeTime = xTaskGetTickCount();
   while (1) {
-    setFan();
+    //setFan();
     vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(FAN_TASK_PERIOD_MS));
   }
 }

@@ -86,6 +86,8 @@
 #define CELL_VOLTAGE_SIZE_BYTES 2
 #define THERMISTOR_CHIP 0
 
+#define MAX_ADC_CHECKS 10
+#define DEBUGGING_AMS
 
 // static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
 // 	{0},
@@ -168,7 +170,7 @@ HAL_StatusTypeDef batt_write_config()
 	}
     return HAL_OK;
 }
-
+#define INVALID_DATA 0xFF
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
@@ -181,16 +183,31 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		return HAL_ERROR;
 	}
 
-	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
-		ERROR_PRINT("Failed to send read data command\n");
-		return HAL_ERROR;
+	
+	// DEBUG_PRINT("Received Data: ");	// these print statements total to roughly 5 ms
+	// for(int i = 0; i < BUFF_SIZE; i++) {
+	// 	DEBUG_PRINT("%x ", rxBuffer[i]);
+	// }
+	// DEBUG_PRINT("\n");
+	// vTaskDelay(pdMS_TO_TICKS(5));
+#ifdef DEBUGGING_AMS
+	uint8_t num_attempts = 0;
+	rxBuffer[DATA_START_IDX] = INVALID_DATA;
+	while(rxBuffer[DATA_START_IDX] == 0xFF) {
+		if ((spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) || (num_attempts >= MAX_ADC_CHECKS)) {
+			ERROR_PRINT("Failed to send read data command\n");
+			return HAL_ERROR;
+		}
+		vTaskDelay(pdMS_TO_TICKS(5));
+
+		num_attempts++;
 	}
-	DEBUG_PRINT("Received Data: ");
+	DEBUG_PRINT("Received Data: ");	// these print statements total to roughly 5 ms
 	for(int i = 0; i < BUFF_SIZE; i++) {
 		DEBUG_PRINT("%x ", rxBuffer[i]);
 	}
 	DEBUG_PRINT("\n");
-
+#endif
 	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
 	{
 		PEC_count++;
