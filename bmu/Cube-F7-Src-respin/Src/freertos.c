@@ -294,16 +294,16 @@ __weak void mainTaskFunction(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_socTask */
-// void socTask(void const * argument)
-// {
-//   /* USER CODE BEGIN socTask */
-//   /* Infinite loop */
-//   for(;;)
-//   {
-//     osDelay(1);
-//   }
-//   /* USER CODE END socTask */
-// }
+void socTask(void const * argument)
+{
+  /* USER CODE BEGIN socTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END socTask */
+}
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */

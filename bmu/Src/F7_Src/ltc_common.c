@@ -85,12 +85,12 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     uint32_t pec_loc = dataSize;
     if (pec[0] == rxBuffer[pec_loc] && pec[1] == rxBuffer[pec_loc + 1])
     {
-        // DEBUG_PRINT("CORRECT: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
-        // DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
+        //DEBUG_PRINT("CORRECT: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
+        //DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         return HAL_OK;
     } else {
-        // DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
-        // DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
+        DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
+        DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         // failing here
         return HAL_ERROR;
     }
@@ -132,7 +132,7 @@ void wakeup_idle(){
 void wakeup_sleep()
 {
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-    vTaskDelay(1);
+    vTaskDelay(7);
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 }
 
@@ -156,9 +156,9 @@ int batt_spi_wakeup(bool sleeping)
     // Wake up the serial interface on device S1.
     if (sleeping) {
 		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-		delay_us(300);
+		delay_us(300); // twake (100 us) * 3 
 		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-		delay_us(10);
+		delay_us(10); // tready (10 us) * 3. Previously 10us (wrong)
     }
 	else{
 		if (batt_spi_tx(&dummy, JUNK_SIZE))

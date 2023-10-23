@@ -23,6 +23,7 @@ HAL_StatusTypeDef batt_init()
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
+    //wakeup_sleep(); // I don't know why 6 ms delay is required to write config
 
     if(batt_write_config() != HAL_OK) {
     	ERROR_PRINT("Failed to write batt config to boards\n");
@@ -33,32 +34,31 @@ HAL_StatusTypeDef batt_init()
 		ERROR_PRINT("Failed to read batt config from boards\n");
 		return HAL_ERROR;
 	}
-#ifdef DEBUGGING_AMS
-    if(batt_start_ADC_conversion() != HAL_OK){
-        ERROR_PRINT("Failed to start ADC conversion\n");
-		return HAL_ERROR;
-    }
-#endif
+// #ifdef DEBUGGING_AMS
+//     if(batt_start_ADC_conversion() != HAL_OK){
+//         ERROR_PRINT("Failed to start ADC conversion\n");
+// 		return HAL_ERROR;
+//     }
+// #endif
     return HAL_OK;
 }
 
-#ifdef DEBUGGING_AMS
-// not exactly sure if we need to send ADCV once only or every single time we read
-HAL_StatusTypeDef batt_start_ADC_conversion(void)
-{
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
-    //wakeup_idle();
+// #ifdef DEBUGGING_AMS
+// HAL_StatusTypeDef batt_start_ADC_conversion(void)
+// {
+//     if (batt_spi_wakeup(false /* not sleeping*/))
+//     {
+//         return HAL_ERROR;
+//     }
+//     wakeup_idle();
 
-    if (batt_broadcast_command(ADCV) != HAL_OK) {
-        return HAL_ERROR;
-    }
+//     if (batt_broadcast_command(ADCV) != HAL_OK) {
+//         return HAL_ERROR;
+//     }
     
-    return HAL_OK;
-}
-#endif
+//     return HAL_OK;
+// }
+// #endif
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
     if (batt_spi_wakeup(false /* not sleeping*/))
@@ -67,14 +67,13 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     }
 
 	// wakeup_idle();
-    // batt_broadcast_command(ADCV);
+    batt_broadcast_command(ADCV);
 
-    //batt_check_stat_A(); // added for debugging. Reading garbage as well
+    //batt_check_stat_A(); // added for debugging. Reading garbage as well  
 
     //vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    vTaskDelay(50); // testing
-    //delay_us(500); // testing
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    vTaskDelay(10); // testing, 30 ms is good. 10 ms seems to be the lowest we can go
+    //delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;

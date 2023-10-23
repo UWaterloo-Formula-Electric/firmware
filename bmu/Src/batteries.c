@@ -535,22 +535,25 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
  * */
 void enterAdjustedCellVoltages(void)
 {
-    static bool filter = false;
+    //static bool filter = false;
     float bus_current_A;
     getIBus(&bus_current_A);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
-        if(filter)
-        {
-            AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
-        }
-        else
-        {
-            AdjustedVoltageCell[cell] = adjusted_cell_v;
-        }
+        DEBUG_PRINT("Raw Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+        // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
+        // if(filter)
+        // {
+        //     AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
+        // }
+        // else
+        // {
+        //     AdjustedVoltageCell[cell] = adjusted_cell_v;
+        // }
+        // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
     }
-    filter = true;
+    //filter = true;
+    DEBUG_PRINT("\n");
 }
 /**
  * @brief This functions sets all cell voltages and temps to known values.
@@ -725,7 +728,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    static uint8_t thermistor_lag_counter = 0;
    enterAdjustedCellVoltages();
 
-   static bool warning_dtc_sent = false;
+   //static bool warning_dtc_sent = false;
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       // We have 2 basically confidence measurements
@@ -734,20 +737,20 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       measure_high = AdjustedVoltageCell[i];
       measure_low = VoltageCell[i];
 
-      // Check it is within bounds
-      if (measure_high < limit_undervoltage) {
-         ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
-         sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
-         rc = HAL_ERROR;
-      } else if (measure_low > limit_overvoltage) {
-         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
-         sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-         rc = HAL_ERROR;
-      } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
-         ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
-         sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
-         warning_dtc_sent = true;
-      }
+    //   // Check it is within bounds
+    //   if (measure_high < limit_undervoltage) {
+    //      ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
+    //      sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
+    //      rc = HAL_ERROR;
+    //   } else if (measure_low > limit_overvoltage) {
+    //      ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+    //      sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
+    //      rc = HAL_ERROR;
+    //   } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
+    //      ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
+    //      sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
+    //      warning_dtc_sent = true;
+    //   }
 
       // Update max voltage
       if (measure_low > (*maxVoltage)) {(*maxVoltage) = measure_low;}

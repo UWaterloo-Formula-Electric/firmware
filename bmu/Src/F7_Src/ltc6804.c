@@ -183,31 +183,16 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		return HAL_ERROR;
 	}
 
-	
-	// DEBUG_PRINT("Received Data: ");	// these print statements total to roughly 5 ms
+	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to send read data command\n");
+		return HAL_ERROR;
+	}
+	// DEBUG_PRINT("Received Data: ");
 	// for(int i = 0; i < BUFF_SIZE; i++) {
 	// 	DEBUG_PRINT("%x ", rxBuffer[i]);
 	// }
 	// DEBUG_PRINT("\n");
-	// vTaskDelay(pdMS_TO_TICKS(5));
-#ifdef DEBUGGING_AMS
-	uint8_t num_attempts = 0;
-	rxBuffer[DATA_START_IDX] = INVALID_DATA;
-	while(rxBuffer[DATA_START_IDX] == 0xFF) {
-		if ((spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) || (num_attempts >= MAX_ADC_CHECKS)) {
-			ERROR_PRINT("Failed to send read data command\n");
-			return HAL_ERROR;
-		}
-		vTaskDelay(pdMS_TO_TICKS(5));
 
-		num_attempts++;
-	}
-	DEBUG_PRINT("Received Data: ");	// these print statements total to roughly 5 ms
-	for(int i = 0; i < BUFF_SIZE; i++) {
-		DEBUG_PRINT("%x ", rxBuffer[i]);
-	}
-	DEBUG_PRINT("\n");
-#endif
 	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
 	{
 		PEC_count++;
