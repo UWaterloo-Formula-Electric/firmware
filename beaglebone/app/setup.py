@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     package_data={'wfe': 
-        ['../../../../common/Data/2018CAR.dbc',
+        ['../../../../common/Data/2024CAR.dbc',
          'json/*.json']
     },
     classifiers=[

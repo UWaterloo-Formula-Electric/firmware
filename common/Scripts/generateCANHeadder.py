@@ -142,6 +142,7 @@ def parseCanDB(db, nodeName):
     nodeName = nodeName.upper()
 
     rxMessages = [msg for msg in db.messages if isRxMessage(msg, nodeName)]
+    
     txMessages = [msg for msg in db.messages if nodeName in msg.senders]
 
     multiplexedRxMessages = [msg for msg in rxMessages if msg.is_multiplexed()]
@@ -266,7 +267,7 @@ def writeValueTableEnum(signal, headerFileHandle):
     if signal.choices is not None:
         fWrite('enum {sigName}_Values {{'.format(sigName=signal.name), headerFileHandle)
         for Value, Name in signal.choices.items():
-            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=Name, Value=Value), headerFileHandle)
+            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=str(Name).replace(' ','_'), Value=Value), headerFileHandle)
 
         fWrite('};\n', headerFileHandle)
 
@@ -336,14 +337,16 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
         fWrite('}} {msg.name}_unpacked;'.format(**locals()), headerFileHandle)
 
 def getMultiplexerId(signal):
-    if not signal.is_multiplexer:
+    print(signal)
+    if signal.is_multiplexer:
         return signal.multiplexer_ids[0]
     else:
         return 0
 
-def getMultiplexedMsgInfo(msg):
-    for multiplexer in msg.signal_tree[0]:
-        signalGroupsList = msg.signal_tree[0][multiplexer]
+def getMultiplexedMsgInfo(msg):  
+    print(msg.signal_tree)
+    for multiplexer in msg.signal_tree[1]:
+        signalGroupsList = msg.signal_tree[1][multiplexer]
         signalGroup = signalGroupsList[0]
         numSignalsPerMessage = len(signalGroup)
         signalName = signalGroup[0]
@@ -779,7 +782,7 @@ def main(argv):
     depFile = os.path.join(genDir, 'canGen.d')
 
     dataDir = os.path.join(commonDir, 'Data')
-    mainDbFile = os.path.join(dataDir, '2018CAR.dbc')
+    mainDbFile = os.path.join(dataDir, '2024CAR.dbc')
 
     headerFile = os.path.join(genIncDir, nodeName + '_can.h')
     sourceFile = os.path.join(genSrcDir, nodeName + '_can.c')

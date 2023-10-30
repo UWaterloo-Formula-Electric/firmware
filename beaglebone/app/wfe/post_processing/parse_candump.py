@@ -5,7 +5,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="Process CAN log")
     parser.add_argument('src_file', help="CAN log file (csv) to be read in")
-    parser.add_argument('--dbc', default="../../../../common/Data/2018CAR.dbc")
+    parser.add_argument('--dbc', default="../../../../common/Data/2024CAR.dbc")
     args = parser.parse_args()
 
     db = cantools.database.load_file(args.dbc)

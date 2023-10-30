@@ -8,7 +8,7 @@ import numpy as np
 matplotlib.use('qtagg')
 
 def toDict(src_file):
-     db = cantools.database.load_file("../../../../../common/Data/2018CAR.dbc")
+     db = cantools.database.load_file("../../../../../common/Data/2024CAR.dbc")
      signals = {}
      with open(src_file, "r") as f:
           lines = f.readlines()
@@ -94,7 +94,7 @@ def serialize(msg):
 
 def logToJsonDict(logFilePath, dbcFile):
     if dbcFile == "":
-        db = cantools.database.load_file("../../../../../common/Data/2018CAR.dbc")
+        db = cantools.database.load_file("../../../../../common/Data/2024CAR.dbc")
     else:
         db = cantools.database.load_file(dbcFile)
     signals = {}

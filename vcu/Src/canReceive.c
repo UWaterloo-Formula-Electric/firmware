@@ -22,6 +22,10 @@
  * Can messages
  */
 volatile bool motorControllersStatus = false;
+volatile bool inverterLockoutEnabled = false;
+volatile uint8_t inverterVSMState = 0;
+volatile uint8_t inverterInternalState = 0;
+
 /*
  * Functions to get external board status
  */
@@ -120,3 +124,10 @@ void CAN_Msg_TractionControlConfig_Callback()
 	desired_slip = TC_desiredSlipPercent;
 	DEBUG_PRINT_ISR("tc_kP is %f\n", tc_kP);
 }
+
+void CAN_Msg_M170_Internal_States_Callback() // 100 hz
+{
+    inverterLockoutEnabled = INV_Inverter_Enable_Lockout;
+    inverterInternalState = INV_Inverter_State;
+    inverterVSMState = INV_VSM_State;
+} 
