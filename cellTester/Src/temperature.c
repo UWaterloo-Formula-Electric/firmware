@@ -14,7 +14,7 @@ float temp_steinhart_hart(float resistance) {
     float temp_K = 1 / (A + (B * ln_R) + (C * ln_R * ln_R * ln_R));
     float temp_C = KELVIN_TO_CELSIUS(temp_K);
     return temp_C;
-}
+} 
 
 // Voltage to Resistance (Wheastone Bridge equation)
 // https://www.ametherm.com/thermistor/ntc-thermistors-temperature-measurement-with-wheatstone-bridge
@@ -22,6 +22,7 @@ float ntc_V_to_R(float voltage) {
     // R1 == R2 == R3
     float R_t = R1 * (((VOLTAGE_IN*R1) - (voltage*(2*R1))) 
                         /((VOLTAGE_IN*R1) + (voltage*(2*R1))));
+    //float R_t = (float)R1 / (1/(0.5-voltage/VOLTAGE_IN)-1);
     return R_t;
 }
 
@@ -61,5 +62,7 @@ float read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *output_temperature) {
     float resistance = ntc_V_to_R(voltage);
     float temperature_celsius = temp_steinhart_hart(resistance);
     (*output_temperature) = temperature_celsius;
+    //(*output_temperature) = resistance;
+
     return HAL_OK;
 }

@@ -23,7 +23,7 @@
 
 // Hardware defined constant
 #define CELL_TESTER_MIN_CURRENT_A 1.5f
-#define CELL_TEST_CURRENT_A 40.0f
+#define CELL_TEST_CURRENT_A 60.0f
 
 #define FET_CONTROL_KP 0.015f
 
@@ -132,7 +132,7 @@ void updateCellValues(float* current, float* v1, float* v2) {
     adc_read_v2(v2);
     adc_read_current(current);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf, %.31f\r\n",
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf, %.3lf\r\n",
                 HAL_GetTick(),
                 *current,
                 *v1,

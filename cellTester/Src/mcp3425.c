@@ -24,9 +24,9 @@ static uint8_t* select_rbuffer(I2C_HandleTypeDef *i2c_hdr) {
 }
 
 HAL_StatusTypeDef mcp3425_adc_configure(I2C_HandleTypeDef *i2c_hdr) {
-    uint8_t tx_payload[4] = {MCP3425_CONFIG_BYTE, 0x00, 0x00, 0x00};
+    static uint8_t tx_payload[4] = {MCP3425_CONFIG_BYTE, 0x00, 0x00, 0x00};
 
-    HAL_StatusTypeDef status = HAL_I2C_Master_Transmit_DMA(i2c_hdr, address_byte, tx_payload, sizeof(tx_payload));
+    HAL_StatusTypeDef status = HAL_I2C_Master_Transmit_DMA(i2c_hdr, address_byte, tx_payload, 1);
 
     if (status != HAL_OK) {
         return HAL_ERROR;
@@ -52,6 +52,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
     uint8_t* rbuffer = select_rbuffer(hi2c);
     int16_t adc_raw = (rbuffer[0] << 8) | rbuffer[1];
+
     // Check RDY bit
     // 0 = Output register has been updated with the latest conversion data.
     uint8_t config_byte = rbuffer[2];
