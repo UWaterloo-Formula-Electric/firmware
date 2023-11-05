@@ -23,9 +23,9 @@
 
 // Hardware defined constant
 #define CELL_TESTER_MIN_CURRENT_A 1.5f
-#define CELL_TEST_CURRENT_A 9.0f
+#define CELL_TEST_CURRENT_A 40.0f
 
-#define FET_CONTROL_KP 0.005f
+#define FET_CONTROL_KP 0.015f
 
 void updateCurrentTarget(void);
 void updateFetDuty(float lastCurrentMeasurement);
@@ -132,12 +132,13 @@ void updateCellValues(float* current, float* v1, float* v2) {
     adc_read_v2(v2);
     adc_read_current(current);
     // Timestamp, Charecterization Enabled, Voltage, Current, Temperature
-    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf\r\n",
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf, %.31f\r\n",
                 HAL_GetTick(),
                 *current,
                 *v1,
                 *v2,
-                cell_temp_result);
+                cell_temp_result,
+                fuse_temp_result);
 }
 
 // Set duty cycle to lowest PWM duty that draws 0 current to improve response time of controller
