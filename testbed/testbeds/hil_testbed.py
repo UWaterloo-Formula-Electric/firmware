@@ -26,6 +26,7 @@ class VehicleHIL(HILTestbed):
     ]
     hil_manifest = [
         HWManifestItem("vcu_hil", HilBoardId.VCU_HIL),
+        HWManifestItem("pdu_hil", HilBoardId.PDU_HIL),
     ]
     
 
