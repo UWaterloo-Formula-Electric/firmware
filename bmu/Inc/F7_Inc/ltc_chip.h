@@ -19,7 +19,8 @@
  */
 
 // TODO: Update these to 2021 values
-
+extern uint32_t delay_US;
+extern uint32_t delay_MS;
 /// Number of AMS boards in system
 #define NUM_BOARDS                  1
 /// Number of valid cells per board, starting from the most negative terminal

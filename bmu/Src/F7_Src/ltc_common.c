@@ -89,8 +89,8 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
         //DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         return HAL_OK;
     } else {
-        DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
-        DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
+        // DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
+        // DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         // failing here
         return HAL_ERROR;
     }

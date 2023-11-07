@@ -540,7 +540,7 @@ void enterAdjustedCellVoltages(void)
     getIBus(&bus_current_A);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        DEBUG_PRINT("Raw Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+        DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
         // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
         // if(filter)
         // {
@@ -784,7 +784,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
                 rc = HAL_ERROR;
             } else if(measure < CELL_UNDERTEMP_WARNING){
                 if(!warningSentForChannelTemp[i]) {
-                    ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+                    // ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
                     sendDTC_WARNING_CELL_TEMP_LOW(i);
                     warningSentForChannelTemp[i] = true;
                 }
@@ -1387,10 +1387,25 @@ float getSOCFromVoltage(float cellVoltage)
 //     return CHARGE_DONE;
 // }
 
+static uint32_t counter = 0;
+void incrementDelay(void)
+{
+    counter++;
+    if (counter % 3 == 0) {
+        delay_US += 5;
+    }
+
+    if (delay_US == 1000) {
+        delay_US = 0;
+        delay_MS++;
+    }
+}
+
 /**
  * @brief Task to monitor cell voltages and temperatures, as well as perform
  * balance charging
  */
+
 void batteryTask(void *pvParameter)
 {
     if (initVoltageAndTempArrays() != HAL_OK)
@@ -1516,7 +1531,14 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
         }
+        
+        // delayUS++;
+        // if (delayUS == 1000) {
+        //     delayMS++;
+        //     delayUS = 0;
+        // }
 #endif
+        DEBUG_PRINT("Delay dur: %.2lu.%.3lu\n", delay_MS, delay_US);
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
@@ -1566,6 +1588,7 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
+        incrementDelay();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

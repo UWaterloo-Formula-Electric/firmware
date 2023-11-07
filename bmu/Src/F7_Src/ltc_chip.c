@@ -19,16 +19,17 @@ HAL_StatusTypeDef batt_init()
 
     batt_init_chip_configs();
 
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
-    }
-    //wakeup_sleep(); // I don't know why 6 ms delay is required to write config
+    // if (batt_spi_wakeup(true) != HAL_OK) {
+    //     ERROR_PRINT("Failed to wake up boards\n");
+    //     return HAL_ERROR;
+    // }
+    wakeup_sleep(); // I don't know why 6 ms delay is required to write config
 
     if(batt_write_config() != HAL_OK) {
     	ERROR_PRINT("Failed to write batt config to boards\n");
         return HAL_ERROR;
     }
+    // wakeup_sleep(); // check this??
 
 	if(batt_verify_config() != HAL_OK){
 		ERROR_PRINT("Failed to read batt config from boards\n");
@@ -59,6 +60,9 @@ HAL_StatusTypeDef batt_init()
 //     return HAL_OK;
 // }
 // #endif
+uint32_t delay_US = 0;
+uint32_t delay_MS = 9;
+
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
     if (batt_spi_wakeup(false /* not sleeping*/))
@@ -72,12 +76,13 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     //batt_check_stat_A(); // added for debugging. Reading garbage as well  
 
     //vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    vTaskDelay(10); // testing, 30 ms is good. 10 ms seems to be the lowest we can go
+    vTaskDelay(pdMS_TO_TICKS(delay_MS)); // testing, 30 ms is good. 10 ms seems to be the lowest we can go
+    delay_us(delay_US);
     //delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
-    if (batt_spi_wakeup(false /* not sleeping*/))
-    {
-        return HAL_ERROR;
-    }
+    // if (batt_spi_wakeup(false /* not sleeping*/))
+    // {
+    //     return HAL_ERROR;
+    // }
     
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {

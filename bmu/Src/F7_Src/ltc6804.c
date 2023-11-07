@@ -54,6 +54,11 @@
 #define ADCV_BYTE0 0x03
 #define ADCV_BYTE1 0x60
 
+// // Use normal MD (27kHz), Discharge not permission, all channels
+// #define ADCV_BROADCAST_BYTE0 (0x02)
+// #define ADCV_BYTE0 0x02
+// #define ADCV_BYTE1 0xE0
+
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 5
 #define ADAX_BROADCAST_BYTE0 (0x05)
 #define ADAX_BYTE0 0x05
@@ -434,25 +439,25 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				//DEBUG_PRINT("***ATTEMPTING TO READ CELL REGISTER***\n");
 				//DEBUG_PRINT("Total invocation: %lu\n", temp);
 				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-					failed_read = true;
-					// Tolerate up to 2 errors in a row, fail on 3
-#if PRINT_ALL_PEC_ERRORS != 0
-					DEBUG_PRINT("\nFailed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
-#endif
-					if(voltage_operation == POLL_VOLTAGE)
-					{
-						cell_voltage_failure[board][ltc_chip][block]++;
-						if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
-						{
-							ERROR_PRINT("Battery error to be triggered because of %lu consecutive PEC mismatches \n",
-									(unsigned long)cell_voltage_failure[board][ltc_chip][block]);
-							return HAL_ERROR;
-						}
-						else if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
-						{
-							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n\n\n", cell_voltage_failure[board][ltc_chip][block]);
-						}
-					}
+// 					failed_read = true;
+// 					// Tolerate up to 2 errors in a row, fail on 3
+// #if PRINT_ALL_PEC_ERRORS != 0
+ 					DEBUG_PRINT("Failed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
+// #endif
+// 					if(voltage_operation == POLL_VOLTAGE)
+// 					{
+// 						cell_voltage_failure[board][ltc_chip][block]++;
+// 						if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
+// 						{
+// 							ERROR_PRINT("Battery error to be triggered because of %lu consecutive PEC mismatches \n",
+// 									(unsigned long)cell_voltage_failure[board][ltc_chip][block]);
+// 							return HAL_ERROR;
+// 						}
+// 						else if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
+// 						{
+// 							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n\n\n", cell_voltage_failure[board][ltc_chip][block]);
+// 						}
+// 					}
 				}
 				else if(voltage_operation == POLL_VOLTAGE)
 				{
@@ -461,12 +466,17 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				//DEBUG_PRINT("batt_read_data error counter: %lu\n", error_counter);
 				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
 				{
-					// uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
-					// //pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
-					// if(voltage_terminal == 4 || voltage_terminal == 5)
+					uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
+					// OLD: pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
+					// NEW: skipping cell 0 (reading 0.00V) but shouldn't it be terminal 6 and 12 on the LTC?
+					// if(voltage_terminal == 0)
 					// {
 					// 	continue;
 					// }
+					if(voltage_terminal == 6 || voltage_terminal == 12)
+					{
+						continue;
+					}
 
 					size_t registerIndex = cvreg * CELL_VOLTAGE_SIZE_BYTES;
 					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
