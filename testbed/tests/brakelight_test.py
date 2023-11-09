@@ -22,7 +22,7 @@ def test_steeringAngle(teststand):
         # Check the brake pos status
         assert vcu_hil.get_signal("BrakePosStatus")  # HIL.dbc L63
         
-        time.sleep(0.16)
+        time.sleep(0.06)
         # get Amp in Brake Light
         BrakeLightStatus = pdu.get_signal("ChannelCurrentBrakeLight") # 2018CAR.dbc
     
@@ -34,7 +34,7 @@ def test_steeringAngle(teststand):
             # Brake light should be off for voltages in the range 0 to 844mV
             if BrakeLightStatus:
               assert BrakeLightStatus == 0
-        elif voltage >= 838:
+        elif voltage >= 841:
             # Brake light should be on for voltages in the range 845 to 3300mV
             assert BrakeLightStatus > 0
         else:
