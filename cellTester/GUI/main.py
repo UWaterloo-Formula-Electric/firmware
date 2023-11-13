@@ -196,15 +196,6 @@ while True:
                     # Update Voltage
                     if abs(cell_data.voltage_V) > ZERO_VOLTAGE_THRESHOLD_V:
                         window['cell_V'].update(value=f"{cell_data.voltage_V:.3f}")
-                        if cell_data.voltage_V < 0:
-                            error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
-                            print(error_message)
-                        elif cell_data.voltage_V >= ZERO_VOLTAGE_NO_CELL_THRESHOLD_V and cell_data.voltage_V < SAMSUMG_30Q_MIN_V:
-                            error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
-                            print(error_message)
-                        elif cell_data.voltage_V <= ZERO_VOLTAGE_NO_CELL_THRESHOLD_V:
-                            error_message = "No cell detected"
-                            print(error_message)
                     
                     # Update Current
                     if cell_data.current_A < -ZERO_CURRENT_THRESHOLD_A:

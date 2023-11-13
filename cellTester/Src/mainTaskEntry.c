@@ -23,7 +23,7 @@
 
 // Hardware defined constant
 #define CELL_TESTER_MIN_CURRENT_A 1.5f
-#define CELL_TEST_CURRENT_A 40.0f
+#define CELL_TEST_CURRENT_A 300.0f
 
 #define FET_CONTROL_KP 0.015f
 
@@ -104,7 +104,7 @@ void updateFetDuty(float lastCurrentMeasurement)
 {
     const float current_error = getCurrentTarget() - lastCurrentMeasurement;
     fetDutyCycle += current_error * FET_CONTROL_KP;
-
+    
     if (fetDutyCycle < 0)
     {
         fetDutyCycle = 0;
@@ -113,8 +113,11 @@ void updateFetDuty(float lastCurrentMeasurement)
     {
         fetDutyCycle = 100;
     }
-
-    set_PWM_Duty_Cycle(&FET_TIM_HANDLE, fetDutyCycle);
+    if (getCurrentTarget() > 10) {
+        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 100);
+    } else {
+        set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0);
+    }
 }
 
 void updateCellValues(float* current, float* v1, float* v2) {
@@ -123,7 +126,7 @@ void updateCellValues(float* current, float* v1, float* v2) {
     float fuse_temp_result = 0.0f;
 
     if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
-        DEBUG_PRINT("failed to read cell temp\n");
+        //DEBUG_PRINT("failed to read cell temp\n");
     }
     if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
         // DEBUG_PRINT("failed to read fuse temp\n");

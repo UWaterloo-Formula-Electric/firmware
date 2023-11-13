@@ -154,7 +154,7 @@ HAL_StatusTypeDef adc_read_v1(float *dataOut) {
 
     (*dataOut) = (VOLTAGE_1_SCALE * ((float)raw)) + VOLTAGE_1_OFFSET;    
 
-    return HAL_OK;
+    return HAL_OK; 
 }
 
 HAL_StatusTypeDef adc_read_v2(float *dataOut) {
