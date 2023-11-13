@@ -1,19 +1,19 @@
-from typing import List
+import time
+from typing import List, Callable, Dict
+import cantools
 import slash
+from can.interfaces.socketcan.socketcan import SocketcanBus
 from can.interfaces.vector import VectorBus
 import can
-from testbed.drivers.common_drivers.can_driver import (
-    VehicleBoard,
-    HILBoard,
-    CANListener,
-)
+from drivers.common_drivers.can_driver import VehicleBoard, HILBoard, CANListener
+
 
 class HWManifestItem:
-    """
+    '''
     Class to store information about a hardware board in the testbed manifest
     @name: Name of the board, must NOT have spaces
     @classObj: Class object of the board driver, ex: VCU
-    """
+    '''
 
     def __init__(self, name: str, can_id_enum):
         self.name: str = name
@@ -32,14 +32,13 @@ class Testbed:
         setup_vehicle = True
         setup_hil = True
 
+
         # Vehicle Bus
-        if setup_vehicle:
+        if setup_vehicle:   
             slash.g.vehicle_bus = VectorBus(channel=1)
             assert slash.g.vehicle_bus is not None, "Vehicle bus not initialized"
 
-            slash.g.vehicle_listener = CANListener(
-                dtc_logger=slash.g.vehicle_dtc_logger
-            )
+            slash.g.vehicle_listener = CANListener(dtc_logger=slash.g.vehicle_dtc_logger)
             slash.g.vehicle_listener.disable()
             can.Notifier(slash.g.vehicle_bus, [slash.g.vehicle_listener])
 
