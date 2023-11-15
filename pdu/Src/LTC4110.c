@@ -16,6 +16,7 @@ volatile bool DC_DC_state = false;
 
 void powerTask(void *pvParameters)
 {
+
     if (registerTaskToWatch(5, 2*POWER_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register power task with watchdog!\n");
@@ -26,18 +27,23 @@ void powerTask(void *pvParameters)
     vTaskDelay(100);
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
+
     while (1)
     {
         bool newDCDCState = CHECK_DC_DC_ON_PIN;
 
         if (newDCDCState != DC_DC_state) {
-            if (newDCDCState)
-            {
+            if (newDCDCState) {
                 DEBUG_PRINT("switched to DC to DC\n");
             }
+            
             DC_DC_state = newDCDCState;
+
+            sendCAN_PDU_DCDC_Status();
         }
+        
         watchdogTaskCheckIn(5);
+
         vTaskDelayUntil(&xLastWakeTime, POWER_TASK_INTERVAL_MS);
     }
 }
