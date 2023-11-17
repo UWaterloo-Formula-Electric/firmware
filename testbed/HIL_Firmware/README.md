@@ -22,6 +22,15 @@ to flash enter "idf.py flash" or "idf.py -p <PORT> flash" to specify the port
 Error saying the target is esp32 but the board is esp32s2:
     1.open an idf terminal
     2.enter "idf.py set-target esp32s2"
+    If that does not work:
+        1. open the ESP project folder in a new VSC window
+        2. open an ESP-IDF terminal in VSC
+        3. navigate onto the folder where esp-idf was downloaded
+        3. run the command ".\export.bat"
+        4. NOTE: you should get the message: "Done! You can now compile ESP-IDF projects" in your terminal
+        5. Navigate back into the ESP project directory  (e.g., firmware/testbed/HIL_Firmware/DCU_HIL)
+        6. now run "idf.py build"
+        7. The project should build and the following message should appear: "Project build complete. To flash, run this command:"
 Error flashing the board cause port doesn't exist:
     1.put the board into bootloader mdoe (hold boot then press the reset button)
     2.identify which com port the board is connected to in device manager
@@ -33,5 +42,7 @@ Can't flash board for whatever reason:
     3. go to component config
     4. go to ESP system settings
     5. change the console output from uart to usb cdc
+
+Error saying 
 if none of these work message #firmware for help
 
