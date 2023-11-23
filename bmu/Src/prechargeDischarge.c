@@ -653,7 +653,7 @@ void pcdcTask(void *pvParameter)
                 fsmSendEvent(&fsmHandle, EV_Precharge_Finished, portMAX_DELAY);
             } else if (rc == PCDC_ERROR) {
                 DEBUG_PRINT("Precharge Error\n");
-                PrechargeState = 6
+                PrechargeState = 6;
                 sendCAN_PrechargeState();
 #ifdef ENABLE_PRECHARGE_DISCHARGE
                 discharge();
