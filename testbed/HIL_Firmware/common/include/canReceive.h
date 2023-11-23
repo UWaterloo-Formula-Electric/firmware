@@ -1,9 +1,9 @@
 #ifndef CAN_RECEIVE_H
 #define CAN_RECEIVE_H
 
-#define MAX_QUEUE_LENGTH 50
+#define MAX_CAN_MSG_QUEUE_LENGTH 50
 
-#define CAN_RX_TASK_INTERVAL 1
+#define CAN_RX_TASK_INTERVAL_MS 1
 
 #include "driver/twai.h"
 #include "freertos/queue.h"
@@ -16,4 +16,4 @@ extern QueueHandle_t pdu_hil_queue;
 
 void can_rx_task (void * pvParameters);
 
-#endif
+#endif/*CAN_RECEIVE_H*/
