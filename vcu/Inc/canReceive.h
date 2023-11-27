@@ -6,5 +6,11 @@
 
 bool getHvEnableState();
 bool getMotorControllersStatus();
+bool getInverterLockoutStatus();
+uint8_t getInverterVSMState();
+uint64_t getInverterFaultCode();
+
+volatile uint8_t inverterVSMState;
+volatile uint8_t inverterInternalState;
 
 #endif /* USER_CAN_H_ */

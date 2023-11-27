@@ -8,6 +8,7 @@
 #include "drive_by_wire.h"
 #include "state_machine.h"
 #include "drive_by_wire.h"
+#include "canReceive.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -291,20 +292,27 @@ void pollThrottle(TickType_t* xLastWakeTime)
         if (rc != THROTTLE_OK)
         {
             if (rc == THROTTLE_FAULT) {
-                sendDTC_CRITICAL_Throtte_Failure(0);
+                sendDTC_CRITICAL_Throttle_Failure(0);
                 DEBUG_PRINT("Throttle value out of range\n");
             } else if (rc == THROTTLE_DISABLED) {
-                sendDTC_CRITICAL_Throtte_Failure(1);
+                sendDTC_CRITICAL_Throttle_Failure(1);
                 DEBUG_PRINT("Throttle disabled as brake pressed\n");
             } else {
-                sendDTC_CRITICAL_Throtte_Failure(2);
+                sendDTC_CRITICAL_Throttle_Failure(2);
                 DEBUG_PRINT("Unknown throttle error\r\n");
             }
             fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
             return;
         }
 
-        sendThrottleValueToMCs(throttlePercentReading, getSteeringAngle());
+        bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
+        if (inverterFault) {   
+        // DTC sent in state machine transition function
+            fsmSendEventUrgent(&fsmHandle, EV_Inverter_Fault, portMAX_DELAY);
+            return;
+        }
+
+       requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
@@ -323,11 +331,17 @@ void throttlePollingTask(void)
 
     while (1)
     {
+        VCU_INV_Parameter_Address = 31;
+        VCU_INV_Parameter_RW_Command = 0;
+        VCU_INV_Parameter_Data = 0;
+        sendCAN_MC_Read_Write_Param_Command();
+        
         uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
 
         if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
         {
-            //Start polling throttle and send to MC
+            // Theoretically EM enabled and power has been supplied to inverter
+            // Start polling throttle and send to MC
             watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));
             watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
             pollThrottle(&xLastWakeTime);

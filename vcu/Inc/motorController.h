@@ -3,41 +3,51 @@
 #define MOTORCONTROLLER_H
 
 #include "bsp.h"
+#include "canReceive.h"
 
-#define MAX_TORQUE_DEMAND_DEFAULT       20
-#define BRAKING_TORQUE_LIMIT_DEFAULT    0
+#define MAX_TORQUE_DEMAND_DEFAULT       30 // OLD
+#define MAX_TORQUE_DEMAND_DEFAULT_NM    231 // N.m.
 #define SPEED_LIMIT_DEFAULT             10000
-#define REVERSE_SPEED_LIMIT_DEFAULT     0
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT 250
 #define CHARGE_CURRENT_LIMIT_DEFAULT    0
-#define HIGH_VOLTAGE_LIMIT_DEFAULT      320
-#define LOW_VOLTAGE_LIMIT_DEFAULT       50
 
 #define INVERTER_STOP_TIMEOUT_MS        10000   // TODO: Chose a good value for this
 #define MC_INIT_DISCHARGE_TIME_MS       1000
 
-#define TORQUE_VECTOR_FACTOR            (0.25f/30.0f)
+#define INVERTER_LOCKOUT_ENABLED        0x1
+#define INVERTER_LOCKOUT_DISABLED       0x0
+#define INVERTER_DIRECTION_FORWARD      0x1
+#define INVERTER_DIRECTION_REVERSE      0x0
+#define INVERTER_ON                     0x1
+#define INVERTER_OFF                    0x0
+#define INVERTER_DISCHARGE_ENABLE       0x1
+#define INVERTER_DISCHARGE_DISABLE      0x0
+#define SPEED_MODE_OVERRIDE_FALSE       0x0
+#define TORQUE_LIMIT_OVERRIDE_FALSE     0x0
+#define TORQUE_MODE_SPEED_REQUEST       0x0
+#define INVERTER_PARAM_WRITE            0x1
+#define INVERTER_PARAM_READ             0x0
 
-typedef struct MotorControllerProcanSettings {
-    uint64_t InverterCommand;
+#define INVERTER_FAULT_CLEAR_ADDRESS    20
+
+typedef struct MotorControllerSettings {
+    bool InverterMode;
     float DriveTorqueLimit;
-    float BrakingTorqueLimit;
     float ForwardSpeedLimit;
-    float ReverseSpeedLimit;
     float DischargeCurrentLimit;
     float ChargeCurrentLimit;
-    float HighVoltageLimit;
-    float LowVoltageLimit;
     float MaxTorqueDemand;
-} MotorControllerProcanSettings;
+    bool DirectionCommand;
+} MotorControllerSettings;
 
 extern uint64_t maxTorqueDemand;
 
 HAL_StatusTypeDef mcInit();
-HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle);
-HAL_StatusTypeDef mcShutdown();
-HAL_StatusTypeDef initMotorControllerProcanSettings();
-HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings);
+HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle);
+HAL_StatusTypeDef sendLockoutReleaseToMC();
+HAL_StatusTypeDef mcDisable();
+HAL_StatusTypeDef initMotorControllerSettings();
+HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);

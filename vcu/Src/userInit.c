@@ -44,7 +44,7 @@ void userInit()
       Error_Handler();
     }
 
-    if (initMotorControllerProcanSettings() != HAL_OK) {
+    if (initMotorControllerSettings() != HAL_OK) {
       Error_Handler();
     }
 

@@ -15,6 +15,7 @@
 
 #include "endurance_mode.h"
 #include "traction_control.h"
+#include "motorController.h"
 
 /*
  * External Board Statuses:
@@ -22,9 +23,10 @@
  * Can messages
  */
 volatile bool motorControllersStatus = false;
-volatile bool inverterLockoutEnabled = false;
-volatile uint8_t inverterVSMState = 0;
-volatile uint8_t inverterInternalState = 0;
+volatile bool inverterLockoutStatus = INVERTER_LOCKOUT_ENABLED;
+volatile uint8_t inverterVSMState;
+volatile uint8_t inverterInternalState;
+volatile uint64_t inverterFaultCode = 0;
 
 /*
  * Functions to get external board status
@@ -37,6 +39,21 @@ bool getHvEnableState()
 bool getMotorControllersStatus()
 {
     return motorControllersStatus;
+}
+
+bool getInverterLockoutStatus()
+{
+    return inverterLockoutStatus;
+}
+
+uint8_t getInverterVSMState()
+{
+    return inverterVSMState;
+}
+
+uint64_t getInverterFaultCode()
+{
+    return inverterFaultCode;
 }
 
 extern osThreadId driveByWireHandle;
@@ -125,9 +142,21 @@ void CAN_Msg_TractionControlConfig_Callback()
 	DEBUG_PRINT_ISR("tc_kP is %f\n", tc_kP);
 }
 
-void CAN_Msg_M170_Internal_States_Callback() // 100 hz
+void CAN_Msg_MC_Internal_States_Callback() // 100 hz
 {
-    inverterLockoutEnabled = INV_Inverter_Enable_Lockout;
+    inverterLockoutStatus = INV_Inverter_Enable_Lockout;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
 } 
+
+void CAN_Msg_MC_Read_Write_Param_Response_Callback()
+{
+    sendLockoutReleaseToMC();
+}
+
+void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
+{
+    // Each bit represents a fault
+    // Combine them to be sent over DTCs
+    inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+}
