@@ -295,7 +295,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
         }
 
         if (isLockoutDisabled() == false) { // lockout not disabled
-            return;
+            // return;
         } 
 
         // ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
@@ -346,7 +346,7 @@ void throttlePollingTask(void)
         // sendLockoutReleaseToMC();
         // DEBUG_PRINT("HIII\n");
         // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
-        DEBUG_PRINT("lockout status: %d\n", (uint8_t)INV_Inverter_Enable_Lockout);
+        DEBUG_PRINT("lockout status: %d\n", (int8_t)INV_Inverter_Enable_Lockout);
         // requestTorqueFromMC(300, getSteeringAngle());
         if (isLockoutDisabled())
         {   
