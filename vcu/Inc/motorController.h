@@ -46,6 +46,7 @@ HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle);
 HAL_StatusTypeDef sendLockoutReleaseToMC();
 HAL_StatusTypeDef mcDisable();
+HAL_StatusTypeDef sendDisableMC();
 HAL_StatusTypeDef initMotorControllerSettings();
 HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit);

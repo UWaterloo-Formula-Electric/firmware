@@ -23,7 +23,7 @@
  * Can messages
  */
 volatile bool motorControllersStatus = false;
-volatile bool inverterLockoutStatus = INVERTER_LOCKOUT_ENABLED;
+volatile bool inverterLockoutDisabled = false;
 volatile uint8_t inverterVSMState;
 volatile uint8_t inverterInternalState;
 volatile uint64_t inverterFaultCode = 0;
@@ -43,7 +43,7 @@ bool getMotorControllersStatus()
 
 bool getInverterLockoutStatus()
 {
-    return inverterLockoutStatus;
+    return inverterLockoutDisabled;
 }
 
 uint8_t getInverterVSMState()
@@ -144,7 +144,8 @@ void CAN_Msg_TractionControlConfig_Callback()
 
 void CAN_Msg_MC_Internal_States_Callback() // 100 hz
 {
-    inverterLockoutStatus = INV_Inverter_Enable_Lockout;
+    DEBUG_PRINT("CALBACK\n");
+    inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
 } 

@@ -129,6 +129,7 @@ HAL_StatusTypeDef mcInit() {
     // Todo - disable unused broadcasts
     initMotorControllerSettings();
 
+    requestTorqueFromMC(0,0);
     motors_active = true;
 
     return HAL_OK;
@@ -162,7 +163,7 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     // Based on Cascadia Motion documentation, need to send an inverter disable command to release lockout
     // Note - lockout will not disable if inverter is faulted
 
-    if (getInverterLockoutStatus() == INVERTER_LOCKOUT_DISABLED) {
+    if (getInverterLockoutStatus()) { // disabled
         // Don't need to release
         return HAL_OK;
     }
@@ -176,15 +177,16 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle) {
     if (getInverterLockoutStatus() == INVERTER_LOCKOUT_ENABLED) {
         // But it shouldn't be enabled if we made it to this function
         // Unsure if check needed, perhaps not
-        return sendLockoutReleaseToMC();
+        // return sendLockoutReleaseToMC();
     }
 
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
-    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-    float scaledTorque = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
-    uint16_t requestedTorque = scaledTorque * 10;
+    // float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+    // float scaledTorque = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
+    // uint16_t requestedTorque = scaledTorque * 10;
     
-    VCU_INV_Torque_Command = requestedTorque;
+    // VCU_INV_Torque_Command = requestedTorque;
+    VCU_INV_Torque_Command = throttle * 10;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;

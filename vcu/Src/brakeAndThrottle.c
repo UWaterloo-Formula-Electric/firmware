@@ -282,29 +282,11 @@ void pollThrottle(TickType_t* xLastWakeTime)
     while(1)
     {
         //Wait until EM is enabled
-        if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
-        {
-            throttlePercentReading = 0;
-            return;
-        }
-        ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
-    
-        if (rc != THROTTLE_OK)
-        {
-            if (rc == THROTTLE_FAULT) {
-                sendDTC_CRITICAL_Throttle_Failure(0);
-                DEBUG_PRINT("Throttle value out of range\n");
-            } else if (rc == THROTTLE_DISABLED) {
-                sendDTC_CRITICAL_Throttle_Failure(1);
-                DEBUG_PRINT("Throttle disabled as brake pressed\n");
-            } else {
-                sendDTC_CRITICAL_Throttle_Failure(2);
-                DEBUG_PRINT("Unknown throttle error\r\n");
-            }
-            fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
-            return;
-        }
-
+        // if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
+        // {
+        //     throttlePercentReading = 0;
+        //     return;
+        // }
         bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
         if (inverterFault) {   
         // DTC sent in state machine transition function
@@ -312,7 +294,30 @@ void pollThrottle(TickType_t* xLastWakeTime)
             return;
         }
 
-       requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
+        if (getInverterLockoutStatus() == false) { // lockout not disabled
+            return;
+        } 
+
+        // ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
+    
+        // if (rc != THROTTLE_OK)
+        // {
+        //     if (rc == THROTTLE_FAULT) {
+        //         sendDTC_CRITICAL_Throttle_Failure(0);
+        //         DEBUG_PRINT("Throttle value out of range\n");
+        //     } else if (rc == THROTTLE_DISABLED) {
+        //         sendDTC_CRITICAL_Throttle_Failure(1);
+        //         DEBUG_PRINT("Throttle disabled as brake pressed\n");
+        //     } else {
+        //         sendDTC_CRITICAL_Throttle_Failure(2);
+        //         DEBUG_PRINT("Unknown throttle error\r\n");
+        //     }
+        //     fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+        //     return;
+        // }
+
+    //    requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
+        requestTorqueFromMC(10, getSteeringAngle());
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
@@ -331,15 +336,20 @@ void throttlePollingTask(void)
 
     while (1)
     {
-        VCU_INV_Parameter_Address = 31;
-        VCU_INV_Parameter_RW_Command = 0;
-        VCU_INV_Parameter_Data = 0;
-        sendCAN_MC_Read_Write_Param_Command();
+        // VCU_INV_Parameter_Address = 31;
+        // VCU_INV_Parameter_RW_Command = 0;
+        // VCU_INV_Parameter_Data = 0;
+        // sendCAN_MC_Read_Write_Param_Command();
         
-        uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
-
-        if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
-        {
+        // uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
+        // sendDisableMC();
+        // sendLockoutReleaseToMC();
+        // DEBUG_PRINT("HIII\n");
+        // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
+        // DEBUG_PRINT("%d\n", (uint8_t)INV_Inverter_Enable_Lockout);
+        requestTorqueFromMC(300, getSteeringAngle());
+        if (INV_Inverter_Enable_Lockout == 0)
+        {   
             // Theoretically EM enabled and power has been supplied to inverter
             // Start polling throttle and send to MC
             watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));

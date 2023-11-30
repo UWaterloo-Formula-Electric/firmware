@@ -10,6 +10,7 @@
 #include "motorController.h"
 #include "beaglebone.h"
 #include "generalErrorHandler.h"
+#include "vcu_F7_can.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -28,6 +29,10 @@ void userInit()
         Error_Handler();
     }
 	// generate_CRC_lookup_table();
+
+    // todo - fix
+    // hacky workaround
+    // INV_Inverter_Enable_Lockout = 1;
 
     if (driveByWireInit() != HAL_OK)
     {
