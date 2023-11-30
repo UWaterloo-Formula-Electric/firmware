@@ -111,13 +111,13 @@ HAL_StatusTypeDef mcInit() {
 
     // Attempt to disable the lockout
     while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) && 
-           (getInverterLockoutStatus() != INVERTER_LOCKOUT_DISABLED))
+           (isLockoutDisabled() != INVERTER_LOCKOUT_DISABLED))
     {
         sendLockoutReleaseToMC();
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((getInverterLockoutStatus() == INVERTER_LOCKOUT_DISABLED) ||
+    if ((isLockoutDisabled() == INVERTER_LOCKOUT_DISABLED) ||
         (getInverterVSMState() == INV_VSM_State_FAULT_STATE)) {
         ERROR_PRINT("Inverter lockout could not be released\n");
         return HAL_TIMEOUT;
@@ -163,7 +163,7 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     // Based on Cascadia Motion documentation, need to send an inverter disable command to release lockout
     // Note - lockout will not disable if inverter is faulted
 
-    if (getInverterLockoutStatus()) { // disabled
+    if (isLockoutDisabled()) { // disabled
         // Don't need to release
         return HAL_OK;
     }
@@ -174,7 +174,7 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
 
 HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle) {
 
-    if (getInverterLockoutStatus() == INVERTER_LOCKOUT_ENABLED) {
+    if (isLockoutDisabled() == INVERTER_LOCKOUT_ENABLED) {
         // But it shouldn't be enabled if we made it to this function
         // Unsure if check needed, perhaps not
         // return sendLockoutReleaseToMC();

@@ -294,7 +294,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
             return;
         }
 
-        if (getInverterLockoutStatus() == false) { // lockout not disabled
+        if (isLockoutDisabled() == false) { // lockout not disabled
             return;
         } 
 
@@ -317,7 +317,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
         // }
 
     //    requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
-        requestTorqueFromMC(10, getSteeringAngle());
+        requestTorqueFromMC(100, getSteeringAngle());
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
@@ -342,14 +342,15 @@ void throttlePollingTask(void)
         // sendCAN_MC_Read_Write_Param_Command();
         
         // uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
-        // sendDisableMC();
+        sendDisableMC();
         // sendLockoutReleaseToMC();
         // DEBUG_PRINT("HIII\n");
         // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
-        // DEBUG_PRINT("%d\n", (uint8_t)INV_Inverter_Enable_Lockout);
-        requestTorqueFromMC(300, getSteeringAngle());
-        if (INV_Inverter_Enable_Lockout == 0)
+        DEBUG_PRINT("lockout status: %d\n", (uint8_t)INV_Inverter_Enable_Lockout);
+        // requestTorqueFromMC(300, getSteeringAngle());
+        if (isLockoutDisabled())
         {   
+            DEBUG_PRINT("lockout disabled, should go to torque request loop\n");
             // Theoretically EM enabled and power has been supplied to inverter
             // Start polling throttle and send to MC
             watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));

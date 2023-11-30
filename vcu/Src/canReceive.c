@@ -41,7 +41,7 @@ bool getMotorControllersStatus()
     return motorControllersStatus;
 }
 
-bool getInverterLockoutStatus()
+bool isLockoutDisabled()
 {
     return inverterLockoutDisabled;
 }
@@ -144,7 +144,7 @@ void CAN_Msg_TractionControlConfig_Callback()
 
 void CAN_Msg_MC_Internal_States_Callback() // 100 hz
 {
-    DEBUG_PRINT("CALBACK\n");
+    DEBUG_PRINT_ISR("CALLBACK: %d\n", (uint8_t)INV_Inverter_Enable_Lockout);
     inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
