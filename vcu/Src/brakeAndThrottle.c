@@ -287,6 +287,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
         //     throttlePercentReading = 0;
         //     return;
         // }
+        DEBUG_PRINT("pollThrottle func \n");
         bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
         if (inverterFault) {   
         // DTC sent in state machine transition function
@@ -318,6 +319,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
 
     //    requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
         requestTorqueFromMC(100, getSteeringAngle());
+        vTaskDelay(2);
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
@@ -343,6 +345,7 @@ void throttlePollingTask(void)
         
         // uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
         sendDisableMC();
+        vTaskDelay(2);
         // sendLockoutReleaseToMC();
         // DEBUG_PRINT("HIII\n");
         // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
