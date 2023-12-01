@@ -188,6 +188,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle) {
     uint16_t requestedTorque = scaledTorque * 10;
 
     VCU_INV_Torque_Command = requestedTorque;
+    VCU_INV_Torque_Command = 100;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;

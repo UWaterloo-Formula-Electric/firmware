@@ -160,3 +160,14 @@ void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
     // Combine them to be sent over DTCs
     inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
 }
+
+void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
+{
+    DEBUG_PRINT_ISR("Ack torque req for: %f\n", INV_Commanded_Torque);
+}
+
+void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
+{
+    DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
+}
+
