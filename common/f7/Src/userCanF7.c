@@ -108,13 +108,21 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
                 /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
             }
         } else {
-#endif
+#endif 
+            if (RxHeader.ExtId == 218081793)
+            {
+                DEBUG_PRINT_ISR("expectedly identified as Extended ID\r\n");
+            }
             if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
             }
 #ifdef CHARGER_CAN_HANDLE
         }
 #endif
+    }
+    else if (RxHeader.StdId == 218081793)
+    {
+        DEBUG_PRINT_ISR("unexpectedly identified as Standard ID\r\n");
     }
 }
 
