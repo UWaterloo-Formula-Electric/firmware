@@ -220,10 +220,10 @@ void sensorTask(void *pvParameters)
     {
         CurrentBusLV = readBusCurrent() * 1000;
         VoltageBusLV = readBusVoltage() * 1000;
-        // if (sendCAN_LV_Bus_Measurements() != HAL_OK)
-        // {
-        //     ERROR_PRINT("Failed to send bus measurements on can!\n");
-        // }
+        if (sendCAN_LV_Bus_Measurements() != HAL_OK)
+        {
+            ERROR_PRINT("Failed to send bus measurements on can!\n");
+        }
 
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
             ERROR_PRINT("LV Current exceeded max value\n");
@@ -245,15 +245,15 @@ void canPublishCurrent() {
     for (PDU_Channels_t channel = 0; channel < NUM_PDU_CHANNELS; channel++) {
         setChannelCurrentSignal(channel, readCurrent(channel));
     }
-    // if (sendCAN_PDU_Fan_and_Pump_Current() != HAL_OK) {
-    //     ERROR_PRINT("Publish PDU_Fan_and_Pump_Current msg failed! \n");
-    // }
-    // if (sendCAN_PDU_Current_Readings() != HAL_OK) {
-    //     ERROR_PRINT("Publish PDU_Current_Readings msg failed! \n");
-    // }
-    // if (sendCAN_PDU_Board_Channels_Current() != HAL_OK) {
-    //     ERROR_PRINT("Publish PDU_Board_Channels_Current msg failed! \n");
-    // }
+    if (sendCAN_PDU_Fan_and_Pump_Current() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Fan_and_Pump_Current msg failed! \n");
+    }
+    if (sendCAN_PDU_Current_Readings() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Current_Readings msg failed! \n");
+    }
+    if (sendCAN_PDU_Board_Channels_Current() != HAL_OK) {
+        ERROR_PRINT("Publish PDU_Board_Channels_Current msg failed! \n");
+    }
 }
 
 void canPublishFuseStatus() {
@@ -262,9 +262,9 @@ void canPublishFuseStatus() {
         uint8_t fuseStatus = checkBlownFuse(channelCurrent);
         setFuseStatusSignal(channel, fuseStatus);
     }
-    // if (sendCAN_PDU_Fuse_Status() != HAL_OK) {
-    //     ERROR_PRINT("Publish PDU fuse statuses failed!\n");
-    // }
+    if (sendCAN_PDU_Fuse_Status() != HAL_OK) {
+        ERROR_PRINT("Publish PDU fuse statuses failed!\n");
+    }
 }
 
 void canPublishPowerStates() {
@@ -272,9 +272,9 @@ void canPublishPowerStates() {
     BMGR1_State = CHECK_BMGR_GPIO1_PIN_STATE;
     BMGR2_State = CHECK_BMGR_GPIO2_PIN_STATE;
     BMGR3_State = CHECK_BMGR_GPIO3_PIN_STATE;
-    // if (sendCAN_PDU_Power_States() != HAL_OK) {
-    //     ERROR_PRINT("Failed to send the PDU power states on the CAN bus!\n");
-    // }
+    if (sendCAN_PDU_Power_States() != HAL_OK) {
+        ERROR_PRINT("Failed to send the PDU power states on the CAN bus!\n");
+    }
 }
 
 void canPublishPeriod1s() {

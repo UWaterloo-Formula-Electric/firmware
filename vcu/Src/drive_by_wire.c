@@ -146,7 +146,7 @@ uint32_t EM_Enable(uint32_t event)
 
     if (state != STATE_EM_Enable) {
         EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
-        // sendCAN_VCU_EM_State();
+        sendCAN_VCU_EM_State();
         return state;
     }
 
@@ -167,7 +167,7 @@ uint32_t EM_Enable(uint32_t event)
 	endurance_mode_EM_callback();
 
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
-    // sendCAN_VCU_EM_State();
+    sendCAN_VCU_EM_State();
 
     xTaskNotifyGive(throttlePollingHandle);
 
@@ -180,7 +180,7 @@ uint32_t EM_Fault(uint32_t event)
     int currentState = fsmGetState(&fsmHandle);
     
     EMFaultEvent = event;
-    // sendCAN_VCU_EM_Fault();
+    sendCAN_VCU_EM_Fault();
 
     if (fsmGetState(&fsmHandle) == STATE_Failure_Fatal) {
         DEBUG_PRINT("EM Fault, already in fatal failure state\n");
@@ -266,7 +266,7 @@ uint32_t EM_Fault(uint32_t event)
         }
 
         EM_State = EM_State_Off;
-        // sendCAN_VCU_EM_State();
+        sendCAN_VCU_EM_State();
     }
 
     return newState;
@@ -289,7 +289,7 @@ HAL_StatusTypeDef turnOnMotorController() {
 
     // Request PDU to turn on motor controllers
     EM_Power_State_Request = EM_Power_State_Request_On;
-    // sendCAN_VCU_EM_Power_State_Request();
+    sendCAN_VCU_EM_Power_State_Request();
 
     // Wait for PDU to turn on MCs
     BaseType_t rc = xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */
@@ -316,7 +316,7 @@ HAL_StatusTypeDef turnOffMotorControllers() {
 
     // Request PDU to turn off motor controllers
     EM_Power_State_Request = EM_Power_State_Request_Off;
-    // sendCAN_VCU_EM_Power_State_Request();
+    sendCAN_VCU_EM_Power_State_Request();
 
     // Wait for PDU to turn off MCs
     BaseType_t rc = xTaskNotifyWait( 0x00,      /* Don't clear any notification bits on entry. */

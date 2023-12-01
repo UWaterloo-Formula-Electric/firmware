@@ -69,7 +69,6 @@ __weak void ${functionName}(CAN_HandleTypeDef* canHandle)
         sFilterConfig.SlaveStartFilterBank = 0;
 
         //From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
-        //TODO: Verify this is the correct config
         if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)
         {
             Error_Handler();

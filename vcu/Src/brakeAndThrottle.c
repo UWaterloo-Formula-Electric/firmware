@@ -124,7 +124,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
     ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
-    // sendCAN_VCU_ADCReadings();
+    sendCAN_VCU_ADCReadings();
 
     // Read both TPS sensors
     if (is_throttle1_in_range(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX])
@@ -270,9 +270,9 @@ void canPublishTask(void *pvParameters)
         BrakePercent = getBrakePositionPercent();
         BrakeWhileThrottle = throttleAndBrakePressedError;
 
-        // if (sendCAN_VCU_Data() != HAL_OK) {
-        //     ERROR_PRINT("Failed to send vcu can data\n");
-        // }
+        if (sendCAN_VCU_Data() != HAL_OK) {
+            ERROR_PRINT("Failed to send vcu can data\n");
+        }
         vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
     }
 }
