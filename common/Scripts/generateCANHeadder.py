@@ -659,7 +659,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
 def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
     templateHolder = ""
-    i = 1
+    i = 2 # Start at 2 to accomodate inverter group
     for messageGroup in messageGroups:
         i = i + 1
         templateData = {
