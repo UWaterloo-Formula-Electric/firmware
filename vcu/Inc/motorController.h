@@ -5,7 +5,7 @@
 #include "bsp.h"
 #include "canReceive.h"
 
-#define MAX_TORQUE_DEMAND_DEFAULT       30 // OLD
+#define MAX_TORQUE_DEMAND_DEFAULT       231 
 #define MAX_TORQUE_DEMAND_DEFAULT_NM    231 // N.m.
 #define SPEED_LIMIT_DEFAULT             10000
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT 250
@@ -46,6 +46,7 @@ HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle);
 HAL_StatusTypeDef sendLockoutReleaseToMC();
 HAL_StatusTypeDef mcDisable();
+HAL_StatusTypeDef mcClearFaults();
 HAL_StatusTypeDef sendDisableMC();
 HAL_StatusTypeDef initMotorControllerSettings();
 HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);

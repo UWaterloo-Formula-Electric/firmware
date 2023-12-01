@@ -117,32 +117,32 @@ uint32_t runSelftTests(uint32_t event)
 
 uint32_t EM_Enable(uint32_t event)
 {
-    bool bpsState = checkBPSState();
-    bool hvEnable = getHvEnableState();
-    float brakePressure = getBrakePressure();
+    // bool bpsState = checkBPSState();
+    // bool hvEnable = getHvEnableState();
+    // float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
-    if (!bpsState) {
-        DEBUG_PRINT("Failed to em enable, bps fault\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(0);
-        state = STATE_EM_Disable;
-    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-        sendDTC_WARNING_EM_ENABLE_FAILED(1);
-        state = STATE_EM_Disable;
-    } else if (!(throttleIsZero())) {
-        DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(2);
-        state = STATE_EM_Disable;
-    } else if (!isBrakePressed()) {
-        DEBUG_PRINT("Failed to em enable, brake is not pressed\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(3);
-        state = STATE_EM_Disable;
-    } else if (!hvEnable) {
-        sendDTC_WARNING_EM_ENABLE_FAILED(4);
-        DEBUG_PRINT("Failed to em enable, not HV enabled\n");
-        state = STATE_EM_Disable;
-    }
+    // if (!bpsState) {
+    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
+    //     state = STATE_EM_Disable;
+    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
+    //     state = STATE_EM_Disable;
+    // } else if (!(throttleIsZero())) {
+    //     DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(2);
+    //     state = STATE_EM_Disable;
+    // } else if (!isBrakePressed()) {
+    //     DEBUG_PRINT("Failed to em enable, brake is not pressed\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(3);
+    //     state = STATE_EM_Disable;
+    // } else if (!hvEnable) {
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(4);
+    //     DEBUG_PRINT("Failed to em enable, not HV enabled\n");
+    //     state = STATE_EM_Disable;
+    // }
 
     if (state != STATE_EM_Enable) {
         EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
@@ -169,7 +169,7 @@ uint32_t EM_Enable(uint32_t event)
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();
 
-    xTaskNotifyGive(throttlePollingHandle);
+    xTaskNotifyGive(throttlePollingHandle); // shouldn't we only notify if it was successful?
 
     return state;
 }
@@ -351,7 +351,7 @@ HAL_StatusTypeDef MotorStart()
         return rc;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS));
+    // vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS)); // prob need to change
     rc = mcInit();
     if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");

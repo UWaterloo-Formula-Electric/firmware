@@ -1,6 +1,5 @@
 #include "FreeRTOS.h"
 #include "task.h"
-#include "CRC_CALC.h"
 
 #include "bsp.h"
 #include "debug.h"

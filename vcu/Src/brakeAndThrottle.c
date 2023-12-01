@@ -281,13 +281,14 @@ void pollThrottle(TickType_t* xLastWakeTime)
 {
     while(1)
     {
-        //Wait until EM is enabled
-        // if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
-        // {
-        //     throttlePercentReading = 0;
-        //     return;
-        // }
-        DEBUG_PRINT("pollThrottle func \n");
+        // Wait until EM is enabled
+        if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
+        {
+            DEBUG_PRINT("EM disabled, stop throttle polling\n");
+            throttlePercentReading = 0;
+            return;
+        }
+        
         bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
         if (inverterFault) {   
         // DTC sent in state machine transition function
@@ -296,7 +297,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
         }
 
         if (isLockoutDisabled() == false) { // lockout not disabled
-            // return;
+            return;
         } 
 
         // ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
@@ -317,8 +318,7 @@ void pollThrottle(TickType_t* xLastWakeTime)
         //     return;
         // }
 
-    //    requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
-        requestTorqueFromMC(100, getSteeringAngle());
+        requestTorqueFromMC(throttlePercentReading, getSteeringAngle());
         vTaskDelay(2);
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
@@ -343,17 +343,10 @@ void throttlePollingTask(void)
         // VCU_INV_Parameter_Data = 0;
         // sendCAN_MC_Read_Write_Param_Command();
         
-        // uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
-        // sendDisableMC();
-        vTaskDelay(2);
-        // sendLockoutReleaseToMC();
-        // DEBUG_PRINT("HIII\n");
-        // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
-        // DEBUG_PRINT("lockout status: %d\n", (int8_t)INV_Inverter_Enable_Lockout);
-        // requestTorqueFromMC(300, getSteeringAngle());
-        if (isLockoutDisabled())
+        uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
+
+        if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
         {   
-            DEBUG_PRINT("lockout disabled, should go to torque request loop\n");
             // Theoretically EM enabled and power has been supplied to inverter
             // Start polling throttle and send to MC
             watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));
