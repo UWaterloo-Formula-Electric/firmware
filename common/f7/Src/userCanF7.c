@@ -72,7 +72,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         This is why we would get brake light values of 255 and button presses with multiple bits high even though that is impossible from our code.
         Props to Joseph Borromeo for squashing this 5 year old bug
     */
-    // if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
+    if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
 #ifdef CHARGER_CAN_HANDLE
         if (hcan == &CHARGER_CAN_HANDLE) {
             if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
@@ -87,7 +87,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         }
 #endif
     }
-// }
+}
 
 //Currently not used (we use FIFO0)
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -109,20 +109,12 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
             }
         } else {
 #endif 
-            if (RxHeader.ExtId == 218081793)
-            {
-                DEBUG_PRINT_ISR("expectedly identified as Extended ID\r\n");
-            }
             if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
             }
 #ifdef CHARGER_CAN_HANDLE
         }
 #endif
-    }
-    else if (RxHeader.StdId == 218081793)
-    {
-        DEBUG_PRINT_ISR("unexpectedly identified as Standard ID\r\n");
     }
 }
 
