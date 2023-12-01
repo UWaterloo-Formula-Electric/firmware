@@ -494,7 +494,7 @@ void printTask(void *pvParameters)
             {
                 // send message length
                 UartOverCanRX = len;
-                sendCAN_UartOverCanRx();
+                // sendCAN_UartOverCanRx();
                 
                 // Send CLI response to the CAN
                 const uint16_t chunkLen = 4; // bytes per CAN message
@@ -505,7 +505,7 @@ void printTask(void *pvParameters)
                     {
                         UartOverCanRX |= buffer[a + i] << (i * 8);
                     }
-					sendCAN_UartOverCanRx();
+					// sendCAN_UartOverCanRx();
 				}
             }
         }

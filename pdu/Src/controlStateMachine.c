@@ -376,10 +376,10 @@ uint32_t motorsOn(uint32_t event)
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_ON;
 
-    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
-        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
-        return motorsOff(MTR_EV_EM_DISABLE);
-    }
+    // if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+    //     ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    //     return motorsOff(MTR_EV_EM_DISABLE);
+    // }
     return MTR_STATE_Motors_On;
 
     if (!DC_DC_ON)
@@ -400,9 +400,9 @@ uint32_t motorsOff(uint32_t event)
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
     StatusPowerMCRight = StatusPowerMCRight_CHANNEL_OFF;
 
-    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
-        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
-    }
+    // if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+    //     ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    // }
 
     if (event == MTR_EV_EM_DISABLE) {
         return MTR_STATE_Motors_Off;

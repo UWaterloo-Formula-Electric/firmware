@@ -124,7 +124,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
     ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
-    sendCAN_VCU_ADCReadings();
+    // sendCAN_VCU_ADCReadings();
 
     // Read both TPS sensors
     if (is_throttle1_in_range(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX])
@@ -270,9 +270,9 @@ void canPublishTask(void *pvParameters)
         BrakePercent = getBrakePositionPercent();
         BrakeWhileThrottle = throttleAndBrakePressedError;
 
-        if (sendCAN_VCU_Data() != HAL_OK) {
-            ERROR_PRINT("Failed to send vcu can data\n");
-        }
+        // if (sendCAN_VCU_Data() != HAL_OK) {
+        //     ERROR_PRINT("Failed to send vcu can data\n");
+        // }
         vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
     }
 }
@@ -344,12 +344,12 @@ void throttlePollingTask(void)
         // sendCAN_MC_Read_Write_Param_Command();
         
         // uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
-        sendDisableMC();
+        // sendDisableMC();
         vTaskDelay(2);
         // sendLockoutReleaseToMC();
         // DEBUG_PRINT("HIII\n");
         // if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
-        DEBUG_PRINT("lockout status: %d\n", (int8_t)INV_Inverter_Enable_Lockout);
+        // DEBUG_PRINT("lockout status: %d\n", (int8_t)INV_Inverter_Enable_Lockout);
         // requestTorqueFromMC(300, getSteeringAngle());
         if (isLockoutDisabled())
         {   
