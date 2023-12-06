@@ -48,11 +48,11 @@ void taskRegister(void) {
 esp_err_t CAN_init(void) {
     twai_general_config_t g_config = { // https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/api-reference/peripherals/twai.html#_CPPv421twai_general_config_t
         .mode = TWAI_MODE_NORMAL,
-        .tx_io = CAN_TX, // define in userInit.h
+        .tx_io = CAN_TX, // defined in userInit.h
         .rx_io = CAN_RX,
         .clkout_io = TWAI_IO_UNUSED, 
         .bus_off_io = TWAI_IO_UNUSED,      
-        .tx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH, // check if supposed to be this > MAX_QUEUE_LENGTH
+        .tx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH, // or MAX_QUEUE_LENGTH
         .rx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH,                          
         .alerts_enabled = TWAI_ALERT_NONE,  
         .clkout_divider = 0,        
@@ -78,7 +78,7 @@ esp_err_t CAN_init(void) {
 
 // pin arrays
 const int OUTPUT_PIN_ARRAY[] = {
-
+// check schematic
 };
 
 // esp_err_t spi_init(void) { // check if this is needed
