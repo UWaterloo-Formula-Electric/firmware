@@ -101,7 +101,7 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 /*
  * HV Measure task Defines and Variables
  */
-#define HV_MEASURE_TASK_PERIOD_MS 1
+#define HV_MEASURE_TASK_PERIOD_MS 5
 #define HV_MEASURE_TASK_ID 4
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
@@ -401,7 +401,7 @@ void HVMeasureTask(void *pvParamaters)
             CurrentBusHV = IBus;
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
-            vTaskDelay(2); // Added to prevent CAN mailbox full
+            vTaskDelay(4); // Added to prevent CAN mailbox full
             AMS_PackVoltage = VBatt;
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
@@ -1547,7 +1547,9 @@ void batteryTask(void *pvParameter)
          * - TempCellMin
          * - StateBMS
          */
-        if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
+        HAL_StatusTypeDef ret = sendCAN_BMU_batteryStatusHV();
+        vTaskDelay(3); // Added to prevent CAN mailbox full
+        if (ret != HAL_OK) {
             ERROR_PRINT("Failed to send battery status HV\n");
             if (boundedContinue()) { continue; }
         }
@@ -1572,7 +1574,7 @@ void batteryTask(void *pvParameter)
  */
 
 /// The period to send cell voltage and temperature CAN messages
-#define CAN_CELL_SEND_PERIOD_MS 50
+#define CAN_CELL_SEND_PERIOD_MS 53
 #define CAN_CELL_SEND_TASK_ID 8
 
 bool sendOneCellVoltAndTemp = false;
@@ -1633,9 +1635,9 @@ void canSendCellTask(void *pvParameters)
         }
 
         sendCAN_BMU_CellVoltage(cellIdxToSend);
-        vTaskDelay(2); // Added to prevent CAN mailbox full
+        vTaskDelay(3); // Added to prevent CAN mailbox full
         sendCAN_BMU_CellVoltage_Adjusted(cellIdxToSend);
-        vTaskDelay(2); // Added to prevent CAN mailbox full
+        vTaskDelay(3); // Added to prevent CAN mailbox full
         sendCAN_BMU_ChannelTemp(cellIdxToSend);
 
         // Move on to next cells

@@ -16,7 +16,7 @@
 #include "watchdog.h"
 
 /*#define SENSOR_TASK_PERIOD 50*/
-#define SENSOR_TASK_PERIOD 1000
+#define SENSOR_TASK_PERIOD 1009
 
 volatile uint32_t brakeAndHVILVals[2] = {0};
 

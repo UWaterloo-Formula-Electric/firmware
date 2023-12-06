@@ -290,9 +290,29 @@ HAL_StatusTypeDef sendDTCMessage(uint32_t dtcCode, int severity, uint64_t data)
 #endif
 }
 
+void printTXMailboxData(CAN_HandleTypeDef *hcan, uint32_t txMailboxNumber)
+{
+    CAN_TxMailBox_TypeDef mailbox = hcan->Instance->sTxMailBox[txMailboxNumber];
+
+    uint32_t id;
+    // check for extended ID
+    if (mailbox.TIR & CAN_TI0R_IDE){
+        // can't use CAN_TI0R_EXID because it is incorrectly defined,
+        // it only covers 0x3FFFFUL which is 18 bits not the required 29 bits
+        // See: https://www.st.com/resource/en/reference_manual/rm0410-stm32f76xxx-and-stm32f77xxx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+        // for which bits to mask
+        const uint32_t CAN_EXID_MASK = 0x1FFFFFFFUL << CAN_TI0R_EXID_Pos;
+        id = (mailbox.TIR & CAN_EXID_MASK) >> CAN_TI0R_EXID_Pos;
+    }
+    else
+        id = (mailbox.TIR & CAN_TI0R_STID) >> CAN_TI0R_STID_Pos;
+    DEBUG_PRINT("Mbx %lu: ID: 0x%lx\t ID: %lu\n", txMailboxNumber, id, id);
+}
+
 
 void canTask(void *pvParameters)
 {
+    uint32_t lastMbxFull = HAL_GetTick();
 #ifndef BOARD_DISABLE_CAN
     CAN_Message msg;
 #endif
@@ -310,7 +330,14 @@ void canTask(void *pvParameters)
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
-            DEBUG_PRINT("All mailboxes full, waiting\n");
+            uint32_t now = HAL_GetTick();
+            DEBUG_PRINT("All TX mailboxes full, waiting\n");
+            DEBUG_PRINT("%lu:\t ID: 0x%lx\t ID: %lu\n", now - lastMbxFull, msg.id, msg.id);
+            printTXMailboxData(&CAN_HANDLE, 0);
+            printTXMailboxData(&CAN_HANDLE, 1);
+            printTXMailboxData(&CAN_HANDLE, 2);
+
+            lastMbxFull = now;
             // Give semaphore again, since we haven't sent this message
             if (xSemaphoreGive(CAN_Msg_Semaphore) != pdTRUE)
             {
