@@ -20,7 +20,7 @@ from CachedData import CachedData
 # Global Variables
 cell_df = pd.DataFrame(columns=["Time [ms]", "IShunt [A]", "Cell Voltage [V]", "Cell Temp 1 [C]", "Cell Temp 2 [C]", "Internal Resistance [mOhm]"])
 current_date = datetime.datetime.now()
-cellLogfile = current_date.strftime("%b-%d_%H-%M-%S") + "_cell_{cellNum}" + ".csv"
+cellLogfile = current_date.strftime("%b-%d_%H-%M-%S") + "_cell_fuse_{cellNum}" + ".csv"
 ct_port = None
 cell_logfile_csv = None
 cell_data = CellData(timestamp_ms=0, current_A=0.0, voltage_V=0.0, temperature1_C=0.0, temperature2_C=0.0)
@@ -95,11 +95,12 @@ def get_characterization(data, open_circuit_cell_voltage):
     try:
         current = float(data[1])
         voltage = float(data[3]) - float(data[2])
+
         if current >= MIN_CURRENT_START_IR_CALULATIONS_A and open_circuit_cell_voltage != 0.0:
             resistance = (open_circuit_cell_voltage - voltage) / current
-            ret = CellData(timestamp_ms=int(data[0]), current_A=current, voltage_V=voltage, temperature1_C=float(data[4]), temperature2_C=0.0, resistance_Ohm=resistance)
+            ret = CellData(timestamp_ms=int(data[0]), current_A=current, voltage_V=voltage, temperature1_C=float(data[4]), temperature2_C=float(data[5]), resistance_Ohm=resistance)
         else:
-            ret = CellData(timestamp_ms=int(data[0]), current_A=current, voltage_V=voltage, temperature1_C=float(data[4]), temperature2_C=0.0)
+            ret = CellData(timestamp_ms=int(data[0]), current_A=current, voltage_V=voltage, temperature1_C=float(data[4]), temperature2_C=float(data[5]))
     except:
         print(data)
         raise Exception("invalid data printed from cell tester") 
@@ -160,6 +161,7 @@ while True:
         # Get data
         for line in cachedData.get_unread_lines():
             (data_type, data) = identify_data(line)
+
             if data_type == RX_DATA_TYPE_CELL_TESTER_STATUS:
                 print(data)
                 if (data[0] == "start"):
@@ -194,15 +196,6 @@ while True:
                     # Update Voltage
                     if abs(cell_data.voltage_V) > ZERO_VOLTAGE_THRESHOLD_V:
                         window['cell_V'].update(value=f"{cell_data.voltage_V:.3f}")
-                        if cell_data.voltage_V < 0:
-                            error_message = "DISCONNECT HVD: CELL IS BACKWARDS BAD!!!"
-                            print(error_message)
-                        elif cell_data.voltage_V >= ZERO_VOLTAGE_NO_CELL_THRESHOLD_V and cell_data.voltage_V < SAMSUMG_30Q_MIN_V:
-                            error_message = "DISCONNECT HVD: Cell voltage must be >= 2.5V"
-                            print(error_message)
-                        elif cell_data.voltage_V <= ZERO_VOLTAGE_NO_CELL_THRESHOLD_V:
-                            error_message = "No cell detected"
-                            print(error_message)
                     
                     # Update Current
                     if cell_data.current_A < -ZERO_CURRENT_THRESHOLD_A:
