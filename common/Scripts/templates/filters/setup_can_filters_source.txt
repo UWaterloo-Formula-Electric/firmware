@@ -51,7 +51,7 @@ __weak void ${functionName}(CAN_HandleTypeDef* canHandle)
     }
 
     // if VCU, allow Cascadia Motion messages
-    if (CAN_NODE_ADDRESS == ID_VCU_F7) {
+    if (CAN_NODE_ADDRESS == ID_VCU_F7 || CAN_NODE_ADDRESS == ID_PDU) {
         filterID = 0xCFF<<16;
         filterID = filterID << 3; // Filter ID is left aligned to 32 bits
         filterMask = 0xFF0000;
