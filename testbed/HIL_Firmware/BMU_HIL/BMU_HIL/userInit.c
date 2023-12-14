@@ -10,6 +10,7 @@
 #include "userInit.h"
 #include "processCAN.h"
 
+/* Initializing all required peripherals */
 #define CAN_TX GPIO_NUM_36
 #define CAN_RX GPIO_NUM_35
 
