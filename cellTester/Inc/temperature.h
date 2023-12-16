@@ -22,11 +22,13 @@
 #define R1 10000
 #define T1 298.15 // 25 Celsius
 
-float temp_steinhart_hart(float resistance);
-float ntc_V_to_R(float voltage);
-float adc_to_volts(int16_t adc_ticks);
+double temp_steinhart_hart(double resistance);
+double ntc_V_to_R(double voltage);
+double adc_to_volts(int16_t adc_ticks);
 HAL_StatusTypeDef thermistor_adc_init(I2C_HandleTypeDef *i2c_hdr);
-HAL_StatusTypeDef read_thermistor(I2C_HandleTypeDef *i2c_hdr, float *temp_output_val);
+HAL_StatusTypeDef read_thermistor(I2C_HandleTypeDef *i2c_hdr, double *temp_output_val);
+
+HAL_StatusTypeDef read_thermistor_CalMode(I2C_HandleTypeDef *i2c_hdr, double *output_temperature, double *output_voltage);
 
 extern I2C_HandleTypeDef *cell_i2c_hdr;
 extern I2C_HandleTypeDef *fuse_i2c_hdr;

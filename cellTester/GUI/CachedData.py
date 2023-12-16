@@ -25,3 +25,8 @@ class CachedData:
         lines = self.lines
         self.lines = []
         return lines
+    
+    def get_latest_line(self):
+        raw_data = self.serial_port.read_all() + self.serial_port.read_until(b"\n")
+        
+        return raw_data.split(b"\n")[-2]

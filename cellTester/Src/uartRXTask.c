@@ -9,9 +9,9 @@
 
 #define INPUT_BUFFER_SIZE (100)
 
-#define CELL_TEST_LOGGING_START_DELAY 500
+#define CELL_TEST_LOGGING_START_DELAY_MS 500
 #define CELL_TEST_LOG_TIME_MS 60000*3
-#define CELL_TEST_LOGGING_END_DELAY 2500
+#define CELL_TEST_LOGGING_END_DELAY_MS 2500
 
 #define CELL_TEST_LOG_DELAY_FROM_START_MS CELL_TEST_LOGGING_START_DELAY_MS
 #define CELL_TEST_END_OF_CELL_TEST_FROM_START_MS (CELL_TEST_LOG_DELAY_FROM_START_MS + CELL_TEST_LOG_TIME_MS)
@@ -25,6 +25,8 @@ static TickType_t startCellTestTimeMs = 0;
 static TickType_t abortCellTestTimeMs = 0; // A stop request was made to abort the cell test if non zero
 
 static void processInput(char* inputString);
+
+const bool RUN_TEMP_CAL = true;
 
 void uartRXTask(void const* argument) {
     while (1) {
@@ -100,6 +102,7 @@ void processInput(char* inputString) {
         ++c;
     }
 
+
     if (isNumber)
     {
         currentTarget = (float)atof(inputString);
@@ -125,6 +128,10 @@ void processInput(char* inputString) {
 
 CellTestStatus_E getCellTestStatus(void)
 {
+    if (RUN_TEMP_CAL) {
+        return CellTestStatus_TEMP_CAL;
+    }
+
     const TickType_t timeSinceCellTestRequest = pdMS_TO_TICKS(xTaskGetTickCount() - startCellTestTimeMs);
     if (abortCellTestTimeMs != 0U)
     {

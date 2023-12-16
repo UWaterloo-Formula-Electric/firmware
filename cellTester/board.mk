@@ -89,6 +89,7 @@ LINKER_FLAGS += -Wl,-Map=$(MAP_FILE),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
 LINKER_FLAGS += -z muldefs
+LINKER_FLAGS += -Wl,-no-warn-rwx-segments 
 
 # Assembler Flags
 ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
@@ -190,7 +191,8 @@ LOAD_ELF_FILE := $(ELF_FILE)
 load_cell: $(BOARD_NAME)
 	openocd -f interface/stlink-v2-1.cfg -f $(OPENOCD_FILE) -c init -c "reset halt" -c halt -c "flash write_image erase $(LOAD_BIN_FILE) 0x8000000" -c "verify_image $(LOAD_BIN_FILE) 0x8000000" -c "reset run" -c shutdown
 
-#
+flash_windows_cell: $(BOARD_NAME)
+	STM32_Programmer_CLI -c port=SWD -w $(LOAD_BIN_FILE) 0x08000000 -v -hardRst
 # Include dependencies
 #
 include $(wildcard $(patsubst %,$(DEPDIR)/%.d, $(basename $(SRC))))

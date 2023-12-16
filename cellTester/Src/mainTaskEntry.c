@@ -10,13 +10,13 @@
 #include <stdbool.h>
 
 #include "FreeRTOS.h"
+#include "ade7913.h"
 #include "bsp.h"
 #include "debug.h"
 #include "fetControl.h"
 #include "task.h"
-#include "uartRXTask.h"
-#include "ade7913.h"
 #include "temperature.h"
+#include "uartRXTask.h"
 
 #define MAIN_TASK_PERIOD_MS 4
 #define CELL_STABILIZATION_TIME_MS 10
@@ -30,6 +30,7 @@
 void updateCurrentTarget(void);
 void updateFetDuty(float lastCurrentMeasurement);
 void updateCellValues(float* current, float* v1, float* v2);
+void updateCellValuesTempCalMode();
 
 // fetDutyCycle = [0, 100]
 static float fetDutyCycle = PWM_MAX_DUTY_NO_CURRENT;
@@ -44,25 +45,22 @@ void mainTaskFunction(void const* argument) {
 
     // DEBUG_PRINT("Starting up!!\n");
 
-    if (hvadc_init() != HAL_OK)
-    {
+    if (hvadc_init() != HAL_OK) {
         DEBUG_PRINT("HVADC init fail\n");
         Error_Handler();
     }
-    
-    // Configure ADCs    
-    if (thermistor_adc_init(cell_i2c_hdr) != HAL_OK)
-    {
+
+    // Configure ADCs
+    if (thermistor_adc_init(cell_i2c_hdr) != HAL_OK) {
         DEBUG_PRINT("cell ADC init fail\n");
         Error_Handler();
     }
-    
-    if (thermistor_adc_init(fuse_i2c_hdr) != HAL_OK)
-    {
+
+    if (thermistor_adc_init(fuse_i2c_hdr) != HAL_OK) {
         DEBUG_PRINT("fuse ADC init fail\n");
         Error_Handler();
     }
-    
+
     // Charecterization process:
     // 1. Start new characterization
     // 2. Increment cell current by changing pwm duty cycle
@@ -72,9 +70,15 @@ void mainTaskFunction(void const* argument) {
     set_PWM_Duty_Cycle(&FET_TIM_HANDLE, 0.0f);
     DEBUG_PRINT("Time (ms), IShunt (A), V1 (V), V2 (V), T1 (C), T2 (C)\n");
     while (1) {
-        updateCellValues(&current, &hv_adc_v1, &hv_adc_v2);
         // printThermistorValues();
-
+        if (getCellTestStatus() == CellTestStatus_TEMP_CAL) {
+            updateCellValuesTempCalMode();
+            adc_read_v1(v1);
+            adc_read_v2(v2);
+            adc_read_current(current);
+        } else {
+            updateCellValues(&current, &hv_adc_v1, &hv_adc_v2);
+        }
         updateCurrentTarget();
         updateFetDuty(current);
 
@@ -82,10 +86,8 @@ void mainTaskFunction(void const* argument) {
     }
 }
 
-void updateCurrentTarget(void)
-{
-    switch (getCellTestStatus())
-    {
+void updateCurrentTarget(void) {
+    switch (getCellTestStatus()) {
         case CellTestStatus_RUNNING:
             setCurrentTarget(CELL_TEST_CURRENT_A);
             break;
@@ -93,24 +95,19 @@ void updateCurrentTarget(void)
         case CellTestStatus_LOGGING:
             setCurrentTarget(0.0f);
             break;
-        
         default:
             // Lint
             break;
     }
 }
 
-void updateFetDuty(float lastCurrentMeasurement)
-{
+void updateFetDuty(float lastCurrentMeasurement) {
     const float current_error = getCurrentTarget() - lastCurrentMeasurement;
     fetDutyCycle += current_error * FET_CONTROL_KP;
-    
-    if (fetDutyCycle < 0)
-    {
+
+    if (fetDutyCycle < 0) {
         fetDutyCycle = 0;
-    }
-    else if (fetDutyCycle > 100)
-    {
+    } else if (fetDutyCycle > 100) {
         fetDutyCycle = 100;
     }
     if (getCurrentTarget() > 10) {
@@ -121,12 +118,11 @@ void updateFetDuty(float lastCurrentMeasurement)
 }
 
 void updateCellValues(float* current, float* v1, float* v2) {
-
-    float cell_temp_result = 0.0f;
-    float fuse_temp_result = 0.0f;
+    double cell_temp_result = 0.0f;
+    double fuse_temp_result = 0.0f;
 
     if (read_thermistor(cell_i2c_hdr, &cell_temp_result) != HAL_OK) {
-        //DEBUG_PRINT("failed to read cell temp\n");
+        // DEBUG_PRINT("failed to read cell temp\n");
     }
     if (read_thermistor(fuse_i2c_hdr, &fuse_temp_result) != HAL_OK) {
         // DEBUG_PRINT("failed to read fuse temp\n");
@@ -144,8 +140,28 @@ void updateCellValues(float* current, float* v1, float* v2) {
                 fuse_temp_result);
 }
 
+void updateCellValuesTempCalMode() {
+    double cell_temp_result = 0.0f;
+    double fuse_temp_result = 0.0f;
+    double cell_voltage_result = 0.0f;
+    double fuse_voltage_result = 0.0f;
+
+    if (read_thermistor_CalMode(cell_i2c_hdr, &cell_temp_result, &cell_voltage_result) != HAL_OK) {
+        // DEBUG_PRINT("failed to read cell temp\n");
+    }
+    if (read_thermistor_CalMode(fuse_i2c_hdr, &fuse_temp_result, &fuse_voltage_result) != HAL_OK) {
+        // DEBUG_PRINT("failed to read fuse temp\n");
+    }
+    // Timestamp, Voltage, Voltage, Temperature 1, Temperature 2
+    DEBUG_PRINT("%lu, %.3lf, %.3lf, %.3lf, %.3lf\r\n",
+                HAL_GetTick(),
+                cell_voltage_result,
+                fuse_voltage_result,
+                cell_temp_result,
+                fuse_temp_result);
+}
+
 // Set duty cycle to lowest PWM duty that draws 0 current to improve response time of controller
-void resetFetDutyCycle(void)
-{
+void resetFetDutyCycle(void) {
     fetDutyCycle = PWM_MAX_DUTY_NO_CURRENT;
 }

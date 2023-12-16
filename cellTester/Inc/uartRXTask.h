@@ -9,6 +9,7 @@ typedef enum {
     CellTestStatus_RUNNING,     // Draw current from the cell
     CellTestStatus_LOGGING,     // After the test is done continue to log for a period of time
     CellTestStatus_ABORTED,     // A stop request was made, continue to log but cut current
+    CellTestStatus_TEMP_CAL,    // A temperature calibration is being performed
 } CellTestStatus_E;
 
 CellTestStatus_E getCellTestStatus(void);
