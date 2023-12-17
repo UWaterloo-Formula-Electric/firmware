@@ -121,9 +121,10 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
 // Wake up the spi bus
 // @param standby: Set to true if the device is in standby already, the device
 // wakes faster in this case
-static uint32_t lastWakeup_ticks = 0;
+//static uint32_t lastWakeup_ticks = 0;
 int batt_spi_wakeup(bool sleeping)
 {
+	/*
     if (!sleeping) {
         // The boards have been initialized, so we're in the REFUP state
         if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(T_IDLE_MS)) {
@@ -151,7 +152,13 @@ int batt_spi_wakeup(bool sleeping)
 	}
 
     lastWakeup_ticks = xTaskGetTickCount();
-
+*/
+    uint8_t dummy = 0x77;
+	if (batt_spi_tx(&dummy, JUNK_SIZE))
+	{
+		ERROR_PRINT("Failed to wakeup batt spi\n");
+		return 1;
+	}
     return 0;
 }
 

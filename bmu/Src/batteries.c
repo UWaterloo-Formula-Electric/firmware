@@ -520,7 +520,7 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
    /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
    /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+	return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -1497,7 +1497,7 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && 0
         if (checkForOpenCircuit() != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();

@@ -12,13 +12,11 @@
 #include "batteries.h"
 
 #define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
-
+extern HAL_StatusTypeDef batt_read_data(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *dataOutBuffer, size_t readSizePerChip);
 
 HAL_StatusTypeDef batt_init()
 {
-
     batt_init_chip_configs();
-
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
@@ -33,7 +31,8 @@ HAL_StatusTypeDef batt_init()
 		ERROR_PRINT("Failed to read batt config from boards\n");
 		return HAL_ERROR;
 	}
-
+	
+	DEBUG_PRINT("Worked SUCCESS!!!");
     return HAL_OK;
 }
 
@@ -202,6 +201,7 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
 
 HAL_StatusTypeDef checkForOpenCircuit()
 {
+#if 0
     // Perform averaging of multiple voltage readings to account for potential
     // bad connections to AMS boards that causes noise
     float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS] = {0};
@@ -284,7 +284,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 		}
 	
     }
-
+#endif
     return HAL_OK;
 }
 
