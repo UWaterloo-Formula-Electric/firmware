@@ -13,6 +13,7 @@ extern twai_message_t can_msg;
 
 extern QueueHandle_t vcu_hil_queue;
 extern QueueHandle_t pdu_hil_queue;
+extern QueueHandle_t bmu_hil_queue;
 
 void can_rx_task (void * pvParameters);
 

@@ -52,6 +52,7 @@ void can_rx_task (void * pvParameters){
             {
                 printf("failed to send message to BMU HIL\n");
             }
+        #endif
 
         vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL_MS);
     }
