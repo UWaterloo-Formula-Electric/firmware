@@ -10,6 +10,7 @@
 #include "processCAN.h"
 #include "bmuOutputs.h"
 
+/* Registering all tasks for FreeRTOS */
 void taskRegister(void)
 {
     BaseType_t xReturned = pdPASS;
@@ -17,6 +18,7 @@ void taskRegister(void)
     TaskHandle_t can_process_task_handler = NULL;
     TaskHandle_t relay_bmu_outputs_handler = NULL;
 
+    /* Set up handler for receiving CAN messages */
     xReturned = xTaskCreate(
         can_rx_task,
         "CAN_RECEIVE_TASK",
@@ -34,6 +36,7 @@ void taskRegister(void)
         }
     }
 
+    /* Set up handler for processing CAN messages */
     xReturned = xTaskCreate(
         process_rx_task,
         "CAN_PROCESS_TASK",
@@ -51,6 +54,7 @@ void taskRegister(void)
         }
     }
 
+    /* Set up handler for relaying BMU outputs */
     xReturned = xTaskCreate(
         relayBmuOutputs,
         "RELAY_BMU_OUTPUTS_TASK",
