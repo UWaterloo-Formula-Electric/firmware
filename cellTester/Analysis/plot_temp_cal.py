@@ -2,10 +2,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from scipy.interpolate import splrep, splev, make_smoothing_spline, PPoly
+from scipy.interpolate import splrep, splev, make_smoothing_spline
 from scipy.optimize import curve_fit
-from lmfit.models import StepModel, SplineModel
-from sympy import lambdify, bspline_basis_set
 from sympy.abc import u
 
 df = pd.read_csv("Dec-15_20-50-39temp_cal.csv")
@@ -27,16 +25,16 @@ def temp_steinhart_hart(R):
     return T
 
 
-def find_stats(df: pd.DataFrame, period=None):
+def find_stats(df: pd.DataFrame):
     mean = np.mean(df)
     std = np.std(df)
-    max_jitter = np.max(df) - mean
-    min_jitter = np.min(df) - mean
-    if abs(max_jitter) > abs(min_jitter):
-        max_deviation = max_jitter
+    max_diff = np.max(df) - mean
+    min_diff = np.min(df) - mean
+    if abs(max_diff) > abs(min_diff):
+        abs_max_deviation = max_diff
     else:
-        max_deviation = min_jitter
-    return mean, std, max_deviation
+        abs_max_deviation = min_diff
+    return mean, std, abs_max_deviation
 
 
 # function to set background color for a
@@ -50,45 +48,38 @@ def highLights(fig, df, condition, fillcolor, layer):
                       line=dict(color="rgba(0,0,0,0)", width=3,), fillcolor=fillcolor, layer=layer)
     return fig
 
+# remove outliers
+df.drop(df[(df["True Temp [C]"] > 103) | (df["True Temp [C]"] < 30)].index, inplace=True)
 
-oneLSB = 3.3 / 2**15
-df.drop(df[(df["True Temp [C]"] > 103) | (
-    df["True Temp [C]"] < 30)].index, inplace=True)
+# convert to more useful units
 df["Voltage1"] = df["Voltage1 [mV]"] / 1000
 df["Timestamp [s]"] = df["Timestamp [ms]"] / 1000
 df["R [Ohm]"] = wheatstone_V_to_R(df["Voltage1"])
 df["Model Temp [C]"] = temp_steinhart_hart(df["R [Ohm]"])
 
-# error between true temp and computed temp
-df["Error [C]"] = df["True Temp [C]"] - df["Model Temp [C]"]
-
-
 t = splrep(df["Timestamp [s]"], df["Temp1 [C]"], k=5, s=0.6)
-tt = splrep(df["Timestamp [s]"], df["True Temp [C]"], k=5, s=1)
-
 
 df["Fitted Temp1"] = splev(df["Timestamp [s]"], t)
 df["dTemp1/dt"] = splev(df["Timestamp [s]"], t, der=1)
-
-df["Fitted True Temp"] = splev(df["Timestamp [s]"], tt)
-df["dTrue Temp/dt"] = splev(df["Timestamp [s]"], tt, der=1)
 
 spl = make_smoothing_spline(df["Timestamp [s]"], df["Voltage1"], lam=3)
 df["Fitted Voltage1"] = spl(df["Timestamp [s]"])
 df["dV1/dt"] = spl.derivative()(df["Timestamp [s]"])
 
-print(find_stats(df["Fitted Voltage1"] - df["Voltage1"]))
-print(find_stats(df["Fitted Temp1"] - df["Temp1 [C]"]))
-
+###
+### MODIFY THIS THRESHOLD TO GET FLAT REGIONS
+###
 threshold = 0.02
 condition = (abs(df["dTemp1/dt"]) <= threshold) | (df["True Temp [C]"] <= 35)
-# Plot data
-#  Uncomment to plot raw data with flat regions highlighted
+
+### Plot data
+### Uncomment to plot raw data with flat regions highlighted
 # fig = px.scatter(df, x="Timestamp [ms]", y=["True Temp [C]", "Voltage1", "Temp1 [C]", "Fitted Temp1", "Fitted Voltage1", "dV1/dt", "dTemp1/dt"],
 #                  title="Temperature Calibration")
 # fig = highLights(fig, df, condition, 'rgba(200,0,200,0.1)', "below")
 # fig.show()
 
+# remove non-flat regions
 df.drop(df[~condition].index, inplace=True)
 
 # calculate polynomial
@@ -114,7 +105,8 @@ residuals = y_new - y
 r_squared = 1 - np.var(residuals) / np.var(y)
 
 print(f"{r_squared=}")
-print("stats =",find_stats(y - y_new))
+mean, std, max_deviation = find_stats(residuals)
+print(f"New Equation stats: {mean=}, {std=}, {max_deviation=}")
 
 x_new = np.linspace(x[0], x[-1], 5000)
 y_new = curve(x_new, *coeffs)
