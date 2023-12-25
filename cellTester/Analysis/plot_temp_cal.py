@@ -74,10 +74,10 @@ condition = (abs(df["dTemp1/dt"]) <= threshold) | (df["True Temp [C]"] <= 35)
 
 ### Plot data
 ### Uncomment to plot raw data with flat regions highlighted
-# fig = px.scatter(df, x="Timestamp [ms]", y=["True Temp [C]", "Voltage1", "Temp1 [C]", "Fitted Temp1", "Fitted Voltage1", "dV1/dt", "dTemp1/dt"],
-#                  title="Temperature Calibration")
-# fig = highLights(fig, df, condition, 'rgba(200,0,200,0.1)', "below")
-# fig.show()
+fig = px.scatter(df, x="Timestamp [ms]", y=["True Temp [C]", "Voltage1", "Temp1 [C]", "Fitted Temp1", "Fitted Voltage1", "dV1/dt", "dTemp1/dt"],
+                 title="Temperature Calibration")
+fig = highLights(fig, df, condition, 'rgba(200,0,200,0.1)', "below")
+fig.show()
 
 # remove non-flat regions
 df.drop(df[~condition].index, inplace=True)
