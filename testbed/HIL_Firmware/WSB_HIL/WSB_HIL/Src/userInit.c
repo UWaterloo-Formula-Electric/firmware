@@ -17,29 +17,40 @@ void taskRegister(void) {
     TaskHandle_t process_rx_handle;
 
     xReturned = xTaskCreate(
-        can_rx_task;
-        "CAN_RECEIVE_TASK";
+        can_rx_task,
+        "CAN_RECEIVE_TASK",
+        4000,
         // stack size.
-        (void *) 1;
+        ( void * )  NULL,
+        configMAX_PRIORITIES-1,
         // priority.
-        &can_rx_handle;
-    )
+        &can_rx_handle
+    );
 
-    if (xReturned != pdPass) {
-        printf("Failed to register can_rx_task to FreeRTOS");
+    if (xReturned != pdPASS) 
+    {
+        while (1)
+        {
+            printf("Failed to register can_rx_task to FreeRTOS");
+        }
     }
 
     xReturned = xTaskCreate(
-        process_rx_task; // define in processCAN.c
-        "CAN_PROCESS_TASK";
-        // stack size.
-        (void *) 1;
-        // priority.
-        &process_rx_handle;
-    )
+        process_rx_task, // define in processCAN.c
+        "CAN_PROCESS_TASK",
+        4000,// stack size.
+        ( void * ) NULL,
+        configMAX_PRIORITIES-1,// priority.
+        &process_rx_handle
+    );
 
-    if (xReturned != pdPass) {
-        printf("Failed to register process_rx_task to FreeRTOS.");
+    if (xReturned != pdPASS) 
+    {
+        while(1)
+        {
+            printf("Failed to register process_rx_task to FreeRTOS.");
+        }
+        
     }
     
     return;
@@ -58,22 +69,26 @@ esp_err_t CAN_init(void) {
         .clkout_divider = 0,        
         .intr_flags = ESP_INTR_FLAG_LEVEL1
     };
+
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
-    if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK) {
-        printf("TWAI driver installed.");
-    } else {
+    if (twai_driver_install(&g_config, &t_config, &f_config) != ESP_OK) 
+    {
         printf("TWAI driver failed to install.");
         return ESP_FAIL;
-    }
+    } 
 
-    if (twai_start() == ESP_OK) {
-        printf("TWAI driver started.");
-    } else {
+    printf("TWAI driver installed.");
+
+    if (twai_start() != ESP_OK) 
+    {
         printf("TWAI driver failed to start.");
         return ESP_FAIL;
-    }
+    } 
+
+    printf("TWAI driver started\r\n");
+    return ESP_OK;
 }
 
 // pin arrays
