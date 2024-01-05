@@ -209,7 +209,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 
 	if(xTaskGetTickCount() - last_PEC_tick > 10000)
 	{
-		DEBUG_PRINT("\nPEC Rate: %lu errors/10s \n", PEC_count);
+		// DEBUG_PRINT("\nPEC Rate: %lu errors/10s \n", PEC_count);
 		PEC_count = 0;
 		last_PEC_tick = xTaskGetTickCount();
 	}
@@ -264,24 +264,24 @@ HAL_StatusTypeDef batt_verify_config(){
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_check_stat_A(void)
-{
-	uint8_t register_size = 2;
-    uint8_t response_buffer[register_size];
-	wakeup_sleep();
-	batt_broadcast_command(ADSTAT);
-	wakeup_idle();
-    if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
-        DEBUG_PRINT("Checking chip status failed\n");
-        return HAL_ERROR;
-    }
-	DEBUG_PRINT("Status Register A: ");
-	for (int i = 0; i < register_size; i++) {
-		DEBUG_PRINT("0x%x ", response_buffer[i]);
-	}
-	DEBUG_PRINT(" ");
-	return HAL_OK;
-}
+// HAL_StatusTypeDef batt_check_stat_A(void)
+// {
+// 	uint8_t register_size = 2;
+//     uint8_t response_buffer[register_size];
+// 	wakeup_sleep();
+// 	batt_broadcast_command(ADSTAT);
+// 	wakeup_idle();
+//     if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
+//         DEBUG_PRINT("Checking chip status failed\n");
+//         return HAL_ERROR;
+//     }
+// 	DEBUG_PRINT("Status Register A: ");
+// 	for (int i = 0; i < register_size; i++) {
+// 		DEBUG_PRINT("0x%x ", response_buffer[i]);
+// 	}
+// 	DEBUG_PRINT(" ");
+// 	return HAL_OK;
+// }
 
 HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, size_t board, size_t ltc_chip) {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -473,7 +473,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					// {
 					// 	continue;
 					// }
-					if(voltage_terminal == 6 || voltage_terminal == 12)
+					if(voltage_terminal == 5)
 					{
 						continue;
 					}

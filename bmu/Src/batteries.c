@@ -538,9 +538,10 @@ void enterAdjustedCellVoltages(void)
     //static bool filter = false;
     float bus_current_A;
     getIBus(&bus_current_A);
+    DEBUG_PRINT("RV[2]: %.4f\n", VoltageCell[2]);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
+        // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
         // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
         // if(filter)
         // {
@@ -553,7 +554,7 @@ void enterAdjustedCellVoltages(void)
         // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
     }
     //filter = true;
-    DEBUG_PRINT("\n");
+    // DEBUG_PRINT("\n");
 }
 /**
  * @brief This functions sets all cell voltages and temps to known values.
@@ -1538,7 +1539,7 @@ void batteryTask(void *pvParameter)
         //     delayUS = 0;
         // }
 #endif
-        DEBUG_PRINT("Delay dur: %.2lu.%.3lu\n", delay_MS, delay_US);
+        // DEBUG_PRINT("Delay dur: %.2lu.%.3lu\n", delay_MS, delay_US);
         if (checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
@@ -1588,7 +1589,7 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        incrementDelay();
+        // incrementDelay();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

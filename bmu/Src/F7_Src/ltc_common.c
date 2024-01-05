@@ -123,18 +123,18 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
     return status;
 }
 
-void wakeup_idle(){
-    HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-    delay_us(2);
-    HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-}
+// void wakeup_idle(){
+//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+//     delay_us(2);
+//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+// }
 
-void wakeup_sleep()
-{
-    HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-    vTaskDelay(7);
-    HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-}
+// void wakeup_sleep()
+// {
+//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+//     vTaskDelay(7);
+//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+// }
 
 // Wake up the spi bus
 // @param standby: Set to true if the device is in standby already, the device

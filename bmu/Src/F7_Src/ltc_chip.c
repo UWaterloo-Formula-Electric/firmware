@@ -19,11 +19,10 @@ HAL_StatusTypeDef batt_init()
 
     batt_init_chip_configs();
 
-    // if (batt_spi_wakeup(true) != HAL_OK) {
-    //     ERROR_PRINT("Failed to wake up boards\n");
-    //     return HAL_ERROR;
-    // }
-    wakeup_sleep(); // I don't know why 6 ms delay is required to write config
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
 
     if(batt_write_config() != HAL_OK) {
     	ERROR_PRINT("Failed to write batt config to boards\n");
@@ -60,8 +59,8 @@ HAL_StatusTypeDef batt_init()
 //     return HAL_OK;
 // }
 // #endif
-uint32_t delay_US = 0;
-uint32_t delay_MS = 9;
+uint32_t delay_US = 300;
+uint32_t delay_MS = 2;
 
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
