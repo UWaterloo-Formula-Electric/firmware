@@ -100,6 +100,28 @@ const int OUTPUT_PIN_ARRAY[] = {
 //     return ESP_OK;
 // }
 
+void wsb_gpio_init(void)
+{
+    gpio_set_direction(CS_STR_GAU_1_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_STR_GAU_2_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_STR_GAU_3_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_DAM_POS_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(DAC_CH1_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(DAC_CH2_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_ROT_DIS_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_BRK_TEMP_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_CLN_TEMP_1_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_CLN_TEMP_2_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_WHL_SPD_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_TREW_PRES_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_TRE_TEMP_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_CLN_FLW_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(ENC_OUT_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CS_POT_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SCK_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SDO_PIN, GPIO_MODE_OUTPUT);
+}
+
 void app_main(void) {
     taskRegister();
     CAN_init();
