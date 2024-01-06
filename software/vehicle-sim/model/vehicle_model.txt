@@ -1,0 +1,18 @@
+# High Level: Sum of X forces
+## Ft = Torque force on rear tires
+## Ff = friction force per tire
+## Fd = drag force, negligible for now
+ΣFx m*a_x = 2*Ft - 4*Ff - Fd
+
+## d_t is diameter of tire
+## T is torque
+## 2 Axles assume distributed equally
+Ft = T/(d_t/2)/2
+
+# High Level: Sum of Y forces
+## Take 0 y acceleration for first principles analysis
+## Fn normal force per tire
+## Fg gravity force per tire
+ΣFy = m*a_y = 4*Fn - 4*Fg
+
+
