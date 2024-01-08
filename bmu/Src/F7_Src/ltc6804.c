@@ -129,6 +129,7 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 	return HAL_OK;
 }
 
+/* TODO: GET RID OF THIS FUNCTION */
 HAL_StatusTypeDef batt_write_config()
 {
 	format_and_send_config(m_batt_config);
@@ -257,14 +258,8 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 		}
 		case(ADAX):
 		{
-			if(broadcast)
-			{
-				command_byte_low = ADAX_BROADCAST_BYTE0;
-			}
-			else
-			{
-				command_byte_low = ADAX_BYTE0;
-			}
+			command_byte_low = ADAX_BROADCAST_BYTE0;
+			command_byte_low = ADAX_BROADCAST_BYTE0;
 			command_byte_high = ADAX_BYTE1;
 			break;
 		}
@@ -417,45 +412,36 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 }
 
 
-
 void batt_set_temp_config(size_t channel) {
+	const uint8_t gpioPins = channel;
 	for (int board = 0; board < NUM_BOARDS; board++)
     {
-		uint8_t gpioPins = channel;
-
 		// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
-		m_batt_config[board][THERMISTOR_CHIP][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
+		m_batt_config[board][0][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
+		// m_batt_config[board][0][0] &= ~(0xF << GPIO1_POS); // Mask out the last config
+		// m_batt_config[board][0][0] |= (1 << GPIO5_POS) | ((channel & 0xF) << GPIO1_POS);
 	}
 }
 
 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
-	for(int board = 0; board < NUM_BOARDS; board++) {
+	// adc values for one block from all boards
+	uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS] = {0};
 			
-		// adc values for one block from all boards
-		uint8_t adc_vals[AUX_BLOCK_SIZE] = {0};
-				
-		if(batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
-			DEBUG_PRINT("ERROR: Reading thermistor on board %d, channel %lu failed (perhaps PEC mismatch)\n", board, (unsigned long)channel);
-			thermistor_failure[board][channel]++;
-			if(thermistor_failure[board][channel] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
-			{
-				return HAL_ERROR;
-			}
-			else if(thermistor_failure[board][channel] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
-			{
-				DEBUG_PRINT("Reached warning for cell thermistor PEC mismatch %u\n", thermistor_failure[board][channel]);
-			}
-			return HAL_OK;
-		}
-		size_t cellIdx = (board) * THERMISTORS_PER_BOARD + channel;
+	if(batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
+		DEBUG_PRINT("Failed to read LTC AUX B register\r\n");
+		return HAL_ERROR;
+	}
+
+	for(int board = 0; board < NUM_BOARDS; board++) {
+		size_t cellIdx = (board * THERMISTORS_PER_BOARD) + channel;
 		
 		// We only use the first GPIO register, 2 bytes out of the total 6 in adc_vals
-		uint16_t temp = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
+		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
 									| adc_vals[TEMP_ADC_IDX_LOW]));
-		float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-		
+		float voltageThermistor = ((float)adcCounts) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+		// cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+		cell_temp_array[cellIdx] = voltageThermistor;
 	}
 	return HAL_OK;
 }

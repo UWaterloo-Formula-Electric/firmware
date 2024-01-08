@@ -26,7 +26,7 @@ extern uint32_t delay_MS;
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             10
 /// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       10
+#define THERMISTORS_PER_BOARD       16
 
 // This specifies which chip architecture we are using
 // 6812/6804
@@ -49,7 +49,7 @@ extern uint32_t delay_MS;
 
 // Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2
-#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 1
+#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 2
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
@@ -94,7 +94,6 @@ typedef enum DischargeTimerLength {
     DT_20_MIN,
     INVALID_DT_TIME, // There is longer times, but we won't need it for now
 } DischargeTimerLength;
-
 
 /* Public Functions */
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
