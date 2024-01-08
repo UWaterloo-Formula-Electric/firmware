@@ -1,6 +1,6 @@
 /* 
  * Owen Brake - May 2021
- * This is the LTC6804 chip architecture, the current plan is that it uses 
+ * This is the LTC6804-1 chip architecture, the current plan is that it uses 
  *
  * */
 #include "ltc_chip_interface.h"
@@ -92,38 +92,14 @@
 #define THERMISTOR_CHIP 0
 
 #define MAX_ADC_CHECKS 10
-#define DEBUGGING_AMS
-
-// static const uint8_t LTC_ADDRESS[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD] = {
-// 	{0},
-//     {1},
-//     {2},
-//     {3},
-//     {4},
-//     {5},
-//     {6},
-//     {7},
-//     {8},
-//     {9},
-//     {10},
-//     {11},
-//     {12},
-//     {13}
-// };
 
 
-static uint8_t cell_voltage_failure[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][VOLTAGE_BLOCKS_PER_CHIP];
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
 static uint8_t thermistor_failure[NUM_BOARDS][THERMISTORS_PER_BOARD];
-
-
 static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs()
 {
-
-	memset(cell_voltage_failure, 0, NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD*VOLTAGE_BLOCKS_PER_CHIP);
-	
 	memset(thermistor_failure, 0, NUM_BOARDS*THERMISTORS_PER_BOARD);
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
@@ -136,7 +112,6 @@ void batt_init_chip_configs()
 
 HAL_StatusTypeDef format_and_send_config(uint8_t config_buffer[BATT_CONFIG_SIZE])
 {
-	
 	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + (BATT_CONFIG_SIZE + PEC_SIZE);
 	const size_t START_OF_DATA_IDX = COMMAND_SIZE + PEC_SIZE;
 	uint8_t txBuffer[BUFF_SIZE];
@@ -175,9 +150,18 @@ HAL_StatusTypeDef batt_write_config()
 	}
     return HAL_OK;
 }
+
 #define INVALID_DATA 0xFF
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
+
+
+/*
+Should probably clean this up. Call it smth different or change param names
+	first_byte, second_byte: 	11 bit command
+	data_buffer: 				full size of the output buffer (num_boards*response_size)
+	response_size: 				size of one board's response
+*/
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
     const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + (response_size + PEC_SIZE);
     const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
@@ -192,18 +176,17 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		ERROR_PRINT("Failed to send read data command\n");
 		return HAL_ERROR;
 	}
-	// DEBUG_PRINT("Received Data: ");
-	// for(int i = 0; i < BUFF_SIZE; i++) {
-	// 	DEBUG_PRINT("%x ", rxBuffer[i]);
-	// }
-	// DEBUG_PRINT("\n");
-
-	if (checkPEC(&(rxBuffer[DATA_START_IDX]), response_size) != HAL_OK)
+	
+	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
-		PEC_count++;
-		//DEBUG_PRINT("checkPEC error, counter: %lu\n", PEC_count);
-		//DEBUG_PRINT("PEC of new data: %x \n", rxBuffer[DATA_START_IDX]);
-		return HAL_ERROR;
+		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE))
+		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
+		{
+			PEC_count++;
+			//DEBUG_PRINT("checkPEC error, counter: %lu\n", PEC_count);
+			//DEBUG_PRINT("PEC of new data: %x \n", rxBuffer[DATA_START_IDX]);
+			return HAL_ERROR;
+		}
 	}
 
 
@@ -214,24 +197,21 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		last_PEC_tick = xTaskGetTickCount();
 	}
 
-	for(int response_byte_i = 0; response_byte_i < response_size; response_byte_i++) {
-		data_buffer[response_byte_i] = rxBuffer[DATA_START_IDX + response_byte_i];
+	for(int board = 0; board < NUM_BOARDS; board++) {
+		memcpy(&data_buffer[board*response_size], &rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))], response_size);
 	}
 	return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_read_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
+	const uint8_t response_buffer_size = NUM_BOARDS*BATT_CONFIG_SIZE;
+	uint8_t response_buffer[response_buffer_size] = {0};
+	batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
 
 	for(int board = 0; board < NUM_BOARDS; board++){
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
-
-		    uint8_t response_buffer[BATT_CONFIG_SIZE] = {0};
-
-			batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
-			for(int i = 0;i < BATT_CONFIG_SIZE; i++){
-				config[board][ltc_chip][i] = response_buffer[i];
-			}
+			memcpy(&config[board][ltc_chip], &response_buffer[(board*NUM_LTC_CHIPS_PER_BOARD*BATT_CONFIG_SIZE)], BATT_CONFIG_SIZE);
 		}
 	}
 
@@ -245,12 +225,12 @@ HAL_StatusTypeDef batt_verify_config(){
 		return HAL_ERROR;
 	}
     
-    vTaskDelay(T_REFUP_MS);
+    vTaskDelay(T_REFUP_MS); // Let core state machine transition from STANDBY to REFUP
 	
 	// Verify was set correctly
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
-			DEBUG_PRINT("Config Read A, Board %d, Chip %d: ", board, ltc_chip); 
+			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
@@ -375,148 +355,87 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
  */
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation)
 {
-
-
 	if (batt_spi_wakeup(false /* not sleeping*/))
 	{
 		return HAL_ERROR;
 	}
-	for (int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
-			size_t local_cell_idx = 0;
-			for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
-				
-				uint8_t cmdByteLow, cmdByteHigh;
-				// Select appropriate voltage register group
-				switch(block){
-					case 0:
-					{
-						cmdByteLow = RDCVA_BYTE0;
-						cmdByteHigh = RDCVA_BYTE1;
-						break;
-					}
-					case 1:
-					{
-						cmdByteLow = RDCVB_BYTE0;
-						cmdByteHigh = RDCVB_BYTE1;
-						break;
-					}
-					case 2:
-					{
-						cmdByteLow = RDCVC_BYTE0;
-						cmdByteHigh = RDCVC_BYTE1;
-						break;
-					}
-					case 3:
-					{
-						cmdByteLow = RDCVD_BYTE0;
-						cmdByteHigh = RDCVD_BYTE1;
-						break;
-					}
-					default:
-					{
-						ERROR_PRINT("ERROR: Unknown voltage block accessed");
-						return HAL_ERROR;
-					}
-				}
 
-				/*
-				 * This section gets a bit complicated so sorry.
-				 * It was very clean before we had the Motor Controller EMI issues
-				 * Essentially the logic is, read in the voltage registers from the LTC6804 chips
-				 * If it works then pop the reading into it's proper spot in the array (we skip terminals 5, 6, 10, 11, 12)
-				 * If it doesn't work (PEC mismatch) we monitor the voltage measurement failures and if it happens 3 times in a row we fail
-				 * Note: the open_wire_failure array measures each cell's failure to measure because we care about each specific cell rather than just the reading
-				 * (register voltage readings don't map 1:1 with cells becaus we have to skip some cell terminals (5,6,10,11,12)
-				 * The cell_voltage_failure array measures failure in voltage block readings we only really care if a reading was incorrect, not really which specific cell.
-				 * */
+	uint8_t cell_indexes_allocated = 0;
 
-				/* TL;DR it works, I'm sorry, you can me blame Owen Brake, hopefully you can burn this part as EMI will be fixed by the time you read this */
-
-				// Voltage values for one block from one boards
-				uint8_t adc_vals[VOLTAGE_BLOCK_SIZE] = {0};
-				bool failed_read = false;
-				//DEBUG_PRINT("***ATTEMPTING TO READ CELL REGISTER***\n");
-				//DEBUG_PRINT("Total invocation: %lu\n", temp);
-				if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-// 					failed_read = true;
-// 					// Tolerate up to 2 errors in a row, fail on 3
-// #if PRINT_ALL_PEC_ERRORS != 0
- 					DEBUG_PRINT("Failed reading voltage on board: %d, chip %d, block %d\n", board, ltc_chip, block);
-// #endif
-// 					if(voltage_operation == POLL_VOLTAGE)
-// 					{
-// 						cell_voltage_failure[board][ltc_chip][block]++;
-// 						if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
-// 						{
-// 							ERROR_PRINT("Battery error to be triggered because of %lu consecutive PEC mismatches \n",
-// 									(unsigned long)cell_voltage_failure[board][ltc_chip][block]);
-// 							return HAL_ERROR;
-// 						}
-// 						else if(cell_voltage_failure[board][ltc_chip][block] >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
-// 						{
-// 							DEBUG_PRINT("Reached warning for cell voltage PEC mismatch %u\n\n\n", cell_voltage_failure[board][ltc_chip][block]);
-// 						}
-// 					}
-				}
-				else if(voltage_operation == POLL_VOLTAGE)
-				{
-					cell_voltage_failure[board][ltc_chip][block] = 0;
-				}
-				//DEBUG_PRINT("batt_read_data error counter: %lu\n", error_counter);
-				for (int cvreg = 0; cvreg < VOLTAGES_PER_BLOCK; cvreg++)
-				{
-					uint8_t voltage_terminal = cvreg + block * VOLTAGES_PER_BLOCK;
-					// OLD: pins C5 and C6 are connected to CELL4 but like we don't want to measure them, so we skip index 4 and 5
-					// NEW: skipping cell 0 (reading 0.00V) but shouldn't it be terminal 6 and 12 on the LTC?
-					// if(voltage_terminal == 0)
-					// {
-					// 	continue;
-					// }
-					if(voltage_terminal == 5)
-					{
-						continue;
-					}
-
-					size_t registerIndex = cvreg * CELL_VOLTAGE_SIZE_BYTES;
-					size_t cellIdx = (board * NUM_LTC_CHIPS_PER_BOARD + ltc_chip) * CELLS_PER_CHIP + local_cell_idx;
-
-					uint16_t temp = ((uint16_t) (adc_vals[(registerIndex + 1)] << 8 | adc_vals[registerIndex]));
-					if(!failed_read) // If we read successfully
-					{
-						cell_voltage_array[cellIdx] = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-						if(voltage_operation == OPEN_WIRE)
-						{
-							open_wire_failure[cellIdx].num_times_consec = 0;
-						}
-					}
-					else if(failed_read && voltage_operation == OPEN_WIRE)
-					{
-						open_wire_failure[cellIdx].num_times_consec++;
-						open_wire_failure[cellIdx].occurred = true;
-						if(open_wire_failure[cellIdx].num_times_consec >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR)
-						{
-							DEBUG_PRINT("Reached ERROR for open wire PEC mismatch cell: %lu\n", (unsigned long)cellIdx);
-							return HAL_ERROR;
-						}
-						else if(open_wire_failure[cellIdx].num_times_consec >= NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING)
-						{
-							DEBUG_PRINT("Reached warning for open wire PEC mismatch %u\n", open_wire_failure[cellIdx].num_times_consec);
-						}
-						else
-						{
-							DEBUG_PRINT("Error: Reached an empty else statement\n");
-						}
-						
-					}
-
-					local_cell_idx++;
-				}
-
+	for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
+		uint8_t cmdByteLow, cmdByteHigh;
+		// Select appropriate voltage register group
+		switch(block){
+			case 0:
+			{
+				cmdByteLow = RDCVA_BYTE0;
+				cmdByteHigh = RDCVA_BYTE1;
+				break;
+			}
+			case 1:
+			{
+				cmdByteLow = RDCVB_BYTE0;
+				cmdByteHigh = RDCVB_BYTE1;
+				break;
+			}
+			case 2:
+			{
+				cmdByteLow = RDCVC_BYTE0;
+				cmdByteHigh = RDCVC_BYTE1;
+				break;
+			}
+			case 3:
+			{
+				cmdByteLow = RDCVD_BYTE0;
+				cmdByteHigh = RDCVD_BYTE1;
+				break;
+			}
+			default:
+			{
+				ERROR_PRINT("ERROR: Unknown voltage block accessed");
+				return HAL_ERROR;
 			}
 		}
-	}
 
+		// Voltage values for one block from one boards
+		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
+		bool failed_read = false;
+		
+		if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
+			DEBUG_PRINT("Failed AMS voltage block read (block %u)\r\n", block);
+		}
+
+		const uint8_t block_lowest_cell_num = (block * VOLTAGES_PER_BLOCK) + 1; // +1 as LTC cell numbering is not 0 indexed
+		
+		for (int board = 0; board < NUM_BOARDS; ++board)
+		{
+			const uint16_t board_data_starting_index = (board * VOLTAGE_BLOCK_SIZE);
+			const uint16_t board_starting_cell_index = board * CELLS_PER_BOARD;
+			for (int block_index = 0; block_index < VOLTAGES_PER_BLOCK; block_index++)
+			{
+				const uint8_t ltc_cell_num = block_lowest_cell_num + block_index;
+
+				// Only 10 of the 12 voltage sense lines on the chip are are useful
+				// pins C6 is connected to CELL5 and C12 is connected to Cell10 which we are the measurements we discard
+				if(ltc_cell_num == 6 || ltc_cell_num == 12)
+				{
+					continue;
+				}
+
+				size_t cell_voltage_data_index = board_data_starting_index + (block_index * CELL_VOLTAGE_SIZE_BYTES);
+				size_t cellIdx = board_starting_cell_index + cell_indexes_allocated;
+
+				uint16_t adc_reading = ((uint16_t) (adc_vals[(cell_voltage_data_index + 1)] << 8 | adc_vals[cell_voltage_data_index]));
+
+				cell_voltage_array[cellIdx] = ((float)adc_reading) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+				if(voltage_operation == OPEN_WIRE)
+				{
+					open_wire_failure[cellIdx].num_times_consec = 0;
+				}
+				cell_indexes_allocated++;
+			}
+
+		}
 
     return HAL_OK;
 }

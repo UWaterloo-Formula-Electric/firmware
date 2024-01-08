@@ -9,8 +9,6 @@ HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, u
     txBuffer[0] = cmdByteLow;
     txBuffer[1] = cmdByteHigh;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
-    // DEBUG_PRINT("transmitted PEC[0]: %x \n", txBuffer[COMMAND_SIZE]);
-    // DEBUG_PRINT("transmitted PEC[1]: %x \n", txBuffer[COMMAND_SIZE + 1]);
     return HAL_OK;
 }
 
@@ -82,16 +80,11 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
 {
     uint8_t pec[2];
     batt_gen_pec(rxBuffer, dataSize, pec);
-    uint32_t pec_loc = dataSize;
-    if (pec[0] == rxBuffer[pec_loc] && pec[1] == rxBuffer[pec_loc + 1])
+    uint32_t pec_index = dataSize;
+    if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
     {
-        //DEBUG_PRINT("CORRECT: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
-        //DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
         return HAL_OK;
     } else {
-        // DEBUG_PRINT("WRONG: expected pec[0] = %x  expected pec[1] = %x \n", pec[0], pec[1]);
-        // DEBUG_PRINT("rxBuffer @ pec loc: %x   rxBuffer @pec_loc+1: %x \n", rxBuffer[pec_loc], rxBuffer[pec_loc + 1]);
-        // failing here
         return HAL_ERROR;
     }
 }
@@ -111,7 +104,9 @@ HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
     //Make sure rbuffer is large enough for the sending command + receiving bytes
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
     HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&ISO_SPI_HANDLE, tdata, rbuffer, len, HSPI_TIMEOUT);
+    delay_us(2); // t6 = (70ns * numDevices) + 950ns
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+    delay_us(2); // t5 = (70ns * numDevices) + 900ns
     return status;
 }
 
@@ -119,32 +114,20 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
 {
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
     HAL_StatusTypeDef status = HAL_SPI_Transmit(&ISO_SPI_HANDLE, txBuffer, len, HSPI_TIMEOUT);
+    delay_us(2); // t6 = (70ns * numDevices) + 950ns
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+    delay_us(2); // t5 = (70ns * numDevices) + 900ns
     return status;
 }
 
-// void wakeup_idle(){
-//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-//     delay_us(2);
-//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-// }
-
-// void wakeup_sleep()
-// {
-//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-//     vTaskDelay(7);
-//     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-// }
-
 // Wake up the spi bus
-// @param standby: Set to true if the device is in standby already, the device
-// wakes faster in this case
+// @param standby: Set to true if the core state is standby, the device wakes faster in this case
 static uint32_t lastWakeup_ticks = 0;
 int batt_spi_wakeup(bool sleeping)
 {
     if (!sleeping) {
         // The boards have been initialized, so we're in the REFUP state
-        if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(T_IDLE_MS)) {
+        if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(US_TO_MS(T_IDLE_US))) {
             // SPI bus already up
             return 0;
         }
@@ -156,14 +139,23 @@ int batt_spi_wakeup(bool sleeping)
     // Wake up the serial interface on device S1.
     if (sleeping) {
 		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-		delay_us(300); // twake (100 us) * 3 
+		/* TODO: take out of common file */
+        long_delay_us(LTC_T_WAKE_MAX_US * NUM_BOARDS); // Have to be careful here, with 14 AMS boards we wait 2.3ms and t_IDLE is 2.4ms
 		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-		delay_us(10); // tready (10 us) * 3. Previously 10us (wrong)
+
+#if (LTC_T_WAKE_MAX_US * NUM_BOARDS >= T_IDLE_US) // Included as suggested by datasheet
+        if (batt_spi_tx(&dummy, JUNK_SIZE))
+        {
+            ERROR_PRINT("Failed to wake isospi after wake to core\n");
+            return 2;
+        }
+        long_delay_us(NUM_BOARDS * LTC_T_READY_US); // Have to be careful here, with 14 AMS boards we wait 2.3ms and t_IDLE is 2.4ms
+#endif
     }
 	else{
 		if (batt_spi_tx(&dummy, JUNK_SIZE))
 		{
-			ERROR_PRINT("Failed to wakeup batt spi\n");
+			ERROR_PRINT("Failed to wakeup isospi while not asleep\n");
 			return 1;
 		}
 	}
@@ -196,8 +188,8 @@ float batt_convert_voltage_to_temp(float voltage) {
     return output;
 }
 
-/* delay function for wakeup */
-void delay_us(uint32_t time_us)
+/* delay function for wakeup. Use for delays < 1ms to reduce tight polling time */
+void delay_us(uint16_t time_us)
 {
 	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
 	__HAL_TIM_SetAutoreload(&DELAY_TIMER,0xffff);
@@ -206,3 +198,15 @@ void delay_us(uint32_t time_us)
 	HAL_TIM_Base_Stop(&DELAY_TIMER);
 }
 
+void long_delay_us(const uint32_t time_us)
+{
+    const uint32_t ms_delay = (time_us / 1000);
+    vTaskDelay(ms_delay);
+
+    const uint32_t us_delay = (time_us % 1000);
+	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
+	__HAL_TIM_SetAutoreload(&DELAY_TIMER,0xffff);
+	HAL_TIM_Base_Start(&DELAY_TIMER);
+	while(DELAY_TIMER_INSTANCE->CNT < (time_us % 1000));
+	HAL_TIM_Base_Stop(&DELAY_TIMER);
+}

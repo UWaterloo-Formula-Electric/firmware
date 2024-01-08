@@ -518,8 +518,6 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -538,9 +536,9 @@ void enterAdjustedCellVoltages(void)
     //static bool filter = false;
     float bus_current_A;
     getIBus(&bus_current_A);
-    DEBUG_PRINT("RV[2]: %.4f\n", VoltageCell[2]);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
+        DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
         // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
         // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
         // if(filter)

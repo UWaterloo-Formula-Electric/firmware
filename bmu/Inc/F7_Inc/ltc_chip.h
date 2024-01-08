@@ -22,7 +22,7 @@
 extern uint32_t delay_US;
 extern uint32_t delay_MS;
 /// Number of AMS boards in system
-#define NUM_BOARDS                  1
+#define NUM_BOARDS                  2
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             10
 /// Number of thermistors attached to each AMS, starting from A0
@@ -66,6 +66,10 @@ extern uint32_t delay_MS;
 #if NUM_TEMP_CELLS > TEMPCHANNEL_COUNT
 #error "DBC file has less temp cells defined then they are in the system"
 #endif
+
+#define LTC_T_WAKE_MAX_US  300          // TYP=100us. Regulator Start-Up Time aka time to get VREG Generated from Drive Pin. This happens during transition from SLEEP to STANDBY states in core LTC state machine
+#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
+                                        /* When isoSPI port A receives a WAKEUP signal, the isoSPI enters the READY state. This transition happens quickly (within t_READY) if the Core is in the STANDBY state because the DRIVE and VREG pins are already biased up. If the Core is in the SLEEP state when the isoSPI receives a WAKEUP signal, then it transitions to the READY state within t_WAKE. */
 
 #if LTC_CHIP == LTC_CHIP_6804
 // We set this to 3 as the last 3 cell connections are actually CELL7 which is on the 2nd chip
