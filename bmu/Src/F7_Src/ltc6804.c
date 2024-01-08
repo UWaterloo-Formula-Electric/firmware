@@ -355,12 +355,12 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
  */
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation)
 {
+	uint8_t cell_indexes_allocated = 0;
+
 	if (batt_spi_wakeup(false /* not sleeping*/))
 	{
 		return HAL_ERROR;
 	}
-
-	uint8_t cell_indexes_allocated = 0;
 
 	for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 		uint8_t cmdByteLow, cmdByteHigh;
@@ -407,35 +407,32 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		const uint8_t block_lowest_cell_num = (block * VOLTAGES_PER_BLOCK) + 1; // +1 as LTC cell numbering is not 0 indexed
 		
-		for (int board = 0; board < NUM_BOARDS; ++board)
+		for (int block_index = 0; block_index < VOLTAGES_PER_BLOCK; block_index++)
 		{
-			const uint16_t board_data_starting_index = (board * VOLTAGE_BLOCK_SIZE);
-			const uint16_t board_starting_cell_index = board * CELLS_PER_BOARD;
-			for (int block_index = 0; block_index < VOLTAGES_PER_BLOCK; block_index++)
+			const uint8_t ltc_cell_num = block_lowest_cell_num + block_index;
+			// Only 10 of the 12 voltage sense lines on the chip are are useful
+			// pins C6 is connected to CELL5 and C12 is connected to Cell10 which we are the measurements we discard
+			if(ltc_cell_num == 6 || ltc_cell_num == 12)
 			{
-				const uint8_t ltc_cell_num = block_lowest_cell_num + block_index;
+				continue;
+			}
 
-				// Only 10 of the 12 voltage sense lines on the chip are are useful
-				// pins C6 is connected to CELL5 and C12 is connected to Cell10 which we are the measurements we discard
-				if(ltc_cell_num == 6 || ltc_cell_num == 12)
-				{
-					continue;
-				}
-
-				size_t cell_voltage_data_index = board_data_starting_index + (block_index * CELL_VOLTAGE_SIZE_BYTES);
-				size_t cellIdx = board_starting_cell_index + cell_indexes_allocated;
-
-				uint16_t adc_reading = ((uint16_t) (adc_vals[(cell_voltage_data_index + 1)] << 8 | adc_vals[cell_voltage_data_index]));
-
-				cell_voltage_array[cellIdx] = ((float)adc_reading) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+			for (int board = 0; board < NUM_BOARDS; ++board)
+			{
+				const size_t cell_voltage_data_index = (board * VOLTAGE_BLOCK_SIZE) + (block_index * CELL_VOLTAGE_SIZE_BYTES);
+				const uint16_t adc_reading = ((uint16_t) (adc_vals[(cell_voltage_data_index + 1)] << 8 | adc_vals[cell_voltage_data_index]));
+				
+				const size_t bmu_cell_idx = (board * CELLS_PER_BOARD) + cell_indexes_allocated;
+				cell_voltage_array[bmu_cell_idx] = ((float)adc_reading) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
+				
 				if(voltage_operation == OPEN_WIRE)
 				{
 					open_wire_failure[cellIdx].num_times_consec = 0;
 				}
-				cell_indexes_allocated++;
 			}
-
+			++cell_indexes_allocated;
 		}
+	}
 
     return HAL_OK;
 }
