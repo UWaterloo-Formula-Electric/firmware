@@ -110,11 +110,11 @@ void batt_init_chip_configs()
 }
 
 
-HAL_StatusTypeDef format_and_send_config(uint8_t config[BATT_CONFIG_SIZE])
+HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
 	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
 	uint8_t txBuffer[BUFF_SIZE];
-	if (batt_format_write_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer, config, BATT_CONFIG_SIZE) != HAL_OK) {
+	if (batt_format_write_config_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer, config, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
 	}
@@ -131,11 +131,7 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[BATT_CONFIG_SIZE])
 
 HAL_StatusTypeDef batt_write_config()
 {
-	for(int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
-			format_and_send_config(m_batt_config[board][ltc_chip]);
-		}
-	}
+	format_and_send_config(m_batt_config);
     return HAL_OK;
 }
 
@@ -172,7 +168,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		{
 			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
-			// return HAL_ERROR;
+			return HAL_ERROR;
 		}
 	}
 
@@ -467,15 +463,15 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 
 void batt_set_balancing_cell (int board, int chip, int cell) {
-	if(cell >= 4)
+	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
-		// We skip S5, S6 in the schematic
-		cell += 2;
+		// LTC C6 is not used so bump index up
+		cell++;
 	}
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config[board][chip][4], cell);
     } else { // This register byte only contains 4 bits
-		SETBIT(m_batt_config[board][chip][5], cell - 8);
+		SETBIT(m_batt_config[board][chip][5], cell-8);
 	}
 }
 

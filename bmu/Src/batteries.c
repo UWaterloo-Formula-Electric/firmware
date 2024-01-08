@@ -538,7 +538,7 @@ void enterAdjustedCellVoltages(void)
     getIBus(&bus_current_A);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
+        // DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
         // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
         // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
         // if(filter)

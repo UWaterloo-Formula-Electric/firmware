@@ -319,14 +319,14 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
+        DEBUG_PRINT("Tried to balance a cell out of range (needs to be < %u)\r\n", NUM_VOLTAGE_CELLS);
         return HAL_ERROR;
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD + chipIdx * CELLS_PER_CHIP);
+    int bmuCellIdx = (cell % CELLS_PER_BOARD);
 
-    batt_set_balancing_cell(boardIdx, chipIdx, amsCellIdx);
+    batt_set_balancing_cell(boardIdx, 0, bmuCellIdx);
 
     return HAL_OK;
 }
@@ -338,10 +338,9 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD + chipIdx * CELLS_PER_CHIP);
+    int bmuCellIdx = cell % CELLS_PER_BOARD;
 
-    batt_unset_balancing_cell(boardIdx, chipIdx, amsCellIdx);
+    batt_unset_balancing_cell(boardIdx, 0, bmuCellIdx);
 
     return HAL_OK;
 }

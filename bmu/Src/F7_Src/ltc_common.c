@@ -15,18 +15,17 @@ HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, u
     return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_format_write_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t* writeData, uint8_t writeDataSize)
+HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t writeData[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t writeDataSize)
 {
+    uint8_t data_PEC[2];
+    uint8_t txBufferIndex = COMMAND_SIZE + PEC_SIZE;
+
     batt_format_command(cmdByteLow, cmdByteHigh, txBuffer);
 
-    uint8_t data_PEC[2];
-    batt_gen_pec(writeData, writeDataSize, data_PEC);
-
-
-    uint8_t txBufferIndex = COMMAND_SIZE + PEC_SIZE;
     for (int board = 0; board < NUM_BOARDS; ++board)
     {
-        memcpy(&txBuffer[txBufferIndex], writeData, writeDataSize);
+        batt_gen_pec((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
+        memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);
         txBufferIndex += 6;
         memcpy(&txBuffer[txBufferIndex], data_PEC, 2);
         txBufferIndex += 2;
@@ -108,7 +107,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u == %u. %u == %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }

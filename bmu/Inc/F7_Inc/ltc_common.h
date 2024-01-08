@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "ltc_chip.h"
 
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define TEMP_CHANNELS_PER_BOARD     16
@@ -79,7 +80,7 @@
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
 
 HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer);
-HAL_StatusTypeDef batt_format_write_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t* writeData, uint8_t writeDataSize);
+HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t writeData[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t writeDataSize);
 void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr);
 HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len);
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int len);
