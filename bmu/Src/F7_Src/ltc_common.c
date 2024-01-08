@@ -1,6 +1,9 @@
+#include <string.h>
+
 #include "ltc_common.h"
 #include "ltc_chip.h"
 #include "math.h"
+
 
 // Write a broadcast command and pec to a tx buffer
 // Make sure txBuffer is big enough
@@ -9,6 +12,26 @@ HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, u
     txBuffer[0] = cmdByteLow;
     txBuffer[1] = cmdByteHigh;
     batt_gen_pec(txBuffer, COMMAND_SIZE, &(txBuffer[COMMAND_SIZE]));
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_format_write_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t* writeData, uint8_t writeDataSize)
+{
+    batt_format_command(cmdByteLow, cmdByteHigh, txBuffer);
+
+    uint8_t data_PEC[2];
+    batt_gen_pec(writeData, writeDataSize, data_PEC);
+
+
+    uint8_t txBufferIndex = COMMAND_SIZE + PEC_SIZE;
+    for (int board = 0; board < NUM_BOARDS; ++board)
+    {
+        memcpy(&txBuffer[txBufferIndex], writeData, writeDataSize);
+        txBufferIndex += 6;
+        memcpy(&txBuffer[txBufferIndex], data_PEC, 2);
+        txBufferIndex += 2;
+    }
+
     return HAL_OK;
 }
 
@@ -85,6 +108,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
+        DEBUG_PRINT("%u == %u. %u == %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }
@@ -207,6 +231,6 @@ void long_delay_us(const uint32_t time_us)
 	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
 	__HAL_TIM_SetAutoreload(&DELAY_TIMER,0xffff);
 	HAL_TIM_Base_Start(&DELAY_TIMER);
-	while(DELAY_TIMER_INSTANCE->CNT < (time_us % 1000));
+	while(DELAY_TIMER_INSTANCE->CNT < (us_delay % 1000));
 	HAL_TIM_Base_Stop(&DELAY_TIMER);
 }

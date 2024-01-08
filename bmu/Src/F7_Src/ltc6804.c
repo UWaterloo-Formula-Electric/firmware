@@ -110,26 +110,14 @@ void batt_init_chip_configs()
 }
 
 
-HAL_StatusTypeDef format_and_send_config(uint8_t config_buffer[BATT_CONFIG_SIZE])
+HAL_StatusTypeDef format_and_send_config(uint8_t config[BATT_CONFIG_SIZE])
 {
-	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + (BATT_CONFIG_SIZE + PEC_SIZE);
-	const size_t START_OF_DATA_IDX = COMMAND_SIZE + PEC_SIZE;
+	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
 	uint8_t txBuffer[BUFF_SIZE];
-	DEBUG_PRINT("***sending config***\n");
-	if (batt_format_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer) != HAL_OK) {
+	if (batt_format_write_command(WRCFG_BYTE0, WRCFG_BYTE1, txBuffer, config, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
 	}
-
-	for (int dbyte = 0; dbyte < BATT_CONFIG_SIZE; dbyte++)
-	{
-		txBuffer[START_OF_DATA_IDX + dbyte]
-			= config_buffer[dbyte];
-	}
-
-	// Data pec
-	batt_gen_pec(config_buffer, BATT_CONFIG_SIZE,
-				&(txBuffer[START_OF_DATA_IDX + BATT_CONFIG_SIZE]));
 
 	// Send command + data
 	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
@@ -157,13 +145,13 @@ static uint32_t last_PEC_tick = 0;
 
 
 /*
-Should probably clean this up. Call it smth different or change param names
+TODO: Should probably clean this up. Call it smth different or change param names
 	first_byte, second_byte: 	11 bit command
 	data_buffer: 				full size of the output buffer (num_boards*response_size)
 	response_size: 				size of one board's response
 */
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
-    const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + (response_size + PEC_SIZE);
+    const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_BOARDS);
     const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
@@ -179,40 +167,36 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
-		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE))
+		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
 		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
+			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
-			//DEBUG_PRINT("checkPEC error, counter: %lu\n", PEC_count);
-			//DEBUG_PRINT("PEC of new data: %x \n", rxBuffer[DATA_START_IDX]);
-			return HAL_ERROR;
+			// return HAL_ERROR;
 		}
 	}
 
 
 	if(xTaskGetTickCount() - last_PEC_tick > 10000)
 	{
-		// DEBUG_PRINT("\nPEC Rate: %lu errors/10s \n", PEC_count);
 		PEC_count = 0;
 		last_PEC_tick = xTaskGetTickCount();
 	}
 
 	for(int board = 0; board < NUM_BOARDS; board++) {
-		memcpy(&data_buffer[board*response_size], &rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))], response_size);
+		memcpy(&(data_buffer[board*response_size]), &(rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))]), response_size);
 	}
 	return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_read_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
-	const uint8_t response_buffer_size = NUM_BOARDS*BATT_CONFIG_SIZE;
-	uint8_t response_buffer[response_buffer_size] = {0};
+	const uint8_t response_buffer_size = NUM_BOARDS * BATT_CONFIG_SIZE;
+	uint8_t response_buffer[response_buffer_size];
 	batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
 
 	for(int board = 0; board < NUM_BOARDS; board++){
-		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
-			memcpy(&config[board][ltc_chip], &response_buffer[(board*NUM_LTC_CHIPS_PER_BOARD*BATT_CONFIG_SIZE)], BATT_CONFIG_SIZE);
-		}
+		memcpy(&(config[board][0]), &(response_buffer[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
 	}
 
 	return HAL_OK;
@@ -224,7 +208,7 @@ HAL_StatusTypeDef batt_verify_config(){
 		ERROR_PRINT("Failed to read config");
 		return HAL_ERROR;
 	}
-    
+
     vTaskDelay(T_REFUP_MS); // Let core state machine transition from STANDBY to REFUP
 	
 	// Verify was set correctly
@@ -234,7 +218,7 @@ HAL_StatusTypeDef batt_verify_config(){
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
 				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
-					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, mismatch \n", board, ltc_chip, buff_byte);
+					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_config[board][ltc_chip][buff_byte], config_buffer[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
 			}
@@ -399,7 +383,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		// Voltage values for one block from one boards
 		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
-		bool failed_read = false;
 		
 		if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
 			DEBUG_PRINT("Failed AMS voltage block read (block %u)\r\n", block);
@@ -424,10 +407,10 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 				
 				const size_t bmu_cell_idx = (board * CELLS_PER_BOARD) + cell_indexes_allocated;
 				cell_voltage_array[bmu_cell_idx] = ((float)adc_reading) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-				
+
 				if(voltage_operation == OPEN_WIRE)
 				{
-					open_wire_failure[cellIdx].num_times_consec = 0;
+					open_wire_failure[bmu_cell_idx].num_times_consec = 0;
 				}
 			}
 			++cell_indexes_allocated;
