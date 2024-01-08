@@ -437,8 +437,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		size_t cellIdx = (board * THERMISTORS_PER_BOARD) + channel;
 		
 		// We only use the first GPIO register, 2 bytes out of the total 6 in adc_vals
-		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH] << 8
-									| adc_vals[TEMP_ADC_IDX_LOW]));
+		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH + (board * AUX_BLOCK_SIZE)] << 8
+									| adc_vals[TEMP_ADC_IDX_LOW + (board * AUX_BLOCK_SIZE)]));
 		float voltageThermistor = ((float)adcCounts) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
 		// cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
 		cell_temp_array[cellIdx] = voltageThermistor;
