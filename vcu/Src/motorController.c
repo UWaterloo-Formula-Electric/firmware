@@ -40,12 +40,14 @@ float map_range_float(float in, float low, float high, float low_out, float high
 HAL_StatusTypeDef initMotorControllerSettings()
 {
     mcSettings.InverterMode = 0;
-    mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM;
+    mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM; 
+    mcSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT_NM;
+    mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
+
+    // TODO - legacy settings - do we still need?
     mcSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
     mcSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
     mcSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
-    mcSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT_NM;
-    mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
     return HAL_OK;
 }
 
@@ -179,19 +181,13 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
 
 HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle) {
 
-    if (isLockoutDisabled()) {
-        // But it shouldn't be enabled if we made it to this function
-        // Unsure if check needed, perhaps not
-        // return sendLockoutReleaseToMC();
-    }
-
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
     float scaledTorque = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
     uint16_t requestedTorque = scaledTorque * 10;
 
     VCU_INV_Torque_Command = requestedTorque;
-    VCU_INV_Torque_Command = 100;
+    VCU_INV_Torque_Command = 100; // hardcoded for testing
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;

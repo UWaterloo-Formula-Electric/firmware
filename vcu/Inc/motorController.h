@@ -32,11 +32,11 @@
 
 typedef struct MotorControllerSettings {
     bool InverterMode;
-    float DriveTorqueLimit;
+    float DriveTorqueLimit; // Adjustable torque limit
     float ForwardSpeedLimit;
     float DischargeCurrentLimit;
     float ChargeCurrentLimit;
-    float MaxTorqueDemand;
+    float MaxTorqueDemand; // Motor max torque (datasheet)
     bool DirectionCommand;
 } MotorControllerSettings;
 
