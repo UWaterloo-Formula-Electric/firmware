@@ -169,12 +169,12 @@ BO_ 2215641610 WSBRL_Sensors: 8 WSBRL
  SG_ RL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
 
 BO_ 2215641609 WSBFR_Sensors: 8 WSBFR
- SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
- SG_ FR_Speed_RAD_S : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_BeagleBone
+ SG_ FR_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_F7,VCU_BeagleBone
+ SG_ FR_Speed_RAD_S : 32|16@1- (0.0625,0) [0|4095.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
 BO_ 2215641608 WSBFL_Sensors: 8 WSBFL
- SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_BeagleBone
- SG_ FL_Speed_RAD_S : 32|16@1- (0.0625,0) [-2048|2047.9375] "rad/s"  VCU_BeagleBone
+ SG_ FL_WheelDistance : 0|32@1+ (1,0) [0|4294967295] "mm"  VCU_F7,VCU_BeagleBone
+ SG_ FL_Speed_RAD_S : 32|16@1- (0.0625,0) [-2048|2047.9375] "rad/s"  VCU_F7,VCU_BeagleBone
 
 BO_ 2281835521 BMU_BatteryChecks: 8 BMU
  SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -734,9 +734,9 @@ BO_ 2365563137 MC_Temperature_Set_2: 8 INV
 
 BO_ 2365562881 MC_Temperature_Set_1: 8 INV
  SG_ INV_Gate_Driver_Board_Temp : 48|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  VCU_F7
- SG_ INV_Module_C_Temp : 32|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  VCU_F7
- SG_ INV_Module_B_Temp : 16|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  VCU_F7
- SG_ INV_Module_A_Temp : 0|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  VCU_F7
+ SG_ INV_Module_C_Temp : 32|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  PDU,VCU_F7
+ SG_ INV_Module_B_Temp : 16|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  PDU,VCU_F7
+ SG_ INV_Module_A_Temp : 0|16@1- (0.1,0) [-3276.8|3276.7] "temperature:C"  PDU,VCU_F7
 
 BO_ 2365566465 MC_Firmware_Info: 8 INV
  SG_ INV_Project_Code_EEP_Ver : 0|16@1+ (1,0) [0|65535] ""  VCU_F7

@@ -79,7 +79,7 @@ HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
     VCU_INV_Parameter_Data = data; // Is this needed for reading? todo
 
     if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
-        ERROR_PRINT("Failed to send param message to MC\n");
+        ERROR_PRINT("Failed to send read param message to MC\n");
         return HAL_ERROR;
     }
     return HAL_OK;
@@ -91,7 +91,7 @@ HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data) {
     VCU_INV_Parameter_Data = data;
 
     if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
-        ERROR_PRINT("Failed to send param message to MC\n");
+        ERROR_PRINT("Failed to send write param message to MC\n");
         return HAL_ERROR;
     }
     return HAL_OK;
@@ -128,7 +128,10 @@ HAL_StatusTypeDef mcInit() {
     DEBUG_PRINT("Motor controller ready.\n");
 
     DEBUG_PRINT("Initializing default settings...");
+
     // Todo - disable unused broadcasts
+
+    // This isn't really used, but may have future use?
     initMotorControllerSettings();
 
     requestTorqueFromMC(0,0);
