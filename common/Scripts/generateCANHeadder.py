@@ -337,14 +337,12 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
         fWrite('}} {msg.name}_unpacked;'.format(**locals()), headerFileHandle)
 
 def getMultiplexerId(signal):
-    print(signal)
     if not signal.is_multiplexer:
         return signal.multiplexer_ids[0]
     else:
         return 0
 
 def getMultiplexedMsgInfo(msg):  
-    print(msg.signal_tree)
     for multiplexer in msg.signal_tree[0]:
         signalGroupsList = msg.signal_tree[0][multiplexer]
         signalGroup = signalGroupsList[0]
