@@ -49,27 +49,39 @@ static void ledc_init() {
 
 // Function to set the PWM duty cycle
 static esp_err_t set_pwm_duty(uint32_t duty_percent) {
+    esp_err_t ret;
     uint32_t duty = 8191 * (duty_percent / 100); // 8191 for 10-bit resolution
-    // esp_err_t ret = ledc_set_duty;
-    // if (ret == error)
+    
+    // Set the duty cycle 
+    ret = ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty);
+    if (ret != ESP_OK){
+        printf("Error setting duty cycle: %s\n", esp_err_to_name(ret));
+        return ret;
+    }
 
-    // ret = ledc_update_duty;
-
-    // if ret == error 
-    //     return error
-
-    // return OK;
-    return ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty) | ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
+    // update duty cycle to take effect 
+    ret = ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
+    if (ret != ESP_OK) { 
+        // Handle error 
+        printf("Error updating duty cycle: %s\n", esp_err_to_name(ret));
+        return ret;
+    } 
+    return ESP_OK;
 }
+
 // Simulate different IMD statuses
 static void simulate_imd_status(uint32_t freq_mhz, uint32_t duty_percent) {
+
     // Adjust LEDC frequency
     ledc_set_freq(LEDC_MODE, LEDC_TIMER, freq_mhz);
+
     // Adjust duty cycle
-    set_pwm_duty(duty_percent);
+    esp_err_t ret = set_pwm_duty(duty_percent);
+    if (ret != ESP_OK) {
+        // Handle error
+        printf("Error in stimulate_imd_status: %s\n", esp_err_to_name(ret)); 
+    }
 }
-
-
 
 
 void process_rx_task (void * pvParameters)
