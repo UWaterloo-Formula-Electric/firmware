@@ -33,8 +33,13 @@ NS_ :
 
 BS_:
 
-BU_: Computer PDU_HIL VCU_HIL
+BU_: BMU_HIL Computer PDU_HIL VCU_HIL
 
+
+BO_ 2214658559 BMU_PWMConfig: 7 Computer
+ SG_ PWMPinNumber : 48|8@1+ (1,0) [0|0] ""  BMU_HIL
+ SG_ PWMFreqHz : 16|32@1+ (1,0) [0|0] ""  BMU_HIL
+ SG_ PWMDutyCycle : 0|16@1+ (1,0) [0|65535] ""  BMU_HIL
 
 BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
  SG_ PowRightFan : 11|1@1+ (1,0) [0|1] ""  Computer

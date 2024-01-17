@@ -6,6 +6,7 @@
 #include "userInit.h"
 #include "canReceive.h"
 #include "processCAN.h"
+#include "pwm.h"
 
 /* Variables needed for CAN message processing */
 static uint32_t byte_0 = 0U;
@@ -24,6 +25,8 @@ void process_rx_task (void * pvParameters)
         
         switch(can_msg.identifier)
         {
+            case BMU_PWM_CONFIG_CAN_ID:
+
             default:
                 printf("CAN ID not recognized %ld\r\n", can_msg.identifier);
                 break;
