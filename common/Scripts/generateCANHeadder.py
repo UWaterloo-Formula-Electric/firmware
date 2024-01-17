@@ -342,7 +342,7 @@ def getMultiplexerId(signal):
     else:
         return 0
 
-def getMultiplexedMsgInfo(msg):  
+def getMultiplexedMsgInfo(msg):
     for multiplexer in msg.signal_tree[0]:
         signalGroupsList = msg.signal_tree[0][multiplexer]
         signalGroup = signalGroupsList[0]

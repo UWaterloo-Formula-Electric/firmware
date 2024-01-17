@@ -108,7 +108,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
                 /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
             }
         } else {
-#endif 
+#endif
             if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
             }
