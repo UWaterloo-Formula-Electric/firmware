@@ -10,7 +10,6 @@ beaglebone:;
 
 dashboard:;
 	make -C beaglebone/app/wfe/dashboard/
-
 include bmu/board.mk
 include dcu/board.mk
 include pdu/board.mk
