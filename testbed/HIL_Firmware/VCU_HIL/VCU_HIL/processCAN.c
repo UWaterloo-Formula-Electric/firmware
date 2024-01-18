@@ -69,17 +69,38 @@ static esp_err_t set_pwm_duty(uint32_t duty_percent) {
     return ESP_OK;
 }
 
+// Function to set the PWM frequency
+static esp_err_t set_pwm_freq(uint32_t freq_mhz) {
+    uint32_t current_freq = ledc_get_freq(LEDC_MODE, LEDC_TIMER);
+
+    // Check if the new frequency is different from the current one
+    if (current_freq != freq_mhz) {
+        // Attempt to set the new frequency
+        esp_err_t ret = ledc_set_freq(LEDC_MODE, LEDC_TIMER, freq_mhz);
+        if (ret != ESP_OK) {
+            printf("Error setting frequency: %s\n", esp_err_to_name(ret));
+            return ret;
+        }
+    }
+    return ESP_OK;
+}
+
+
 // Simulate different IMD statuses
 static void simulate_imd_status(uint32_t freq_mhz, uint32_t duty_percent) {
-
     // Adjust LEDC frequency
-    ledc_set_freq(LEDC_MODE, LEDC_TIMER, freq_mhz);
-
-    // Adjust duty cycle
-    esp_err_t ret = set_pwm_duty(duty_percent);
+    esp_err_t ret = set_pwm_freq(freq_mhz);
     if (ret != ESP_OK) {
         // Handle error
-        printf("Error in stimulate_imd_status: %s\n", esp_err_to_name(ret)); 
+        printf("Error in simulate_imd_status (frequency): %s\n", esp_err_to_name(ret));
+        return;
+    }
+
+    // Adjust duty cycle
+    ret = set_pwm_duty(duty_percent);
+    if (ret != ESP_OK) {
+        // Handle error
+        printf("Error in simulate_imd_status (duty cycle): %s\n", esp_err_to_name(ret));
     }
 }
 
