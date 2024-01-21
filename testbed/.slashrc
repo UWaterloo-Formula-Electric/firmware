@@ -14,7 +14,7 @@ class ParamsPlugin(slash.plugins.PluginInterface):
 
     def configure_argument_parser(self, parser):
         parser.add_argument('-t', '--testbed', help='testbed to use')
-
+ 
     def configure_from_parsed_args(self, args):
         self.testbed_name = args.testbed
         if self.testbed_name is None:
@@ -22,7 +22,7 @@ class ParamsPlugin(slash.plugins.PluginInterface):
 
     def session_start(self):
         # TODO: Maybe move this to .slashrc as an arg
-        slash.g.vehicle_db = cantools.db.load_file("../common/Data/2018CAR.dbc")
+        slash.g.vehicle_db = cantools.db.load_file("../common/Data/2024CAR.dbc")
         slash.g.hil_db = cantools.db.load_file("HIL_Firmware/common/data/HIL.dbc")
 
         slash.g.vehicle_bus: SocketcanBus = NotImplemented

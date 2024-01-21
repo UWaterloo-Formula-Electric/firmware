@@ -168,7 +168,7 @@ BaseType_t heapUsageCommand(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(param, "min", paramLen)) {
         COMMAND_OUTPUT("Minimum free heap (bytes): %d\n", xPortGetMinimumEverFreeHeapSize()); 
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 
     return pdFALSE;
@@ -198,7 +198,7 @@ BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Turning can heartbeat off\n");
         heartbeatEnabled = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
     COMMAND_OUTPUT("WSB don't have a heartbeat\n");
@@ -228,7 +228,7 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
@@ -247,7 +247,7 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Turning can heartbeat %s for VCU_F7\n", onOff?"on":"off");
         VCU_F7_heartbeatEnabled = onOff;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
     COMMAND_OUTPUT("WSB don't have a heartbeat\n");

@@ -41,6 +41,7 @@ typedef enum VCU_Events_t {
     EV_DCU_Can_Timeout,
     EV_Throttle_Failure,
     EV_Fatal,
+    EV_Inverter_Fault,
     EV_ANY, // Must be the last event
 } VCU_Events_t;
 

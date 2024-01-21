@@ -30,8 +30,8 @@
 #define DCU_SENSE_GPIO_Port (GPIOA)
 #define DCU_SENSE_Pin (GPIO_PIN_3)
 
-#define MC_LEFT_SENSE_GPIO_Port (GPIOA)
-#define MC_LEFT_SENSE_Pin (GPIO_PIN_4)
+#define MC_SENSE_GPIO_Port (GPIOA)
+#define MC_SENSE_Pin (GPIO_PIN_4)
 
 #define PUMP_LEFT_SENSE_GPIO_Port (GPIOA)
 #define PUMP_LEFT_SENSE_Pin (GPIO_PIN_5)
@@ -105,8 +105,8 @@
 #define PUMP_LEFT_EN_GPIO_Port (GPIOD)
 #define PUMP_LEFT_EN_Pin (GPIO_PIN_6)
 
-#define MC_LEFT_EN_GPIO_Port (GPIOD)
-#define MC_LEFT_EN_Pin (GPIO_PIN_7)
+#define MC_EN_GPIO_Port (GPIOD)
+#define MC_EN_Pin (GPIO_PIN_7)
 
 #define CAN_RX_GPIO_Port (GPIOB)
 #define CAN_RX_Pin (GPIO_PIN_3)

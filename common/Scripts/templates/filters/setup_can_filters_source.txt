@@ -50,7 +50,30 @@ __weak void ${functionName}(CAN_HandleTypeDef* canHandle)
         Error_Handler();
     }
 
+    // if VCU, allow Cascadia Motion messages
+    if (CAN_NODE_ADDRESS == ID_VCU_F7 || CAN_NODE_ADDRESS == ID_PDU) {
+        filterID = 0xCFF<<16;
+        filterID = filterID << 3; // Filter ID is left aligned to 32 bits
+        filterMask = 0xFF0000;
+        filterMask = filterMask << 3; // Filter masks are also left aligned to 32 bits
+        sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+        sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+        sFilterConfig.FilterIdHigh = (filterID>>16) & 0xFFFF;
+        sFilterConfig.FilterIdLow = (filterID & 0xFFFF);
+        sFilterConfig.FilterMaskIdHigh = (filterMask>>16) & 0xFFFF;
+        sFilterConfig.FilterMaskIdLow = (filterMask & 0xFFFF);
+        sFilterConfig.FilterFIFOAssignment = 0;
+        sFilterConfig.FilterActivation = ENABLE;
+        sFilterConfig.FilterBank = 2;
+
+        sFilterConfig.SlaveStartFilterBank = 0;
+
+        //From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+        if(HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)
+        {
+            Error_Handler();
+        }
+    }
+
     ${extraMessageTemplate}
-
-
 }

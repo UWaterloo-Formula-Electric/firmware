@@ -201,7 +201,7 @@ bool checkBlownFuse(float channelCurrent)
 
 void sensorTask(void *pvParameters)
 {
-    if (registerTaskToWatch(4, 2*pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(SENSOR_TASK_ID, 2*pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register sensor task with watchdog!\n");
         Error_Handler();
@@ -236,7 +236,7 @@ void sensorTask(void *pvParameters)
             lastLvBattLowSent = xTaskGetTickCount();
         }
 
-        watchdogTaskCheckIn(4);
+        watchdogTaskCheckIn(SENSOR_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_PERIOD_MS));
     }
 }

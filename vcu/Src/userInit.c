@@ -1,6 +1,5 @@
 #include "FreeRTOS.h"
 #include "task.h"
-#include "CRC_CALC.h"
 
 #include "bsp.h"
 #include "debug.h"
@@ -10,6 +9,7 @@
 #include "motorController.h"
 #include "beaglebone.h"
 #include "generalErrorHandler.h"
+#include "vcu_F7_can.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -27,7 +27,6 @@ void userInit()
     if (debugInit() != HAL_OK) {
         Error_Handler();
     }
-	generate_CRC_lookup_table();
 
     if (driveByWireInit() != HAL_OK)
     {
@@ -44,7 +43,7 @@ void userInit()
       Error_Handler();
     }
 
-    if (initMotorControllerProcanSettings() != HAL_OK) {
+    if (initMotorControllerSettings() != HAL_OK) {
       Error_Handler();
     }
 

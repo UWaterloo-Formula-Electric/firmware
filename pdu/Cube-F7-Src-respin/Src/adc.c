@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -214,7 +214,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = FAN_RIGHT_SENSE_Pin|DCU_SENSE_Pin|MC_LEFT_SENSE_Pin|PUMP_LEFT_SENSE_Pin
+    GPIO_InitStruct.Pin = FAN_RIGHT_SENSE_Pin|DCU_SENSE_Pin|MC_SENSE_Pin|PUMP_LEFT_SENSE_Pin
                           |FAN_LEFT_SENSE_Pin|VCU_SENSE_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -283,7 +283,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     HAL_GPIO_DeInit(GPIOC, CURRENT_MEASURE_Pin|VOLTAGE_MEASURE_Pin|MC_RIGHT_SENSE_Pin|PUMP_RIGHT_SENSE_Pin
                           |BMU_SENSE_Pin|WSB_SENSE_Pin);
 
-    HAL_GPIO_DeInit(GPIOA, FAN_RIGHT_SENSE_Pin|DCU_SENSE_Pin|MC_LEFT_SENSE_Pin|PUMP_LEFT_SENSE_Pin
+    HAL_GPIO_DeInit(GPIOA, FAN_RIGHT_SENSE_Pin|DCU_SENSE_Pin|MC_SENSE_Pin|PUMP_LEFT_SENSE_Pin
                           |FAN_LEFT_SENSE_Pin|VCU_SENSE_Pin);
 
     HAL_GPIO_DeInit(GPIOB, BRAKE_LIGHT_SENSE_Pin|AUX_SENSE_Pin);

@@ -142,6 +142,7 @@ def parseCanDB(db, nodeName):
     nodeName = nodeName.upper()
 
     rxMessages = [msg for msg in db.messages if isRxMessage(msg, nodeName)]
+    
     txMessages = [msg for msg in db.messages if nodeName in msg.senders]
 
     multiplexedRxMessages = [msg for msg in rxMessages if msg.is_multiplexed()]
@@ -266,7 +267,7 @@ def writeValueTableEnum(signal, headerFileHandle):
     if signal.choices is not None:
         fWrite('enum {sigName}_Values {{'.format(sigName=signal.name), headerFileHandle)
         for Value, Name in signal.choices.items():
-            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=Name, Value=Value), headerFileHandle)
+            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=str(Name).replace(' ','_'), Value=Value), headerFileHandle)
 
         fWrite('};\n', headerFileHandle)
 
@@ -644,7 +645,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
     fWrite("""
         default:
         {
-            // Ignore unkown messages
+            // Ignore unknown messages
             break;
         }
     }
@@ -656,7 +657,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
 def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
     templateHolder = ""
-    i = 1
+    i = 2 # Start at 2 to accomodate inverter group
     for messageGroup in messageGroups:
         i = i + 1
         templateData = {
@@ -779,7 +780,7 @@ def main(argv):
     depFile = os.path.join(genDir, 'canGen.d')
 
     dataDir = os.path.join(commonDir, 'Data')
-    mainDbFile = os.path.join(dataDir, '2018CAR.dbc')
+    mainDbFile = os.path.join(dataDir, '2024CAR.dbc')
 
     headerFile = os.path.join(genIncDir, nodeName + '_can.h')
     sourceFile = os.path.join(genSrcDir, nodeName + '_can.c')

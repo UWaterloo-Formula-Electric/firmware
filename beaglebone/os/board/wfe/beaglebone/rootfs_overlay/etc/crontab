@@ -1,1 +1,1 @@
-@reboot python /home/wfe/app/wfe/can_monitor.py -d /home/wfe/data/2018CAR.dbc & 
+@reboot python /home/wfe/app/wfe/can_monitor.py -d /home/wfe/data/2024CAR.dbc & 

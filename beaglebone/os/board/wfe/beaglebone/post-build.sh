@@ -3,7 +3,7 @@ BOARD_DIR="$(dirname $0)"
 APP_DIR="${BOARD_DIR}/../../../../app/"
 HOME_DIR="${TARGET_DIR}/home/wfe/"
 DATA_DIR="${TARGET_DIR}/home/wfe/data"
-DBC_FILE="${APP_DIR}/../../common/Data/2018CAR.dbc"
+DBC_FILE="${APP_DIR}/../../common/Data/2024CAR.dbc"
 
 cp $BOARD_DIR/uEnv.txt $BINARIES_DIR/uEnv.txt
 

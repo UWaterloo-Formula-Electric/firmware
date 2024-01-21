@@ -16,7 +16,7 @@ volatile bool DC_DC_state = false;
 
 void powerTask(void *pvParameters)
 {
-    if (registerTaskToWatch(5, 2*POWER_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
+    if (registerTaskToWatch(POWER_TASK_ID, 2*POWER_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register power task with watchdog!\n");
         Error_Handler();
@@ -39,7 +39,7 @@ void powerTask(void *pvParameters)
 
             sendCAN_PDU_DCDC_Status();
         }
-        watchdogTaskCheckIn(5);
+        watchdogTaskCheckIn(POWER_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, POWER_TASK_INTERVAL_MS);
     }
 }
