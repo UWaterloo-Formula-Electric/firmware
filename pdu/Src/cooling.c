@@ -47,7 +47,7 @@ void coolingTask(void *pvParameters) {
     {
         // Only cool if motor controller on and EM enabled
         // Should we check if MC is on?
-        if (fsmGetState(&mainFsmHandle) == MN_STATE_Motors_On && DC_DC_state) {
+        if (fsmGetState(&mainFsmHandle) == STATE_Motors_On && DC_DC_state) {
             cooling_state = COOL_STATE_ON;
             DEBUG_PRINT("Cooling enabled\n");
         } else {

@@ -33,17 +33,17 @@ void hvCriticalDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
 
 Transition_t mainTransitions[] = {
-    { MN_STATE_Boards_Off, MN_EV_Init, &runSelftTests },
-    { MN_STATE_Boards_On, MN_EV_EM_Enable, &motorsOn }, 
-    { MN_STATE_Motors_On, MN_EV_EM_Disable, &motorsOff },
-    { MN_STATE_Boards_On, MN_EV_EM_Disable, &mainDoNothing },
-    { MN_STATE_Motors_On, MN_EV_EM_Enable, &mainDoNothing },
-    { MN_STATE_Boards_On,  MN_EV_HV_CriticalFailure, &criticalFailureWarning },
-    { MN_STATE_Motors_On, MN_EV_HV_CriticalFailure, &criticalFailureWarning },
-    { MN_STATE_Warning_Critical, MN_EV_CriticalDelayElapsed, &criticalFailure },
-    { MN_STATE_Critical_Failure, MN_EV_ANY, &mainDoNothing },
-    { MN_STATE_Warning_Critical, MN_EV_ANY, &mainDoNothing },
-    { MN_STATE_ANY, MN_EV_ANY, &MainDefaultTransition}
+    { STATE_Boards_Off, EV_Init, &runSelftTests },
+    { STATE_Boards_On, EV_EM_Enable, &motorsOn }, 
+    { STATE_Motors_On, EV_EM_Disable, &motorsOff },
+    { STATE_Boards_On, EV_EM_Disable, &mainDoNothing },
+    { STATE_Motors_On, EV_EM_Enable, &mainDoNothing },
+    { STATE_Boards_On,  EV_HV_CriticalFailure, &criticalFailureWarning },
+    { STATE_Motors_On, EV_HV_CriticalFailure, &criticalFailureWarning },
+    { STATE_Warning_Critical, EV_CriticalDelayElapsed, &criticalFailure },
+    { STATE_Critical_Failure, EV_ANY, &mainDoNothing },
+    { STATE_Warning_Critical, EV_ANY, &mainDoNothing },
+    { STATE_ANY, EV_ANY, &MainDefaultTransition}
 };
 
 
@@ -61,16 +61,16 @@ HAL_StatusTypeDef mainControlInit()
         ERROR_PRINT("Failed to create software timer\n");
         return HAL_ERROR;
     }
-    init.maxStateNum = MN_STATE_ANY;
-    init.maxEventNum = MN_EV_ANY;
+    init.maxStateNum = STATE_ANY;
+    init.maxEventNum = EV_ANY;
     init.sizeofEventEnumType = sizeof(MAIN_PDU_Events_t);
-    init.ST_ANY = MN_STATE_ANY;
-    init.EV_ANY = MN_EV_ANY;
+    init.ST_ANY = STATE_ANY;
+    init.EV_ANY = EV_ANY;
     init.transitions = mainTransitions;
     init.transitionTableLength = TRANS_COUNT(mainTransitions);
     init.eventQueueLength = 5;
     init.watchdogTaskId = MAIN_CONTROL_TASK_ID;
-    if (fsmInit(MN_STATE_Boards_Off, &init, &mainFsmHandle) != HAL_OK) {
+    if (fsmInit(STATE_Boards_Off, &init, &mainFsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -84,7 +84,7 @@ HAL_StatusTypeDef mainControlInit()
 
 void mainControlTask(void *pvParameters)
 {
-    // Pre send MN_EV_INIT to kick off self tests
+    // Pre send EV_INIT to kick off self tests
     startControl();
 
     if (canStart(&CAN_HANDLE) != HAL_OK)
@@ -100,17 +100,17 @@ void mainControlTask(void *pvParameters)
 
 HAL_StatusTypeDef startControl()
 {
-    return fsmSendEvent(&mainFsmHandle, MN_EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
+    return fsmSendEvent(&mainFsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
 uint32_t startCriticalFailureDelay()
 {
     if (xTimerStart(criticalDelayTimer, 100) != pdPASS) {
         ERROR_PRINT("Failed to start critical delay timer\n");
-        return criticalFailure(MN_EV_CriticalDelayElapsed);
+        return criticalFailure(EV_CriticalDelayElapsed);
     }
 
-    return MN_STATE_Warning_Critical;
+    return STATE_Warning_Critical;
 }
 
 uint32_t criticalFailureWarning(uint32_t event)
@@ -136,7 +136,7 @@ uint32_t runSelftTests(uint32_t event)
     DEBUG_PRINT("Running self tests\n");
 
     turnBoardsOn();
-    return MN_STATE_Boards_On;
+    return STATE_Boards_On;
 }
 
 uint32_t MainDefaultTransition(uint32_t event)
@@ -171,30 +171,24 @@ HAL_StatusTypeDef turnBoardsOff()
 uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
-    if (fsmGetState(&mainFsmHandle) == MN_STATE_Boards_On) {
-        MC_LEFT_ENABLE; // use MC LEFT for 2024
+    if (fsmGetState(&mainFsmHandle) == STATE_Boards_On) {
+        MC_ENABLE;
     }
 
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
-        return motorsOff(MN_EV_EM_Disable);
+        return motorsOff(EV_EM_Disable);
     }
-    return MN_STATE_Motors_On;
-
-    // why is this down here?
-    if (!DC_DC_ON)
-    {
-        sendDTC_WARNING_PDU_EM_EN_BLOCKED_DCDC_OFF();
-    }
+    return STATE_Motors_On;
 }
 
 uint32_t motorsOff(uint32_t event)
 {
     DEBUG_PRINT("Turning motors off\n");
 
-    MC_LEFT_DISABLE;
+    MC_DISABLE;
 
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
 
@@ -202,10 +196,10 @@ uint32_t motorsOff(uint32_t event)
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
     }
 
-    if (event == MN_EV_EM_Disable) {
-        return MN_STATE_Boards_On;
+    if (event == EV_EM_Disable) {
+        return STATE_Boards_On;
     } else {
-        return MN_STATE_Critical_Failure;
+        return STATE_Critical_Failure;
     }
 }
 
@@ -216,8 +210,8 @@ uint32_t mainDoNothing(uint32_t event)
 
 void hvCriticalDelayCallback(TimerHandle_t timer)
 {
-    if (fsmSendEventUrgent(&mainFsmHandle, MN_EV_CriticalDelayElapsed, 10 /* timeout */) != HAL_OK) {
+    if (fsmSendEventUrgent(&mainFsmHandle, EV_CriticalDelayElapsed, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process critical delay elapsed event\n");
-        criticalFailure(MN_EV_CriticalDelayElapsed);
+        criticalFailure(EV_CriticalDelayElapsed);
     }
 }

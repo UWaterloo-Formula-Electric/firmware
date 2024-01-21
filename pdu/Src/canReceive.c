@@ -15,15 +15,15 @@ void CAN_Msg_UartOverCanConfig_Callback() {
 
 void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
     if (EM_Power_State_Request == EM_Power_State_Request_On) {
-        fsmSendEventISR(&mainFsmHandle, MN_EV_EM_Enable);
+        fsmSendEventISR(&mainFsmHandle, EV_EM_Enable);
     } else {
-        fsmSendEventISR(&mainFsmHandle, MN_EV_EM_Disable);
+        fsmSendEventISR(&mainFsmHandle, EV_EM_Disable);
     }
 }
 
 void DTC_Fatal_Callback(BoardIDs board) {
     DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
-    fsmSendEventUrgentISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);
+    fsmSendEventUrgentISR(&mainFsmHandle, EV_HV_CriticalFailure);
 }
 
 void CAN_Msg_MC_Temperature_Set_3_Callback() { // 10hz

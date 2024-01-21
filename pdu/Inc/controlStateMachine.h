@@ -5,12 +5,12 @@
 
 
 typedef enum Main_PDU_States_t {
-    MN_STATE_Boards_Off = 0,
-    MN_STATE_Boards_On,
-    MN_STATE_Motors_On,
-    MN_STATE_Warning_Critical,
-    MN_STATE_Critical_Failure,
-    MN_STATE_ANY, // Must be the last state
+    STATE_Boards_Off = 0,
+    STATE_Boards_On,
+    STATE_Motors_On,
+    STATE_Warning_Critical,
+    STATE_Critical_Failure,
+    STATE_ANY, // Must be the last state
 } Main_PDU_States_t;
 
 char PDU_Main_States_String[][25]={
@@ -23,12 +23,12 @@ char PDU_Main_States_String[][25]={
 };
 
 typedef enum MAIN_PDU_Events_t {
-    MN_EV_Init = 0,
-    MN_EV_HV_CriticalFailure,
-    MN_EV_CriticalDelayElapsed,
-    MN_EV_EM_Enable,
-    MN_EV_EM_Disable,
-    MN_EV_ANY, // Must be the last event
+    EV_Init = 0,
+    EV_HV_CriticalFailure,
+    EV_CriticalDelayElapsed,
+    EV_EM_Enable,
+    EV_EM_Disable,
+    EV_ANY, // Must be the last event
 } MAIN_PDU_Events_t;
 
 extern FSM_Handle_Struct mainFsmHandle;
