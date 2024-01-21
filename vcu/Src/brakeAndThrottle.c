@@ -277,6 +277,32 @@ void canPublishTask(void *pvParameters)
     }
 }
 
+void pollThrottle(void) {
+    ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
+
+    if (rc != THROTTLE_OK)
+    {
+        if (rc == THROTTLE_FAULT) {
+            sendDTC_CRITICAL_Throttle_Failure(0);
+            DEBUG_PRINT("Throttle value out of range\n");
+        } else if (rc == THROTTLE_DISABLED) {
+            sendDTC_CRITICAL_Throttle_Failure(1);
+            DEBUG_PRINT("Throttle disabled as brake pressed\n");
+        } else {
+            sendDTC_CRITICAL_Throttle_Failure(2);
+            DEBUG_PRINT("Unknown throttle error\r\n");
+        }
+        return HAL_ERROR;
+    }
+
+    if(isLockoutDisabled()) {
+        // Send torque request to MC
+        return requestTorqueFromMC(throttlePercentReading);                
+    } else {
+        // Send lockout release to MC
+        return sendLockoutReleaseToMC();
+    }
+}
 
 void throttlePollingTask(void) 
 {
@@ -301,31 +327,10 @@ void throttlePollingTask(void)
             }
 
             // Poll throttle
-            ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
-    
-            if (rc != THROTTLE_OK)
-            {
-                if (rc == THROTTLE_FAULT) {
-                    sendDTC_CRITICAL_Throttle_Failure(0);
-                    DEBUG_PRINT("Throttle value out of range\n");
-                } else if (rc == THROTTLE_DISABLED) {
-                    sendDTC_CRITICAL_Throttle_Failure(1);
-                    DEBUG_PRINT("Throttle disabled as brake pressed\n");
-                } else {
-                    sendDTC_CRITICAL_Throttle_Failure(2);
-                    DEBUG_PRINT("Unknown throttle error\r\n");
-                }
+            if (pollThrottle() != HAL_OK) {
+                ERROR_PRINT("ERROR: Failed to request torque from MC\n");
                 fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
             }
-
-            if(isLockoutDisabled()) {
-                // Send torque request to MC
-                requestTorqueFromMC(throttlePercentReading, getSteeringAngle());                
-            } else {
-                // Send lockout release to MC
-                sendLockoutReleaseToMC();
-            }
-
         }
         else
         {

@@ -43,7 +43,7 @@ typedef struct MotorControllerSettings {
 extern uint64_t maxTorqueDemand;
 
 HAL_StatusTypeDef mcInit();
-HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle);
+HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent);
 HAL_StatusTypeDef sendLockoutReleaseToMC();
 HAL_StatusTypeDef mcDisable();
 HAL_StatusTypeDef mcClearFaults();

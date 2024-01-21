@@ -169,4 +169,3 @@ void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
 {
     DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
 }
-

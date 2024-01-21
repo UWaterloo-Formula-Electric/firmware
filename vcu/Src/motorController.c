@@ -16,27 +16,6 @@ MotorControllerSettings mcSettings = {0};
 // This is bad but a band-aid, we should really create a good way and check inverter status
 volatile bool motors_active = false;
 
-float min(float a, float b)
-{
-    if (a < b) {
-        return a;
-    } else {
-        return b;
-    }
-}
-
-float map_range_float(float in, float low, float high, float low_out, float high_out) {
-    if (in < low) {
-        in = low;
-    } else if (in > high) {
-        in = high;
-    }
-    float in_range = high - low;
-    float out_range = high_out - low_out;
-
-    return (in - low) * out_range / in_range + low_out;
-}
-
 HAL_StatusTypeDef initMotorControllerSettings()
 {
     mcSettings.InverterMode = 0;
@@ -53,7 +32,7 @@ HAL_StatusTypeDef initMotorControllerSettings()
 
 HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings)
 {
-    memcpy(&mcSettings, &settings, sizeof(settings));
+    memcpy(&mcSettings, &settings, sizeof(MotorControllerSettings));
     return HAL_OK;
 }
 
@@ -129,10 +108,6 @@ HAL_StatusTypeDef mcInit() {
 
     DEBUG_PRINT("Motor controller ready.\n");
 
-    DEBUG_PRINT("Initializing default settings...");
-
-    // Todo - disable unused broadcasts
-
     // This isn't really used, but may have future use?
     initMotorControllerSettings();
 
@@ -150,6 +125,7 @@ HAL_StatusTypeDef sendDisableMC(void) {
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send disable message to MC\n");
+        sendDTC_FATAL_VCU_F7_MC_DISABLE_ERROR();
         return HAL_ERROR;
     }
 
@@ -157,7 +133,6 @@ HAL_StatusTypeDef sendDisableMC(void) {
 }
 
 HAL_StatusTypeDef mcDisable() {   
-    // todo addison
 	motors_active = false;
 	// Wait for final throttle messages to exit our CAN queue
     vTaskDelay(pdMS_TO_TICKS(250));
@@ -170,7 +145,7 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     // Based on Cascadia Motion documentation, need to send an inverter disable command to release lockout
     // Note - lockout will not disable if inverter is faulted
 
-    if (isLockoutDisabled()) { // disabled
+    if (isLockoutDisabled()) {
         // Don't need to release
         return HAL_OK;
     }
@@ -179,15 +154,14 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
 }
 
 
-HAL_StatusTypeDef requestTorqueFromMC(float throttle, int steeringAngle) {
+HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
 
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-    float scaledTorque = map_range_float(throttle, 0, 100, 0, maxTorqueDemand);
-    uint16_t requestedTorque = scaledTorque * 10;
+    float scaledTorque = map_range_float(throttle_percent, 0, 100, 0, maxTorqueDemand);
+    uint16_t requestTorque = scaledTorque * 10;
 
-    VCU_INV_Torque_Command = requestedTorque;
-    VCU_INV_Torque_Command = 100; // hardcoded for testing
+    VCU_INV_Torque_Command = requestTorque;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;
