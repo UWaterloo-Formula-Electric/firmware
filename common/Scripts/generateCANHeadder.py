@@ -645,7 +645,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
     fWrite("""
         default:
         {
-            // Ignore unkown messages
+            // Ignore unknown messages
             break;
         }
     }

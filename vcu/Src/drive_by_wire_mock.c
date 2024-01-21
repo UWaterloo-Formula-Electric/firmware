@@ -353,7 +353,7 @@ BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 

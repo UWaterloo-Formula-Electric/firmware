@@ -6,6 +6,8 @@
 #include "string.h"
 #include "inttypes.h"
 #include "drive_by_wire.h"
+#include "vcu_F7_dtc.h"
+#include "mathUtils.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
@@ -111,7 +113,7 @@ HAL_StatusTypeDef mcInit() {
     // This isn't really used, but may have future use?
     initMotorControllerSettings();
 
-    requestTorqueFromMC(0,0);
+    requestTorqueFromMC(0);
     motors_active = true;
 
     return HAL_OK;

@@ -277,7 +277,7 @@ void canPublishTask(void *pvParameters)
     }
 }
 
-void pollThrottle(void) {
+HAL_StatusTypeDef pollThrottle(void) {
     ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
 
     if (rc != THROTTLE_OK)
