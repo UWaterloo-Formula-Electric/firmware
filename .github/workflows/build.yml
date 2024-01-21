@@ -11,12 +11,13 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-18.04
     container:
       image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
 
       - name: Install dependencies
         run: pip install -r common/requirements.txt
