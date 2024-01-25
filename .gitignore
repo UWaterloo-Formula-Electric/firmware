@@ -59,3 +59,4 @@ beaglebone/os/Makefile
 ..config.tmp
 .config*
 
+BellCrankRotaryEncoder/
