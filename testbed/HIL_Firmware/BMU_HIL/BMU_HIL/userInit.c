@@ -9,32 +9,33 @@
 #include "userInit.h"
 #include "processCAN.h"
 #include "bmuOutputs.h"
+#include "pwm.h"
 
 /* Registering all tasks for FreeRTOS */
 void taskRegister(void)
 {
     BaseType_t xReturned = pdPASS;
-    TaskHandle_t can_rx_task_handler = NULL;
+    // TaskHandle_t can_rx_task_handler = NULL;
     TaskHandle_t can_process_task_handler = NULL;
     TaskHandle_t relay_bmu_outputs_handler = NULL;
 
-    /* Set up handler for receiving CAN messages */
-    xReturned = xTaskCreate(
-        can_rx_task,
-        "CAN_RECEIVE_TASK",
-        4000,
-        ( void * ) NULL,
-        configMAX_PRIORITIES-1,
-        &can_rx_task_handler
-    );
+    // /* Set up handler for receiving CAN messages */
+    // xReturned = xTaskCreate(
+    //     can_rx_task,
+    //     "CAN_RECEIVE_TASK",
+    //     4000,
+    //     ( void * ) NULL,
+    //     configMAX_PRIORITIES-1,
+    //     &can_rx_task_handler
+    // );
 
-    if(xReturned != pdPASS)
-    {
-        while(1)
-        {
-            printf("Failed to register can_rx_task to RTOS");
-        }
-    }
+    // if(xReturned != pdPASS)
+    // {
+    //     while(1)
+    //     {
+    //         printf("Failed to register can_rx_task to RTOS");
+    //     }
+    // }
 
     /* Set up handler for processing CAN messages */
     xReturned = xTaskCreate(
@@ -139,5 +140,6 @@ void app_main(void)
 {
     CAN_init();
     bmu_input_init();
+    pwm_init();
     taskRegister();
 }
