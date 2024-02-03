@@ -8,6 +8,7 @@
 #include "canReceive.h"
 #include "processCAN.h"
 #include "pwm.h"
+#include "pwm.h"
 
 /* Variables needed for CAN message processing */
 static uint32_t dbyte1 = 0U;
