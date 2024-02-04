@@ -83,6 +83,15 @@ osThreadId debugMsgNameHandle;
 osMessageQId msgQueueHandle;
 /* USER CODE BEGIN PV */
 
+// AMT SPI Commands
+#define CMD_NO_OPERATION 0x00
+#define CMD_READ_POS 0x10
+#define CMD_SET_ZERO_POINT 0x70
+uint8_t tx_data[8];
+uint8_t rx_data[8];
+uint16_t data_buffer;
+uint8_t msb;
+uint8_t lsb;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -132,7 +141,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -152,6 +160,8 @@ int main(void)
 
   /* Set CS Pin default high */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+  uint16_t encoder_reg;
 
   /* USER CODE END 2 */
 
@@ -502,23 +512,41 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
-  uint16_t raw;
-  char msg[30];
+  /* Start communication with the slave device by setting CS pin low */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
   vTaskDelay(100);
 
-  uint16_t encoder_reg;
+  /* No operation Command */
+  tx_data[0] = 0x00;
+  /* Read Position Command */
+  tx_data[1] = 0x10;
+  /* Set Zero Point Command */
+  tx_data[2] = 0x70;
 
   /* Infinite loop */
   for(;;)
   {
-    // Add your code here.
+    /* ROUGH IMPLEMENTATION */
+    /* Continue sending nop command until data is available */
+    while(HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY) == 0xA5){}
 
-    // example of how to Convert msg to string and print
-    // sprintf(msg, "ADC4= %hu\r\n", raw);
-    // HAL_UART_Transmit(&huart3, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+    // First nop command
+    HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&hspi1, rx_data[0], 1, HAL_MAX_DELAY);
 
+    // MSB
+    msb = (rx_data[0] & 0xF) << 4;
+
+    // Second nop command
+    HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&hspi1, rx_data[1], 1, HAL_MAX_DELAY);
+
+    lsb = rx_data[1];
+
+    /* Final Position Data */
+    data_buffer = (msb << 4) | lsb;
     osDelay(300);
   }
   /* USER CODE END 5 */
