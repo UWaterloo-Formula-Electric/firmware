@@ -83,15 +83,6 @@ osThreadId debugMsgNameHandle;
 osMessageQId msgQueueHandle;
 /* USER CODE BEGIN PV */
 
-// AMT SPI Commands
-#define CMD_NO_OPERATION 0x00
-#define CMD_READ_POS 0x10
-#define CMD_SET_ZERO_POINT 0x70
-uint8_t tx_data[8];
-uint8_t rx_data[8];
-uint16_t data_buffer;
-uint8_t msb;
-uint8_t lsb;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,11 +148,6 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
-  /* Set CS Pin default high */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-
-  uint16_t encoder_reg;
 
   /* USER CODE END 2 */
 
@@ -512,42 +498,91 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
-  /* Start communication with the slave device by setting CS pin low */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  #define COMMAND_SIZE 2
+  #define CMD_NO_OPERATION 0x00
+  #define CMD_READ_POS 0x10
+  #define CMD_SET_ZERO_POINT 0x70
+  #define CMD_TIMEOUT 10
+
+  const size_t BUFF_SIZE = COMMAND_SIZE;
+  uint8_t tx_data[COMMAND_SIZE];
+  uint8_t rx_data[COMMAND_SIZE];
+  uint16_t data_buffer;
 
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
-  vTaskDelay(100);
+  vTaskDelay(pdMS_TO_TICKS(100));
 
-  /* No operation Command */
-  tx_data[0] = 0x00;
-  /* Read Position Command */
-  tx_data[1] = 0x10;
-  /* Set Zero Point Command */
-  tx_data[2] = 0x70;
+  /* Clear the buffers */
+  memset(tx_data, 0, sizeof(tx_data));
+  memset(rx_data, 0, sizeof(rx_data));
 
-  /* Infinite loop */
+  /* Initial master command to read position */
+  tx_data[0] = 0x10;
+
+  // CS Low
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, BUFF_SIZE, CMD_TIMEOUT);
+  // CS High
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+  // Delay before next command send
+  vTaskDelay(pdMS_TO_TICKS(10));
+
+  uint8_t ret = 0;
+  while(ret == 0)
+  {
+    /* Continue sending nop command until data is available */
+    tx_data[0] = 0x00;
+
+    // cs low
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, CMD_TIMEOUT);
+    // cs high
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+    // Delay
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    if (rx_data[0] != 0xA5)
+    {
+      ret = 1;
+    }
+  }
+
+  /* Enter Infinite loop after connecting with the encoder */
   for(;;)
   {
-    /* ROUGH IMPLEMENTATION */
-    /* Continue sending nop command until data is available */
-    while(HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY) == 0xA5){}
-
-    // First nop command
-    HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi1, rx_data[0], 1, HAL_MAX_DELAY);
+    /* First NOP command */
+    // set cs low
+    tx_data[0] = 0x00;
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, BUFF_SIZE, CMD_TIMEOUT) != pdTRUE){
+      // DEBUG_PRINT("unable to retreive data \r\n"); // doesn't work
+      printf("Unable to communicate\n\r");
+    }
+    // Reset cs back to high
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    // Delay by 10ms before next read
+    vTaskDelay(pdMS_TO_TICKS(10));
 
     // MSB
-    msb = (rx_data[0] & 0xF) << 4;
+    data_buffer = (rx_data[0] & 0xF) << 8;
 
-    // Second nop command
-    HAL_SPI_Transmit(&hspi1, tx_data[0], 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi1, rx_data[1], 1, HAL_MAX_DELAY);
-
-    lsb = rx_data[1];
+    /* Second NOP command */
+    // consolidate SPI commands to one tx rx call
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, HAL_MAX_DELAY) != pdTRUE){
+      // DEBUG_PRINT("unable to communicate\r\n");
+      printf("Unable to communicate\n\r");
+    }
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    vTaskDelay(pdMS_TO_TICKS(10));
 
     /* Final Position Data */
-    data_buffer = (msb << 4) | lsb;
-    osDelay(300);
+    data_buffer |= rx_data[0];
+
+    /* Send data over a UART port */
+    printf("Absolute angle: %d \n\r", data_buffer);
   }
   /* USER CODE END 5 */
 }
