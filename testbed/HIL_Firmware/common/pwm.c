@@ -3,17 +3,12 @@
 #include "driver/ledc.h"
 #include "pwm.h"
 
-typedef enum 
-{
-    CHANNEL_INDEX_IMD = 0U,
-    CHANNEL_INDEX_NUM // THIS HAS TO BE THE LAST ENTRY
-} Channel_Index_E;
-
 // Initialize LEDC for PWM
 static ledc_channel_config_t ledc_channel_configs[] = {
     // TODO: Update name: CHANNEL_INDEX_TEST
+    [PWM_CHANNEL_INDEX_IMD] = 
     {
-        .channel    = LEDC_CHANNEL_INDEX_TEST,
+        .channel    = PWM_CHANNEL_INDEX_IMD,
         .duty       = 0, // Start with 0% duty cycle
         .gpio_num   = LEDC_GPIO,
         .speed_mode = LEDC_MODE,
@@ -35,15 +30,16 @@ void pwm_init(void) {
 }
 
 // Set the PWM duty cycle
-void pwm_set_pin(uint8_t pin_num, uint32_t freq_hz, uint16_t duty_percent) {
+void pwm_set_pin(Channel_Index_E channel_index, uint8_t pin_num, uint32_t freq_hz, uint16_t duty_percent) {
     printf("setpwm\r\n");
 
+    // check if the requested frequency exceeds the maximum allowed frequency 
     if (freq_hz > LEDC_MAX_FREQUENCY) {
         printf("Error: Requested frequency %lu Hz exceeds maximum allowed %d Hz\n", freq_hz, LEDC_MAX_FREQUENCY);
         return; // Exit the function early as the requested frequency is not supported
     }
 
-    if (channel_index >= MAX_LEDC_CHANNELS) {
+    if (channel_index >= CHANNEL_INDEX_NUM) {
         printf("Error: Invalid channel index\n");
         return;
     }
@@ -58,8 +54,6 @@ void pwm_set_pin(uint8_t pin_num, uint32_t freq_hz, uint16_t duty_percent) {
     uint32_t current_freq = ledc_get_freq(channel_config->speed_mode, channel_config->timer_sel);
     
     esp_err_t ret = ESP_OK;
-
-        uint32_t current_freq = ledc_get_freq(LEDC_MODE, LEDC_TIMER);
 
     // Check if the new frequency is different from the current one
     if (current_freq != freq_hz) {
@@ -78,7 +72,7 @@ void pwm_set_pin(uint8_t pin_num, uint32_t freq_hz, uint16_t duty_percent) {
     uint32_t duty = (max_duty * duty_percent) / 100;
 
     // Set the duty cycle 
-    esp_err_t ret = ledc_set_duty(LEDC_MODE, pin num, duty);
+    ret = ledc_set_duty(LEDC_MODE, pin_num, duty);
     if (ret != ESP_OK){
         printf("Error setting duty cycle: %s\n", esp_err_to_name(ret));
     } else {
@@ -91,6 +85,7 @@ void pwm_set_pin(uint8_t pin_num, uint32_t freq_hz, uint16_t duty_percent) {
         printf("Error updating duty cycle: %s\n", esp_err_to_name(ret));
     } 
     // Replace the hardcoded CHANNEL_INDEX_TEST with the variable that you add in the CAN message
-    ret = ledc_channel_config(&ledc_channel_configs[CHANNEL_INDEX_IMD]);
-    return ret;
+    if (ledc_channel_config(&ledc_channel_configs[PWM_CHANNEL_INDEX_IMD]) != ESP_OK) {
+        printf("PWM_Channel_index_IMD_config failed\n");
+    }
 }

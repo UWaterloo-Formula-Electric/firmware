@@ -56,7 +56,7 @@ void process_rx_task (void * pvParameters)
                 const uint32_t PWMFreqHz = dbyte4 & dbyte3 & dbyte2 & dbyte1;
 
                 const uint8_t PWMPinNumber = can_msg.data[6];
-                pwm_set_pin(PWMPinNumber, PWMFreqHz, PWMDutyCycle);
+                pwm_set_pin(PWM_CHANNEL_INDEX_IMD, PWMPinNumber, PWMFreqHz, PWMDutyCycle);
                 break;
 
             default:
