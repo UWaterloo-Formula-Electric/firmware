@@ -512,46 +512,45 @@ void StartDefaultTask(void const * argument)
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
   vTaskDelay(pdMS_TO_TICKS(100));
 
-  /* Clear the buffers */
-  memset(tx_data, 0, sizeof(tx_data));
-  memset(rx_data, 0, sizeof(rx_data));
-
-  /* Initial master command to read position */
-  tx_data[0] = 0x10;
-
-  // CS Low
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, BUFF_SIZE, CMD_TIMEOUT);
-  // CS High
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-
-  // Delay before next command send
-  vTaskDelay(pdMS_TO_TICKS(10));
-
-  uint8_t ret = 0;
-  while(ret == 0)
-  {
-    /* Continue sending nop command until data is available */
-    tx_data[0] = 0x00;
-
-    // cs low
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, CMD_TIMEOUT);
-    // cs high
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-
-    // Delay
-    vTaskDelay(pdMS_TO_TICKS(10));
-
-    if (rx_data[0] != 0xA5)
-    {
-      ret = 1;
-    }
-  }
-
   /* Enter Infinite loop after connecting with the encoder */
   for(;;)
   {
+    /* Clear the buffers */
+    memset(tx_data, 0, sizeof(tx_data));
+    memset(rx_data, 0, sizeof(rx_data));
+
+    /* Initial master command to read position */
+    tx_data[0] = 0x10;
+
+    // CS Low
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, BUFF_SIZE, CMD_TIMEOUT);
+    // CS High
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+    // Delay before next command send
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    while(1)
+    {
+      /* Continue sending nop command until data is available */
+      tx_data[0] = 0x00;
+
+      // cs low
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+      HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, CMD_TIMEOUT);
+      // cs high
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      
+      if (rx_data[0] != 0xA5)
+      {
+        break;
+      }
+
+      // Delay
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    
     /* First NOP command */
     // set cs low
     tx_data[0] = 0x00;
@@ -562,11 +561,11 @@ void StartDefaultTask(void const * argument)
     }
     // Reset cs back to high
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // Delay by 10ms before next read
-    vTaskDelay(pdMS_TO_TICKS(10));
+    // // Delay by 10ms before next read
+    // vTaskDelay(pdMS_TO_TICKS(10));
 
     // MSB
-    data_buffer = (rx_data[0] & 0xF) << 8;
+    data_buffer = (rx_data[1] & 0xF) << 8;
 
     /* Second NOP command */
     // consolidate SPI commands to one tx rx call
@@ -576,10 +575,11 @@ void StartDefaultTask(void const * argument)
       printf("Unable to communicate\n\r");
     }
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    vTaskDelay(pdMS_TO_TICKS(10));
+    // // Delay by 10ms before next read
+    // vTaskDelay(pdMS_TO_TICKS(10));
 
     /* Final Position Data */
-    data_buffer |= rx_data[0];
+    data_buffer |= rx_data[1];
 
     /* Send data over a UART port */
     printf("Absolute angle: %d \n\r", data_buffer);
