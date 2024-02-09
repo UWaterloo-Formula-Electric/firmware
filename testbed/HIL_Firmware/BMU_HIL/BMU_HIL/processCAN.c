@@ -28,7 +28,7 @@ void process_rx_task (void * pvParameters)
 
     while(1)
     {
-
+        printf("heartbeat/n");
         // FreeRTOS function that receives a CAN message from the queue
         xQueueReceive(bmu_hil_queue, &can_msg, portMAX_DELAY);
         

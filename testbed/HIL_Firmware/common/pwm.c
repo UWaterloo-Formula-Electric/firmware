@@ -10,7 +10,7 @@ static ledc_channel_config_t ledc_channel_configs[] = {
     {
         .channel    = PWM_CHANNEL_INDEX_IMD,
         .duty       = 0, // Start with 0% duty cycle
-        .gpio_num   = LEDC_GPIO,
+        .gpio_num   = 9,
         .speed_mode = LEDC_MODE,
         .hpoint     = 0,
         .timer_sel  = LEDC_TIMER

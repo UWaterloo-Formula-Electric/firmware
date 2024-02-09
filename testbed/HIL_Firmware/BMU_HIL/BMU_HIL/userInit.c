@@ -14,6 +14,7 @@
 /* Registering all tasks for FreeRTOS */
 void taskRegister(void)
 {
+    printf("taskRegister\n");
     BaseType_t xReturned = pdPASS;
     // TaskHandle_t can_rx_task_handler = NULL;
     TaskHandle_t can_process_task_handler = NULL;
@@ -138,8 +139,13 @@ void bmu_input_init(void)
 
 void app_main(void)
 {
+    printf("1\n");
     CAN_init();
+    printf("2\n");
     bmu_input_init();
+    printf("3\n");
     pwm_init();
+    printf("4\n");
     taskRegister();
+    printf("5\n");
 }
