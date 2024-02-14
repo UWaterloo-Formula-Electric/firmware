@@ -64,7 +64,7 @@ HAL_StatusTypeDef setFan()
   __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
   
   FanPeriod = duty;
-  sendCAN_BMU_FanPeriod();
+  //sendCAN_BMU_FanPeriod();
   return HAL_OK;
 }
 

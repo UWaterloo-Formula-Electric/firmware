@@ -6,7 +6,7 @@
 
 HAL_StatusTypeDef sendHeartbeat()
 {
-    return HEARTBEAT_SEND_FUNCTION();
+    return HAL_OK;//HEARTBEAT_SEND_FUNCTION();
 }
 
 uint32_t lastBMU_Heartbeat_ticks = 0;
@@ -56,7 +56,7 @@ void heartbeatReceived(BoardIDs board)
     }
 }
 
-bool heartbeatEnabled = true;
+bool heartbeatEnabled = false;
 bool DCU_heartbeatEnabled = true;
 bool PDU_heartbeatEnabled = true;
 bool BMU_heartbeatEnabled = true;

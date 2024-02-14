@@ -39,6 +39,7 @@ HAL_StatusTypeDef resetUART()
 bool errorOccured = false;
 void _handleError(char *file, int line)
 {
+  DEBUG_PRINT("handleError\r\n");
 #ifndef PRODUCTION_ERROR_HANDLING
   const char errorStringFile[] = "Error!: File ";
   const char errorStringLine[] = " line ";

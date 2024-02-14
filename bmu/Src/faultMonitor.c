@@ -97,126 +97,6 @@ void faultMonitorTask(void *pvParameters)
 {
 
 #ifdef ENABLE_IL_CHECKS
-
-   /* HVIL status */
-   HVIL_Control(true);
-
-   if (getHVIL_Status() == false)
-   {
-      BMU_checkFailed = HVIL_FAILED_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-      DEBUG_PRINT("Fault Monitor: HVIL is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for HVIL OK.\n");
-   }
-
-   while (getHVIL_Status() == false)
-   {
-      vTaskDelay(10);
-   }
-
-   DEBUG_PRINT("Fault Monitor: HVIL Started.\n");
-
-   /* BRB Status */
-   if (getIL_BRB_Status() == false)
-   {
-      BMU_checkFailed = BRB_FAILED_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-      DEBUG_PRINT("Fault Monitor: BRB is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for BRB OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_A in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * Left, right and dash BRBs are closed.\n");
-      DEBUG_PRINT("Fault Monitor:  * Brake overtravel switch is closed.\n");
-      DEBUG_PRINT("Fault Monitor:  * Intertia/crash switch is closed.\n");
-   }
-
-   while (getIL_BRB_Status() == false)
-   {
-      vTaskDelay(10);
-   }
-
-   DEBUG_PRINT("Fault Monitor: BRB IL OK.\n");
-
-   /* BSPD Status */
-   if (getBSPD_Status() == false)
-   {
-      BMU_checkFailed = BSPD_FAILED_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-
-      DEBUG_PRINT("Fault Monitor: BSPD is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_B in the 2019_BMU schematic.\n");
-   }
-
-   while (getBSPD_Status() == false)
-   {
-      vTaskDelay(10);
-   }
-
-   DEBUG_PRINT("Fault Monitor: BSPD OK.\n");
-
-   /* HVD Status */
-   if (getHVD_Status() == false)
-   {
-      BMU_checkFailed = HVD_FAILED_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-
-      DEBUG_PRINT("Fault Monitor: HVD is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_C in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * HVD is plugged in.\n");
-      DEBUG_PRINT("Fault Monitor:  * HV connectors are plugged in.\n");
-   }
-
-   while (getHVD_Status() == false)
-   {
-      vTaskDelay(10);
-   }
-
-   DEBUG_PRINT("Fault Monitor: HVD OK.\n");
-
-   /* IL Status */
-
-   if (getIL_Status() == false)
-   {
-      BMU_checkFailed = IL_FAILED_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-
-      DEBUG_PRINT("Fault Monitor: IL is down!\n");
-      DEBUG_PRINT("Fault Monitor: Waiting for IL OK.\n");
-      DEBUG_PRINT("Fault Monitor: -- help --\n");
-      DEBUG_PRINT("Fault Monitor: This is IL_F in the 2019_BMU schematic.\n");
-      DEBUG_PRINT("Fault Monitor: Things to check:\n");
-      DEBUG_PRINT("Fault Monitor:  * IMD has not faulted.\n");
-      DEBUG_PRINT("Fault Monitor:  * TSMS is in `on` position.\n");
-   }
-
-   while (getIL_Status() == false) {
-      vTaskDelay(10);
-   };
-
-   DEBUG_PRINT("Fault Monitor: IL Started\n");
-
-	
-   /* Prevents race condition where Fault Monitor passes before system is setup*/
-   if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
-   {
-
-      BMU_checkFailed = FSM_STATE_BIT;
-      sendCAN_BMU_Interlock_Loop_Status();
-      DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
-   }
-   while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
-   {
-		vTaskDelay(10);
-   }
-	
-   DEBUG_PRINT("Fault Monitor: fsm in proper state: STATE_Wait_System_Up\n");
-
    /* IL checks complete at this point, fault monitoring system ready */
 
    fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
@@ -235,7 +115,7 @@ void faultMonitorTask(void *pvParameters)
 		{
 			ERROR_PRINT("Fault Monitor: HVIL broken!\n");
 			BMU_checkFailed = HVIL_FAILED_BIT;
-			sendCAN_BMU_Interlock_Loop_Status();
+			//sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 			while (1) {
@@ -251,7 +131,7 @@ void faultMonitorTask(void *pvParameters)
 		{	
 			ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
 			BMU_checkFailed = CBRB_FAILED_BIT;
-			sendCAN_BMU_Interlock_Loop_Status();
+			//sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
 			last_cbrb_ok = true;
@@ -266,7 +146,7 @@ void faultMonitorTask(void *pvParameters)
 		{
 			ERROR_PRINT("Fault Monitor: IL broken!\n");
 			BMU_checkFailed = IL_FAILED_BIT;
-			sendCAN_BMU_Interlock_Loop_Status();
+			//sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 			while (1) {

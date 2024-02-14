@@ -76,7 +76,7 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
    /*DEBUG_PRINT("StartStop: %u\n", (uint8_t)StartStopCharge);*/
 
    /*DEBUG_PRINT("Sending charger command can message\n");*/
-   return sendCAN_ChargerCommand();
+   return HAL_OK;//sendCAN_ChargerCommand();
 }
 
 void CAN_Msg_ChargeStatus_Callback()

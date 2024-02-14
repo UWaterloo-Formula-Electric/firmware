@@ -83,6 +83,6 @@ void userInit()
 		Error_Handler();
 	}
 
-    printf("Finished user init\n");
+    printf("Finished user init!!!\n");
 }
 

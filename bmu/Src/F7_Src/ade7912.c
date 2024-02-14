@@ -33,11 +33,11 @@
 #define DISABLE_ADC_WARNINGS
 
 // Voltage scale and offset convert to volts
-#define VOLTAGE_1_SCALE  (-0.000052670388F)
-#define VOLTAGE_1_OFFSET (20.451204825373F)
+#define VOLTAGE_1_SCALE  (-0.0000360906124115F)
+#define VOLTAGE_1_OFFSET (0.0f)
 
-#define VOLTAGE_2_SCALE  (-0.000052273823F)
-#define VOLTAGE_2_OFFSET (23.442233510687)
+#define VOLTAGE_2_SCALE  (-0.0000360906124115F)
+#define VOLTAGE_2_OFFSET (0.0f)
 
 /*#define VOLTAGE_1_SCALE  (1)*/
 /*#define VOLTAGE_1_OFFSET (1)*/
@@ -216,6 +216,7 @@ HAL_StatusTypeDef hvadc_init()
 
   // Wait for ADC to come out of reset
   do {
+    DEBUG_PRINT("waiting\r\n");
     if (adc_readbyte(ADDR_STATUS0, &status0) != HAL_OK) {
       ERROR_PRINT("Error reading HV ADC status register\n");
       return HAL_ERROR;

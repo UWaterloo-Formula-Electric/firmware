@@ -11,7 +11,7 @@
 #include "debug.h"
 #include "bsp.h"
 
-#define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)
+#define DTC_SEND_FUNCTION CAT(CAT(//sendCAN_,BOARD_NAME_UPPER),_DTC)
 
 HAL_StatusTypeDef F0_canInit(CAN_HandleTypeDef *hcan)
 {
@@ -95,7 +95,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
 }
 
-HAL_StatusTypeDef F0_sendCanMessage(int id, int length, uint8_t *data)
+HAL_StatusTypeDef F0_//sendCANMessage(int id, int length, uint8_t *data)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
     CAN_TxHeaderTypeDef   TxHeader = {0};

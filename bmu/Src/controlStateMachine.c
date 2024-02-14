@@ -252,7 +252,7 @@ uint32_t dischargeFinished(uint32_t event)
     DEBUG_PRINT("discharge finished\n");
 
     HV_Power_State = HV_Power_State_Off;
-    sendCAN_BMU_HV_Power_State();
+    //sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
 	if(currentState == STATE_Failure_CBRB_Enabled || currentState == STATE_Failure_CBRB_Disabled)
@@ -267,7 +267,7 @@ uint32_t prechargeFinished(uint32_t event)
     DEBUG_PRINT("precharge finished\n");
 
     HV_Power_State = HV_Power_State_On;
-    sendCAN_BMU_HV_Power_State();
+    //sendCAN_BMU_HV_Power_State();
 
     DC_DC_ON;
 
@@ -295,7 +295,7 @@ uint32_t handleFault(uint32_t event)
     uint32_t currentState = fsmGetState(&fsmHandle);
 
     HV_Power_State = HV_Power_State_Off;
-    sendCAN_BMU_HV_Power_State();
+    //sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
 
@@ -446,7 +446,7 @@ uint32_t cockpitBRBPressed(uint32_t event)
     uint32_t currentState = fsmGetState(&fsmHandle);
     
     HV_Power_State = HV_Power_State_Off;
-    sendCAN_BMU_HV_Power_State();
+    //sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
 
