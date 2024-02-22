@@ -152,6 +152,8 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
+	memset(rxBuffer, 0xFF, BUFF_SIZE);
+	memset(txBuffer, 0xFF, BUFF_SIZE);
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
@@ -161,13 +163,25 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		ERROR_PRINT("Failed to send read data command\n");
 		return HAL_ERROR;
 	}
+	#if 0
+	DEBUG_PRINT("\r\nTX DATA\r\n");
+	for(int i= 0;i < BUFF_SIZE; i++) {
+		DEBUG_PRINT("0x%x ", txBuffer[i]);
+	}
+	DEBUG_PRINT("\r\nRX DATA\r\n");
+	for(int i= 0;i < BUFF_SIZE; i++) {
+		DEBUG_PRINT("0x%x ", rxBuffer[i]);
+	}
+		DEBUG_PRINT("\r\n===\r\n");
+	#endif
+
 	
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
 		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
 		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
-			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
+			//DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
 			return HAL_ERROR;
 		}
@@ -214,7 +228,7 @@ HAL_StatusTypeDef batt_verify_config(){
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
-				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
+				if((m_batt_config[board][ltc_chip][buff_byte] & 0x7F) != (config_buffer[board][ltc_chip][buff_byte] & 0x7F)) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_config[board][ltc_chip][buff_byte], config_buffer[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
@@ -332,10 +346,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 {
 	uint8_t cell_indexes_allocated = 0;
 
-	if (batt_spi_wakeup(false /* not sleeping*/))
-	{
-		return HAL_ERROR;
-	}
 
 	for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 		uint8_t cmdByteLow, cmdByteHigh;
@@ -374,7 +384,11 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		// Voltage values for one block from one boards
 		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
-		
+		if (batt_spi_wakeup(false /* not sleeping*/))
+		{
+			return HAL_ERROR;
+		}
+
 		if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
 			DEBUG_PRINT("Failed AMS voltage block read (block %u)\r\n", block);
 		}
