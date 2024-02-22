@@ -555,6 +555,14 @@ void enterAdjustedCellVoltages(void)
             // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
         }
         DEBUG_PRINT("=============================\r\n");
+        DEBUG_PRINT("Cell Temp Readings\r\n===========\r\n");
+        for (int t = 0; t < NUM_TEMP_CELLS; t++)
+        {
+            DEBUG_PRINT("RT[%u]: %.4f\n", t, TempChannel[t]);
+
+        }
+        DEBUG_PRINT("=============================\r\n");
+
         buffer =0;
     }
 
@@ -1536,10 +1544,6 @@ void batteryTask(void *pvParameter)
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
-        }
-        for (int index = 0; index < NUM_BOARDS * THERMISTORS_PER_BOARD; ++index)
-        {
-            DEBUG_PRINT("%u: %f\r\n", index, TempChannel[index]);
         }
         // delayUS++;
         // if (delayUS == 1000) {

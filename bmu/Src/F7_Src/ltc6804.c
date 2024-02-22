@@ -173,8 +173,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		DEBUG_PRINT("0x%x ", rxBuffer[i]);
 	}
 		DEBUG_PRINT("\r\n===\r\n");
-	#endif
-
+#endif
 	
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
@@ -183,7 +182,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		{
 			//DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
-			return HAL_ERROR;
+			//return HAL_ERROR;
 		}
 	}
 
@@ -197,6 +196,13 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		memcpy(&(data_buffer[board*response_size]), &(rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))]), response_size);
 	}
+	#if 0
+		DEBUG_PRINT("\r\nDATA BUFFER\r\n");
+	for(int i= 0;i < 2*response_size; i++) {
+		DEBUG_PRINT("0x%x ", data_buffer[i]);
+	}
+		DEBUG_PRINT("\r\n===\r\n");
+#endif
 	return HAL_OK;
 }
 
@@ -207,7 +213,7 @@ HAL_StatusTypeDef batt_read_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_
 	batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
 
 	for(int board = 0; board < NUM_BOARDS; board++){
-		memcpy(&(config[board][0]), &(response_buffer[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+		memcpy(&(config[board][0][0]), &(response_buffer[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
 	}
 
 	return HAL_OK;
@@ -384,7 +390,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		// Voltage values for one block from one boards
 		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
-		if (batt_spi_wakeup(false /* not sleeping*/))
+		if (batt_spi_wakeup(true /* not sleeping*/))
 		{
 			return HAL_ERROR;
 		}
@@ -454,8 +460,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH + (board * AUX_BLOCK_SIZE)] << 8
 									| adc_vals[TEMP_ADC_IDX_LOW + (board * AUX_BLOCK_SIZE)]));
 		float voltageThermistor = ((float)adcCounts) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-		// cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-		cell_temp_array[cellIdx] = voltageThermistor;
+		 cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+		//cell_temp_array[cellIdx] = voltageThermistor;
 	}
 	return HAL_OK;
 }
