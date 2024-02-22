@@ -536,6 +536,7 @@ void enterAdjustedCellVoltages(void)
     //static bool filter = false;
     float bus_current_A;
     getIBus(&bus_current_A);
+<<<<<<< HEAD
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
         // DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
@@ -550,6 +551,35 @@ void enterAdjustedCellVoltages(void)
         //     AdjustedVoltageCell[cell] = adjusted_cell_v;
         // }
         // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+=======
+    if(buffer++ > 10) {
+        DEBUG_PRINT("Cell Voltage Readings\r\n===========\r\n");
+        for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
+        {
+            DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
+            // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
+            // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
+            // if(filter)
+            // {
+            //     AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
+            // }
+            // else
+            // {
+            //     AdjustedVoltageCell[cell] = adjusted_cell_v;
+            // }
+            // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+        }
+        DEBUG_PRINT("=============================\r\n");
+        DEBUG_PRINT("Cell Temp Readings\r\n===========\r\n");
+        for (int t = 0; t < NUM_TEMP_CELLS; t++)
+        {
+            DEBUG_PRINT("RT[%u]: %.4f\n", t, TempChannel[t]);
+
+        }
+        DEBUG_PRINT("=============================\r\n");
+
+        buffer =0;
+>>>>>>> 3d02fefa (I'm gonna fucking killmyself)
     }
     //filter = true;
     // DEBUG_PRINT("\n");
@@ -1607,6 +1637,7 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
         }
+<<<<<<< HEAD
         
         for (int index = 0; index < NUM_TEMP_CELLS; ++index)
         {
@@ -1620,6 +1651,8 @@ void batteryTask(void *pvParameter)
 
 
 
+=======
+>>>>>>> 3d02fefa (I'm gonna fucking killmyself)
         // delayUS++;
         // if (delayUS == 1000) {
         //     delayMS++;

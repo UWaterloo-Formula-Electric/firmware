@@ -103,6 +103,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     uint8_t pec[2];
     batt_gen_pec(rxBuffer, dataSize, pec);
     uint32_t pec_index = dataSize;
+    
     if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
     {
         return HAL_OK;

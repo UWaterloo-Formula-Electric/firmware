@@ -163,6 +163,17 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		ERROR_PRINT("Failed to send read data command\n");
 		return HAL_ERROR;
 	}
+	#if 0
+	DEBUG_PRINT("\r\nTX DATA\r\n");
+	for(int i= 0;i < BUFF_SIZE; i++) {
+		DEBUG_PRINT("0x%x ", txBuffer[i]);
+	}
+	DEBUG_PRINT("\r\nRX DATA\r\n");
+	for(int i= 0;i < BUFF_SIZE; i++) {
+		DEBUG_PRINT("0x%x ", rxBuffer[i]);
+	}
+		DEBUG_PRINT("\r\n===\r\n");
+#endif
 	
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
@@ -171,7 +182,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		{
 			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
-			return HAL_ERROR;
+			//return HAL_ERROR;
 		}
 	}
 
@@ -185,6 +196,13 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		memcpy(&(data_buffer[board*response_size]), &(rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))]), response_size);
 	}
+	#if 0
+		DEBUG_PRINT("\r\nDATA BUFFER\r\n");
+	for(int i= 0;i < 2*response_size; i++) {
+		DEBUG_PRINT("0x%x ", data_buffer[i]);
+	}
+		DEBUG_PRINT("\r\n===\r\n");
+#endif
 	return HAL_OK;
 }
 
@@ -371,7 +389,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		// Voltage values for one block from one boards
 		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
-
 		if (batt_spi_wakeup(true /* not sleeping*/))
 		{
 			return HAL_ERROR;
