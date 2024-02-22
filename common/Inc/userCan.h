@@ -12,6 +12,7 @@
 #include "stdbool.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#define BOARD_DISABLE_CAN
 
 // This allows automatically including the autogen can header file for the
 // board specified in the Makefile

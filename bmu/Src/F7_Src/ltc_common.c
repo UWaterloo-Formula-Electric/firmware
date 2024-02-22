@@ -108,7 +108,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u == %u. %u == %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        //DEBUG_PRINT("%u == %u. %u == %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }
@@ -156,16 +156,15 @@ int batt_spi_wakeup(bool sleeping)
             return 0;
         }
     }
-
     // Send some dummy bytes to wake up SPI/LTC
     uint8_t dummy = 0xFF;
 
     // Wake up the serial interface on device S1.
     if (sleeping) {
-		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-		/* TODO: take out of common file */
+        HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+        /* TODO: take out of common file */
         long_delay_us(LTC_T_WAKE_MAX_US * NUM_BOARDS); // Have to be careful here, with 14 AMS boards we wait 2.3ms and t_IDLE is 2.4ms
-		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 
 #if (LTC_T_WAKE_MAX_US * NUM_BOARDS >= T_IDLE_US) // Included as suggested by datasheet
         if (batt_spi_tx(&dummy, JUNK_SIZE))

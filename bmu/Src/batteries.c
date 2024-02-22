@@ -533,24 +533,31 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
  * */
 void enterAdjustedCellVoltages(void)
 {
+    static uint8_t buffer = 0;
     //static bool filter = false;
     float bus_current_A;
     getIBus(&bus_current_A);
-    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
-    {
-        DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
-        // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
-        // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
-        // if(filter)
-        // {
-        //     AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
-        // }
-        // else
-        // {
-        //     AdjustedVoltageCell[cell] = adjusted_cell_v;
-        // }
-        // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+    if(buffer++ > 10) {
+        DEBUG_PRINT("Cell Voltage Readings\r\n===========\r\n");
+        for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
+        {
+            DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
+            // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
+            // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
+            // if(filter)
+            // {
+            //     AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
+            // }
+            // else
+            // {
+            //     AdjustedVoltageCell[cell] = adjusted_cell_v;
+            // }
+            // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
+        }
+        DEBUG_PRINT("=============================\r\n");
+        buffer =0;
     }
+
     //filter = true;
     // DEBUG_PRINT("\n");
 }
