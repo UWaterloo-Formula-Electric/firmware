@@ -20,6 +20,7 @@
 #include "main.h"
 #include "string.h"
 #include "cmsis_os.h"
+#include "stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -96,6 +97,12 @@ void StartDefaultTask(void const * argument);
 void debugMsg(void const * argument);
 
 /* USER CODE BEGIN PFP */
+
+#define COMMAND_SIZE 2
+#define CMD_NO_OPERATION 0x00
+#define CMD_READ_POS 0x10
+#define CMD_SET_ZERO_POINT 0x70
+#define CMD_TIMEOUT 10
 
 //redirect printf to uart
 #ifdef __GNUC__
@@ -498,12 +505,6 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
-  #define COMMAND_SIZE 2
-  #define CMD_NO_OPERATION 0x00
-  #define CMD_READ_POS 0x10
-  #define CMD_SET_ZERO_POINT 0x70
-  #define CMD_TIMEOUT 10
-
   const size_t BUFF_SIZE = COMMAND_SIZE;
   uint8_t tx_data[COMMAND_SIZE];
   uint8_t rx_data[COMMAND_SIZE];
