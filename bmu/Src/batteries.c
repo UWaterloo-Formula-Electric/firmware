@@ -1532,7 +1532,7 @@ void batteryTask(void *pvParameter)
         }
         for (int index = 0; index < NUM_BOARDS * THERMISTORS_PER_BOARD; ++index)
         {
-            DEBUG_PRINT("%u: %f\r\n", index, TempChannel[index]);
+            DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
         }
         // delayUS++;
         // if (delayUS == 1000) {

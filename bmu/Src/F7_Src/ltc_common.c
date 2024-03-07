@@ -191,6 +191,7 @@ int batt_spi_wakeup(bool sleeping)
 // input voltage is in Volts, precision is in increments of 100uV
 // output temp is in degrees C
 float batt_convert_voltage_to_temp(float voltage) {
+    /* OLD
     const float p1 = 3.18239706;
     const float p2 = -41.7652481;
     const float p3 = 235.0295548;
@@ -201,12 +202,25 @@ float batt_convert_voltage_to_temp(float voltage) {
     const float p8 = -700.83913797;
     const float p9 = 250.43297764;
     const float p10 = -56.97182216;
-
     float x = voltage;
-
     // Calculated from matlab
     float output = p1*pow(x,9) + p2*pow(x,8) + p3*pow(x,7) + p4*pow(x,6) + p5*pow(x,5)
         + p6*pow(x,4) + p7*pow(x,3) + p8*pow(x,2) + p9*x + p10;
+    */
+
+    // NEW (for NTCLP100)
+    const float p1 = 5.1416;
+    const float p2 = -47.6355;
+    const float p3 = 182.1670;
+    const float p4 = -361.8757;
+    const float p5 = 389.5266;
+    const float p6 = -182.8840;
+    const float p7 = 24.5223;
+
+    float x = voltage;
+
+    float output = p1*pow(x,6) + p2*pow(x,5) + p3*pow(x,4) + p4*pow(x,3) + p5*pow(x,2)
+        + p6*pow(x,1) + p7;
 
     return output;
 }
