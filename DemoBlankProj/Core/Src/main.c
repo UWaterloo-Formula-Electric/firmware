@@ -20,7 +20,8 @@
 #include "main.h"
 #include "string.h"
 #include "cmsis_os.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -135,9 +136,23 @@ int main(void)
   MX_SPI1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
   /* USER CODE END 2 */
 
+  // uint8_t data[10];
+  // memset(data, '\0', 10);
+  // char text[100] = "hello world";
+  // while (1)
+  // {
+  //   /* USER CODE END WHILE */
+  //   HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+  //   sprintf(data, "%s\r\n", text);
+  //   HAL_UART_Transmit(&huart3, data, strlen(data), 1000);
+  //   HAL_Delay(500);
+  //   // printf("Hello World\r\n");
+  //   // HAL_Delay(1000);
+  //   /* USER CODE BEGIN 3 */
+  // }
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -178,12 +193,14 @@ int main(void)
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
+  // while (1)
+  // {
+  //   /* USER CODE END WHILE */
+  //   HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+  //   printf("Hello World\n\r");
+  //   HAL_Delay(1000);
+  //   /* USER CODE BEGIN 3 */
+  // }
   /* USER CODE END 3 */
 }
 
@@ -470,11 +487,29 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
+  // uint8_t data[10];
+  // memset(data, '\0', 10);
+  // char text[100] = "hello world";
+  // while (1)
+  // {
+  //   /* USER CODE END WHILE */
+  //   HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+  //   sprintf(data, "%s\r\n", text);
+  //   HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+  //   HAL_Delay(500);
+  //   // printf("Hello World\r\n");
+  //   // HAL_Delay(1000);
+  //   /* USER CODE BEGIN 3 */
+  // }
   /* USER CODE BEGIN 5 */
   const size_t BUFF_SIZE = COMMAND_SIZE;
   uint8_t tx_data[COMMAND_SIZE];
   uint8_t rx_data[COMMAND_SIZE];
   uint16_t data_buffer;
+
+  uint8_t data[10];
+  memset(data, '\0', 10);
+  char text[100];
 
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
   vTaskDelay(pdMS_TO_TICKS(100));
@@ -524,7 +559,9 @@ void StartDefaultTask(void const * argument)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
     if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, BUFF_SIZE, CMD_TIMEOUT) != pdTRUE){
       // DEBUG_PRINT("unable to retreive data \r\n"); // doesn't work
-      printf("Unable to communicate\n\r");
+      strcpy(text, "unable to communicate");
+      sprintf(data, "%s\r\n", text);
+      HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
     }
     // Reset cs back to high
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
@@ -539,7 +576,9 @@ void StartDefaultTask(void const * argument)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
     if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, HAL_MAX_DELAY) != pdTRUE){
       // DEBUG_PRINT("unable to communicate\r\n");
-      printf("Unable to communicate\n\r");
+      strcpy(text, "unable to communicate");
+      sprintf(data, "%s\r\n", text);
+      HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
     }
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
     // // Delay by 10ms before next read
@@ -549,9 +588,14 @@ void StartDefaultTask(void const * argument)
     data_buffer |= rx_data[1];
 
     /* Send data over a UART port */
-    printf("Absolute angle: %d \n\r", data_buffer);
-  }
+    // strcpy(text, "unable to communicate");
+    sprintf(data, "%d\r\n", data_buffer);
+    HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+
+    // printf("Absolute angle: %d \n\r", data_buffer);
+  
   /* USER CODE END 5 */
+}
 }
 
 /* USER CODE BEGIN Header_debugMsg */
