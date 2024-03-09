@@ -1532,7 +1532,11 @@ void batteryTask(void *pvParameter)
         }
         for (int index = 0; index < NUM_TEMP_CELLS; ++index)
         {
-            DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
+            if (index >= NUM_VOLTAGE_CELLS){
+                DEBUG_PRINT("%u: %s: %f\r\n", index, "N/A ", TempChannel[index]);
+            } else {
+                DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
+            }
         }
         // delayUS++;
         // if (delayUS == 1000) {
