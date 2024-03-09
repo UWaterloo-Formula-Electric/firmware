@@ -95,12 +95,12 @@
 
 
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
-static uint8_t thermistor_failure[NUM_BOARDS][THERMISTORS_PER_BOARD];
+static uint8_t thermistor_failure[NUM_BOARDS/2][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs()
 {
-	memset(thermistor_failure, 0, NUM_BOARDS*THERMISTORS_PER_BOARD);
+	memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT);
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
@@ -434,7 +434,18 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 	}
 
 	for(int board = 0; board < NUM_BOARDS; board++) {
-		size_t cellIdx = (board * THERMISTORS_PER_BOARD) + channel;
+		// shifting index due to skipping certain thermistors on the AMS boards. An explaination exists above the batt_read_cell_temps function
+		if (channel == 6 && board%2 == 1) {
+			continue;
+		}
+		size_t cellIdx = (board*13 + (board+1)/2) + channel;
+		if (channel >= 9) {
+			if (board%2 == 0) {
+				cellIdx = cellIdx - 2;
+			} else {
+				cellIdx = cellIdx - 3;
+			}
+		}
 		
 		// We only use the first GPIO register, 2 bytes out of the total 6 in adc_vals
 		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH + (board * AUX_BLOCK_SIZE)] << 8

@@ -1530,7 +1530,7 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
         }
-        for (int index = 0; index < NUM_BOARDS * THERMISTORS_PER_BOARD; ++index)
+        for (int index = 0; index < NUM_TEMP_CELLS; ++index)
         {
             DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
         }

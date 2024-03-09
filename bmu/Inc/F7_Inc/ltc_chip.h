@@ -25,8 +25,20 @@ extern uint32_t delay_MS;
 #define NUM_BOARDS                  14
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             10
-/// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       16
+/// Number of thermistors attached to first AMS in each segment
+#define SEGMENT_THERMISTORS_AMS1    14
+/// Number of thermistors attached to second AMS in each segment
+#define SEGMENT_THERMISTORS_AMS2    13
+// Number of thermistors per segment
+#define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
+
+#if NUM_BOARDS%2 == 1
+#error "Number of AMS boards defined id odd, it must be even"
+#endif
+
+#if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
+#error "Number of thermistors defined must be 14 and 13 for AMS boards 1 and 2 of each segment respectively. Hard-coded values in batt_read_cell_temps and batt_read_thermistors will be affected"
+#endif
 
 // This specifies which chip architecture we are using
 // 6812/6804
@@ -49,7 +61,7 @@ extern uint32_t delay_MS;
 
 // Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2
-#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 2
+#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 1
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
@@ -57,7 +69,7 @@ extern uint32_t delay_MS;
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
-#define NUM_TEMP_CELLS              (NUM_BOARDS*THERMISTORS_PER_BOARD)
+#define NUM_TEMP_CELLS              (NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
 #error "DBC file has less voltage cells defined then they are in the system"

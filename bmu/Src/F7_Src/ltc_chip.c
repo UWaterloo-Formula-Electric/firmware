@@ -132,17 +132,49 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
     return HAL_OK;
 }
 
-/* Future todo: could add a reading of VREF2 to get a better estimate of thermistor resistance */
+/*
+              (Top of board #1) 
+        X  15                   X  0
+        X  14                   X  1
+        X  13                   X  2
+        X  12                   X  3
+        X  11                   X  4
+        X  10                   X  5
+        X  9                    X  6
+        NC 8                    NC 7
+
+
+              (Top of board #2)  
+        X  15                   X  0
+        X  14                   X  1
+        X  13                   X  2
+        X  12                   X  3
+        X  11                   X  4
+        X  10                   X  5
+        X  9                    NC 6
+        NC 8                    NC 7
+
+The images above represent the thermistor connections of the first and second AMS boards in each segment. The images are orineted upright (the text on the PCB will be correctly oriented).
+An 'X' represents a connected thermistor, and 'NC' represents no thermistor connection.
+On the actual connectors, a thermistor connection will require two adjacent pins, but this has been simplified to a sinlge 'X'.
+Thermistors #7 and #8 are not connected on either board, allowing us to skip these readings all together.
+Thermistor #6 is only connected on board 1, meaning we must still read it from both boards, but will parse the readings to only store the values from the first board in each segment.
+The parsing and mapping of thermistors to their correct indices is done in the "batt_read_thermistors" function.
+Differ any questions to Justin Vuong, Owen Brake or Andrew Stekar.
+
+Future todo: could add a reading of VREF2 to get a better estimate of thermistor resistance
+*/
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-	static uint8_t curr_channel = 0;
+    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15};
+	static uint8_t curr_channel_read_index = 0;
 	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
 	{
-		if (batt_read_cell_temps_single_channel(curr_channel, cell_temp_array) != HAL_OK)
+		if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
 		{
 			return HAL_ERROR;
 		}
-        curr_channel = (curr_channel + 1) % THERMISTORS_PER_BOARD;
+        curr_channel_read_index = (curr_channel_read_index + 1) % 14;
     }
 
     return HAL_OK;
