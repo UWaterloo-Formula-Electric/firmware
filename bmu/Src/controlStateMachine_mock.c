@@ -720,7 +720,7 @@ BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
 }
 static const CLI_Command_Definition_t balanceCellCommandDefinition =
 {
-    "balanceCell",
+    "b",
     "balanceCell <cell number> <on|off>:\r\n set the state of the balance ressistor for a specific cell\r\n",
     balanceCellCommand,
     2 /* Number of parameters */
