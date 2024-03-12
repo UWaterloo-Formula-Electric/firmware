@@ -1569,11 +1569,6 @@ void batteryTask(void *pvParameter)
         }
     }
 */
-static bool test_bool = true;
-if (test_bool == true) {
-    balance_cell(1, true);
-    test_bool = false;
-}
 
 /*
     static int bool_test = 0;

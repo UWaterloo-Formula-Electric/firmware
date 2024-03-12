@@ -152,6 +152,8 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
     const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
     uint8_t rxBuffer[BUFF_SIZE];
     uint8_t txBuffer[BUFF_SIZE];
+	memset(rxBuffer, 0xFF, BUFF_SIZE);
+	memset(txBuffer, 0xFF, BUFF_SIZE);
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
@@ -193,7 +195,7 @@ HAL_StatusTypeDef batt_read_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIPS_PER_
 	batt_read_data(RDCFG_BYTE0, RDCFG_BYTE1, response_buffer, BATT_CONFIG_SIZE);
 
 	for(int board = 0; board < NUM_BOARDS; board++){
-		memcpy(&(config[board][0]), &(response_buffer[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+		memcpy(&(config[board][0][0]), &(response_buffer[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
 	}
 
 	return HAL_OK;
@@ -214,7 +216,7 @@ HAL_StatusTypeDef batt_verify_config(){
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
-				if(m_batt_config[board][ltc_chip][buff_byte] != config_buffer[board][ltc_chip][buff_byte]) {
+				if((m_batt_config[board][ltc_chip][buff_byte] & 0x7F) != (config_buffer[board][ltc_chip][buff_byte] & 0x7F)) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_config[board][ltc_chip][buff_byte], config_buffer[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
@@ -332,11 +334,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 {
 	uint8_t cell_indexes_allocated = 0;
 
-	if (batt_spi_wakeup(false /* not sleeping*/))
-	{
-		return HAL_ERROR;
-	}
-
 	for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 		uint8_t cmdByteLow, cmdByteHigh;
 		// Select appropriate voltage register group
@@ -374,6 +371,11 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 		// Voltage values for one block from one boards
 		uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
+
+		if (batt_spi_wakeup(false /* not sleeping*/))
+		{
+			return HAL_ERROR;
+		}
 		
 		if(batt_read_data(cmdByteLow, cmdByteHigh, adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
 			DEBUG_PRINT("Failed AMS voltage block read (block %u)\r\n", block);
@@ -458,7 +460,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 
 
-void batt_set_balancing_cell (int board, int chip, int cell) {
+void batt_set_balancing_cell (int board, int chip, int cell)
+{
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
 		// LTC C6 is not used so bump index up
@@ -474,10 +477,10 @@ void batt_set_balancing_cell (int board, int chip, int cell) {
 
 void batt_unset_balancing_cell (int board, int chip, int cell)
 {
-	if(cell >= 4)
+	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
-		// We skip S5, S6 in the schematic
-		cell += 2;
+		// LTC C6 is not used so bump index up
+		cell++;
 	}
     if (cell < 8) { // 8 bits per byte in the register
         CLEARBIT(m_batt_config[board][chip][4], cell);
@@ -488,10 +491,10 @@ void batt_unset_balancing_cell (int board, int chip, int cell)
 
 bool batt_get_balancing_cell_state(int board, int chip, int cell)
 {
-	if(cell >= 4)
+	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
-		// We skip S5, S6 in the schematic
-		cell += 2;
+		// LTC C6 is not used so bump index up
+		cell++;
 	}
     if (cell < 8) { // 8 bits per byte in the register
         return GETBIT(m_batt_config[board][chip][4], cell);
