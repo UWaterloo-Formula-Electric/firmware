@@ -1524,12 +1524,15 @@ void batteryTask(void *pvParameter)
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
+
+/*
         if (readCellVoltagesAndTemps() != HAL_OK) {
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinue()) { continue; }
         }
+        
         for (int index = 0; index < NUM_TEMP_CELLS; ++index)
         {
             if (index >= NUM_VOLTAGE_CELLS){
@@ -1538,6 +1541,7 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
             }
         }
+        */
         // delayUS++;
         // if (delayUS == 1000) {
         //     delayMS++;
