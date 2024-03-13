@@ -334,11 +334,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 {
 	uint8_t cell_indexes_allocated = 0;
 
-	if (batt_spi_wakeup(false /* not sleeping*/))
-	{
-		return HAL_ERROR;
-	}
-
 	for (int block = 0; block < VOLTAGE_BLOCKS_PER_CHIP; block++) {
 		uint8_t cmdByteLow, cmdByteHigh;
 		// Select appropriate voltage register group

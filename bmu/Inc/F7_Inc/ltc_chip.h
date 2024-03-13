@@ -33,7 +33,7 @@ extern uint32_t delay_MS;
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
 
 #if NUM_BOARDS%2 == 1
-#error "Number of AMS boards defined id odd, it must be even"
+#error "Number of AMS boards defined is odd, it must be even"
 #endif
 
 #if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13

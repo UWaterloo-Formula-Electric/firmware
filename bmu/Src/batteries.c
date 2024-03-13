@@ -1525,7 +1525,82 @@ void batteryTask(void *pvParameter)
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
 
+
 /*
+// testing cell balancing on boards
+
+    // making sure that no cell is balancing
+    for (int index = 0; index < NUM_VOLTAGE_CELLS; ++index) {
+        if (batt_is_cell_balancing(index)) {
+            DEBUG_PRINT("%s %i %s\r\n", "balancing not off for cell ", index, " before starting");
+        }
+    }
+
+    // running balancing test on all cells
+    for (int index = 0; index < NUM_VOLTAGE_CELLS; ++index) {
+
+        if (batt_is_cell_balancing(index)) {
+            DEBUG_PRINT("%s %i %s\r\n", "cell number ", index, " is initially balancing, but should not be");
+            continue;
+        } else {
+            balance_cell(index, true);
+            vTaskDelay(10);
+            if (batt_is_cell_balancing(index)) {
+                balance_cell(index, false);
+                vTaskDelay(10);
+                if (batt_is_cell_balancing(index)) {
+                    DEBUG_PRINT("%s %i %s\r\n", "cell number ", index, " is balancing, but should not be");
+                    continue;
+                } else {
+                    DEBUG_PRINT("%s %i %s\r\n", "cell number ", index, " balancing as expected");
+                    continue;
+                }
+            } else {
+                DEBUG_PRINT("%s %i %s\r\n", "cell number ", index, " is not balancing, but should be");
+                continue;
+            }
+        }
+    }
+
+    // making sure that no cell is balancing
+    for (int index = 0; index < NUM_VOLTAGE_CELLS; ++index) {
+        if (batt_is_cell_balancing(index)) {
+            DEBUG_PRINT("%s %i\r\n", "balancing not off for cell ", index);
+        }
+    }
+*/
+
+/*
+    static int bool_test = 0;
+    for (int index = 0; index < 1; ++index) {
+        if (bool_test == 0) {
+
+            balance_cell(index, true);
+            
+        }
+    }
+
+  //  bool_test = 1;
+
+  //  batt_write_config();
+    //vTaskDelay(900);
+
+
+
+    for (int index = 0; index < 15; ++index) {
+        if (bool_test == 0) {
+            batt_balance_cell(index);
+        }
+    }
+
+    batt_write_config();
+    vTaskDelay(900);
+
+
+*/
+/*
+    
+
         if (readCellVoltagesAndTemps() != HAL_OK) {
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
@@ -1541,7 +1616,10 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("%u: %f: %f\r\n", index, VoltageCell[index], TempChannel[index]);
             }
         }
-        */
+*/
+
+
+
         // delayUS++;
         // if (delayUS == 1000) {
         //     delayMS++;
