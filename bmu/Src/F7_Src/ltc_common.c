@@ -22,7 +22,7 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
 
     batt_format_command(cmdByteLow, cmdByteHigh, txBuffer);
 
-    for (int board = 0; board < NUM_BOARDS; ++board)
+    for (int board = NUM_BOARDS - 1; board >= 0; --board)
     {
         batt_gen_pec((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
         memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);

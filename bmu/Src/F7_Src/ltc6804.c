@@ -182,7 +182,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		{
 			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
-			//return HAL_ERROR;
+			return HAL_ERROR;
 		}
 	}
 
