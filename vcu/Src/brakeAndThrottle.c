@@ -14,6 +14,8 @@
 #define MOCK_ADC_READINGS
 #endif
 
+#define MOCK_ADC_READINGS // to remove 
+
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
@@ -324,6 +326,8 @@ void throttlePollingTask(void)
             if (inverterFault) {   
                 // DTC sent in state machine transition function
                 fsmSendEventUrgent(&fsmHandle, EV_Inverter_Fault, portMAX_DELAY);
+                watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
+                break;
             }
 
             // Poll throttle

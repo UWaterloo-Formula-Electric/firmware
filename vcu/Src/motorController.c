@@ -20,7 +20,7 @@ volatile bool motors_active = false;
 
 HAL_StatusTypeDef initMotorControllerSettings()
 {
-    mcSettings.InverterMode = 0;
+    mcSettings.InverterMode = CAN_MODE;
     mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM; 
     mcSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT_NM;
     mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
@@ -109,9 +109,6 @@ HAL_StatusTypeDef mcInit() {
     }
 
     DEBUG_PRINT("Motor controller ready.\n");
-
-    // This isn't really used, but may have future use?
-    initMotorControllerSettings();
 
     requestTorqueFromMC(0);
     motors_active = true;
