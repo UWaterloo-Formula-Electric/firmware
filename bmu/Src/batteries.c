@@ -1246,7 +1246,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
             {
                 balancingCells = false;
-                
+
                 /*DEBUG_PRINT("Starting balance\n");*/
                 /*DEBUG_PRINT("Voltages:\n");*/
                 /*for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {*/
@@ -1536,6 +1536,7 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed check of battery cell voltages and temps\n");
             if (boundedContinue()) { continue; }
         }
+
         if (publishPackVoltage(packVoltage) != HAL_OK) {
             BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
