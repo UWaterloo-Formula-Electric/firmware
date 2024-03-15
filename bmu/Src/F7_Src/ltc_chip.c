@@ -12,7 +12,6 @@
 #include "batteries.h"
 
 #define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
-#define DEBUGGING_AMS
 
 HAL_StatusTypeDef batt_init()
 {
@@ -83,7 +82,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     {
         return HAL_ERROR;
     }
-    
+
     return HAL_OK;
 }
 

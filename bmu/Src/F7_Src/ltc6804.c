@@ -163,17 +163,6 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		ERROR_PRINT("Failed to send read data command\n");
 		return HAL_ERROR;
 	}
-	#if 0
-	DEBUG_PRINT("\r\nTX DATA\r\n");
-	for(int i= 0;i < BUFF_SIZE; i++) {
-		DEBUG_PRINT("0x%x ", txBuffer[i]);
-	}
-	DEBUG_PRINT("\r\nRX DATA\r\n");
-	for(int i= 0;i < BUFF_SIZE; i++) {
-		DEBUG_PRINT("0x%x ", rxBuffer[i]);
-	}
-		DEBUG_PRINT("\r\n===\r\n");
-#endif
 	
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
@@ -196,13 +185,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		memcpy(&(data_buffer[board*response_size]), &(rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))]), response_size);
 	}
-	#if 0
-		DEBUG_PRINT("\r\nDATA BUFFER\r\n");
-	for(int i= 0;i < 2*response_size; i++) {
-		DEBUG_PRINT("0x%x ", data_buffer[i]);
-	}
-		DEBUG_PRINT("\r\n===\r\n");
-#endif
+	
 	return HAL_OK;
 }
 
@@ -245,24 +228,24 @@ HAL_StatusTypeDef batt_verify_config(){
 	return HAL_OK;
 }
 
-// HAL_StatusTypeDef batt_check_stat_A(void)
-// {
-// 	uint8_t register_size = 2;
-//     uint8_t response_buffer[register_size];
-// 	wakeup_sleep();
-// 	batt_broadcast_command(ADSTAT);
-// 	wakeup_idle();
-//     if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
-//         DEBUG_PRINT("Checking chip status failed\n");
-//         return HAL_ERROR;
-//     }
-// 	DEBUG_PRINT("Status Register A: ");
-// 	for (int i = 0; i < register_size; i++) {
-// 		DEBUG_PRINT("0x%x ", response_buffer[i]);
-// 	}
-// 	DEBUG_PRINT(" ");
-// 	return HAL_OK;
-// }
+HAL_StatusTypeDef batt_check_stat_A(void)
+{
+	uint8_t register_size = 2;
+    uint8_t response_buffer[register_size];
+	wakeup_sleep();
+	batt_broadcast_command(ADSTAT);
+	wakeup_idle();
+    if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
+        DEBUG_PRINT("Checking chip status failed\n");
+        return HAL_ERROR;
+    }
+	DEBUG_PRINT("Status Register A: ");
+	for (int i = 0; i < register_size; i++) {
+		DEBUG_PRINT("0x%x ", response_buffer[i]);
+	}
+	DEBUG_PRINT(" ");
+	return HAL_OK;
+}
 
 HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, size_t board, size_t ltc_chip) {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
@@ -487,7 +470,7 @@ void batt_set_balancing_cell (int board, int chip, int cell)
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config[board][chip][4], cell);
     } else { // This register byte only contains 4 bits
-		SETBIT(m_batt_config[board][chip][5], cell-8);
+		SETBIT(m_batt_config[board][chip][5], cell - 8);
 	}
 }
 

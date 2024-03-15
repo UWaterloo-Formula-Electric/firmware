@@ -723,7 +723,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    static uint8_t thermistor_lag_counter = 0;
    enterAdjustedCellVoltages();
 
-   //static bool warning_dtc_sent = false;
+   static bool warning_dtc_sent = false;
    for (int i=0; i < NUM_VOLTAGE_CELLS; i++)
    {
       // We have 2 basically confidence measurements
@@ -779,7 +779,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
                 rc = HAL_ERROR;
             } else if(measure < CELL_UNDERTEMP_WARNING){
                 if(!warningSentForChannelTemp[i]) {
-                    // ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+                    ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
                     sendDTC_WARNING_CELL_TEMP_LOW(i);
                     warningSentForChannelTemp[i] = true;
                 }
@@ -1246,12 +1246,20 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
             {
                 balancingCells = false;
+                
+                /*DEBUG_PRINT("Starting balance\n");*/
+                /*DEBUG_PRINT("Voltages:\n");*/
+                /*for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {*/
+                    /*DEBUG_PRINT("%d: %f,", cell, VoltageCell[cell]);*/
+                /*}*/
+                /*DEBUG_PRINT("\n");*/
                 float minCellSOC = getSOCFromVoltage(VoltageCellMin);
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
                     float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
+                    /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
                     if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
@@ -1528,7 +1536,6 @@ void batteryTask(void *pvParameter)
             ERROR_PRINT("Failed check of battery cell voltages and temps\n");
             if (boundedContinue()) { continue; }
         }
-        
         if (publishPackVoltage(packVoltage) != HAL_OK) {
             BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
