@@ -22,7 +22,7 @@
 extern uint32_t delay_US;
 extern uint32_t delay_MS;
 /// Number of AMS boards in system
-#define NUM_BOARDS                  2
+#define NUM_BOARDS                  14
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             10
 /// Number of thermistors attached to first AMS in each segment
