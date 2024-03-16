@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "ltc_chip.h"
 
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
 #define TEMP_CHANNELS_PER_BOARD     16
@@ -15,6 +16,7 @@
 #define PEC_INIT_VAL 0x0010
 
 /* Semantic Defines to make code easier to read */
+#define US_TO_MS(us) ((uint64_t)(us) / 1000)
 #define BITS_PER_BYTE 8
 #define GETBIT(value,bit) ((value>>(bit))&1)
 #define CLEARBIT(value, bit) value &= ~(1 << (bit))
@@ -41,8 +43,10 @@
 #define T_SLEEP_US           2000000    // The LTC sleeps in 2 seconds
 #define T_WAKE_MS            1        // The LTC wakes in 300 us, but since systick is 1 KHz just round up to 1 ms
 #define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
-#define T_IDLE_MS            5 // Time for SPI bus to go to idle state (5.5 ms)
-#define T_REFUP_MS           6 // Takes 5.5 ms for reference to power up
+#define T_IDLE_US            4400 // Time for ISOSPI bus to go to idle state (min 4.4ms, typ 5.5 ms)
+#define T_REFUP_MS           5 // Takes 4.4 ms for reference to power up
+
+#define LTC6804_7kHz_CONVERSION_TIME_US (2480)
 
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
@@ -76,6 +80,7 @@
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
 
 HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer);
+HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t writeData[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t writeDataSize);
 void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr);
 HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len);
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int len);
@@ -83,6 +88,7 @@ void fillDummyBytes(uint8_t * buf, uint32_t length);
 HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize);
 int batt_spi_wakeup(bool sleeping);
 float batt_convert_voltage_to_temp(float voltage); 
-void delay_us(uint32_t time_us);
+void long_delay_us(uint32_t time_us);
+void delay_us(const uint16_t time_us);
 
 #endif

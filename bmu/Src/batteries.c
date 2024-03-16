@@ -509,8 +509,6 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -749,7 +747,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
@@ -1375,6 +1373,20 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     return CHARGE_DONE;
 }
 
+static uint32_t counter = 0;
+void incrementDelay(void)
+{
+    counter++;
+    if (counter % 3 == 0) {
+        delay_US += 5;
+    }
+
+    if (delay_US == 1000) {
+        delay_US = 0;
+        delay_MS++;
+    }
+}
+
 /**
  * @brief Task to monitor cell voltages and temperatures, as well as perform
  * balance charging
@@ -1554,6 +1566,7 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
+        incrementDelay();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }
