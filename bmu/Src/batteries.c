@@ -756,7 +756,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {

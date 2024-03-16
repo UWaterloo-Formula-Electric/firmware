@@ -228,25 +228,6 @@ HAL_StatusTypeDef batt_verify_config(){
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_check_stat_A(void)
-{
-	uint8_t register_size = 2;
-    uint8_t response_buffer[register_size];
-	wakeup_sleep();
-	batt_broadcast_command(ADSTAT);
-	wakeup_idle();
-    if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, register_size) != HAL_OK) {
-        DEBUG_PRINT("Checking chip status failed\n");
-        return HAL_ERROR;
-    }
-	DEBUG_PRINT("Status Register A: ");
-	for (int i = 0; i < register_size; i++) {
-		DEBUG_PRINT("0x%x ", response_buffer[i]);
-	}
-	DEBUG_PRINT(" ");
-	return HAL_OK;
-}
-
 HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, size_t board, size_t ltc_chip) {
     const size_t TX_BUFF_SIZE = COMMAND_SIZE + PEC_SIZE;
     uint8_t txBuffer[TX_BUFF_SIZE];
