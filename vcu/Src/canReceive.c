@@ -17,6 +17,10 @@
 #include "traction_control.h"
 #include "motorController.h"
 
+//Inverter faults have been seperated into two severities to allow for some error handling
+#define INVERTER_FATAL_FAULT_MASK 0x53FC178E00FFFFF3
+#define INVERTER_CRITICAL_FAULT_MASK 0x0000084107400000
+
 /*
  * External Board Statuses:
  * Variables for keeping track of external board statuses that get updated by
@@ -155,9 +159,24 @@ void CAN_Msg_MC_Read_Write_Param_Response_Callback()
 
 void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
 {
+    static uint8_t numCriticalFaults = 0;
     // Each bit represents a fault
     // Combine them to be sent over DTCs
     inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+
+    if(inverterFaultCode & INVERTER_FATAL_FAULT_MASK) {
+        fsmSendEventUrgentISR(&fsmHandle, EV_Inverter_Fault);
+    }
+    else if(inverterFaultCode & INVERTER_CRITICAL_FAULT_MASK) {
+        numCriticalFaults++;
+        if(numCriticalFaults == 3) {
+            fsmSendEventUrgentISR(&fsmHandle, EV_Inverter_Fault);
+        }
+        else {
+            mcClearFaults();
+            sendDTC_CRITICAL_VCU_INVERTER_FAULT(inverterFaultCode);
+        }
+    }
 }
 
 void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
