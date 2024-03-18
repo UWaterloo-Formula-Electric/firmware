@@ -17,6 +17,10 @@
 #include "traction_control.h"
 #include "motorController.h"
 
+//Inverter faults have been seperated into two severities to allow for some error handling
+#define INVERTER_FATAL_FAULT_MASK 0x53FC178E00FFFFF3
+#define INVERTER_CRITICAL_FAULT_MASK 0x0000084107400000
+
 /*
  * External Board Statuses:
  * Variables for keeping track of external board statuses that get updated by
@@ -27,6 +31,11 @@ volatile bool inverterLockoutDisabled = false;
 volatile uint8_t inverterVSMState;
 volatile uint8_t inverterInternalState;
 volatile uint64_t inverterFaultCode = 0;
+
+// for message response coming from the MC
+volatile bool mcWriteSuccess = false;
+volatile uint16_t mcReturnedAddress = 0;
+volatile uint16_t mcReturnedData = 0;
 
 /*
  * Functions to get external board status
@@ -54,6 +63,13 @@ uint8_t getInverterVSMState()
 uint64_t getInverterFaultCode()
 {
     return inverterFaultCode;
+}
+
+void getMcParamResponse(mcParameterResponse *buffer)
+{
+    buffer->returnedAddress = mcReturnedAddress;
+    buffer->writeSuccess = mcWriteSuccess;
+    buffer->returnedData = mcReturnedData;
 }
 
 extern osThreadId driveByWireHandle;
@@ -141,31 +157,49 @@ void CAN_Msg_TractionControlConfig_Callback()
 	DEBUG_PRINT_ISR("tc_kP is %f\n", tc_kP);
 }
 
-void CAN_Msg_MC_Internal_States_Callback() // 100 hz
+void CAN_Msg_MC_Internal_States_Callback() // 100 hz, broadcast message
 {
     inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
 } 
 
-void CAN_Msg_MC_Read_Write_Param_Response_Callback()
+void CAN_Msg_MC_Read_Write_Param_Response_Callback() // parameter message
 {
-    sendLockoutReleaseToMC();
+    mcReturnedAddress = INV_Parameter_Response_Addr;
+    mcWriteSuccess = INV_Parameter_Response_Write_OK; // only for write response
+    mcReturnedData = INV_Parameter_Response_Data; // only for read response
+    // Note: the returned data may be signed or unsigned. Check address to determine
 }
 
-void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
+void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz, broadcast message
 {
+    static uint8_t numCriticalFaults = 0;
     // Each bit represents a fault
     // Combine them to be sent over DTCs
     inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+
+    if(inverterFaultCode & INVERTER_FATAL_FAULT_MASK) {
+        fsmSendEventUrgentISR(&fsmHandle, EV_Inverter_Fault);
+    }
+    else if(inverterFaultCode & INVERTER_CRITICAL_FAULT_MASK) {
+        numCriticalFaults++;
+        if(numCriticalFaults == 3) {
+            fsmSendEventUrgentISR(&fsmHandle, EV_Inverter_Fault);
+        }
+        else {
+            mcClearFaults();
+            sendDTC_CRITICAL_VCU_INVERTER_FAULT(inverterFaultCode);
+        }
+    }
 }
 
-void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
+void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz, broadcast message
 {
     DEBUG_PRINT_ISR("Ack torque req for: %f\n", INV_Commanded_Torque);
 }
 
-void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
+void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz, broadcast message
 {
     DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
 }

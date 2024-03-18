@@ -5,6 +5,9 @@
 #include "bsp.h"
 #include "canReceive.h"
 
+#define CAN_MODE 0
+#define VSM_MODE 1
+
 #define MAX_TORQUE_DEMAND_DEFAULT       231 
 #define MAX_TORQUE_DEMAND_DEFAULT_NM    231 // N.m.
 #define SPEED_LIMIT_DEFAULT             10000
@@ -44,6 +47,7 @@ extern uint64_t maxTorqueDemand;
 
 HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent);
+HAL_StatusTypeDef requestRPMFromMC(float throttle_percent);
 HAL_StatusTypeDef sendLockoutReleaseToMC();
 HAL_StatusTypeDef mcDisable();
 HAL_StatusTypeDef mcClearFaults();
@@ -53,5 +57,7 @@ HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);
+HAL_StatusTypeDef mcReadParam(uint16_t inputAddress, uint16_t *rxData);
+HAL_StatusTypeDef mcWriteParam(uint16_t inputAddress, uint16_t txData);
 
 #endif /* end of include guard: MOTORCONTROLLER_H */

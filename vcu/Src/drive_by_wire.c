@@ -244,7 +244,7 @@ uint32_t EM_Fault(uint32_t event)
         case EV_Inverter_Fault:
             {
                 uint64_t faults = getInverterFaultCode();
-                sendDTC_CRITICAL_VCU_Inverter_Fault(faults);
+                sendDTC_FATAL_VCU_INVERTER_FAULT(faults);
                 // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
                 DEBUG_PRINT("Inverter faulted, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
