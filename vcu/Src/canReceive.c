@@ -32,6 +32,11 @@ volatile uint8_t inverterVSMState;
 volatile uint8_t inverterInternalState;
 volatile uint64_t inverterFaultCode = 0;
 
+// for message response coming from the MC
+volatile bool mcWriteSuccess = false;
+volatile uint16_t mcReturnedAddress = 0;
+volatile uint16_t mcReturnedData = 0;
+
 /*
  * Functions to get external board status
  */
@@ -58,6 +63,13 @@ uint8_t getInverterVSMState()
 uint64_t getInverterFaultCode()
 {
     return inverterFaultCode;
+}
+
+void getMcParamResponse(mcParameterResponse *buffer)
+{
+    buffer->returnedAddress = mcReturnedAddress;
+    buffer->writeSuccess = mcWriteSuccess;
+    buffer->returnedData = mcReturnedData;
 }
 
 extern osThreadId driveByWireHandle;
@@ -145,19 +157,22 @@ void CAN_Msg_TractionControlConfig_Callback()
 	DEBUG_PRINT_ISR("tc_kP is %f\n", tc_kP);
 }
 
-void CAN_Msg_MC_Internal_States_Callback() // 100 hz
+void CAN_Msg_MC_Internal_States_Callback() // 100 hz, broadcast message
 {
     inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
 } 
 
-void CAN_Msg_MC_Read_Write_Param_Response_Callback()
+void CAN_Msg_MC_Read_Write_Param_Response_Callback() // parameter message
 {
-    sendLockoutReleaseToMC();
+    mcReturnedAddress = INV_Parameter_Response_Addr;
+    mcWriteSuccess = INV_Parameter_Response_Write_OK; // only for write response
+    mcReturnedData = INV_Parameter_Response_Data; // only for read response
+    // Note: the returned data may be signed or unsigned. Check address to determine
 }
 
-void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
+void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz, broadcast message
 {
     static uint8_t numCriticalFaults = 0;
     // Each bit represents a fault
@@ -179,12 +194,12 @@ void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
     }
 }
 
-void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
+void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz, broadcast message
 {
     DEBUG_PRINT_ISR("Ack torque req for: %f\n", INV_Commanded_Torque);
 }
 
-void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
+void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz, broadcast message
 {
     DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
 }

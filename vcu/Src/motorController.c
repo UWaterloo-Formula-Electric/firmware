@@ -56,10 +56,10 @@ HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
+// helper function
+HAL_StatusTypeDef mcReadParamCommand(uint16_t address) {
     VCU_INV_Parameter_RW_Command = INVERTER_PARAM_READ;
     VCU_INV_Parameter_Address = address;
-    VCU_INV_Parameter_Data = data; // Is this needed for reading? todo
 
     if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
         ERROR_PRINT("Failed to send read param message to MC\n");
@@ -68,6 +68,29 @@ HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
     return HAL_OK;
 }
 
+// user-level function
+HAL_StatusTypeDef mcReadParam(uint16_t inputAddress, uint16_t *rxData) {
+    mcParameterResponse buffer;
+
+    if (mcReadParamCommand(inputAddress) != HAL_OK) {
+        ERROR_PRINT("Failed to send read param command to MC\n");
+        return HAL_ERROR;
+    }
+    // document doesn't state a delay between readCommand and reading the response
+    getMcParamResponse(&buffer);
+
+    // need to verify. The document only says it will return 0 if the address is not recognized
+    if (buffer.returnedAddress != inputAddress) {
+        ERROR_PRINT("Requested address does not match response address\n");
+        return HAL_ERROR;
+    }
+
+    *rxData = buffer.returnedData; 
+
+    return HAL_OK;
+}
+
+// helper function
 HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data) {
     VCU_INV_Parameter_RW_Command = INVERTER_PARAM_WRITE;
     VCU_INV_Parameter_Address = address;
@@ -80,13 +103,36 @@ HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data) {
     return HAL_OK;
 }
 
+// user-level function
+HAL_StatusTypeDef mcWriteParam(uint16_t inputAddress, uint16_t txData) {
+    mcParameterResponse buffer;
+
+    if (mcWriteParamCommand(inputAddress, txData) != HAL_OK) {
+        ERROR_PRINT("Failed to send write param command to MC\n");
+        return HAL_ERROR;
+    }
+    // document doesn't state a delay between writeCommand and reading the response
+    getMcParamResponse(&buffer);
+
+    if (!(buffer.writeSuccess)) {
+        ERROR_PRINT("Failed to write data to MC\n");
+        return HAL_ERROR;
+    }
+
+    if (buffer.returnedAddress != inputAddress) {
+        ERROR_PRINT("Requested address does not match response address\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef mcClearFaults() {
     return mcWriteParamCommand(INVERTER_FAULT_CLEAR_ADDRESS, 0);
 }
 
 HAL_StatusTypeDef mcInit() {
     DEBUG_PRINT("Waiting for MC to complete startup checks\n");
-    // Todo - Read and check EEPROM values
 
     DEBUG_PRINT("Starting MC ..\n");
 

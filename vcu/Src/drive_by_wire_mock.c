@@ -439,6 +439,66 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t mcReadParameterCommand(char *writeBuffer, size_t writeBufferLength,
+                           const char *commandString)
+{
+    uint16_t address = 0;
+    uint16_t mcResponse = 0;
+
+    BaseType_t paramLen;
+    const char * addressString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(addressString, "%hu", &address);
+
+    if (mcReadParam(address, &mcResponse) != HAL_OK) {
+        ERROR_PRINT("Failed to read parameter from MC\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Read data at %u: %u (refer to documentation to determine unit)\n", address, mcResponse);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t mcReadParameterCommandDefinition =
+{
+    "mcParamRead",
+    "mcParamRead <address>:\r\n  Read EEPROM setting at specified address\r\n",
+    mcReadParameterCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t mcWriteParameterCommand(char *writeBuffer, size_t writeBufferLength,
+                           const char *commandString)
+{
+    uint16_t address = 0;
+    uint16_t txData = 0;
+
+    // read 1st param
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    sscanf(param, "%hu", &address);
+
+    // read 2nd param
+    param = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    sscanf(param, "%hu", &txData);
+
+    if (mcWriteParam(address, txData) != HAL_OK) {
+        ERROR_PRINT("Failed to write parameter to MC\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Successful write to MC\n");
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t mcWriteParameterCommandDefinition =
+{
+    "mcParamWrite",
+    "mcParamWrite <address> <data>:\r\n  Write to EEPROM setting at specified address\r\n",
+    mcWriteParameterCommand,
+    2 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -498,7 +558,12 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&mcReadParameterCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&mcWriteParameterCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
