@@ -321,15 +321,6 @@ void throttlePollingTask(void)
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&fsmHandle) == STATE_EM_Enable)
         {
-            // Check motor controller status
-            bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
-            if (inverterFault) {   
-                // DTC sent in state machine transition function
-                fsmSendEventUrgent(&fsmHandle, EV_Inverter_Fault, portMAX_DELAY);
-                watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
-                break;
-            }
-
             // Poll throttle
             if (pollThrottle() != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
