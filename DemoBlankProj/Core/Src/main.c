@@ -79,11 +79,11 @@ void debugMsg(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
-#define COMMAND_SIZE 2
+#define COMMAND_SIZE 1
 #define CMD_NO_OPERATION 0x00
 #define CMD_READ_POS 0x10
 #define CMD_SET_ZERO_POINT 0x70
-#define CMD_TIMEOUT 10
+#define CMD_TIMEOUT pdMS_TO_TICKS(100)
 
 //redirect printf to uart
 #ifdef __GNUC__
@@ -431,6 +431,8 @@ static void MX_USART3_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -452,12 +454,28 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
+  GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD1_Pin LD3_Pin CS_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|CS_Pin|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RMII_TXD1_Pin */
+  GPIO_InitStruct.Pin = RMII_TXD1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
@@ -472,6 +490,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
+  GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -492,9 +520,10 @@ void StartDefaultTask(void const * argument)
   uint8_t tx_data[COMMAND_SIZE];
   uint8_t rx_data[COMMAND_SIZE];
   uint16_t data_buffer;
+  uint16_t encoder_angle;
 
-  uint8_t data[10];
-  memset(data, '\0', 10);
+  uint8_t data[100];
+  memset(data, '\0', 100);
   char text[100];
 
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
@@ -504,12 +533,12 @@ void StartDefaultTask(void const * argument)
   // sprintf(data, "%s\r\n", text);
   // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
 
+  /* Clear the buffers */
+  memset(tx_data, 0, COMMAND_SIZE);
+  memset(rx_data, 0, COMMAND_SIZE);
   /* Enter Infinite loop after connecting with the encoder */
   for(;;)
   {
-    /* Clear the buffers */
-    memset(tx_data, 0, sizeof(tx_data));
-    memset(rx_data, 0, sizeof(rx_data));
 
     /* Initial master command to read position */
     tx_data[0] = 0x10;
@@ -521,21 +550,39 @@ void StartDefaultTask(void const * argument)
     // sprintf(data, "%x\r\n", tx_data[0]);
     // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
 
+    HAL_UART_Transmit(&huart3, "Read\r\n", 6, HAL_MAX_DELAY);
     // CS Low
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    // vTaskDelay(pdMS_TO_TICKS(1));
     HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT);
     // CS High
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
+    if (data_buffer != 0)
+    {
+      // /* Final Position Data */
+      data_buffer |= rx_data[0];
+
+      encoder_angle = (data_buffer/4095.0)*(360.0);
+
+      sprintf(data, "%d\r\n", encoder_angle);
+      HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+      // HAL_UART_Transmit(&huart3, "NEW BUFFER DATA\r\n", 6, HAL_MAX_DELAY);
+    }
+
     // Delay before next command send
-    vTaskDelay(pdMS_TO_TICKS(10));
+    // vTaskDelay(pdMS_TO_TICKS(10));
 
     // strcpy(text, "Sent read position command");
     // sprintf(data, "%s\r\n", text);
     // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
 
+    // sprintf(data, "%x\r\n", tx_data[0]);
+    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+
     while(1)
     {
+      static uint8_t tries = 0;
       // strcpy(text, "Checking for tx data 1");
       // sprintf(data, "%s\r\n", text);
       // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
@@ -550,77 +597,94 @@ void StartDefaultTask(void const * argument)
       /* Continue sending nop command until data is available */
       tx_data[0] = 0x00;
 
-      // sprintf(data, "%d\r\n", tx_data[0]);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
       // cs low
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-      HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, CMD_TIMEOUT);
+      // vTaskDelay(pdMS_TO_TICKS(1));
+      HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT);
       // cs high
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
-      // Testing to see if rx_data is returning wait responses
-      // sprintf(data, "%d\r\n", rx_data[0]);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       
       if (rx_data[0] == 0x10) // changed from != 0xA5 to == 0x10
       {
+        HAL_UART_Transmit(&huart3, "Data!\r\n", 7, HAL_MAX_DELAY);
+
+        //Send 2 more 1B SPI reqests turn it into data and see the sensor output update
         break;
+      }
+      else if (rx_data[0] == 0xA5)
+      {
+        tries++;
+        // Testing to see if rx_data is returning wait responses
+        // sprintf(data, "%u\r\n", rx_data[0]);
+        // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+        if (tries == 5)
+        {
+          break;
+        }
+      }
+      else
+      {
+        sprintf(data, "%u\r\n", rx_data[0]);
+        HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       }
 
       // Delay
-      vTaskDelay(pdMS_TO_TICKS(10));
+      vTaskDelay(pdMS_TO_TICKS(1));
     }
     
-    /* First NOP command */
-    // set cs low
-    tx_data[0] = 0x00;
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT) != HAL_OK){
-      strcpy(text, "unable to SEND FIRST NOP Command ");
-      sprintf(data, "%s\r\n", text);
-      HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+    if (rx_data[0] == 0x10)
+    {
+      // Clear data buffer prior to read
+      data_buffer = 0;
+
+      /* First NOP command */
+      // set cs low
+      tx_data[0] = 0x00;
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+      if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT) != HAL_OK){
+        strcpy(text, "unable to SEND FIRST NOP Command ");
+        sprintf(data, "%s\r\n", text);
+        HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+      }
+      // Reset cs back to high
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+      vTaskDelay(pdMS_TO_TICKS(1));
+
+      // MSB
+      data_buffer = (rx_data[0] & 0xF) << 8;
+      // data_buffer = rx_data[0];
+
+      // sprintf(data, "%d\r\n", data_buffer);
+      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+
+      /* Second NOP command */
+      // consolidate SPI commands to one tx rx call
+      // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+      // if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, HAL_MAX_DELAY) != HAL_OK){
+      //   strcpy(text, "unable to communicate 2");
+      //   sprintf(data, "%s\r\n", text);
+      //   HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+      // }
+      // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+
+      // vTaskDelay(pdMS_TO_TICKS(1));
+
+      // strcpy(text, "COMMUNICATION IS GOOD HERE SECOND CMD");
+      // sprintf(data, "%s\r\n", text);
+      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+
+      // sprintf(data, "%d\r\n", rx_data[0]);
+      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+      
+      // /* Final Position Data */
+      // data_buffer |= rx_data[0];
+
+      /* Send data over a UART port */
+      // sprintf(data, "%d\r\n", data_buffer);
+      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
     }
-    // Reset cs back to high
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // // Delay by 10ms before next read
-    // vTaskDelay(pdMS_TO_TICKS(10));
-
-    // strcpy(text, "COMMUNICATION IS GOOD HERE");
-    // sprintf(data, "%s\r\n", text);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-    // MSB
-    data_buffer = (rx_data[1] & 0xF) << 8;
-
-    sprintf(data, "%d\r\n", rx_data[1]);
-    HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    /* Second NOP command */
-    // consolidate SPI commands to one tx rx call
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, HAL_MAX_DELAY) != HAL_OK){
-      strcpy(text, "unable to communicate 2");
-      sprintf(data, "%s\r\n", text);
-      HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-    }
-
-    // strcpy(text, "COMMUNICATION IS GOOD HERE 2");
-    // sprintf(data, "%s\r\n", text);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // // Delay by 10ms before next read
-    // vTaskDelay(pdMS_TO_TICKS(10));
-
-    /* Final Position Data */
-    data_buffer |= rx_data[1];
-
-    /* Send data over a UART port */
-    // strcpy(text, "unable to communicate");
-    sprintf(data, "%d\r\n", data_buffer);
-    HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    // printf("Absolute angle: %d \n\r", data_buffer);
   
   /* USER CODE END 5 */
 }
