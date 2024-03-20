@@ -529,70 +529,37 @@ void StartDefaultTask(void const * argument)
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
   vTaskDelay(pdMS_TO_TICKS(100));
 
-  // strcpy(text, "Encoder Connected");
-  // sprintf(data, "%s\r\n", text);
-  // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
   /* Clear the buffers */
   memset(tx_data, 0, COMMAND_SIZE);
   memset(rx_data, 0, COMMAND_SIZE);
-  /* Enter Infinite loop after connecting with the encoder */
-  for(;;)
-  {
 
+  /* Enter Infinite loop after connecting with the encoder */
+  for(;;) {
     /* Initial master command to read position */
     tx_data[0] = 0x10;
 
-    // strcpy(text, "PRINT BEFORE PULLING CS");
-    // sprintf(data, "%s\r\n", text);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    // sprintf(data, "%x\r\n", tx_data[0]);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    HAL_UART_Transmit(&huart3, "Read\r\n", 6, HAL_MAX_DELAY);
     // CS Low
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    // vTaskDelay(pdMS_TO_TICKS(1));
     HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT);
     // CS High
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
-    if (data_buffer != 0)
-    {
-      // /* Final Position Data */
+    /* If data buffer is non-zero, this implies that data was successfully captured from the previous
+       read command. This means the current read buffer has data which needs to be furthur processed. */
+    if (data_buffer != 0) {
+      /* Retrieve LSB Position from current rx_data buffer (data from previous read command) */
       data_buffer |= rx_data[0];
 
+      // Map sensor reading into an angle for processing
       encoder_angle = (data_buffer/4095.0)*(360.0);
-
+      
+      // Output sensor reading
       sprintf(data, "%d\r\n", encoder_angle);
       HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-      // HAL_UART_Transmit(&huart3, "NEW BUFFER DATA\r\n", 6, HAL_MAX_DELAY);
     }
 
-    // Delay before next command send
-    // vTaskDelay(pdMS_TO_TICKS(10));
-
-    // strcpy(text, "Sent read position command");
-    // sprintf(data, "%s\r\n", text);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    // sprintf(data, "%x\r\n", tx_data[0]);
-    // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-    while(1)
-    {
-      static uint8_t tries = 0;
-      // strcpy(text, "Checking for tx data 1");
-      // sprintf(data, "%s\r\n", text);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-      // sprintf(data, "%x\r\n", tx_data[0]);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-      // strcpy(text, "Checking for wait responses");
-      // sprintf(data, "%s\r\n", text);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
+    while(1) {
+      static uint8_t attempts = 0;
 
       /* Continue sending nop command until data is available */
       tx_data[0] = 0x00;
@@ -604,27 +571,24 @@ void StartDefaultTask(void const * argument)
       // cs high
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
-      
-      if (rx_data[0] == 0x10) // changed from != 0xA5 to == 0x10
-      {
+      // Check if rx_data buffer is equal to the original command that was issued (read == 0x10)
+      if (rx_data[0] == 0x10) {
         HAL_UART_Transmit(&huart3, "Data!\r\n", 7, HAL_MAX_DELAY);
-
-        //Send 2 more 1B SPI reqests turn it into data and see the sensor output update
         break;
       }
-      else if (rx_data[0] == 0xA5)
-      {
-        tries++;
-        // Testing to see if rx_data is returning wait responses
-        // sprintf(data, "%u\r\n", rx_data[0]);
-        // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-        if (tries == 5)
-        {
+      
+      // Seems like the first time read cmd is sent, it has left over data or needs time setting up.
+      // The second time the read command is issued is when the rx buffer gets updated to a proper value.
+      else if (rx_data[0] == 0xA5) {
+        // Send NOP commands three times to ensure the next time read command is issued, 
+        // the encoder returns the same command back properly.
+        attempts++;
+        if (attempts == 3) {
           break;
         }
       }
-      else
-      {
+      else {
+        // Printing current rx_data buffer value
         sprintf(data, "%u\r\n", rx_data[0]);
         HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       }
@@ -643,7 +607,7 @@ void StartDefaultTask(void const * argument)
       tx_data[0] = 0x00;
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
       if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT) != HAL_OK){
-        strcpy(text, "unable to SEND FIRST NOP Command ");
+        strcpy(text, "Unable to send NOP Command to the sensor ");
         sprintf(data, "%s\r\n", text);
         HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       }
@@ -652,38 +616,8 @@ void StartDefaultTask(void const * argument)
 
       vTaskDelay(pdMS_TO_TICKS(1));
 
-      // MSB
+      // Retrieve MSB position
       data_buffer = (rx_data[0] & 0xF) << 8;
-      // data_buffer = rx_data[0];
-
-      // sprintf(data, "%d\r\n", data_buffer);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-      /* Second NOP command */
-      // consolidate SPI commands to one tx rx call
-      // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-      // if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, 1, HAL_MAX_DELAY) != HAL_OK){
-      //   strcpy(text, "unable to communicate 2");
-      //   sprintf(data, "%s\r\n", text);
-      //   HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-      // }
-      // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-
-      // vTaskDelay(pdMS_TO_TICKS(1));
-
-      // strcpy(text, "COMMUNICATION IS GOOD HERE SECOND CMD");
-      // sprintf(data, "%s\r\n", text);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-
-      // sprintf(data, "%d\r\n", rx_data[0]);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
-      
-      // /* Final Position Data */
-      // data_buffer |= rx_data[0];
-
-      /* Send data over a UART port */
-      // sprintf(data, "%d\r\n", data_buffer);
-      // HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
     }
   
   /* USER CODE END 5 */
