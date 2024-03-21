@@ -129,30 +129,15 @@ int main(void)
 
   /* USER CODE END SysInit */
 
+  /* USER CODE BEGIN 2 */
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, 1);
   /* USER CODE END 2 */
-
-  // uint8_t data[10];
-  // memset(data, '\0', 10);
-  // char text[100] = "hello world";
-  // while (1)
-  // {
-  //   /* USER CODE END WHILE */
-  //   HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-  //   sprintf(data, "%s\r\n", text);
-  //   HAL_UART_Transmit(&huart3, data, strlen(data), 1000);
-  //   HAL_Delay(500);
-  //   // printf("Hello World\r\n");
-  //   // HAL_Delay(1000);
-  //   /* USER CODE BEGIN 3 */
-  // }
+  
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -190,17 +175,6 @@ int main(void)
   /* Start scheduler */
   osKernelStart();
 
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  // while (1)
-  // {
-  //   /* USER CODE END WHILE */
-  //   HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-  //   printf("Hello World\n\r");
-  //   HAL_Delay(1000);
-  //   /* USER CODE BEGIN 3 */
-  // }
   /* USER CODE END 3 */
 }
 
@@ -529,25 +503,24 @@ void StartDefaultTask(void const * argument)
   /* Wait for the rotary encoder to finish its initialization (100 ms) */
   vTaskDelay(pdMS_TO_TICKS(100));
 
-  /* Clear the buffers */
+  /* Clear the transmit and receive buffers */
   memset(tx_data, 0, COMMAND_SIZE);
   memset(rx_data, 0, COMMAND_SIZE);
 
   /* Enter Infinite loop after connecting with the encoder */
   for(;;) {
-    /* Initial master command to read position */
+    // Initial master command to read position
     tx_data[0] = 0x10;
 
-    // CS Low
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Set CS Low
     HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT);
-    // CS High
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Set CS High
 
     /* If data buffer is non-zero, this implies that data was successfully captured from the previous
-       read command. This means the current read buffer has data which needs to be furthur processed. */
+       read command. This means the current read buffer has LSB data which needs to be furthur processed. Note,
+       this is equivalent to sending the second NOP command as per the datasheet. */
     if (data_buffer != 0) {
-      /* Retrieve LSB Position from current rx_data buffer (data from previous read command) */
+      // Retrieve LSB Position from current rx_data buffer (data from previous read command)
       data_buffer |= rx_data[0];
 
       // Map sensor reading into an angle for processing
@@ -561,39 +534,34 @@ void StartDefaultTask(void const * argument)
     while(1) {
       static uint8_t attempts = 0;
 
-      /* Continue sending nop command until data is available */
+      // Continue sending NOP command until data is available
       tx_data[0] = 0x00;
 
-      // cs low
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-      // vTaskDelay(pdMS_TO_TICKS(1));
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // CS Low
       HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT);
-      // cs high
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // CS High
 
       // Check if rx_data buffer is equal to the original command that was issued (read == 0x10)
       if (rx_data[0] == 0x10) {
         HAL_UART_Transmit(&huart3, "Data!\r\n", 7, HAL_MAX_DELAY);
         break;
       }
-      
-      // Seems like the first time read cmd is sent, it has left over data or needs time setting up.
-      // The second time the read command is issued is when the rx buffer gets updated to a proper value.
+
+      /* Send NOP commands three times to ensure the next time read command is issued, 
+         the encoder returns the same command back properly. */
       else if (rx_data[0] == 0xA5) {
-        // Send NOP commands three times to ensure the next time read command is issued, 
-        // the encoder returns the same command back properly.
         attempts++;
         if (attempts == 3) {
           break;
         }
       }
+
       else {
-        // Printing current rx_data buffer value
+        // Print current rx_data buffer value
         sprintf(data, "%u\r\n", rx_data[0]);
         HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       }
 
-      // Delay
       vTaskDelay(pdMS_TO_TICKS(1));
     }
     
@@ -602,17 +570,15 @@ void StartDefaultTask(void const * argument)
       // Clear data buffer prior to read
       data_buffer = 0;
 
-      /* First NOP command */
-      // set cs low
+      // First NOP command after issuing a successful read command
       tx_data[0] = 0x00;
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-      if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT) != HAL_OK){
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Set CS Low
+      if (HAL_SPI_TransmitReceive(&hspi1, tx_data, rx_data, COMMAND_SIZE, CMD_TIMEOUT) != HAL_OK) {
         strcpy(text, "Unable to send NOP Command to the sensor ");
         sprintf(data, "%s\r\n", text);
         HAL_UART_Transmit(&huart3, data, strlen(data), HAL_MAX_DELAY);
       }
-      // Reset cs back to high
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Set CS High
 
       vTaskDelay(pdMS_TO_TICKS(1));
 
