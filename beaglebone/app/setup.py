@@ -24,9 +24,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         "python-can",
-        "cantools",
-        "PySide2",
-        "pyzmq"
+        "cantools"
     ],
     entry_points={
         "console_scripts": [

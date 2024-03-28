@@ -4,343 +4,347 @@ import math
 import sys
 import threading
 import time
-
-from PySide2 import QtCore
-from PySide2.QtWidgets import QApplication, QWidget
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPen
+from tkinter import Tk, Canvas, Button, Scale
 
 from util import default_dbc_path, default_dtc_path
 from connect.connect import QueueDataSubscriber
 
-class Dashboard(QWidget):
-    
-    def __init__(self, app, queue_data, *args, **kwargs):
-        super(Dashboard, self).__init__()
+class DashboardApp:
 
+    def __init__(self, master, queue_data):
+        self.master = master
         self.queue_data = queue_data
+        master.geometry("800x480")
+        master.configure(bg="#262626")
+        master.title("UWFE Dashboard (ULTRALIGHT)")
 
-        # If the corresponding properties are greater than these values,
-        # their respective dials display in red
-        self.OVER_SPEED = 200
-        self.OVER_TEMP = 40
-        self.OVER_VOLTAGE = 30
-        
-        # Set window title
-        self.setWindowTitle("WFE Dashboard")
+        self.canvas = Canvas(
+            master,
+            bg="#262626",
+            height=480,
+            width=800,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
 
-        self.width = 800
-        self.height = 480
+        self.soc_label = self.canvas.create_text(
+            270.0,
+            91.0,
+            anchor="nw",
+            text="SOC:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 30 * -1)
+        )
 
-        # Radii of big and small dials
-        self.r_big = 320
-        self.r_small = 200
-        
-        # Set window size
-        self.setGeometry(10, 10, self.width, self.height)
+        self.soc_text = self.canvas.create_text(
+            336.0,
+            53.0,
+            anchor="nw",
+            text="100%",
+            fill="#FFFFFF",
+            font=("Lato Bold", 80 * -1)
+        )
 
-        # Set window position to center of screen
-        qtRectangle = self.frameGeometry()
-        centerPoint = app.primaryScreen().availableGeometry().center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft());
+        self.charge_bar = self.canvas.create_rectangle(
+            1.0,
+            2.0,
+            801.0,
+            58.00000000000006,
+            fill="#FF0000",
+            outline="")
 
-        # Set background to black
-        pal = self.palette()
-        pal.setColor(QPalette.Background, Qt.black)
-        self.setAutoFillBackground(True)
-        self.setPalette(pal)
+        self.battery_charge_slider = Scale(
+            master,
+            from_=0,
+            to=100,
+            orient="horizontal",
+            length=200,
+            sliderlength=20,
+            showvalue=0,
+            command=self.update_battery_charge
+        )
 
-        self.mode_display = TextDisplay(self,
-                                        text="Mode: Norm",
-                                        colour=Qt.white,
-                                        align=Qt.AlignLeft)
+        self.battery_charge_slider.place(x=370, y=300)
 
-        self.battery_display = TextDisplay(self,
-                                           text="Battery: 100%",
-                                           colour=Qt.green,
-                                           align=Qt.AlignRight)
+        master.after(3000, self.update_battery_data)
 
-        self.error_display = ErrorDisplay(self, align=Qt.AlignBottom)
+        self.mode_button = Button(
+            master,
+            text="Mode",
+            font=("Lato Regular", 15),
+            bg="#4CAF50",
+            fg="black",
+            command=self.change_mode
+        )
 
-        self.speed_display = TextDisplay(self,
-                                         text="Speed: 0 kph",
-                                         colour=QColor(44, 197, 239),
-                                         align=Qt.AlignHCenter)
+        self.mode_label = self.canvas.create_text(
+            610.0,
+            131.0,
+            anchor="nw",
+            text="Mode:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
 
-        self.temp_display = TextDisplay(self,
-                                        text="Temp: N/A",
-                                        colour=QColor(255, 204, 0),
-                                        align=Qt.AlignLeft,
-                                        y_offset=45)
+        self.mode_text = self.canvas.create_text(
+            620.0,
+            144.0,
+            anchor="nw",
+            text="RACE",
+            fill="#FFFFFF",
+            font=("Lato Bold", 40 * -1)
+        )
 
-        self.voltage_display = TextDisplay(self,
-                                           text="Voltage: 0 V",
-                                           colour=QColor(181, 124, 255),
-                                           align=Qt.AlignRight,
-                                           y_offset=45)
+        self.current_lap_text = self.canvas.create_text(
+            621.0,
+            212.0,
+            anchor="nw",
+            text="00:00:00",
+            fill="#FFFFFF",
+            font=("Lato Bold", 40 * -1)
+        )
 
-        self.speed_dial = Dial(norm_colour=QColor(44, 197, 239),
-                               over_colour=Qt.red,
-                               x=self.width//2 - self.r_big//2,
-                               y=100,
-                               radius=self.r_big,
-                               thickness=20,
-                               min_val=0,
-                               max_val=280,
-                               over_val=self.OVER_SPEED,
-                               start_ang=210,
-                               span_ang=-240,
-                               text="kph",
-                               text_x_offset=0)
+        self.last_lap_text = self.canvas.create_text(
+            621.0,
+            278.0,
+            anchor="nw",
+            text="00:00:00",
+            fill="#FFFFFF",
+            font=("Lato Bold", 40 * -1)
+        )
 
-        self.temp_dial = Dial(norm_colour=QColor(255, 204, 0),
-                              over_colour=Qt.red,
-                              x=90,
-                              y=200,
-                              radius=self.r_small,
-                              thickness=15,
-                              min_val=-20,
-                              max_val=80,
-                              over_val=self.OVER_TEMP,
-                              start_ang=210,
-                              span_ang=-140,
-                              text="°C",
-                              text_x_offset=-20)
-        
-        self.voltage_dial = Dial(norm_colour=QColor(181, 124, 255),
-                                 over_colour=Qt.red,
-                                 x=self.width-90-self.r_small,
-                                 y=200,
-                                 radius=self.r_small,
-                                 thickness=15,
-                                 min_val=-20,
-                                 max_val=60,
-                                 over_val=self.OVER_VOLTAGE,
-                                 start_ang=-30,
-                                 span_ang=140,
-                                 text="V",
-                                 text_x_offset=20)
+        self.speed_text = self.canvas.create_text(
+            393.0,
+            179.0,
+            anchor="nw",
+            text="34",
+            fill="#FFFFFF",
+            font=("Lato Regular", 50 * -1)
+        )
 
-        self.current_dtc_messages = []
+        self.border_rectangle1 = self.canvas.create_rectangle(
+            603.0,
+            58.0,
+            799.0,
+            128.0,
+            fill="#6B6B6B",
+            outline="#FFFFFF")
 
-        # Update values every 10 milliseconds
-        self.timer = QtCore.QTimer()
-        self.timer.setInterval(10)
-        self.timer.timeout.connect(self.update)
-        self.timer.start()
-        self.show()
+        self.border_rectangle2 = self.canvas.create_rectangle(
+            603.0,
+            126.0,
+            799.0,
+            196.0,
+            fill="#6B6B6B",
+            outline="#FFFFFF")
 
-    # Update error text display by checking messages in DTC payload
-    # Sets colour of text depending on severity
-    def __update_error_display(self, dtc_message_payload):
-        for message in dtc_message_payload:
-            severity, text = message["severity"], message["message"]
-            self.error_display.add_error_message(text, int(severity))
+        self.border_rectangle3 = self.canvas.create_rectangle(
+            603.0,
+            193.0,
+            799.0,
+            263.0,
+            fill="#6B6B6B",
+            outline="#FFFFFF")
 
-    def update(self):
-        # TODO: update this to read data from zmq message queue
+        self.border_rectangle4 = self.canvas.create_rectangle(
+            603.0,
+            261.0,
+            799.0,
+            331.0,
+            fill="#6B6B6B",
+            outline="#FFFFFF")
+
+        self.vbatt_label = self.canvas.create_text(
+            610.0,
+            63.0,
+            anchor="nw",
+            text="V-Batt:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
+
+        self.temp_bg1 = self.canvas.create_rectangle(
+            0.0,
+            58.0,
+            196.0,
+            150.0,
+            fill="#7125BD",
+            outline="")
+
+        self.temp_bg2 = self.canvas.create_rectangle(
+            0.0,
+            323.0,
+            196.0,
+            415.0,
+            fill="#0C15EA",
+            outline="")
+
+        self.temp_bg3 = self.canvas.create_rectangle(
+            0.0,
+            234.0,
+            196.0,
+            326.0,
+            fill="#BA007B",
+            outline="")
+
+        self.temp_bg4 = self.canvas.create_rectangle(
+            0.0,
+            147.0,
+            196.0,
+            239.0,
+            fill="#FF0101",
+            outline="")
+
+        self.battery_temp_label = self.canvas.create_text(
+            4.0,
+            62.0,
+            anchor="nw",
+            text="Battery Temp:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
+
+        self.motor_temp_label = self.canvas.create_text(
+            4.0,
+            150.0,
+            anchor="nw",
+            text="Motor Temp:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
+
+        self.inverter_temp_label = self.canvas.create_text(
+            4.0,
+            239.0,
+            anchor="nw",
+            text="Inverter Temp:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
+
+        self.water_temp_label = self.canvas.create_text(
+            4.0,
+            327.0,
+            anchor="nw",
+            text="Water Temp:",
+            fill="#FFFFFF",
+            font=("Lato Regular", 15 * -1)
+        )
+
+        self.battery_temp_text = self.canvas.create_text(
+            6.0,
+            76.0,
+            anchor="nw",
+            text="67.3°C",
+            fill="#FFFFFF",
+            font=("Lato Bold", 60 * -1)
+        )
+
+        self.motor_temp_text = self.canvas.create_text(
+            7.0,
+            163.0,
+            anchor="nw",
+            text="85.8°C",
+            fill="#FFFFFF",
+            font=("Lato Bold", 60 * -1)
+        )
+
+        self.inverter_temp_text = self.canvas.create_text(
+            4.0,
+            253.0,
+            anchor="nw",
+            text="79.9°C",
+            fill="#FFFFFF",
+            font=("Lato Bold", 60 * -1)
+        )
+
+        self.water_temp_text = self.canvas.create_text(
+            4.0,
+            340.0,
+            anchor="nw",
+            text="31.6°C",
+            fill="#FFFFFF",
+            font=("Lato Bold", 60 * -1)
+        )
+
+        self.deployment_label = self.canvas.create_text(
+            235.0,
+            139.0,
+            anchor="nw",
+            text="Deployment \n Last Lap:",
+            fill="#FFFFFF",
+            font=("Lato Bold", 20 * -1)
+        )
+
+        self.deployment_text = self.canvas.create_text(
+            384.0,
+            134.0,
+            anchor="nw",
+            text="4.8%",
+            fill="#FFFFFF",
+            font=("Lato Regular", 50 * -1)
+        )
+
+        self.speed_label = self.canvas.create_text(
+            237.0,
+            202.0,
+            anchor="nw",
+            text="Speed:",
+            fill="#FFFFFF",
+            font=("Lato Bold", 20 * -1)
+        )
+
+        self.speed_text = self.canvas.create_text(
+            393.0,
+            179.0,
+            anchor="nw",
+            text="34",
+            fill="#FFFFFF",
+            font=("Lato Regular", 50 * -1)
+        )
+
+        self.vbatt_text = self.canvas.create_text(
+            651.0,
+            77.0,
+            anchor="nw",
+            text="300V",
+            fill="#FFFFFF",
+            font=("Lato Bold", 40 * -1)
+        )
+
+
+
+        self.mode_button.place(x=370, y=320)
+
+        master.resizable(False, False)
+
+    def update_battery_data(self):
         CAN_data = self.queue_data.fetch()
-
-        self.__update_error_display(CAN_data["dtc_message_payload"])
-        self.queue_data.push("dtc_message_payload", [])
-
         battery_val = CAN_data["battery"]
-        self.battery_display.set_text("Battery: {}%".format(battery_val))
-        if battery_val > 66:
-            self.battery_display.set_colour(Qt.green)
-        elif battery_val > 33:
-            self.battery_display.set_colour(Qt.yellow)
-        else:
-            self.battery_display.set_colour(Qt.red)
+        self.update_battery_charge(battery_val)
+        print("updating battery data to " + str(battery_val))
+        self.master.after(3000, self.update_battery_data)
 
-        self.speed_display.set_text("Speed: {} kph".format(CAN_data["speed"]))
-        self.temp_display.set_text("Temp: {}°C".format(CAN_data["temperature"]))
-        self.voltage_display.set_text("Voltage: {} V".format(CAN_data["voltage"]))
+    def calculate_charge_colour(self, charge):
+        r = int(255 * (1 - charge / 100))
+        g = 0
+        b = int(255 * (charge / 100))
+        colour = "#{:02X}{:02X}{:02X}".format(r, g, b)
+        return colour
 
-        self.speed_dial.set_value(CAN_data["speed"])
-        self.temp_dial.set_value(CAN_data["temperature"])
-        self.voltage_dial.set_value(CAN_data["voltage"])
+    def update_battery_charge(self, value):
+        value = int(value)
+        self.canvas.itemconfig(self.soc_text, text=f"{value}%")
+        charge_color = self.calculate_charge_colour(value)
+        self.canvas.itemconfig(self.charge_bar, fill=charge_color)
+        self.canvas.coords(self.charge_bar, 1.0, 2.0, 1.0 + (value / 100) * 800, 58.0)
 
-        self.repaint()
-
-
-    # Repaints canvas, called automatically with self.repaint()
-    def paintEvent(self, event):
-        qp = QPainter(self)
-
-        self.mode_display.draw(qp)
-        self.battery_display.draw(qp)
-        self.error_display.draw(qp)
-        self.speed_display.draw(qp)
-        self.temp_display.draw(qp)
-        self.voltage_display.draw(qp)
-        self.speed_dial.draw(qp)
-        self.temp_dial.draw(qp)
-        self.voltage_dial.draw(qp)
-
-
-class Dial:
-    """ Used to display speed, temp, and voltage. """
-    
-    def __init__(self, norm_colour, over_colour,
-                 x, y, radius, thickness, 
-                 min_val, max_val, over_val, 
-                 start_ang, span_ang,
-                 text, text_x_offset):
-
-        self.norm_colour = norm_colour
-        self.over_colour = over_colour
-
-        self.x = x
-        self.y = y
-        # Radius of arc
-        self.radius = radius
-        # Thickness of arc
-        self.thickness = thickness
-        
-        self.min_val = min_val
-        self.max_val = max_val
-        self.over_val = over_val
-        self.val = min_val
-
-        # In PyQt/PySide, angles in degrees must be multiplied by 16
-        self.start_ang = start_ang * 16
-        self.span_ang = span_ang * 16
-
-        self.text = text
-        self.text_x_offset = text_x_offset
-
-        self.is_over = (self.val >= self.over_val)
-
-        self.val_font_size = self.radius // 8
-        self.text_font_size = self.radius // 16
-
-
-    # Drawing dial
-    def draw(self, qp):
-
-        # Grey arc, shows total span of dial
-        qp.setPen(QPen(Qt.darkGray, self.thickness, Qt.SolidLine))
-        qp.drawArc(self.x, self.y, self.radius, self.radius, self.start_ang, self.span_ang)        
-
-        pen = QPen(self.over_colour if self.is_over else self.norm_colour,
-                   self.thickness, Qt.SolidLine)
-        qp.setPen(pen)
-        span_ang = ((self.val - self.min_val) / (self.max_val - self.min_val)) * self.span_ang
-
-        # Coloured arc on top of grey arc, shows current span of dial
-        qp.drawArc(self.x, self.y, self.radius, self.radius, self.start_ang, span_ang)
-
-        qp.setPen(Qt.white)
-        qp.setFont(QFont('Arial', self.val_font_size))
-
-        # Display value
-        qp.drawText(self.x + self.text_x_offset,
-                    self.y - self.radius * 0.075,
-                    self.radius,
-                    self.radius,
-                    Qt.AlignCenter,
-                    str(self.val))
-
-        qp.setPen(self.over_colour if self.is_over else self.norm_colour)
-        qp.setFont(QFont('Arial', self.text_font_size))
-
-        # Display smaller text (the unit) e.g. "kph" in speed dial
-        qp.drawText(self.x + self.text_x_offset,
-                    self.y + self.radius * 0.075,
-                    self.radius,
-                    self.radius,
-                    Qt.AlignCenter,
-                    self.text)
-
-    def set_value(self, v):
-        self.val = v
-        self.is_over = (self.val >= self.over_val)
-
-
-class TextDisplay:
-    """ Used to display text. """
-
-    def __init__(self, parent, text, colour, align, font_size=22, y_offset=0):
-        self.parent = parent
-        self.text = text
-        self.colour = colour
-        self.align = align
-        self.font = QFont('Arial', font_size)
-        
-        # Creates padding around window edge
-        self.x = self.parent.width * 0.05 / 2
-        self.y = self.parent.height * 0.05 / 2 + y_offset
-        self.width = self.parent.width * 0.95
-        self.height = self.parent.height * 0.95
-
-    def set_text(self, text):
-        self.text = text
-
-    def set_colour(self, colour):
-        self.colour = colour
-
-    def draw(self, qp):
-        qp.setPen(self.colour)
-        qp.setFont(self.font)
-        metrics = QFontMetrics(self.font)
-        elided_text  = metrics.elidedText(self.text, QtCore.Qt.ElideRight, self.width)
-        qp.drawText(self.x, self.y, self.width, self.height, self.align, elided_text)
-
-class ErrorDisplay:
-    """ Used to display DTC messages. """
-
-    def __init__(self, parent, align):
-        self.parent = parent
-        self.align = align
-        self.font = QFont('Arial', 20)
-        self.error_messages = []
-        self.severities = []
-
-        # Creates padding around window edge
-        self.x = self.parent.width * 0.05 / 2
-        self.y = self.parent.height * 0.05 / 2
-        self.width = self.parent.width * 0.95
-        self.height = self.parent.height * 0.95
-
-        self.severity_settings = {
-            1: { "header": "F", "colour": Qt.red },
-            2: { "header": "C", "colour": QColor(255, 103, 0) },
-            3: { "header": "E", "colour": QColor(255, 193, 7) },
-            4: { "header": "W", "colour": Qt.yellow }
-        }
-
-    def add_error_message(self, err_msg, severity):
-        if len(self.error_messages) == 3:
-            self.error_messages.pop(0)
-            self.severities.pop(0)
-        try:
-            header = self.severity_settings[severity]["header"]
-        except KeyError:
-            header = "U"
-        self.error_messages.append("{}: {}".format(header, err_msg))
-        self.severities.append(severity)
-
-    def draw(self, qp):
-        qp.setFont(self.font)
-
-        # If there are no error messages
-        if not self.error_messages:
-            qp.setPen(Qt.white)
-            qp.drawText(self.x, self.y, self.width, self.height, self.align, "No DTC Messages Received")
-
-        num_error_msgs = len(self.error_messages)
-        for i in range(num_error_msgs):
-            error_msg = self.error_messages[i]
-            severity = self.severities[i]
-            colour = self.severity_settings[severity]["colour"]
-            qp.setPen(colour)
-            metrics = QFontMetrics(self.font)
-            elided_text  = metrics.elidedText(error_msg, QtCore.Qt.ElideRight, self.width)
-            y = self.y - (num_error_msgs - 1 - i) * metrics.height()
-            qp.drawText(self.x, y, self.width, self.height, self.align, elided_text)
-
+    def change_mode(self):
+        current_mode = self.canvas.itemcget(self.mode_text, "text")
+        new_mode = "SLOW" if current_mode == "RACE" else "RACE"
+        self.canvas.itemconfig(self.mode_text, text=new_mode)
 
 class QueueData:
     """ Facilitates data transfer between the GUI and the Queue. """
@@ -374,7 +378,8 @@ class QueueThread(threading.Thread):
     em_enable_fail_reasons = ["bpsState false", "low brake pressure", "throttle non-zero",
                               "brake not pressed", "not hv enabled", "motors failed to start"]
 
-    def __init__(self, queue_data, dbc=default_dbc_path(), dtc=default_dtc_path()):
+    def __init__(self, queue_data, dbc="/Users/alexdubljevic/GitHub/firmware/common/Data/2018CAR.dbc", 
+                 dtc="/Users/alexdubljevic/GitHub/firmware/common/Data/DTC.csv"):
         threading.Thread.__init__(self)
         self.queue_data = queue_data
         self.dashboard_subscriber = DashboardSubscriber()
@@ -399,6 +404,7 @@ class QueueThread(threading.Thread):
         speed = 0
         while True:
             can_packet = self.dashboard_subscriber.recv()
+            print("checking for can packets...")
 
             # BMU_stateBatteryHV
             if can_packet["frame_id"] == self.db.get_message_by_name("BMU_stateBusHV").frame_id:
@@ -407,6 +413,7 @@ class QueueThread(threading.Thread):
 
             # BMU_batteryStatusHV
             elif can_packet["frame_id"] == self.db.get_message_by_name("BMU_batteryStatusHV").frame_id:
+                print("Battery CAN package received")
                 battery = can_packet["signals"]["StateBatteryChargeHV"]
                 self.queue_data.push("battery", round(battery, 1))
                 temp = can_packet["signals"]["TempCellMax"]
@@ -454,20 +461,18 @@ class DashboardSubscriber(QueueDataSubscriber):
         super(DashboardSubscriber, self).__init__()
         self.subscribe_to_packet_type("")
 
-
 def main():
+
     # Start thread in background to collect data
     data = QueueData()
     queue_thread = QueueThread(data)
     queue_thread.daemon = True
     queue_thread.start()
+    dashboard = Tk()
+    app = DashboardApp(dashboard, data)
+    dashboard.update_idletasks()
+    dashboard.mainloop()
 
-    app = QApplication(sys.argv)
-
-    Dashboard(app, data)
-
-    # Run application until user closes it
-    sys.exit(app.exec_())
 
 if __name__ == "__main__":
-     main()
+    main()
