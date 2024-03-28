@@ -414,5 +414,38 @@ debug_button = Button(
 
 debug_button.place(x=700, y=430)
 
+
+def process_user_input():
+    # Monitor for user input continuously
+    while True:
+        user_input = input("Enter a command: ")
+
+        # Parse the user input to extract the command and parameters
+        parts = user_input.split()
+        command = parts[0]
+        params = parts[1:]
+
+        # Process different commands
+        if command == "setsoc":
+            if params:
+                try:
+                    soc_value = int(params[0])
+                    update_battery_charge(soc_value)
+                    print(f"SOC set to {soc_value}%")
+                except ValueError:
+                    print("Invalid SOC value. Please enter a number.")
+            else:
+                print("Missing SOC value. Please specify a value.")
+
+        elif command == "opendebug":
+            openDebug()
+            print("Opening debug menu...")
+
+        else:
+            print("Unknown command. Please try again.")
+
+
+window.after(1000, process_user_input)
+
 window.resizable(False, False)
 window.mainloop()
