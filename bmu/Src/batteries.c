@@ -538,10 +538,10 @@ void enterAdjustedCellVoltages(void)
     float bus_current_A;
     getIBus(&bus_current_A);
     if(buffer++ > 10) {
-        DEBUG_PRINT("Cell Voltage Readings\r\n===========\r\n");
+        DEBUG_PRINT("%lu", pdMS_TO_TICKS(xTaskGetTickCount()));
         for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
         {
-            DEBUG_PRINT("RV[%u]: %.4f\n", cell, VoltageCell[cell]);
+            DEBUG_PRINT(", %.4f", VoltageCell[cell]);
             // DEBUG_PRINT("RV[%i]: %.4f\n", cell, VoltageCell[cell]);
             // float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
             // if(filter)
@@ -554,7 +554,7 @@ void enterAdjustedCellVoltages(void)
             // }
             // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
         }
-        DEBUG_PRINT("=============================\r\n");
+        DEBUG_PRINT("\r\n");
         buffer =0;
     }
 
@@ -1595,7 +1595,7 @@ void batteryTask(void *pvParameter)
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         // incrementDelay();
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
 }
 
