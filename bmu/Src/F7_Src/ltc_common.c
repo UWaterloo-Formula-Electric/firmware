@@ -26,11 +26,10 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
     {
         batt_gen_pec((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
         memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);
-        txBufferIndex += 6;
-        memcpy(&txBuffer[txBufferIndex], data_PEC, 2);
-        txBufferIndex += 2;
+        txBufferIndex += writeDataSize;
+        memcpy(&txBuffer[txBufferIndex], data_PEC, PEC_SIZE);
+        txBufferIndex += PEC_SIZE;
     }
-
     return HAL_OK;
 }
 

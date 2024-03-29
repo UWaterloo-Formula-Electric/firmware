@@ -120,10 +120,14 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 	}
 
 	// Send command + data
-	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+	// TODO: Andrew can you figure out why we need to loop this multiple times? Can't tell if its a timing thing but when run once (NUM_BOARD=2) the second board's config is 0x2 instead of 0x6. Not sure if this scales with NUM_BOARDS or if we just need to send twice. Can you investigate?
+	for (uint8_t board = 0; board < NUM_BOARDS; ++board)
 	{
-		ERROR_PRINT("Failed to transmit config to AMS board\n");
-		return HAL_ERROR;
+		if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+		{
+			ERROR_PRINT("Failed to transmit config to AMS board %u\n", board);
+			return HAL_ERROR;
+		}
 	}
 
 	return HAL_OK;
@@ -217,7 +221,7 @@ HAL_StatusTypeDef batt_verify_config(){
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%x ", config_buffer[board][ltc_chip][buff_byte]);
-				if((m_batt_config[board][ltc_chip][buff_byte] & 0x7F) != (config_buffer[board][ltc_chip][buff_byte] & 0x7F)) {
+				if((m_batt_config[board][ltc_chip][buff_byte] & 0x7) != (config_buffer[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_config[board][ltc_chip][buff_byte], config_buffer[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
