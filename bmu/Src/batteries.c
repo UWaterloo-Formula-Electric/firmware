@@ -554,7 +554,7 @@ void enterAdjustedCellVoltages(void)
             // }
             // DEBUG_PRINT("Adjusted Voltage[%i]: %f\n", cell, VoltageCell[cell]);
         }
-        DEBUG_PRINT("\r\n");
+        DEBUG_PRINT(", %f\r\n", TempCellMax);
         buffer =0;
     }
 
@@ -714,7 +714,7 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage)
 {
    HAL_StatusTypeDef rc = HAL_OK;
-//    float measure;
+   float measure;
 //    float measure_high;
 //    float measure_low;
 //    float currentReading;
@@ -731,7 +731,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 //    *adjustedPackVoltage = 0;
 
 //    // Unfortunately the thermistors may run slower than the cell voltage measurements
-//    static uint8_t thermistor_lag_counter = 0;
+   static uint8_t thermistor_lag_counter = 0;
    enterAdjustedCellVoltages();
 
 //    //static bool warning_dtc_sent = false;
@@ -767,46 +767,46 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
 //       (*packVoltage) += measure_low;
 //    }
 
-//    if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
-//    {
-//        for (int i=0; i < NUM_TEMP_CELLS; i++)
-//        {
-//             measure = TempChannel[i];
+   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   {
+       for (int i=0; i < NUM_TEMP_CELLS; i++)
+       {
+            measure = TempChannel[i];
                 
-//             // Check it is within bounds
-//             if (measure > CELL_OVERTEMP) {
-//                 ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
-//                 sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
-//                 rc = HAL_ERROR;
-//             } else if (measure > CELL_OVERTEMP_WARNING) {
-//                 if (!warningSentForChannelTemp[i]) {
-//                     ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
-//                     sendDTC_WARNING_CELL_TEMP_HIGH(i);
-//                     warningSentForChannelTemp[i] = true;
-//                 }
-//             } else if(measure < CELL_UNDERTEMP){
-//                 ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
-//                 sendDTC_CRITICAL_CELL_TEMP_LOW(i);
-//                 rc = HAL_ERROR;
-//             } else if(measure < CELL_UNDERTEMP_WARNING){
-//                 if(!warningSentForChannelTemp[i]) {
-//                     // ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
-//                     sendDTC_WARNING_CELL_TEMP_LOW(i);
-//                     warningSentForChannelTemp[i] = true;
-//                 }
-//             } else if (warningSentForChannelTemp[i] == true) {
-//                 warningSentForChannelTemp[i] = false;
-//             }
+            // Check it is within bounds
+            if (measure > CELL_OVERTEMP) {
+                ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
+                sendDTC_CRITICAL_CELL_TEMP_HIGH(i);
+                rc = HAL_ERROR;
+            } else if (measure > CELL_OVERTEMP_WARNING) {
+                if (!warningSentForChannelTemp[i]) {
+                    ERROR_PRINT("WARN: Temp Channel %d is high temp at %f deg C\n", i, measure);
+                    sendDTC_WARNING_CELL_TEMP_HIGH(i);
+                    warningSentForChannelTemp[i] = true;
+                }
+            } else if(measure < CELL_UNDERTEMP){
+                ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
+                sendDTC_CRITICAL_CELL_TEMP_LOW(i);
+                rc = HAL_ERROR;
+            } else if(measure < CELL_UNDERTEMP_WARNING){
+                if(!warningSentForChannelTemp[i]) {
+                    // ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
+                    sendDTC_WARNING_CELL_TEMP_LOW(i);
+                    warningSentForChannelTemp[i] = true;
+                }
+            } else if (warningSentForChannelTemp[i] == true) {
+                warningSentForChannelTemp[i] = false;
+            }
 
-//             // Update max voltage
-//             if (measure > (*maxTemp)) {(*maxTemp) = measure;}
-//             if (measure < (*minTemp)) {(*minTemp) = measure;}
-//         }
-//    }
-//    else
-//    {
-//         thermistor_lag_counter++;
-//    }
+            // Update max voltage
+            if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+            if (measure < (*minTemp)) {(*minTemp) = measure;}
+        }
+   }
+   else
+   {
+        thermistor_lag_counter++;
+   }
 
    return rc;
 }
