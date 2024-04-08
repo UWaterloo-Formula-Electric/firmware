@@ -1,16 +1,16 @@
 from threading import Thread
 
-# from tkinter import *
-# Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, Scale, scrolledtext
 import time
+import can
+import cantools
+import csv
 
 window = Tk()
 
 window.geometry("800x480")
 window.configure(bg = "#262626")
 window.title("UWFE Dashboard (LIGHT)")
-
 
 canvas = Canvas(
     window,
@@ -21,7 +21,6 @@ canvas = Canvas(
     highlightthickness = 0,
     relief = "ridge"
 )
-
 
 canvas.place(x = 0, y = 0)
 
@@ -358,6 +357,33 @@ min_cell_text = canvas.create_text(
     font=("Lato Bold", 40 * -1)
 )
 
+dtc_descriptions = {} 
+
+with open('DTC.csv', 'r') as file:
+    reader = csv.reader(file)
+    next(reader)  # Skip the header row
+    for row in reader:
+        dtc_code = int(row[0])
+        description = row[6]
+        dtc_descriptions[dtc_code] = description
+
+db = cantools.database.load_file('2024CAR.dbc')
+can_bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+
+ # Create the scrollable text area
+dtc_text_area = scrolledtext.ScrolledText(window, width=45, height=2)
+dtc_text_area.place(x=10, y=418)
+dtc_text_area.config(font=("Helvetica", 20))
+dtc_text_area.config(background='black')
+dtc_text_area.config(foreground='red')
+
+    # Function to update the text area with new error codes
+def publish_dtc(error_code, error_message):
+    description = dtc_descriptions.get(error_code, "Description not found")
+    dtc_text_area.insert("end","\n" +str(error_code) + " | " + str(description))
+    dtc_text_area.yview("end")  # Scroll to the bottom to show the latest message
+
+
 def openDebug():
     window2 = Tk()
     window2.geometry("800x480")
@@ -412,40 +438,46 @@ debug_button = Button(
     command=openDebug
 )
 
-debug_button.place(x=700, y=430)
+debug_button.place(x=710, y=440)
 
 
-def process_user_input():
-    # Monitor for user input continuously
+def process_can_messages():
+    print("reading can messages...")
     while True:
-        user_input = input("Enter a command: ")
+        message = can_bus.recv(timeout=0.1)
+        print(message)
 
-        # Parse the user input to extract the command and parameters
-        parts = user_input.split()
-        command = parts[0]
-        params = parts[1:]
+        if message is not None:
+            print(message.arbitration_id)
 
-        # Process different commands
-        if command == "setsoc":
-            if params:
-                try:
-                    soc_value = int(params[0])
-                    update_battery_charge(soc_value)
-                    print(f"SOC set to {soc_value}%")
-                except ValueError:
-                    print("Invalid SOC value. Please enter a number.")
-            else:
-                print("Missing SOC value. Please specify a value.")
+        if message is not None and message.arbitration_id == 134483969:
+            print("message found!")
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
 
-        elif command == "opendebug":
-            openDebug()
-            print("Opening debug menu...")
+                # Extract SOC (assuming the signal interpretation is correct)
+                soc_value = decoded_data['StateBatteryChargeHV']  # Scale if needed
 
-        else:
-            print("Unknown command. Please try again.")
+                # Update the dashboard
+                update_battery_charge(soc_value)
+            except KeyError:
+                print("Unknown message ID")
+        
+        if message is not None and message.arbitration_id == 65281:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
 
+                # Extract SOC (assuming the signal interpretation is correct)
+                DTC_CODE = decoded_data['DTC_CODE']
+                DTC_message = decoded_data['DTC_Data']   # Scale if needed
 
-window.after(1000, process_user_input)
+                # Update the dashboard
+                publish_dtc(DTC_CODE, DTC_message)
+            except KeyError:
+                print("Unknown message ID")
+
+can_thread = Thread(target=process_can_messages)
+can_thread.start()
 
 window.resizable(False, False)
 window.mainloop()
