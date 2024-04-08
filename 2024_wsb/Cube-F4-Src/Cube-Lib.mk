@@ -3,11 +3,11 @@
 # 
 # ------------------------------------------------
 
-THIS_MAKEFILE_PATH := $(CUBE_F0_MAKEFILE_PATH)
+THIS_MAKEFILE_PATH := $(CUBE_F4_MAKEFILE_PATH)
 ######################################
 # target
 ######################################
-TARGET = DCU
+TARGET = 2024_WSB
 
 
 ######################################
@@ -28,35 +28,38 @@ LIB_OPT = -O3
 ######################################
 # C sources
 LIB_C_SOURCES =  \
-Src/main.c \
-Src/gpio.c \
-Src/tim.c \
-Src/can.c \
-Src/dma.c \
-Src/freertos.c \
-Src/usart.c \
-Src/stm32f0xx_it.c \
-Src/stm32f0xx_hal_msp.c \
-Src/iwdg.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_can.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_tim_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_uart_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_rcc_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_i2c_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_gpio.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_cortex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_pwr_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_flash_ex.c \
-Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_iwdg.c \
-Src/system_stm32f0xx.c \
+Core/Src/adc.c \
+Core/Src/main.c \
+Core/Src/gpio.c \
+Core/Src/can.c \
+Core/Src/eth.c \
+Core/Src/spi.c \
+Core/Src/dma.c \
+Core/Src/i2c.c \
+Core/Src/freertos.c \
+Core/Src/usart.c \
+Core/Src/stm32f4xx_it.c \
+Core/Src/stm32f4xx_hal_msp.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_eth.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c \
+Core/Src/system_stm32f4xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c \
 Middlewares/Third_Party/FreeRTOS/Source/list.c \
@@ -71,7 +74,7 @@ LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
 # ASM sources
 LIB_ASM_SOURCES =  \
-startup_stm32f072xb.s
+startup_stm32f417xx.s
 LIB_ASM_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_ASM_SOURCES))
 
 
@@ -79,16 +82,16 @@ LIB_ASM_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_ASM_SOURCES))
 # CFLAGS
 #######################################
 # cpu
-LIB_CPU = -mcpu=cortex-m0
+CPU = -mcpu=cortex-m4
 
 # fpu
-# NONE for Cortex-M0/M0+/M3
+FPU = -mfpu=fpv4-sp-d16
 
 # float-abi
-
+FLOAT-ABI = -mfloat-abi=hard
 
 # mcu
-LIB_MCU = $(LIB_CPU) -mthumb $(FPU) $(FLOAT-ABI)
+MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 
 # macros for gcc
 # AS defines
@@ -97,20 +100,20 @@ LIB_AS_DEFS =
 # C defines
 LIB_C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F072xB
+-DSTM32F417xx
 
 
 # AS includes
 LIB_AS_INCLUDES =  \
--I/Inc
+-I/Core/Inc
 
 # C includes
 LIB_C_INCLUDES =  \
-Inc \
-Drivers/STM32F0xx_HAL_Driver/Inc \
-Drivers/STM32F0xx_HAL_Driver/Inc/Legacy \
-Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0 \
-Drivers/CMSIS/Device/ST/STM32F0xx/Include \
+Core/Inc \
+Drivers/STM32F4xx_HAL_Driver/Inc \
+Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 Middlewares/Third_Party/FreeRTOS/Source/include \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
 Drivers/CMSIS/Include
@@ -137,7 +140,7 @@ endif
 # LDFLAGS
 #######################################
 # link script
-LIB_LDSCRIPT = $(THIS_MAKEFILE_PATH)/STM32F072RBTx_FLASH.ld
+LIB_LDSCRIPT = $(THIS_MAKEFILE_PATH)/STM32F417VGTx_FLASH.ld
 
 # libraries
 LIB_LIBS = -lc -lm -lnosys 
