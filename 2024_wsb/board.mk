@@ -1,4 +1,4 @@
-BUILD_TARGET = wsb
+BUILD_TARGET = 2024_wsb
 BOARD_ARCHITECTURE = F4
 
 COMMON_LIB_SRC = userCan.c debug.c state_machine.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c canReceiveCommon.c
@@ -8,7 +8,7 @@ F4_INC_DIR :=  # handled by tail.mk in common
 F4_SRC_DIR :=  # handled by tail.mk in common
 F4_SRC :=  	   # handled by tail.mk in common
 
-CUBE_F4_MAKEFILE_PATH= $(BUILD_TARGET)/Cube-F4-Src/
+CUBE_F4_MAKEFILE_PATH= $(BUILD_TARGET)/Cube-F4-Src
 
 wsb: wsbfl wsbfr wsbrr wsbrl
 
