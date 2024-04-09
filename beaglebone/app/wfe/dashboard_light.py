@@ -6,6 +6,25 @@ import can
 import cantools
 import csv
 
+# CAN arbitration ID constants
+BATTERYSTATUSHV_ARB_ID = 2281967617
+BMU_DTC_ARB_ID = 2147548929
+MC_TEMP_ARB_ID = 2365563393
+MC_TEMP_INV_ARB_ID = 2365562881
+
+TEMPCOOLANT_L_ARB_ID = 2550137362
+TEMPCOOLANT_R_ARB_ID = 2550137363
+
+# declare water temp variable here because left/right
+# sensor data is from diff CAN messages
+water_temp_left = 0
+water_temp_right = 0
+
+BMU_VBATT_ARB_ID = 2281769985
+WHEELSPEED_ARB_ID = 2287471618
+
+
+
 window = Tk()
 
 window.geometry("800x480")
@@ -359,7 +378,7 @@ min_cell_text = canvas.create_text(
 
 dtc_descriptions = {} 
 
-with open('DTC.csv', 'r') as file:
+with open('common/Data/DTC.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
@@ -367,7 +386,7 @@ with open('DTC.csv', 'r') as file:
         description = row[6]
         dtc_descriptions[dtc_code] = description
 
-db = cantools.database.load_file('2024CAR.dbc')
+db = cantools.database.load_file('common/Data/2024CAR.dbc')
 can_bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
  # Create the scrollable text area
@@ -382,7 +401,6 @@ def publish_dtc(error_code, error_message):
     description = dtc_descriptions.get(error_code, "Description not found")
     dtc_text_area.insert("end","\n" +str(error_code) + " | " + str(description))
     dtc_text_area.yview("end")  # Scroll to the bottom to show the latest message
-
 
 def openDebug():
     window2 = Tk()
@@ -440,7 +458,6 @@ debug_button = Button(
 
 debug_button.place(x=710, y=440)
 
-
 def process_can_messages():
     print("reading can messages...")
     while True:
@@ -450,31 +467,111 @@ def process_can_messages():
         if message is not None:
             print(message.arbitration_id)
 
-        if message is not None and message.arbitration_id == 134483969:
+        # Case for battery temp/soc
+        if message.arbitration_id == BATTERYSTATUSHV_ARB_ID:
             print("message found!")
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
-                # Extract SOC (assuming the signal interpretation is correct)
-                soc_value = decoded_data['StateBatteryChargeHV']  # Scale if needed
+                soc_value = decoded_data['StateBatteryChargeHV']
+                battery_temp = decoded_data['TempCellMax'] 
 
-                # Update the dashboard
                 update_battery_charge(soc_value)
+                canvas.itemconfig(battery_temp_text, text=str(battery_temp))
             except KeyError:
                 print("Unknown message ID")
-        
-        if message is not None and message.arbitration_id == 65281:
+
+        # Case for motor temp
+        if message.arbitration_id == MC_TEMP_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
-                # Extract SOC (assuming the signal interpretation is correct)
-                DTC_CODE = decoded_data['DTC_CODE']
-                DTC_message = decoded_data['DTC_Data']   # Scale if needed
+                motor_temp = decoded_data['INV_Motor_Temp']
 
-                # Update the dashboard
+                canvas.itemconfig(motor_temp_text, text=str(motor_temp))
+            except KeyError:
+                print("Unknown message ID")
+
+        # Case for inverter temp
+        if message.arbitration_id == MC_TEMP_INV_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                inv_temp1 = decoded_data['INV_Module_A_Temp']
+                inv_temp2 = decoded_data['INV_Module_B_Temp']
+                inv_temp3 = decoded_data['INV_Module_C_Temp']
+
+                average_inv_temp = (float(inv_temp1) + float(inv_temp2) + float(inv_temp3)) / 3
+
+                canvas.itemconfig(inverter_temp_text, text=str(average_inv_temp))
+            except KeyError:
+                print("Unknown message ID")
+
+        # Case for water temp (left)
+        if message.arbitration_id == TEMPCOOLANT_L_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                water_temp_left = decoded_data['TempInletRadMotorLeft']
+                
+                average_water_temp = (float(water_temp_left) + float(water_temp_right)) / 2
+
+                canvas.itemconfig(water_temp_text, text=str(average_water_temp))
+            except KeyError:
+                print("Unknown message ID")
+        
+        # Case for water temp (right)
+        if message.arbitration_id == TEMPCOOLANT_R_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                water_temp_right = decoded_data['TempInletRadMotorRight']
+                
+                average_water_temp = (float(water_temp_left) + float(water_temp_right)) / 2
+
+                canvas.itemconfig(water_temp_text, text=str(average_water_temp))
+            except KeyError:
+                print("Unknown message ID")
+
+        # Case for VBATT
+        if message.arbitration_id == BMU_VBATT_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                vbatt = decoded_data['AMS_PackVoltage']
+
+                canvas.itemconfig(vbatt_text, text=str(vbatt))
+            except KeyError:
+                print("Unknown message ID")
+
+        # Case for Speeeeeed
+        if message.arbitration_id == WHEELSPEED_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                fl_speed = decoded_data['FLSpeedKPH']
+                fr_speed = decoded_data['FRSpeedKPH']
+                rr_speed = decoded_data['RRSpeedKPH']
+                rl_speed = decoded_data['RLSpeedKPH']
+                
+                average_speed = (float(fl_speed) + float(fr_speed) + float(rr_speed) + float(rl_speed)) / 4
+
+                canvas.itemconfig(speed_text, text=str(average_speed))
+            except KeyError:
+                print("Unknown message ID")
+
+        # Case for BMU DTC
+        if message.arbitration_id == BMU_DTC_ARB_ID:
+            try:
+                decoded_data = db.decode_message(message.arbitration_id, message.data)
+
+                DTC_CODE = decoded_data['DTC_CODE']
+                DTC_message = decoded_data['DTC_Data']   
+
                 publish_dtc(DTC_CODE, DTC_message)
             except KeyError:
                 print("Unknown message ID")
+        
 
 can_thread = Thread(target=process_can_messages)
 can_thread.start()
