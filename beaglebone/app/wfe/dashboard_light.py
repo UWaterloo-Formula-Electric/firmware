@@ -6,6 +6,8 @@ import can
 import cantools
 import csv
 
+CANBUS = 'can1'
+
 # CAN arbitration ID constants
 BATTERYSTATUSHV_ARB_ID = 2281967617
 BMU_DTC_ARB_ID = 2147548929
@@ -387,7 +389,7 @@ with open('common/Data/DTC.csv', 'r') as file:
         dtc_descriptions[dtc_code] = description
 
 db = cantools.database.load_file('common/Data/2024CAR.dbc')
-can_bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
  # Create the scrollable text area
 dtc_text_area = scrolledtext.ScrolledText(window, width=45, height=2)
