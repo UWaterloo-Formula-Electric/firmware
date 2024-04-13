@@ -63,6 +63,11 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 2292907779 PDU_Car_State: 3 PDU
+ SG_ is_EM_Enable : 16|1@1- (1,0) [0|0] ""  VCU_F7
+ SG_ is_HV : 8|1@1- (1,0) [0|0] ""  VCU_F7
+ SG_ is_LV : 0|1@1- (1,0) [0|0] ""  VCU_F7
+
 BO_ 2147483648 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_BMU : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_VCU_F7 : 0|8@1+ (1,0) [0|0] "" Vector__XXX

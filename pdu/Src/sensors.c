@@ -277,8 +277,18 @@ void canPublishPowerStates() {
     }
 }
 
+void canPublishCarState() {
+    is_LV = fsmGetState(&mainFsmHandle) == STATE_Boards_On;
+    is_HV = HV_Power_State;
+    is_EM_Enable = fsmGetState(&mainFsmHandle) == STATE_Motors_On;
+    if (sendCAN_PDU_Car_State() != HAL_OK) {
+        ERROR_PRINT("Failed to send the PDU car state on the CAN bus!\n");
+    }
+}
+
 void canPublishPeriod1s() {
     canPublishCurrent();
+    canPublishCarState();
 }
 
 void canPublishPeriod5s() {
