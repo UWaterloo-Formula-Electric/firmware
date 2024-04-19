@@ -14,12 +14,12 @@ QueueHandle_t pdu_hil_queue;
 
 void can_rx_task (void * pvParameters){
 
-    vcu_hil_queue = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
-    pdu_hil_queue = xQueueCreate(MAX_QUEUE_LENGTH, sizeof(twai_message_t));
+    vcu_hil_queue = xQueueCreate(MAX_CAN_MSG_QUEUE_LENGTH, sizeof(twai_message_t));
+    pdu_hil_queue = xQueueCreate(MAX_CAN_MSG_QUEUE_LENGTH, sizeof(twai_message_t));
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    BaseType_t error;
+    BaseType_t error = pdPASS;
     
     while(1) {
 
@@ -44,6 +44,6 @@ void can_rx_task (void * pvParameters){
             }
         #endif
 
-        vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL);
+        vTaskDelayUntil(&xLastWakeTime, CAN_RX_TASK_INTERVAL_MS);
     }
 }

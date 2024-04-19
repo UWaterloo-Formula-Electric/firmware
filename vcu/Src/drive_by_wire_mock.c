@@ -353,7 +353,7 @@ BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
@@ -379,8 +379,8 @@ BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
     uint64_t maxTorqueDemand;
     sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
 
-    if(maxTorqueDemand > 30){
-        COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 30");
+    if(maxTorqueDemand > 231){
+        COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 231Nm");
     }else{
         setTorqueLimit(maxTorqueDemand);    
         COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand); 

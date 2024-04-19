@@ -93,14 +93,14 @@ static float get_FL_speed()
 static float get_RR_speed()
 {
 	//Value comes from MC
-	int64_t val = SpeedMotorRight;
+	int64_t val = INV_Motor_Speed; // TEMPORARY - just replaced deleted CAN signals for compilation
 	return RPM_TO_RADS(val - MC_ENCODER_OFFSET)*GEAR_RATIO;
 }
 
 static float get_RL_speed()
 {
 	//Value comes from MC
-	int64_t val = SpeedMotorLeft;
+	int64_t val = INV_Motor_Speed; // TEMPORARY - just replaced deleted CAN signals for compilation
 	return RPM_TO_RADS(val - MC_ENCODER_OFFSET)*GEAR_RATIO;
 }
 

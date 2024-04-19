@@ -25,8 +25,8 @@ void userInit()
         Error_Handler();
     }
 
-    if (initStateMachines() != HAL_OK) {
-        ERROR_PRINT("Failed to init state machines!\n");
+    if (mainControlInit() != HAL_OK) {
+        ERROR_PRINT("Failed to init state machine!\n");
         Error_Handler();
     }
 

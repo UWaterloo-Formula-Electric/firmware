@@ -23,11 +23,12 @@
 ## CAN Monitor
 
 Monitor incoming data off the default CAN interface (default `can1`) and send
-it to a message queue to the display and a log database. 
+it to a message queue to the display and a log database.
 
 ## Installation
 
 ### ZeroMQ
+
 This project utilizes ZeroMQ for Interprocess Communication (IPC).
 **Important**: When installing, pyzmq will try to find libzmq/build it's own.
 This was taking a long time on my BeagleBone. Speed up the dependency
@@ -41,6 +42,7 @@ prior to installing the package. This will download a pre-exsting ZeroMQ
 binary so you don't have to build your own.
 
 ### WFE Package
+
 To install this repository as a package, run
 
 ```
@@ -53,7 +55,7 @@ in this directory.
 
 This package relies heavily on having a SocketCAN interface properly set up
 to interface with. To ensure your CAN setup is correct, I found it was useful
-to use can-utils and cantools to monitor the interface and decode messages: 
+to use can-utils and cantools to monitor the interface and decode messages:
 
 ```
 candump can0 | cantools decode <example>.dbc
@@ -64,8 +66,7 @@ the DBC to your `site-packages` in your default Python install location.
 
 ## Simulating CAN Messages
 
-For an extensive guide, refer to our [Confluence page](
-https://wiki.uwaterloo.ca/display/FESW/Simulation+of+CAN+Messages).
+For an extensive guide, refer to our [Confluence page](https://wiki.uwaterloo.ca/display/FESW/Simulation+of+CAN+Messages).
 
 With a virtual bus, we can simulate CAN messages on the Beaglebone.
 
@@ -87,7 +88,7 @@ Run CAN Simulations with CAN monitor.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d DBC, --dbc DBC     DBC file (default: ../../../../common/Data/2018CAR.dbc)
+  -d DBC, --dbc DBC     DBC file (default: ../../../../common/Data/2024CAR.dbc)
   -j JSON, --json JSON  JSON file (default: json/heartbeat.json)
   -t TIME, --time TIME  Duration of simulation in ms (default: 5000)
 ```
@@ -111,8 +112,7 @@ system-wide packages that may also happen to be dependencies of this project.
 It's also useful to ensure that our package will install cleanly on a brand
 new system.
 
-Read more about the virtual environment package [here](
-https://docs.python.org/3/tutorial/venv.html)
+Read more about the virtual environment package [here](https://docs.python.org/3/tutorial/venv.html)
 
 Enter the virtual environment with
 

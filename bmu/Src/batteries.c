@@ -41,7 +41,7 @@
 #if IS_BOARD_F7
 #include "ltc_chip.h"
 #include "ltc_chip_interface.h"
-#include "ade7912.h"
+#include "ade7913.h"
 #include "imdDriver.h"
 #endif
 
@@ -479,7 +479,7 @@ void imdTask(void *pvParamaters)
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
          default:
-            ERROR_PRINT_ISR("Unkown IMD Status\n");
+            ERROR_PRINT_ISR("Unknown IMD Status\n");
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
       }
@@ -1493,7 +1493,7 @@ void batteryTask(void *pvParameter)
                         DEBUG_PRINT("Stopped charge/balancing\n");
                         fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
                     } else {
-                        ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
+                        ERROR_PRINT("Unknown charge return code %d\n", chargeRc);
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                     }
                 }

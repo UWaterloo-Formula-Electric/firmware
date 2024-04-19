@@ -5,7 +5,9 @@
 #include "FreeRTOS_CLI.h"
 #include "task.h"
 #include "userCan.h"
+#ifndef DISABLE_CAN_FEATURES
 #include "canHeartbeat.h"
+#endif // DISABLE_CAN_FEATURES
 
 // Send a CLI string to the uart to be printed. Only for use by the CLI
 // buf must be of length PRINT_QUEUE_STRING_SIZE (this is always true for CLI
@@ -166,7 +168,7 @@ BaseType_t heapUsageCommand(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(param, "min", paramLen)) {
         COMMAND_OUTPUT("Minimum free heap (bytes): %d\n", xPortGetMinimumEverFreeHeapSize()); 
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 
     return pdFALSE;
@@ -179,6 +181,8 @@ static const CLI_Command_Definition_t heapCommandDefinition =
     heapUsageCommand,
     1 /* Number of parameters */
 };
+
+#ifndef DISABLE_CAN_FEATURES
 
 BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -194,7 +198,7 @@ BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Turning can heartbeat off\n");
         heartbeatEnabled = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
     COMMAND_OUTPUT("WSB don't have a heartbeat\n");
@@ -224,7 +228,7 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
@@ -243,7 +247,7 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Turning can heartbeat %s for VCU_F7\n", onOff?"on":"off");
         VCU_F7_heartbeatEnabled = onOff;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
     COMMAND_OUTPUT("WSB don't have a heartbeat\n");
@@ -279,6 +283,7 @@ static const CLI_Command_Definition_t boardHeartbeatInfoCommandDefinition =
     0 /* Number of parameters */
 };
 
+#endif // DISABLE_CAN_FEATURES
 
 #define TASK_LIST_NUM_BYTES_PER_TASK 50
 char *taskListBuffer = NULL; // A buffer to store taskList string in,
@@ -461,19 +466,21 @@ HAL_StatusTypeDef debugInit()
     if (FreeRTOS_CLIRegisterCommand(&statsListCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+#ifndef DISABLE_CAN_FEATURES
     if (FreeRTOS_CLIRegisterCommand(&generalHeartbeatCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatInfoCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+#endif // DISABLE_CAN_FEATURES
     if (FreeRTOS_CLIRegisterCommand(&versionCLICommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&resetCLICommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&boardHeartbeatInfoCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;
@@ -490,6 +497,7 @@ void printTask(void *pvParameters)
             uint64_t len = strlen(buffer);
             HAL_UART_Transmit(&DEBUG_UART_HANDLE, (uint8_t*) buffer, len, UART_PRINT_TIMEOUT);
 
+        #ifndef DISABLE_CAN_FEATURES
             if(isUartOverCanEnabled)
             {
                 // send message length
@@ -508,11 +516,13 @@ void printTask(void *pvParameters)
 					sendCAN_UartOverCanRx();
 				}
             }
+        #endif // DISABLE_CAN_FEATURES
         }
     }
 }
 
 
+#ifdef STATS_TIM_HANDLE
 /*
  * Run time stats timer setup
  * A 16 bit timer with clock source APB1 should be configured in cube
@@ -583,3 +593,4 @@ uint32_t getRunTimeCounterValue()
 
     return curCounterVal;
 }
+#endif

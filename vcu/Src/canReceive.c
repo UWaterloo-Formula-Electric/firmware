@@ -15,6 +15,7 @@
 
 #include "endurance_mode.h"
 #include "traction_control.h"
+#include "motorController.h"
 
 /*
  * External Board Statuses:
@@ -22,6 +23,11 @@
  * Can messages
  */
 volatile bool motorControllersStatus = false;
+volatile bool inverterLockoutDisabled = false;
+volatile uint8_t inverterVSMState;
+volatile uint8_t inverterInternalState;
+volatile uint64_t inverterFaultCode = 0;
+
 /*
  * Functions to get external board status
  */
@@ -33,6 +39,21 @@ bool getHvEnableState()
 bool getMotorControllersStatus()
 {
     return motorControllersStatus;
+}
+
+bool isLockoutDisabled()
+{
+    return inverterLockoutDisabled;
+}
+
+uint8_t getInverterVSMState()
+{
+    return inverterVSMState;
+}
+
+uint64_t getInverterFaultCode()
+{
+    return inverterFaultCode;
 }
 
 extern osThreadId driveByWireHandle;
@@ -61,8 +82,7 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     
-    if (!motorControllersStatus && StatusPowerMCLeft == StatusPowerMCLeft_CHANNEL_ON &&
-        StatusPowerMCRight == StatusPowerMCRight_CHANNEL_ON) {
+    if (!motorControllersStatus && StatusPowerMCLeft == StatusPowerMCLeft_CHANNEL_ON) {
         xTaskNotifyFromISR( driveByWireHandle,
                             (1<<NTFY_MCs_ON),
                             eSetBits,
@@ -119,4 +139,33 @@ void CAN_Msg_TractionControlConfig_Callback()
 	tc_kD = TC_kD;
 	desired_slip = TC_desiredSlipPercent;
 	DEBUG_PRINT_ISR("tc_kP is %f\n", tc_kP);
+}
+
+void CAN_Msg_MC_Internal_States_Callback() // 100 hz
+{
+    inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
+    inverterInternalState = INV_Inverter_State;
+    inverterVSMState = INV_VSM_State;
+} 
+
+void CAN_Msg_MC_Read_Write_Param_Response_Callback()
+{
+    sendLockoutReleaseToMC();
+}
+
+void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
+{
+    // Each bit represents a fault
+    // Combine them to be sent over DTCs
+    inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+}
+
+void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
+{
+    DEBUG_PRINT_ISR("Ack torque req for: %f\n", INV_Commanded_Torque);
+}
+
+void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
+{
+    DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
 }
