@@ -215,7 +215,7 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
             dataTypeOutput = 'uint64_t'
 
     if multiplexed:
-        finalStatement = "{signalName}[index] = outValue".format(signalName=variableName)
+        finalStatement = "{signalName}[index] = outValue;".format(signalName=variableName)
     elif dtc:
         finalStatement = "return outValue;"
     else:
