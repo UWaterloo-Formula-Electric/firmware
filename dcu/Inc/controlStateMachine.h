@@ -3,8 +3,7 @@
 #include "state_machine.h"
 
 typedef enum DCU_States_t {
-    STATE_Self_Test = 0,
-    STATE_HV_Disable,
+    STATE_HV_Disable=0U,
     STATE_HV_Toggle,
     STATE_HV_Enable,
     STATE_EM_Toggle,

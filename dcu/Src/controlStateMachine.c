@@ -127,7 +127,6 @@ uint32_t doNothing(uint32_t event)
 }
 
 Transition_t transitions[] = {
-    {STATE_Self_Test,     EV_Init,                &selfTests},
     {STATE_HV_Disable,    EV_HV_Toggle,           &toggleHV},
     {STATE_HV_Toggle,     EV_CAN_Recieve_HV,      &hvControl},
     {STATE_HV_Toggle,     EV_HV_Toggle,           &doNothing},
@@ -158,13 +157,6 @@ Transition_t transitions[] = {
     {STATE_ANY,           EV_CAN_Recieve_Fatal,   &fatalTransition},
     {STATE_ANY,           EV_ANY,                 &defaultTransition}
 };
-
-uint32_t selfTests(uint32_t event)
-{
-    /* Run self tests here */
-    DEBUG_PRINT("Completed start up tests\n");
-    return STATE_HV_Disable;
-}
 
 int sendHVToggleMsg(void)
 {
@@ -482,7 +474,7 @@ HAL_StatusTypeDef dcuFsmInit(){
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 10;
     init.watchdogTaskId = MAIN_TASK_ID;
-    if (fsmInit(STATE_Self_Test, &init, &DCUFsmHandle) != HAL_OK) 
+    if (fsmInit(STATE_HV_Disable, &init, &DCUFsmHandle) != HAL_OK) 
     {
         ERROR_PRINT("Failed to init DCU fsm\n");
         return HAL_ERROR;
@@ -550,11 +542,7 @@ uint32_t defaultTransition(uint32_t event)
     uint32_t currentState = fsmGetState(&DCUFsmHandle);
 
     //Need to do it like this since we can't do string interpolation which causes stack overflows
-    if (currentState == STATE_Self_Test)
-    {
-        ERROR_PRINT("Self_Test state\r\n");
-    }
-    else if (currentState == STATE_HV_Disable)
+    if (currentState == STATE_HV_Disable)
     {
         ERROR_PRINT("HV_Disable state\r\n");
     }

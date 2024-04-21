@@ -38,15 +38,12 @@ void ledTask(void *pvParameters)
     bool already_errored = false;
     uint32_t blink_period = pdMS_TO_TICKS(DEFAULT_LED_BLINK_PERIOD_MS);
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    selfTestLEDs();
 
     while (1)
     {
         switch(fsmGetState(&DCUFsmHandle))
         {
-            case STATE_Self_Test:
-                selfTestLEDs();
-                fsmSendEvent(&DCUFsmHandle, EV_Init, 1000);
-                break;
             case STATE_HV_Disable:
                 HV_LED_OFF;
                 EM_LED_OFF;
