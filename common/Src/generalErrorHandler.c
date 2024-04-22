@@ -63,6 +63,7 @@ void _handleError(char *file, int line)
 
   while(1)
   {
+    DEBUG_PRINT("Unrecoverable Error Set\r\n");
     watchdogRefresh();
   }
 }
