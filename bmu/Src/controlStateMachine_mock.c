@@ -32,7 +32,7 @@
 
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
-extern uint32_t brakeAndHVILVals[2];
+extern uint32_t brakeAndHallAdcVals[2];
 extern float adjustedCellIR;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
@@ -54,8 +54,8 @@ BaseType_t getBrakePressure(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     COMMAND_OUTPUT("Brake %f %%, (adcVal: %lu)\n",
-                   ((float)brakeAndHVILVals[BRAKE_ADC_CHANNEL]) / BRAKE_ADC_DIVIDER,
-                   brakeAndHVILVals[BRAKE_ADC_CHANNEL]);
+                   ((float)brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE]) / BRAKE_ADC_DIVIDER,
+                   brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE]);
 
     return pdFALSE;
 }
@@ -75,8 +75,8 @@ BaseType_t setBrakePressure(char *writeBuffer, size_t writeBufferLength,
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(param, "%f", &brakePressure);
-    brakeAndHVILVals[BRAKE_ADC_CHANNEL] = brakePressure * BRAKE_ADC_DIVIDER;
-    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePressure, brakeAndHVILVals[BRAKE_ADC_CHANNEL]);
+    brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE] = brakePressure * BRAKE_ADC_DIVIDER;
+    COMMAND_OUTPUT("Setting brake to %f %%, (adcVal: %lu)\n", brakePressure, brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE]);
 
     return pdFALSE;
 }

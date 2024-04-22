@@ -32,6 +32,7 @@
 #include "canReceive.h"
 #include "chargerControl.h"
 #include "state_of_charge.h"
+#include "sense.h"
 
 /*
  *
@@ -133,13 +134,6 @@ extern osThreadId stateOfChargeHandle;
  * HV Measure
  */
 
-/**
- * @brief Filter constant for HV Bus current low pass filter
- * Designed around 1 ms sample period and 50 Hz cuttoff.
- * See the wikipedia page for the calculation: https://en.wikipedia.org/wiki/Low-pass_filter#Simple_infinite_impulse_response_filter
- */
-#define IBUS_FILTER_ALPHA 0.24
-
 
 // Filter constant for Filtered Cell Voltages
 // Designed for 75 ms sample period and 1 Hz cutoff
@@ -150,13 +144,21 @@ extern osThreadId stateOfChargeHandle;
  * @param[in] IBus the measured HV Bus current
  * @return The filtered HV Bus current
  */
+
+#define IBUS_HISTORY_SIZE 100
+static float IBusHistory[IBUS_HISTORY_SIZE];
+
 float filterIBus(float IBus)
 {
-  static float IBusOut = 0;
+    static uint8_t filterIndex = 0U;
+    static float runningIBusHistorySum = 0.0f;
 
-  IBusOut = IBUS_FILTER_ALPHA*IBus + (1-IBUS_FILTER_ALPHA)*IBusOut;
+    runningIBusHistorySum -= IBusHistory[filterIndex];
+    IBusHistory[filterIndex] = IBus;
+    runningIBusHistorySum += IBus;
+    filterIndex = (filterIndex + 1) % IBUS_HISTORY_SIZE;
 
-  return IBusOut;
+    return runningIBusHistorySum / IBUS_HISTORY_SIZE;
 }
 
 /**
@@ -210,15 +212,16 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
  */
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
+    extern volatile uint32_t brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_NUM];
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0;
-   if (adc_read_current(&IBusTmp) != HAL_OK) {
-      ERROR_PRINT("Error reading IBUS\n");
-      return HAL_ERROR;
-   }
-
-   (*IBus) = filterIBus(IBusTmp);
-
+   const float IBusTmp = (0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
+//    if (adc_read_current(&IBusTmp) != HAL_OK) {
+//       ERROR_PRINT("Error reading IBUS\n");
+//       return HAL_ERROR;
+//    }
+   
+    (*IBus) = filterIBus(IBusTmp);
+    
    if (adc_read_v1(VBus) != HAL_OK) {
       ERROR_PRINT("Error reading VBUS\n");
       return HAL_ERROR;
@@ -576,6 +579,10 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
    {
       TempChannel[i] = initTemp;
       warningSentForChannelTemp[i] = false;
+   }
+   for (int i=0; i < IBUS_HISTORY_SIZE; ++i)
+   {
+        IBusHistory[i] = 0.0f;
    }
 
    return HAL_OK;
