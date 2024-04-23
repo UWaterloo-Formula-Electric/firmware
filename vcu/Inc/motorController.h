@@ -5,6 +5,8 @@
 #include "bsp.h"
 #include "canReceive.h"
 
+#define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
+
 #define MAX_TORQUE_DEMAND_DEFAULT       231 
 #define MAX_TORQUE_DEMAND_DEFAULT_NM    231 // N.m.
 #define SPEED_LIMIT_DEFAULT             10000
@@ -16,8 +18,8 @@
 
 #define INVERTER_LOCKOUT_ENABLED        0x1
 #define INVERTER_LOCKOUT_DISABLED       0x0
-#define INVERTER_DIRECTION_FORWARD      0x1
-#define INVERTER_DIRECTION_REVERSE      0x0
+#define INVERTER_DIRECTION_FORWARD      0x0
+#define INVERTER_DIRECTION_REVERSE      0x1
 #define INVERTER_ON                     0x1
 #define INVERTER_OFF                    0x0
 #define INVERTER_DISCHARGE_ENABLE       0x1

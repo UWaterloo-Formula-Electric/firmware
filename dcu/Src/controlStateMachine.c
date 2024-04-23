@@ -186,12 +186,26 @@ static uint32_t processEmState(uint32_t event)
     switch (current_state)
     {
         case STATE_Failure_Fatal:
+        {
+            DEBUG_PRINT("Can't EM Enable in Fatal State\r\n");
+            sentFatalDTC = true;
+            sendDTC_FATAL_DCU_SM_ERROR(7);
+            new_state = STATE_Failure_Fatal;
+            break;
+        }
         case STATE_HV_Disable:
         {
-            DEBUG_PRINT("Can't EM Enable\r\n");
-            sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(4);
-            new_state = STATE_Failure_Fatal;
+            if(getEMState() == EM_State_On)
+            {
+                DEBUG_PRINT("Can't EM Enable from HV Disable\r\n");
+                sentFatalDTC = true;
+                sendDTC_FATAL_DCU_SM_ERROR(4);
+                new_state = STATE_Failure_Fatal;
+            }
+            else
+            {
+                DEBUG_PRINT("VCU fell from EM\r\n");
+            }
             break;
         }
         case STATE_HV_Enable:
@@ -249,10 +263,11 @@ static uint32_t processEmState(uint32_t event)
 
 static uint32_t fatalTransition(uint32_t event)
 {
+    DEBUG_PRINT("Fatal Event. Entering Fatal State\r\n");
     if (!sentFatalDTC)
     {
         sentFatalDTC = true;
-        DEBUG_PRINT("Fatal Event Received\r\n");
+        DEBUG_PRINT("Sending SM Fatal DTC\r\n");
         sendDTC_FATAL_DCU_SM_ERROR(0);
     }
     return STATE_Failure_Fatal;
@@ -510,6 +525,7 @@ static uint32_t defaultTransition(uint32_t event)
 {
     const uint32_t currentState = fsmGetState(&DCUFsmHandle);
     ERROR_PRINT("No transition function for state %lu and event %lu\r\n", currentState, event);
+    sendDTC_FATAL_DCU_NoTransition();
     return currentState;
 }
 

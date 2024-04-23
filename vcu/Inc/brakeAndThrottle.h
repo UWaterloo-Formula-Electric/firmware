@@ -13,11 +13,11 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 50
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 10
 
-#define THROTT_A_LOW (1257)
-#define THROTT_B_LOW (3422)
+#define THROTT_A_LOW (2275)
+#define THROTT_B_LOW (2175)
 
-#define THROTT_A_HIGH (1642)
-#define THROTT_B_HIGH (3828)
+#define THROTT_A_HIGH (2495) 
+#define THROTT_B_HIGH (2405)
 
 #define BRAKE_POS_LOW (1040)
 #define BRAKE_POS_HIGH (1173)
@@ -88,8 +88,8 @@ float getBrakePositionPercent();
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
-uint16_t calculate_throttle_percent1(uint16_t tps_value);
-uint16_t calculate_throttle_percent2(uint16_t tps_value);
+float calculate_throttle_percent1(uint16_t tps_value);
+float calculate_throttle_percent2(uint16_t tps_value);
 ThrottleStatus_t getNewThrottle(float *throttleOut);
 
 #endif /* end of include guard: BRAKEANDTHROTTLE_H */

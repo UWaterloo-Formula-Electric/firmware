@@ -9,6 +9,7 @@
 #include "state_machine.h"
 #include "drive_by_wire.h"
 #include "canReceive.h"
+#include "mathUtils.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -77,16 +78,16 @@ bool is_throttle2_in_range(uint32_t throttle) {
   return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
 }
 
-uint16_t calculate_throttle_percent1(uint16_t tps_value)
+float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return 100 - map_range(tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return 100.0f - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
       0, 100);
 }
 
-uint16_t calculate_throttle_percent2(uint16_t tps_value)
+float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return map_range(tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
       0, 100);
 }
 
@@ -100,7 +101,7 @@ uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
   return map_range(percent, 0, 100, THROTT_B_LOW, THROTT_B_HIGH);
 }
 
-bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_percent)
+bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
 {
     if (throttle1_percent == throttle2_percent
         || ((throttle1_percent > throttle2_percent) && ((throttle1_percent - throttle2_percent) < TPS_TOLERANCE_PERCENT))
@@ -116,7 +117,7 @@ bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_perc
 // @ret False if implausibility, true otherwise
 bool getThrottlePositionPercent(float *throttleOut)
 {
-    uint32_t throttle1_percent, throttle2_percent;
+    float throttle1_percent, throttle2_percent;
     float throttle;
     (*throttleOut) = 0;
 
@@ -141,7 +142,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
-        ERROR_PRINT("implausible pedal! difference: %ld %%\r\n", throttle1_percent - throttle2_percent);
+        ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
         DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
         return false;
     } else {

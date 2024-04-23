@@ -79,7 +79,7 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data)
 void DTC_Fatal_Callback(BoardIDs board)
 {
 	ERROR_PRINT_ISR("Fatal DTC received\n");
-        fsmSendEventUrgentISR(&DCUFsmHandle, EV_Fatal);
+    fsmSendEventUrgentISR(&DCUFsmHandle, EV_Fatal);
 }
 
 void CAN_Msg_UartOverCanConfig_Callback() {

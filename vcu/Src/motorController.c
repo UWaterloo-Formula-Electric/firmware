@@ -158,10 +158,14 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
 
 HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
 
+    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE)
+    {
+        throttle_percent = 0.0f;
+    }
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-    float scaledTorque = map_range_float(throttle_percent, 0, 100, 0, maxTorqueDemand);
-    uint16_t requestTorque = scaledTorque * 10;
+    float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
+    uint16_t requestTorque = scaledTorque * 10; 
 
     VCU_INV_Torque_Command = requestTorque;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;

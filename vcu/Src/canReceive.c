@@ -46,6 +46,11 @@ bool isLockoutDisabled()
     return inverterLockoutDisabled;
 }
 
+void resetMCLockout()
+{
+    inverterLockoutDisabled = false;
+}
+
 uint8_t getInverterVSMState()
 {
     return inverterVSMState;
@@ -110,6 +115,7 @@ void CAN_Msg_BMU_HV_Power_State_Callback() {
     DEBUG_PRINT_ISR("Receive hv power state\n");
     if (HV_Power_State != HV_Power_State_On) {
         fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        resetMCLockout();
     }
 }
 
@@ -158,14 +164,4 @@ void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
     // Each bit represents a fault
     // Combine them to be sent over DTCs
     inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
-}
-
-void CAN_Msg_MC_Torque_And_Timer_Info_Callback() // 100hz
-{
-    DEBUG_PRINT_ISR("Ack torque req for: %f\n", INV_Commanded_Torque);
-}
-
-void CAN_Msg_MC_Temperature_Set_3_Callback() // 10hz
-{
-    DEBUG_PRINT_ISR("Motor temp: %f\n", INV_Motor_Temp);
 }
