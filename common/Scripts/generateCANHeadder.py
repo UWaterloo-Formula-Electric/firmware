@@ -78,13 +78,22 @@ def getGitCommit():
 
 def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName, isChargerDBC=False):
     templateData = {}
+
+    # Add support for STM32F4 chip
+    if boardType == 'F7':
+        boardTypeInclude = "stm32f7xx_hal.h"
+    elif boardType == 'F4':
+        boardTypeInclude = "stm32f4xx_hal.h"
+    else:
+        boardTypeInclude = "stm32f0xx_hal.h"
+
     if isChargerDBC:
         includeDefineName = '__{nodeName}_charger_can_H'.format(nodeName=nodeName)
     else:
         includeDefineName = '__{nodeName}_can_H'.format(nodeName=nodeName)
     templateData = {
         "includeDefineName": includeDefineName,
-        "boardTypeInclude": "stm32f7xx_hal.h" if boardType == 'F7' else "stm32f0xx_hal.h",
+        "boardTypeInclude": boardTypeInclude,
         "heartbeatInclude": "#include \"canHeartbeat.h\"" if not isChargerDBC else '',
     }
     templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
@@ -755,15 +764,15 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
-        boardType = argv[1] # F0 or F7
+        boardType = argv[1] # F0 or F7 or F4
     else:
         print('Error: no target specified or no boardtype specified')
         sys.exit(1)
 
     print('Generating CAN source and header files for Board: {nodeName}, Type: {boardType}'.format(nodeName=nodeName, boardType=boardType))
 
-    if not (boardType == 'F0' or boardType == 'F7'):
-        print("ERROR: Specifiy either F0 or F7 for boardtype")
+    if not (boardType == 'F0' or boardType == 'F7' or boardType == 'F4'):
+        print("ERROR: Specifiy either F0 or F7 or F4 for boardtype")
         sys.exit(1)
 
     commonDir = 'common'
