@@ -15,6 +15,9 @@
 #ifdef CHARGER_CAN_HANDLE
 #include "bmu_charger_can.h"
 #endif
+#if BOARD_ID == ID_VCU_F7
+#include "sd_logging.h"
+#endif
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)
 
@@ -64,6 +67,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         ERROR_PRINT_ISR("Failed to receive CAN message from FIFO0\n");
         handleError();
     }
+
+#if BOARD_ID == ID_VCU_F7
+    can_msg_t msg;
+    msg.id = RxHeader.ExtId;
+    memcpy(msg.data, RxData, 8);
+    xQueueSendFromISR(sdLoggingQueue, &msg, pdFALSE);
+#endif
 
     /*
         This check is essential as it was causing issues with our brake light flashing and our button presses were getting random values.

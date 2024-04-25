@@ -10,6 +10,7 @@
 #include "beaglebone.h"
 #include "generalErrorHandler.h"
 #include "vcu_F7_can.h"
+#include "sd_logging.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -48,6 +49,10 @@ void userInit()
     }
 
     if (beagleboneOff() != HAL_OK) {
+      Error_Handler();
+    }
+
+    if(initSdLoggingQueue() != HAL_OK) {
       Error_Handler();
     }
 }

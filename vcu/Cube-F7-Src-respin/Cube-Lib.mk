@@ -33,6 +33,7 @@ LIB_OPT = -Og
 # source path
 LIB_SOURCES_DIR =  \
 Middlewares/FreeRTOS \
+Middlewares/FatFs/src \
 Middlewares \
 Drivers \
 Application/User/.. \
@@ -59,13 +60,22 @@ Src/stm32f7xx_it.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
+Middlewares/Third_Party/FatFs/src/ff_gen_drv.c \
+Middlewares/Third_Party/FatFs/src/ff.c \
+Middlewares/Third_Party/FatFs/src/diskio.c \
+Middlewares/Third_Party/FatFs/src/option/syscall.c \
 Src/can.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
 Src/freertos.c \
+Src/user_diskio.c \
+Src/user_diskio_spi.c \
+Src/fatfs.c \
+Src/spi.c \
 Src/adc.c \
 Src/stm32f7xx_hal_msp.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
@@ -141,7 +151,8 @@ Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 \
 Drivers/CMSIS/Device/ST/STM32F7xx/Include \
 Middlewares/Third_Party/FreeRTOS/Source/include \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
-Drivers/CMSIS/Include
+Drivers/CMSIS/Include \
+Middlewares/Third_Party/FatFs/src
 
 LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
 

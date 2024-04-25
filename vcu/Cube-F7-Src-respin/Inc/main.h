@@ -78,10 +78,13 @@ void Error_Handler(void);
 #define Steering_GPIO_Port GPIOA
 #define Break_Pres_Pin GPIO_PIN_0
 #define Break_Pres_GPIO_Port GPIOB
+#define SPI3_CS_Pin GPIO_PIN_8
+#define SPI3_CS_GPIO_Port GPIOE
 #define PP_BB_EN_Pin GPIO_PIN_8
 #define PP_BB_EN_GPIO_Port GPIOD
 #define PP_5V0_EN_Pin GPIO_PIN_9
 #define PP_5V0_EN_GPIO_Port GPIOD
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -91,5 +94,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

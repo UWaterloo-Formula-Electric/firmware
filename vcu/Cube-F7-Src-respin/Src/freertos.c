@@ -60,6 +60,7 @@ osThreadId beagleboneHandle;
 osThreadId enduranceModeHandle;
 osThreadId tractionControlHandle;
 osThreadId throttlePollingHandle;
+osThreadId sdLoggingHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -77,6 +78,7 @@ extern void bbTask(void const * argument);
 extern void enduranceModeTask(void const * argument);
 extern void tractionControlTask(void const * argument);
 extern void throttlePollingTask(void const * argument);
+extern void sdLoggingTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -210,6 +212,10 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(throttlePolling, throttlePollingTask, osPriorityRealtime, 0, 1000);
   throttlePollingHandle = osThreadCreate(osThread(throttlePolling), NULL);
 
+  /* definition and creation of sdLogging */
+  osThreadDef(sdLogging, sdLoggingTask, osPriorityNormal, 0, 10000);
+  sdLoggingHandle = osThreadCreate(osThread(sdLogging), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -239,4 +245,3 @@ __weak void driveByWireTask(void const * argument)
      
 /* USER CODE END Application */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
