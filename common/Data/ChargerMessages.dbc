@@ -132,5 +132,5 @@ VAL_ 2566869221 StartingState 1 "Error" 0 "Normal" ;
 VAL_ 2566869221 InputVoltageStatus 1 "Error" 0 "Normal" ;
 VAL_ 2566869221 OverTempActive 1 "Error" 0 "Normal" ;
 VAL_ 2566869221 HardwareFailure 1 "Error" 0 "Normal" ;
-VAL_ 2566869221 StartStopCharge 1 "ChargeStop" 0 "ChargeStart" ;
+VAL_ 2550588916 StartStopCharge 1 "ChargeStop" 0 "ChargeStart" ;
 
