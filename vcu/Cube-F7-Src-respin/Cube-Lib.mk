@@ -65,6 +65,7 @@ Middlewares/Third_Party/FatFs/src/ff.c \
 Middlewares/Third_Party/FatFs/src/diskio.c \
 Middlewares/Third_Party/FatFs/src/option/syscall.c \
 Src/can.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rtc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
@@ -98,6 +99,7 @@ Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Src/usart.c \
 Src/tim.c \
+Src/rtc.c \
 Src/iwdg.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))

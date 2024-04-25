@@ -25,6 +25,7 @@
 #include "dma.h"
 #include "fatfs.h"
 #include "iwdg.h"
+#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -110,8 +111,9 @@ int main(void)
   MX_ADC1_Init();
   MX_IWDG_Init();
   MX_TIM6_Init();
-  MX_SPI3_Init();
   MX_FATFS_Init();
+  MX_RTC_Init();
+  MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();

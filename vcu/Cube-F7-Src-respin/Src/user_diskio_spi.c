@@ -30,16 +30,16 @@
 //Make sure you set #define SD_SPI_HANDLE as some hspix in main.h
 //Make sure you set #define SD_CS_GPIO_Port as some GPIO port in main.h
 //Make sure you set #define SD_CS_Pin as some GPIO pin in main.h
-extern SPI_HandleTypeDef hspi3;
+extern SPI_HandleTypeDef hspi4;
 
 /* Function prototypes */
 
 //(Note that the _256 is used as a mask to clear the prescalar bits as it provides binary 111 in the correct position)
-#define FCLK_SLOW() { MODIFY_REG(hspi3.Instance->CR1, SPI_BAUDRATEPRESCALER_256, SPI_BAUDRATEPRESCALER_128); }	/* Set SCLK = slow, approx 280 KBits/s*/
-#define FCLK_FAST() { MODIFY_REG(hspi3.Instance->CR1, SPI_BAUDRATEPRESCALER_256, SPI_BAUDRATEPRESCALER_8); }	/* Set SCLK = fast, approx 4.5 MBits/s */
+#define FCLK_SLOW() { MODIFY_REG(hspi4.Instance->CR1, SPI_BAUDRATEPRESCALER_256, SPI_BAUDRATEPRESCALER_128); }	/* Set SCLK = slow, approx 280 KBits/s*/
+#define FCLK_FAST() { MODIFY_REG(hspi4.Instance->CR1, SPI_BAUDRATEPRESCALER_256, SPI_BAUDRATEPRESCALER_8); }	/* Set SCLK = fast, approx 4.5 MBits/s */
 
-#define CS_HIGH()	{HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_SET);}
-#define CS_LOW()	{HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_RESET);}
+#define CS_HIGH()	{HAL_GPIO_WritePin(SPI4_CS_GPIO_Port, SPI4_CS_Pin, GPIO_PIN_SET);}
+#define CS_LOW()	{HAL_GPIO_WritePin(SPI4_CS_GPIO_Port, SPI4_CS_Pin, GPIO_PIN_RESET);}
 
 /*--------------------------------------------------------------------------
 
@@ -106,7 +106,7 @@ BYTE xchg_spi (
 )
 {
 	BYTE rxDat;
-    HAL_SPI_TransmitReceive(&hspi3, &dat, &rxDat, 1, 50);
+    HAL_SPI_TransmitReceive(&hspi4, &dat, &rxDat, 1, 50);
     return rxDat;
 }
 
