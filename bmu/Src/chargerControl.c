@@ -72,7 +72,7 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
                /*(uint8_t)MaxChargeCurrentLow);*/
 
    //StartStopCharge = startCharging?StartStopCharge_ChargeStart:StartStopCharge_ChargeStop;
-   StartStopCharge = startCharging?1:0;
+   StartStopCharge = startCharging?0:1;
 
    /*DEBUG_PRINT("StartStop: %u\n", (uint8_t)StartStopCharge);*/
 
