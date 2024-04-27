@@ -125,19 +125,12 @@ QueueHandle_t AdjustedPackVoltageQueue;
 #define IMD_TASK_PERIOD_MS 1000
 #define IMD_TASK_ID 5
 
-/// Array is used to store the filtered voltages
-float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
 
 extern osThreadId stateOfChargeHandle;
 
 /*
  * HV Measure
  */
-
-
-// Filter constant for Filtered Cell Voltages
-// Designed for 75 ms sample period and 1 Hz cutoff
-#define CELL_FILTER_ALPHA 0.05 
 
 /**
  * @brief Low pass filters the HV Bus current measurement
@@ -649,49 +642,6 @@ void ERROR_COUNTER_SUCCESS()
   }
 }
 
-
-/**
- * Alpha value for cell voltage filter
- * For a 10-90 rise time of 1 sec, set the bandwidth to 0.35 Hz
- * See: https://www.edn.com/electronics-blogs/bogatin-s-rules-of-thumb/4424573/Rule-of-Thumb--1--The-bandwidth-of-a-signal-from-its-rise-time
- * This cuttoff, with a sampling frequency of 100 ms gives an alpha of 0.18
- * See the wikipedia page for the alpha calculation: https://en.wikipedia.org/wiki/Low-pass_filter#Simple_infinite_impulse_response_filter
- */
-#define CELL_VOLTAGE_FILTER_ALPHA 0.18
-
-
-
-/**
- * @brief This takes an array of the instantaneous cell volages, and filters
- * them on an ongoing basis using the cellVoltagesFiltered array.
- *
- * For check cell voltages, a filtered version of cell voltages is needed to
- * eliminate noise due to bad contact with AMS boards. The hypothesis is that
- * the pogo pins make bad contact with the AMS boards when the motors spin,
- * thus the need for filtering. This hasn't been proven however, but the
- * filtering fixed the errors we saw before (info up to date as of May 2020)
- * NB: Filter voltages shouldn't be sent over CAN, only used with error
- * checking
- *
- * @param[in] cellVoltages Unfiltered cell voltage readings
- * @param[out] cellVoltages Filtered filtered cell voltage readings
- */
-void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
-{
-    static bool first_run = true;
-    if(first_run)
-    {
-        for(int i = 0; i < NUM_VOLTAGE_CELLS; i++)
-        {
-            cellVoltagesFiltered[i] = cellVoltages[i];
-        }
-        first_run = false;
-    }
-    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
-        cellVoltagesFiltered[i] = CELL_VOLTAGE_FILTER_ALPHA*cellVoltages[i]
-                                + (1-CELL_VOLTAGE_FILTER_ALPHA)*cellVoltagesFiltered[i];
-    }
-}
 
 /**
  * @brief Checks cell voltages and temperatures to ensure they are within safe
