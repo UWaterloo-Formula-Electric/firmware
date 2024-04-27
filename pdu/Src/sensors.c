@@ -283,12 +283,13 @@ void canPublishCarState() {
     CarStateIsHV = HV_Power_State;
     CarStateIsEM = fsmGetState(&mainFsmHandle) == STATE_Motors_On;
     if (sendCAN_PDU_Car_State() != HAL_OK) {
-        ERROR_PRINT("Failed to send the PDU car state on the CAN bus!\n");
+        ERROR_PRINT("Failed to send the car state on the CAN bus!\n");
     }
 }
 
 void canPublishPeriod1s() {
     canPublishCurrent();
+    canPublishCarState();
 }
 
 void canPublishPeriod5s() {
