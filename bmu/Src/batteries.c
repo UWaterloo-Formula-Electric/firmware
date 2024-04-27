@@ -541,10 +541,10 @@ void enterAdjustedCellVoltages(void)
     last_tick = xTaskGetTickCount();
 
     float integ_bus_current_A = get_integrated_IBus();
-    float v_1 = bus_current_A * ADJUSTED_CELL_IR_RO;
+    float v_1 = bus_current_A * ADJUSTED_CELL_IZ_RO;
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-		float v_2 = (integ_bus_current_A - (cell_iz_integ_vc[cell]/(ADJUSTED_CELL_IZ_RP))/(ADJUSTED_CELL_IZ_C);
+		float v_2 = (integ_bus_current_A - (cell_iz_integ_vc[cell]/ADJUSTED_CELL_IZ_RP))/(ADJUSTED_CELL_IZ_C);
 		float adjusted_cell_v = VoltageCell[cell] + (v_1 + v_2);
         if(filter)
         {
