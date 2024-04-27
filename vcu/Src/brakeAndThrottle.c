@@ -284,13 +284,14 @@ HAL_StatusTypeDef pollThrottle(void) {
     if (rc != THROTTLE_OK)
     {
         if (rc == THROTTLE_FAULT) {
-            sendDTC_CRITICAL_Throttle_Failure(0);
+            sendDTC_WARNING_Throttle_Failure(0);
             DEBUG_PRINT("Throttle value out of range\n");
         } else if (rc == THROTTLE_DISABLED) {
-            sendDTC_CRITICAL_Throttle_Failure(1);
+            sendDTC_WARNING_Throttle_Failure(1);
             DEBUG_PRINT("Throttle disabled as brake pressed\n");
+            return HAL_OK;
         } else {
-            sendDTC_CRITICAL_Throttle_Failure(2);
+            sendDTC_WARNING_Throttle_Failure(2);
             DEBUG_PRINT("Unknown throttle error\r\n");
         }
         return HAL_ERROR;
@@ -338,7 +339,7 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
-
+            
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
     }

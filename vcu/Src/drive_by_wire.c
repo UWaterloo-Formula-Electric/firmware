@@ -108,7 +108,7 @@ uint32_t runSelftTests(uint32_t event)
     
     if (brakeAndThrottleStart() != HAL_OK)
     {
-        sendDTC_CRITICAL_Throttle_Failure(3);
+        sendDTC_WARNING_Throttle_Failure(3);
         return EM_Fault(EV_Throttle_Failure);
     }
 

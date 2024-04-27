@@ -93,13 +93,13 @@ static float get_FL_speed()
 static float get_RR_speed()
 {
 	//Value comes from MC
-	return INV_Fast_Motor_Speed * GEAR_RATIO; // in rpm
+	return INV_Motor_Speed * GEAR_RATIO; // in rpm
 }
 
 static float get_RL_speed()
 {
 	//Value comes from MC
-	return INV_Fast_Motor_Speed * GEAR_RATIO; // in rpm
+	return INV_Motor_Speed * GEAR_RATIO; // in rpm
 }
 
 static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
@@ -232,7 +232,6 @@ void tractionControlTask(void *pvParameters)
 		{
 			output_torque = tc_torque;
 		}
-
 		setTorqueLimit(output_torque);
 
 		publish_can_data(&wheel_data, &tc_data);
