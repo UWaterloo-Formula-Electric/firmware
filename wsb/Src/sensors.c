@@ -18,8 +18,10 @@
 
 // Encoder Information
 #define ENCODER_COUNTER (__HAL_TIM_GET_COUNTER(&ENCODER_TIM_HANDLE))
-#define ENCODER_PULSES_PER_REVOLUTION (1280.0f*2.0f)
-#define WHEEL_DIAMETER_MM (525)
+// #define ENCODER_PULSES_PER_REVOLUTION (1280.0f*2.0f)
+// #define WHEEL_DIAMETER_MM (525)
+#define ENCODER_PULSES_PER_REVOLUTION (10240.0f)
+#define WHEEL_DIAMETER_MM (406)
 
 // About a 0.6% error due to integer rounding of PI
 // Increasing scale of PI does not improve accuracy
@@ -50,6 +52,7 @@ static void poll_encoder(void)
 	sensors_data.encoder_mm = ENCODER_COUNT_TO_MM(sensors_data.encoder_counts);
 	sensors_data.encoder_speed = ENCODER_COUNT_TO_RADS_S(count_diff, (float)(POLL_SENSORS_PERIOD_MS)/1000.0f);
 	last_count = current_count;
+	DEBUG_PRINT("Encoder Counts: %lu, Encoder mm: %lu, Encoder Speed: %f\n", sensors_data.encoder_counts, sensors_data.encoder_mm, sensors_data.encoder_speed);
 }
 
 void pollSensorsTask(void const * argument)
