@@ -5,6 +5,8 @@
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
 #include "sensors.h"
+#include "canReceive.h"
+#include "pdu_can.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -370,6 +372,40 @@ static const CLI_Command_Definition_t controlPumpsCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t fakeHeatInv(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    INV_Module_A_Temp = 45.0f;
+    INV_Module_B_Temp = 45.0f;
+    INV_Module_C_Temp = 45.0f;
+    fsmSendEvent(&mainFsmHandle, EV_EM_Enable, portMAX_DELAY);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t fakeHeatInvCommandDefinition =
+{
+    "fakeHeatInv",
+    "fakeHeatInv:\r\n Set Inverter temps to 45C\r\n",
+    fakeHeatInv,
+    0 /* Number of parameters */
+};
+
+BaseType_t fakeHeatMotor(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    INV_Module_A_Temp = 45.0f;
+    INV_Module_B_Temp = 45.0f;
+    INV_Module_C_Temp = 45.0f;
+    fsmSendEvent(&mainFsmHandle, EV_EM_Enable, portMAX_DELAY);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t fakeHeatMotorCommandDefinition =
+{
+    "fakeHeatMotor",
+    "fakeHeatMotor:\r\n Set Motor temps to 45C\r\n",
+    fakeHeatMotor,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
@@ -409,6 +445,12 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&controlFansCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&fakeHeatMotorCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&fakeHeatInvCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

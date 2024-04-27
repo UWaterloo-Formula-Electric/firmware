@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import csv
 import numpy as np
 
-matplotlib.use('qtagg')
+matplotlib.use('Qt5Cairo')
 
 def toDict(src_file):
      db = cantools.database.load_file("../../../../../common/Data/2024CAR.dbc")
@@ -72,19 +72,13 @@ def graph(checked_data_dict, args):
     return "Success"
 
 import json
-from cantools.database.can.signal import NamedSignalValue
 
 def serialize(msg):
         """ JSON encode our topic and message into a multipart message """
-        # if isinstance(msg, NamedSignalValue):
-        #     msg = msg.name()
         invalid_signals = []
         for signal_k in msg.keys():
             for key_pair in msg[signal_k]:
                 timestamp, value = key_pair
-                if isinstance(value, NamedSignalValue):
-                    # print(signal_k)
-                    invalid_signals.append(signal_k)
         for sig in invalid_signals:
             if(sig in msg):
                 del msg[sig]
