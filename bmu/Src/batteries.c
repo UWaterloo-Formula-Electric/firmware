@@ -63,8 +63,6 @@ extern osThreadId BatteryTaskHandle;
 /// Charging current limit
 float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 
-float adjustedCellIR = ADJUSTED_CELL_IR_DEFAULT;
-
 /**
  * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
  */
@@ -125,6 +123,8 @@ QueueHandle_t AdjustedPackVoltageQueue;
 #define IMD_TASK_PERIOD_MS 1000
 #define IMD_TASK_ID 5
 
+
+#define CELL_FILTER_ALPHA (0.333)
 
 extern osThreadId stateOfChargeHandle;
 
@@ -524,20 +524,32 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 #endif
 }
 
+
+static float cell_iz_integ_vc[NUM_VOLTAGE_CELLS] = {0};
 /*
  * Adjusts cell voltages based on cell internal resistance and current
  * */
 void enterAdjustedCellVoltages(void)
 {
     static bool filter = false;
+    static uint32_t last_tick = 0;
+    
     float bus_current_A;
     getIBus(&bus_current_A);
+    
+	float dt = (float)(xTaskGetTickCount() - last_tick)/1000.0F;
+    last_tick = xTaskGetTickCount();
+
+    float integ_bus_current_A = get_integrated_IBus();
+    float v_1 = bus_current_A * ADJUSTED_CELL_IR_RO;
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        float adjusted_cell_v = VoltageCell[cell] + (bus_current_A * adjustedCellIR);
+		float v_2 = (integ_bus_current_A - (cell_iz_integ_vc[cell]/(ADJUSTED_CELL_IZ_RP))/(ADJUSTED_CELL_IZ_C);
+		float adjusted_cell_v = VoltageCell[cell] + (v_1 + v_2);
         if(filter)
         {
             AdjustedVoltageCell[cell] = CELL_FILTER_ALPHA*adjusted_cell_v + (1-CELL_FILTER_ALPHA)*AdjustedVoltageCell[cell];
+            cell_iz_integ_vc[cell] += v_2 * dt;
         }
         else
         {

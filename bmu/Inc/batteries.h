@@ -47,10 +47,9 @@
 #define CELL_HEAT_CAPACITY (1034.2)             ///< kJ/kg*K
 #define CELL_MASS (0.496)                       ///< kg
 
-// A constant which defines how much we adjust our AdjustedCellVoltage factoring in the cell's Internal Resistance
-// This is a very conservative number of 3mOhms. This is not the measured cell internal resistance.
-// Our current pack is 70s7p. So this assumption factors in that IBus is total current from cells and the current gets divided by 7
-#define ADJUSTED_CELL_IR_DEFAULT (0.00486F)
+#define ADJUSTED_CELL_IZ_RO (0.0031F)
+#define ADJUSTED_CELL_IZ_RP (0.0015F)
+#define ADJUSTED_CELL_IZ_C (9646.3F)
 
 /** Maximum allowable cell temperature, will send critical DTC if surpassed */
 #define CELL_OVERTEMP (CELL_MAX_TEMP_C)

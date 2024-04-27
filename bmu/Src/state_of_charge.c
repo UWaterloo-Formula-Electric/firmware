@@ -32,6 +32,9 @@ void integrate_bus_current(float IBus, float period_ms)
 	IBus_integrated += IBus * (period_ms/1000.0);
 }
 
+float get_integrated_IBus(void) {
+	return IBus_integrated;
+}
 
 static float compute_voltage_soc(void)
 {
