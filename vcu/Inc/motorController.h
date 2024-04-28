@@ -7,7 +7,7 @@
 
 #define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
 
-#define MAX_TORQUE_DEMAND_DEFAULT_NM    100 
+#define MAX_TORQUE_DEMAND_DEFAULT_NM    200 
 #define MAX_MOTOR_TORQUE_NM             231
 #define SPEED_LIMIT_DEFAULT             10000
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT 250

@@ -1433,7 +1433,7 @@ void batteryTask(void *pvParameter)
     }
 #endif
 
-    if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(BATTERY_TASK_ID, 5*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register battery task with watchdog!\n");
         Error_Handler();
