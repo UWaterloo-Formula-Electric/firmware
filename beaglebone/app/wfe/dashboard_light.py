@@ -6,7 +6,7 @@ import can
 import cantools
 import csv
 
-CANBUS = 'can1'
+CANBUS = 'vcan0'
 
 # CAN arbitration ID constants
 BATTERYSTATUSHV_ARB_ID = 2281967617
@@ -186,7 +186,7 @@ battery_temp_text = canvas.create_text(
     6.0,
     76.0,
     anchor="nw",
-    text="67.3°C",
+    text="D67.3°C",
     fill="#FFFFFF",
     font=("Lato Bold", 60 * -1)
 )
@@ -195,7 +195,7 @@ motor_temp_text = canvas.create_text(
     7.0,
     163.0,
     anchor="nw",
-    text="85.8°C",
+    text="D85.8°C",
     fill="#FFFFFF",
     font=("Lato Bold", 60 * -1)
 )
@@ -204,7 +204,7 @@ inverter_temp_text = canvas.create_text(
     4.0,
     253.0,
     anchor="nw",
-    text="79.9°C",
+    text="D79.9°C",
     fill="#FFFFFF",
     font=("Lato Bold", 60 * -1)
 )
@@ -213,7 +213,7 @@ water_temp_text = canvas.create_text(
     4.0,
     340.0,
     anchor="nw",
-    text="31.6°C",
+    text="D31.6°C",
     fill="#FFFFFF",
     font=("Lato Bold", 60 * -1)
 )
@@ -231,7 +231,7 @@ deployment_text = canvas.create_text(
     384.0,
     134.0,
     anchor="nw",
-    text="4.8%",
+    text="D4.8%",
     fill="#FFFFFF",
     font=("Lato Regular", 50 * -1)
 )
@@ -327,7 +327,7 @@ vbatt_text = canvas.create_text(
     651.0,
     77.0,
     anchor="nw",
-    text="300V",
+    text="D300V",
     fill="#FFFFFF",
     font=("Lato Bold", 40 * -1)
 )
@@ -364,7 +364,7 @@ lv_batt_text = canvas.create_text(
     621.0,
     212.0,
     anchor="nw",
-    text="3.3V",
+    text="D3.3V",
     fill="#FFFFFF",
     font=("Lato Bold", 40 * -1)
 )
@@ -460,6 +460,7 @@ debug_button = Button(
 
 debug_button.place(x=710, y=440)
 
+OFFSET = 0x8000000
 def process_can_messages():
     print("reading can messages...")
     while True:
@@ -467,8 +468,10 @@ def process_can_messages():
         print(message)
 
         if message is not None:
+            
+            if message.arbitration_id > OFFSET:
+                message.arbitration_id -= OFFSET
             print(message.arbitration_id)
-
         # Case for battery temp/soc
         if message is not None and message.arbitration_id == BATTERYSTATUSHV_ARB_ID:
             print("message found!")
