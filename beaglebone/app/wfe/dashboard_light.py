@@ -468,7 +468,7 @@ def process_can_messages():
             print(message.arbitration_id)
 
         # Case for battery temp/soc
-        if message.arbitration_id == BATTERYSTATUSHV_ARB_ID:
+        if message is not None and message.arbitration_id == BATTERYSTATUSHV_ARB_ID:
             print("message found!")
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
@@ -482,7 +482,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for motor temp
-        if message.arbitration_id == MC_TEMP_ARB_ID:
+        if message is not None and message.arbitration_id == MC_TEMP_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -493,7 +493,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for inverter temp
-        if message.arbitration_id == MC_TEMP_INV_ARB_ID:
+        if message is not None and message.arbitration_id == MC_TEMP_INV_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -508,7 +508,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for water temp (left)
-        if message.arbitration_id == TEMPCOOLANT_L_ARB_ID:
+        if message is not None and message.arbitration_id == TEMPCOOLANT_L_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -521,7 +521,7 @@ def process_can_messages():
                 print("Unknown message ID")
         
         # Case for water temp (right)
-        if message.arbitration_id == TEMPCOOLANT_R_ARB_ID:
+        if message is not None and message.arbitration_id == TEMPCOOLANT_R_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -534,7 +534,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for VBATT
-        if message.arbitration_id == BMU_VBATT_ARB_ID:
+        if message is not None and message.arbitration_id == BMU_VBATT_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -545,7 +545,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for Speeeeeed
-        if message.arbitration_id == WHEELSPEED_ARB_ID:
+        if message is not None and message.arbitration_id == WHEELSPEED_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 
@@ -561,7 +561,7 @@ def process_can_messages():
                 print("Unknown message ID")
 
         # Case for BMU DTC
-        if message.arbitration_id == BMU_DTC_ARB_ID:
+        if message is not None and message.arbitration_id == BMU_DTC_ARB_ID:
             try:
                 decoded_data = db.decode_message(message.arbitration_id, message.data)
 

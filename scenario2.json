@@ -1,0 +1,78 @@
+{
+    "periodic_messages": [
+        {
+            "name": "BMU_batteryStatusHV",
+	    "signals": {
+		"StateBMS": 0,
+                "TempCellMin": 25, 
+                "TempCellMax": 32,  
+                "StateBatteryPowerHV": 200,  
+                "StateBatteryHealthHV": 85,  
+                "StateBatteryChargeHV": 75 
+            },
+            "time": 0,
+            "period_ms": 1000
+        },
+	{
+            "name": "BMU_batteryStatusHV",
+            "signals": {
+                "StateBMS": 0,
+                "TempCellMin": 25,
+                "TempCellMax": 32,
+                "StateBatteryPowerHV": 200,
+                "StateBatteryHealthHV": 85,
+                "StateBatteryChargeHV": 70
+            },
+            "time": 1,
+            "period_ms": 1000
+        },
+	{
+            "name": "BMU_batteryStatusHV",
+            "signals": {
+                "StateBMS": 0,
+                "TempCellMin": 25,
+                "TempCellMax": 32,
+                "StateBatteryPowerHV": 200,
+                "StateBatteryHealthHV": 85,
+                "StateBatteryChargeHV": 50
+            },
+            "time": 333,
+            "period_ms": 1000
+        },
+	{
+            "name": "BMU_batteryStatusHV",
+            "signals": {
+                "StateBMS": 0,
+                "TempCellMin": 25,
+                "TempCellMax": 32,
+                "StateBatteryPowerHV": 200,
+                "StateBatteryHealthHV": 85,
+                "StateBatteryChargeHV": 25
+            },
+            "time": 666,
+            "period_ms": 1000
+        }
+
+    ],
+    "one_time_messages": [
+    	{
+            "name": "BMU_DTC",
+            "signals": {
+                "DTC_Severity": 4,
+                "DTC_Data": 10,
+                "DTC_CODE": 1
+            },
+            "time": 2
+        },
+	{
+            "name": "BMU_DTC",
+            "signals": {
+                "DTC_Severity": 2,
+                "DTC_Data": 1000,
+                "DTC_CODE": 4
+            },
+            "time": 5000
+        }
+    ] 
+}
+
