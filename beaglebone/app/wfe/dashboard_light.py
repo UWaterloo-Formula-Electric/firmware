@@ -58,8 +58,8 @@ charge_bar = canvas.create_rectangle(
 
 
 soc_label = canvas.create_text(
-    270.0,
-    91.0,
+    240.0,
+    90.0,
     anchor="nw",
     text="SOC:",
     fill="#FFFFFF",
@@ -67,8 +67,8 @@ soc_label = canvas.create_text(
 )
 
 soc_text = canvas.create_text(
-    336.0,
-    53.0,
+    330.0,
+    50.0,
     anchor="nw",
     text="N/A",
     fill="#FFFFFF",
@@ -213,17 +213,17 @@ water_temp_text = canvas.create_text(
 )
 
 deployment_label = canvas.create_text(
-    235.0,
-    139.0,
+    240.0,
+    150.0,
     anchor="nw",
-    text="Deployment \n Last Lap:",
+    text="Deployment\nLast Lap:",
     fill="#FFFFFF",
     font=("Lato Bold", 20 * -1)
 )
 
 deployment_text = canvas.create_text(
-    384.0,
-    134.0,
+    380.0,
+    140.0,
     anchor="nw",
     text="N/A",
     fill="#FFFFFF",
@@ -231,8 +231,8 @@ deployment_text = canvas.create_text(
 )
 
 speed_label = canvas.create_text(
-    237.0,
-    202.0,
+    240.0,
+    220.0,
     anchor="nw",
     text="Speed:",
     fill="#FFFFFF",
@@ -240,8 +240,8 @@ speed_label = canvas.create_text(
 )
 
 speed_text = canvas.create_text(
-    393.0,
-    179.0,
+    380.0,
+    210.0,
     anchor="nw",
     text="N/A",
     fill="#FFFFFF",
@@ -360,7 +360,7 @@ lv_batt_text = canvas.create_text(
     621.0,
     212.0,
     anchor="nw",
-    text="N/A",
+    text="11.7V",
     fill="#FFFFFF",
     font=("Lato Bold", 40 * -1)
 )
@@ -471,31 +471,29 @@ def process_can_messages():
         print(message)
 
         try:
+            decoded_data = db.decode_message(
+                message.arbitration_id, message.data)
             # Case for battery temp/soc
             if message.arbitration_id == BATTERYSTATUSHV_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 soc_value = decoded_data['StateBatteryChargeHV']
                 battery_temp = decoded_data['TempCellMax']
 
                 update_battery_charge(soc_value)
-                canvas.itemconfig(battery_temp_text, text='%.4s' % ('%.1f' % battery_temp) + '°C')
+                canvas.itemconfig(battery_temp_text, text='%.4s' %
+                                  ('%.1f' % battery_temp) + '°C')
 
             # Case for motor temp
             if message.arbitration_id == MC_TEMP_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 motor_temp = decoded_data['INV_Motor_Temp']
+                coolant_temp = decoded_data['INV_Coolant_Temp']
 
-                canvas.itemconfig(motor_temp_text, text='%.4s' % ('%.1f' % motor_temp) + '°C')
+                canvas.itemconfig(motor_temp_text, text='%.4s' %
+                                  ('%.1f' % motor_temp) + '°C')
+                canvas.itemconfig(water_temp_text, text='%.4s' %
+                                  ('%.1f' % coolant_temp) + '°C')
 
             # Case for inverter temp
             if message.arbitration_id == MC_TEMP_INV_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 inv_temp1 = decoded_data['INV_Module_A_Temp']
                 inv_temp2 = decoded_data['INV_Module_B_Temp']
                 inv_temp3 = decoded_data['INV_Module_C_Temp']
@@ -505,62 +503,24 @@ def process_can_messages():
 
                 canvas.itemconfig(inverter_temp_text,
                                   text='%.4s' % ('%.1f' % average_inv_temp) + '°C')
-
-            # Case for water temp (left)
-            if message.arbitration_id == TEMPCOOLANT_L_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
-                water_temp_left = decoded_data['TempInletRadMotorLeft']
-
-                average_water_temp = (
-                    float(water_temp_left) + float(water_temp_right)) / 2
-
-                canvas.itemconfig(
-                    water_temp_text, text='%.4s' % ('%.1f' % average_water_temp) + '°C')
-
-            # Case for water temp (right)
-            if message.arbitration_id == TEMPCOOLANT_R_ARB_ID:
-
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
-                water_temp_right = decoded_data['TempInletRadMotorRight']
-
-                average_water_temp = (
-                    float(water_temp_left) + float(water_temp_right)) / 2
-
-                canvas.itemconfig(
-                    water_temp_text, text='%.4s' % ('%.1f' % average_water_temp) + '°C')
-
             # Case for VBATT
             if message.arbitration_id == BMU_VBATT_ARB_ID:
-
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 vbatt = decoded_data['AMS_PackVoltage']
 
-                canvas.itemconfig(vbatt_text, text= '%.5s'%('%.3f' % vbatt) + 'V')
+                canvas.itemconfig(vbatt_text, text='%.5s' %
+                                  ('%.3f' % vbatt) + 'V')
             # Case for LV batt
             if message.arbitration_id == LV_BATT_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 lvbatt = decoded_data['VoltageBusLV']
-                canvas.itemconfig(lv_batt_text, text='%.5s'%('%.3f' % lvbatt) + 'V')
+                canvas.itemconfig(lv_batt_text, text='%.5s' %
+                                  ('%.3f' % lvbatt) + 'V')
             # Case for Min HV Cell voltage
             if message.arbitration_id == HV_BUS_STATE_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 cell_min = decoded_data['VoltageCellMin']
-                canvas.itemconfig(min_cell_text, text='%.4s'%('%.3f' % cell_min) + 'V')
+                canvas.itemconfig(min_cell_text, text='%.4s' %
+                                  ('%.3f' % cell_min) + 'V')
             # Case for Speeeeeed
             if message.arbitration_id == WHEELSPEED_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 fl_speed = decoded_data['FLSpeedKPH']
                 fr_speed = decoded_data['FRSpeedKPH']
                 rr_speed = decoded_data['RRSpeedKPH']
@@ -569,13 +529,11 @@ def process_can_messages():
                 average_speed = (float(fl_speed) + float(fr_speed) +
                                  float(rr_speed) + float(rl_speed)) / 4
 
-                canvas.itemconfig(speed_text, text='%.3s' % ('%.1f' % average_speed) + 'kph')
+                canvas.itemconfig(speed_text, text='%.3s' %
+                                  ('%.1f' % average_speed) + 'kph')
 
             # Case for BMU DTC
             if message.arbitration_id == BMU_DTC_ARB_ID:
-                decoded_data = db.decode_message(
-                    message.arbitration_id, message.data)
-
                 DTC_CODE = decoded_data['DTC_CODE']
                 DTC_message = decoded_data['DTC_Data']
 
