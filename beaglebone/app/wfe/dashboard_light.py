@@ -12,12 +12,15 @@ can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
 # CAN arbitration ID constants
 BATTERYSTATUSHV_ARB_ID = db.get_message_by_name('BMU_batteryStatusHV').frame_id
+HV_BUS_STATE_ARB_ID = db.get_message_by_name('BMU_stateBusHV').frame_id
 BMU_DTC_ARB_ID = db.get_message_by_name('BMU_DTC').frame_id
 MC_TEMP_ARB_ID = db.get_message_by_name('MC_Temperature_Set_3').frame_id
 MC_TEMP_INV_ARB_ID = db.get_message_by_name('MC_Temperature_Set_1').frame_id
 
 TEMPCOOLANT_L_ARB_ID = db.get_message_by_name('TempCoolantLeft').frame_id
 TEMPCOOLANT_R_ARB_ID = db.get_message_by_name('TempCoolantRight').frame_id
+
+LV_BATT_ARB_ID = db.get_message_by_name('PDU_batteryStatusLV').frame_id
 
 # declare water temp variable here because left/right
 # sensor data is from diff CAN messages
@@ -539,7 +542,20 @@ def process_can_messages():
                 vbatt = decoded_data['AMS_PackVoltage']
 
                 canvas.itemconfig(vbatt_text, text= '%.5s'%('%.3f' % vbatt) + 'V')
+            # Case for LV batt
+            if message.arbitration_id == LV_BATT_ARB_ID:
+                decoded_data = db.decode_message(
+                    message.arbitration_id, message.data)
 
+                lvbatt = decoded_data['VoltageBusLV']
+                canvas.itemconfig(lv_batt_text, text='%.5s'%('%.3f' % lvbatt) + 'V')
+            # Case for Min HV Cell voltage
+            if message.arbitration_id == HV_BUS_STATE_ARB_ID:
+                decoded_data = db.decode_message(
+                    message.arbitration_id, message.data)
+
+                cell_min = decoded_data['VoltageCellMin']
+                canvas.itemconfig(min_cell_text, text='%.4s'%('%.3f' % cell_min) + 'V')
             # Case for Speeeeeed
             if message.arbitration_id == WHEELSPEED_ARB_ID:
                 decoded_data = db.decode_message(
@@ -553,7 +569,7 @@ def process_can_messages():
                 average_speed = (float(fl_speed) + float(fr_speed) +
                                  float(rr_speed) + float(rl_speed)) / 4
 
-                canvas.itemconfig(speed_text, text='%.3s' % ('%.1f' % battery_temp) + 'kph')
+                canvas.itemconfig(speed_text, text='%.3s' % ('%.1f' % average_speed) + 'kph')
 
             # Case for BMU DTC
             if message.arbitration_id == BMU_DTC_ARB_ID:
