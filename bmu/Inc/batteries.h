@@ -26,7 +26,7 @@
 
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
-#define DEFAULT_LIMIT_OVERVOLTAGE 4.2F
+#define DEFAULT_LIMIT_OVERVOLTAGE 30.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value

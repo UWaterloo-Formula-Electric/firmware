@@ -171,25 +171,25 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     }
 
     // Both throttle and brake were pressed, check if still the case
-    if (throttleAndBrakePressedError) {
-        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
-            throttleAndBrakePressedError = false;
-            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
-        } else {
-            (*throttleOut) = 0;
-            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
-            return THROTTLE_DISABLED;
-        }
-    }
+    // if (throttleAndBrakePressedError) {
+    //     if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
+    //         throttleAndBrakePressedError = false;
+    //         sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
+    //     } else {
+    //         (*throttleOut) = 0;
+    //         DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+    //         return THROTTLE_DISABLED;
+    //     }
+    // }
 
     // check if both throttle and brake are pressed
-    if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
-        (*throttleOut) = 0;
-        throttleAndBrakePressedError = true;
-        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
-        DEBUG_PRINT("Throttle disabled, brakePressed\n");
-        return THROTTLE_DISABLED;
-    }
+    // if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    //     (*throttleOut) = 0;
+    //     throttleAndBrakePressedError = true;
+    //     sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
+    //     DEBUG_PRINT("Throttle disabled, brakePressed\n");
+    //     return THROTTLE_DISABLED;
+    // }
 
     // If we get here, all checks have passed, so can safely output throttle
     (*throttleOut) = throttle;
@@ -338,6 +338,7 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
+        //DEBUG_PRINT("%lu %lu %lu\r\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX], brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]);
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
