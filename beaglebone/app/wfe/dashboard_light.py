@@ -7,7 +7,7 @@ import cantools
 import csv
 
 CANBUS = 'can1'
-db = cantools.db.load_file('common/Data/2024CAR.dbc')
+db = cantools.db.load_file('~/firmware/common/Data/2024CAR.dbc')
 can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
 # CAN arbitration ID constants
@@ -33,7 +33,7 @@ WHEELSPEED_ARB_ID = db.get_message_by_name('WheelSpeedKPH').frame_id
 window = Tk()
 
 window.geometry("800x480")
-window.configure(bg="#262626")
+window.configure(bg="#3f3f3f")
 window.title("UWFE Dashboard (LIGHT)")
 
 canvas = Canvas(
@@ -360,7 +360,7 @@ lv_batt_text = canvas.create_text(
     621.0,
     212.0,
     anchor="nw",
-    text="11.7V",
+    text="N/A",
     fill="#FFFFFF",
     font=("Lato Bold", 40 * -1)
 )
@@ -376,7 +376,7 @@ min_cell_text = canvas.create_text(
 
 dtc_descriptions = {}
 
-with open('common/Data/DTC.csv', 'r') as file:
+with open('~/firmware/common/Data/DTC.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
