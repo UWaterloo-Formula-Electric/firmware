@@ -29,3 +29,15 @@ void DTC_Fatal_Callback(BoardIDs board) {
 void CAN_Msg_MC_Temperature_Set_3_Callback() { // 10hz
     MC_Last_Temperature_Msg_ticks = xTaskGetTickCountFromISR();
 }
+uint8_t resetting = 0;
+void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
+{
+    // Each bit represents a fault
+    // Combine them to be sent over DTCs
+    uint64_t inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+    if (inverterFaultCode && !resetting)
+    {
+        resetting = 1;
+        fsmSendEventUrgentISR(&mainFsmHandle, EV_Cycle_MC);
+    }
+}

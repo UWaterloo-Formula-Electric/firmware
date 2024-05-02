@@ -324,7 +324,8 @@ void throttlePollingTask(void)
             bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
             if (inverterFault) {   
                 // DTC sent in state machine transition function
-                fsmSendEventUrgent(&fsmHandle, EV_Inverter_Fault, portMAX_DELAY);
+                uint64_t faults = getInverterFaultCode();
+                DEBUG_PRINT("Inverter fault %lu\n", (uint32_t) faults);
             }
 
             // Poll throttle

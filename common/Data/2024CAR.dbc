@@ -294,6 +294,7 @@ BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonHVEnabled : 2|1@1- (1,0) [0|0] "bool"  BMU
  SG_ ButtonChargeStop : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
+
 BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone
@@ -897,10 +898,10 @@ BO_ 2365571073 MC_Command_Message: 8 VCU_F7
  SG_ VCU_INV_Speed_Mode_Enable : 42|1@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 2365565697 MC_Fault_Codes: 8 INV
- SG_ INV_Run_Fault_Hi : 48|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Post_Fault_Hi : 16|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Run_Fault_Lo : 32|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Post_Fault_Lo : 0|16@1+ (1,0) [0|65535] ""  VCU_F7
+ SG_ INV_Run_Fault_Hi : 48|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Post_Fault_Hi : 16|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Run_Fault_Lo : 32|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Post_Fault_Lo : 0|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
 
 BO_ 2365565441 MC_Internal_States: 8 INV
  SG_ INV_Direction_Command : 56|1@1+ (1,0) [0|1] ""  VCU_F7

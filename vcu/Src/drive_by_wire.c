@@ -49,7 +49,6 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_DCU_Can_Timeout, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
-    { STATE_EM_Enable, EV_Inverter_Fault, &EM_Fault },
     { STATE_Failure_Fatal, EV_ANY, &doNothing },
     { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
@@ -117,20 +116,20 @@ uint32_t runSelftTests(uint32_t event)
 
 uint32_t EM_Enable(uint32_t event)
 {
-    bool bpsState = checkBPSState();
+    // bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    float brakePressure = getBrakePressure();
+    // float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
-    if (!bpsState) {
-        DEBUG_PRINT("Failed to em enable, bps fault\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(0);
-        state = STATE_EM_Disable;
-    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-        sendDTC_WARNING_EM_ENABLE_FAILED(1);
-        state = STATE_EM_Disable;
-    } else if (!(throttleIsZero())) {
+    // if (!bpsState) {
+    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
+    //     state = STATE_EM_Disable;
+    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
+    //     state = STATE_EM_Disable;
+    if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_EM_Disable;
@@ -222,6 +221,14 @@ uint32_t EM_Fault(uint32_t event)
                     //disable TC
                     disable_TC();
                     DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
+
+                    // Turn off MC when CBRB pressed while in EM
+                    if (MotorStop() != HAL_OK) {
+                        ERROR_PRINT("Failed to stop motors\n");
+                    }
+
+                    EM_State = EM_State_Off;
+                    sendCAN_VCU_EM_State();
                 }
                 newState = STATE_EM_Disable;
             }
@@ -243,11 +250,11 @@ uint32_t EM_Fault(uint32_t event)
             break;
         case EV_Inverter_Fault:
             {
-                uint64_t faults = getInverterFaultCode();
-                sendDTC_CRITICAL_VCU_Inverter_Fault(faults);
+                // sendDTC_WARNING_VCU_Inverter_Fault(faults);
                 // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
-                DEBUG_PRINT("Inverter faulted, trans to fatal failure\n");
-                newState = STATE_Failure_Fatal;
+                
+                newState = STATE_EM_Enable;
+                break;
             }
         default:
             {
@@ -368,7 +375,7 @@ HAL_StatusTypeDef MotorStart()
 HAL_StatusTypeDef MotorStop()
 {
     DEBUG_PRINT("Stopping motors\n");
-    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(2*MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
 
     if (mcDisable() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
