@@ -2,6 +2,7 @@ from threading import Thread
 import math
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, Scale, scrolledtext
 import time
+import traceback
 import can
 import cantools
 import csv
@@ -541,6 +542,17 @@ def process_can_messages():
         except KeyError:
             print(
                 f"Message decode failed for {db.get_message_by_frame_id(message.arbitration_id).name}")
+        except Exception:
+            ###########################################
+            # I suspect the constant dash reload is due to an unhandled exception in the loop
+            # The following will print to the dashboard directly in the DTC area
+            # remove this once we figure out what the exceptions are
+            ###########################################
+            e = traceback.format_exc()
+            print(e)
+            dtc_text_area.insert("end", "\n" + str(e) +
+                         " | " + str(time.strftime("%H:%M:%S")))
+
 
 
 can_thread = Thread(target=process_can_messages)
