@@ -63,6 +63,11 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 2343239427 PDU_Car_State: 8 PDU
+ SG_ CarStateIsEM : 1|1@1- (1,0) [0|0] ""  DCU,VCU_F7
+ SG_ CarStateIsHV : 8|1@1- (1,0) [0|0] ""  DCU,VCU_F7
+ SG_ CarStateIsLV : 0|1@1- (1,0) [0|0] ""  DCU,VCU_F7
+
 BO_ 2147483648 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Hartbeat_BMU : 0|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ Hartbeat_VCU_F7 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -294,6 +299,7 @@ BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonHVEnabled : 2|1@1- (1,0) [0|0] "bool"  BMU
  SG_ ButtonChargeStop : 1|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonChargeStart : 0|1@1- (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
+
 BO_ 2558526465 BMU_CellVoltage: 8 BMU
  SG_ VoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  ChargeCart,VCU_BeagleBone
  SG_ VoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  ChargeCart,VCU_BeagleBone

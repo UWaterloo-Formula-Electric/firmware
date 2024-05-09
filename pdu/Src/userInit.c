@@ -38,7 +38,6 @@ void userInit()
         ERROR_PRINT("Failed to init state machines!\n");
         Error_Handler();
     }
-
     uartStartReceiving(&DEBUG_UART_HANDLE);
 }
 

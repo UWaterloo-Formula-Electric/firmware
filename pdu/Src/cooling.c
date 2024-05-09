@@ -41,53 +41,14 @@ void coolingTask(void *pvParameters) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    uint32_t cooling_state = COOL_STATE_WAIT;
-
     while(1)
     {
         // Only cool if motor controller on and EM enabled
         // Should we check if MC is on?
-        if (fsmGetState(&mainFsmHandle) == STATE_Motors_On && DC_DC_state) {
-            cooling_state = COOL_STATE_ON;
-            DEBUG_PRINT("Cooling enabled\n");
-        } else {
-            cooling_state = COOL_STATE_OFF;
-            DEBUG_PRINT("Cooling disabled\n");
+        if (fsmGetState(&mainFsmHandle) == STATE_Motors_On) {
+            coolingOn();
         }
-
-        if (cooling_state == COOL_STATE_ON)
-        {
-            // Check if we are receiving temp readings
-            if (xTaskGetTickCount() - MC_Last_Temperature_Msg_ticks > pdMS_TO_TICKS(MC_MESSAGE_LOST_THRESHOLD_MS)) {
-                sendDTC_WARNING_MC_Temp_Reading_Lost();
-            }
-
-            // motor temp
-            float scaled_motor_temp_percent = SCALE_TEMP_PERCENT(INV_Motor_Temp, COOLING_MOTOR_MAX_TEMP_C);
-            int motor_duration_ms = scaled_motor_temp_percent * COOLING_TASK_PERIOD_MS;
-            // inverter temp
-            float average_inv_module_temp = (INV_Module_A_Temp + INV_Module_B_Temp + INV_Module_C_Temp) / 3;
-            float scaled_inv_temp_percent = SCALE_TEMP_PERCENT(average_inv_module_temp, COOLING_INV_MAX_TEMP_C);
-            int inv_duration_ms = scaled_inv_temp_percent * COOLING_TASK_PERIOD_MS;
-
-            // take maximum duration
-            int cooling_duration_ms = MAX(motor_duration_ms, inv_duration_ms);
-            if (cooling_duration_ms > COOLING_TASK_PERIOD_MS) cooling_duration_ms = COOLING_TASK_PERIOD_MS;
-
-            if (cooling_duration_ms > 0) {
-                DEBUG_PRINT("Toggle cooling for %d ms\n", cooling_duration_ms);
-                coolingOn();
-                vTaskDelay(pdMS_TO_TICKS(cooling_duration_ms));
-                coolingOff();
-            }
-        }
-        else
-        {
-            // No cooling needed / no temps read
-            DEBUG_PRINT("Cooling disabled\n");
-        }
-
         watchdogTaskCheckIn(COOLING_TASK_ID);
-        vTaskDelayUntil(&xLastWakeTime, COOLING_TASK_PERIOD_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(COOLING_TASK_PERIOD_MS));
     }
 }
