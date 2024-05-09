@@ -989,6 +989,8 @@ HAL_StatusTypeDef continueCharging()
       sendDTC_FATAL_BMU_Charger_ERROR();
       return HAL_ERROR;
    }
+   DEBUG_PRINT("Charge Current: %f\n", status.current);
+   DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
 
 #endif
    return HAL_OK;
