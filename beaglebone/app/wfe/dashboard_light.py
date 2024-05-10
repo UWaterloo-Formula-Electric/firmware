@@ -1,6 +1,9 @@
 from threading import Thread
 import math
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, Scale, scrolledtext
+# sudo apt-get install python3-tk
+# sudo pip3 install tk
+
 import time
 import traceback
 import can
@@ -8,7 +11,7 @@ import cantools
 import csv
 
 CANBUS = 'can1'
-db = cantools.db.load_file('~/firmware/common/Data/2024CAR.dbc')
+db = cantools.db.load_file('/home/debian/firmware/common/Data/2024CAR.dbc')
 can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
 # CAN arbitration ID constants
@@ -377,7 +380,7 @@ min_cell_text = canvas.create_text(
 
 dtc_descriptions = {}
 
-with open('~/firmware/common/Data/DTC.csv', 'r') as file:
+with open('/home/debian/firmware/common/Data/DTC.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
