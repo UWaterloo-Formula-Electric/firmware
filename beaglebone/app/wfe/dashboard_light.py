@@ -8,7 +8,7 @@ import cantools
 import csv
 
 CANBUS = 'can1'
-db = cantools.db.load_file('~/firmware/common/Data/2024CAR.dbc')
+db = cantools.db.load_file('/home/debian/firmware/common/Data/2024CAR.dbc')
 can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
 # CAN arbitration ID constants
@@ -377,7 +377,7 @@ min_cell_text = canvas.create_text(
 
 dtc_descriptions = {}
 
-with open('~/firmware/common/Data/DTC.csv', 'r') as file:
+with open('/home/debian/firmware/common/Data/DTC.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
@@ -539,9 +539,8 @@ def process_can_messages():
                 DTC_message = decoded_data['DTC_Data']
 
                 publish_dtc(DTC_CODE, DTC_message)
-        except KeyError:
-            print(
-                f"Message decode failed for {db.get_message_by_frame_id(message.arbitration_id).name}")
+        except (KeyError, cantools.database.errors.DecodeError):
+            print(f"Message decode failed for {message.arbitration_id}")
         except Exception:
             ###########################################
             # I suspect the constant dash reload is due to an unhandled exception in the loop
