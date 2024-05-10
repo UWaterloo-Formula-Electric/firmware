@@ -542,9 +542,8 @@ def process_can_messages():
                 DTC_message = decoded_data['DTC_Data']
 
                 publish_dtc(DTC_CODE, DTC_message)
-        except KeyError:
-            print(
-                f"Message decode failed for {db.get_message_by_frame_id(message.arbitration_id).name}")
+        except (KeyError, cantools.database.errors.DecodeError):
+            print(f"Message decode failed for {message.arbitration_id}")
         except Exception:
             ###########################################
             # I suspect the constant dash reload is due to an unhandled exception in the loop
