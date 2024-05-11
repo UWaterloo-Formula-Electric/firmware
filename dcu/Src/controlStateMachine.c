@@ -216,6 +216,30 @@ int sendTCToggleMsg(void)
     return sendCAN_DCU_buttonEvents();
 }
 
+int sendScrNavRightEnabled(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 1;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_DCU_buttonEvents();
+}
+
+int sendScrNavLeftEnabled(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 1;
+    return sendCAN_DCU_buttonEvents();
+}
+
 uint32_t toggleTC(uint32_t event)
 {
     uint32_t currentState = fsmGetState(&DCUFsmHandle);
@@ -415,6 +439,14 @@ void debounceTimerCallback(TimerHandle_t timer)
             case ENDURANCE_LAP_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_Endurance_Mode_Toggle);
                 break;
+            
+            case SCR_NAV_R_BUTTON_PIN:
+                sendScrNavRightEnabled();
+                break;
+            
+            case SCR_NAV_L_BUTTON_PIN:
+                sendScrNavLeftEnabled();
+                break;
 
             default:
                 /* Shouldn't get here */
@@ -459,7 +491,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         case ENDURANCE_LAP_BUTTON_PIN:
             debouncingPin = ENDURANCE_LAP_BUTTON_PIN;
             break;
-
+        
+        case SCR_NAV_R_BUTTON_PIN:
+            debouncingPin = SCR_NAV_R_BUTTON_PIN;
+            break;
+        
+        case SCR_NAV_L_BUTTON_PIN:
+            debouncingPin = SCR_NAV_L_BUTTON_PIN;
+            break;
+        
         default:
             /* Not a fatal error here, but report error and return */
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");

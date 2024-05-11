@@ -10,8 +10,9 @@ import can
 import cantools
 import csv
 
-CANBUS = 'can1'
-db = cantools.db.load_file('/home/debian/firmware/common/Data/2024CAR.dbc')
+CANBUS = 'vcan0'
+home_dir = '/home/vagrant/shared/'
+db = cantools.db.load_file(home_dir + 'firmware/common/Data/2024CAR.dbc')
 can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
 # CAN arbitration ID constants
@@ -25,6 +26,8 @@ TEMPCOOLANT_L_ARB_ID = db.get_message_by_name('TempCoolantLeft').frame_id
 TEMPCOOLANT_R_ARB_ID = db.get_message_by_name('TempCoolantRight').frame_id
 
 LV_BATT_ARB_ID = db.get_message_by_name('LV_Bus_Measurements').frame_id
+
+DCU_BUTTONS_ARB_ID = db.get_message_by_name('DCU_buttonEvents').frame_id
 
 # declare water temp variable here because left/right
 # sensor data is from diff CAN messages
@@ -380,7 +383,7 @@ min_cell_text = canvas.create_text(
 
 dtc_descriptions = {}
 
-with open('/home/debian/firmware/common/Data/DTC.csv', 'r') as file:
+with open(home_dir + 'firmware/common/Data/DTC.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip the header row
     for row in reader:
@@ -391,7 +394,7 @@ with open('/home/debian/firmware/common/Data/DTC.csv', 'r') as file:
 
 # Create the scrollable text area
 dtc_text_area = scrolledtext.ScrolledText(window, width=45, height=6)
-dtc_text_area.place(x=10, y=420)
+dtc_text_area.place(x=220, y=360)
 dtc_text_area.config(font=("Helvetica", 10))
 dtc_text_area.config(background='black')
 dtc_text_area.config(foreground='red')
@@ -406,8 +409,23 @@ def publish_dtc(error_code, error_message):
     # Scroll to the bottom to show the latest message
     dtc_text_area.yview("end")
 
+window2: Tk = None
+
+def is_debug_open():
+    global window2 # TODO: terrible way to do this, NEEDS TO BE FIXED GLOBALS ARE CRIMINAL
+    return window2 is not None
+
+def closeDebug():
+    global window2 # TODO: terrible way to do this, NEEDS TO BE FIXED GLOBALS ARE CRIMINAL
+    if is_debug_open():
+        window2.withdraw()
+        window2 = None
 
 def openDebug():
+
+    global window2 # TODO: terrible way to do this, NEEDS TO BE FIXED GLOBALS ARE CRIMINAL
+    if is_debug_open():
+        return
     window2 = Tk()
     window2.geometry("800x480")
     window2.configure(bg="#262626")
@@ -427,24 +445,24 @@ def openDebug():
     debug_text_area.place(x=10, y=50)
 
     # Function to update the text area with new error codes
-    def update_debug_text(error_code):
-        debug_text_area.insert(
-            "end", error_code + "                                                " + time.strftime("%H:%M:%S") + "\n")
-        # Scroll to the bottom to show the latest message
-        debug_text_area.yview("end")
+    # def update_debug_text(error_code):
+    #     debug_text_area.insert(
+    #         "end", error_code + "                                                " + time.strftime("%H:%M:%S") + "\n")
+    #     # Scroll to the bottom to show the latest message
+    #     debug_text_area.yview("end")
 
     # Function to simulate the stream of diagnostic codes (in a separate thread)
-    def simulate_error_stream():
-        error_count = 0
-        while True:
-            error_code = f"Error Code {error_count}"
-            update_debug_text(error_code)
-            error_count += 1
-            time.sleep(0.1)  # Simulate error codes coming in every 2 seconds
+    # def simulate_error_stream():
+    #     error_count = 0
+    #     while True:
+    #         error_code = f"Error Code {error_count}"
+    #         update_debug_text(error_code)
+    #         error_count += 1
+    #         time.sleep(0.1)  # Simulate error codes coming in every 2 seconds
 
-    # Start the error code simulation thread
-    error_thread = Thread(target=simulate_error_stream)
-    error_thread.start()
+    # # Start the error code simulation thread
+    # error_thread = Thread(target=simulate_error_stream)
+    # error_thread.start()
 
     # pause debug stream button
     pause_button = Button(window2, text="Pause DTC Messages")
@@ -507,22 +525,26 @@ def process_can_messages():
 
                 canvas.itemconfig(inverter_temp_text,
                                   text='%.4s' % ('%.1f' % average_inv_temp) + '°C')
+
             # Case for VBATT
             if message.arbitration_id == BMU_VBATT_ARB_ID:
                 vbatt = decoded_data['AMS_PackVoltage']
 
                 canvas.itemconfig(vbatt_text, text='%.5s' %
                                   ('%.3f' % vbatt) + 'V')
+            
             # Case for LV batt
             if message.arbitration_id == LV_BATT_ARB_ID:
                 lvbatt = decoded_data['VoltageBusLV']
                 canvas.itemconfig(lv_batt_text, text='%.5s' %
                                   ('%.3f' % lvbatt) + 'V')
+            
             # Case for Min HV Cell voltage
             if message.arbitration_id == HV_BUS_STATE_ARB_ID:
                 cell_min = decoded_data['VoltageCellMin']
                 canvas.itemconfig(min_cell_text, text='%.4s' %
                                   ('%.3f' % cell_min) + 'V')
+            
             # Case for Speeeeeed
             if message.arbitration_id == WHEELSPEED_ARB_ID:
                 fl_speed = decoded_data['FLSpeedKPH']
@@ -535,6 +557,16 @@ def process_can_messages():
 
                 canvas.itemconfig(speed_text, text='%.3s' %
                                   ('%.1f' % average_speed) + 'kph')
+
+            # case for screen navigation button events
+            if message.arbitration_id == DCU_BUTTONS_ARB_ID:
+                # Open debug menu if R button is pressed
+                # Close debug menu if L button is pressed
+                if decoded_data['ButtonScreenNavRightEnabled'] == 1:
+                    openDebug()
+                if decoded_data['ButtonScreenNavLeftEnabled'] == 1:
+                    closeDebug()
+                
 
             # Case for BMU DTC
             if message.arbitration_id == BMU_DTC_ARB_ID:
