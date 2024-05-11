@@ -173,6 +173,8 @@ int sendHVToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -183,6 +185,8 @@ int sendEMToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -193,6 +197,8 @@ int sendEnduranceToggleMsg(void)
     ButtonEnduranceToggleEnabled = 1;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -203,6 +209,8 @@ int sendEnduranceLapMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 1;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -213,6 +221,8 @@ int sendTCToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 1;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 

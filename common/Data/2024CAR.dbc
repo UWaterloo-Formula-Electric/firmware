@@ -526,6 +526,8 @@ BO_ 2550137362 TempCoolantLeft: 8 WSBRL
  SG_ TempInletRadMotorLeft : 0|10@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214662151 DCU_buttonEvents: 8 DCU
+ SG_ ButtonScreenNavLeftEnabled : 6|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
+ SG_ ButtonScreenNavRightEnabled : 5|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
  SG_ ButtonEnduranceToggleEnabled : 4|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
  SG_ ButtonEnduranceLapEnabled : 3|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
  SG_ ButtonTCEnabled : 2|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone,VCU_F7
