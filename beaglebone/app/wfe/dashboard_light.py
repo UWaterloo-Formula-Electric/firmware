@@ -24,7 +24,7 @@ MC_TEMP_INV_ARB_ID = db.get_message_by_name('MC_Temperature_Set_1').frame_id
 TEMPCOOLANT_L_ARB_ID = db.get_message_by_name('TempCoolantLeft').frame_id
 TEMPCOOLANT_R_ARB_ID = db.get_message_by_name('TempCoolantRight').frame_id
 
-LV_BATT_ARB_ID = db.get_message_by_name('PDU_batteryStatusLV').frame_id
+LV_BATT_ARB_ID = db.get_message_by_name('LV_Bus_Measurements').frame_id
 
 # declare water temp variable here because left/right
 # sensor data is from diff CAN messages
@@ -148,7 +148,7 @@ battery_temp_label = canvas.create_text(
     4.0,
     62.0,
     anchor="nw",
-    text="Battery Temp:",
+    text="Max Cell Temp:",
     fill="#FFFFFF",
     font=("Lato Regular", 15 * -1)
 )
@@ -390,9 +390,9 @@ with open('/home/debian/firmware/common/Data/DTC.csv', 'r') as file:
 
 
 # Create the scrollable text area
-dtc_text_area = scrolledtext.ScrolledText(window, width=45, height=2)
-dtc_text_area.place(x=10, y=418)
-dtc_text_area.config(font=("Helvetica", 20))
+dtc_text_area = scrolledtext.ScrolledText(window, width=45, height=6)
+dtc_text_area.place(x=10, y=420)
+dtc_text_area.config(font=("Helvetica", 10))
 dtc_text_area.config(background='black')
 dtc_text_area.config(foreground='red')
 
