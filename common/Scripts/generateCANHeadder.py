@@ -779,7 +779,7 @@ def main(argv):
     depFile = os.path.join(genDir, 'canGen.d')
 
     dataDir = os.path.join(commonDir, 'Data')
-    mainDbFile = os.path.join(dataDir, '2018CAR.dbc')
+    mainDbFile = os.path.join(dataDir, '2024CAR.dbc')
 
     headerFile = os.path.join(genIncDir, nodeName + '_can.h')
     sourceFile = os.path.join(genSrcDir, nodeName + '_can.c')
