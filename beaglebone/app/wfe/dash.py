@@ -33,13 +33,7 @@ class DashPage(Page):
         self.canvas = canvas
         canvas.place(x=0, y=0)
 
-        self.charge_bar = canvas.create_rectangle(
-            1.0,
-            2.0,
-            801.0,
-            58.0,
-            fill="#FF0000",
-            outline="")
+        self.charge_bar = canvas.create_rectangle(0,0,800,60, fill="#0000FF", outline="")
 
         soc_label = canvas.create_text(
             240.0,
@@ -348,8 +342,7 @@ class DashPage(Page):
         self.canvas.itemconfig(self.charge_bar, fill=charge_color)
 
         # Update the bar at the top
-        self.canvas.coords(self.charge_bar, 1.0, 2.0,
-                           1.0 + (value / 100) * 800, 58.0)
+        self.canvas.coords(self.charge_bar, 0, 0, (value / 100) * 800, 60)
 
     def changeMode(self):
         if (self.canvas.itemcget(self.mode_text, "text") == "RACE"):
@@ -421,33 +414,33 @@ class DebugPage(Page):
         reset_button.place(x=10, y=10)
 
         # Create the scrollable text area
-        debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30)
-        debug_text_area.place(x=0, y=50)
-
-        # Function to update the text area with new error codes
-        def update_debug_text(error_code):
-            debug_text_area.insert(
-                "end", error_code + "                                                " + time.strftime("%H:%M:%S") + "\n")
-            # Scroll to the bottom to show the latest message
-            debug_text_area.yview("end")
+        self.debug_text_area = scrolledtext.ScrolledText(
+            self, width=100, height=30)
+        self.debug_text_area.place(x=0, y=50)
 
         # Function to simulate the stream of diagnostic codes (in a separate thread)
+
         def simulate_error_stream():
             error_count = 0
             while True:
                 error_code = f"Error Code {error_count}"
-                update_debug_text(error_code)
+                self.update_debug_text(error_code)
                 error_count += 1
                 # Simulate error codes coming in every 2 seconds
                 time.sleep(0.1)
 
         # # Start the error code simulation thread
-        error_thread = Thread(target=simulate_error_stream)
-        error_thread.start()
+        # enable daemon to kill the thread when the main thread exits
+        Thread(target=simulate_error_stream, daemon=True).start()
 
         # pause debug stream button
         pause_button = Button(self, text="Pause DTC Messages")
         pause_button.place(x=420, y=10)
+
+    def update_debug_text(self, error_code):
+        self.debug_text_area.insert("end", f"{error_code: <30}{time.strftime('%H:%M:%S')}\n")
+        # Scroll to the bottom to show the latest message
+        self.debug_text_area.yview("end")
 
 
 class MainView(tk.Frame):
@@ -592,5 +585,6 @@ if __name__ == "__main__":
     root.configure(bg="#3f3f3f")
     root.title("UWFE Dashboard (LIGHT)")
     can_processor = CANProcessor(main)
-    Thread(target=can_processor.process_can_messages).start()
+    # enable daemon to kill the thread when the main thread exits
+    Thread(target=can_processor.process_can_messages, daemon=True).start()
     root.mainloop()
