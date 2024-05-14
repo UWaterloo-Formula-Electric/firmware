@@ -414,8 +414,7 @@ class DebugPage(Page):
         reset_button.place(x=10, y=10)
 
         # Create the scrollable text area
-        self.debug_text_area = scrolledtext.ScrolledText(
-            self, width=100, height=30)
+        self.debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30)
         self.debug_text_area.place(x=0, y=50)
 
         # Function to simulate the stream of diagnostic codes (in a separate thread)
