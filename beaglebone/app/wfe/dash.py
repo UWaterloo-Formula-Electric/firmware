@@ -437,7 +437,7 @@ class DebugPage(Page):
         pause_button.place(x=420, y=10)
 
     def update_debug_text(self, error_code):
-        self.debug_text_area.insert("end", f"{error_code: <30}{time.strftime('%H:%M:%S')}\n")
+        self.debug_text_area.insert("end", f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
         # Scroll to the bottom to show the latest message
         self.debug_text_area.yview("end")
 
@@ -460,8 +460,8 @@ class MainView(tk.Frame):
 class CANProcessor:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
-        CANBUS = 'vcan0'
-        self.home_dir = '/home/vagrant/shared/'
+        CANBUS = 'can1'
+        self.home_dir = '/home/debian/'
         self.db = cantools.db.load_file(
             self.home_dir + 'firmware/common/Data/2024CAR.dbc')
         self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
