@@ -119,17 +119,17 @@ uint32_t EM_Enable(uint32_t event)
 {
     bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    // float brakePressure = getBrakePressure();
+    float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
     if (!bpsState) {
         DEBUG_PRINT("Failed to em enable, bps fault\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(0);
         state = STATE_EM_Disable;
-    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
-    //     state = STATE_EM_Disable;
+    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+        sendDTC_WARNING_EM_ENABLE_FAILED(1);
+        state = STATE_EM_Disable;
     } else if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
@@ -349,7 +349,6 @@ HAL_StatusTypeDef MotorStart()
         return rc;
     }
 
-    // vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS)); // prob need to change
     rc = mcInit();
     if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");

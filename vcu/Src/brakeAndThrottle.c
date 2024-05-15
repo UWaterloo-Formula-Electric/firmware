@@ -339,7 +339,7 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
-            
+
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
     }

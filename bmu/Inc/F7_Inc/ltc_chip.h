@@ -18,9 +18,6 @@
  * @{
  */
 
-// TODO: Update these to 2021 values
-extern uint32_t delay_US;
-extern uint32_t delay_MS;
 /// Number of AMS boards in system
 #define NUM_BOARDS                  14
 /// Number of valid cells per board, starting from the most negative terminal
@@ -50,6 +47,7 @@ extern uint32_t delay_MS;
 
 #if LTC_CHIP == LTC_CHIP_6804
 #define NUM_LTC_CHIPS_PER_BOARD 1
+#define CONVERSION_TIME_7kHz_US (2480)
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #else

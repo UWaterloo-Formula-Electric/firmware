@@ -52,7 +52,6 @@ static void poll_encoder(void)
 	sensors_data.encoder_mm = ENCODER_COUNT_TO_MM(sensors_data.encoder_counts);
 	sensors_data.encoder_speed = ENCODER_COUNT_TO_RADS_S(count_diff, (float)(POLL_SENSORS_PERIOD_MS)/1000.0f);
 	last_count = current_count;
-	DEBUG_PRINT("Encoder Counts: %lu, Encoder mm: %lu, Encoder Speed: %f\n", sensors_data.encoder_counts, sensors_data.encoder_mm, sensors_data.encoder_speed);
 }
 
 void pollSensorsTask(void const * argument)
