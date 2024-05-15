@@ -255,9 +255,11 @@ $(BIN_DIR)/%.o: %.S
 ## The following needs to be updated for the F4 board
 
 ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
-F0_OR_F7 := "F7"
+F0_OR_F7_OR_F4 := "F7"
 else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
-F0_OR_F7 := "F0"
+F0_OR_F7_OR_F4 := "F0"
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F4 F4))
+F0_OR_F7_OR_F4 := "F4"
 else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
@@ -266,10 +268,10 @@ autogen: $(GEN_FILES)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
-$(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: BOARD_F0_OR_F7 := $(F0_OR_F7)
+$(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: BOARD_F0_OR_F7_OR_F4 := $(F0_OR_F7_OR_F4)
 $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: $(CAN_FILES_GEN_SCRIPT) $(DBC_FILE)
 	@mkdir -p $(GEN_DIR)
-	@$(CAN_FILES_GEN_SCRIPT) $(CURR_BOARD) $(BOARD_F0_OR_F7)
+	@$(CAN_FILES_GEN_SCRIPT) $(CURR_BOARD) $(BOARD_F0_OR_F7_OR_F4)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
 
@@ -334,6 +336,8 @@ ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F7 F7))
    OPENOCD_FILE := target/stm32f7x.cfg
 else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F0 F0))
    OPENOCD_FILE := target/stm32f0x.cfg
+else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F4 F4))
+   OPENOCD_FILE := target/stm32f4x.cfg
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
