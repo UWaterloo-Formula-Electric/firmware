@@ -11,7 +11,7 @@ class Page(tk.Frame):
 class DashPage(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
-        tk.Label(self, text="Page 1", font=("Helvetica", 16), background="#ff0000").place(relx=0.5, rely=0.5, anchor="center")
+        tk.Label(self, text="Page 1", font=("Helvetica", 16), background="#ff3f30").place(relx=0.5, rely=0.5, anchor="center")
 
 
 class MainView(tk.Frame):
@@ -25,6 +25,7 @@ class MainView(tk.Frame):
         tk.Label(container, text="MainView", font=("Arial", 24)).place(relx=0.5, rely=0.5, anchor="center")
 
         self.dashPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        self.dashPage.bring_to_front()
 
 if __name__ == "__main__":
     root = tk.Tk()
