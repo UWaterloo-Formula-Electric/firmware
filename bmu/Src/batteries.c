@@ -713,12 +713,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    float measure;
    float measure_high;
    float measure_low;
-   float currentReading;
-   if(getIBus(&currentReading) != HAL_OK){
-       ERROR_PRINT("Cannot read current from bus!!");
-       sendDTC_FATAL_BMU_ERROR();
-       return HAL_ERROR;
-   } 
+   
    *maxVoltage = 0;
    *minVoltage = limit_overvoltage;
    *maxTemp = -100; // Cells shouldn't get this cold right??
