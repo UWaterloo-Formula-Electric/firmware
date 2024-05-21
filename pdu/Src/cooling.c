@@ -54,6 +54,6 @@ void coolingTask(void *pvParameters) {
         }
 
         watchdogTaskCheckIn(COOLING_TASK_ID);
-        vTaskDelayUntil(&xLastWakeTime, COOLING_TASK_PERIOD_MS);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(COOLING_TASK_PERIOD_MS));
     }
 }

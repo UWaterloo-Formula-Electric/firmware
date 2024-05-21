@@ -26,7 +26,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
 // Macros for converting RPM to KPH
-#define GEAR_RATIO ((float)(15.0/52.0))
+#define GEAR_RATIO ((float)(12.0/45.0))
 #define M_TO_KM 1.0/1000.0f
 #define WHEEL_DIAMETER_M 0.525
 #define WHEEL_CIRCUMFERENCE WHEEL_DIAMETER_M*PI
@@ -93,15 +93,13 @@ static float get_FL_speed()
 static float get_RR_speed()
 {
 	//Value comes from MC
-	int64_t val = INV_Motor_Speed; // TEMPORARY - just replaced deleted CAN signals for compilation
-	return RPM_TO_RADS(val - MC_ENCODER_OFFSET)*GEAR_RATIO;
+	return INV_Motor_Speed * GEAR_RATIO; // in rpm
 }
 
 static float get_RL_speed()
 {
 	//Value comes from MC
-	int64_t val = INV_Motor_Speed; // TEMPORARY - just replaced deleted CAN signals for compilation
-	return RPM_TO_RADS(val - MC_ENCODER_OFFSET)*GEAR_RATIO;
+	return INV_Motor_Speed * GEAR_RATIO; // in rpm
 }
 
 static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
@@ -184,7 +182,7 @@ static float tc_compute_limit(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 		handleError();
 	}
 
-	tc_data->torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+	tc_data->torque_max = MAX_TORQUE_DEMAND_DEFAULT_NM;
 	tc_data->torque_adjustment = 0.0f;
 
 	tc_data->left_slip = compute_side_slip(wheel_data->FL, wheel_data->RL); 
@@ -196,8 +194,8 @@ static float tc_compute_limit(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	}
 	tc_data->torque_adjustment = compute_gains(tc_data);
 
-	float desired_torque = MAX_TORQUE_DEMAND_DEFAULT - tc_data->torque_adjustment;
-	tc_data->torque_max = abs_clamp(desired_torque, MAX_TORQUE_DEMAND_DEFAULT, adjustment_torque_floor);
+	float desired_torque = MAX_TORQUE_DEMAND_DEFAULT_NM - tc_data->torque_adjustment;
+	tc_data->torque_max = abs_clamp(desired_torque, MAX_TORQUE_DEMAND_DEFAULT_NM, adjustment_torque_floor);
 	return tc_data->torque_max;
 }
 
@@ -214,7 +212,7 @@ void tractionControlTask(void *pvParameters)
 	WheelSpeed_S wheel_data = {0};
 	TCData_S tc_data = {0};
 
-	tc_data.torque_max = MAX_TORQUE_DEMAND_DEFAULT;
+	tc_data.torque_max = MAX_TORQUE_DEMAND_DEFAULT_NM;
 	tc_data.torque_adjustment = adjustment_torque_floor;
 	tc_data.left_slip = 0.0f; 
 	tc_data.right_slip = 0.0f; 
@@ -222,19 +220,18 @@ void tractionControlTask(void *pvParameters)
 
 	while(1)
 	{
-		// rads/s
+		// rpm
 		wheel_data.FL = get_FL_speed(); 
 		wheel_data.FR = get_FR_speed(); 
 		wheel_data.RL = get_RL_speed(); 
 		wheel_data.RR = get_RR_speed(); 
 	
 		float tc_torque = tc_compute_limit(&wheel_data, &tc_data);
-		float output_torque = MAX_TORQUE_DEMAND_DEFAULT;
+		float output_torque = MAX_TORQUE_DEMAND_DEFAULT_NM;
 		if(tc_on && fmax(wheel_data.RL, wheel_data.RR) > ZERO_SPEED_LOWER_BOUND)
 		{
 			output_torque = tc_torque;
 		}
-
 		setTorqueLimit(output_torque);
 
 		publish_can_data(&wheel_data, &tc_data);

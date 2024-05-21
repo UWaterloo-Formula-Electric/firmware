@@ -12,7 +12,7 @@
 
 // This is subject to change and is expected to be 100ms
 #define BATTERY_TASK_PERIOD_MS 100
-#define BATTERY_CHARGE_TASK_PERIOD_MS 2000
+#define BATTERY_CHARGE_TASK_PERIOD_MS 500
 #define BATTERY_TASK_ID 2
 
 /**
@@ -68,7 +68,7 @@
  */
 
 /// Block balancing below this cell voltage
-#define BALANCE_START_VOLTAGE (3.5F)
+#define BALANCE_START_VOLTAGE (3.7F)
 
 /**
  * Threshold to begin balancing a cell when it's SoC is this percent higher
@@ -77,7 +77,7 @@
 #define BALANCE_MIN_SOC_DELTA (1.0F)
 
 /// Pause balancing for this length when reading cell voltages to get good readings
-#define CELL_RELAXATION_TIME_MS (1000)
+#define CELL_RELAXATION_TIME_MS (250)
 
 /// SoC to stop charging at (of the cell with lowest SoC)
 #define CHARGE_STOP_SOC (98.0)

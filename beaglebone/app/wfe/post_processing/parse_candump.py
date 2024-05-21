@@ -3,6 +3,7 @@ import cantools
 import argparse
     
 def main():
+    print("scp -r debian@192.168.7.2:~/canDumpLogs .")
     parser = argparse.ArgumentParser(description="Process CAN log")
     parser.add_argument('src_file', help="CAN log file (csv) to be read in")
     parser.add_argument('--dbc', default="../../../../common/Data/2024CAR.dbc")

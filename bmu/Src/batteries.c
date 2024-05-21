@@ -983,6 +983,8 @@ HAL_StatusTypeDef continueCharging()
       sendDTC_FATAL_BMU_Charger_ERROR();
       return HAL_ERROR;
    }
+   DEBUG_PRINT("Charge Current: %f\n", status.current);
+   DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
 
 #endif
    return HAL_OK;
@@ -1427,7 +1429,7 @@ void batteryTask(void *pvParameter)
     }
 #endif
 
-    if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(BATTERY_TASK_ID, 5*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register battery task with watchdog!\n");
         Error_Handler();

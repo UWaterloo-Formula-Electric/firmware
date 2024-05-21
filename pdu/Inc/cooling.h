@@ -2,7 +2,7 @@
 
 #define COOLING_H
 
-#define COOLING_TASK_PERIOD_MS 5000 // 5 seconds
+#define COOLING_TASK_PERIOD_MS 10000 // 5 seconds
 #define COOLING_INCREMENT_MS 100 // 100 ms
 #define COOLING_AMBIENT_TEMP_C 10.0f // Todo - figure out how to acc get ambient
 #define COOLING_MOTOR_MAX_TEMP_C 120.0f

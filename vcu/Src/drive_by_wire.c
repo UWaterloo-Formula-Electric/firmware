@@ -107,7 +107,7 @@ uint32_t runSelftTests(uint32_t event)
     
     if (brakeAndThrottleStart() != HAL_OK)
     {
-        sendDTC_CRITICAL_Throttle_Failure(3);
+        sendDTC_WARNING_Throttle_Failure(3);
         return EM_Fault(EV_Throttle_Failure);
     }
 
@@ -121,15 +121,15 @@ uint32_t EM_Enable(uint32_t event)
     // float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
-    // if (!bpsState) {
-    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
-    //     state = STATE_EM_Disable;
+    if (!bpsState) {
+        DEBUG_PRINT("Failed to em enable, bps fault\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(0);
+        state = STATE_EM_Disable;
     // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
     //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
     //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
     //     state = STATE_EM_Disable;
-    if (!(throttleIsZero())) {
+    } else if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_EM_Disable;
@@ -252,9 +252,8 @@ uint32_t EM_Fault(uint32_t event)
             {
                 // sendDTC_WARNING_VCU_Inverter_Fault(faults);
                 // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
-                
-                newState = STATE_EM_Enable;
-                break;
+                DEBUG_PRINT("Inverter fault: %lu, trans to fatal failure\n", faults);
+                newState = STATE_Failure_Fatal;
             }
         default:
             {

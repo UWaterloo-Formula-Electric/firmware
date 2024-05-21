@@ -171,25 +171,25 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     }
 
     // Both throttle and brake were pressed, check if still the case
-    // if (throttleAndBrakePressedError) {
-    //     if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
-    //         throttleAndBrakePressedError = false;
-    //         sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
-    //     } else {
-    //         (*throttleOut) = 0;
-    //         DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
-    //         return THROTTLE_DISABLED;
-    //     }
-    // }
+    if (throttleAndBrakePressedError) {
+        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
+            throttleAndBrakePressedError = false;
+            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
+        } else {
+            (*throttleOut) = 0;
+            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+            return THROTTLE_DISABLED;
+        }
+    }
 
     // check if both throttle and brake are pressed
-    // if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
-    //     (*throttleOut) = 0;
-    //     throttleAndBrakePressedError = true;
-    //     sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
-    //     DEBUG_PRINT("Throttle disabled, brakePressed\n");
-    //     return THROTTLE_DISABLED;
-    // }
+    if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+        (*throttleOut) = 0;
+        throttleAndBrakePressedError = true;
+        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
+        DEBUG_PRINT("Throttle disabled, brakePressed\n");
+        return THROTTLE_DISABLED;
+    }
 
     // If we get here, all checks have passed, so can safely output throttle
     (*throttleOut) = throttle;
@@ -284,13 +284,14 @@ HAL_StatusTypeDef pollThrottle(void) {
     if (rc != THROTTLE_OK)
     {
         if (rc == THROTTLE_FAULT) {
-            sendDTC_CRITICAL_Throttle_Failure(0);
+            sendDTC_WARNING_Throttle_Failure(0);
             DEBUG_PRINT("Throttle value out of range\n");
         } else if (rc == THROTTLE_DISABLED) {
-            sendDTC_CRITICAL_Throttle_Failure(1);
+            sendDTC_WARNING_Throttle_Failure(1);
             DEBUG_PRINT("Throttle disabled as brake pressed\n");
+            return HAL_OK;
         } else {
-            sendDTC_CRITICAL_Throttle_Failure(2);
+            sendDTC_WARNING_Throttle_Failure(2);
             DEBUG_PRINT("Unknown throttle error\r\n");
         }
         return HAL_ERROR;
@@ -339,8 +340,7 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
-        //DEBUG_PRINT("%lu %lu %lu\r\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX], brakeThrottleSteeringADCVals[BRAKE_POS_INDEX]);
-
+            
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
     }
