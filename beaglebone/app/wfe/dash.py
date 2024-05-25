@@ -1,12 +1,12 @@
 from threading import Thread
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, Scale, scrolledtext
 import tkinter as tk
+from pathlib import Path
 
 import time
 import traceback
 import can
 import cantools
-from cantools.typechecking import DecodeResultType
 import csv
 
 
@@ -14,7 +14,7 @@ class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
 
-    def bring_to_front(self):
+    def show(self):
         self.lift()
 
 
@@ -33,7 +33,8 @@ class DashPage(Page):
         self.canvas = canvas
         canvas.place(x=0, y=0)
 
-        self.charge_bar = canvas.create_rectangle(0,0,800,60, fill="#0000FF", outline="")
+        self.charge_bar = canvas.create_rectangle(
+            0, 0, 800, 60, fill="#0000FF", outline="")
 
         soc_label = canvas.create_text(
             240.0,
@@ -350,7 +351,7 @@ class DashPage(Page):
         elif (self.canvas.itemcget(self.mode_text, "text") == "SLOW"):
             self.canvas.itemconfig(self.mode_text, text="RACE")
 
-    def updateSoc(self, decoded_data: DecodeResultType):
+    def updateSoc(self, decoded_data: dict):
         soc_value = decoded_data['StateBatteryChargeHV']
         battery_temp = decoded_data['TempCellMax']
 
@@ -358,7 +359,7 @@ class DashPage(Page):
         self.canvas.itemconfig(self.battery_temp_text, text='%.4s' %
                                ('%.1f' % battery_temp) + '°C')
 
-    def updateMotorTemp(self, decoded_data: DecodeResultType):
+    def updateMotorTemp(self, decoded_data: dict):
         motor_temp = decoded_data['INV_Motor_Temp']
         coolant_temp = decoded_data['INV_Coolant_Temp']
 
@@ -367,7 +368,7 @@ class DashPage(Page):
         self.canvas.itemconfig(self.water_temp_text, text='%.4s' %
                                ('%.1f' % coolant_temp) + '°C')
 
-    def updateInverterTemp(self, decoded_data: DecodeResultType):
+    def updateInverterTemp(self, decoded_data: dict):
         inv_temp1 = decoded_data['INV_Module_A_Temp']
         inv_temp2 = decoded_data['INV_Module_B_Temp']
         inv_temp3 = decoded_data['INV_Module_C_Temp']
@@ -378,23 +379,23 @@ class DashPage(Page):
         self.canvas.itemconfig(self.inverter_temp_text,
                                text='%.4s' % ('%.1f' % average_inv_temp) + '°C')
 
-    def updateVBatt(self, decoded_data: DecodeResultType):
+    def updateVBatt(self, decoded_data: dict):
         vbatt = decoded_data['AMS_PackVoltage']
 
         self.canvas.itemconfig(self.vbatt_text, text='%.5s' %
                                ('%.3f' % vbatt) + 'V')
 
-    def updateLVbatt(self, decoded_data: DecodeResultType):
+    def updateLVbatt(self, decoded_data: dict):
         lvbatt = decoded_data['VoltageBusLV']
         self.canvas.itemconfig(self.lv_batt_text, text='%.5s' %
                                ('%.3f' % lvbatt) + 'V')
 
-    def updateMinCell(self, decoded_data: DecodeResultType):
+    def updateMinCell(self, decoded_data: dict):
         cell_min = decoded_data['VoltageCellMin']
         self.canvas.itemconfig(self.min_cell_text, text='%.4s' %
                                ('%.3f' % cell_min) + 'V')
 
-    def updateSpeed(self, decoded_data: DecodeResultType):
+    def updateSpeed(self, decoded_data: dict):
         fl_speed = decoded_data['FLSpeedKPH']
         fr_speed = decoded_data['FRSpeedKPH']
         rr_speed = decoded_data['RRSpeedKPH']
@@ -414,7 +415,8 @@ class DebugPage(Page):
         reset_button.place(x=10, y=10)
 
         # Create the scrollable text area
-        self.debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30)
+        self.debug_text_area = scrolledtext.ScrolledText(
+            self, width=100, height=30)
         self.debug_text_area.place(x=0, y=50)
 
         # Function to simulate the stream of diagnostic codes (in a separate thread)
@@ -437,7 +439,8 @@ class DebugPage(Page):
         pause_button.place(x=420, y=10)
 
     def update_debug_text(self, error_code):
-        self.debug_text_area.insert("end", f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
+        self.debug_text_area.insert(
+            "end", f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
         # Scroll to the bottom to show the latest message
         self.debug_text_area.yview("end")
 
@@ -454,16 +457,16 @@ class MainView(tk.Frame):
         self.dashPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         self.debugPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        self.dashPage.bring_to_front()
+        self.dashPage.show()
 
 
 class CANProcessor:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
         CANBUS = 'can1'
-        self.home_dir = '/home/debian/'
+        self.home_dir = Path('/home/debian/')
         self.db = cantools.db.load_file(
-            self.home_dir + 'firmware/common/Data/2024CAR.dbc')
+            self.home_dir / 'firmware/common/Data/2024CAR.dbc')
         self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
         # CAN arbitration ID constants
@@ -496,7 +499,7 @@ class CANProcessor:
         self.load_dtc_descriptions()
 
     def load_dtc_descriptions(self):
-        with open(self.home_dir + 'firmware/common/Data/DTC.csv', 'r') as file:
+        with open(self.home_dir / 'firmware/common/Data/DTC.csv', 'r') as file:
             reader = csv.reader(file)
             next(reader)  # Skip the header row
             for row in reader:
@@ -550,9 +553,9 @@ class CANProcessor:
                     # Open debug menu if R button is pressed
                     # Close debug menu if L button is pressed
                     if decoded_data['ButtonScreenNavRightEnabled'] == 1:
-                        self.main_view.debugPage.bring_to_front()
+                        self.main_view.debugPage.show()
                     if decoded_data['ButtonScreenNavLeftEnabled'] == 1:
-                        self.main_view.dashPage.bring_to_front()
+                        self.main_view.dashPage.show()
 
                 # Case for BMU DTC
                 if message.arbitration_id == self.BMU_DTC_ARB_ID:
@@ -578,6 +581,7 @@ class CANProcessor:
     def start_can_thread(self):
         # enable daemon to kill the thread when the main thread exits)
         Thread(target=self.process_can_messages, daemon=True).start()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
