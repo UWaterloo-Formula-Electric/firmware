@@ -87,9 +87,9 @@ class DashPage(Page):
         cell_frame = self._create_cell_frame(self["bg"], row, col, sticky)
         cell_frame.config(width=200)
         cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=("Lato Bold", -20))
-        cell_title.place(x=20, rely=0.5, anchor="w")
-        cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=("Lato Bold", -55))
-        cell_text.place(x=200, rely=0.5, anchor="w")
+        cell_title.place(x=10, rely=0.5, anchor="w")
+        cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=("Lato Bold", -53))
+        cell_text.place(x=190, rely=0.5, anchor="w")
         return cell_text
 
     def update_battery_charge(self, value):
@@ -146,11 +146,11 @@ class DashPage(Page):
     def updateLVbatt(self, decoded_data: dict):
         # lvbatt is in mV, convert to V
         lvbatt = int(decoded_data['VoltageBusLV']) / 1000.
-        self.lvbatt_text.config(text='%.5s' % ('%.3f' % lvbatt) + 'V')
+        self.lvbatt_text.config(text='%.6s' % ('%.3f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
         cell_min = decoded_data['VoltageCellMin']
-        self.min_cell_text.config(text='%.4s' % ('%.3f' % cell_min) + 'V')
+        self.min_cell_text.config(text='%.5s' % ('%.3f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
         fl_speed = decoded_data['FLSpeedKPH']
