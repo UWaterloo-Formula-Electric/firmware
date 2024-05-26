@@ -28,7 +28,7 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 27, BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
 28, Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
 29, DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU CAN Timeout occured
-30, Throtte_Failure,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",ThrottleFailure,Throttle implausibility occured
+30, Throttle_Failure,VCU_F7,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",ThrottleFailure,Throttle implausibility occured
 31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Precharge process failed during step #data
 32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Discharge process failed during step #data
 33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,IMD detected a fault. Value is of enum IMDStatus in imdDriver.h
@@ -58,3 +58,8 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 57,VCU_F7_EM_ENABLED_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Unknown EM Fault"
 58,VCU_F7_EV_FATAL,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Got Fatal DTC"
 59, VCU_F7_NoTransition,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: No state machine transition found
+60,VCU_Inverter_Fault,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",Fault,Inverter has faulted
+61,MC_Temp_Reading_Lost,PDU,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,No longer reading motor temp
+62,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
+63, DCU_SM_ERROR,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",code,DCU State Machine Fault #data
+64, DCU_NoTransition,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: No state machine transition found

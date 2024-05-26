@@ -43,7 +43,8 @@ bool getEMState()
  */
 void CAN_Msg_BMU_HV_Power_State_Callback()
 {
-    fsmSendEventISR(&DCUFsmHandle, EV_CAN_Recieve_HV);
+    receivedHvResponse();
+    fsmSendEventISR(&DCUFsmHandle, EV_CAN_Receive_HV);
 }
 
 /**
@@ -52,7 +53,8 @@ void CAN_Msg_BMU_HV_Power_State_Callback()
  */
 void CAN_Msg_VCU_EM_State_Callback()
 {
-    fsmSendEventISR(&DCUFsmHandle, EV_CAN_Recieve_EM);
+    receivedEmResponse();
+    fsmSendEventISR(&DCUFsmHandle, EV_CAN_Receive_EM);
 }
 
 /**
@@ -76,8 +78,8 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data)
 
 void DTC_Fatal_Callback(BoardIDs board)
 {
-	ERROR_PRINT_ISR("DTC fatal received\n");
-        fsmSendEventUrgentISR(&DCUFsmHandle, EV_CAN_Recieve_Fatal);
+	ERROR_PRINT_ISR("Fatal DTC received\n");
+    fsmSendEventUrgentISR(&DCUFsmHandle, EV_Fatal);
 }
 
 void CAN_Msg_UartOverCanConfig_Callback() {

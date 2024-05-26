@@ -32,6 +32,7 @@
 #include "canReceive.h"
 #include "chargerControl.h"
 #include "state_of_charge.h"
+#include "sense.h"
 
 /*
  *
@@ -133,13 +134,6 @@ extern osThreadId stateOfChargeHandle;
  * HV Measure
  */
 
-/**
- * @brief Filter constant for HV Bus current low pass filter
- * Designed around 1 ms sample period and 50 Hz cuttoff.
- * See the wikipedia page for the calculation: https://en.wikipedia.org/wiki/Low-pass_filter#Simple_infinite_impulse_response_filter
- */
-#define IBUS_FILTER_ALPHA 0.24
-
 
 // Filter constant for Filtered Cell Voltages
 // Designed for 75 ms sample period and 1 Hz cutoff
@@ -150,13 +144,21 @@ extern osThreadId stateOfChargeHandle;
  * @param[in] IBus the measured HV Bus current
  * @return The filtered HV Bus current
  */
+
+#define IBUS_HISTORY_SIZE 100
+static float IBusHistory[IBUS_HISTORY_SIZE];
+
 float filterIBus(float IBus)
 {
-  static float IBusOut = 0;
+    static uint8_t filterIndex = 0U;
+    static float runningIBusHistorySum = 0.0f;
 
-  IBusOut = IBUS_FILTER_ALPHA*IBus + (1-IBUS_FILTER_ALPHA)*IBusOut;
+    runningIBusHistorySum -= IBusHistory[filterIndex];
+    IBusHistory[filterIndex] = IBus;
+    runningIBusHistorySum += IBus;
+    filterIndex = (filterIndex + 1) % IBUS_HISTORY_SIZE;
 
-  return IBusOut;
+    return runningIBusHistorySum / IBUS_HISTORY_SIZE;
 }
 
 /**
@@ -210,15 +212,16 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
  */
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
+    extern volatile uint32_t brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_NUM];
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0;
-   if (adc_read_current(&IBusTmp) != HAL_OK) {
-      ERROR_PRINT("Error reading IBUS\n");
-      return HAL_ERROR;
-   }
-
-   (*IBus) = filterIBus(IBusTmp);
-
+   const float IBusTmp = (0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
+//    if (adc_read_current(&IBusTmp) != HAL_OK) {
+//       ERROR_PRINT("Error reading IBUS\n");
+//       return HAL_ERROR;
+//    }
+   
+    (*IBus) = filterIBus(IBusTmp);
+    
    if (adc_read_v1(VBus) != HAL_OK) {
       ERROR_PRINT("Error reading VBUS\n");
       return HAL_ERROR;
@@ -479,7 +482,7 @@ void imdTask(void *pvParamaters)
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
          default:
-            ERROR_PRINT_ISR("Unkown IMD Status\n");
+            ERROR_PRINT_ISR("Unknown IMD Status\n");
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
       }
@@ -518,8 +521,6 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -578,6 +579,10 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
    {
       TempChannel[i] = initTemp;
       warningSentForChannelTemp[i] = false;
+   }
+   for (int i=0; i < IBUS_HISTORY_SIZE; ++i)
+   {
+        IBusHistory[i] = 0.0f;
    }
 
    return HAL_OK;
@@ -758,7 +763,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
@@ -984,6 +989,8 @@ HAL_StatusTypeDef continueCharging()
       sendDTC_FATAL_BMU_Charger_ERROR();
       return HAL_ERROR;
    }
+   DEBUG_PRINT("Charge Current: %f\n", status.current);
+   DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
 
 #endif
    return HAL_OK;
@@ -1384,6 +1391,20 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     return CHARGE_DONE;
 }
 
+static uint32_t counter = 0;
+void incrementDelay(void)
+{
+    counter++;
+    if (counter % 3 == 0) {
+        delay_US += 5;
+    }
+
+    if (delay_US == 1000) {
+        delay_US = 0;
+        delay_MS++;
+    }
+}
+
 /**
  * @brief Task to monitor cell voltages and temperatures, as well as perform
  * balance charging
@@ -1414,7 +1435,7 @@ void batteryTask(void *pvParameter)
     }
 #endif
 
-    if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(BATTERY_TASK_ID, 5*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register battery task with watchdog!\n");
         Error_Handler();
@@ -1481,7 +1502,7 @@ void batteryTask(void *pvParameter)
                         DEBUG_PRINT("Stopped charge/balancing\n");
                         fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
                     } else {
-                        ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
+                        ERROR_PRINT("Unknown charge return code %d\n", chargeRc);
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                     }
                 }
@@ -1563,6 +1584,7 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
+        incrementDelay();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

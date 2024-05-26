@@ -199,7 +199,6 @@ HAL_StatusTypeDef hvadc_init() {
         ERROR_PRINT("Failed to config HV ADC\n");
         return HAL_ERROR;
     }
-    ERROR_PRINT("waiting for ADC on\r\n");
     vTaskDelay(5);
 
   // recomended by datasheet to read value after writing to double check

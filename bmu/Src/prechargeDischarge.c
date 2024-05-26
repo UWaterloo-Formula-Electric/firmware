@@ -378,25 +378,20 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     DEBUG_PRINT("PC Step 4\n");
 
+    float maxIBus = 0;
+    DEBUG_PRINT("VPack %f\r\nTick, VBUS, VBATT, IBUS\n", packVoltage);
+    startTickCount = xTaskGetTickCount();
+
     setPrechargeContactor(CONTACTOR_CLOSED);
     setNegContactor(CONTACTOR_CLOSED);
     setPosContactor(CONTACTOR_OPEN);
 
-    float maxIBus = 0;
-    float VBus_avg = 0;
-    uint8_t index = 0;
-    bool VBus_settled = false;
-    DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
-    startTickCount = xTaskGetTickCount();
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
 
-        ERROR_PRINT("%lu,", xTaskGetTickCount());
-        ERROR_PRINT("%f,", VBus);
-        ERROR_PRINT("%f,", VBatt);
-        ERROR_PRINT("%f\n", IBus);
+        ERROR_PRINT("%lu, %f, %f, %f\r\n", xTaskGetTickCount(), VBus, VBatt, IBus);
         if (IBus > maxIBus) {
             maxIBus = IBus;
         }
@@ -409,21 +404,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: IBus %f\n", IBus);
             return PCDC_ERROR;
         }
-        VBus_avg += VBus/(float)PRECHARGE_STEP_4_AVERAGE;
-        index++;
-        if(index >= PRECHARGE_STEP_4_AVERAGE)
-		{	
-			index = 0;
-			float diff = VBus_avg - VBus;
-			diff = diff > 0.0F ? diff : -diff;
-			if(diff < PRECHARGE_STEP_4_DIFF_TOLERANCE)
-			{
-				VBus_settled = true;
-			}
-			VBus_avg = 0;
-		}
-        
-    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK) || !VBus_settled);
+    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK));
 
     uint32_t prechargeTime = xTaskGetTickCount() - startTickCount;
     DEBUG_PRINT("Precharge took %lu ticks\n", prechargeTime);
@@ -486,7 +467,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
 
-    DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount());
+    DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount() - startTickCount);
 
     if (PC_MotorControllers) {
         float minIBusSpike = (packVoltage - step4EndVBus) / PRECHARGE_RESISTOR_OHMS;
