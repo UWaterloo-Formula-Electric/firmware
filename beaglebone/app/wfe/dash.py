@@ -26,8 +26,10 @@ class DashPage(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, bg="#262626", *args, **kwargs)
 
-        self.ncols = 3  # create columns with 10 pixels width (allows for granular placement of widgets)
-        ncols = self.ncols
+        ### fonts ###
+        self.title_font = "Lato Regular"
+        self.text_font = "PT Mono"
+        ncols = 3
 
         ### charge bar ###
         _charge_bar_height = 30
@@ -44,9 +46,10 @@ class DashPage(Page):
         self.temp_motor_text = self._create_cell("#FF0101", "Max Motor Temp", row=4, col=0)
 
         ### CENTER ###
-        self.soc_text = self._create_mid_cell("State of Charge:", row=1, col=1)
-        self.deployment_text = self._create_mid_cell("Deployment:", row=2, col=1)
-        self.speed_text = self._create_mid_cell("Speed:", row=3, col=1)
+        self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
+        self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
+        self.deployment_text = self._create_mid_cell("Deployment:", row=3, col=1)
+        
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
@@ -77,19 +80,19 @@ class DashPage(Page):
 
     def _create_cell(self, bg, title, row, col, sticky=tk.NSEW) -> tk.Label:
         cell_frame = self._create_cell_frame(bg, row, col, sticky)
-        cell_title = tk.Label(cell_frame, text=title, bg=bg, fg="#ffffff", font=("Lato Bold", -15))
+        cell_title = tk.Label(cell_frame, text=title, bg=bg, fg="#ffffff", font=(self.title_font, -15))
         cell_title.place(anchor="nw")
-        cell_text = tk.Label(cell_frame, text="N/A", bg=bg, fg="#ffffff", font=("Lato Regular", -40))
+        cell_text = tk.Label(cell_frame, text="N/A", bg=bg, fg="#ffffff", font=(self.text_font, -40))
         cell_text.place(x=10, y=20, anchor="nw")
         return cell_text
 
     def _create_mid_cell(self, title, row, col, sticky=tk.NSEW) -> tk.Label:
         cell_frame = self._create_cell_frame(self["bg"], row, col, sticky)
         cell_frame.config(width=200)
-        cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=("Lato Bold", -20))
+        cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=(self.title_font, -20))
         cell_title.place(x=10, rely=0.5, anchor="w")
-        cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=("Lato Bold", -53))
-        cell_text.place(x=190, rely=0.5, anchor="w")
+        cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=(self.text_font, -53))
+        cell_text.place(x=150, rely=0.5, anchor="w")
         return cell_text
 
     def update_battery_charge(self, value):
@@ -103,7 +106,7 @@ class DashPage(Page):
             return color
 
         # Convert value to an integer and clamp
-        value = int(value)
+        value = float(value)
         value = max(0, min(100, value))
 
         # Update the text
@@ -146,11 +149,11 @@ class DashPage(Page):
     def updateLVbatt(self, decoded_data: dict):
         # lvbatt is in mV, convert to V
         lvbatt = int(decoded_data['VoltageBusLV']) / 1000.
-        self.lvbatt_text.config(text='%.6s' % ('%.3f' % lvbatt) + 'V')
+        self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
         cell_min = decoded_data['VoltageCellMin']
-        self.min_cell_text.config(text='%.5s' % ('%.3f' % cell_min) + 'V')
+        self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
         fl_speed = decoded_data['FLSpeedKPH']
@@ -160,7 +163,7 @@ class DashPage(Page):
 
         average_speed = (float(fl_speed) + float(fr_speed) + float(rr_speed) + float(rl_speed)) / 4
 
-        self.speed_text.config(text='%.3s' % ('%.1f' % average_speed) + 'kph')
+        self.speed_text.config(text='%.4s' % ('%.2f' % average_speed) + 'kph')
 
 
 class DebugPage(Page):
