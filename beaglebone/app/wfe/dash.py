@@ -1,4 +1,5 @@
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
+import os
 from threading import Thread
 import tkinter as tk
 from tkinter import scrolledtext
@@ -205,8 +206,16 @@ class MainView(tk.Frame):
 class CANProcessor:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
-        CANBUS = 'can1'
-        self.home_dir = Path("/home/debian/")
+        
+        # Messed up too many times with the CANBUS variable
+        # just detect user and set the CANBUS variable
+        if os.getlogin() == 'vagrant':
+            CANBUS = 'vcan0'
+            self.home_dir = Path("/home/vagrant/shared")
+        else:
+            CANBUS = 'can1'
+            self.home_dir = Path("/home/debian")
+        
         self.db = cantools.db.load_file(self.home_dir / 'firmware/common/Data/2024CAR.dbc')
         self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
