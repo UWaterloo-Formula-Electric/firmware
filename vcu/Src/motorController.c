@@ -13,6 +13,11 @@
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
+//comment out to remove 80kw power limit
+#define ENABLE_POWER_LIMIT
+#define INV_POWER_LIMIT 80000.0 //80kw
+#define RPM_TO_RAD 2.0*3.14159/60.0
+
 MotorControllerSettings mcSettings = {0};
 
 // This is bad but a band-aid, we should really create a good way and check inverter status
@@ -164,6 +169,13 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     }
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+
+    #ifdef ENABLE_POWER_LIMIT
+    if(maxTorqueDemand > INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)) {
+        maxTorqueDemand = INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD); // P=Tω 
+    }
+    #endif
+
     float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
     uint16_t requestTorque = scaledTorque; 
 
