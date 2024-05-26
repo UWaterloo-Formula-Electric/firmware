@@ -386,7 +386,8 @@ class DashPage(Page):
                                ('%.3f' % vbatt) + 'V')
 
     def updateLVbatt(self, decoded_data: dict):
-        lvbatt = decoded_data['VoltageBusLV']
+        # lvbatt is in mV, convert to V
+        lvbatt = decoded_data['VoltageBusLV'] / 1000
         self.canvas.itemconfig(self.lv_batt_text, text='%.5s' %
                                ('%.3f' % lvbatt) + 'V')
 
