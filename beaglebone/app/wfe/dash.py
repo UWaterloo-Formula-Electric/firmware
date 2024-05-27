@@ -218,8 +218,10 @@ class MainView(tk.Frame):
 
         self.dashPage.show()
 
-    def update_debug_text(self, description, error_code):
-        self.debugPage.update_debug_text(error_code)
+    def update_debug_text(self, description, error_code, error_data):
+        
+        self.debugPage.update_debug_text(error_code, error_data)
+        description = f"data: {error_data} | {description}"
         self.dashPage.updateDtc(description, error_code)
 
 
@@ -267,10 +269,9 @@ class CANProcessor:
                 description = row[6]
                 self.dtc_descriptions[dtc_code] = description
 
-    def publish_dtc(self, error_code, error_message):
+    def publish_dtc(self, error_code, error_data):
         description = self.dtc_descriptions.get(error_code, "Description not found")
-        description = f"data: {error_message} | {description}"
-        self.main_view.update_debug_text(description, error_code)
+        self.main_view.update_debug_text(description, error_code, error_data)
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
