@@ -363,6 +363,16 @@ static void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(ENDURANCE_LAP_BUTTON_PORT,
                     ENDURANCE_LAP_BUTTON_PIN);
             break;
+        
+        case SCR_NAV_R_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(SCR_NAV_R_BUTTON_PORT,
+                    SCR_NAV_R_BUTTON_PIN);
+            break;
+        
+        case SCR_NAV_L_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(SCR_NAV_L_BUTTON_PORT,
+                    SCR_NAV_L_BUTTON_PIN);
+            break;
 
         default:
             /* Shouldn't get here */ 
