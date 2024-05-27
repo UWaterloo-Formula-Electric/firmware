@@ -37,7 +37,7 @@ class DashPage(Page):
         _holder_frame.grid(row=0, column=0, columnspan=ncols, sticky=tk.NW, ipady=1, padx=1)
 
         self.charge_bar = tk.Frame(_holder_frame, height=_charge_bar_height, width=0)
-        self.charge_bar.place(x=0,y=0, anchor=tk.NW)
+        self.charge_bar.place(x=0, y=0, anchor=tk.NW)
 
         ### Temps ###
         self.temp_cell_text = self._create_cell("#7125BD", "Max Cell Temp", row=1, col=0)
@@ -49,7 +49,6 @@ class DashPage(Page):
         self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
         self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
         self.deployment_text = self._create_mid_cell("Deployment:", row=3, col=1)
-        
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
@@ -72,6 +71,8 @@ class DashPage(Page):
         # self.dtc_text_area.vbar.pack_forget() # remove scroll bar as we can use it on car's screen
 
         self.update_battery_charge(0)
+
+        self._is_flash_enabled = False
 
     def _create_cell_frame(self, bg, row, col, sticky=tk.NSEW) -> tk.Frame:
         cell_frame = tk.Frame(self, bg=bg, height=74, highlightthickness=1, relief=tk.GROOVE)
@@ -165,6 +166,22 @@ class DashPage(Page):
 
         self.speed_text.config(text='%.4s' % ('%.2f' % average_speed) + 'kph')
 
+    def enable_flash(self):
+        self._is_flash_enabled = True
+        self._flash_uwfe()
+
+    def disable_flash(self):
+        self._is_flash_enabled = False
+        self.uwfe_text.config(bg=self["bg"], fg="#afafaf")
+
+    def _flash_uwfe(self):
+        if not self._is_flash_enabled:
+            return
+        bg = self.uwfe_text.cget("background")
+        fg = self.uwfe_text.cget("foreground")
+        self.uwfe_text.config(bg=fg, fg=bg)
+        self.after(250, self._flash_uwfe)
+
 
 class DebugPage(Page):
     def __init__(self, *args, **kwargs):
@@ -209,7 +226,7 @@ class MainView(tk.Frame):
 class CANProcessor:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
-        
+
         # Messed up too many times with the CANBUS variable
         # just detect user and set the CANBUS variable
         if os.getlogin() == 'vagrant':
@@ -218,7 +235,7 @@ class CANProcessor:
         else:
             CANBUS = 'can1'
             self.home_dir = Path("/home/debian")
-        
+
         self.db = cantools.db.load_file(self.home_dir / 'firmware/common/Data/2024CAR.dbc')
         self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
@@ -250,21 +267,19 @@ class CANProcessor:
                 description = row[6]
                 self.dtc_descriptions[dtc_code] = description
 
-    def publish_dtc(self, error_code):
+    def publish_dtc(self, error_code, error_message):
         description = self.dtc_descriptions.get(error_code, "Description not found")
+        description = f"data: {error_message} | {description}"
         self.main_view.update_debug_text(description, error_code)
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
         print("reading can messages...")
         while True:
-            message = self.can_bus.recv(timeout=0.1)
-            if message is None:
-                continue
+            message = self.can_bus.recv(timeout=None)
             print(message)
             try:
-                decoded_data = self.db.decode_message(
-                    message.arbitration_id, message.data)
+                decoded_data = self.db.decode_message(message.arbitration_id, message.data)
                 # Case for battery temp/soc
                 if message.arbitration_id == self.BATTERYSTATUSHV_ARB_ID:
                     dashPage.updateSoc(decoded_data)
