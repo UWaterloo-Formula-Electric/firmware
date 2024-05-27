@@ -244,7 +244,7 @@ class CANProcessor:
         # CAN arbitration ID constants
         self.BATTERYSTATUSHV_ARB_ID = self.db.get_message_by_name('BMU_batteryStatusHV').frame_id
         self.HV_BUS_STATE_ARB_ID = self.db.get_message_by_name('BMU_stateBusHV').frame_id
-        self.BMU_DTC_ARB_ID = self.db.get_message_by_name('BMU_DTC').frame_id
+        
         self.MC_TEMP_ARB_ID = self.db.get_message_by_name('MC_Temperature_Set_3').frame_id
         self.MC_TEMP_INV_ARB_ID = self.db.get_message_by_name('MC_Temperature_Set_1').frame_id
 
@@ -257,6 +257,8 @@ class CANProcessor:
 
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
         self.WHEELSPEED_ARB_ID = self.db.get_message_by_name('WheelSpeedKPH').frame_id
+
+        self.DTC_ARB_IDS = [msg.frame_id for msg in self.db.messages if 'DTC' in msg.name]
         self.dtc_descriptions = {}
         self.load_dtc_descriptions()
 
@@ -316,7 +318,7 @@ class CANProcessor:
                         self.main_view.dashPage.show()
 
                 # Case for BMU DTC
-                if message.arbitration_id == self.BMU_DTC_ARB_ID:
+                if message.arbitration_id in self.DTC_ARB_IDS:
                     DTC_CODE = decoded_data['DTC_CODE']
                     DTC_message = decoded_data['DTC_Data']
 
