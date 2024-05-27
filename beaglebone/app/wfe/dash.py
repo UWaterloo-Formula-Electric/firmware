@@ -197,8 +197,8 @@ class DebugPage(Page):
         pause_button = tk.Button(self, text="Pause DTC Messages")
         pause_button.place(x=420, y=10)
 
-    def update_debug_text(self, error_code):
-        error_code = str(error_code)
+    def update_debug_text(self, error_code, error_data):
+        error_code = f"{str(error_code)}: {error_data}"
         self.debug_text_area.insert("end", f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
         # Scroll to the bottom to show the latest message
         self.debug_text_area.yview("end")
