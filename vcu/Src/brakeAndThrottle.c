@@ -326,7 +326,7 @@ void throttlePollingTask(void)
             if (inverterFault) {   
                 // DTC sent in state machine transition function
                 uint64_t faults = getInverterFaultCode();
-                DEBUG_PRINT("Inverter fault %lu\n", (uint32_t) faults);
+                DEBUG_PRINT("Inverter fault: Post %lu, Run %lu\n", (uint32_t)(faults >> 32), (uint32_t)(faults & 0xFFFFFFFF));
             }
 
             // Poll throttle

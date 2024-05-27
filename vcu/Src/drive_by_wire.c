@@ -116,20 +116,21 @@ uint32_t runSelftTests(uint32_t event)
 
 uint32_t EM_Enable(uint32_t event)
 {
-    // bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    // float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
-    if (!bpsState) {
-        DEBUG_PRINT("Failed to em enable, bps fault\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(0);
-        state = STATE_EM_Disable;
+    // These brake pressure checks were commented out as the sensor was not connected at 2024 Hybrid. They should be reintroduced.
+    // bool bpsState = checkBPSState();
+    // float brakePressure = getBrakePressure();
+    // if (!bpsState) {
+    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
+    //     state = STATE_EM_Disable;
     // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
     //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
     //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
     //     state = STATE_EM_Disable;
-    } else if (!(throttleIsZero())) {
+    if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_EM_Disable;
@@ -248,12 +249,12 @@ uint32_t EM_Fault(uint32_t event)
                 newState = STATE_Failure_Fatal;
             }
             break;
-        case EV_Inverter_Fault:
+        case EV_Inverter_Fault:;
             {
-                // sendDTC_WARNING_VCU_Inverter_Fault(faults);
+                const uint64_t faults = getInverterFaultCode();
+                sendDTC_WARNING_VCU_Inverter_Fault(faults);
                 // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
-                DEBUG_PRINT("Inverter fault: %lu, trans to fatal failure\n", faults);
-                newState = STATE_Failure_Fatal;
+                newState = currentState;
             }
         default:
             {

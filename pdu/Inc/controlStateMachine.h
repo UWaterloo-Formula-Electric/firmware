@@ -28,7 +28,6 @@ typedef enum MAIN_PDU_Events_t {
     EV_CriticalDelayElapsed,
     EV_EM_Enable,
     EV_EM_Disable,
-    EV_Cycle_MC,
     EV_ANY, // Must be the last event
 } MAIN_PDU_Events_t;
 

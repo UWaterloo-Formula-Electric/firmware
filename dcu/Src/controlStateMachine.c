@@ -525,7 +525,7 @@ static uint32_t defaultTransition(uint32_t event)
 {
     const uint32_t currentState = fsmGetState(&DCUFsmHandle);
     ERROR_PRINT("No transition function for state %lu and event %lu\r\n", currentState, event);
-    sendDTC_WARNING_DCU_NoTransition();
+    sendDTC_FATAL_DCU_NoTransition();
     return currentState;
 }
 
