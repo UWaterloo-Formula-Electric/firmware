@@ -116,7 +116,7 @@ class DashPage(Page):
         self.charge_bar.config(bg=charge_color, width=(value / 100) * WIDTH)
 
     def updateDtc(self, description, error_code):
-        self. dtc_text_area.insert("end", "\n" + str(error_code) + " | " + str(description))
+        self. dtc_text_area.insert(tk.INSERT, f"{error_code} | {description}\n")
         # Scroll to the bottom to show the latest message
         self.dtc_text_area.yview("end")
 
@@ -199,7 +199,7 @@ class DebugPage(Page):
 
     def update_debug_text(self, error_code, error_data):
         error_code = f"{str(error_code)}: {error_data}"
-        self.debug_text_area.insert("end", f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
+        self.debug_text_area.insert(tk.INSERT, f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
         # Scroll to the bottom to show the latest message
         self.debug_text_area.yview("end")
 
