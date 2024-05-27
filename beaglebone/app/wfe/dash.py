@@ -64,8 +64,8 @@ class DashPage(Page):
         # IMPORTANT: DO NOT CHANGE THE HEIGHT OF THE TEXT AREA, it will break the layout
         # this is cuz the height is acc num lines shown
         # and messing with the font or font size or lines will move stuff around
-        self.dtc_text_area = tk.scrolledtext.ScrolledText(self, font=("Helvetica", -19),
-                                                          width=50, height=6, bg="#000000", fg="#ff0000")
+        self.dtc_text_area = tk.scrolledtext.ScrolledText(self, font=("Helvetica", -14),
+                                                          width=50, height=8, bg="#000000", fg="#ff0000")
         self.dtc_text_area.grid(row=5, column=0, columnspan=ncols, sticky=tk.NSEW)
         self.dtc_text_area.config()
         # self.dtc_text_area.vbar.pack_forget() # remove scroll bar as we can use it on car's screen
