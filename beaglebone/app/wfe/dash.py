@@ -195,7 +195,9 @@ class DebugPage(Page):
         Page.__init__(self, bg=bg, *args, **kwargs)
 
         # Create the scrollable text area
-        self.debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30, bg=self["bg"], fg="#ffffff")
+        self.debug_text_area = scrolledtext.ScrolledText(self,  font=("Helvetica", -14),
+                                                         width=100, height=30,
+                                                         bg=self["bg"], fg="#ffffff")
         self.debug_text_area.pack(expand=True, fill="both")
 
     def update_debug_text(self, description):
@@ -273,7 +275,7 @@ class CANProcessor:
                 dtc_code = int(row[0])
                 description = row[6]
                 self.dtc_descriptions[dtc_code] = description
-    
+
     def parse_dtc_description(self, description: str, dtc_data: int) -> str:
         """
         Parse the DTC description string to replace reasons with data from the DTC
@@ -301,7 +303,12 @@ class CANProcessor:
         """
         description = self.dtc_descriptions.get(dtc_code, "Description not found")
         description = self.parse_dtc_description(description, dtc_data)
-        return f"{dtc_origin.replace('_DTC', '')}   | {dtc_code:02d} | {dtc_data:03d} | {description}"
+        if dtc_origin.lower().startswith("charge"):
+            dtc_origin = "CCU"
+        if dtc_origin.lower().startswith("vcu"):
+            dtc_origin = "VCU"
+
+        return f"{dtc_origin.replace('_DTC', '')} | {dtc_code:02d} | {dtc_data:03d} | {description}"
 
     def publish_dtc(self, dtc_origin, dtc_code, dtc_data):
         description = self.format_dtc(dtc_origin, dtc_code, dtc_data)

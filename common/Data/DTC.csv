@@ -16,9 +16,9 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 15,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Precharge resistor failed short
 16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"VCU failed EM enable b/c: #data {0: ""bpsState false"", 1: ""low brake pressure"", 2: ""throttle non-zero"", 3: ""brake not pressed"", 4: ""not hv enabled"", 5: ""motors failed to start""}"
 17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"VCU failed EM enable b/c: #data {0: ""bpsState false"", 1: ""low brake pressure"", 2: ""throttle non-zero"", 3: ""brake not pressed"", 4: ""not hv enabled"", 5: ""motors failed to start""}"
-18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is about to turn off the boards shortly"
+18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is turning off boards shortly"
 19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is turning off the boards"
-20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff has been reached, PDU is about to turn off the boards after a short delay"
+20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff reached, PDU is turning off boards shortly"
 21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,HV Critical failure has been detected by the PDU
 22, PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU: unknown error occured
 23, VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: unknown error occured
@@ -46,9 +46,9 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 45,WSBFR_ERROR,WSBFR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFR: unknown error occured
 46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRL: unknown error occured
 47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRR: unknown error occured
-48,BMU_UNKOWN_EVENT_STATE_COMBO,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Event,BMU received an event #data which doesn't have transition from current state
+48,BMU_UNKOWN_EVENT_STATE_COMBO,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Event,BMU received event #data with no transition from current state
 49,BrakeWhileThrottleError_Disabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Max throttle while brake pressed reached, throttle disabled (EV.3.4 FSAE)"
-50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throttle reached reset point after BrakeWhileThrottle Error, Throttle Reengaged (EV.3.4 FSAE)"
+50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throt at rst point after BrakeWhileThrottle Error, Thrott Reengaged (EV.3.4 FSAE)"
 51,CELL_TEMP_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp low
 52,CELL_TEMP_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
 53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
