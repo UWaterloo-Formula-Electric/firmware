@@ -24,7 +24,8 @@ class Page(tk.Frame):
 
 class DashPage(Page):
     def __init__(self, *args, **kwargs):
-        Page.__init__(self, bg="#262626", *args, **kwargs)
+        bg = kwargs.pop("bg", "#262626")
+        Page.__init__(self, bg=bg, *args, **kwargs)
 
         ### fonts ###
         self.title_font = "Lato Regular"
@@ -33,6 +34,7 @@ class DashPage(Page):
 
         ### charge bar ###
         _charge_bar_height = 30
+        # DONT CHANGE THE WIDTH OF THE HOLDER FRAME, it will break the layout
         _holder_frame = tk.Frame(self, bg=self["bg"], height=_charge_bar_height, width=WIDTH-2, highlightthickness=1)
         _holder_frame.grid(row=0, column=0, columnspan=ncols, sticky=tk.NW, ipady=1, padx=1)
 
@@ -65,9 +67,8 @@ class DashPage(Page):
         # this is cuz the height is acc num lines shown
         # and messing with the font or font size or lines will move stuff around
         self.dtc_text_area = tk.scrolledtext.ScrolledText(self, font=("Helvetica", -14),
-                                                          width=50, height=8, bg="#000000", fg="#ff0000")
+                                                          width=50, height=8, bg="#000000", fg="#e3e3e3")
         self.dtc_text_area.grid(row=5, column=0, columnspan=ncols, sticky=tk.NSEW)
-        self.dtc_text_area.config()
         # self.dtc_text_area.vbar.pack_forget() # remove scroll bar as we can use it on car's screen
 
         self.update_battery_charge(0)
@@ -115,8 +116,13 @@ class DashPage(Page):
         charge_color = calculate_charge_color(value)
         self.charge_bar.config(bg=charge_color, width=(value / 100) * WIDTH)
 
-    def updateDtc(self, description, error_code):
-        self. dtc_text_area.insert(tk.INSERT, f"{error_code} | {description}\n")
+    _update_dtc_first = True
+
+    def updateDtc(self, description):
+        if not self._update_dtc_first:
+            description = "\n" + description
+        self._update_dtc_first = False  # set to false after first update
+        self.dtc_text_area.insert(tk.INSERT, description)
         # Scroll to the bottom to show the latest message
         self.dtc_text_area.yview("end")
 
@@ -180,26 +186,24 @@ class DashPage(Page):
         bg = self.uwfe_text.cget("background")
         fg = self.uwfe_text.cget("foreground")
         self.uwfe_text.config(bg=fg, fg=bg)
-        self.after(250, self._flash_uwfe)
+        self.uwfe_text.after(250, self._flash_uwfe)
 
 
 class DebugPage(Page):
     def __init__(self, *args, **kwargs):
-        Page.__init__(self, *args, **kwargs)
-        reset_button = tk.Button(self, text="Reset Dashboard")
-        reset_button.place(x=10, y=10)
+        bg = kwargs.pop("bg", "#262626")
+        Page.__init__(self, bg=bg, *args, **kwargs)
 
         # Create the scrollable text area
-        self.debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30)
-        self.debug_text_area.place(x=0, y=50)
+        self.debug_text_area = scrolledtext.ScrolledText(self, width=100, height=30, bg=self["bg"], fg="#ffffff")
+        self.debug_text_area.pack(expand=True, fill="both")
 
-        # pause debug stream button
-        pause_button = tk.Button(self, text="Pause DTC Messages")
-        pause_button.place(x=420, y=10)
-
-    def update_debug_text(self, error_code, error_data):
-        error_code = f"{str(error_code)}: {error_data}"
-        self.debug_text_area.insert(tk.INSERT, f"{error_code.ljust(30, ' ')}{time.strftime('%H:%M:%S')}\n")
+    def update_debug_text(self, description):
+        TIME_TAG = "time"
+        TEXT_TAG = "text"
+        self.debug_text_area.insert(tk.INSERT, f"{time.strftime('%H:%M:%S')}  ", TIME_TAG)
+        self.debug_text_area.insert(tk.INSERT, f"{description}\n", TEXT_TAG)
+        self.debug_text_area.tag_config(TIME_TAG, foreground="#359a10")
         # Scroll to the bottom to show the latest message
         self.debug_text_area.yview("end")
 
@@ -207,8 +211,9 @@ class DebugPage(Page):
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
-        self.dashPage = DashPage(self)
-        self.debugPage = DebugPage(self)
+        bg = "#262626"
+        self.dashPage = DashPage(self, bg=bg)
+        self.debugPage = DebugPage(self, bg=bg)
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -218,11 +223,9 @@ class MainView(tk.Frame):
 
         self.dashPage.show()
 
-    def update_debug_text(self, description, error_code, error_data):
-        
-        self.debugPage.update_debug_text(error_code, error_data)
-        description = f"data: {error_data} | {description}"
-        self.dashPage.updateDtc(description, error_code)
+    def update_debug_text(self, description):
+        self.debugPage.update_debug_text(description)
+        self.dashPage.updateDtc(description)
 
 
 class CANProcessor:
@@ -244,7 +247,7 @@ class CANProcessor:
         # CAN arbitration ID constants
         self.BATTERYSTATUSHV_ARB_ID = self.db.get_message_by_name('BMU_batteryStatusHV').frame_id
         self.HV_BUS_STATE_ARB_ID = self.db.get_message_by_name('BMU_stateBusHV').frame_id
-        
+
         self.MC_TEMP_ARB_ID = self.db.get_message_by_name('MC_Temperature_Set_3').frame_id
         self.MC_TEMP_INV_ARB_ID = self.db.get_message_by_name('MC_Temperature_Set_1').frame_id
 
@@ -270,10 +273,39 @@ class CANProcessor:
                 dtc_code = int(row[0])
                 description = row[6]
                 self.dtc_descriptions[dtc_code] = description
+    
+    def parse_dtc_description(self, description: str, dtc_data: int) -> str:
+        """
+        Parse the DTC description string to replace reasons with data from the DTC
 
-    def publish_dtc(self, error_code, error_data):
-        description = self.dtc_descriptions.get(error_code, "Description not found")
-        self.main_view.update_debug_text(description, error_code, error_data)
+        Expected format in desc
+        case 1: Some error caused by #data {0: "reason1", 1: "reason2", ...}
+            #data will be replaced by the reason corresponding to the DTC_data
+        case 2: Some error caused by #data
+            #data will be replaced by the DTC_data
+        """
+        desc_split = description.split('{')
+        reasons = {}
+        replacement = str(dtc_data)
+        if len(desc_split) > 1:
+            reasons = eval("{" + desc_split[1])
+            try:
+                replacement = reasons[dtc_data]
+            except KeyError:
+                replacement = f"Unkown reason: {dtc_data}"
+        return desc_split[0].replace('#data', replacement)
+
+    def format_dtc(self, dtc_origin: str, dtc_code: int, dtc_data: int) -> str:
+        """
+        Format the DTC code and data into a human-readable string with description from DTC.csv
+        """
+        description = self.dtc_descriptions.get(dtc_code, "Description not found")
+        description = self.parse_dtc_description(description, dtc_data)
+        return f"{dtc_origin.replace('_DTC', '')}   | {dtc_code:02d} | {dtc_data:03d} | {description}"
+
+    def publish_dtc(self, dtc_origin, dtc_code, dtc_data):
+        description = self.format_dtc(dtc_origin, dtc_code, dtc_data)
+        self.main_view.update_debug_text(description)
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
@@ -319,10 +351,11 @@ class CANProcessor:
 
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
-                    DTC_CODE = decoded_data['DTC_CODE']
-                    DTC_message = decoded_data['DTC_Data']
+                    dtc_origin = self.db.get_message_by_frame_id(message.arbitration_id).name
+                    dtc_code = decoded_data['DTC_CODE']
+                    dtc_data = decoded_data['DTC_Data']
 
-                    self.publish_dtc(DTC_CODE, DTC_message)
+                    self.publish_dtc(dtc_origin, dtc_code, dtc_data)
 
             except (KeyError, cantools.database.errors.DecodeError):
                 print(f"Message decode failed for {message.arbitration_id}")
