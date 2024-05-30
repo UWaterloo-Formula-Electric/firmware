@@ -43,19 +43,19 @@ for k, v in dtcs.items():
     reasons = {random.randint(0, 255)}
     if len(desc_split) > 1:
         reasons = eval("{" + desc_split[1])
-        print(reasons)
     for reason_data in reasons:
+        print(reason_data)
         data = {
             'DTC_CODE': dtc_code,
             'DTC_Severity': int(v['severity']),
             'DTC_Data': reason_data,
         }
 
-    msg_data = db.encode_message(ARB_ID, data)
+        msg_data = db.encode_message(ARB_ID, data)
 
-    msg = can.Message(arbitration_id=ARB_ID, data=msg_data)
+        msg = can.Message(arbitration_id=ARB_ID, data=msg_data)
 
-    can_bus.send(msg)
+        can_bus.send(msg)
 
 # use the following to switch between dash pages on vm
 # cansend vcan0 04011007#4000000000000000
