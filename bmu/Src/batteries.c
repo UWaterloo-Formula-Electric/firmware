@@ -713,12 +713,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    float measure;
    float measure_high;
    float measure_low;
-   float currentReading;
-   if(getIBus(&currentReading) != HAL_OK){
-       ERROR_PRINT("Cannot read current from bus!!");
-       sendDTC_FATAL_BMU_ERROR();
-       return HAL_ERROR;
-   } 
+   
    *maxVoltage = 0;
    *minVoltage = limit_overvoltage;
    *maxTemp = -100; // Cells shouldn't get this cold right??
@@ -744,10 +739,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
-      } else if (measure_low > limit_overvoltage) {
-         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
-         sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-         rc = HAL_ERROR;
+    //   } else if (measure_low > limit_overvoltage) {
+    //      ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+    //      sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
+    //      rc = HAL_ERROR;
       } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
          ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
          sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -782,8 +777,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
                 }
             } else if(measure < CELL_UNDERTEMP){
                 ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
-                sendDTC_CRITICAL_CELL_TEMP_LOW(i);
-                rc = HAL_ERROR;
+                sendDTC_WARNING_CELL_TEMP_LOW(i);
             } else if(measure < CELL_UNDERTEMP_WARNING){
                 if(!warningSentForChannelTemp[i]) {
                     ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);

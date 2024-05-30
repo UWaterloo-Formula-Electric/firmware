@@ -163,5 +163,5 @@ void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
 {
     // Each bit represents a fault
     // Combine them to be sent over DTCs
-    inverterFaultCode = INV_Post_Fault_Hi | INV_Post_Fault_Lo | INV_Run_Fault_Hi | INV_Run_Fault_Lo;
+    inverterFaultCode = (INV_Post_Fault_Hi << 48) | (INV_Post_Fault_Lo << 32) | (INV_Run_Fault_Hi << 16) | INV_Run_Fault_Lo;
 }

@@ -48,6 +48,11 @@ void coolingTask(void *pvParameters) {
         if (fsmGetState(&mainFsmHandle) == STATE_Motors_On) {
             coolingOn();
         }
+        else 
+        {
+            coolingOff();
+        }
+
         watchdogTaskCheckIn(COOLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(COOLING_TASK_PERIOD_MS));
     }
