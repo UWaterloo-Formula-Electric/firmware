@@ -180,17 +180,30 @@ class CANProcessor:
         dashPage = self.main_view.dashPage
         _last_scr_btn_ts = time.time()
         _last_scr_btn = None
+
         print("reading can messages...")
         while True:
-            message = self.can_bus.recv(timeout=None)
-            print(message)
+            
+            if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > 1:
+                print("out " + _last_scr_btn)
+                if _last_scr_btn == "R":
+                    self.main_view.debugPage.show()
+                if _last_scr_btn == "L":
+                    self.main_view.dashPage.show()
+                _last_scr_btn = None
+            message = self.can_bus.recv(timeout=0.1)
             try:
+                if message is None:
+                    continue
                 decoded_data = self.db.decode_message(message.arbitration_id, message.data)
             except KeyError:
                 print(f"Missing key {message.arbitration_id} in message decode")
+                continue
             except cantools.database.errors.DecodeError:
                 print(f"Message decode failed for {message.arbitration_id}")
-
+                continue
+            
+            print(message)
             try:
                 # Case for battery temp/soc
                 if message.arbitration_id == self.BATTERYSTATUSHV_ARB_ID:
@@ -224,22 +237,31 @@ class CANProcessor:
                     # scroll down if L button double
                     # Open debug menu if R button is pressed
                     # Close debug menu if L button is pressed
-                    if decoded_data['ButtonScreenNavRightEnabled'] == 1:
-                        if _last_scr_btn == "R" and message.timestamp - _last_scr_btn_ts < 1:
-                            self.main_view.scroll_debug_text(-1)
-                        else:
-                            self.main_view.debugPage.show()
+                    
+                    t1 = time.time()
+                    r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
+                    l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
+                    scrolled = False
+  
+                    if t1 - _last_scr_btn_ts < 1:
+                        if r_btn and _last_scr_btn == "R":
+                            self.main_view.scroll_debug_text(-5)
+                            scrolled = True
+                            
+                        if l_btn and _last_scr_btn == "L":
+                                self.main_view.scroll_debug_text(5)
+                                scrolled = True
+
+                    if r_btn:                        
                         _last_scr_btn = "R"
-
-                    if decoded_data['ButtonScreenNavLeftEnabled'] == 1:
-                        if _last_scr_btn == "L" and message.timestamp - _last_scr_btn_ts < 1:
-                            self.main_view.scroll_debug_text(1)
-                        else:
-                            self.main_view.dashPage.show()
+                    if l_btn:
                         _last_scr_btn = "L"
+                    
+                    if scrolled:
+                        _last_scr_btn = None
 
-                    _last_scr_btn_ts = message.timestamp
-
+                    _last_scr_btn_ts = t1
+                
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
                     dtc_origin = self.db.get_message_by_frame_id(message.arbitration_id).name
@@ -260,6 +282,8 @@ class CANProcessor:
                 self.main_view.debugPage.debug_text_area.insert("end", "\n" + str(e) +
                                                              " | " + str(time.strftime("%H:%M:%S")))
 
+    def buttons_thread(self):
+        pass
     def start_can_thread(self):
         # enable daemon to kill the thread when the main thread exits)
         Thread(target=self.process_can_messages, daemon=True).start()

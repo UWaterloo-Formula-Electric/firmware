@@ -2,6 +2,14 @@ import enum
 WIDTH = 800
 HEIGHT = 480
 
+BUTTON_SCROLL_TIMEOUT_S = 0.75
+class TagEnum(enum.Enum):
+    ORIGIN = "origin"
+    CODE = "code"
+    DATA = "data"
+    DESC = "desc"
+    TIME = "time"
+
 INV_FAULT_CODES_DESC = {
     1 << 0: "Hardware Gate/Desaturation Fault",
     1 << 1: "HW Over-current Fault",
@@ -69,9 +77,3 @@ INV_FAULT_CODES_DESC = {
     1 << 63: "Reserved",
 }
 
-class TagEnum(enum.Enum):
-    ORIGIN = "origin"
-    CODE = "code"
-    DATA = "data"
-    DESC = "desc"
-    TIME = "time"
