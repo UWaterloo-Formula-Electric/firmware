@@ -13,7 +13,7 @@ import csv
 
 from dash_page import DashPage
 from debug_page import DebugPage
-from constants import WIDTH, HEIGHT, INV_FAULT_CODES_DESC
+from constants import WIDTH, HEIGHT, INV_FAULT_CODES_DESC, BUTTON_SCROLL_TIMEOUT_S
 
 
 class MainView(tk.Frame):
@@ -184,7 +184,7 @@ class CANProcessor:
         print("reading can messages...")
         while True:
             
-            if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > 1:
+            if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > BUTTON_SCROLL_TIMEOUT_S:
                 print("out " + _last_scr_btn)
                 if _last_scr_btn == "R":
                     self.main_view.debugPage.show()
@@ -243,13 +243,13 @@ class CANProcessor:
                     l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
                     scrolled = False
   
-                    if t1 - _last_scr_btn_ts < 1:
+                    if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
                         if r_btn and _last_scr_btn == "R":
-                            self.main_view.scroll_debug_text(-5)
+                            self.main_view.scroll_debug_text(5)
                             scrolled = True
                             
                         if l_btn and _last_scr_btn == "L":
-                                self.main_view.scroll_debug_text(5)
+                                self.main_view.scroll_debug_text(-5)
                                 scrolled = True
 
                     if r_btn:                        

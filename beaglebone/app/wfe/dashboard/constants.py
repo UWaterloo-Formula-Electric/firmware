@@ -2,7 +2,7 @@ import enum
 WIDTH = 800
 HEIGHT = 480
 
-BUTTON_SCROLL_TIMEOUT_S = 0.75
+BUTTON_SCROLL_TIMEOUT_S = 0.3
 class TagEnum(enum.Enum):
     ORIGIN = "origin"
     CODE = "code"
