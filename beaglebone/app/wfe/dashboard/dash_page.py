@@ -40,8 +40,8 @@ class DashPage(Page):
         self.uwfe_text.grid(row=4, column=1, pady=1, padx=1)
 
         ### Voltages and mode ###
-        self.vbatt_text = self._create_cell("#6B6B6B", "Pack Voltage", row=1, col=2)
-        self.mode_text = self._create_cell("#6B6B6B", "Mode", row=2, col=2)
+        self.vbatt_text = self._create_cell("#6B6B6B", "AMS Pack Voltage", row=1, col=2)
+        self.power_text = self._create_cell("#6B6B6B", "HV Power", row=2, col=2)
         self.lvbatt_text = self._create_cell("#6B6B6B", "LV Batt Voltage", row=3, col=2)
         self.min_cell_text = self._create_cell("#6B6B6B", "Min Cell Voltage", row=4, col=2)
 
@@ -146,7 +146,7 @@ class DashPage(Page):
         inv_temp2 = decoded_data['INV_Module_B_Temp']
         inv_temp3 = decoded_data['INV_Module_C_Temp']
 
-        max_inv_temp = max(float(inv_temp1) + float(inv_temp2) + float(inv_temp3))
+        max_inv_temp = max(float(inv_temp1), float(inv_temp2), float(inv_temp3))
 
         self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
 
@@ -161,6 +161,10 @@ class DashPage(Page):
 
     def updateMinCell(self, decoded_data: dict):
         cell_min = decoded_data['VoltageCellMin']
+        vbus = decoded_data['VoltageBusHV']
+        ibus = decoded_data['CurrentBusHV']
+        power = float(vbus) * float(ibus) / 1000
+        self.power_text.config(text='%.5s' % ('%.4f' % power) + 'kW')
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
