@@ -38,24 +38,24 @@ class MainView(tk.Frame):
     def scroll_debug_text(self, scroll_amount: int):
         self.dashPage.dtc_text_area.yview_scroll(scroll_amount, "units")
         self.debugPage.debug_text_area.yview_scroll(scroll_amount, "units")
-    
+
     def update_motor_fault(self, decoded_data):
         inv_post_fault_hi = decoded_data['INV_Post_Fault_Hi']
         inv_post_fault_lo = decoded_data['INV_Post_Fault_Lo']
         inv_run_fault_hi = decoded_data['INV_Run_Fault_Hi']
         inv_run_fault_lo = decoded_data['INV_Run_Fault_Lo']
-        
+
         inv_post_fault = (inv_post_fault_hi << 15) | inv_post_fault_lo
         inv_run_fault = (inv_run_fault_hi << 15) | inv_run_fault_lo
 
-        inv_fault = (inv_run_fault << 32)  | inv_post_fault
+        inv_fault = (inv_run_fault << 32) | inv_post_fault
 
         if inv_fault == 0:
             return
-        
+
         description = INV_FAULT_CODES_DESC.get(inv_fault, "Unknown Inverter Fault")
 
-        if inv_post_fault != 0: 
+        if inv_post_fault != 0:
             fault_type = "Post Fault"
             dtc_code = inv_post_fault
         else:
@@ -64,8 +64,6 @@ class MainView(tk.Frame):
 
         self.dashPage.updateDtc(dtc_origin="INV", dtc_code=f"0x{dtc_code:08x}", dtc_data=fault_type, desc=description)
         self.debugPage.update_debug_text(dtc_origin="INV", dtc_code=f"0x{dtc_code:08x}", dtc_data=fault_type, dtc_desc=description)
-
-        
 
 
 class CANProcessor:
@@ -183,7 +181,7 @@ class CANProcessor:
 
         print("reading can messages...")
         while True:
-            
+
             if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > BUTTON_SCROLL_TIMEOUT_S:
                 print("out " + _last_scr_btn)
                 if _last_scr_btn == "R":
@@ -202,7 +200,7 @@ class CANProcessor:
             except cantools.database.errors.DecodeError:
                 print(f"Message decode failed for {message.arbitration_id}")
                 continue
-            
+
             print(message)
             try:
                 # Case for battery temp/soc
@@ -237,31 +235,31 @@ class CANProcessor:
                     # scroll down if L button double
                     # Open debug menu if R button is pressed
                     # Close debug menu if L button is pressed
-                    
+
                     t1 = time.time()
                     r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
                     l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
                     scrolled = False
-  
+
                     if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
                         if r_btn and _last_scr_btn == "R":
                             self.main_view.scroll_debug_text(5)
                             scrolled = True
-                            
-                        if l_btn and _last_scr_btn == "L":
-                                self.main_view.scroll_debug_text(-5)
-                                scrolled = True
 
-                    if r_btn:                        
+                        if l_btn and _last_scr_btn == "L":
+                            self.main_view.scroll_debug_text(-5)
+                            scrolled = True
+
+                    if r_btn:
                         _last_scr_btn = "R"
                     if l_btn:
                         _last_scr_btn = "L"
-                    
+
                     if scrolled:
                         _last_scr_btn = None
 
                     _last_scr_btn_ts = t1
-                
+
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
                     dtc_origin = self.db.get_message_by_frame_id(message.arbitration_id).name
@@ -280,10 +278,11 @@ class CANProcessor:
                 print(e)
                 # not a good way to do this. should not be calling the dash page directly
                 self.main_view.debugPage.debug_text_area.insert("end", "\n" + str(e) +
-                                                             " | " + str(time.strftime("%H:%M:%S")))
+                                                                " | " + str(time.strftime("%H:%M:%S")))
 
     def buttons_thread(self):
         pass
+
     def start_can_thread(self):
         # enable daemon to kill the thread when the main thread exits)
         Thread(target=self.process_can_messages, daemon=True).start()

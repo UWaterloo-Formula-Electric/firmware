@@ -5,6 +5,7 @@ from tkinter import scrolledtext
 from constants import TagEnum
 from page import Page
 
+
 class DebugPage(Page):
     def __init__(self, *args, **kwargs):
         bg = kwargs.pop("bg", "#262626")
@@ -17,6 +18,7 @@ class DebugPage(Page):
         self.debug_text_area.pack(expand=True, fill="both")
 
     _update_debug_first = True
+
     def update_debug_text(self, dtc_origin, dtc_code, dtc_data, dtc_desc):
         if isinstance(dtc_code, int):
             dtc_code = f"{dtc_code:02d}"

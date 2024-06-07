@@ -109,7 +109,7 @@ class DashPage(Page):
 
         if not self._update_dtc_first:
             dtc_origin = "\n" + dtc_origin
-    
+
         self._update_dtc_first = False  # set to false after first update
         self.dtc_text_area.insert(tk.INSERT, dtc_origin, TagEnum.ORIGIN.value)
         self.dtc_text_area.insert(tk.INSERT, " | ")
@@ -146,9 +146,9 @@ class DashPage(Page):
         inv_temp2 = decoded_data['INV_Module_B_Temp']
         inv_temp3 = decoded_data['INV_Module_C_Temp']
 
-        average_inv_temp = (float(inv_temp1) + float(inv_temp2) + float(inv_temp3)) / 3
+        max_inv_temp = max(float(inv_temp1) + float(inv_temp2) + float(inv_temp3))
 
-        self.temp_inv_text.config(text='%.4s' % ('%.1f' % average_inv_temp) + '°C')
+        self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
 
     def updateVBatt(self, decoded_data: dict):
         vbatt = decoded_data['AMS_PackVoltage']
