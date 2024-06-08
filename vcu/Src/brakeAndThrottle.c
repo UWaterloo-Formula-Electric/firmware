@@ -196,12 +196,6 @@ bool isBrakePressed()
 
 bool appsBrakePedalPlausibilityCheckFail()
 {
-    // check as described by EV.4.7 APPS / Brake Pedal Plausibility Check
-    return getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT;
-}
-
-bool appsBrakePedalPlausibilityCheckFail()
-{
     // Flag set if throttle and brake pressed at same time
     static bool throttleAndBrakePressedError = false;
 
