@@ -319,9 +319,10 @@ void throttlePollingTask(void)
         if (fsmGetState(&fsmHandle) == STATE_EM_Enable)
         {
             // Check motor controller status
-            bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
+            const bool inverterFault = getInverterVSMState() == INV_VSM_State_FAULT_STATE;
             if (inverterFault) {   
                 // DTC sent in state machine transition function
+                fsmSendEventUrgent(&fsmHandle, EV_Inverter_Fault, portMAX_DELAY);
                 uint64_t faults = getInverterFaultCode();
                 DEBUG_PRINT("Inverter fault: Post %lu, Run %lu\n", (uint32_t)(faults >> 32), (uint32_t)(faults & 0xFFFFFFFF));
             }
@@ -337,7 +338,7 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
-            
+
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
     }

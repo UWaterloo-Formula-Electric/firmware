@@ -99,7 +99,6 @@ HAL_StatusTypeDef mcInit() {
            (isLockoutDisabled() == false))
     {
         sendLockoutReleaseToMC();
-        // mcClearFaults();
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 

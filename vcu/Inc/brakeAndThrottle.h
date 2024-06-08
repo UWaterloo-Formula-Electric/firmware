@@ -19,8 +19,8 @@
 #define THROTT_A_HIGH (2500) //2272 2405
 #define THROTT_B_HIGH (2405) //2500 2160
 
-#define BRAKE_POS_LOW (1114)
-#define BRAKE_POS_HIGH (1228)
+#define BRAKE_POS_LOW (1080)
+#define BRAKE_POS_HIGH (1180)
 
 #define STEERING_POT_LOW (1) //Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095) //Pot value when the wheel is all the way to the right
