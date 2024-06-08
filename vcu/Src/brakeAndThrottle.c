@@ -16,7 +16,7 @@
 #endif
 
 
-bool appsBrakePedalPlausibilityCheckFail();
+bool appsBrakePedalPlausibilityCheckFail(float throttle);
 
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
