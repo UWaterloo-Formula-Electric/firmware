@@ -115,8 +115,6 @@ uint32_t startCriticalFailureDelay()
 
 uint32_t criticalFailureWarning(uint32_t event)
 {
-    // not even true?
-    // DEBUG_PRINT("About to turn boards off!\n");
     sendDTC_FATAL_PDU_HV_Critical();
 
     return startCriticalFailureDelay();

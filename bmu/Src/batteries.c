@@ -215,6 +215,8 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
     extern volatile uint32_t brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_NUM];
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
    const float IBusTmp = (0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
+   
+// TODO: Revert back to use shunt over hall once the lid is fixed
 //    if (adc_read_current(&IBusTmp) != HAL_OK) {
 //       ERROR_PRINT("Error reading IBUS\n");
 //       return HAL_ERROR;
@@ -1385,20 +1387,6 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     return CHARGE_DONE;
 }
 
-static uint32_t counter = 0;
-void incrementDelay(void)
-{
-    counter++;
-    if (counter % 3 == 0) {
-        delay_US += 5;
-    }
-
-    if (delay_US == 1000) {
-        delay_US = 0;
-        delay_MS++;
-    }
-}
-
 /**
  * @brief Task to monitor cell voltages and temperatures, as well as perform
  * balance charging
@@ -1578,7 +1566,6 @@ void batteryTask(void *pvParameter)
         /*!!! Change the check in in bounded continue as well if you change
          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        incrementDelay();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

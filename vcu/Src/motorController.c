@@ -20,9 +20,6 @@
 
 MotorControllerSettings mcSettings = {0};
 
-// This is bad but a band-aid, we should really create a good way and check inverter status
-volatile bool motors_active = false;
-
 HAL_StatusTypeDef initMotorControllerSettings()
 {
     mcSettings.InverterMode = 0;
@@ -102,7 +99,6 @@ HAL_StatusTypeDef mcInit() {
            (isLockoutDisabled() == false))
     {
         sendLockoutReleaseToMC();
-        // mcClearFaults();
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
@@ -119,7 +115,6 @@ HAL_StatusTypeDef mcInit() {
     initMotorControllerSettings();
 
     requestTorqueFromMC(0);
-    motors_active = true;
 
     return HAL_OK;
 }
@@ -139,23 +134,10 @@ HAL_StatusTypeDef sendDisableMC(void) {
     return HAL_OK;
 }
 
-HAL_StatusTypeDef mcDisable() {   
-	motors_active = false;
-	// Wait for final throttle messages to exit our CAN queue
-    vTaskDelay(pdMS_TO_TICKS(250));
-    
-    return sendDisableMC();
-}
-
 
 HAL_StatusTypeDef sendLockoutReleaseToMC() {
     // Based on Cascadia Motion documentation, need to send an inverter disable command to release lockout
     // Note - lockout will not disable if inverter is faulted
-
-    if (isLockoutDisabled()) {
-        // Don't need to release
-        return HAL_OK;
-    }
 
     return sendDisableMC();
 }

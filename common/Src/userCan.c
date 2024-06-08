@@ -225,8 +225,7 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
         case 6:
             sendQueueHandle = CAN_Priority3_Queue;
             break;
-        // TEMPORARY WORKAROUND
-        // cascadia motion msgs need to have priority of 3  -_-
+        // cascadia motion msgs need to have priority of 3
         case 3:
             sendQueueHandle = CAN_Priority0_Queue;
             break;

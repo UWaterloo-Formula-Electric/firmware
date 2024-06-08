@@ -54,11 +54,6 @@
 #define ADCV_BYTE0 0x03
 #define ADCV_BYTE1 0x60
 
-// // Use normal MD (27kHz), Discharge not permission, all channels
-// #define ADCV_BROADCAST_BYTE0 (0x02)
-// #define ADCV_BYTE0 0x02
-// #define ADCV_BYTE1 0xE0
-
 // Use fast MD (27kHz), Discharge not permission, all channels and GPIO 5
 #define ADAX_BROADCAST_BYTE0 (0x05)
 #define ADAX_BYTE0 0x05
@@ -100,7 +95,7 @@ static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SI
 
 void batt_init_chip_configs()
 {
-	memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT);
+	memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT*sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
@@ -120,7 +115,6 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 	}
 
 	// Send command + data
-	// TODO: Andrew can you figure out why we need to loop this multiple times? Can't tell if its a timing thing but when run once (NUM_BOARD=2) the second board's config is 0x2 instead of 0x6. Not sure if this scales with NUM_BOARDS or if we just need to send twice. Can you investigate?
 	for (uint8_t board = 0; board < NUM_BOARDS; ++board)
 	{
 		if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
@@ -133,7 +127,6 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 	return HAL_OK;
 }
 
-/* TODO: GET RID OF THIS FUNCTION */
 HAL_StatusTypeDef batt_write_config()
 {
 	format_and_send_config(m_batt_config);
@@ -152,10 +145,10 @@ TODO: Should probably clean this up. Call it smth different or change param name
 	response_size: 				size of one board's response
 */
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
-    const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_BOARDS);
-    const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
-    uint8_t rxBuffer[BUFF_SIZE];
-    uint8_t txBuffer[BUFF_SIZE];
+	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_BOARDS);
+	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
+	uint8_t rxBuffer[BUFF_SIZE];
+	uint8_t txBuffer[BUFF_SIZE];
 	memset(rxBuffer, 0xFF, BUFF_SIZE);
 	memset(txBuffer, 0xFF, BUFF_SIZE);
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
@@ -405,8 +398,6 @@ void batt_set_temp_config(size_t channel) {
     {
 		// Set the external MUX to channel we want to read. MUX pin is selected via GPIO2, GPIO3, GPIO4, LSB first.
 		m_batt_config[board][0][0] = (1<<GPIO5_POS) | ((gpioPins & 0xFF) << GPIO1_POS) | REFON(1) | ADC_OPT(0) | SWTRD(1);
-		// m_batt_config[board][0][0] &= ~(0xF << GPIO1_POS); // Mask out the last config
-		// m_batt_config[board][0][0] |= (1 << GPIO5_POS) | ((channel & 0xF) << GPIO1_POS);
 	}
 }
 

@@ -59,9 +59,6 @@ HAL_StatusTypeDef batt_start_ADC_conversion(void)
     return HAL_OK;
 }
 
-uint32_t delay_US = 300;
-uint32_t delay_MS = 2;
-
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 {
     if (batt_spi_wakeup(false /* not sleeping*/))
@@ -76,7 +73,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
         return HAL_ERROR;
     }
 
-    long_delay_us(LTC6804_7kHz_CONVERSION_TIME_US); // TODO Clean up out of common
+    long_delay_us(CONVERSION_TIME_7kHz_US);
 
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {

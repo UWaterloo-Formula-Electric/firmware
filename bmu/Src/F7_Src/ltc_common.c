@@ -4,7 +4,6 @@
 #include "ltc_chip.h"
 #include "math.h"
 
-
 // Write a broadcast command and pec to a tx buffer
 // Make sure txBuffer is big enough
 HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer)

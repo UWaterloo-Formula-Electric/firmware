@@ -130,6 +130,7 @@ uint32_t EM_Enable(uint32_t event)
     //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
     //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
     //     state = STATE_EM_Disable;
+    // } else 
     if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
@@ -252,9 +253,9 @@ uint32_t EM_Fault(uint32_t event)
         case EV_Inverter_Fault:;
             {
                 const uint64_t faults = getInverterFaultCode();
-                sendDTC_WARNING_VCU_Inverter_Fault(faults);
+                sendDTC_FATAL_VCU_Inverter_Fault(faults);
                 // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
-                newState = currentState;
+                newState = STATE_Failure_Fatal;
             }
         default:
             {
@@ -356,7 +357,6 @@ HAL_StatusTypeDef MotorStart()
         return rc;
     }
 
-    // vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS)); // prob need to change
     rc = mcInit();
     if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");
@@ -377,7 +377,7 @@ HAL_StatusTypeDef MotorStop()
     DEBUG_PRINT("Stopping motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(2*MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
 
-    if (mcDisable() != HAL_OK) {
+    if (sendDisableMC() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
         return HAL_ERROR;
     }

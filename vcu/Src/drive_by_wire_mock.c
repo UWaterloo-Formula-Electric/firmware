@@ -12,6 +12,7 @@
 #include "motorController.h"
 #include "beaglebone.h"
 #include "traction_control.h"
+#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -379,7 +380,7 @@ BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
     uint64_t maxTorqueDemand;
     sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
 
-    if(maxTorqueDemand > 231){
+    if(maxTorqueDemand > MAX_MOTOR_TORQUE_NM){
         COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 231Nm");
     }else{
         setTorqueLimit(maxTorqueDemand);    
