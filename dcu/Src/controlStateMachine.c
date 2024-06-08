@@ -37,6 +37,8 @@ static int sendEMToggleMsg(void);
 static int sendEnduranceToggleMsg(void);
 static int sendEnduranceLapMsg(void);
 static int sendTCToggleMsg(void);
+static int sendScrNavRightEnabled(void);
+static int sendScrNavLeftEnabled(void);
 
 static TimerHandle_t buzzerSoundTimer;
 static TimerHandle_t debounceTimer;
@@ -376,6 +378,16 @@ static void debounceTimerCallback(TimerHandle_t timer)
             pin_val = HAL_GPIO_ReadPin(ENDURANCE_LAP_BUTTON_PORT,
                     ENDURANCE_LAP_BUTTON_PIN);
             break;
+        
+        case SCR_NAV_R_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(SCR_NAV_R_BUTTON_PORT,
+                    SCR_NAV_R_BUTTON_PIN);
+            break;
+        
+        case SCR_NAV_L_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(SCR_NAV_L_BUTTON_PORT,
+                    SCR_NAV_L_BUTTON_PIN);
+            break;
 
         default:
             /* Shouldn't get here */ 
@@ -407,6 +419,14 @@ static void debounceTimerCallback(TimerHandle_t timer)
 
             case ENDURANCE_LAP_BUTTON_PIN:
                 fsmSendEventISR(&DCUFsmHandle, EV_BTN_Endurance_Lap);
+                break;
+            
+            case SCR_NAV_R_BUTTON_PIN:
+                sendScrNavRightEnabled();
+                break;
+            
+            case SCR_NAV_L_BUTTON_PIN:
+                sendScrNavLeftEnabled();
                 break;
 
             default:
@@ -452,7 +472,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin)
         case ENDURANCE_LAP_BUTTON_PIN:
             debouncingPin = ENDURANCE_LAP_BUTTON_PIN;
             break;
-
+        
+        case SCR_NAV_R_BUTTON_PIN:
+            debouncingPin = SCR_NAV_R_BUTTON_PIN;
+            break;
+        
+        case SCR_NAV_L_BUTTON_PIN:
+            debouncingPin = SCR_NAV_L_BUTTON_PIN;
+            break;
+        
         default:
             /* Not a fatal error here, but report error and return */
             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
@@ -551,6 +579,8 @@ static int sendHVToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -561,6 +591,8 @@ static int sendEMToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -571,6 +603,8 @@ static int sendEnduranceToggleMsg(void)
     ButtonEnduranceToggleEnabled = 1;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -581,6 +615,8 @@ static int sendEnduranceLapMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 1;
     ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
 }
 
@@ -591,5 +627,31 @@ static int sendTCToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 1;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_DCU_buttonEvents();
+}
+
+static int sendScrNavRightEnabled(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 1;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_DCU_buttonEvents();
+}
+
+static int sendScrNavLeftEnabled(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 1;
     return sendCAN_DCU_buttonEvents();
 }
