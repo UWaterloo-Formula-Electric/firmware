@@ -5,13 +5,13 @@
 #include "bsp.h"
 #include "FreeRTOS.h"
 
-#define MIN_BRAKE_PRESSED_VAL_PERCENT 14
-#define MIN_BRAKE_PRESSED_HARD_VAL_PERCENT 50
+#define MIN_BRAKE_PRESSED_VAL_PERCENT 15
+#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 1
 
-#define TPS_TOLERANCE_PERCENT 15
-#define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 50
-#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 10
+#define TPS_TOLERANCE_PERCENT 10
+#define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
+#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
 #define THROTT_A_LOW (2272)
 #define THROTT_B_LOW (2160)
@@ -76,7 +76,6 @@ typedef enum ThrottleStatus_t {
 } ThrottleStatus_t;
 
 bool isBrakePressed();
-bool isBrakePressedHard();
 bool throttleIsZero();
 void throttlePollingTask(void);
 bool checkBPSState();

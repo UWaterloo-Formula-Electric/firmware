@@ -377,7 +377,7 @@ HAL_StatusTypeDef MotorStop()
     DEBUG_PRINT("Stopping motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(2*MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
 
-    if (mcDisable() != HAL_OK) {
+    if (sendDisableMC() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
         return HAL_ERROR;
     }

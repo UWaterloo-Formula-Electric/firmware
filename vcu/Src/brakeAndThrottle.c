@@ -15,6 +15,10 @@
 #define MOCK_ADC_READINGS
 #endif
 
+
+bool appsBrakePedalPlausibilityCheckFail();
+
+
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
@@ -48,9 +52,6 @@ HAL_StatusTypeDef startADCConversions()
 
     return HAL_OK;
 }
-
-// Flag set if throttle and brake pressed at same time
-bool throttleAndBrakePressedError = false;
 
 int map_range(int in, int low, int high, int low_out, int high_out) {
     if (in < low) {
@@ -170,24 +171,8 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         return THROTTLE_FAULT;
     }
 
-    // Both throttle and brake were pressed, check if still the case
-    if (throttleAndBrakePressedError) {
-        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
-            throttleAndBrakePressedError = false;
-            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
-        } else {
-            (*throttleOut) = 0;
-            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
-            return THROTTLE_DISABLED;
-        }
-    }
-
-    // check if both throttle and brake are pressed
-    if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    if (appsBrakePedalPlausibilityCheckFail()) {
         (*throttleOut) = 0;
-        throttleAndBrakePressedError = true;
-        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
-        DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return THROTTLE_DISABLED;
     }
 
@@ -198,15 +183,6 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
 }
 
 /* Public Functions */
-
-bool isBrakePressedHard()
-{
-    if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_HARD_VAL_PERCENT) {
-        return true;
-    } else {
-        return false;
-    }
-}
 bool isBrakePressed()
 {
     /*DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());*/
@@ -216,6 +192,36 @@ bool isBrakePressed()
     } else {
         return false;
     }
+}
+
+bool appsBrakePedalPlausibilityCheckFail()
+{
+    // check as described by EV.4.7 APPS / Brake Pedal Plausibility Check
+    return getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT;
+}
+
+bool appsBrakePedalPlausibilityCheckFail()
+{
+    // Flag set if throttle and brake pressed at same time
+    static bool throttleAndBrakePressedError = false;
+
+    if (throttleAndBrakePressedError) {
+        // Both throttle and brake were pressed, check if still the case
+        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
+            throttleAndBrakePressedError = false;
+            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
+        } else {
+            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+            return true;
+        }
+    } else if (getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+        throttleAndBrakePressedError = true;
+        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
+        DEBUG_PRINT("Throttle disabled, brakePressed\n");
+        return true;
+    }
+
+    return false;
 }
 
 bool throttleIsZero()
@@ -281,29 +287,20 @@ void canPublishTask(void *pvParameters)
 HAL_StatusTypeDef pollThrottle(void) {
     ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
 
-    if (rc != THROTTLE_OK)
-    {
-        if (rc == THROTTLE_FAULT) {
-            sendDTC_WARNING_Throttle_Failure(0);
-            DEBUG_PRINT("Throttle value out of range\n");
-        } else if (rc == THROTTLE_DISABLED) {
-            sendDTC_WARNING_Throttle_Failure(1);
-            DEBUG_PRINT("Throttle disabled as brake pressed\n");
-            return HAL_OK;
-        } else {
-            sendDTC_WARNING_Throttle_Failure(2);
-            DEBUG_PRINT("Unknown throttle error\r\n");
-        }
+    if (rc == THROTTLE_FAULT) {
+        sendDTC_WARNING_Throttle_Failure(0);
+        DEBUG_PRINT("Throttle value out of range\n");
         return HAL_ERROR;
     }
 
-    if(isLockoutDisabled()) {
-        // Send torque request to MC
-        return requestTorqueFromMC(throttlePercentReading);                
-    } else {
+    if(!isLockoutDisabled()) {
         // Send lockout release to MC
-        return sendLockoutReleaseToMC();
+        if (sendLockoutReleaseToMC() != HAL_OK) {
+            return HAL_ERROR;
+        }
     }
+    
+    return requestTorqueFromMC(throttlePercentReading);
 }
 
 void throttlePollingTask(void) 

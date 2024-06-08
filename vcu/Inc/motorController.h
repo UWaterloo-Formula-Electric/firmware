@@ -47,7 +47,6 @@ extern uint64_t maxTorqueDemand;
 HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent);
 HAL_StatusTypeDef sendLockoutReleaseToMC();
-HAL_StatusTypeDef mcDisable();
 HAL_StatusTypeDef mcClearFaults();
 HAL_StatusTypeDef sendDisableMC();
 HAL_StatusTypeDef initMotorControllerSettings();
