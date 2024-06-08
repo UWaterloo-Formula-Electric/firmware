@@ -16,7 +16,7 @@
 #endif
 
 
-bool appsBrakePedalPlausibilityCheckFail();
+bool appsBrakePedalPlausibilityCheckFail(float throttle);
 
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
@@ -171,7 +171,7 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         return THROTTLE_FAULT;
     }
 
-    if (appsBrakePedalPlausibilityCheckFail()) {
+    if (appsBrakePedalPlausibilityCheckFail(throttle)) {
         (*throttleOut) = 0;
         return THROTTLE_DISABLED;
     }
@@ -194,7 +194,7 @@ bool isBrakePressed()
     }
 }
 
-bool appsBrakePedalPlausibilityCheckFail()
+bool appsBrakePedalPlausibilityCheckFail(float throttle)
 {
     // Flag set if throttle and brake pressed at same time
     static bool throttleAndBrakePressedError = false;
@@ -269,7 +269,6 @@ void canPublishTask(void *pvParameters)
         brakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
-        BrakeWhileThrottle = throttleAndBrakePressedError;
 
         if (sendCAN_VCU_Data() != HAL_OK) {
             ERROR_PRINT("Failed to send vcu can data\n");
