@@ -73,7 +73,7 @@ static uint32_t sendHvToggle(uint32_t event)
         {
             DEBUG_PRINT("Fault: Shouldn't toggle HV while faulted\r\n");
             sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(2);
+            sendDTC_WARNING_DCU_SM_ERROR(2);
             new_state = STATE_Failure_Fatal;
             break;
         }
@@ -96,7 +96,7 @@ static uint32_t sendHvToggle(uint32_t event)
         {
             DEBUG_PRINT("Fault: Unhandled State for sending HV Toggle\r\n");
             sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(6);
+            sendDTC_WARNING_DCU_SM_ERROR(6);
             new_state = STATE_Failure_Fatal;
             break;
         }
@@ -124,7 +124,7 @@ static uint32_t sendEmToggle(uint32_t event)
         sentFatalDTC = true;
         DEBUG_PRINT("Cant EM while in state %d\r\n", current_state);
 
-        sendDTC_FATAL_DCU_SM_ERROR(3);
+        sendDTC_WARNING_DCU_SM_ERROR(3);
         return STATE_Failure_Fatal;
     }
     
@@ -159,7 +159,7 @@ static uint32_t processHvState(uint32_t event)
             // Boards are probably out of sync. Power cycle should fix
             DEBUG_PRINT("FSM already at HV. FAULT\r\n");
             sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(1);
+            sendDTC_WARNING_DCU_SM_ERROR(1);
             return STATE_Failure_Fatal;
         }
         DEBUG_PRINT("State: HV Enabled\r\n");
@@ -189,7 +189,7 @@ static uint32_t processEmState(uint32_t event)
         {
             DEBUG_PRINT("Can't EM Enable in Fatal State\r\n");
             sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(7);
+            sendDTC_WARNING_DCU_SM_ERROR(7);
             new_state = STATE_Failure_Fatal;
             break;
         }
@@ -199,7 +199,7 @@ static uint32_t processEmState(uint32_t event)
             {
                 DEBUG_PRINT("Can't EM Enable from HV Disable\r\n");
                 sentFatalDTC = true;
-                sendDTC_FATAL_DCU_SM_ERROR(4);
+                sendDTC_WARNING_DCU_SM_ERROR(4);
                 new_state = STATE_Failure_Fatal;
             }
             else
@@ -254,7 +254,7 @@ static uint32_t processEmState(uint32_t event)
         {
             DEBUG_PRINT("Unhandled State in processEmState\r\n");
             sentFatalDTC = true;
-            sendDTC_FATAL_DCU_SM_ERROR(5);
+            sendDTC_WARNING_DCU_SM_ERROR(5);
             break;
         }
     }
@@ -268,7 +268,7 @@ static uint32_t fatalTransition(uint32_t event)
     {
         sentFatalDTC = true;
         DEBUG_PRINT("Sending SM Fatal DTC\r\n");
-        sendDTC_FATAL_DCU_SM_ERROR(0);
+        sendDTC_WARNING_DCU_SM_ERROR(0);
     }
     return STATE_Failure_Fatal;
 }
