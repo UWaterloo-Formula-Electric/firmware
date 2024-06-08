@@ -903,10 +903,10 @@ BO_ 2365571073 MC_Command_Message: 8 VCU_F7
  SG_ VCU_INV_Speed_Mode_Enable : 42|1@1+ (1,0) [0|1] "" Vector__XXX
 
 BO_ 2365565697 MC_Fault_Codes: 8 INV
- SG_ INV_Run_Fault_Hi : 48|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Post_Fault_Hi : 16|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Run_Fault_Lo : 32|16@1+ (1,0) [0|65535] ""  VCU_F7
- SG_ INV_Post_Fault_Lo : 0|16@1+ (1,0) [0|65535] ""  VCU_F7
+ SG_ INV_Run_Fault_Hi : 48|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Post_Fault_Hi : 16|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Run_Fault_Lo : 32|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
+ SG_ INV_Post_Fault_Lo : 0|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
 
 BO_ 2365565441 MC_Internal_States: 8 INV
  SG_ INV_Direction_Command : 56|1@1+ (1,0) [0|1] ""  VCU_F7

@@ -29,6 +29,7 @@ uint32_t criticalFailure(uint32_t event);
 uint32_t criticalFailureWarning(uint32_t event);
 uint32_t MainDefaultTransition(uint32_t event);
 uint32_t mainDoNothing(uint32_t event);
+uint32_t cycleMC(uint32_t event);
 void hvCriticalDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
 
@@ -45,7 +46,6 @@ Transition_t mainTransitions[] = {
     { STATE_Warning_Critical, EV_ANY, &mainDoNothing },
     { STATE_ANY, EV_ANY, &MainDefaultTransition}
 };
-
 
 HAL_StatusTypeDef mainControlInit()
 {

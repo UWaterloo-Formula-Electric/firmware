@@ -741,10 +741,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
-      } else if (measure_low > limit_overvoltage) {
-         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
-         sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-         rc = HAL_ERROR;
+    //   } else if (measure_low > limit_overvoltage) {
+    //      ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+    //      sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
+    //      rc = HAL_ERROR;
       } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
          ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
          sendDTC_WARNING_CELL_VOLTAGE_LOW(i);

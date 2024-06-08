@@ -17,6 +17,7 @@
 #define MAIN_TASK_PERIOD_MS 1000
 #define BUZZER_LENGTH_MS 2000
 #define DEBOUNCE_WAIT_MS 50
+#define EM_BUTTON_RATE_LIMIT_MS 1000  // prevents multiple button presses within this duration
 
 FSM_Handle_Struct DCUFsmHandle;
 
@@ -116,7 +117,21 @@ void receivedHvResponse(void)
 }
 
 static uint32_t sendEmToggle(uint32_t event)
-{    
+{
+    static TickType_t lastToggleTime = 0U;
+
+    /*
+    temporary check to prevent button from double clicking
+    remove after 2024 michigan (the issue is probably the button itself??)
+    */
+    if (xTaskGetTickCount() - lastToggleTime < pdMS_TO_TICKS(EM_BUTTON_RATE_LIMIT_MS))
+    {
+        DEBUG_PRINT("Ignoring EM Toggle button event\n");
+        return fsmGetState(&DCUFsmHandle);
+    } else {
+        lastToggleTime = xTaskGetTickCount();
+    }
+
     const DCU_States_t current_state = fsmGetState(&DCUFsmHandle);
 
     if (current_state == STATE_HV_Disable || current_state == STATE_Failure_Fatal)
@@ -125,7 +140,7 @@ static uint32_t sendEmToggle(uint32_t event)
         DEBUG_PRINT("Cant EM while in state %d\r\n", current_state);
 
         sendDTC_WARNING_DCU_SM_ERROR(3);
-        return STATE_Failure_Fatal;
+        return current_state;
     }
     
     DEBUG_PRINT("Sending EM Toggle button event\n");

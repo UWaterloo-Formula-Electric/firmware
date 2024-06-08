@@ -116,7 +116,6 @@ uint32_t runSelftTests(uint32_t event)
 
 uint32_t EM_Enable(uint32_t event)
 {
-    // bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
     uint32_t state = STATE_EM_Enable;
 
