@@ -38,13 +38,15 @@ def graph(data, args):
     for row in data:
         sig_name = row[1].strip()
         timestamp = float(int(row[0],16))/1000
-#        data = 0.02010*float(row[2])
-        data = float(row[2])
         if sig_name in data_dict:
-            data_dict[sig_name].append((timestamp, data))
+            data_dict[sig_name].append((timestamp, float(row[2])))
         else:
-            data_dict[sig_name] = [(timestamp, data)]
+            data_dict[sig_name] = [(timestamp, float(row[2]))]
     fig, ax = plt.subplots()
+    data_dict["INV_Power"] = [(0, 0)]
+    for i, d in enumerate(data_dict["INV_DC_Bus_Current"]):
+        tstamp = d[0]
+        data_dict["INV_Power"].append((tstamp, d[1]*data_dict["INV_DC_Bus_Voltage"][i][1]))
     for signal in data_dict:
         ax.plot(*zip(*data_dict[signal]), label=signal, marker='.')
     if args.ymax is not None:
