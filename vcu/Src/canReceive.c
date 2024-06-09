@@ -72,15 +72,15 @@ void CAN_Msg_DCU_buttonEvents_Callback()
     }
     else if(ButtonEnduranceToggleEnabled) 
     {
-		toggle_endurance_mode();
+		decreaseTorqueLimit();
 	}
 	else if(ButtonEnduranceLapEnabled)
 	{
-		trigger_lap();
+		decreaseTorqueLimit();
 	}
 	else if(ButtonTCEnabled)
 	{
-		toggle_TC();
+		increaseTorqueLimit();
 	}
 }
 

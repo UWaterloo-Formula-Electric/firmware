@@ -151,11 +151,8 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     }
     // Per Cascadia Motion docs, torque requests are sent in Nm * 10
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-
     #ifdef ENABLE_POWER_LIMIT
-    if(maxTorqueDemand > INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)) {
-        maxTorqueDemand = INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD); // P=Tω 
-    }
+    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
     #endif
 
     INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
@@ -170,7 +167,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     VCU_INV_Inverter_Enable = INVERTER_ON;
     VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
-    VCU_INV_Torque_Limit_Command = TORQUE_LIMIT_OVERRIDE_FALSE;
+    VCU_INV_Torque_Limit_Command = maxTorqueDemand;
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");
