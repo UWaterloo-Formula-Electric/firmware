@@ -82,13 +82,13 @@ bool is_throttle2_in_range(uint32_t throttle) {
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return 100.0f - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
       0, 100);
 }
 
 float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return 100 - map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
       0, 100);
 }
 
@@ -148,7 +148,7 @@ bool getThrottlePositionPercent(float *throttleOut)
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
-        throttle = 100-((throttle1_percent + throttle2_percent) / 2);
+        throttle = (throttle1_percent + throttle2_percent) / 2;
     }
 
     *throttleOut = throttle;
@@ -198,7 +198,6 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle)
 {
     // Flag set if throttle and brake pressed at same time
     static bool throttleAndBrakePressedError = false;
-
     if (throttleAndBrakePressedError) {
         // Both throttle and brake were pressed, check if still the case
         if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
