@@ -305,6 +305,10 @@ void throttlePollingTask(void)
         while(1);
     }
 
+    INV_Peak_Tractive_Power_kW = 0;
+    INV_DC_Bus_Voltage = 0;
+    INV_DC_Bus_Current = 0;
+
     while (1)
     {
         // Once EM Enabled, start polling throttle

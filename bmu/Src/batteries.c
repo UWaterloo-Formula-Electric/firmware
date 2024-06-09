@@ -407,7 +407,7 @@ void HVMeasureTask(void *pvParamaters)
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
             vTaskDelay(2); // Added to prevent CAN mailbox full
-            AMS_PackVoltage = VBatt;
+            getAdjustedPackVoltage((float*)&AMS_PackVoltage);
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
         }
@@ -741,10 +741,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
          rc = HAL_ERROR;
-    //   } else if (measure_low > limit_overvoltage) {
-    //      ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
-    //      sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-    //      rc = HAL_ERROR;
+      } else if (measure_low > limit_overvoltage) {
+         ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+         sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
+         rc = HAL_ERROR;
       } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
          ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
          sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -973,7 +973,7 @@ HAL_StatusTypeDef continueCharging()
 #if IS_BOARD_F7 && defined(ENABLE_CHARGER)
    ChargerStatus status;
 
-   sendChargerCommand(maxChargeVoltage, maxChargeCurrent, true /* start charing */);
+   sendChargerCommand(maxChargeVoltage, maxChargeCurrent + 0.2, true /* start charing */);
 
    if (checkChargerStatus(&status) != HAL_OK) {
       ERROR_PRINT("Failed to get charger status\n");
@@ -987,6 +987,8 @@ HAL_StatusTypeDef continueCharging()
    }
    DEBUG_PRINT("Charge Current: %f\n", status.current);
    DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
+   DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
+   DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
 
 #endif
    return HAL_OK;

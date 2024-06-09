@@ -16,8 +16,7 @@
 //comment out to remove 80kw power limit
 #define ENABLE_POWER_LIMIT
 #define INV_POWER_LIMIT 80000.0 //80kw
-#define W_TO_KW 1.0/1000.0
-#define RPM_TO_RAD 2.0*3.14159/60.0
+#define RPM_TO_RAD (2.0*3.14159/60.0)
 
 MotorControllerSettings mcSettings = {0};
 
@@ -159,7 +158,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     }
     #endif
 
-    INV_Power = ((INV_DC_Bus_Voltage*INV_DC_Bus_Current)/100.0)*W_TO_KW; //V and I values are sent as V*10 and A*10
+    INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
     sendCAN_VCU_INV_Power();
 
     float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);

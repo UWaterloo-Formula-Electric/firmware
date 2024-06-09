@@ -5,6 +5,7 @@
 #include "debug.h"
 
 #include "drive_by_wire.h"
+#include "motorController.h"
 
 #include "vcu_F7_can.h"
 #include "vcu_F7_dtc.h"
@@ -164,4 +165,13 @@ void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
     // Each bit represents a fault
     // Combine them to be sent over DTCs
     inverterFaultCode = (INV_Post_Fault_Hi << 48) | (INV_Post_Fault_Lo << 32) | (INV_Run_Fault_Hi << 16) | INV_Run_Fault_Lo;
+}
+
+void CAN_Msg_MC_Current_Info_Callback(void)
+{
+    const float instPowerKw = (INV_DC_Bus_Current * INV_DC_Bus_Voltage) * W_TO_KW;
+    if (instPowerKw > INV_Peak_Tractive_Power_kW)
+    {
+        INV_Peak_Tractive_Power_kW = instPowerKw;
+    }
 }

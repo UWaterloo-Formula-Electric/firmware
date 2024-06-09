@@ -19,7 +19,10 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_BOARDS                  14
+#define NUM_SEGMENTS 7
+#define NUM_BOARDS_PER_SEGMENT      2
+
+#define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             10
 /// Number of thermistors attached to first AMS in each segment

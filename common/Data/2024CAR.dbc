@@ -64,7 +64,8 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
- SG_ INV_Power : 0|16@1- (0.01,0) [-327.68|327.67] ""  VCU_BeagleBone
+ SG_ INV_Peak_Tractive_Power_kW : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ INV_Tractive_Power_kW : 0|16@1- (0.01,0) [-327.68|327.67] ""  VCU_BeagleBone
 
 BO_ 2343239427 PDU_Car_State: 8 PDU
  SG_ CarStateIsEM : 1|1@1- (1,0) [0|0] ""  DCU,VCU_F7
@@ -1033,7 +1034,7 @@ CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
 CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
 CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
 CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
-CM_ SG_ 2292911106 INV_Power "Value is in KW (no x10)";
+CM_ SG_ 2292911106 INV_Tractive_Power_kW "Value is in KW (no x10)";
 CM_ BO_ 2147483648 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
 CM_ BO_ 2550141444 "VERSION";
 CM_ BO_ 2550141441 "VERSION";

@@ -32,6 +32,8 @@
 
 #define INVERTER_FAULT_CLEAR_ADDRESS    20
 
+#define W_TO_KW (1.0f/1000.0f)
+
 typedef struct MotorControllerSettings {
     bool InverterMode;
     float DriveTorqueLimit; // Adjustable torque limit

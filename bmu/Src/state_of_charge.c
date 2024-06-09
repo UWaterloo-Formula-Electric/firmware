@@ -8,15 +8,19 @@
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
-#define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF 56.f //When the segment reaches 56V, the soc algorithm will be using the integration method exclusively
-#define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF 46.f //When the segment reaches 46V, the soc algorithm will start weighing the lookup table method
+#define CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF 4.0f
+#define CELL_LOW_VOLTAGE_LOOKUP_CUTOFF 3.28f
+
+
+#define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF (CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will be using the integration method exclusively
+#define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF (CELL_LOW_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will start weighing the lookup table method
 
 #define SOC_HIGH_VOLTAGE_SOC_CUTOFF (0.942f) // Ramp up to around all cells 4V
 #define SOC_LOW_VOLTAGE_SOC_CUTOFF (0.06144f) // Ramp down when all cells around 3V
 
 
-// Units A-s
-static const float TOTAL_CAPACITY = 74700.0f;
+// Units A-s 152.44898 per cell
+static const float TOTAL_CAPACITY = 128050.0f;
 
 static float capacity_startup = 1.0f;
 
@@ -159,6 +163,6 @@ static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage)
 {
 	float temp = 0.0f;
 	HAL_StatusTypeDef ret = getAdjustedPackVoltage(&temp);
-	*segmentVoltage = (temp / (float)NUM_BOARDS);
+	*segmentVoltage = (temp / (float)NUM_SEGMENTS);
 	return ret;
 }

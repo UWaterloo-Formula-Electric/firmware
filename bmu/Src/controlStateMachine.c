@@ -43,6 +43,7 @@ uint32_t stopPrecharge(uint32_t event);
 uint32_t enterChargeMode(uint32_t event);
 uint32_t startCharge(uint32_t event);
 uint32_t stopCharge(uint32_t event);
+uint32_t chargingFault(uint32_t event);
 uint32_t chargeDone(uint32_t event);
 uint32_t systemUpCheck(uint32_t event);
 uint32_t systemNotReady(uint32_t event);
@@ -70,6 +71,7 @@ Transition_t transitions[] = {
     { STATE_HV_Enable, EV_Charge_Start, &startCharge },
     { STATE_Charging, EV_Notification_Stop, &stopCharge },
     { STATE_Charging, EV_Notification_Done, &chargeDone }, // Takes precedence over next transition
+    { STATE_Charging, EV_HV_Fault, &chargingFault }, // Fault when IL is closed during charging
     { STATE_ANY, EV_Notification_Stop, &controlDoNothing }, // Must be after charging charge stop
 
     // PCDC
@@ -425,6 +427,13 @@ uint32_t chargeDone(uint32_t event)
         ERROR_PRINT("Charg evnt done, no charging\n");        //Got charge done event, but wasn't charging
         return STATE_HV_Disable;
     }
+}
+
+uint32_t chargingFault(uint32_t event)
+{
+    DEBUG_PRINT("Fault! Stop Charging\r\n");
+    xTaskNotify(BatteryTaskHandle, (1<<BATTERY_STOP_NOTIFICATION), eSetBits);
+    return STATE_Failure_Fatal;
 }
 
 uint32_t systemNotReady(uint32_t event)
