@@ -70,7 +70,7 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data)
     } else if ((DTC_CODE == CRITICAL_CELL_VOLTAGE_LOW)
                || (DTC_CODE == CRITICAL_CELL_VOLTAGE_HIGH)
                || (DTC_CODE == CRITICAL_CELL_TEMP_HIGH)
-               || (DTC_CODE == CRITICAL_CELL_TEMP_LOW)) {
+               || (DTC_CODE == ERROR_CELL_TEMP_LOW)) {
         ERROR_PRINT_ISR("Got AMS failure\n");
         AMS_FAIL_LED_ON
     }

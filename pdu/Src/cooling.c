@@ -16,6 +16,9 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define SCALE_TEMP_PERCENT(temp, max_temp) (((temp) - COOLING_AMBIENT_TEMP_C) / ((max_temp) - COOLING_AMBIENT_TEMP_C))
 
+#define CASCADIA_CM200_DERATING_TEMP_C (45.0f) // Inverter can operate for 30s before derating performance
+#define EMRAX_228_LC_MAX_TEMP_C (120.0f) 
+
 void coolingOff(void) {
     DEBUG_PRINT("Turning cooling off\n");
     PUMP_LEFT_DISABLE;
@@ -30,6 +33,21 @@ void coolingOn(void) {
     PUMP_RIGHT_ENABLE;
     FAN_LEFT_ENABLE;
     FAN_RIGHT_ENABLE;
+}
+
+bool inverterOverheated(void)
+{
+    return INV_Hot_Spot_Temp > CASCADIA_CM200_DERATING_TEMP_C;
+}
+
+bool inverterDeratingPower(void)
+{
+    return INV_Limit_Coolant_Derating;
+}
+
+bool motorOverheated(void)
+{
+    return INV_Motor_Temp > EMRAX_228_LC_MAX_TEMP_C - 20.0f;
 }
 
 void coolingTask(void *pvParameters) {
@@ -47,6 +65,42 @@ void coolingTask(void *pvParameters) {
         // Should we check if MC is on?
         if (fsmGetState(&mainFsmHandle) == STATE_Motors_On) {
             coolingOn();
+
+            if (inverterOverheated())
+            {
+                static bool sentInvOverheatWarning = false;
+                static bool sentInvDeratingWarning = false;
+                
+                if (!sentInvOverheatWarning)
+                {
+                    sentInvOverheatWarning = true;
+                    sendDTC_WARNING_PDU_Inverter_Overheat();
+                    DEBUG_PRINT("Inverter Overheating!\r\n");
+                }
+                else
+                {
+                    sentInvOverheatWarning = false;
+                }
+
+                if (inverterDeratingPower())
+                {
+                    if (!sentInvDeratingWarning)
+                    {
+                        sentInvDeratingWarning = true;
+                        DEBUG_PRINT("Inverteris Derating Power\r\n");
+                        sendDTC_WARNING_PDU_Inverter_Derating_Power();
+                    }
+                }
+                else 
+                {
+                    sentInvDeratingWarning = false;
+                }
+            }
+            if (motorOverheated())
+            {
+                DEBUG_PRINT("Motor Overheated!\r\n");
+                sendDTC_FATAL_PDU_Motor_Overheat();
+            }
         }
         else 
         {

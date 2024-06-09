@@ -935,7 +935,7 @@ BO_ 2365565441 MC_Internal_States: 8 INV
  SG_ INV_Limit_Hot_Spot : 60|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Low_Speed_Limiting : 61|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Rolling_Counter : 44|4@1+ (1,0) [0|15] ""  VCU_F7
- SG_ INV_Limit_Coolant_Derating : 62|1@1+ (1,0) [0|1] ""  VCU_F7
+ SG_ INV_Limit_Coolant_Derating : 62|1@1+ (1,0) [0|1] ""  VCU_F7,PDU
  SG_ INV_Self_Sensing_Assist_Enable : 33|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Limit_Stall_Burst_Model : 63|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Burst_Model_Mode : 49|1@1+ (1,0) [0|1] ""  VCU_F7

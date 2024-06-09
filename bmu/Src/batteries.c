@@ -777,10 +777,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
                     sendDTC_WARNING_CELL_TEMP_HIGH(i);
                     warningSentForChannelTemp[i] = true;
                 }
-            } else if(measure < CELL_UNDERTEMP){
+            } else if(measure > 0 && measure < CELL_UNDERTEMP){
                 ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
                 sendDTC_WARNING_CELL_TEMP_LOW(i);
-            } else if(measure < CELL_UNDERTEMP_WARNING){
+            } else if(measure > 0 && measure < CELL_UNDERTEMP_WARNING){
                 if(!warningSentForChannelTemp[i]) {
                     ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
                     sendDTC_WARNING_CELL_TEMP_LOW(i);

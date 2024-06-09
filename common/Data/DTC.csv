@@ -50,7 +50,7 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 49,BrakeWhileThrottleError_Disabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Max throttle while brake pressed reached, throttle disabled (EV.3.4 FSAE)"
 50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throt at rst point after BrakeWhileThrottle Error, Thrott Reengaged (EV.3.4 FSAE)"
 51,CELL_TEMP_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp low
-52,CELL_TEMP_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
+52,CELL_TEMP_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
 53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
 54,DCDC_Shutoff,PDU,4,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,DCDC shutoff
 55,LV_Battery_Low,PDU,4,"VCU_F7,VCU_BEAGLEBONE",NA,LV battery below 10V
@@ -63,3 +63,6 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 62,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
 63,DCU_SM_ERROR,DCU,4,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",code,DCU State Machine Fault #data
 64,DCU_NoTransition,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: No state machine transition found
+65,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+65,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+66,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"
