@@ -161,13 +161,16 @@ class CANProcessor:
         """
         Format the DTC code and data into a human-readable string with description from DTC.csv
         """
-        description = self.dtcs.get(dtc_code, {"description": f"DTC Code: {dtc_code} not found"})["description"]
-        description = self.parse_dtc_description(description, dtc_data)
-        if dtc_origin.lower().startswith("charge"):
-            dtc_origin = "CCU"
-        if dtc_origin.lower().startswith("vcu"):
-            dtc_origin = "VCU"
-        dtc_origin = dtc_origin.replace("_DTC", "")
+        try:
+            description = self.dtcs.get(dtc_code, {"description": f"DTC Code: {dtc_code} not found"})["description"]
+            description = self.parse_dtc_description(description, dtc_data)
+            if dtc_origin.lower().startswith("charge"):
+                dtc_origin = "CCU"
+            if dtc_origin.lower().startswith("vcu"):
+                dtc_origin = "VCU"
+            dtc_origin = dtc_origin.replace("_DTC", "")
+        except Exception:
+            description = f"Error parsing DTC {dtc_code} from {dtc_origin}"
         return dtc_origin, dtc_code, dtc_data, description
 
     def publish_dtc(self, dtc_origin, dtc_code, dtc_data):
@@ -181,14 +184,13 @@ class CANProcessor:
 
         print("reading can messages...")
         while True:
-
             if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > BUTTON_SCROLL_TIMEOUT_S:
-                print("out " + _last_scr_btn)
                 if _last_scr_btn == "R":
                     self.main_view.debugPage.show()
                 if _last_scr_btn == "L":
                     self.main_view.dashPage.show()
                 _last_scr_btn = None
+
             message = self.can_bus.recv(timeout=0.1)
             try:
                 if message is None:
