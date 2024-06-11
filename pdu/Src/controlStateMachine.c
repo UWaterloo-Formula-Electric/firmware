@@ -43,9 +43,28 @@ Transition_t mainTransitions[] = {
     { STATE_Motors_On, EV_HV_CriticalFailure, &criticalFailureWarning },
     { STATE_Warning_Critical, EV_CriticalDelayElapsed, &criticalFailure },
     { STATE_Critical_Failure, EV_ANY, &mainDoNothing },
+    { STATE_ANY, EV_Cycle_MC, &cycleMC },
     { STATE_Warning_Critical, EV_ANY, &mainDoNothing },
     { STATE_ANY, EV_ANY, &MainDefaultTransition}
 };
+
+uint32_t cycleMC(uint32_t event)
+{
+    extern uint8_t resetting;
+    extern uint64_t inverterFaultCode;
+
+    DEBUG_PRINT("inverter fault. Post: %lu. Run: %lu\r\n", (uint32_t)(inverterFaultCode >> 32), (uint32_t)(inverterFaultCode & 0xFFFFFFFF));
+    sendDTC_WARNING_VCU_Inverter_Fault(inverterFaultCode);
+    uint32_t current_state = fsmGetState(&mainFsmHandle);
+    if (current_state == STATE_Motors_On) {
+        MC_DISABLE;
+        vTaskDelay(pdMS_TO_TICKS(50));
+        MC_ENABLE;
+        resetting = 0U;
+        return STATE_Motors_On;
+    }
+    return current_state;
+}
 
 HAL_StatusTypeDef mainControlInit()
 {

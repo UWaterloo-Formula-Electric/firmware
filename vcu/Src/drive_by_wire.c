@@ -250,13 +250,6 @@ uint32_t EM_Fault(uint32_t event)
                 newState = STATE_Failure_Fatal;
             }
             break;
-        case EV_Inverter_Fault:;
-            {
-                const uint64_t faults = getInverterFaultCode();
-                sendDTC_FATAL_VCU_Inverter_Fault(faults);
-                // Check RMS GUI or CAN message 'MC_Fault_Codes' for fault details
-                newState = STATE_Failure_Fatal;
-            }
         default:
             {
                 sendDTC_FATAL_VCU_F7_EM_ENABLED_ERROR();

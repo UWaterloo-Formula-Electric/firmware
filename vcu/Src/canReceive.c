@@ -27,7 +27,6 @@ volatile bool motorControllersStatus = false;
 volatile bool inverterLockoutDisabled = false;
 volatile uint8_t inverterVSMState;
 volatile uint8_t inverterInternalState;
-volatile uint64_t inverterFaultCode = 0;
 
 /*
  * Functions to get external board status
@@ -57,11 +56,6 @@ uint8_t getInverterVSMState()
     return inverterVSMState;
 }
 
-uint64_t getInverterFaultCode()
-{
-    return inverterFaultCode;
-}
-
 extern osThreadId driveByWireHandle;
 
 void CAN_Msg_DCU_buttonEvents_Callback()
@@ -72,15 +66,15 @@ void CAN_Msg_DCU_buttonEvents_Callback()
     }
     else if(ButtonEnduranceToggleEnabled) 
     {
-		decreaseTorqueLimit();
+		toggle_endurance_mode();
 	}
 	else if(ButtonEnduranceLapEnabled)
 	{
-		decreaseTorqueLimit();
+		trigger_lap();
 	}
 	else if(ButtonTCEnabled)
 	{
-		increaseTorqueLimit();
+		toggle_TC();
 	}
 }
 
@@ -160,12 +154,6 @@ void CAN_Msg_MC_Read_Write_Param_Response_Callback()
     sendLockoutReleaseToMC();
 }
 
-void CAN_Msg_MC_Fault_Codes_Callback() // 100 hz
-{
-    // Each bit represents a fault
-    // Combine them to be sent over DTCs
-    inverterFaultCode = (INV_Post_Fault_Hi << 48) | (INV_Post_Fault_Lo << 32) | (INV_Run_Fault_Hi << 16) | INV_Run_Fault_Lo;
-}
 
 void CAN_Msg_MC_Current_Info_Callback(void)
 {
