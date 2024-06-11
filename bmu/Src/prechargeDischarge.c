@@ -198,7 +198,6 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("Failed to get pack voltage for precharge from queue\n");
             return PCDC_ERROR;
         }
-        packVoltage = 12.0f;
         DEBUG_PRINT("pack voltage %f\n", packVoltage);
     }
 
