@@ -223,11 +223,11 @@ HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VB
    
     (*IBus) = filterIBus(IBusTmp);
     
-   if (adc_read_v1(VBus) != HAL_OK) {
+   if (adc_read_v1(VBatt) != HAL_OK) {
       ERROR_PRINT("Error reading VBUS\n");
       return HAL_ERROR;
    }
-   if (adc_read_v2(VBatt) != HAL_OK) {
+   if (adc_read_v2(VBus) != HAL_OK) {
       ERROR_PRINT("Error reading VBatt\n");
       return HAL_ERROR;
    }
