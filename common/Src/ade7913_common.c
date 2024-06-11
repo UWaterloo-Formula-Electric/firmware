@@ -138,9 +138,6 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
 
     float shuntVoltage = CURRENT_SCALE * ((float)raw);
     shuntVoltage += CURRENT_OFFSET;
-    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS);
-
-  /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
   (*dataOut) = shuntVoltage;
 
   return HAL_OK;
