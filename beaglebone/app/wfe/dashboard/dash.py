@@ -92,7 +92,7 @@ class CANProcessor:
         self.DCU_BUTTONS_ARB_ID = self.db.get_message_by_name('DCU_buttonEvents').frame_id
 
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
-        self.WHEELSPEED_ARB_ID = self.db.get_message_by_name('WheelSpeedKPH').frame_id
+        self.MC_POS_INFO = self.db.get_message_by_name('MC_Motor_Position_Info').frame_id
 
         self.VCU_INV_POWER = self.db.get_message_by_name('VCU_INV_Power').frame_id
 
@@ -222,7 +222,7 @@ class CANProcessor:
                 if message.arbitration_id == self.HV_BUS_STATE_ARB_ID:
                     dashPage.updateMinCell(decoded_data)
                 # Case for Speeeeeed
-                if message.arbitration_id == self.WHEELSPEED_ARB_ID:
+                if message.arbitration_id == self.MC_POS_INFO:
                     dashPage.updateSpeed(decoded_data)
 
                 if message.arbitration_id == self.VCU_INV_POWER:

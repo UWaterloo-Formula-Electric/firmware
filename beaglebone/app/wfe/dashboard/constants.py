@@ -1,14 +1,26 @@
 import enum
+from math import pi
 WIDTH = 800
 HEIGHT = 480
 
 BUTTON_SCROLL_TIMEOUT_S = 0.3
+
+WHEEL_DIAMETER_M = 16 * 2.54 / 100
+GEAR_RATIO_MOT_TO_WHEEL = 3.75
+WHEEL_CIRCUMFRENCE = WHEEL_DIAMETER_M * pi
+M_TO_KM = 1000
+MIN_PER_HR = 60
+
+RPM_TO_KPH = (WHEEL_CIRCUMFRENCE / GEAR_RATIO_MOT_TO_WHEEL) / M_TO_KM * MIN_PER_HR 
+
+
 class TagEnum(enum.Enum):
     ORIGIN = "origin"
     CODE = "code"
     DATA = "data"
     DESC = "desc"
     TIME = "time"
+
 
 INV_FAULT_CODES_DESC = {
     1 << 0: "Hardware Gate/Desaturation Fault",
@@ -76,4 +88,3 @@ INV_FAULT_CODES_DESC = {
     1 << 62: "Resolver Not Connected",
     1 << 63: "Reserved",
 }
-

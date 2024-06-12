@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 
 from page import Page
-from constants import WIDTH, HEIGHT, TagEnum
+from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH
 
 
 class DashPage(Page):
@@ -163,14 +163,9 @@ class DashPage(Page):
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
-        fl_speed = decoded_data['FLSpeedKPH']
-        fr_speed = decoded_data['FRSpeedKPH']
-        rr_speed = decoded_data['RRSpeedKPH']
-        rl_speed = decoded_data['RLSpeedKPH']
-
-        average_speed = (float(fl_speed) + float(fr_speed) + float(rr_speed) + float(rl_speed)) / 4
-
-        self.speed_text.config(text='%.4s' % ('%.2f' % average_speed) + 'kph')
+        rpm = decoded_data['INV_Motor_Speed']
+        kph = rpm * RPM_TO_KPH
+        self.speed_text.config(text='%.4s' % ('%.2f' % kph) + 'kph')
     
     def updatePower(self, decoded_data: dict):
         power = decoded_data['INV_Tractive_Power_kW']
