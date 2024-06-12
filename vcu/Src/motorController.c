@@ -15,7 +15,7 @@
 
 //comment out to remove 80kw power limit
 #define ENABLE_POWER_LIMIT
-#define INV_POWER_LIMIT 80000.0 //80kw
+#define INV_POWER_LIMIT 70000.0 //80kw
 #define RPM_TO_RAD (2.0*3.14159/60.0)
 
 MotorControllerSettings mcSettings = {0};
