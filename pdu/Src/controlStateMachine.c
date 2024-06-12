@@ -53,8 +53,17 @@ uint32_t cycleMC(uint32_t event)
     extern uint8_t resetting;
     extern uint64_t inverterFaultCode;
 
-    DEBUG_PRINT("inverter fault. Post: %lu. Run: %lu\r\n", (uint32_t)(inverterFaultCode >> 32), (uint32_t)(inverterFaultCode & 0xFFFFFFFF));
-    sendDTC_WARNING_VCU_Inverter_Fault(inverterFaultCode);
+    uint32_t invRunFault = (uint32_t)(inverterFaultCode & 0xFFFFFFFF);
+    uint32_t invPostFault = (uint32_t)(inverterFaultCode >> 32);
+
+    DEBUG_PRINT("inverter fault. Post: %lu. Run: %lu\r\n", invPostFault, invRunFault);
+    
+    if (invPostFault) {
+        sendDTC_WARNING_PDU_Inverter_Post_Fault(invPostFault);
+    } else if (invRunFault) {
+        sendDTC_WARNING_PDU_Inverter_Run_Fault(invRunFault);
+    }
+
     uint32_t current_state = fsmGetState(&mainFsmHandle);
     if (current_state == STATE_Motors_On) {
         MC_DISABLE;

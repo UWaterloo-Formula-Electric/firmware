@@ -58,11 +58,12 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 57,VCU_F7_EM_ENABLED_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Unknown EM Fault"
 58,VCU_F7_EV_FATAL,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Got Fatal DTC"
 59,VCU_F7_NoTransition,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: No state machine transition found
-60,VCU_Inverter_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has faulted #data"
-61,MC_Temp_Reading_Lost,PDU,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,No longer reading motor temp
-62,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
-63,DCU_SM_ERROR,DCU,4,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",code,DCU State Machine Fault #data
-64,DCU_NoTransition,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: No state machine transition found
-65,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
-65,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
-66,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"
+60,PDU_Inverter_Post_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has post faulted #data"
+61,PDU_Inverter_Run_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has run faulted #data"
+62,MC_Temp_Reading_Lost,PDU,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,No longer reading motor temp
+63,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
+64,DCU_SM_ERROR,DCU,4,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",code,DCU State Machine Fault #data
+65,DCU_NoTransition,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: No state machine transition found
+66,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+67,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+68,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"
