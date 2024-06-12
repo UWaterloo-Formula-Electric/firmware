@@ -52,7 +52,6 @@ class DashPage(Page):
         self.dtc_text_area = tk.scrolledtext.ScrolledText(self, font=("Helvetica", -14),
                                                           width=50, height=8, bg="#000000", fg="#e3e3e3")
         self.dtc_text_area.grid(row=5, column=0, columnspan=ncols, sticky=tk.NSEW)
-        # self.dtc_text_area.vbar.pack_forget() # remove scroll bar as we can use it on car's screen
 
         self.update_battery_charge(0)
 
@@ -160,11 +159,7 @@ class DashPage(Page):
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
-        cell_min = decoded_data['VoltageCellMin']
-        vbus = decoded_data['VoltageBusHV']
-        ibus = decoded_data['CurrentBusHV']
-        power = float(vbus) * float(ibus) / 1000
-        self.power_text.config(text='%.5s' % ('%.4f' % power) + 'kW')
+        cell_min = decoded_data['VoltageCellMin']        
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
@@ -176,6 +171,10 @@ class DashPage(Page):
         average_speed = (float(fl_speed) + float(fr_speed) + float(rr_speed) + float(rl_speed)) / 4
 
         self.speed_text.config(text='%.4s' % ('%.2f' % average_speed) + 'kph')
+    
+    def updatePower(self, decoded_data: dict):
+        power = decoded_data['INV_Tractive_Power_kW']
+        self.power_text.config(text='%.5s' % ('%.3f' % power) + 'kW')
 
     def enable_flash(self):
         self._is_flash_enabled = True

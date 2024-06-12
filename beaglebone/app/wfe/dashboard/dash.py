@@ -39,15 +39,10 @@ class MainView(tk.Frame):
         self.dashPage.dtc_text_area.yview_scroll(scroll_amount, "units")
         self.debugPage.debug_text_area.yview_scroll(scroll_amount, "units")
 
-    def update_motor_fault(self, decoded_data):
-        inv_post_fault_hi = decoded_data['INV_Post_Fault_Hi']
-        inv_post_fault_lo = decoded_data['INV_Post_Fault_Lo']
-        inv_run_fault_hi = decoded_data['INV_Run_Fault_Hi']
-        inv_run_fault_lo = decoded_data['INV_Run_Fault_Lo']
-
-        inv_post_fault = (inv_post_fault_hi << 15) | inv_post_fault_lo
-        inv_run_fault = (inv_run_fault_hi << 15) | inv_run_fault_lo
-
+    def update_inv_fault(self, inv_post_fault: int = 0, inv_run_fault: int = 0):
+        # force unsgined 32 bit
+        inv_post_fault = inv_post_fault & 0xffffffff
+        inv_run_fault = inv_run_fault & 0xffffffff
         inv_fault = (inv_run_fault << 32) | inv_post_fault
 
         if inv_fault == 0:
@@ -99,7 +94,7 @@ class CANProcessor:
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
         self.WHEELSPEED_ARB_ID = self.db.get_message_by_name('WheelSpeedKPH').frame_id
 
-        self.MC_FAULT_CODES_ARB_ID = self.db.get_message_by_name('MC_Fault_Codes').frame_id
+        self.VCU_INV_POWER = self.db.get_message_by_name('VCU_INV_Power').frame_id
 
         self.DTC_ARB_IDS = [msg.frame_id for msg in self.db.messages if 'DTC' in msg.name]
         self.dtcs = {}
@@ -229,8 +224,9 @@ class CANProcessor:
                 # Case for Speeeeeed
                 if message.arbitration_id == self.WHEELSPEED_ARB_ID:
                     dashPage.updateSpeed(decoded_data)
-                if message.arbitration_id == self.MC_FAULT_CODES_ARB_ID:
-                    self.main_view.update_motor_fault(decoded_data)
+
+                if message.arbitration_id == self.VCU_INV_POWER:
+                    dashPage.updatePower(decoded_data)
                 # case for screen navigation button events
                 if message.arbitration_id == self.DCU_BUTTONS_ARB_ID:
                     # scroll up if R button double clicked
@@ -268,7 +264,14 @@ class CANProcessor:
                     dtc_code = decoded_data['DTC_CODE']
                     dtc_data = decoded_data['DTC_Data']
 
-                    self.publish_dtc(dtc_origin, dtc_code, dtc_data)
+                    dtc_name = self.dtcs.get(dtc_code, {'name': ''})['name']
+
+                    if dtc_name == 'PDU_Inverter_Post_Fault':
+                        self.main_view.update_inv_fault(inv_post_fault=dtc_data)
+                    elif dtc_name == 'PDU_Inverter_Run_Fault':
+                        self.main_view.update_inv_fault(inv_run_fault=dtc_data)
+                    else:
+                        self.publish_dtc(dtc_origin, dtc_code, dtc_data)
 
             except Exception:
                 ###########################################
