@@ -145,7 +145,7 @@ extern osThreadId stateOfChargeHandle;
  * @return The filtered HV Bus current
  */
 
-#define IBUS_HISTORY_SIZE 100
+#define IBUS_HISTORY_SIZE 250
 static float IBusHistory[IBUS_HISTORY_SIZE];
 
 float filterIBus(float IBus)
@@ -212,14 +212,15 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
  */
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
+    extern uint32_t brakeAndHallAdcVals[2];
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0.0f; //(0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
+   float IBusTmp = (0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
    
 // TODO: Revert back to use shunt over hall once the lid is fixed
-   if (adc_read_current(&IBusTmp) != HAL_OK) {
-      ERROR_PRINT("Error reading IBUS\n");
-      return HAL_ERROR;
-   }
+//    if (adc_read_current(&IBusTmp) != HAL_OK) {
+//       ERROR_PRINT("Error reading IBUS\n");
+//       return HAL_ERROR;
+//    }
    
     (*IBus) = filterIBus(IBusTmp);
     

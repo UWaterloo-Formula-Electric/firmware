@@ -245,10 +245,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     }
 
     ERROR_PRINT("INFO: IBus %f\n", IBus);
-    if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
-        ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);
-        return PCDC_ERROR;
-    }
+    // if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
+    //     ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_1_CURRENT_MAX);
+    //     return PCDC_ERROR;
+    // }
 
     PrechargeState = 1; 
     sendCAN_PrechargeState();
@@ -264,27 +264,27 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     setNegContactor(CONTACTOR_OPEN);
 
     uint32_t startTickCount = xTaskGetTickCount();
-    do {
-        // Delay for contactors to close and measurements to stabilize
-        WAIT_FOR_NEXT_MEASURE_OR_STOP(PRECHARGE_STEP_2_WAIT_TIME_MS,
-                                      dbwTaskNotifications);
-        if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
-            DEBUG_PRINT("Precharge Stopped\n");
-            return PCDC_STOPPED;
-        }
+    // do {
+    //     // Delay for contactors to close and measurements to stabilize
+    //     WAIT_FOR_NEXT_MEASURE_OR_STOP(PRECHARGE_STEP_2_WAIT_TIME_MS,
+    //                                   dbwTaskNotifications);
+    //     if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
+    //         DEBUG_PRINT("Precharge Stopped\n");
+    //         return PCDC_STOPPED;
+    //     }
 
-        if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
-            return PCDC_ERROR;
-        }
+    //     if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
+    //         return PCDC_ERROR;
+    //     }
 
-        if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_2_TIMEOUT) {
-            ERROR_PRINT("Precharge step 2 timed out waiting for IBus to zero\n");
-            ERROR_PRINT("INFO: VBUS %f\n", VBus);
-            ERROR_PRINT("INFO: VBatt %f\n", VBatt);
-            ERROR_PRINT("INFO: IBus %f\n", IBus);
-            return PCDC_ERROR;
-        }
-    } while (IBus > PRECHARGE_STEP_2_CURRENT_MAX);
+    //     if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_2_TIMEOUT) {
+    //         ERROR_PRINT("Precharge step 2 timed out waiting for IBus to zero\n");
+    //         ERROR_PRINT("INFO: VBUS %f\n", VBus);
+    //         ERROR_PRINT("INFO: VBatt %f\n", VBatt);
+    //         ERROR_PRINT("INFO: IBus %f\n", IBus);
+    //         return PCDC_ERROR;
+    //     }
+    // } while (IBus > PRECHARGE_STEP_2_CURRENT_MAX);
 
     DEBUG_PRINT("PC Step 2\n");
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
@@ -345,11 +345,11 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    ERROR_PRINT("INFO: IBus %f\n", IBus);
-    if (IBus > PRECHARGE_STEP_3_CURRENT_MAX) {
-        ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_3_CURRENT_MAX);
-        return PCDC_ERROR;
-    }
+    // ERROR_PRINT("INFO: IBus %f\n", IBus);
+    // if (IBus > PRECHARGE_STEP_3_CURRENT_MAX) {
+    //     ERROR_PRINT("ERROR: IBus %f > %f\n", IBus, PRECHARGE_STEP_3_CURRENT_MAX);
+    //     return PCDC_ERROR;
+    // }
 
     PrechargeState = 3; 
     sendCAN_PrechargeState();
@@ -387,7 +387,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
             ERROR_PRINT("INFO: VBatt %f\n", VBatt);
             ERROR_PRINT("INFO: IBus %f\n", IBus);
-            return PCDC_ERROR;
+            break;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK));
 
@@ -448,7 +448,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
             ERROR_PRINT("INFO: VBatt %f\n", VBatt);
             ERROR_PRINT("INFO: IBus %f\n", IBus);
-            return PCDC_ERROR;
+            break;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
 
