@@ -225,9 +225,9 @@ uint32_t EM_Fault(uint32_t event)
                     DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
 
                     // Turn off MC when CBRB pressed while in EM
-                    if (MotorStop() != HAL_OK) {
-                        ERROR_PRINT("Failed to stop motors\n");
-                    }
+                    //if (MotorStop() != HAL_OK) {
+                    //    ERROR_PRINT("Failed to stop motors\n");
+                    //}
 
                     EM_State = EM_State_Off;
                     sendCAN_VCU_EM_State();
