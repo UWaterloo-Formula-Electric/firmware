@@ -333,7 +333,7 @@ static const CLI_Command_Definition_t currentCommandDefinition =
 BaseType_t sendHVFault(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEventISR(&fsmHandle, EV_HV_Fault);
+    // fsmSendEventISR(&fsmHandle, EV_HV_Fault);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t hvFaultCommandDefinition =

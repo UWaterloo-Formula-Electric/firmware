@@ -237,7 +237,7 @@ void faultMonitorTask(void *pvParameters)
 			BMU_checkFailed = HVIL_FAILED_BIT;
 			sendCAN_BMU_Interlock_Loop_Status();
 
-			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			// fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 			while (1) {
 				watchdogTaskCheckIn(FAULT_TASK_ID);
 				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
@@ -268,7 +268,7 @@ void faultMonitorTask(void *pvParameters)
 			BMU_checkFailed = IL_FAILED_BIT;
 			sendCAN_BMU_Interlock_Loop_Status();
 
-			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			// fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
 			while (1) {
 				watchdogTaskCheckIn(FAULT_TASK_ID);
 				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);

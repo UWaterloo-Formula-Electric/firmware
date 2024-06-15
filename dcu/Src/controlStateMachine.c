@@ -390,7 +390,7 @@ static void debounceTimerCallback(TimerHandle_t timer)
                     SCR_NAV_L_BUTTON_PIN);
             break;
 
-        default:
+        default:x
             /* Shouldn't get here */ 
             DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
             pin_val = GPIO_PIN_SET;

@@ -55,6 +55,8 @@ uint32_t stopBalance(uint32_t event);
 uint32_t balanceDone(uint32_t event);
 
 Transition_t transitions[] = {
+
+    { STATE_ANY, EV_HV_Toggle, &startPrecharge },
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
     { STATE_Wait_System_Up, EV_FaultMonitorReady, &systemUpCheck },
@@ -75,7 +77,6 @@ Transition_t transitions[] = {
     { STATE_ANY, EV_Notification_Stop, &controlDoNothing }, // Must be after charging charge stop
 
     // PCDC
-    { STATE_HV_Disable, EV_HV_Toggle, &startPrecharge },
     { STATE_Precharge, EV_Precharge_Finished, &prechargeFinished },
     { STATE_HV_Enable, EV_HV_Toggle, &startDischarge },
     { STATE_Precharge, EV_HV_Toggle, &stopPrecharge },

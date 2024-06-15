@@ -492,7 +492,7 @@ void imdTask(void *pvParamaters)
       if (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good))
       {
          // ERROR!!!
-         fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+        //  fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
       }
 
       watchdogTaskCheckIn(IMD_TASK_ID);
@@ -598,18 +598,17 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
-#if IS_BOARD_F7
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
-    AMS_CONT_OPEN;
-#endif
-    fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    // AMS_CONT_OPEN;
+    // fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    /*
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         // Suspend this task while still updating watchdog
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-    }
+    }*/
 }
 
 
@@ -1427,146 +1426,146 @@ void batteryTask(void *pvParameter)
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    float packVoltage;
-    float adjustedPackVoltage;
-    uint32_t dbwTaskNotifications;
+    // float packVoltage;
+    // float adjustedPackVoltage;
+    // uint32_t dbwTaskNotifications;
     while (1)
     {
         /*
          * Check if we should start charging
          */
-        BaseType_t rc = xTaskNotifyWait( 0x00, /* Don't clear any notification bits on entry. */
-                         UINT32_MAX, /* Reset the notification value to 0 on exit. */
-                         &dbwTaskNotifications, /* Notified value pass out in
-                                                   dbwTaskNotifications. */
-                         0);                    /* Timeout */
+//         BaseType_t rc = xTaskNotifyWait( 0x00, /* Don't clear any notification bits on entry. */
+//                          UINT32_MAX, /* Reset the notification value to 0 on exit. */
+//                          &dbwTaskNotifications, /* Notified value pass out in
+//                                                    dbwTaskNotifications. */
+//                          0);                    /* Timeout */
 
-        if (rc == pdTRUE) {
-            if (dbwTaskNotifications & ((1<<CHARGE_START_NOTIFICATION) | (1<<BALANCE_START_NOTIFICATION))) {
+//         if (rc == pdTRUE) {
+//             if (dbwTaskNotifications & ((1<<CHARGE_START_NOTIFICATION) | (1<<BALANCE_START_NOTIFICATION))) {
                 
-                if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
-                {
-                    ChargeEN_State = ChargeEN_State_On;
-                    sendCAN_BMU_ChargeEN_State();
-                }
-                if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
-                                                        2*BATTERY_CHARGE_TASK_PERIOD_MS))
-                {
-                    ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
-                } else {
-                    ChargeReturn chargeRc;
+//                 if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
+//                 {
+//                     ChargeEN_State = ChargeEN_State_On;
+//                     sendCAN_BMU_ChargeEN_State();
+//                 }
+//                 if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
+//                                                         2*BATTERY_CHARGE_TASK_PERIOD_MS))
+//                 {
+//                     ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
+//                 } else {
+//                     ChargeReturn chargeRc;
                     
-                    if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
-                    {
-                        chargeRc = balanceCharge(USING_CHARGER);
-                    }
-                    else if (dbwTaskNotifications & (1<<BALANCE_START_NOTIFICATION))
-                    {
-                        chargeRc = balanceCharge(USING_CLI);
-                    }
-                    else
-                    {
-                        ERROR_PRINT("Processing unknown notification in batteryTask\n");
-                        chargeRc = CHARGE_ERROR;
-                    }
+//                     if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
+//                     {
+//                         chargeRc = balanceCharge(USING_CHARGER);
+//                     }
+//                     else if (dbwTaskNotifications & (1<<BALANCE_START_NOTIFICATION))
+//                     {
+//                         chargeRc = balanceCharge(USING_CLI);
+//                     }
+//                     else
+//                     {
+//                         ERROR_PRINT("Processing unknown notification in batteryTask\n");
+//                         chargeRc = CHARGE_ERROR;
+//                     }
 
-                    if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
-                                                            2*BATTERY_TASK_PERIOD_MS))
-                    {
-                        ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
-                    }
+//                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
+//                                                             2*BATTERY_TASK_PERIOD_MS))
+//                     {
+//                         ERROR_PRINT("Failed to change watchdog timeout for battery task\n");
+//                     }
 
-                    if (chargeRc == CHARGE_ERROR) {
-                        ERROR_PRINT("Failed to balance charge\n");
-                        fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
-                    } else if (chargeRc == CHARGE_DONE) {
-                        DEBUG_PRINT("Finished charge/balancing\n");
-                        fsmSendEvent(&fsmHandle, EV_Notification_Done, 20);
-                    } else if (chargeRc == CHARGE_STOPPED) {
-                        DEBUG_PRINT("Stopped charge/balancing\n");
-                        fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
-                    } else {
-                        ERROR_PRINT("Unknown charge return code %d\n", chargeRc);
-                        fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
-                    }
-                }
-                if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
-                {
-                    ChargeEN_State = ChargeEN_State_Off;
-                    sendCAN_BMU_ChargeEN_State();
-                }
-            }
-            else if (dbwTaskNotifications & (1<<BATTERY_STOP_NOTIFICATION)) {
-                DEBUG_PRINT("Received charge stop, but not charging\n");
-            } else {
-                DEBUG_PRINT("Received invalid notification\n");
-            }
-        }
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinue()) { continue; }
-        }
-#endif
+//                     if (chargeRc == CHARGE_ERROR) {
+//                         ERROR_PRINT("Failed to balance charge\n");
+//                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
+//                     } else if (chargeRc == CHARGE_DONE) {
+//                         DEBUG_PRINT("Finished charge/balancing\n");
+//                         fsmSendEvent(&fsmHandle, EV_Notification_Done, 20);
+//                     } else if (chargeRc == CHARGE_STOPPED) {
+//                         DEBUG_PRINT("Stopped charge/balancing\n");
+//                         fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
+//                     } else {
+//                         ERROR_PRINT("Unknown charge return code %d\n", chargeRc);
+//                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
+//                     }
+//                 }
+//                 if (dbwTaskNotifications & (1<<CHARGE_START_NOTIFICATION))
+//                 {
+//                     ChargeEN_State = ChargeEN_State_Off;
+//                     sendCAN_BMU_ChargeEN_State();
+//                 }
+//             }
+//             else if (dbwTaskNotifications & (1<<BATTERY_STOP_NOTIFICATION)) {
+//                 DEBUG_PRINT("Received charge stop, but not charging\n");
+//             } else {
+//                 DEBUG_PRINT("Received invalid notification\n");
+//             }
+//         }
+// #if IS_BOARD_F7 && defined(ENABLE_AMS)
+//         if (checkForOpenCircuit() != HAL_OK) {
+//             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
+//             sendCAN_BMU_BatteryChecks();
+//             ERROR_PRINT("Open wire test failed!\n");
+//             if (boundedContinue()) { continue; }
+//         }
+// #endif
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (readCellVoltagesAndTemps() != HAL_OK) {
-            BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
-        }
-#endif
-        if (checkCellVoltagesAndTemps(
-              ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
-              ((float *)&TempCellMax), ((float *)&TempCellMin),
-              &packVoltage, &adjustedPackVoltage) != HAL_OK)
-        {
-            BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed check of battery cell voltages and temps\n");
-            if (boundedContinue()) { continue; }
-        }
+// #if IS_BOARD_F7 && defined(ENABLE_AMS)
+//         if (readCellVoltagesAndTemps() != HAL_OK) {
+//             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+//             sendCAN_BMU_BatteryChecks();
+//             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
+//             if (boundedContinue()) { continue; }
+//         }
+// #endif
+//         if (checkCellVoltagesAndTemps(
+//               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
+//               ((float *)&TempCellMax), ((float *)&TempCellMin),
+//               &packVoltage, &adjustedPackVoltage) != HAL_OK)
+//         {
+//             BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+//             sendCAN_BMU_BatteryChecks();
+//             ERROR_PRINT("Failed check of battery cell voltages and temps\n");
+//             if (boundedContinue()) { continue; }
+//         }
 
-        if (publishPackVoltage(packVoltage) != HAL_OK) {
-            BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed to publish pack voltage\n");
-            if (boundedContinue()) { continue; }
-        }
-        // Adjusted Pack Voltage not critical
-        publishAdjustedPackVoltage(adjustedPackVoltage);
+//         if (publishPackVoltage(packVoltage) != HAL_OK) {
+//             BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
+//             sendCAN_BMU_BatteryChecks();
+//             ERROR_PRINT("Failed to publish pack voltage\n");
+//             if (boundedContinue()) { continue; }
+//         }
+//         // Adjusted Pack Voltage not critical
+//         publishAdjustedPackVoltage(adjustedPackVoltage);
 
-        StateBatteryPowerHV = calculateStateOfPower();
-        StateBMS = fsmGetState(&fsmHandle);
+//         StateBatteryPowerHV = calculateStateOfPower();
+//         StateBMS = fsmGetState(&fsmHandle);
 
 
-        /* This sends the following data, all of which get updated each time
-         * through the loop
-         * - State of Charge
-         * - State of Health (not yet implemented)
-         * - State of power
-         * - TempCellMax
-         * - TempCellMin
-         * - StateBMS
-         */
-        if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
-            ERROR_PRINT("Failed to send battery status HV\n");
-            if (boundedContinue()) { continue; }
-        }
+//         /* This sends the following data, all of which get updated each time
+//          * through the loop
+//          * - State of Charge
+//          * - State of Health (not yet implemented)
+//          * - State of power
+//          * - TempCellMax
+//          * - TempCellMin
+//          * - StateBMS
+//          */
+//         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
+//             ERROR_PRINT("Failed to send battery status HV\n");
+//             if (boundedContinue()) { continue; }
+//         }
 
-        static bool released_soc = false;
-        if(!released_soc)
-        {
-            xTaskNotifyGive(stateOfChargeHandle);
-            released_soc = true;
-        }
-        // Succesfully reach end of loop, update error counter to reflect that
-        ERROR_COUNTER_SUCCESS();
-        /*!!! Change the check in in bounded continue as well if you change
-         * this */
+//         static bool released_soc = false;
+//         if(!released_soc)
+//         {
+//             xTaskNotifyGive(stateOfChargeHandle);
+//             released_soc = true;
+//         }
+//         // Succesfully reach end of loop, update error counter to reflect that
+//         ERROR_COUNTER_SUCCESS();
+//         /*!!! Change the check in in bounded continue as well if you change
+//          * this */
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }

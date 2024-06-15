@@ -36,7 +36,7 @@ void CAN_Msg_DCU_buttonEvents_Callback()
 void DTC_Fatal_Callback(BoardIDs board)
 {
 	DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
-    fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+    // fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
 }
 
 uint32_t lastChargeCartHeartbeat = 0;
