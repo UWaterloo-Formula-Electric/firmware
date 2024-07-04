@@ -95,6 +95,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(BOARD_DEPDIR)/$*.Td
 INCLUDE_DIRS = $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
+			  $(COMMON_F4_LIB_DIR)/Inc \
 			  $(BUILD_TARGET)/Inc \
 			  $(F7_INC_DIR) \
 			  $(GEN_INC_DIR)
@@ -158,6 +159,8 @@ ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
    SRC += $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC))
 else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F0 F0))
    SRC += $(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC))
+else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F4 F4))
+   SRC += $(addprefix $(COMMON_F4_LIB_DIR)/Src/, $(COMMON_F4_LIB_SRC))
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif
@@ -170,6 +173,8 @@ else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F0)
    SRC += $(addprefix $(NUCLEO_F0_SRC_DIR)/, $(NUCLEO_F0_SRC))
 else ifeq ($(BOARD_ARCHITECTURE), F0)
    SRC += $(addprefix $(F0_SRC_DIR)/, $(F0_SRC))
+else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F4)
+   SRC += $(addprefix $(NUCLEO_F4_SRC_DIR)/, $(NUCLEO_F4_SRC))
 else ifeq ($(BOARD_ARCHITECTURE), F4)
    SRC += $(addprefix $(F4_SRC_DIR)/, $(F4_SRC))
 else

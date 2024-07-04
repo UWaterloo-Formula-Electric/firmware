@@ -103,8 +103,10 @@ void _handleError(char *file, int line)
   }
 #else
   if (!errorOccured) {
+#if !BOARD_IS_WSB(BOARD_ID)
     HAL_GPIO_WritePin(ERROR_LED_PORT, ERROR_LED_PIN, GPIO_PIN_SET);
-	
+#endif
+
 #if !BOARD_IS_WSB(BOARD_ID)
 	sendDTC_WARNING_ERROR_HANDLER(line);
     SEND_FATAL_DTC();
