@@ -20,13 +20,15 @@
 #include "userCanF7.h"
 #elif IS_BOARD_F0_FAMILY
 #include "userCanF0.h"
+#elif IS_BOARD_F4_FAMILY
+#include "userCanF4.h"
 #else
 #error no can header file for this board type
 #endif
 
 #define CAN_SEND_TIMEOUT_MS 10
 
-#if IS_BOARD_NUCLEO_F0 || IS_BOARD_NUCLEO_F7
+#if IS_BOARD_NUCLEO_F0 || IS_BOARD_NUCLEO_F7 || IS_BOARD_NUCLEO_F4
 #define BOARD_DISABLE_CAN
 #endif 
 
@@ -40,7 +42,11 @@
 #define CAN_P1_QUEUE_LEN 2
 #define CAN_P2_QUEUE_LEN 2
 #define CAN_P3_QUEUE_LEN 2
-#elif IS_BOARD_F0_FAMILY
+#elif IS_BOARD_F4_FAMILY
+#define CAN_P0_QUEUE_LEN 10
+#define CAN_P1_QUEUE_LEN 15
+#define CAN_P2_QUEUE_LEN 10
+#define CAN_P3_QUEUE_LEN 15
 #endif
 
 typedef struct CAN_Message {
@@ -74,6 +80,10 @@ HAL_StatusTypeDef canInit(CAN_HandleTypeDef *hcan)
     }
 #elif IS_BOARD_F0_FAMILY
     if (F0_canInit(hcan) != HAL_OK) {
+        return HAL_ERROR;
+    }
+#elif IS_BOARD_F4_FAMILY
+    if (F4_canInit(hcan) != HAL_OK) {
         return HAL_ERROR;
     }
 #else
@@ -135,6 +145,8 @@ HAL_StatusTypeDef canStart(CAN_HandleTypeDef *hcan)
         return F7_canStart(hcan);
 #elif IS_BOARD_F0_FAMILY
         return F0_canStart(hcan);
+#elif IS_BOARD_F4_FAMILY
+        return F4_canStart(hcan);
 #else
 #error canStart not defined for this board type
 #endif
@@ -276,6 +288,8 @@ HAL_StatusTypeDef sendCanMessageInternal(uint32_t id, int length, uint8_t *data)
     rc = F7_sendCanMessage(id, length, data);
 #elif IS_BOARD_F0_FAMILY
     rc = F0_sendCanMessage(id, length, data);
+#elif IS_BOARD_F4_FAMILY
+    rc = F4_sendCanMessage(id, length, data);
 #else
 #error Send can message not defined for this board type
 #endif
