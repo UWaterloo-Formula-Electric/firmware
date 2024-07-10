@@ -1,5 +1,5 @@
 CUSTOM_COMMANDS = all clean autogen init lint load connect gdb test
-BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
+BOARDS = bmu pdu dcu vcu tcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
 
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
@@ -17,3 +17,4 @@ include dcu/board.mk
 include pdu/board.mk
 include vcu/board.mk
 include wsb/board.mk
+include tcu/board.mk
