@@ -162,18 +162,16 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     }
     // Note that the temperature channels are not correlated with the voltage cell
-	else if(cellIdx >= NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS){
+	else if(cellIdx > NUM_VOLTAGE_CELLS && cellIdx <= NUM_TEMP_CELLS){
 		COMMAND_OUTPUT("%d\t(N/A)\t%f\r\n", cellIdx, TempChannel[cellIdx]);
-	} else if(cellIdx < NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
-		COMMAND_OUTPUT("%d\t%f\t(N/A)\r\n", cellIdx, VoltageCell[cellIdx]);
-	} else if(cellIdx > 0 && cellIdx < NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS) {
+	} else if(cellIdx > 0 && cellIdx <= NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS) {
 		COMMAND_OUTPUT("%d\t%f\t%f\r\n", cellIdx, VoltageCell[cellIdx], TempChannel[cellIdx]);
 	}
 	else {
 		// Do nothing
 	}
 	++cellIdx;
-    if (cellIdx >= NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
+    if (cellIdx >= NUM_VOLTAGE_CELLS && cellIdx > NUM_TEMP_CELLS) {
         cellIdx = -6;
         return pdFALSE;
     } else {
