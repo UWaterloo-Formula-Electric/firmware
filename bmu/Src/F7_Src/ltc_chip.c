@@ -270,7 +270,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
         return HAL_ERROR;
     }
 
-    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pullup */,
+    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pulldown */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
