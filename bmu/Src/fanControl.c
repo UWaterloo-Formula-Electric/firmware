@@ -25,23 +25,11 @@
 #define FAN_ON_DUTY_PERCENT 0.2
 #define FAN_PERIOD_COUNT 400
 #define FAN_TASK_PERIOD_MS 1000
+#define FAN_TEST_DUTY_PERCENT 0.5
 
 uint32_t calculateFanPeriod()
 {
-  // PWM Output is inverted from what we generate from PROC
-  // Full fan while charging
-  if (fsmGetState(&fsmHandle) == STATE_Charging || fsmGetState(&fsmHandle) == STATE_Balancing) {
-    /*DEBUG_PRINT("Charging fans\n");*/
-    return FAN_PERIOD_COUNT - FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
-  }
-
-  if (TempCellMax < FAN_OFF_TEMP) {
-    return FAN_PERIOD_COUNT;
-  }
-
-  return FAN_PERIOD_COUNT - map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
-                      FAN_PERIOD_COUNT*FAN_ON_DUTY_PERCENT,
-                      FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT);
+    return FAN_PERIOD_COUNT - FAN_PERIOD_COUNT*FAN_TEST_DUTY_PERCENT;
 }
 
 HAL_StatusTypeDef fanInit()
