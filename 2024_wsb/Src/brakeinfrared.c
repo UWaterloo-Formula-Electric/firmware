@@ -1,13 +1,14 @@
 #include "main.h"
 #include "cmsis_os.h"
+#include <stdio.h>
+#include <string.h>
 
 ADC_HandleTypeDef hadc;
-
 UART_HandleTypeDef huart2;
 
-void brakeIRTask(void const * argument);
+void BrakeIRTask(void const * argument);
 
-void brakeIRTask(void const * argument)
+void BrakeIRTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */

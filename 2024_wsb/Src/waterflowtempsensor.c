@@ -13,7 +13,7 @@ double getTemperature(double adcAverage);
 
 double readThermistor(){
 	  int num = 10;
-	  double adcAverage;
+	  double adcAverage = 0;
 	  uint16_t adcSamples[num];
 
 	  for(int i=0;i<num;i++){
