@@ -33,7 +33,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "waterflowtempsensor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +60,7 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+__weak void userInit() {}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -107,7 +107,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-
+  userInit();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -175,6 +175,25 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_2) {
+		//++counter; Sohaib: counter needs to be made accessable globally so can be accessed here
+	}
+	else if (GPIO_Pin == SENSOR1_IC_IN_Pin) {
+		int pulseCount;
+		if (xQueuePeek(flowPulseCountQueue, &pulseCount, 0) != pdTRUE)
+		{
+			// ERROR_PRINT("Failed to receive IBus current from queue\n");
+			// return HAL_ERROR;
+		}
+		pulseCount++;
+		xQueueOverwrite(flowPulseCountQueue, &pulseCount);
+	}
+	else {
+		__NOP();
+	}
+}
 
 /* USER CODE END 4 */
 

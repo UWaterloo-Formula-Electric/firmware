@@ -26,17 +26,6 @@ return ch;
 }
 /* USER CODE END 0 */
 
-
-/* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if(GPIO_Pin == GPIO_PIN_2) {
-    ++counter;
-  } else {
-      __NOP();
-  }
-}
-
 void StartHallEffectSensorTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */

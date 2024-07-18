@@ -64,10 +64,8 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SPI1_CS1_Pin|SPI1_CS2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PEPin PEPin PEPin PEPin
-                           PEPin */
-  GPIO_InitStruct.Pin = FrontRear_DipSW_Pin|LeftRight_DipSW_Pin|SENSOR1_IC_IN_Pin|SENSOR2_IC_IN_Pin
-                          |SENSOR3_IC_IN_Pin;
+  /*Configure GPIO pins : PEPin PEPin PEPin PEPin */
+  GPIO_InitStruct.Pin = FrontRear_DipSW_Pin|LeftRight_DipSW_Pin|SENSOR2_IC_IN_Pin|SENSOR3_IC_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -85,6 +83,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(DP83848CVV_RX_ER_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = SENSOR1_IC_IN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SENSOR1_IC_IN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = DP83848CVV_INT_Pin;
@@ -106,6 +110,10 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 

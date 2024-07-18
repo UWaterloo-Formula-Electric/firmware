@@ -22,7 +22,6 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-// #include "stm32f4xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,12 +48,12 @@
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
-osThreadId mainTaskHandle;
 osThreadId rotaryEncoderHandle;
 osThreadId brakeInfraredHandle;
 osThreadId hallEffSensorHandle;
 osThreadId waterTempSensorHandle;
 osThreadId watchdogTaskNamHandle;
+osThreadId mainTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -62,12 +61,12 @@ osThreadId watchdogTaskNamHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
-void mainTaskFunction(void const * argument);
 extern void StartRotaryEncoderTask(void const * argument);
-extern void brakeIRTask(void const * argument);
+extern void BrakeIRTask(void const * argument);
 extern void StartHallEffectSensorTask(void const * argument);
 extern void StartWaterflowTempSensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
+extern void mainTaskFunction(void const * argument);
 
 extern void MX_USB_HOST_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -142,17 +141,16 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-
-  /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of rotaryEncoder */
   osThreadDef(rotaryEncoder, StartRotaryEncoderTask, osPriorityNormal, 0, 128);
   rotaryEncoderHandle = osThreadCreate(osThread(rotaryEncoder), NULL);
 
   /* definition and creation of brakeInfrared */
-  osThreadDef(brakeInfrared, brakeIRTask, osPriorityNormal, 0, 512);
+  osThreadDef(brakeInfrared, BrakeIRTask, osPriorityNormal, 0, 512);
   brakeInfraredHandle = osThreadCreate(osThread(brakeInfrared), NULL);
 
   /* definition and creation of hallEffSensor */
@@ -167,12 +165,35 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
+  /* definition and creation of mainTask */
+  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
 }
 
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+__weak void StartDefaultTask(void const * argument)
+{
+  /* init code for USB_HOST */
+  MX_USB_HOST_Init();
+  /* USER CODE BEGIN StartDefaultTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartDefaultTask */
+}
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
