@@ -27,13 +27,15 @@
 #include "iwdg.h"
 #include "sdio.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdint.h>
+#include "waterflowtempsensor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,14 +55,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+volatile uint16_t previousTIM1CaptureTime = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-
+__weak void userInit() {}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -106,8 +108,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_IWDG_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  userInit();
+  HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -175,6 +179,18 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+// add overflow count???
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
+{
+  uint16_t captureTime = TIM1->CCR1;
+  // calculate new flow rate and update flowRateQueue
+  uint32_t ticks = captureTime > previousTIM1CaptureTime ? captureTime - previousTIM1CaptureTime : 
+    captureTime + UINT16_MAX - previousTIM1CaptureTime;
+  double currentFlowRate = (TIM1_F_CLK/ticks) / flowRateFactor;
+  xQueueOverwrite(flowRateQueue, &currentFlowRate);
+  // update previousTIM1CaptureTime
+  previousTIM1CaptureTime = captureTime;
+}
 
 /* USER CODE END 4 */
 

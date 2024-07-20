@@ -1,15 +1,42 @@
-#include "main.h"
 #include "cmsis_os.h"
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include "waterflowtempsensor.h"
+#include "debug.h"
 
-ADC_HandleTypeDef hadc1;
-UART_HandleTypeDef huart2;
+/**
+ * @brief Creates queues for flow rate measurements (uses L/min for units)
+ * Queue overwrite, Queue peek, and queue size of 1 is used to ensure only the most recent
+ * data is in the queue and read from the queue.
+ */
+HAL_StatusTypeDef initFlowRateQueue()
+{
+   flowRateQueue = xQueueCreate(1, sizeof(int));
 
-void StartWaterflowTempSensorTask(void const * argument);
-double readThermistor(void);
-double getTemperature(double adcAverage);
+   if (flowRateQueue == NULL) {
+      ERROR_PRINT("Failed to create flow rate queue!\n");
+      return HAL_ERROR;
+   }
+
+   return HAL_OK;
+}
+
+// TODO: add error handling for queue functions
+//void updateFlowRate() {
+//	int pulseCount; 
+//	int newPulseCount = 0;
+//	xQueuePeek(flowPulseCountQueue, &pulseCount, 0);
+//	xQueueOverwrite(flowPulseCountQueue, &newPulseCount);
+//	double flowRate = (1 / pulseCount) / flowRateFactor;
+//	xQueueOverwrite(flowRateQueue, &flowRate);
+//}
+
+double readFlowRate() {
+	double flowRate;
+	xQueuePeek(flowRateQueue, &flowRate, 0);
+	return flowRate;
+}
 
 double readThermistor(){
 	  int num = 10;
@@ -65,6 +92,10 @@ void StartWaterflowTempSensorTask(void const * argument)
 
 	  // Transmit temperature data over UART
 	  sprintf(msg, "Temperature: %f\r\n", currentTemperature);
+	  HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+
+	  // Transmit flow rate data over UART
+	  sprintf(msg, "Flow Rate: %f L/min\r\n", readFlowRate());
 	  HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
 
 	  HAL_Delay(1000);

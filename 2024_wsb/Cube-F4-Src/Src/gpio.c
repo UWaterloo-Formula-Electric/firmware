@@ -64,10 +64,8 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, SPI1_CS1_Pin|SPI1_CS2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PEPin PEPin PEPin PEPin
-                           PEPin */
-  GPIO_InitStruct.Pin = FrontRear_DipSW_Pin|LeftRight_DipSW_Pin|SENSOR1_IC_IN_Pin|SENSOR2_IC_IN_Pin
-                          |SENSOR3_IC_IN_Pin;
+  /*Configure GPIO pins : PEPin PEPin PEPin PEPin */
+  GPIO_InitStruct.Pin = FrontRear_DipSW_Pin|LeftRight_DipSW_Pin|SENSOR2_IC_IN_Pin|SENSOR3_IC_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);

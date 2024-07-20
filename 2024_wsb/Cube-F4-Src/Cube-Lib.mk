@@ -39,6 +39,7 @@ Src/iwdg.c \
 Src/main.c \
 Src/sdio.c \
 Src/spi.c \
+Src/tim.c \
 Src/usart.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
