@@ -55,6 +55,7 @@ extern const BoardTypes_t boardType;
 #define ID_CELLTESTER    13
 #define ID_Charger       14
 #define ID_Computer      15
+#define ID_TCU           16
 
 #define BOARD_IS_WSB(ID) \
     ((ID) == ID_WSBFL || \

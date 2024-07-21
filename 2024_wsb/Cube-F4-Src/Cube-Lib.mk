@@ -99,16 +99,16 @@ LIB_ASM_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_ASM_SOURCES))
 # CFLAGS
 #######################################
 # cpu
-CPU = -mcpu=cortex-m4
+LIB_CPU = -mcpu=cortex-m4
 
 # fpu
-FPU = -mfpu=fpv4-sp-d16
+LIB_FPU = -mfpu=fpv4-sp-d16
 
 # float-abi
-FLOAT-ABI = -mfloat-abi=hard
+LIB_FLOAT-ABI = -mfloat-abi=hard
 
 # mcu
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
+LIB_MCU = $(LIB_CPU) -mthumb $(LIB_FPU) $(LIB_FLOAT-ABI)
 
 # macros for gcc
 # AS defines

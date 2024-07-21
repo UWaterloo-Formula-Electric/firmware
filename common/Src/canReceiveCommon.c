@@ -25,6 +25,8 @@
 	#include "wsbrl_can.h"
 #elif BOARD_ID  == ID_WSBRR
 	#include "wsbrr_can.h"
+#elif BOARD_ID  == ID_TCU
+	#include "tcu_can.h"
 #endif
 
 void CAN_Msg_UartOverCanTx_Callback() 
