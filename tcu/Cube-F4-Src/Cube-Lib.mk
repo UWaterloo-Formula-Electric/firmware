@@ -10,32 +10,40 @@
 #   2015-07-22 - first version
 # ------------------------------------------------
 
+THIS_MAKEFILE_PATH := $(CUBE_F4_MAKEFILE_PATH)
+
 ######################################
 # target
 ######################################
-TARGET = 2024_TCU
+TARGET = tcu
 
 
 ######################################
 # building variables
 ######################################
 # debug build?
-DEBUG = 1
+LIB_DEBUG = 1
 # optimization
-OPT = -Og
+LIB_OPT = -Og
 
 
 #######################################
 # paths
 #######################################
-# Build path
-BUILD_DIR = build
+# source path
+LIB_SOURCES_DIR =  \
+Middlewares/FreeRTOS \
+Middlewares/LwIP \
+Middlewares \
+Drivers \
+Drivers/CMSIS \
+Drivers/STM32F4xx_HAL_Driver \
 
 ######################################
 # source
 ######################################
 # C sources
-C_SOURCES =  \
+LIB_C_SOURCES =  \
 Src/main.c \
 Src/gpio.c \
 Src/freertos.c \
@@ -158,160 +166,100 @@ Middlewares/Third_Party/LwIP/src/apps/mqtt/mqtt.c \
 Src/sysmem.c \
 Src/syscalls.c  
 
+LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
+
 # ASM sources
-ASM_SOURCES =  \
+LIB_ASM_SOURCES = \
 startup_stm32f417xx.s
-
-# ASM sources
-ASMM_SOURCES = 
-
+LIB_ASM_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_ASM_SOURCES))
 
 #######################################
 # binaries
 #######################################
-PREFIX = arm-none-eabi-
-# The gcc compiler bin path can be either defined in make command via GCC_PATH variable (> make GCC_PATH=xxx)
-# either it can be added to the PATH environment variable.
-ifdef GCC_PATH
-CC = $(GCC_PATH)/$(PREFIX)gcc
-AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
-CP = $(GCC_PATH)/$(PREFIX)objcopy
-SZ = $(GCC_PATH)/$(PREFIX)size
-else
-CC = $(PREFIX)gcc
-AS = $(PREFIX)gcc -x assembler-with-cpp
-CP = $(PREFIX)objcopy
-SZ = $(PREFIX)size
-endif
-HEX = $(CP) -O ihex
-BIN = $(CP) -O binary -S
  
 #######################################
 # CFLAGS
 #######################################
 # cpu
-CPU = -mcpu=cortex-m4
+LIB_CPU = -mcpu=cortex-m4
 
 # fpu
-FPU = -mfpu=fpv4-sp-d16
+LIB_FPU = -mfpu=fpv4-sp-d16
 
 # float-abi
-FLOAT-ABI = -mfloat-abi=hard
+LIB_FLOAT-ABI = -mfloat-abi=hard
 
 # mcu
-MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
+LIB_MCU = $(LIB_CPU) -mthumb $(LIB_FPU) $(LIB_FLOAT-ABI)
 
 # macros for gcc
 # AS defines
-AS_DEFS = 
+LIB_AS_DEFS = 
 
 # C defines
-C_DEFS =  \
+LIB_C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F417xx
 
-
 # AS includes
-AS_INCLUDES =  \
--IInc
+LIB_AS_INCLUDES =  \
+-I/Inc
+# ../Inc
+# LIB_AS_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_AS_INCLUDES))
+# LIB_AS_INCLUDES := $(addprefix -I, $(LIB_AS_INCLUDES))
 
 # C includes
-C_INCLUDES =  \
--IInc \
--IMiddlewares/Third_Party/LwIP/src/include \
--IMiddlewares/Third_Party/LwIP/system \
--IDrivers/STM32F4xx_HAL_Driver/Inc \
--IDrivers/STM32F4xx_HAL_Driver/Inc/Legacy \
--IMiddlewares/Third_Party/FreeRTOS/Source/include \
--IMiddlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
--IMiddlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
--IMiddlewares/Third_Party/LwIP/src/include/netif/ppp \
--IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
--IMiddlewares/Third_Party/LwIP/src/include/lwip \
--IMiddlewares/Third_Party/LwIP/src/include/lwip/apps \
--IMiddlewares/Third_Party/LwIP/src/include/lwip/priv \
--IMiddlewares/Third_Party/LwIP/src/include/lwip/prot \
--IMiddlewares/Third_Party/LwIP/src/include/netif \
--IMiddlewares/Third_Party/LwIP/src/include/compat/posix \
--IMiddlewares/Third_Party/LwIP/src/include/compat/posix/arpa \
--IMiddlewares/Third_Party/LwIP/src/include/compat/posix/net \
--IMiddlewares/Third_Party/LwIP/src/include/compat/posix/sys \
--IMiddlewares/Third_Party/LwIP/src/include/compat/stdc \
--IMiddlewares/Third_Party/LwIP/system/arch \
--IDrivers/CMSIS/Include
+LIB_C_INCLUDES =  \
+Inc \
+Middlewares/Third_Party/LwIP/src/include \
+Middlewares/Third_Party/LwIP/system \
+Drivers/STM32F4xx_HAL_Driver/Inc \
+Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+Middlewares/Third_Party/FreeRTOS/Source/include \
+Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
+Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+Middlewares/Third_Party/LwIP/src/include/netif/ppp \
+Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+Middlewares/Third_Party/LwIP/src/include/lwip \
+Middlewares/Third_Party/LwIP/src/include/lwip/apps \
+Middlewares/Third_Party/LwIP/src/include/lwip/priv \
+Middlewares/Third_Party/LwIP/src/include/lwip/prot \
+Middlewares/Third_Party/LwIP/src/include/netif \
+Middlewares/Third_Party/LwIP/src/include/compat/posix \
+Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa \
+Middlewares/Third_Party/LwIP/src/include/compat/posix/net \
+Middlewares/Third_Party/LwIP/src/include/compat/posix/sys \
+Middlewares/Third_Party/LwIP/src/include/compat/stdc \
+Middlewares/Third_Party/LwIP/system/arch \
+Drivers/CMSIS/Include
 
+LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
+
+LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(LIB_AS_INCLUDES) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
 
-CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(LIB_C_INCLUDES) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
 
-ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+ifeq ($(LIB_DEBUG), 1)
+LIB_CFLAGS += -g -gdwarf-2
 endif
 
 
 # Generate dependency information
-CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
+#LIB_CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 
 #######################################
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F417VGTx_FLASH.ld
+LIB_LDSCRIPT = $(THIS_MAKEFILE_PATH)/STM32F417VGTx_FLASH.ld
 
 # libraries
-LIBS = -lc -lm -lnosys 
-LIBDIR = 
-LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-
-# default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
-
-
-#######################################
-# build the application
-#######################################
-# list of objects
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
-vpath %.c $(sort $(dir $(C_SOURCES)))
-# list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
-vpath %.s $(sort $(dir $(ASM_SOURCES)))
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASMM_SOURCES:.S=.o)))
-vpath %.S $(sort $(dir $(ASMM_SOURCES)))
-
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
-
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-	$(AS) -c $(CFLAGS) $< -o $@
-$(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR)
-	$(AS) -c $(CFLAGS) $< -o $@
-
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(SZ) $@
-
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(HEX) $< $@
-	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(BIN) $< $@	
-	
-$(BUILD_DIR):
-	mkdir $@		
-
-#######################################
-# clean up
-#######################################
-clean:
-	-rm -fR $(BUILD_DIR)
-  
-#######################################
-# dependencies
-#######################################
--include $(wildcard $(BUILD_DIR)/*.d)
+LIB_LIBS = -lc -lm -lnosys 
+LIB_LIBDIR = 
+LIB_LDFLAGS = $(LIB_MCU) -specs=nano.specs -T$(LIB_LDSCRIPT) $(LIB_LIBDIR) $(LIB_LIBS) -Wl,--gc-sections
 
 # *** EOF ***

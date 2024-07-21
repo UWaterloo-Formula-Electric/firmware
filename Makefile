@@ -1,9 +1,9 @@
 CUSTOM_COMMANDS = all clean autogen init lint load connect gdb test
-BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
+BOARDS = bmu pdu dcu vcu tcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
 
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
-all: bmu dcu pdu vcu wsb cellTester
+all: bmu dcu pdu vcu tcu wsb cellTester
  
 beaglebone:;
 	make -C beaglebone/os/
@@ -18,3 +18,4 @@ include pdu/board.mk
 include vcu/board.mk
 #include wsb/board.mk
 include 2024_wsb/board.mk # change the name to wsb once firmware bringup is complete
+include tcu/board.mk

@@ -10,6 +10,6 @@ F4_INC_DIR :=
 F4_SRC_DIR := 
 F4_SRC := 
 
-CUBE_F4_MAKEFILE_PATH= $(BUILD_TARGET)/Cube-F4
+CUBE_F4_MAKEFILE_PATH= $(BUILD_TARGET)/Cube-F4-Src/
 
 include common/tail.mk

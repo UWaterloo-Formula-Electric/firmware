@@ -50,7 +50,7 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #pragma message "BOARD_TYPE_NUCLEO_F4: " #BOARD_TYPE_NUCLEO_F4
-#error Compiling for unkown board type
+#error Compiling for unknown board type
 
 #endif
 
