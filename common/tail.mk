@@ -157,12 +157,12 @@ SRCASM = $(LIB_ASM_SOURCES)
 
 ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
    SRC += $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC))
-else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F0 F0))
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
    SRC += $(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC))
-else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F4 F4))
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F4 F4))
    SRC += $(addprefix $(COMMON_F4_LIB_DIR)/Src/, $(COMMON_F4_LIB_SRC))
 else
-	$(error "Unsupported Board type: $(BOARD_TYPE)")
+	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
 
 ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F7)
