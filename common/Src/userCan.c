@@ -7,6 +7,7 @@
 #include "stdbool.h"
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
+#include "../Inc/debug.h"   // this fixes the implication declaration of ERROR_PRINT for the TCU
 #include "can.h"
 #include "debug.h"
 #include "bsp.h"

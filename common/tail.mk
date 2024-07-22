@@ -64,7 +64,7 @@ TEST_TARGET ?= none
 
 # Linter variables
 LINT_DIR = Lint
-LINT_TARGETS := common bmu pdu dcu vcu wsb
+LINT_TARGETS := common bmu pdu dcu vcu wsb tcu
 LINT_TARGET ?= none
 RUN_CPPCHECK = cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I $(LINT_TARGET)/Inc --output-file=$(LINT_DIR)/$(LINT_TARGET)-lint.log $(LINT_TARGET)/Src
 DELETE_CTU_FILES = find ./$(LINT_TARGET)/Src/ -type f \( -name "*.ctu-info" -or -name "cppcheck-addon-ctu-file-list" -or -name "*.dump" \) -delete
