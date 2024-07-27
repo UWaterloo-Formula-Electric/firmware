@@ -3,7 +3,7 @@
 #include "pdu_dtc.h"
 #include "state_machine.h"
 #include "controlStateMachine.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "boardTypes.h"
 #include "canReceive.h"
 

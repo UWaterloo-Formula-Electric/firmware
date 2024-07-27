@@ -10,7 +10,7 @@
   */
 
 #include "chargerControl.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "bmu_charger_can.h"
 #include "userCan.h"
 #include "inttypes.h"

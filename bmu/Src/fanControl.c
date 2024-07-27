@@ -14,7 +14,7 @@
 #include "fanControl.h"
 #include "bmu_can.h"
 #include "batteries.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "controlStateMachine.h"
 #include "state_machine.h"
 

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "FreeRTOS.h"
 #include "task.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "uartRXTask.h"
 #include "fetControl.h"
 

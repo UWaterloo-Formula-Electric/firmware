@@ -2,5 +2,5 @@
 // *** Do not modify by hand
 #include "${nodeName}${isCharger}_can.h"
 #include "userCan.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "${nodeName}_dtc.h"

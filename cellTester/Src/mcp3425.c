@@ -1,5 +1,5 @@
 #include "mcp3425.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "task.h"
 #include "i2c.h"
 #include "temperature.h"

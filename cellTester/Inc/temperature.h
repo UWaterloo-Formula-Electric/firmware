@@ -1,7 +1,7 @@
 #ifndef CELL_TESTER_TEMP_H
 #define CELL_TESTER_TEMP_H
 
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "i2c.h"
 
 #define VOLTAGE_REF 2.048f

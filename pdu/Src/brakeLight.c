@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "pdu_can.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #define BRAKE_LIGHT_ON_THRESHOLD 15
 #define BRAKE_TASK_PERIOD_MS 300

@@ -4,7 +4,7 @@
 #include "math.h"
 #include "stdbool.h"
 #include "errorHandler.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <string.h>

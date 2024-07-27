@@ -12,7 +12,7 @@
 
 #include "faultMonitor.h"
 #include "controlStateMachine.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "watchdog.h"
 #include "FreeRTOS.h"
 #include "task.h"

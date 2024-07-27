@@ -1,7 +1,7 @@
 #include "motorController.h"
 #include "bsp.h"
 #include "vcu_F7_can.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "task.h"
 #include "string.h"
 #include "inttypes.h"

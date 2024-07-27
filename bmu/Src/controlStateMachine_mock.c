@@ -9,7 +9,7 @@
   */
 
 #include "controlStateMachine_mock.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "string.h"
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"

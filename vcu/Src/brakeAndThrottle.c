@@ -1,5 +1,5 @@
 #include "brakeAndThrottle.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "FreeRTOS.h"
 #include "watchdog.h"
 #include "motorController.h"

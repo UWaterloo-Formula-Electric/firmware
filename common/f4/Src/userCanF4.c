@@ -8,7 +8,7 @@
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "can.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "bsp.h"
 #include "FreeRTOS.h"
 #include "task.h"

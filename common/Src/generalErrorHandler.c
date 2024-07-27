@@ -6,7 +6,7 @@
 #include "string.h"
 #include "generalErrorHandler.h"
 #include "watchdog.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #ifndef DISABLE_CAN_FEATURES
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)

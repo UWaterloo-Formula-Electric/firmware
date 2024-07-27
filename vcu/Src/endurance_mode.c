@@ -6,7 +6,7 @@
 #include "cmsis_os.h"
 #include "watchdog.h"
 #include "motorController.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #define ENDURANCE_MODE_TASK_ID 2
 #define ENDURANCE_MODE_TASK_PERIOD (500)

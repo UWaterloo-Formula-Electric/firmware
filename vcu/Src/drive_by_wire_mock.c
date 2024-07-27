@@ -1,6 +1,6 @@
 #include "drive_by_wire_mock.h"
 #include "drive_by_wire.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "string.h"
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"

@@ -1,7 +1,7 @@
 #include "controlStateMachine_mock.h"
 #include "sensors.h"
 #include "string.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "FreeRTOS_CLI.h"
 #include "cmsis_os.h"
 

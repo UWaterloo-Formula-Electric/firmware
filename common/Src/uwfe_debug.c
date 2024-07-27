@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "bsp.h"
 #include "stdio.h"
 #include "string.h"

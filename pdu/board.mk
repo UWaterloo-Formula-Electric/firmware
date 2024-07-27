@@ -3,7 +3,7 @@ BOARD_NAME = pdu
 BOARD_NAME_UPPER = PDU
 BOARD_ARCHITECTURE = F7
 
-COMMON_LIB_SRC = userCan.c debug.c state_machine.c freertos_openocd_hack.c FreeRTOS_CLI.c generalErrorHandler.c watchdog.c canHeartbeat.c canReceiveCommon.c
+COMMON_LIB_SRC = userCan.c uwfe_debug.c state_machine.c freertos_openocd_hack.c FreeRTOS_CLI.c generalErrorHandler.c watchdog.c canHeartbeat.c canReceiveCommon.c
 COMMON_F7_LIB_SRC = userCanF7.c
 
 F7_INC_DIR := 

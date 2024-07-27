@@ -3,7 +3,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "string.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "watchdog.h"
 
 #if BOARD_ID == ID_BMU

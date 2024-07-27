@@ -10,7 +10,7 @@
 #include "sense.h"
 #include "bsp.h"
 #include "bmu_can.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "watchdog.h"

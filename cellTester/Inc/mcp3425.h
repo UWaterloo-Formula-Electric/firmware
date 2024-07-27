@@ -1,7 +1,7 @@
 #ifndef MCP3425_DRIVER_H
 #define MCP3425_DRIVER_H
 
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "i2c.h"
 
 // MCP3425

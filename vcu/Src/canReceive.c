@@ -2,7 +2,7 @@
 
 #include "userCan.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #include "drive_by_wire.h"
 #include "motorController.h"

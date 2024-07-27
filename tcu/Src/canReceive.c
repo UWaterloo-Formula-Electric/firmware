@@ -12,8 +12,7 @@
 
 #include "userCan.h"
 #include "bsp.h"
-// #include "../../common/Inc/debug.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "boardTypes.h"
 
 // if a state machine is made for the TCU, state_machine.h will go into this header

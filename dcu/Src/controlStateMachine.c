@@ -7,7 +7,7 @@
 #include "stdbool.h"
 
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "dcu_can.h"
 #include "dcu_dtc.h"
 #include "userCan.h"

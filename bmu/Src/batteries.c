@@ -23,7 +23,7 @@
 #include "cmsis_os.h"
 #include "task.h"
 #include "controlStateMachine.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "math.h"
 #include "bmu_can.h"
 #include "bmu_dtc.h"

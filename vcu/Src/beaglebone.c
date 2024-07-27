@@ -1,7 +1,7 @@
 #include "beaglebone.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #define BB_TASK_PERIOD 10000
 

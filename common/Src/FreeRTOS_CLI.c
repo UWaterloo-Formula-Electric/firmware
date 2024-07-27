@@ -52,8 +52,8 @@
 #include "FreeRTOS_CLI.h"
 
 /* USER MODIFIED */
-/* Include debug.h, instead of putting config variables in FreeRTOSConfig.h */
-#include "debug.h"
+/* Include uwfe_debug.h, instead of putting config variables in FreeRTOSConfig.h */
+#include "uwfe_debug.h"
 
 /* If the application writer needs to place the buffer used by the CLI at a
 fixed address then set configAPPLICATION_PROVIDES_cOutputBuffer to 1 in

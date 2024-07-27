@@ -5,7 +5,7 @@
 #include "bsp.h"
 #include "task.h"
 #include "FreeRTOS_CLI.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "string.h"
 
 #include "mainTaskEntry.h"

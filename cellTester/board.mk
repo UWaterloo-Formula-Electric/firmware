@@ -3,7 +3,7 @@ BOARD_NAME = cellTester
 BOARD_NAME_UPPER = CELLTESTER
 BOARD_ARCHITECTURE = F0
 
-COMMON_LIB_SRC := debug.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c state_machine.c ade7913_common.c
+COMMON_LIB_SRC := uwfe_debug.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c state_machine.c ade7913_common.c
 
 CUBE_F0_MAKEFILE_PATH := $(BOARD_NAME)/Cube-F0-Src/cellTester/
 

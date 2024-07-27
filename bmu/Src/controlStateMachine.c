@@ -14,7 +14,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "state_machine.h"
 #include "bmu_dtc.h"
 #include "bmu_can.h"

@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "stm32f0xx_hal.h"
 #include "fetControl.h"
 

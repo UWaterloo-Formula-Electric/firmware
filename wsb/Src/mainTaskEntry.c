@@ -4,7 +4,7 @@
 #include "stdbool.h"
 
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "userCan.h"
 #include "watchdog.h"
 

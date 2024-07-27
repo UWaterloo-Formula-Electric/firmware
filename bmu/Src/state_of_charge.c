@@ -2,7 +2,7 @@
 #include "ltc_chip.h"
 #include "state_of_charge_data.h"
 #include "batteries.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "watchdog.h"
 
 #define SOC_TASK_PERIOD 200 

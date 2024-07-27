@@ -15,7 +15,7 @@
 #include "watchdog.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "userCan.h"
 #ifndef DISABLE_CAN_FEATURES
 #include "canHeartbeat.h"

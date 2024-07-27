@@ -5,7 +5,7 @@
 #include "state_machine.h"
 #include "controlStateMachine.h"
 #include "FreeRTOS_CLI.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "adc.h"
 #include <stdbool.h>
 #include "pdu_can.h"

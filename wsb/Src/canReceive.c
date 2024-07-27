@@ -1,6 +1,6 @@
 #include "boardTypes.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #if BOARD_ID  == ID_WSBFL
 	#include "wsbfl_can.h"
 #elif BOARD_ID  == ID_WSBFR

@@ -3,7 +3,7 @@
 #include "temperature.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "mcp3425.h"
 
 I2C_HandleTypeDef *cell_i2c_hdr = &hi2c1;

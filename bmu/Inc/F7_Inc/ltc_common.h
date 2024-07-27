@@ -1,6 +1,6 @@
 #ifndef LTC_COMMON_H
 #define LTC_COMMON_H
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "ltc_chip.h"

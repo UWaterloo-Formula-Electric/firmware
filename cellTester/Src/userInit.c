@@ -12,7 +12,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "fetControl.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,

@@ -11,7 +11,7 @@
 #include "task.h"
 
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 #define MAIN_TASK_PERIOD 1000
 

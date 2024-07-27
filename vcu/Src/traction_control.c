@@ -2,7 +2,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include "watchdog.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "motorController.h"
 #include "vcu_F7_can.h"
 #include "math.h"

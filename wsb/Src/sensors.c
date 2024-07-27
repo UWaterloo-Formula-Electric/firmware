@@ -5,7 +5,7 @@
 #include "bsp.h"
 #include "stm32f0xx_hal_tim.h"
 #include "watchdog.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "userCan.h"
 #include "stdbool.h"
 

@@ -1,7 +1,7 @@
 #include "fake_debug.h"
 #include "stddef.h"
 #include "queue.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 
 QueueHandle_t printQueue;
 QueueHandle_t uartRxQueue;

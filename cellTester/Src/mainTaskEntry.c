@@ -11,7 +11,7 @@
 
 #include "FreeRTOS.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "fetControl.h"
 #include "task.h"
 #include "uartRXTask.h"

@@ -2,7 +2,7 @@
 
 #include "userCan.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "boardTypes.h"
 
 #include "FreeRTOS.h"

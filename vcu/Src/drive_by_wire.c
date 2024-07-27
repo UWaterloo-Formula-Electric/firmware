@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "state_machine.h"
 #include "timers.h"
 #include "vcu_F7_dtc.h"

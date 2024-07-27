@@ -2,7 +2,7 @@
 #include "task.h"
 
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "controlStateMachine.h"
 #include "userCan.h"
 #include "controlStateMachine_mock.h"

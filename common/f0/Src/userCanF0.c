@@ -8,7 +8,7 @@
 #include <string.h>
 #include AUTOGEN_HEADER_NAME(BOARD_NAME)
 #include "can.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "bsp.h"
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)

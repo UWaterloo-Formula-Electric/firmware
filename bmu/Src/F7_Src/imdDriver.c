@@ -14,7 +14,7 @@
 
 #include "imdDriver.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "bmu_dtc.h"
 #include "state_machine.h"
 #include "controlStateMachine.h"

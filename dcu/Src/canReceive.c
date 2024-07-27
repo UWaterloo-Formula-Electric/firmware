@@ -12,7 +12,7 @@
 
 #include "userCan.h"
 #include "bsp.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "controlStateMachine.h"
 
 #include "dcu_can.h"

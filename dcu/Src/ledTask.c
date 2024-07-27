@@ -16,7 +16,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "debug.h"
+#include "uwfe_debug.h"
 #include "controlStateMachine.h"
 
 #define DEFAULT_LED_BLINK_PERIOD_MS 500
