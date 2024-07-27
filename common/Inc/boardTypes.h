@@ -63,6 +63,13 @@ extern const BoardTypes_t boardType;
      (ID) == ID_WSBRL || \
      (ID) == ID_WSBRR)
 
+#define NO_ERROR_LED_GROUP(ID) \
+    ((ID) == ID_WSBFL || \
+     (ID) == ID_WSBFR || \
+     (ID) == ID_WSBRL || \
+     (ID) == ID_WSBRR || \
+     (ID) == ID_TCU)
+
 typedef uint32_t BoardIDs;
 
 #endif // __BOARD_TYPES_H

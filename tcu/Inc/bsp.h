@@ -11,6 +11,7 @@
 #include "stm32f4xx_hal.h"
 
 #define CAN_HANDLE hcan1
+#define DEBUG_UART_HANDLE huart1
 
 #else
 
