@@ -843,10 +843,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
       }
       break;
     }
-  default:
-    {
-       break;
-    }
   }
   return frequency;
 }
@@ -1256,10 +1252,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
         }
       }
       break;
-    }
-  default:
-    {
-       break;
     }
   }
   return frequency;
@@ -1918,10 +1910,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
       }
       break;
     }
-  default:
-    {
-       break;
-    }
   }
   return frequency;
 }
@@ -2151,10 +2139,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
         }
       }
       break;
-    }
-  default:
-    {
-       break;
     }
   }
   return frequency;
@@ -2507,10 +2491,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
       }
       break;
     }
-  default:
-    {
-       break;
-    }
   }
   return frequency;
 }
@@ -2764,10 +2744,6 @@ uint32_t HAL_RCCEx_GetPeriphCLKFreq(uint32_t PeriphClk)
         }
       }
       break;
-    }
-  default:
-    {
-       break;
     }
   }
   return frequency;

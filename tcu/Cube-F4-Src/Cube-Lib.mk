@@ -80,7 +80,6 @@ Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
-Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
 Middlewares/Third_Party/LwIP/src/netif/ppp/auth.c \
 Middlewares/Third_Party/LwIP/src/netif/ppp/ccp.c \
@@ -164,7 +163,9 @@ Middlewares/Third_Party/LwIP/src/core/ipv6/nd6.c \
 Middlewares/Third_Party/LwIP/system/OS/sys_arch.c \
 Middlewares/Third_Party/LwIP/src/apps/mqtt/mqtt.c \
 Src/sysmem.c \
-Src/syscalls.c  
+Src/syscalls.c \
+Drivers/BSP/Components/dp83848/dp83848.c \
+Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_1.c 
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
@@ -231,7 +232,8 @@ Middlewares/Third_Party/LwIP/src/include/compat/posix/net \
 Middlewares/Third_Party/LwIP/src/include/compat/posix/sys \
 Middlewares/Third_Party/LwIP/src/include/compat/stdc \
 Middlewares/Third_Party/LwIP/system/arch \
-Drivers/CMSIS/Include
+Drivers/CMSIS/Include \
+Drivers/BSP/Components/dp83848
 
 LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
 
