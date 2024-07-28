@@ -33,7 +33,6 @@
 /* Exported functions ------------------------------------------------------- */
 err_t ethernetif_init(struct netif *netif);
 
-static void ethernetif_input(void const * argument);
 void ethernet_link_thread(void const * argument);
 
 void Error_Handler(void);
