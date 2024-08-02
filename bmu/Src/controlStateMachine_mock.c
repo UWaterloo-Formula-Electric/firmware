@@ -466,6 +466,7 @@ BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(idxParam, "%u", &contState);
+    COMMAND_OUTPUT("%s Pos Contactor\r\n", contState?"closing":"opening");
     switch (contState)
     {
         case 0:
@@ -501,6 +502,7 @@ BaseType_t setNegCont(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(idxParam, "%u", &contState);
+    COMMAND_OUTPUT("%s Neg Contactor\r\n", contState?"closing":"opening");
     switch (contState)
     {
         case 0:
@@ -536,6 +538,7 @@ BaseType_t setPCDC(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(idxParam, "%u", &contState);
+    COMMAND_OUTPUT("%s PCDC Contactor\r\n", contState?"closing":"opening");
     switch (contState)
     {
         case 0:

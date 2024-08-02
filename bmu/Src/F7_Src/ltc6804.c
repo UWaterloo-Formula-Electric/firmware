@@ -167,6 +167,15 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
 			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
+			if(first_byte == RDCFG_BYTE0) {
+				DEBUG_PRINT("***AMS CONFIG ERROR***\r\n");
+				DEBUG_PRINT("Config data: ");
+				for (int i = 0; i < BUFF_SIZE; i++){
+					DEBUG_PRINT("%x ", rxBuffer[i]);
+				}
+				DEBUG_PRINT("\r\n");
+			}
+			
 			PEC_count++;
 			return HAL_ERROR;
 		}
