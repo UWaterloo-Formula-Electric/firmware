@@ -732,7 +732,9 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // We have 2 basically confidence measurements
       // We have an adjusted cell measurement which probably overestimates the cell voltage a little at high current
       // We have our standard cell measurement which probably underestimates the cell voltage a little at high current
-      measure_high = AdjustedVoltageCell[i];
+      // WARNING: this is only temporarily inplace so we can charge we should not run like this
+      // measure_high = AdjustedVoltageCell[i];
+      measure_high = VoltageCell[i];
       measure_low = VoltageCell[i];
 
       // Check it is within bounds
@@ -1263,7 +1265,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
-                    float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
+                    //we should be checking adjusted cell voltage but because it's not working due to bad Ibus we will use raw cell voltage
+                    float cellSOC = getSOCFromVoltage(VoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
