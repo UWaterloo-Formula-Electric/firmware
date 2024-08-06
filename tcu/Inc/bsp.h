@@ -4,6 +4,7 @@
 #include "boardTypes.h"
 #include "main.h"
 #include "can.h"
+#include "iwdg.h"
 #include <stdbool.h>
 #include "usart.h"
 
@@ -12,6 +13,7 @@
 
 #define CAN_HANDLE hcan1
 #define DEBUG_UART_HANDLE huart1
+#define IWDG_HANDLE hiwdg
 
 #else
 

@@ -32,8 +32,8 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Precharge process failed during step #data
 32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Discharge process failed during step #data
 33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,IMD detected a fault. Value is of enum IMDStatus in imdDriver.h
-34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",taskid,"Watchdog: taskid #data missed check in, resetting with watchdog"
-35,WatchdogReset,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,Watchdog reset occurred
+34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7,DCU,ChargeCart,TCU,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,TCU,WSBFL,WSBFR,WSBRL,WSBRR",taskid,"Watchdog: taskid #data missed check in, resetting with watchdog"
+35,WatchdogReset,"BMU,PDU,VCU_F7,DCU,ChargeCart,TCU,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,TCU,WSBFL,WSBFR,WSBRL,WSBRR",NA,Watchdog reset occurred
 36,DCU_MissedHeartbeat,"BMU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
 37,BMU_MissedHeartbeat,"DCU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,BMU heartbeat timeout
 38,PDU_MissedHeartbeat,"BMU,DCU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,PDU heartbeat timeout

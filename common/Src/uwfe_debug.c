@@ -187,7 +187,7 @@ static const CLI_Command_Definition_t heapCommandDefinition =
 BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-#if !BOARD_IS_WSB(BOARD_ID)
+#if !NO_ERROR_LED_GROUP(BOARD_ID)
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
@@ -201,7 +201,7 @@ BaseType_t generalHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
-    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+    COMMAND_OUTPUT("WSB and TCU don't have a heartbeat\n");
 #endif
 
     return pdFALSE;
@@ -218,7 +218,7 @@ static const CLI_Command_Definition_t generalHeartbeatCommandDefinition =
 BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-#if !BOARD_IS_WSB(BOARD_ID)
+#if !NO_ERROR_LED_GROUP(BOARD_ID)
     BaseType_t paramLen;
     const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
 
@@ -250,7 +250,7 @@ BaseType_t boardHeartbeatCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Unknown parameter\n");
     }
 #else
-    COMMAND_OUTPUT("WSB don't have a heartbeat\n");
+    COMMAND_OUTPUT("WSB and TCU don't have a heartbeat\n");
 #endif
 
     return pdFALSE;
@@ -267,10 +267,10 @@ static const CLI_Command_Definition_t boardHeartbeatCommandDefinition =
 BaseType_t boardHeartbeatInfoCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-#if !BOARD_IS_WSB(BOARD_ID)
+#if !NO_ERROR_LED_GROUP(BOARD_ID)
     printHeartbeatStatus();
 #else 
-	COMMAND_OUTPUT("WSB does not have support for reading heartbeats");
+	COMMAND_OUTPUT("WSB and TCU do not have support for reading heartbeats");
 #endif
     return pdFALSE;
 }

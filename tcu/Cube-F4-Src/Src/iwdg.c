@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    can.h
-  * @brief   This file contains all the function prototypes for
-  *          the can.c file
+  * @file    iwdg.c
+  * @brief   This file provides code for the configuration
+  *          of the IWDG instances.
   ******************************************************************************
   * @attention
   *
@@ -17,39 +17,39 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __CAN_H__
-#define __CAN_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "iwdg.h"
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-extern CAN_HandleTypeDef hcan1;
+IWDG_HandleTypeDef hiwdg;
 
-extern CAN_HandleTypeDef hcan2;
+/* IWDG init function */
+void MX_IWDG_Init(void)
+{
 
-/* USER CODE BEGIN Private defines */
+  /* USER CODE BEGIN IWDG_Init 0 */
 
-/* USER CODE END Private defines */
+  /* USER CODE END IWDG_Init 0 */
 
-void MX_CAN1_Init(void);
-void MX_CAN2_Init(void);
+  /* USER CODE BEGIN IWDG_Init 1 */
 
-/* USER CODE BEGIN Prototypes */
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Reload = 160;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
 
-/* USER CODE END Prototypes */
+  /* USER CODE END IWDG_Init 2 */
 
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* __CAN_H__ */
+/* USER CODE BEGIN 1 */
 
+/* USER CODE END 1 */

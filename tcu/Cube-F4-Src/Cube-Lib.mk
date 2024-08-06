@@ -165,7 +165,9 @@ Middlewares/Third_Party/LwIP/src/apps/mqtt/mqtt.c \
 Src/sysmem.c \
 Src/syscalls.c \
 Drivers/BSP/Components/dp83848/dp83848.c \
-Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_1.c 
+Src/iwdg.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c \
+Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
