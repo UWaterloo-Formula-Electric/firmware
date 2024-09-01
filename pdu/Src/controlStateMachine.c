@@ -65,13 +65,14 @@ uint32_t cycleMC(uint32_t event)
     }
 
     uint32_t current_state = fsmGetState(&mainFsmHandle);
-    if (current_state == STATE_Motors_On) {
-        MC_DISABLE;
-        vTaskDelay(pdMS_TO_TICKS(50));
-        MC_ENABLE;
-        resetting = 0U;
-        return STATE_Motors_On;
-    }
+    // if (current_state == STATE_Motors_On) {
+    //     MC_DISABLE;
+    //     vTaskDelay(pdMS_TO_TICKS(50));
+    //     MC_ENABLE;
+    //     resetting = 0U;
+    //     return STATE_Motors_On;
+    // }
+    resetting = 0U;         // Todo: proper fix later
     return current_state;
 }
 

@@ -26,12 +26,23 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
 // Macros for converting RPM to KPH
-#define GEAR_RATIO ((float)(12.0/45.0))
-#define M_TO_KM 1.0/1000.0f
-#define WHEEL_DIAMETER_M 0.525
-#define WHEEL_CIRCUMFERENCE WHEEL_DIAMETER_M*PI
-#define SECS_PER_HOUR (3600.0f)
-#define RADS_TO_KPH(rads) ((rads) * (WHEEL_DIAMETER_M/2.0) * SECS_PER_HOUR * M_TO_KM)
+// Old
+// #define GEAR_RATIO ((float)(12.0/45.0))
+// #define M_TO_KM 1.0/1000.0f
+// #define WHEEL_DIAMETER_M 0.525
+// #define WHEEL_CIRCUMFERENCE WHEEL_DIAMETER_M*PI
+// #define SECS_PER_HOUR (3600.0f)
+// #define RADS_TO_KPH(rads) ((rads) * (WHEEL_DIAMETER_M/2.0) * SECS_PER_HOUR * M_TO_KM)
+
+// New
+#define WHEEL_DIAMETER_M 			((float)(16.0 * 2.54 / 100.0))		// 0.4064
+#define GEAR_RATIO_MOT_TO_WHEEL 	3.75f
+#define WHEEL_CIRCUMFRENCE  		(WHEEL_DIAMETER_M * PI)		// 1.276
+#define M_TO_KM						1000.0f
+#define MIN_PER_HR 					60.0f
+
+#define RPM_TO_KPH		 			(WHEEL_CIRCUMFRENCE / GEAR_RATIO_MOT_TO_WHEEL) / M_TO_KM * MIN_PER_HR 
+
 #define TC_kP_DEFAULT (10.0f)
 #define TC_kI_DEFAULT (0.0f)
 #define TC_kD_DEFAULT (0.0f)
@@ -77,7 +88,7 @@ void toggle_TC(void)
 {
 	tc_on = !tc_on;
 }
-
+/*
 static float get_FR_speed()
 {
 	//Value comes from WSB
@@ -101,6 +112,34 @@ static float get_RL_speed()
 	//Value comes from MC
 	return INV_Motor_Speed * GEAR_RATIO; // in rpm
 }
+*/
+
+/* 
+ * Temporary solution for speed in KPH until encoders are re-implemented
+ */
+static float get_FR_speed()
+{
+	//Value comes from WSB
+	return INV_Motor_Speed; // in RPM
+}
+
+static float get_FL_speed()
+{
+	//Value comes from WSB
+	return INV_Motor_Speed; // in RPM
+}
+
+static float get_RR_speed()
+{
+	//Value comes from MC
+	return INV_Motor_Speed; // in rpm
+}
+
+static float get_RL_speed()
+{
+	//Value comes from MC
+	return INV_Motor_Speed; // in rpm
+}
 
 static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 {	
@@ -114,10 +153,15 @@ static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	sendCAN_RearWheelSpeedRADS();
 	vTaskDelay(2); // Added to prevent CAN mailbox full
 
-	FLSpeedKPH = RADS_TO_KPH(wheel_data->FL);
-	FRSpeedKPH = RADS_TO_KPH(wheel_data->FR);
-	RLSpeedKPH = RADS_TO_KPH(wheel_data->RL);
-	RRSpeedKPH = RADS_TO_KPH(wheel_data->RR);
+	// FLSpeedKPH = RADS_TO_KPH(wheel_data->FL);
+	// FRSpeedKPH = RADS_TO_KPH(wheel_data->FR);
+	// RLSpeedKPH = RADS_TO_KPH(wheel_data->RL);
+	// RRSpeedKPH = RADS_TO_KPH(wheel_data->RR);
+	FLSpeedKPH = INV_Motor_Speed * RPM_TO_KPH;
+	FRSpeedKPH = INV_Motor_Speed * RPM_TO_KPH;
+	RLSpeedKPH = INV_Motor_Speed * RPM_TO_KPH;
+	RRSpeedKPH = INV_Motor_Speed * RPM_TO_KPH;
+
 	sendCAN_WheelSpeedKPH();
 	vTaskDelay(2); // Added to prevent CAN mailbox full
 
@@ -220,7 +264,7 @@ void tractionControlTask(void *pvParameters)
 
 	while(1)
 	{
-		// rpm
+		// RPM
 		wheel_data.FL = get_FL_speed(); 
 		wheel_data.FR = get_FR_speed(); 
 		wheel_data.RL = get_RL_speed(); 
