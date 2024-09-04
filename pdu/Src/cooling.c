@@ -25,6 +25,7 @@ void coolingOff(void) {
     PUMP_RIGHT_DISABLE;
     FAN_LEFT_DISABLE;
     FAN_RIGHT_DISABLE;
+    MC_RIGHT_DISABLE;   // Accumulator fans
 }
 
 void coolingOn(void) {
@@ -33,6 +34,7 @@ void coolingOn(void) {
     PUMP_RIGHT_ENABLE;
     FAN_LEFT_ENABLE;
     FAN_RIGHT_ENABLE;
+    MC_RIGHT_ENABLE;    // Accumulator fans
 }
 
 bool inverterOverheated(void)

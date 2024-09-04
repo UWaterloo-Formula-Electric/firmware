@@ -19,6 +19,7 @@
 #include "bmu_can.h"
 #include "controlStateMachine.h"
 #include "testData.h"
+#include "fanControl.h"
 #include "filters.h"
 #include "sense.h"
 #include "chargerControl.h"
@@ -1046,7 +1047,27 @@ static const CLI_Command_Definition_t setCellIRCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t setAccFanDutyCycle(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
+    unsigned int  dutyCycle;
+    sscanf(param, "%u", &dutyCycle);
+    COMMAND_OUTPUT("Setting Accumulator fans duty cycle: %u\n", dutyCycle);
+
+    setFanDutyCycle(dutyCycle);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t accFanCommandDefinition =
+{
+    "setAccFanDC",
+    "setAccFanDC [0, 100]:\r\n Set fan duty cycle to val\r\n",
+    setAccFanDutyCycle,
+    1 /* Number of parameters */
+};
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -1195,7 +1216,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&setCellIRCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&accFanCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }

@@ -28,18 +28,25 @@
 
 uint32_t calculateFanPeriod()
 {
-  // PWM Output is inverted from what we generate from PROC
+  /* 
+   * Duty = 0 (0% duty cycle) will cause the fans to run at low speed. 
+   * Duty = 400 (100% duty cycle) is max speed.
+   * If PWM signal is disconnected, the fans will run at max speed.
+   * Note: This doesn't match the expected behavior in the datasheet
+   * See: https://publish.sanyodenki.com/San_Ace_E/book/#target/page_no=79
+   */
+
   // Full fan while charging
   if (fsmGetState(&fsmHandle) == STATE_Charging || fsmGetState(&fsmHandle) == STATE_Balancing) {
     /*DEBUG_PRINT("Charging fans\n");*/
-    return FAN_PERIOD_COUNT - FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
+    return FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT;
   }
 
   if (TempCellMax < FAN_OFF_TEMP) {
-    return FAN_PERIOD_COUNT;
+    return 0;   // 0% duty cycle (this won't turn off the fans completely)
   }
 
-  return FAN_PERIOD_COUNT - map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
+  return map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
                       FAN_PERIOD_COUNT*FAN_ON_DUTY_PERCENT,
                       FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT);
 }
@@ -65,6 +72,20 @@ HAL_StatusTypeDef setFan()
   
   FanPeriod = duty;
   sendCAN_BMU_FanPeriod();
+
+  return HAL_OK;
+}
+
+/* For manual control. Used in a CLI command. */
+HAL_StatusTypeDef setFanDutyCycle(uint8_t DC)
+{
+  uint16_t duty = map_range_float(DC, 0, 100, 0, FAN_PERIOD_COUNT);
+
+  __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
+  
+  FanPeriod = duty;
+  sendCAN_BMU_FanPeriod();
+
   return HAL_OK;
 }
 

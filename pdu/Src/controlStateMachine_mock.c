@@ -310,28 +310,44 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(selectionParam, "%u", &selection);
-    if (selection & 0x1)
-	{
-		FAN_RIGHT_ENABLE;
-	}
-	else
-	{
-		FAN_RIGHT_DISABLE;
-	}
-	if (selection & 0x2)
-	{
-		FAN_LEFT_ENABLE;
-	}
-	else
-	{
-		FAN_LEFT_DISABLE;
-	}
+
+    switch (selection)
+    {
+        case 0:
+            DEBUG_PRINT("Turning all fans off!\r\n");
+            FAN_RIGHT_DISABLE;
+            FAN_LEFT_DISABLE;
+            MC_RIGHT_DISABLE;
+            break;
+        case 1:
+            DEBUG_PRINT("Turning right fan on!\r\n");
+            FAN_RIGHT_ENABLE;
+            break;
+        case 2:
+            DEBUG_PRINT("Turning right fan on!\r\n");
+            FAN_LEFT_ENABLE;
+            break;
+        case 3:
+            DEBUG_PRINT("Turning accumulator fans on!\r\n");
+            MC_RIGHT_ENABLE;    // fans use MC_RIGHT
+            break;
+        case 4:
+            DEBUG_PRINT("Turning all fans on!\r\n");
+            FAN_LEFT_ENABLE;
+            FAN_RIGHT_ENABLE;
+            MC_RIGHT_ENABLE;
+            break;
+        default:
+            DEBUG_PRINT("Error: reached default case in controlFans!\r\n");
+            break;
+    }
+
     return pdFALSE;
 }
 static const CLI_Command_Definition_t controlFansCommandDefinition =
 {
     "controlFans",
-    "controlFans <0|1|2|3>:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
+    "controlFans <0|1|2|3|4>:\r\n  Controls the power to the fans\r\n 0: All off, 1: Right On, 2: Left On, 3: ACC_Fans on, 4: All on\r\n",
     controlFans,
     1 /* Number of parameters */
 };
