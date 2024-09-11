@@ -18,6 +18,7 @@ void StartRotaryEncoderTask(void const * argument);
 #define CMD_SET_ZERO_POINT 0x70
 #define CMD_TIMEOUT pdMS_TO_TICKS(100)
 
+// TODO: This is already defined in common.h, use the one from common.h (happens in all 2024_wsb/Src files)
 //redirect printf to uart
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)

@@ -26,6 +26,8 @@ return ch;
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+	// TODO: THIS IS BAD, this should go inside the 2024_wsb\Cube-F4-Src\Src\stm32f4xx_it.c
+	// 		 Additionally the GPIO_PIN_2 should be defined in the 2024_wsb\Cube-F4-Src\Inc\bsp.h with a clear name
   if(GPIO_Pin == GPIO_PIN_2) {
     ++counter;
   } else {
