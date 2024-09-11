@@ -17,10 +17,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v1
 
       - name: Install dependencies
         run: pip install -r common/requirements.txt
+
+      - name: Add safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Build all firmware code
         run: make all
