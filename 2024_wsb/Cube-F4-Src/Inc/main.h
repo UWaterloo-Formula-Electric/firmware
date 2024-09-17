@@ -65,8 +65,8 @@ void Error_Handler(void);
 #define DP83848CVV_nRESET_GPIO_Port GPIOC
 #define SENSOR3_ANALOG_IN_Pin GPIO_PIN_0
 #define SENSOR3_ANALOG_IN_GPIO_Port GPIOC
-#define SENSOR1_ANALOG_IN_Pin GPIO_PIN_4
-#define SENSOR1_ANALOG_IN_GPIO_Port GPIOA
+#define BRAKE_IR_Pin GPIO_PIN_4
+#define BRAKE_IR_GPIO_Port GPIOA
 #define DP83848CVV_RX_ER_Pin GPIO_PIN_5
 #define DP83848CVV_RX_ER_GPIO_Port GPIOA
 #define SENSOR2_ANALOG_IN_Pin GPIO_PIN_6
@@ -89,6 +89,7 @@ void Error_Handler(void);
 #define SPI1_CS1_GPIO_Port GPIOB
 #define SPI1_CS2_Pin GPIO_PIN_7
 #define SPI1_CS2_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
