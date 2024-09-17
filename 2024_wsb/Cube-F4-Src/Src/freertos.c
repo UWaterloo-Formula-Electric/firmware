@@ -22,7 +22,6 @@
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
-#include <stdint.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -67,7 +66,7 @@ extern void BrakeIRTask(void const * argument);
 extern void StartHallEffectSensorTask(void const * argument);
 extern void StartWaterflowTempSensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
-// extern void mainTaskFunction(void const * argument);
+extern void mainTaskFunction(void const * argument);
 
 extern void MX_USB_HOST_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -167,8 +166,8 @@ void MX_FREERTOS_Init(void) {
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* definition and creation of mainTask */
-  // osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
-  // mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -186,7 +185,7 @@ void MX_FREERTOS_Init(void) {
 __weak void StartDefaultTask(void const * argument)
 {
   /* init code for USB_HOST */
-  // MX_USB_HOST_Init();
+  MX_USB_HOST_Init();
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)

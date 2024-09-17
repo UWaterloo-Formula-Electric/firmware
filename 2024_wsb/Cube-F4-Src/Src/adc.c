@@ -98,7 +98,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(SENSOR3_ANALOG_IN_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = SENSOR1_ANALOG_IN_Pin|SENSOR2_ANALOG_IN_Pin;
+    GPIO_InitStruct.Pin = BRAKE_IR_Pin|SENSOR2_ANALOG_IN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -130,7 +130,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     */
     HAL_GPIO_DeInit(SENSOR3_ANALOG_IN_GPIO_Port, SENSOR3_ANALOG_IN_Pin);
 
-    HAL_GPIO_DeInit(GPIOA, SENSOR1_ANALOG_IN_Pin|SENSOR2_ANALOG_IN_Pin);
+    HAL_GPIO_DeInit(GPIOA, BRAKE_IR_Pin|SENSOR2_ANALOG_IN_Pin);
 
     /* ADC1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(ADC_IRQn);
