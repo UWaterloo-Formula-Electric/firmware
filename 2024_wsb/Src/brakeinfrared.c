@@ -1,41 +1,32 @@
-#include "main.h"
-#include "cmsis_os.h"
 #include <stdio.h>
 #include <string.h>
 
-ADC_HandleTypeDef hadc;
-UART_HandleTypeDef huart2;
+#include "cmsis_os.h"
+#include "debug.h"
+#include "main.h"
+#include "bsp.h"
+#include "task.h"
 
-void BrakeIRTask(void const * argument);
+#define BRAKE_IR_TASK_PERIOD 1000
 
-void BrakeIRTask(void const * argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  uint16_t raw;
-  float voltage;
-  float temp;
-  char msg_temp[30];
-  char msg_voltage[30];
-  HAL_ADC_Start(&hadc);
-  
-  /* Infinite loop */
-  for(;;)
-  {
-    HAL_ADC_Start(&hadc);
-    HAL_ADC_PollForConversion(&hadc, HAL_MAX_DELAY);
-    raw = HAL_ADC_GetValue(&hadc);
-    
-    voltage = ((float) raw) / (4095.0f) * 3.3;
-    temp = ((voltage / 3) * 450) - 70;
-        
-    sprintf(msg_voltage, "Voltage: %f\r\n", voltage);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg_voltage, strlen(msg_voltage), HAL_MAX_DELAY);
-    
-    sprintf(msg_temp, "Temp: %.2f\r\n", temp);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg_temp, strlen(msg_temp), HAL_MAX_DELAY);
-    
-    osDelay(300);
-  }
-  /* USER CODE END 5 */
+
+void BrakeIRTask(void const* argument) {
+    uint16_t raw;
+    float voltage;
+    float temp;
+    HAL_ADC_Start(&MULTISENSOR_ADC_HANDLE);
+
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    while (1) {
+        HAL_ADC_Start(&MULTISENSOR_ADC_HANDLE);
+        HAL_ADC_PollForConversion(&MULTISENSOR_ADC_HANDLE, HAL_MAX_DELAY);
+        raw = HAL_ADC_GetValue(&MULTISENSOR_ADC_HANDLE);
+
+        voltage = ((float)raw) / (4095.0f) * 3.3;
+        temp = ((voltage / 3) * 450) - 70;
+
+        DEBUG_PRINT("Voltage: %f\r\n", voltage);
+        DEBUG_PRINT("Temp: %.2f\r\n", temp);
+        vTaskDelayUntil(&xLastWakeTime, BRAKE_IR_TASK_PERIOD);
+    }
 }
