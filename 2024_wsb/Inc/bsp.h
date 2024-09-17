@@ -6,6 +6,7 @@
 #include "boardTypes.h"
 #include "main.h"
 #include "can.h"
+#include "adc.h"
 // #include "tim.h"     // TODO: I presume we will need timers for WSB
 #include "usart.h"
 #include "stdbool.h"
@@ -21,6 +22,7 @@
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan1
 #define IWDG_HANDLE hiwdg
+#define MULTISENSOR_ADC_HANDLE hadc1
 // #define STATS_TIM_HANDLE htim2
 // #define ENCODER_TIM_HANDLE htim3
 
