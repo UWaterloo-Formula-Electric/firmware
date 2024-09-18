@@ -4,7 +4,7 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 
 # Onboarding Instructions
 
-- [OpenProject Access](#open-project)
+- [Notion Access](#notion)
 - [SSH Key](#ssh-key-set-up)
 - [Vagrant (Windows Only)](#Vagrant-Environment-Set-Up-for-Windows-Users)
 - [Mac OS](#mac-os-set-up)
@@ -12,13 +12,12 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 - [Other Resources](#other-resources)
 - [FAQ](#FAQ)
 
-# Open Project
+# Notion
 
-We use Open Project for task management. Steps to get set up:
+We use Notion for task management and documentation. Steps to get set up:
 
-1. Visit http://owenbrake.com/pm
-2. Create an account with your school email
-3. Message your email in the new-members thread under #firmware on Slack, and a lead will add you to the project
+1. Create a Notion account with your school email
+2. Fill out this [form](https://forms.gle/Mz7rk66djoDZY9Fv9) and we will invite you to the team's Notion workspace
 
 # SSH Key Set Up
 
