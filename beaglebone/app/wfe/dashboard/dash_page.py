@@ -24,7 +24,7 @@ class DashPage(Page):
         self.charge_bar = tk.Frame(_holder_frame, height=_charge_bar_height, width=0)
         self.charge_bar.place(x=0, y=0, anchor=tk.NW)
 
-        ### Temps ###
+        ### Temps ### Change colors here ->
         self.temp_cell_text = self._create_cell("#7125BD", "Max Cell Temp", row=1, col=0)
         self.temp_water_text = self._create_cell("#0C15EA", "Max Inv Temp", row=2, col=0)
         self.temp_inv_text = self._create_cell("#BA007B", "Max Water Temp", row=3, col=0)
@@ -56,6 +56,33 @@ class DashPage(Page):
         self.update_battery_charge(0)
 
         self._is_flash_enabled = False
+
+        self.temp_targets = {
+            "cell": {"target": 35, "range": 15},
+            "water": {"target": 60, "range": 20},
+            "inv": {"target": 50, "range": 25},
+            "motor": {"target": 70, "range": 40}
+        }
+        
+    def _calculate_temp_colour(self, temp, sensor_type):
+        if temp is None:
+            return "#808080"  # Grey for N/A
+        
+        target = self.temp_targets[sensor_type]["target"]
+        temp_range = self.temp_targets[sensor_type]["range"]
+        
+        diff = temp - target
+        if diff <= 0:
+            return "#00FF00"  # Green for cold or at target
+        
+        if diff > temp_range:
+            return "#FF0000"  # Red for very hot
+        
+        # Calculate gradient from green to red
+        ratio = diff / temp_range
+        r = int(255 * ratio)
+        g = int(255 * (1 - ratio * 0.5))  # Slower transition by multiplying ratio by 0.5
+        return f"#{r:02x}{g:02x}00"
 
     def _create_cell_frame(self, bg, row, col, sticky=tk.NSEW) -> tk.Frame:
         cell_frame = tk.Frame(self, bg=bg, height=74, highlightthickness=1, relief=tk.GROOVE)
@@ -133,12 +160,30 @@ class DashPage(Page):
         self.update_battery_charge(soc_value)
         self.temp_cell_text.config(text='%.4s' % ('%.1f' % battery_temp) + '°C')
 
+        battery_colour = self._calculate_temp_colour(battery_temp, "cell")
+        cell_frame = self.temp_cell_text.master
+        cell_frame.config(bg=battery_colour)
+        for widget in cell_frame.winfo_children():
+            widget.config(bg=battery_colour)
+
     def updateMotorTemp(self, decoded_data: dict):
         motor_temp = decoded_data['INV_Motor_Temp']
         coolant_temp = decoded_data['INV_Coolant_Temp']
 
         self.temp_motor_text.config(text='%.4s' % ('%.1f' % motor_temp) + '°C')
         self.temp_water_text.config(text='%.4s' % ('%.1f' % coolant_temp) + '°C')
+
+        motor_colour = self._calculate_temp_colour(motor_temp, "motor")
+        cell_frame = self.temp_cell_text.master
+        cell_frame.config(bg=motor_colour)
+        for widget in cell_frame.winfo_children():
+            widget.config(bg=motor_colour)
+        
+        water_colour = self._calculate_temp_colour(coolant_temp, "water")
+        cell_frame = self.temp_cell_text.master
+        cell_frame.config(bg=water_colour)
+        for widget in cell_frame.winfo_children():
+            widget.config(bg=water_colour)
 
     def updateInverterTemp(self, decoded_data: dict):
         inv_temp1 = decoded_data['INV_Module_A_Temp']
@@ -148,6 +193,12 @@ class DashPage(Page):
         max_inv_temp = max(float(inv_temp1), float(inv_temp2), float(inv_temp3))
 
         self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
+
+        inv_colour = self._calculate_temp_colour(max_inv_temp, "inv")
+        cell_frame = self.temp_cell_text.master
+        cell_frame.config(bg=inv_colour)
+        for widget in cell_frame.winfo_children():
+            widget.config(bg=inv_colour)
 
     def updateVBatt(self, decoded_data: dict):
         vbatt = decoded_data['AMS_PackVoltage']
