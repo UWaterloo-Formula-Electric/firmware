@@ -38,7 +38,7 @@ The repository we use is found [here](https://github.com/UWaterloo-Formula-Elect
 ### Prerequisites
 
 - Install the latest version of [Vagrant](https://developer.hashicorp.com/vagrant/downloads)
-- Install the latest version of [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+- Install 7.0.18 version of [VirtualBox](https://www.virtualbox.org/wiki/Download_Old_Builds_7_0). DON'T install the latest version, there are compatibility issues with Vagrant.
 - Install the matching [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads) to get USB data
   After installing the above, verify the Vagrant installation worked by opening a new command prompt or console, and checking that **vagrant** is available.
 
