@@ -1,22 +1,20 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
 #include "debug.h"
+#include "detectWSB.h"
 #include "main.h"
 #include "task.h"
 
 #define MAIN_TASK_PERIOD 1000
 
 void mainTaskFunction(void const* argument) {
-#if BOARD_ID == ID_WSBFL
-    char* boardName = "WSBFL";
-#elif BOARD_ID == ID_WSBFR
-    char* boardName = "WSBFR";
-#elif BOARD_ID == ID_WSBRL
-    char* boardName = "WSBRL";
-#elif BOARD_ID == ID_WSBRR
-    char* boardName = "WSBRR";
-#endif
-    DEBUG_PRINT("Starting up %s!!\n", boardName);
+    DEBUG_PRINT("Starting up main task for: ");
+    char boardName[10];
+    if (!getWSBBoardName(boardName, 10))
+        DEBUG_PRINT("Failed to get wsb board name\n");
+    else
+        DEBUG_PRINT("%s\n", boardName);
+
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1) {
