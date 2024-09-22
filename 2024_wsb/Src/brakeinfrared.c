@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "bsp.h"
 #include "cmsis_os.h"
 #include "debug.h"
+#include "detectWSB.h"
 #include "main.h"
-#include "bsp.h"
 #include "multiSensorADC.h"
 #include "task.h"
+#if BOARD_ID == ID_WSBFL
 #include "wsbfl_can.h"
-
+#elif BOARD_ID == ID_WSBRR
+#include "wsbrr_can.h"
+#endif
 #define BRAKE_IR_TASK_PERIOD 100
 #define BRAKE_IR_OUT_OF_RANGE_ACC 7
 
@@ -19,8 +23,7 @@ float getBrakeTemp() {
     return getBrakeIrVoltage() * 150. - 70.;
 }
 
-
-uint8_t getBrakeTempAccuracy(float brakeTemp){
+uint8_t getBrakeTempAccuracy(float brakeTemp) {
     // See: https://file.notion.so/f/f/25bbe0bc-a989-4d45-a15e-d6e7c3242dda/f3fbc280-65ef-4afd-8836-2f6c47c351b4/SEN0256-TS01Product_Specification.pdf?table=block&id=5f9b59d9-e026-4e77-abf6-b7f972a7eb6c&spaceId=25bbe0bc-a989-4d45-a15e-d6e7c3242dda&expirationTimestamp=1726704000000&signature=SXDx2oLR74KdCoo4glLvfc6aYe2JPzyO8JGLEZRlrjM&downloadName=%5BSEN0256-TS01%5DProduct+Specification.pdf
     // Assume the temperature of the IR sensor itself (not what it is measuring) is between 10C - 45C (see page 4)
     if (brakeTemp < -70 || brakeTemp > 380)
@@ -44,13 +47,32 @@ uint8_t getBrakeTempAccuracy(float brakeTemp){
 
 void BrakeIRTask(void const* argument) {
     DEBUG_PRINT("Starting BrakeIRTask\n");
+    WSBType_t wsbType = detectWSB();
+    if (wsbType != WSBFL || wsbType != WSBRR) {
+        DEBUG_PRINT("Invalid wsb: not WSBFL or WSBRR, deleting BrakeIRTask\n");
+        vTaskDelete(NULL);
+        return;
+    }
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
-        BrakeTemp = getBrakeTemp();
-        BrakeTempAccuracy = getBrakeTempAccuracy(BrakeTemp);
+#if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR
+        float brakeTemp = getBrakeTemp();
+        float brakeTempAccuracy = getBrakeTempAccuracy(brakeTemp);
+
+#if BOARD_ID == ID_WSBFL
+        BrakeTempFront = brakeTemp;
+        BrakeTempFrontAccuracy = brakeTempAccuracy;
         sendCAN_WSBFL_BrakeTemp();
-        DEBUG_PRINT("Temp: %.2f\r\n", getBrakeTemp());
+
+#elif BOARD_ID == ID_WSBRR
+        BrakeTempRear = brakeTemp;
+        BrakeTempRearAccuracy = brakeTempAccuracy;
+        sendCAN_WSBRR_BrakeTemp();
+#endif
+
+        DEBUG_PRINT("Temp: %.2f\r\n", brakeTemp);
+#endif
         vTaskDelayUntil(&xLastWakeTime, BRAKE_IR_TASK_PERIOD);
     }
 }
