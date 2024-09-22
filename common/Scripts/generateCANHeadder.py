@@ -63,18 +63,9 @@ def generateDependencyFile(depFile, dbFile, headerFile, nodeName, boardType, Scr
         fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=nodeName, boardType=boardType, dir=ScriptsDir), depFileHandle)
 
 def getGitCommit():
-    label = '0df2a9a'
-    gitClean = '0'
-
-    try:
-        if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
-            label = subprocess.check_output(["git", "describe" ,"--tags", "--always"]).strip()
-    except Exception:
-        pass
-
-    gitCommit = label
-
-    return gitCommit
+    short_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+    short_hash = str(short_hash, "utf-8").strip()
+    return short_hash
 
 def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName, isChargerDBC=False):
     templateData = {}
@@ -862,6 +853,7 @@ def test():
         "0xF0F1"
     ]
     writeSetupCanFilters("F7",messageGroups,sourceFile,headerFile)
+
 if __name__ == '__main__':
     main(sys.argv[1:])
     #test()
