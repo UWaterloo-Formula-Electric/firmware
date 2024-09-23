@@ -31,30 +31,18 @@ LIB_C_SOURCES =  \
 Src/adc.c \
 Src/can.c \
 Src/dma.c \
-Src/eth.c \
 Src/freertos.c \
 Src/gpio.c \
 Src/i2c.c \
 Src/iwdg.c \
 Src/main.c \
-Src/sdio.c \
 Src/spi.c \
 Src/usart.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_scsi.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_bot.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_ctlreq.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_ioreq.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_pipes.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c \
-Src/usb_host.c \
-Src/usbh_conf.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_eth.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
@@ -72,10 +60,6 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sd.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_sdmmc.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_hcd.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c \
 Src/system_stm32f4xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
@@ -127,8 +111,6 @@ LIB_AS_INCLUDES =  \
 # C includes
 LIB_C_INCLUDES =  \
 Inc \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc \
-Middlewares/ST/STM32_USB_Host_Library/Core/Inc \
 Drivers/STM32F4xx_HAL_Driver/Inc \
 Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
