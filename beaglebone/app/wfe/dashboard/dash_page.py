@@ -58,10 +58,10 @@ class DashPage(Page):
         self._is_flash_enabled = False
 
         self.temp_targets = {
-            "cell": {"target": 35, "range": 15},
-            "water": {"target": 60, "range": 20},
-            "inv": {"target": 50, "range": 25},
-            "motor": {"target": 70, "range": 40}
+            "cell": {"target": 25, "range": 30},
+            "water": {"target": 25, "range": 55},
+            "inv": {"target": 25, "range": 55},
+            "motor": {"target": 25, "range": 95}
         }
         
     def _calculate_temp_colour(self, temp, sensor_type):
