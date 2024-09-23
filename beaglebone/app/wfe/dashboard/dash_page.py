@@ -59,9 +59,9 @@ class DashPage(Page):
 
         self.temp_targets = {
             "cell": {"target": 25, "range": 30},
-            "water": {"target": 25, "range": 55},
+            "water": {"target": 25, "range": 35},
             "inv": {"target": 25, "range": 55},
-            "motor": {"target": 25, "range": 95}
+            "motor": {"target": 25, "range": 55}
         }
         
     def _calculate_temp_colour(self, temp, sensor_type):
@@ -73,16 +73,16 @@ class DashPage(Page):
         
         diff = temp - target
         if diff <= 0:
-            return "#00FF00"  # Green for cold or at target
+            return "#0000FF"  # Blue for cold or at target
         
         if diff > temp_range:
             return "#FF0000"  # Red for very hot
         
-        # Calculate gradient from green to red
+        # Calculate gradient from blue to red
         ratio = diff / temp_range
         r = int(255 * ratio)
-        g = int(255 * (1 - ratio * 0.5))  # Slower transition by multiplying ratio by 0.5
-        return f"#{r:02x}{g:02x}00"
+        b = int(255 * (1 - ratio * 0.5))  # Slower transition by multiplying ratio by 0.5
+        return f"#{r:02x}00{b:02x}"
 
     def _create_cell_frame(self, bg, row, col, sticky=tk.NSEW) -> tk.Frame:
         cell_frame = tk.Frame(self, bg=bg, height=74, highlightthickness=1, relief=tk.GROOVE)
