@@ -30,17 +30,17 @@ void userInit()
         Error_Handler();
     }
 
-    if (canInit(&CAN_HANDLE) != HAL_OK) {
-      Error_Handler();
-    }
+    // if (canInit(&CAN_HANDLE) != HAL_OK) {
+    //   Error_Handler();
+    // }
     
-    if (stateMachineMockInit() != HAL_OK) {
-      Error_Handler();
-    }
+    // if (stateMachineMockInit() != HAL_OK) {
+    //   Error_Handler();
+    // }
 
-    if (sensors_init() != HAL_OK) {
-      Error_Handler();
-    }
+    // if (sensors_init() != HAL_OK) {
+    //   Error_Handler();
+    // }
 
 
     printf("User init done\n");

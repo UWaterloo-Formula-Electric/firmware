@@ -22,3 +22,27 @@ void mainTaskFunction(void const* argument) {
         vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }
 }
+
+void StartRotaryEncoderTask(void const* arg) {
+    while (1) {
+        vTaskDelay(1000);
+    }
+}
+
+void BrakeIRTask(void const* arg) {
+    while (1) {
+        vTaskDelay(1000);
+    }
+}
+
+void StartHallEffectSensorTask(void const* arg) {
+    while (1) {
+        vTaskDelay(1000);
+    }
+}
+
+void StartWaterflowTempSensorTask(void const* arg) {
+    while (1) {
+        vTaskDelay(1000);
+    }
+}

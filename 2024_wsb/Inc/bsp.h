@@ -19,7 +19,7 @@
 #include "stm32f4xx_hal.h"
 
 // TODO: Set these to the right values (double check all these values)
-#define DEBUG_UART_HANDLE huart2
+#define DEBUG_UART_HANDLE huart1
 #define CAN_HANDLE hcan1
 #define IWDG_HANDLE hiwdg
 #define MULTISENSOR_ADC_HANDLE hadc1
