@@ -5,7 +5,7 @@
 #include "main.h"
 #include "task.h"
 
-#define MAIN_TASK_PERIOD 1000
+#define MAIN_TASK_PERIOD 100
 
 void mainTaskFunction(void const* argument) {
     DEBUG_PRINT("Starting up main task for: ");
@@ -18,31 +18,32 @@ void mainTaskFunction(void const* argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1) {
+        DEBUG_PRINT("Failed to get wsb board name\n");
         HAL_GPIO_TogglePin(FW_HEARTBEAT_GPIO_Port, FW_HEARTBEAT_Pin);
         vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }
 }
 
-void StartRotaryEncoderTask(void const* arg) {
+void RotaryEncoderTask(void const* arg) {
     while (1) {
-        vTaskDelay(1000);
+        vTaskDelay(10000);
     }
 }
 
 void BrakeIRTask(void const* arg) {
     while (1) {
-        vTaskDelay(1000);
+        vTaskDelay(10000);
     }
 }
 
-void StartHallEffectSensorTask(void const* arg) {
+void HallEffectSensorTask(void const* arg) {
     while (1) {
-        vTaskDelay(1000);
+        vTaskDelay(10000);
     }
 }
 
-void StartWaterflowTempSensorTask(void const* arg) {
+void WaterflowTempSensorTask(void const* arg) {
     while (1) {
-        vTaskDelay(1000);
+        vTaskDelay(10000);
     }
 }
