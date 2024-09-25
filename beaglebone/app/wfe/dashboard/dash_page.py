@@ -58,10 +58,10 @@ class DashPage(Page):
         self._is_flash_enabled = False
 
         self.temp_targets = {
-            "cell": {"target": 25, "range": 30, "max_temp": 50},
-            "water": {"target": 25, "range": 35, "max_temp": 55},
-            "inv": {"target": 25, "range": 55, "max_temp": 75},
-            "motor": {"target": 25, "range": 55, "max_temp": 75}
+            "cell": {"target": 25, "range": 30, "max_temp": 55},
+            "water": {"target": 25, "range": 35, "max_temp": 60},
+            "inv": {"target": 25, "range": 55, "max_temp": 80},
+            "motor": {"target": 25, "range": 55, "max_temp": 80}
         }
         
     def _calculate_temp_colour(self, temp, sensor_type):
@@ -87,7 +87,7 @@ class DashPage(Page):
     def _check_temp_warning(self, temp, sensor_type):
         max_temp = self.temp_targets[sensor_type]["max_temp"]
         if temp >= max_temp - 5:
-            warning_box = tk.Label(self, text="COOL THE CAR", font=("Helvetica", -50, "bold"), bg=self["bg"], fg="#FF0000", highlightbackground="#FF0000", highlightthickness=2)
+            warning_box = tk.Label(self, text="COOL THE CAR", font=("Helvetica", -40, "bold"), bg=self["bg"], fg="#FF0000", highlightbackground="#FF0000", highlightthickness=2)
             warning_box.place(relx=0.5, rely=0.63, anchor="center")
             self.after(2000, warning_box.destroy)
 
@@ -183,13 +183,13 @@ class DashPage(Page):
         self.temp_water_text.config(text='%.4s' % ('%.1f' % coolant_temp) + '°C')
 
         motor_colour = self._calculate_temp_colour(motor_temp, "motor")
-        cell_frame = self.temp_cell_text.master
+        cell_frame = self.temp_motor_text.master
         cell_frame.config(bg=motor_colour)
         for widget in cell_frame.winfo_children():
             widget.config(bg=motor_colour)
         
         water_colour = self._calculate_temp_colour(coolant_temp, "water")
-        cell_frame = self.temp_cell_text.master
+        cell_frame = self.temp_water_text.master
         cell_frame.config(bg=water_colour)
         for widget in cell_frame.winfo_children():
             widget.config(bg=water_colour)
@@ -207,7 +207,7 @@ class DashPage(Page):
         self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
 
         inv_colour = self._calculate_temp_colour(max_inv_temp, "inv")
-        cell_frame = self.temp_cell_text.master
+        cell_frame = self.temp_inv_text.master
         cell_frame.config(bg=inv_colour)
         for widget in cell_frame.winfo_children():
             widget.config(bg=inv_colour)
