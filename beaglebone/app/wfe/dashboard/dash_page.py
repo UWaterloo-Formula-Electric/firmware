@@ -26,8 +26,8 @@ class DashPage(Page):
 
         ### Temps ### Change colors here ->
         self.temp_cell_text = self._create_cell("#7125BD", "Max Cell Temp", row=1, col=0)
-        self.temp_water_text = self._create_cell("#0C15EA", "Max Inv Temp", row=2, col=0)
-        self.temp_inv_text = self._create_cell("#BA007B", "Max Water Temp", row=3, col=0)
+        self.temp_inv_text = self._create_cell("#0C15EA", "Max Inv Temp", row=2, col=0)
+        self.temp_water_text = self._create_cell("#BA007B", "Max Water Temp", row=3, col=0)
         self.temp_motor_text = self._create_cell("#FF0101", "Max Motor Temp", row=4, col=0)
 
         ### CENTER ###
