@@ -40,6 +40,9 @@ Src/tim.c \
 Src/spi.c \
 Src/usart.c \
 Src/sdio.c \
+Src/bsp_driver_sd.c \
+Src/sd_diskio.c \
+Src/fatfs.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c \
@@ -75,7 +78,11 @@ Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
-Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c 
+Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
+Middlewares/Third_Party/FatFs/src/diskio.c \
+Middlewares/Third_Party/FatFs/src/ff.c \
+Middlewares/Third_Party/FatFs/src/ff_gen_drv.c \
+Middlewares/Third_Party/FatFs/src/option/syscall.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
@@ -123,7 +130,9 @@ Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 Middlewares/Third_Party/FreeRTOS/Source/include \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
-Drivers/CMSIS/Include
+Drivers/CMSIS/Include \
+Middlewares/Third_Party/FatFs/src
+
 LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
 
 LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))
