@@ -5,12 +5,12 @@
 #include "main.h"
 #include "task.h"
 
-#define MAIN_TASK_PERIOD 100
+#define MAIN_TASK_PERIOD 1000
 
 void mainTaskFunction(void const* argument) {
     DEBUG_PRINT("Starting up main task for: ");
-    char boardName[10];
-    if (!getWSBBoardName(boardName, 10))
+    char boardName[20];
+    if (!getWSBBoardName(boardName, 20))
         DEBUG_PRINT("Failed to get wsb board name\n");
     else
         DEBUG_PRINT("%s\n", boardName);
@@ -18,7 +18,6 @@ void mainTaskFunction(void const* argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1) {
-        DEBUG_PRINT("Failed to get wsb board name\n");
         HAL_GPIO_TogglePin(FW_HEARTBEAT_GPIO_Port, FW_HEARTBEAT_Pin);
         vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }

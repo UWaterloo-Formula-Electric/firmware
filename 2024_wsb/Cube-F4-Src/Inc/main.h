@@ -57,10 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define FrontRear_DipSW_Pin GPIO_PIN_4
-#define FrontRear_DipSW_GPIO_Port GPIOE
-#define LeftRight_DipSW_Pin GPIO_PIN_5
+#define LeftRight_DipSW_Pin GPIO_PIN_4
 #define LeftRight_DipSW_GPIO_Port GPIOE
+#define FrontRear_DipSW_Pin GPIO_PIN_5
+#define FrontRear_DipSW_GPIO_Port GPIOE
 #define DP83848CVV_nRESET_Pin GPIO_PIN_14
 #define DP83848CVV_nRESET_GPIO_Port GPIOC
 #define SENSOR3_ANALOG_IN_Pin GPIO_PIN_0

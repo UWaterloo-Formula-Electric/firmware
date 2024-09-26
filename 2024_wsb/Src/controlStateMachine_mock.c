@@ -10,7 +10,7 @@ BaseType_t sensorsCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 	COMMAND_OUTPUT("Dummy function, please fill with actual data when sensors are brought up\n");
-	return pdTRUE;
+	return pdFALSE;
 }
 static const CLI_Command_Definition_t sensorsCommandDefinition =
 {
