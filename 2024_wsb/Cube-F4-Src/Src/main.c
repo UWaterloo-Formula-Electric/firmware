@@ -24,6 +24,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "iwdg.h"
+#include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -106,6 +107,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_IWDG_Init();
   MX_TIM12_Init();
+  MX_SDIO_SD_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
