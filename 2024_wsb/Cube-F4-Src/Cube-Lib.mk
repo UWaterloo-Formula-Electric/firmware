@@ -36,6 +36,7 @@ Src/gpio.c \
 Src/i2c.c \
 Src/iwdg.c \
 Src/main.c \
+Src/tim.c \
 Src/spi.c \
 Src/usart.c \
 Src/stm32f4xx_hal_msp.c \

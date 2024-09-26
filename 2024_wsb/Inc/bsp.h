@@ -1,19 +1,18 @@
 #ifndef __BSP_H
 #define __BSP_H
 
-// TODO: Adjust this for the WSB. This was copied 
+// TODO: Adjust this for the WSB. This was copied
 
-#include "boardTypes.h"
-#include "main.h"
-#include "can.h"
 #include "adc.h"
-// #include "tim.h"     // TODO: I presume we will need timers for WSB
-#include "usart.h"
-#include "stdbool.h"
+#include "boardTypes.h"
+#include "can.h"
 #include "iwdg.h"
+#include "main.h"
+#include "stdbool.h"
+#include "tim.h"
+#include "usart.h"
 
-//#define BOARD_DISABLE_CAN
-
+// #define BOARD_DISABLE_CAN
 
 #if IS_BOARD_F4
 #include "stm32f4xx_hal.h"
@@ -23,11 +22,11 @@
 #define CAN_HANDLE hcan1
 #define IWDG_HANDLE hiwdg
 #define MULTISENSOR_ADC_HANDLE hadc1
-// #define STATS_TIM_HANDLE htim2
+#define STATS_TIM_HANDLE htim12
 // #define ENCODER_TIM_HANDLE htim3
 
 /* July 3, 2024 - Jacky
- * The 2024 WSBs no longer have these RED and YELLOW LEDs. generalErrorHandler.c requires these 
+ * The 2024 WSBs no longer have these RED and YELLOW LEDs. generalErrorHandler.c requires these
  * ports and pins to be defined but I added an exception in that file just for the WSBs.
  * We can remove these ports and pins below (TODO: remove these when cleaning up)
  */
@@ -37,7 +36,6 @@
 // #define WARNING_LED_PORT LED_Y_GPIO_Port
 // #define DEBUG_LED_PIN LED_B_Pin
 // #define DEBUG_LED_PORT LED_B_GPIO_Port
-
 
 #elif IS_BOARD_NUCLEO_F4
 #include "stm32f4xx_hal.h"
