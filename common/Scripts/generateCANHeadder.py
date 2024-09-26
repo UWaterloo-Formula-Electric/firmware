@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 from __future__ import print_function
-import logging, sys
+# $ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
+import cantools
+from templateLoad import FSAETemplater
+import operator
+import re
+import errno
+import sys
+import subprocess
+import os
+import logging
+import sys
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-import cantools #$ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
-import os
-import subprocess
-import sys
-import errno
-import re
-import operator
-from templateLoad import FSAETemplater
 ReceivedSignalsArray = []
 SentSignalsArray = []
 DeclaredVariablesSignalsArray = []
 
 canTemplater = FSAETemplater()
+
 
 def isSignalNameInArray(signal, array):
     for sig in array:
@@ -24,12 +27,14 @@ def isSignalNameInArray(signal, array):
 
     return False
 
+
 def checkForDuplicateSignalReceive(signal):
     if isSignalNameInArray(signal, ReceivedSignalsArray):
         return True
     else:
         ReceivedSignalsArray.append(signal)
         return False
+
 
 def checkForDuplicateSignalSend(signal):
     if isSignalNameInArray(signal, SentSignalsArray):
@@ -38,12 +43,14 @@ def checkForDuplicateSignalSend(signal):
         SentSignalsArray.append(signal)
         return False
 
+
 def checkForDuplicateSignalDeclaration(signal):
     if isSignalNameInArray(signal, DeclaredVariablesSignalsArray):
         return True
     else:
         DeclaredVariablesSignalsArray.append(signal)
         return False
+
 
 def create_dir(path):
     try:
@@ -54,13 +61,16 @@ def create_dir(path):
         else:
             raise
 
+
 def fWrite(string, fileHandle):
     fileHandle.write(string + '\n')
+
 
 def generateDependencyFile(depFile, dbFile, headerFile, nodeName, boardType, ScriptsDir):
     with open(depFile, 'w+') as depFileHandle:
         fWrite('{headerFile}: {dir}/generateCANHeadder.py {dbFile}'.format(headerFile=headerFile, dbFile=dbFile, dir=ScriptsDir), depFileHandle)
         fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=nodeName, boardType=boardType, dir=ScriptsDir), depFileHandle)
+
 
 def getGitCommit():
     label = '0df2a9a'
@@ -68,13 +78,14 @@ def getGitCommit():
 
     try:
         if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
-            label = subprocess.check_output(["git", "describe" ,"--tags", "--always"]).strip()
+            label = subprocess.check_output(["git", "describe", "--tags", "--always"]).strip()
     except Exception:
         pass
 
     gitCommit = label
 
     return gitCommit
+
 
 def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName, isChargerDBC=False):
     templateData = {}
@@ -96,13 +107,15 @@ def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName
         "boardTypeInclude": boardTypeInclude,
         "heartbeatInclude": "#include \"canHeartbeat.h\"" if not isChargerDBC else '',
     }
-    templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
-    fWrite(templateOutput,headerFileHandle)
+    templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN", templateData)
+    fWrite(templateOutput, headerFileHandle)
 
 
 def writeEndIncludeGuard(sourceFileHandle, headerFileHandle):
     fWrite(canTemplater.load("END_SOURCE"), sourceFileHandle)
     fWrite(canTemplater.load("END_HEADER"), headerFileHandle)
+
+
 def getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileHandle):
     nodeAddress = 0
     messageGroups = list()
@@ -110,21 +123,23 @@ def getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileH
     for node in db.nodes:
         if node.name == nodeName:
             nodeAddress = node.comment.split("_")[0]
-            fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle);
+            fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle)
             for messageGroup in node.comment.split("_")[1].split(","):
                 if messageGroup != "":
-                    fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle);
+                    fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle)
                     messageGroups.append(messageGroup)
-    fWrite('', headerFileHandle);
+    fWrite('', headerFileHandle)
 
     return messageGroups
+
 
 def writeSourceFileIncludes(nodeName, sourceFileHandle, isChargerDBC=False):
     templateData = {
         "nodeName": nodeName,
         "isCharger": "_charger" if isChargerDBC else "",
     }
-    fWrite(canTemplater.load("INCLUDE_SOURCE_BEGIN",templateData),sourceFileHandle)
+    fWrite(canTemplater.load("INCLUDE_SOURCE_BEGIN", templateData), sourceFileHandle)
+
 
 def writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle, isChargerDBC=False):
     templateData = {
@@ -132,7 +147,8 @@ def writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle, isC
         "version": "1" if not db.version else '' + db.version + '',
         "gitFill": "" if isChargerDBC else "char gitCommit[] = \""+gitCommit+"\";"
     }
-    fWrite(canTemplater.load("DBC_GIT_SOURCE",templateData), sourceFileHandle)
+    fWrite(canTemplater.load("DBC_GIT_SOURCE", templateData), sourceFileHandle)
+
 
 def isRxMessage(msg, nodeName):
     for signal in msg.signals:
@@ -140,11 +156,13 @@ def isRxMessage(msg, nodeName):
             return True
     return False
 
+
 def isProCanMessage(msg):
     for signal in msg.signals:
         if 'PRO_CAN' in signal.name:
             return True
     return False
+
 
 def parseCanDB(db, nodeName):
 
@@ -170,9 +188,11 @@ def parseCanDB(db, nodeName):
     return (rxMessages, txMessages, normalRxMessages, normalTxMessages,
             multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages, heartbeatRxMessages)
 
+
 def getStrippedSignalName(signalName):
     strippedSignalName = re.sub('\d+$', '', signalName)
     return strippedSignalName
+
 
 def writeStructForMsg(msg, structName, fileHandle):
     msgSizeBits = msg.length * 8
@@ -184,7 +204,7 @@ def writeStructForMsg(msg, structName, fileHandle):
 
     if msg.comment == 'VERSION':
         fWrite('	int DBC : 8;', fileHandle)
-        for i  in range(0,7):
+        for i in range(0, 7):
             fWrite('	char git{i} : 8;'.format(i=str(i)), fileHandle)
     else:
         # Sort signals by start bit (maybe this is true already, but make sure)
@@ -209,12 +229,13 @@ def writeStructForMsg(msg, structName, fileHandle):
 
     fWrite('};\n', fileHandle)
 
+
 def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed=False, dtc=False):
     if checkForDuplicateSignalReceive(signal):
         return
     if variableName == '':
         variableName = signal.name
-    
+
     dataTypeOutput = 'float'
     if signal.scale == 1:
         if signal.is_signed:
@@ -239,7 +260,8 @@ def writeSignalReceivedFunction(signal, fileHandle, variableName='', multiplexed
         "offset": signal.offset,
         "finalStatement": finalStatement,
     }
-    fWrite(canTemplater.load("SIGNAL_RECEIVED_FUNC",templateData), fileHandle)
+    fWrite(canTemplater.load("SIGNAL_RECEIVED_FUNC", templateData), fileHandle)
+
 
 def getSignalSendingFunctionName(signal, multiplexed):
     signalName = signal.name
@@ -248,6 +270,7 @@ def getSignalSendingFunctionName(signal, multiplexed):
         signalName = getStrippedSignalName(signalName)
 
     return '{signalName}Sending'.format(signalName=signalName)
+
 
 def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=False):
     if checkForDuplicateSignalSend(signal):
@@ -268,16 +291,17 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
         "scaler": signal.scale,
         "offset": signal.offset,
     }
-    fWrite(canTemplater.load("SIGNAL_SENDING_FUNC",templateData), fileHandle)
+    fWrite(canTemplater.load("SIGNAL_SENDING_FUNC", templateData), fileHandle)
 
 
 def writeValueTableEnum(signal, headerFileHandle):
     if signal.choices is not None:
         fWrite('enum {sigName}_Values {{'.format(sigName=signal.name), headerFileHandle)
         for Value, Name in signal.choices.items():
-            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=str(Name).replace(' ','_'), Value=Value), headerFileHandle)
+            fWrite('{sigName}_{Name} = {Value},'.format(sigName=signal.name, Name=str(Name).replace(' ', '_'), Value=Value), headerFileHandle)
 
         fWrite('};\n', headerFileHandle)
+
 
 def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle):
     if checkForDuplicateSignalDeclaration(signal):
@@ -287,14 +311,13 @@ def writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFi
 
     dataType = dataTypeFromSignal(signal)
 
-    
     # Write a semaphore for both RX and TX
     templateData = {
         "dataType": dataType,
         "name": signal.name
     }
-    fWrite(canTemplater.load("SIGNAL_VAR_DECL_HEADER",templateData), headerFileHandle)
-    fWrite(canTemplater.load("SIGNAL_VAR_DECL_SOURCE",templateData), sourceFileHandle)
+    fWrite(canTemplater.load("SIGNAL_VAR_DECL_HEADER", templateData), headerFileHandle)
+    fWrite(canTemplater.load("SIGNAL_VAR_DECL_SOURCE", templateData), sourceFileHandle)
 
 
 def dataTypeFromSignal(signal):
@@ -310,6 +333,7 @@ def dataTypeFromSignal(signal):
 def getReceivedSignalsFromMessage(msg, nodeName):
     return [signal for signal in msg.signals if nodeName.upper() in signal.receivers]
 
+
 def writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFileHandle):
     for msg in normalRxMessages:
         fWrite('// Struct and signal receive functions for msg {}'.format(msg.name), sourceFileHandle)
@@ -318,8 +342,6 @@ def writeNormalRxMessages(nodeName, normalRxMessages, sourceFileHandle, headerFi
         for signal in getReceivedSignalsFromMessage(msg, nodeName):
             writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
             writeSignalReceivedFunction(signal, sourceFileHandle)
-
-
 
 
 def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHandle):
@@ -333,8 +355,6 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
         fWrite('// signal received functions for multiplexed msg {}'.format(msg.name), sourceFileHandle)
         writeSignalReceivedFunction(signal, sourceFileHandle, dtc=True)
 
-
-
     # Now, create the struct
     for msg in dtcRxMessages:
         writeStructForMsg(msg, msg.name, sourceFileHandle)
@@ -344,11 +364,13 @@ def writeDTCRxMessages(nodeName, dtcRxMessages, sourceFileHandle, headerFileHand
             fWrite('    int {signal.name};'.format(**locals()), headerFileHandle)
         fWrite('}} {msg.name}_unpacked;'.format(**locals()), headerFileHandle)
 
+
 def getMultiplexerId(signal):
     if not signal.is_multiplexer:
         return signal.multiplexer_ids[0]
     else:
         return 0
+
 
 def getMultiplexedMsgInfo(msg):
     for multiplexer in msg.signal_tree[0]:
@@ -381,13 +403,15 @@ def getMultiplexedMsgInfo(msg):
 
     return (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal)
 
+
 def writeIndexToMuxFunction(msgName, numSignalsPerMessage, sourceFileHandle, headerFileHandle):
     templateData = {
         "name": msgName,
         "numSignalsPerMessage": numSignalsPerMessage
     }
-    fWrite(canTemplater.load("INDEX_TO_MUX_HEADER",templateData), headerFileHandle)
-    fWrite(canTemplater.load("INDEX_TO_MUX_SOURCE",templateData), sourceFileHandle)
+    fWrite(canTemplater.load("INDEX_TO_MUX_HEADER", templateData), headerFileHandle)
+    fWrite(canTemplater.load("INDEX_TO_MUX_SOURCE", templateData), sourceFileHandle)
+
 
 def writeMuxToIndexFunction(msgName, numSignals, numSignalsPerMessage, sourceFileHandle, headerFileHandle):
     templateData = {
@@ -395,23 +419,23 @@ def writeMuxToIndexFunction(msgName, numSignals, numSignalsPerMessage, sourceFil
         "numSignals": numSignals,
         "numSignalsPerMessage": numSignalsPerMessage,
     }
-    fWrite(canTemplater.load("MUX_TO_INDEX_HEADER",templateData), headerFileHandle)
-    fWrite(canTemplater.load("MUX_TO_INDEX_SOURCE",templateData), sourceFileHandle)
+    fWrite(canTemplater.load("MUX_TO_INDEX_HEADER", templateData), headerFileHandle)
+    fWrite(canTemplater.load("MUX_TO_INDEX_SOURCE", templateData), sourceFileHandle)
+
 
 def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFileHandle):
     for msg in multiplexedRxMessages:
 
-
         (numSignalsPerMessage, strippedSignalName, numSignals, dataType, sampleSignal) = getMultiplexedMsgInfo(msg)
         templateData = {
-            "msgName" : msg.name,
+            "msgName": msg.name,
             "dataType": dataType,
             "signalName": strippedSignalName,
             "signalNameUpper": strippedSignalName.upper(),
             "count": numSignals,
         }
-        fWrite(canTemplater.load("MULTIPLEX_RX_HEADER",templateData), headerFileHandle)
-        fWrite(canTemplater.load("MULTIPLEX_RX_SOURCE",templateData), sourceFileHandle)
+        fWrite(canTemplater.load("MULTIPLEX_RX_HEADER", templateData), headerFileHandle)
+        fWrite(canTemplater.load("MULTIPLEX_RX_SOURCE", templateData), sourceFileHandle)
 
         writeSignalReceivedFunction(sampleSignal, sourceFileHandle, variableName=strippedSignalName, multiplexed=True)
         # write the signal receive function for the multiplexer signal. Set multiplexed to false since this signal isn't multiplexed
@@ -421,6 +445,7 @@ def writeMultiplexedRxMessages(multiplexedRxMessages, sourceFileHandle, headerFi
 
         writeStructForMsg(msg, msg.name, sourceFileHandle)
         writeMuxToIndexFunction(msg.name, numSignals, numSignalsPerMessage, sourceFileHandle, headerFileHandle)
+
 
 def writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFileHandle):
     # For now, just ignore PRO_CAN signals on receive
@@ -432,6 +457,7 @@ def writeProCanRxMessages(nodeName, proCanRxMessages, sourceFileHandle, headerFi
             if not 'PRO_CAN' in signal.name:
                 writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
                 writeSignalReceivedFunction(signal, sourceFileHandle)
+
 
 def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=False, multiplexed=False, numSignalsPerMessage=0, dtc=False, isChargerMsg=False):
     if multiplexed:
@@ -445,26 +471,29 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
     structInstanceName = 'new_{name}'.format(name=msg.name)
     fWrite('    struct {structName} {instanceName} = {{0}};'.format(structName=msg.name, instanceName=structInstanceName), sourceFileHandle)
 
-
     for signal in msg.signals:
         if multiplexed:
             if signal.is_multiplexer:
                 indexToMuxFunctionName = "{msgName}IndexToMuxSelect".format(msgName=msg.name)
-                fWrite('    {structName}.{signalName} = {indexToMuxFunction}(index);'.format(structName=structInstanceName, signalName=signal.name, indexToMuxFunction=indexToMuxFunctionName), sourceFileHandle)
+                fWrite('    {structName}.{signalName} = {indexToMuxFunction}(index);'.format(structName=structInstanceName,
+                       signalName=signal.name, indexToMuxFunction=indexToMuxFunctionName), sourceFileHandle)
             else:
                 # Signal will include ALL possible multiplexed signals, so just include up to the number of signals per message
                 if numSignalsPerMessage > 0 or signal.multiplexer_signal is None:
                     sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
                     strippedSignalName = getStrippedSignalName(signal.name)
-                    fWrite('    {structName}.{signalName}{signalNumber} = {sendFunction}(index+{offset});'.format(structName=structInstanceName, signalName=strippedSignalName, sendFunction=sendFunctionName, signalNumber=str(numSignalsPerMessage), offset=str(numSignalsPerMessage-1)), sourceFileHandle)
+                    fWrite('    {structName}.{signalName}{signalNumber} = {sendFunction}(index+{offset});'.format(structName=structInstanceName, signalName=strippedSignalName,
+                           sendFunction=sendFunctionName, signalNumber=str(numSignalsPerMessage), offset=str(numSignalsPerMessage-1)), sourceFileHandle)
                     numSignalsPerMessage -= 1
         elif proCAN:
             if not 'PRO_CAN' in signal.name:
                 sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
-                fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
+                fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName,
+                       signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
         else:
             sendFunctionName = getSignalSendingFunctionName(signal, multiplexed)
-            fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName, signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
+            fWrite('    {structName}.{signalName} = {sendFunction}();'.format(structName=structInstanceName,
+                   signalName=signal.name, sendFunction=sendFunctionName), sourceFileHandle)
     if proCAN:
         fWrite('    {structName}.PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT++;'.format(structName=structInstanceName, msgName=msg.name), sourceFileHandle)
         fWrite('    {msgName}_PRO_CAN_COUNT = {msgName}_PRO_CAN_COUNT % 16;'.format(msgName=msg.name), sourceFileHandle)
@@ -477,10 +506,13 @@ def writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, proCAN=Fal
         sendFunctionName = 'sendCanMessage'
 
     if dtc:
-        fWrite('    return {sendFunctionName}({id}, {len}, (uint8_t *)&{structName});'.format(sendFunctionName=sendFunctionName, id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+        fWrite('    return {sendFunctionName}({id}, {len}, (uint8_t *)&{structName});'.format(sendFunctionName=sendFunctionName,
+               id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     else:
-        fWrite('    return {sendFunctionName}({id}, {len}, (uint8_t *)&{structName});'.format(sendFunctionName=sendFunctionName, id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
+        fWrite('    return {sendFunctionName}({id}, {len}, (uint8_t *)&{structName});'.format(sendFunctionName=sendFunctionName,
+               id=msg.frame_id, len=msg.length, structName=structInstanceName), sourceFileHandle)
     fWrite('}', sourceFileHandle)
+
 
 def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
     templateData = {
@@ -488,8 +520,8 @@ def writeVersionSendFunction(msg, sourceFileHandle, headerFileHandle):
         "id": msg.frame_id,
         "len": msg.length,
     }
-    fWrite(canTemplater.load("VERSION_SEND_HEADER",templateData), headerFileHandle)
-    fWrite(canTemplater.load("VERSION_SEND_SOURCE",templateData), sourceFileHandle)
+    fWrite(canTemplater.load("VERSION_SEND_HEADER", templateData), headerFileHandle)
+    fWrite(canTemplater.load("VERSION_SEND_SOURCE", templateData), sourceFileHandle)
 
 
 def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
@@ -506,6 +538,7 @@ def writeNormalTxMessages(normalTxMessages, sourceFileHandle, headerFileHandle, 
                 writeSignalSendingFunction(signal, sourceFileHandle)
             writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, isChargerMsg=chargerMsg)
 
+
 def writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
     for msg in dtcTxMessages:
         fWrite('// Struct and signal send functions for msg {}'.format(msg.name), sourceFileHandle)
@@ -515,6 +548,7 @@ def writeDTCTxMessages(dtcTxMessages, sourceFileHandle, headerFileHandle, charge
             writeSignalVariableAndVariableDeclaration(signal, sourceFileHandle, headerFileHandle)
             writeSignalSendingFunction(signal, sourceFileHandle)
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, dtc=True, isChargerMsg=chargerMsg)
+
 
 def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
     for msg in multiplexedTxMessages:
@@ -531,9 +565,11 @@ def writeMultiplexedTxMessages(multiplexedTxMessages, sourceFileHandle, headerFi
         writeIndexToMuxFunction(msg.name, numSignalsPerMessage, sourceFileHandle, headerFileHandle)
         writeMessageSendFunction(msg, sourceFileHandle, headerFileHandle, multiplexed=True, numSignalsPerMessage=numSignalsPerMessage, isChargerMsg=chargerMsg)
 
+
 def writeProCanSpecialVariables(msg, sourceFileHandle):
     fWrite('int {msgName}_PRO_CAN_SEED = 0;'.format(msgName=msg.name), sourceFileHandle)
     fWrite('int {msgName}_PRO_CAN_COUNT = 0;'.format(msgName=msg.name), sourceFileHandle)
+
 
 def writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle, chargerMsg=False):
     for msg in proCanTxMessages:
@@ -590,7 +626,8 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
         for signal in getReceivedSignalsFromMessage(msg, nodeName):
             fWrite('            newDtc.{signalName} = {signalName}Received(in_{structName}->{signalName});'.format(signalName=signal.name, structName=msg.name), sourceFileHandle)
 
-        fWrite('            DEBUG_PRINT_ISR("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(name=msg.name), sourceFileHandle)  
+        fWrite('            DEBUG_PRINT_ISR("DTC ({name}). Code %d, Severity %d, Data %d\\n", newDtc.DTC_CODE, newDtc.DTC_Severity, newDtc.DTC_Data);'.format(
+            name=msg.name), sourceFileHandle)
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
 
         fatalCallbackName = 'DTC_Fatal_Callback'
@@ -642,12 +679,14 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
                 # Signal will include ALL possible multiplexed signals, so just include up to the number of signals per message
                 if numSignalsPerMessage > 0 or signal.multiplexer_signal is None:
                     strippedSignalName = getStrippedSignalName(signal.name)
-                    fWrite('            {signalName}Received({mToI}(in_{structName}->{multiplexerName}, {signalNum}), in_{structName}->{signalName}{signalNum});'.format(signalName=strippedSignalName, structName=msg.name, mToI=muxToIndexFunction, multiplexerName=muxSignalName, signalNum=numSignalsPerMessage), sourceFileHandle)
+                    fWrite('            {signalName}Received({mToI}(in_{structName}->{multiplexerName}, {signalNum}), in_{structName}->{signalName}{signalNum});'.format(
+                        signalName=strippedSignalName, structName=msg.name, mToI=muxToIndexFunction, multiplexerName=muxSignalName, signalNum=numSignalsPerMessage), sourceFileHandle)
                     numSignalsPerMessage -= 1
 
         callbackName = 'CAN_Msg_{msgName}_Callback'.format(msgName=msg.name)
         msgCallbackPrototypes.append('void {callback}(int baseIndex, int signalsInMessage)'.format(callback=callbackName))
-        fWrite('            {callback}({mToI}(in_{structName}->{multiplexerName}, 0), {numSignalsPerMessage});'.format(callback=callbackName, mToI=muxToIndexFunction, structName=msg.name, multiplexerName=muxSignalName, numSignalsPerMessage=numSignalsPerMessage), sourceFileHandle)
+        fWrite('            {callback}({mToI}(in_{structName}->{multiplexerName}, 0), {numSignalsPerMessage});'.format(callback=callbackName,
+               mToI=muxToIndexFunction, structName=msg.name, multiplexerName=muxSignalName, numSignalsPerMessage=numSignalsPerMessage), sourceFileHandle)
         fWrite('            break;\n        }', sourceFileHandle)
 
     fWrite("""
@@ -663,24 +702,26 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
     return msgCallbackPrototypes
 
+
 def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
     templateHolder = ""
-    i = 2 # Start at 2 to accomodate inverter group
+    i = 2  # Start at 2 to accomodate inverter group
     for messageGroup in messageGroups:
         i = i + 1
         templateData = {
             "msgGrp": messageGroup,
             "msgGrpNmbr": i,
         }
-        templateHolder = templateHolder + canTemplater.load("SETUP_CAN_FILTERS_PARTIAL",templateData)
+        templateHolder = templateHolder + canTemplater.load("SETUP_CAN_FILTERS_PARTIAL", templateData)
 
     finalTemplateData = {
         "filterID": '0x5000;' if isChargerDBC else '0xFF<<8;',
         "functionName": functionName,
         "extraMessageTemplate": templateHolder,
     }
-    fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER",finalTemplateData), headerFileHandle)
-    fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE",finalTemplateData), sourceFileHandle)
+    fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER", finalTemplateData), headerFileHandle)
+    fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE", finalTemplateData), sourceFileHandle)
+
 
 def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
@@ -689,10 +730,12 @@ def writeInitFunction(sourceFileHandle, headerFileHandle):
     fWrite('    return HAL_OK;', sourceFileHandle)
     fWrite('}', sourceFileHandle)
 
+
 def writeMsgCallbacks(msgCallbackPrototypes, sourceFileHandle, headerFileHandle):
     for prototype in msgCallbackPrototypes:
         fWrite('{};\n'.format(prototype), headerFileHandle)
         fWrite('__weak {} {{}}\n'.format(prototype), sourceFileHandle)
+
 
 def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, boardType, isChargerDBC=False):
     db = cantools.db.load_file(dbFile)
@@ -715,7 +758,6 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
 
     writeSourceFileIncludes(nodeName, sourceFileHandle, isChargerDBC=isChargerDBC)
     writeDBCVersionAndGitCommitToSourceFile(gitCommit, db, sourceFileHandle, isChargerDBC=isChargerDBC)
-
 
     (rxMessages, txMessages, normalRxMessages, normalTxMessages, multiplexedRxMessages,
      multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages, heartbeatRxMessages) = parseCanDB(db, nodeName)
@@ -744,7 +786,8 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
         writeProCANTxMessages(proCanTxMessages, sourceFileHandle, headerFileHandle)
 
     # print parse can message function
-    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages, proCanRxMessages, heartbeatRxMessages, sourceFileHandle, headerFileHandle, isChargerDBC=isChargerDBC)
+    msgCallbackPrototypes = writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, multiplexedRxMessages,
+                                                           proCanRxMessages, heartbeatRxMessages, sourceFileHandle, headerFileHandle, isChargerDBC=isChargerDBC)
 
     if isChargerDBC:
         writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFiltersCharger', isChargerDBC=True)
@@ -761,10 +804,11 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
     headerFileHandle.close()
     sourceFileHandle.close()
 
+
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
-        boardType = argv[1] # F0 or F7 or F4
+        boardType = argv[1]  # F0 or F7 or F4
     else:
         print('Error: no target specified or no boardtype specified')
         sys.exit(1)
@@ -780,8 +824,8 @@ def main(argv):
 
     genIncDir = os.path.join(genDir, nodeName, 'Inc')
     genSrcDir = os.path.join(genDir, nodeName, 'Src')
-    create_dir(genIncDir) # Create genIncDir if it doesn't already exist
-    create_dir(genSrcDir) # Create genSrcDir if it doesn't already exist
+    create_dir(genIncDir)  # Create genIncDir if it doesn't already exist
+    create_dir(genSrcDir)  # Create genSrcDir if it doesn't already exist
 
     ScriptsDir = os.path.join(commonDir, 'Scripts')
 
@@ -805,63 +849,65 @@ def main(argv):
 
 
 class TestObj(dict):
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         return self[name]
 
+
 def test():
-    #Test generate templates
+    # Test generate templates
     headerFile = open('templates/outputs/headerFileIncludeGuard.txt', "w+")
-    writeHeaderFileIncludeGuardAndIncludes('F7',headerFile,'PDU',True)
+    writeHeaderFileIncludeGuardAndIncludes('F7', headerFile, 'PDU', True)
 
     headerFile = open('templates/outputs/headerFileEnd.txt', "w+")
     sourceFile = open('templates/outputs/sourceFileEnd.txt', "w+")
     writeEndIncludeGuard(sourceFile, headerFile)
 
-    sourceFile = open('templates/outputs/sourceFileInclude.txt','w+')
-    writeSourceFileIncludes("PDU",sourceFile,True)
+    sourceFile = open('templates/outputs/sourceFileInclude.txt', 'w+')
+    writeSourceFileIncludes("PDU", sourceFile, True)
 
-
-    sourceFile = open('templates/outputs/sourceDBCVersionGit.txt','w+')
+    sourceFile = open('templates/outputs/sourceDBCVersionGit.txt', 'w+')
     db = TestObj(version='4')
-    writeDBCVersionAndGitCommitToSourceFile("fd3414",db,sourceFile, False)
+    writeDBCVersionAndGitCommitToSourceFile("fd3414", db, sourceFile, False)
 
-    sourceFile = open('templates/outputs/sourceFunctionRecieved.txt','w+')
-    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10)
-    writeSignalReceivedFunction(signal,sourceFile,'ping',False,True)
+    sourceFile = open('templates/outputs/sourceFunctionRecieved.txt', 'w+')
+    signal = TestObj(is_signed=False, name="Ping", scale=2, offset=10)
+    writeSignalReceivedFunction(signal, sourceFile, 'ping', False, True)
 
-    sourceFile = open('templates/outputs/sourceFunctionSending.txt','w+')
-    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10)
-    writeSignalSendingFunction(signal,sourceFile,'',False)
+    sourceFile = open('templates/outputs/sourceFunctionSending.txt', 'w+')
+    signal = TestObj(is_signed=False, name="Ping", scale=2, offset=10)
+    writeSignalSendingFunction(signal, sourceFile, '', False)
 
-    sourceFile = open('templates/outputs/sourceSignalVarDecl.txt','w+')
-    headerFile = open('templates/outputs/headerSignalVarDecl.txt','w+')
-    signal = TestObj(is_signed=False, name="Ping",scale=2,offset=10,choices=None)
-    writeSignalVariableAndVariableDeclaration(signal,sourceFile,headerFile)
+    sourceFile = open('templates/outputs/sourceSignalVarDecl.txt', 'w+')
+    headerFile = open('templates/outputs/headerSignalVarDecl.txt', 'w+')
+    signal = TestObj(is_signed=False, name="Ping", scale=2, offset=10, choices=None)
+    writeSignalVariableAndVariableDeclaration(signal, sourceFile, headerFile)
 
-    sourceFile = open('templates/outputs/sourceIndexToMux.txt','w+')
-    headerFile = open('templates/outputs/headerIndexToMux.txt','w+')
-    writeIndexToMuxFunction("myMsg",23,sourceFile,headerFile)
+    sourceFile = open('templates/outputs/sourceIndexToMux.txt', 'w+')
+    headerFile = open('templates/outputs/headerIndexToMux.txt', 'w+')
+    writeIndexToMuxFunction("myMsg", 23, sourceFile, headerFile)
 
-    sourceFile = open('templates/outputs/sourceMuxToIndex.txt','w+')
-    headerFile = open('templates/outputs/headerMuxToIndex.txt','w+')
-    writeMuxToIndexFunction("myMsg",3,7,sourceFile,headerFile)
+    sourceFile = open('templates/outputs/sourceMuxToIndex.txt', 'w+')
+    headerFile = open('templates/outputs/headerMuxToIndex.txt', 'w+')
+    writeMuxToIndexFunction("myMsg", 3, 7, sourceFile, headerFile)
 
-    #Not tested rn as it needs access to CAN DB
-    #writeMultiplexedRxMessages()
-    
-    message = TestObj(name="Ping",frame_id='5',length=24)
-    sourceFile = open('templates/outputs/sourceSendVersion.txt','w+')
-    headerFile = open('templates/outputs/headerSendVersion.txt','w+')
-    writeVersionSendFunction(message,sourceFile,headerFile)
+    # Not tested rn as it needs access to CAN DB
+    # writeMultiplexedRxMessages()
 
-    sourceFile = open('templates/outputs/sourceCANFilters.txt','w+')
-    headerFile = open('templates/outputs/headerCANFilters.txt','w+')
+    message = TestObj(name="Ping", frame_id='5', length=24)
+    sourceFile = open('templates/outputs/sourceSendVersion.txt', 'w+')
+    headerFile = open('templates/outputs/headerSendVersion.txt', 'w+')
+    writeVersionSendFunction(message, sourceFile, headerFile)
+
+    sourceFile = open('templates/outputs/sourceCANFilters.txt', 'w+')
+    headerFile = open('templates/outputs/headerCANFilters.txt', 'w+')
     messageGroups = [
         "0xFFFF",
         "0x0000",
         "0xF0F1"
     ]
-    writeSetupCanFilters("F7",messageGroups,sourceFile,headerFile)
+    writeSetupCanFilters("F7", messageGroups, sourceFile, headerFile)
+
+
 if __name__ == '__main__':
     main(sys.argv[1:])
-    #test()
+    # test()
