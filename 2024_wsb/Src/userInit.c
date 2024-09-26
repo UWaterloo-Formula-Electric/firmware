@@ -1,5 +1,6 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
+#include "canLogger.h"
 #include "controlStateMachine_mock.h"
 #include "debug.h"
 #include "main.h"
@@ -30,6 +31,10 @@ void userInit() {
     }
 
     if (stateMachineMockInit() != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (initCANLoggerSD() != HAL_OK) {
         Error_Handler();
     }
 
