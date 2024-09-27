@@ -20,7 +20,7 @@ float getWheelSpeed() {
      * teeth/s = count diff/time diff
      * rps = 1/num_teeth * teeth/s
      * rpm = 60rps
-     * 2024 car: 12 tooth driving sprocket, 45 tooth driven sprocket, driven is measured
+     * 2024 car: 17 teeth measured
      */
     return 0;
 }
