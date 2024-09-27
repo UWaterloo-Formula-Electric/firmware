@@ -14,9 +14,14 @@
 #include "wsbrr_can.h"
 #endif
 
-float getWheelSpeed(/*todo: pin param*/) {
-    //todo: add documentation
-
+float getWheelSpeed() {
+    /* hw timer set in hall effect mode, increments each time a gear passes by
+     * reads count diff & time diff
+     * teeth/s = count diff/time diff
+     * rps = 1/num_teeth * teeth/s
+     * rpm = 60rps
+     * 2024 car: 12 tooth driving sprocket, 45 tooth driven sprocket, driven is measured
+     */
     return 0;
 }
 
