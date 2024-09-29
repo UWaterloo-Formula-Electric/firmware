@@ -17,7 +17,7 @@ double getBrakeIrVoltage() {
     return adcToVoltage(multiSensorADCBuf[0]);
 }
 
-double getSensor2Voltage() {
+double getSteeringRotaryVoltage() {
     return adcToVoltage(multiSensorADCBuf[1]);
 }
 

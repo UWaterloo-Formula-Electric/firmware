@@ -12,7 +12,7 @@ extern uint32_t multiSensorADCBuf[NUM_ADC_CHANNELS];
 HAL_StatusTypeDef multi_sensor_adc_init(void);
 
 double getBrakeIrVoltage();
-double getSensor2Voltage(); // TODO: Rename
+double getSteeringRotaryVoltage(); // TODO: Rename
 double getSensor3Voltage(); // TODO: Rename
 
 #endif // __MULTISENSORADC_H__
