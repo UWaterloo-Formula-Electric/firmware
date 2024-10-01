@@ -8,11 +8,23 @@
 #include "main.h"
 #include "multiSensorADC.h"
 #include "task.h"
+#include "tim.h"
 #if BOARD_ID == ID_WSBFL
 #include "wsbfl_can.h"
 #elif BOARD_ID == ID_WSBRR
 #include "wsbrr_can.h"
 #endif
+
+#define NUM_TEETH 17
+
+/*
+ * IOC FILE CHANGES:
+ * TIM4
+ *  - Clock Source: internal clock
+ *  - Combined Channels: Hall Sensor Mode
+ *  - auto-reload preload: enable
+ * SENSOR_IC_IN: PD12
+ */
 
 float getWheelSpeed() {
     /* hw timer set in hall effect mode, increments each time a gear passes by
@@ -22,20 +34,26 @@ float getWheelSpeed() {
      * rpm = 60rps
      * 2024 car: 17 teeth measured
      */
-    return 0;
+    return (1.0*TIM4->CNT) / (1.0*__HAL_TIM_GET_COUNTER(&htim4)) / (1.0*NUM_TEETH) * 60.0;
 }
 
 void StartHallEffectSensorTask(void const * argument) {
     DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
     WSBType_t wsbType = detectWSB();
     if (wsbType != WSBRL || wsbType != WSBRR) {
-        DEBUG_PRINT("Invalid wsb: not WSBFL or WSBRR, deleting BrakeIRTask\n");
+        DEBUG_PRINT("Invalid wsb: not WSBFL or WSBRR, deleting StartHallEffectSensorTask\n");
         vTaskDelete(NULL);
         return;
     }
 
+    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+    uint32_t startTicks = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    while (1) {
+    for (;;) {
+        float wheelRpm = getWheelSpeed();
+        __HAL_TIM_SET_COUNTER(&htim4, 0);
+        TIM4->CNT = 0;
 
+        //todo: send can message
     }
 }
