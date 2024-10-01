@@ -49,11 +49,11 @@ void StartHallEffectSensorTask(void const * argument) {
     HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     uint32_t startTicks = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    for (;;) {
+    while (1) {
         float wheelRpm = getWheelSpeed();
         __HAL_TIM_SET_COUNTER(&htim4, 0);
         TIM4->CNT = 0;
-
+        HAL_Delay(500);
         //todo: send can message
     }
 }
