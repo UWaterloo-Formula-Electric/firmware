@@ -25,6 +25,11 @@
  *  - Combined Channels: Hall Sensor Mode
  *  - auto-reload preload: enable
  * SENSOR_IC_IN: PD12
+ *
+ * WSBRL CAN message: 001 0 0 10000000 00000010 00001010
+ *  signal:
+ * WSBRR CAN message: 001 0 0 10000000 00000010 00001011
+ *  signal: 
  */
 
 float getWheelSpeed() {
@@ -62,7 +67,7 @@ void StartHallEffectSensorTask(void const * argument) {
 #endif
 
         DEBUG_PRINT("Wheel speed: %.2f\r\n", wheelRpm);
-        
+
         vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
         //todo: send can message
     }
