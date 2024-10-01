@@ -16,6 +16,7 @@
 #endif
 
 #define NUM_TEETH 17
+#define HALL_EFFECT_TASK_PERIOD 100
 
 /*
  * IOC FILE CHANGES:
@@ -53,7 +54,16 @@ void StartHallEffectSensorTask(void const * argument) {
         float wheelRpm = getWheelSpeed();
         __HAL_TIM_SET_COUNTER(&htim4, 0);
         TIM4->CNT = 0;
-        HAL_Delay(500);
+
+#if BOARD_ID == ID_WSBRL
+
+#elif BOARD_ID == ID_WSBRR
+
+#endif
+
+        DEBUG_PRINT("Wheel speed: %.2f\r\n", wheelRpm);
+        
+        vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
         //todo: send can message
     }
 }
