@@ -31,30 +31,23 @@ LIB_C_SOURCES =  \
 Src/adc.c \
 Src/can.c \
 Src/dma.c \
-Src/eth.c \
 Src/freertos.c \
 Src/gpio.c \
 Src/i2c.c \
 Src/iwdg.c \
 Src/main.c \
-Src/sdio.c \
+Src/tim.c \
 Src/spi.c \
 Src/usart.c \
+Src/sdio.c \
+Src/bsp_driver_sd.c \
+Src/sd_diskio.c \
+Src/fatfs.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_scsi.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_bot.c \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_ctlreq.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_ioreq.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_pipes.c \
-Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c \
-Src/usb_host.c \
-Src/usbh_conf.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_eth.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
@@ -63,6 +56,7 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c_ex.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c \
@@ -72,20 +66,23 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sd.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_sdmmc.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_hcd.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c \
 Src/system_stm32f4xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_sdmmc.c \
+Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_sd.c \
 Middlewares/Third_Party/FreeRTOS/Source/list.c \
 Middlewares/Third_Party/FreeRTOS/Source/queue.c \
+Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c \
 Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
-Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c 
+Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
+Middlewares/Third_Party/FatFs/src/diskio.c \
+Middlewares/Third_Party/FatFs/src/ff.c \
+Middlewares/Third_Party/FatFs/src/ff_gen_drv.c \
+Middlewares/Third_Party/FatFs/src/option/syscall.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
@@ -127,15 +124,15 @@ LIB_AS_INCLUDES =  \
 # C includes
 LIB_C_INCLUDES =  \
 Inc \
-Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc \
-Middlewares/ST/STM32_USB_Host_Library/Core/Inc \
 Drivers/STM32F4xx_HAL_Driver/Inc \
 Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F \
 Drivers/CMSIS/Device/ST/STM32F4xx/Include \
 Middlewares/Third_Party/FreeRTOS/Source/include \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS \
-Drivers/CMSIS/Include
+Drivers/CMSIS/Include \
+Middlewares/Third_Party/FatFs/src
+
 LIB_C_INCLUDES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_INCLUDES))
 
 LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))

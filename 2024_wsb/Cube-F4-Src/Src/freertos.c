@@ -47,28 +47,33 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-osThreadId defaultTaskHandle;
-osThreadId rotaryEncoderHandle;
-osThreadId brakeInfraredHandle;
-osThreadId hallEffSensorHandle;
-osThreadId waterTempSensorHandle;
-osThreadId watchdogTaskNamHandle;
 osThreadId mainTaskHandle;
+osThreadId rtryEncTaskNameHandle;
+osThreadId brkIRTaskNameHandle;
+osThreadId halEfSensNameHandle;
+osThreadId wtrTempTaskNameHandle;
+osThreadId watchdogTaskNamHandle;
+osThreadId printTaskNameHandle;
+osThreadId cliTaskNameHandle;
+osThreadId canSendTaskHandle;
+osThreadId canLogTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const * argument);
-extern void StartRotaryEncoderTask(void const * argument);
+void mainTaskFunction(void const * argument);
+extern void RotaryEncoderTask(void const * argument);
 extern void BrakeIRTask(void const * argument);
-extern void StartHallEffectSensorTask(void const * argument);
-extern void StartWaterflowTempSensorTask(void const * argument);
+extern void HallEffectSensorTask(void const * argument);
+extern void WaterflowTempSensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
-extern void mainTaskFunction(void const * argument);
+extern void printTask(void const * argument);
+extern void cliTask(void const * argument);
+extern void canTask(void const * argument);
+extern void canLogTask(void const * argument);
 
-extern void MX_USB_HOST_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
@@ -141,33 +146,45 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of mainTask */
+  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 256);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
-  /* definition and creation of rotaryEncoder */
-  osThreadDef(rotaryEncoder, StartRotaryEncoderTask, osPriorityNormal, 0, 128);
-  rotaryEncoderHandle = osThreadCreate(osThread(rotaryEncoder), NULL);
+  /* definition and creation of rtryEncTaskName */
+  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 128);
+  rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
-  /* definition and creation of brakeInfrared */
-  osThreadDef(brakeInfrared, BrakeIRTask, osPriorityNormal, 0, 512);
-  brakeInfraredHandle = osThreadCreate(osThread(brakeInfrared), NULL);
+  /* definition and creation of brkIRTaskName */
+  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityLow, 0, 256);
+  brkIRTaskNameHandle = osThreadCreate(osThread(brkIRTaskName), NULL);
 
-  /* definition and creation of hallEffSensor */
-  osThreadDef(hallEffSensor, StartHallEffectSensorTask, osPriorityNormal, 0, 512);
-  hallEffSensorHandle = osThreadCreate(osThread(hallEffSensor), NULL);
+  /* definition and creation of halEfSensName */
+  osThreadDef(halEfSensName, HallEffectSensorTask, osPriorityLow, 0, 256);
+  halEfSensNameHandle = osThreadCreate(osThread(halEfSensName), NULL);
 
-  /* definition and creation of waterTempSensor */
-  osThreadDef(waterTempSensor, StartWaterflowTempSensorTask, osPriorityNormal, 0, 1024);
-  waterTempSensorHandle = osThreadCreate(osThread(waterTempSensor), NULL);
+  /* definition and creation of wtrTempTaskName */
+  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 1024);
+  wtrTempTaskNameHandle = osThreadCreate(osThread(wtrTempTaskName), NULL);
 
   /* definition and creation of watchdogTaskNam */
   osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
-  /* definition and creation of mainTask */
-  osThreadDef(mainTask, mainTaskFunction, osPriorityHigh, 0, 256);
-  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
+  /* definition and creation of printTaskName */
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 128);
+  printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of cliTaskName */
+  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 256);
+  cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
+
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 256);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+
+  /* definition and creation of canLogTaskName */
+  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 2048);
+  canLogTaskNameHandle = osThreadCreate(osThread(canLogTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -175,24 +192,22 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_mainTaskFunction */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the mainTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-__weak void StartDefaultTask(void const * argument)
+/* USER CODE END Header_mainTaskFunction */
+__weak void mainTaskFunction(void const * argument)
 {
-  /* init code for USB_HOST */
-  MX_USB_HOST_Init();
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN mainTaskFunction */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END mainTaskFunction */
 }
 
 /* Private application code --------------------------------------------------*/

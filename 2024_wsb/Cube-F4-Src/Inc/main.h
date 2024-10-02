@@ -57,10 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define FrontRear_DipSW_Pin GPIO_PIN_4
-#define FrontRear_DipSW_GPIO_Port GPIOE
-#define LeftRight_DipSW_Pin GPIO_PIN_5
+#define LeftRight_DipSW_Pin GPIO_PIN_4
 #define LeftRight_DipSW_GPIO_Port GPIOE
+#define FrontRear_DipSW_Pin GPIO_PIN_5
+#define FrontRear_DipSW_GPIO_Port GPIOE
 #define DP83848CVV_nRESET_Pin GPIO_PIN_14
 #define DP83848CVV_nRESET_GPIO_Port GPIOC
 #define SENSOR3_ANALOG_IN_Pin GPIO_PIN_0
@@ -77,10 +77,10 @@ void Error_Handler(void);
 #define SENSOR2_IC_IN_GPIO_Port GPIOE
 #define SENSOR3_IC_IN_Pin GPIO_PIN_13
 #define SENSOR3_IC_IN_GPIO_Port GPIOE
+#define FW_HEARTBEAT_Pin GPIO_PIN_14
+#define FW_HEARTBEAT_GPIO_Port GPIOB
 #define DP83848CVV_INT_Pin GPIO_PIN_9
 #define DP83848CVV_INT_GPIO_Port GPIOD
-#define FW_HEARTBEAT_Pin GPIO_PIN_14
-#define FW_HEARTBEAT_GPIO_Port GPIOD
 #define UART_MCU2DEBUG_Pin GPIO_PIN_9
 #define UART_MCU2DEBUG_GPIO_Port GPIOA
 #define UART_DEBUG2MCU_Pin GPIO_PIN_10
