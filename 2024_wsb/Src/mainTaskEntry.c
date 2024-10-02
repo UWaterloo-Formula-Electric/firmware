@@ -19,17 +19,11 @@ void mainTaskFunction(void const* argument) {
 
     while (1) {
         HAL_GPIO_TogglePin(FW_HEARTBEAT_GPIO_Port, FW_HEARTBEAT_Pin);
-        vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(MAIN_TASK_PERIOD));
     }
 }
 
 void RotaryEncoderTask(void const* arg) {
-    while (1) {
-        vTaskDelay(10000);
-    }
-}
-
-void BrakeIRTask(void const* arg) {
     while (1) {
         vTaskDelay(10000);
     }

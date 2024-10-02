@@ -58,6 +58,6 @@ void canLogTask(void *arg) {
         handleError();
     }
     while (1) {
-        vTaskDelay(10);
+        vTaskDelay(1000);
     }
 }
