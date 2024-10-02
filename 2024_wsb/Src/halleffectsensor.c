@@ -20,16 +20,26 @@
 
 /*
  * IOC FILE CHANGES:
- * TIM4
+ * - TIM4
  *  - Clock Source: internal clock
  *  - Combined Channels: Hall Sensor Mode
  *  - auto-reload preload: enable
- * SENSOR_IC_IN: PD12
+ * - SENSOR_IC_IN: PD12
  *
- * WSBRL CAN message: 001 0 0 10000000 00000010 00001010
+ * WSBRL CAN message: 0 0100 xxxx xxxx 0000 0010 0000 1010 todo: check for existance of message id
  *  signal:
- * WSBRR CAN message: 001 0 0 10000000 00000010 00001011
- *  signal: 
+ *      - Name: leftRearWheelSpeed
+ *      - length: 16
+ *      - value type: unsigned
+ *      - factor: todo
+ *      - offset: 0
+ * WSBRR CAN message: 0 0100 xxxx xxxx 0000 0010 0000 1011
+ *  signal:
+ *      - Name: rightRearWheelSpeed
+ *      - length: 16
+ *      - value type: unsigned
+ *      - factor: todo
+ *      - offset: 0
  */
 
 float getWheelSpeed() {
@@ -60,15 +70,16 @@ void StartHallEffectSensorTask(void const * argument) {
         __HAL_TIM_SET_COUNTER(&htim4, 0);
         TIM4->CNT = 0;
 
-#if BOARD_ID == ID_WSBRL
-
+#if BOARD_ID == ID_WSBLR
+    leftRearWheelSpeed = wheelRpm;
+    //todo: sendCAN
 #elif BOARD_ID == ID_WSBRR
-
+    rightRearWheelSpeed = wheelRpm;
+    //todo: sendCAN
 #endif
 
         DEBUG_PRINT("Wheel speed: %.2f\r\n", wheelRpm);
 
         vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
-        //todo: send can message
     }
 }
