@@ -9,16 +9,20 @@
 #include "multiSensorADC.h"
 #include "task.h"
 #include "tim.h"
-#if BOARD_ID == ID_WSBFL
-#include "wsbfl_can.h"
+#if BOARD_ID == ID_WSBRL
+#include "wsbrl_can.h"
 #elif BOARD_ID == ID_WSBRR
 #include "wsbrr_can.h"
 #endif
 
 #define NUM_TEETH 17
 #define HALL_EFFECT_TASK_PERIOD 100
+#define WHEEL_RADIUS 0.40005
+#define PI 3.14156
 
 /*
+ * - hw timer set in hall effect mode, increments each time a gear passes by
+ * - reads count diff & time diff
  * IOC FILE CHANGES:
  * - TIM4
  *  - Clock Source: internal clock
@@ -26,59 +30,78 @@
  *  - auto-reload preload: enable
  * - SENSOR_IC_IN: PD12
  *
- * WSBRL CAN message: 0 0100 xxxx xxxx 0000 0010 0000 1010 todo: check for existance of message id
- *  signal:
- *      - Name: leftRearWheelSpeed
- *      - length: 16
- *      - value type: unsigned
- *      - factor: todo
- *      - offset: 0
- * WSBRR CAN message: 0 0100 xxxx xxxx 0000 0010 0000 1011
- *  signal:
- *      - Name: rightRearWheelSpeed
- *      - length: 16
- *      - value type: unsigned
- *      - factor: todo
- *      - offset: 0
+ * WSBRL CAN message: WSBRL_Speed
+ *  signals:
+ *      - int RLSpeedKPH
+ *      - float RLSpeedRPM
+ * WSBRR CAN message: WSBRR_Speed
+ *  signals:
+ *      - int RRSpeedKPH
+ *      - float RRSpeedRPM
  */
 
-float getWheelSpeed() {
-    /* hw timer set in hall effect mode, increments each time a gear passes by
-     * reads count diff & time diff
+float getRpm(uint32_t ticks, uint32_t count) {
+    /*
      * teeth/s = count diff/time diff
      * rps = 1/num_teeth * teeth/s
      * rpm = 60rps
      * 2024 car: 17 teeth measured
      */
-    return (1.0*TIM4->CNT) / (1.0*__HAL_TIM_GET_COUNTER(&htim4)) / (1.0*NUM_TEETH) * 60.0;
+    return (1.0*count) / (1.0*ticks) / (1.0*NUM_TEETH) * 60.0;
+}
+
+uint16_t getKph(uint32_t ticks, uint32_t count) { //todo: confirm whether this needs rounding or not
+    /*
+     * teeth/s = count diff/time diff
+     * rps = 1/num_teeth * teeth/s
+     * rad/s = 2pi * rps
+     * m/s = rad/s * RADIUS
+     * kph = 3.6 * m/s
+     * 2024 car: effective radius 0.40005m
+     */
+    return (uint16_t)((1.0*count) / (1.0*ticks) / (1.0*NUM_TEETH) * (2*PI) * WHEEL_RADIUS * 3.6);
 }
 
 void StartHallEffectSensorTask(void const * argument) {
     DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
     WSBType_t wsbType = detectWSB();
     if (wsbType != WSBRL || wsbType != WSBRR) {
-        DEBUG_PRINT("Invalid wsb: not WSBFL or WSBRR, deleting StartHallEffectSensorTask\n");
+        DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting StartHallEffectSensorTask\n");
         vTaskDelete(NULL);
         return;
     }
 
-    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
-    uint32_t startTicks = 0;
+    HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL); //todo: move this
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
-        float wheelRpm = getWheelSpeed();
+        uint32_t count = TIM4->CNT;
+        uint32_t ticks = __HAL_TIM_GET_COUNTER(&htim4);
+
+        if (ticks == 0) {
+            DEBUG_PRINT("ERROR: ticks = 0\r\n");
+            vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
+            continue;
+        }
+
+        float rpm = getRpm(ticks, count);
+        int kph = getKph(ticks, count);
+
         __HAL_TIM_SET_COUNTER(&htim4, 0);
         TIM4->CNT = 0;
 
-#if BOARD_ID == ID_WSBLR
-    leftRearWheelSpeed = wheelRpm;
-    //todo: sendCAN
+#if BOARD_ID == ID_WSBRL
+        RLSpeedRPM = rpm;
+        RLSpeedKPH = kph;
+        sendCAN_WSBRL_Speed();
+        DEBUG_PRINT("Left wheel RPM: %.2f\r\n", rpm);
+        DEBUG_PRINT("Left wheel KPH: %.2f\r\n", kph);
 #elif BOARD_ID == ID_WSBRR
-    rightRearWheelSpeed = wheelRpm;
-    //todo: sendCAN
+        RRSpeedRPM = rpm;
+        RRSpeedKPH = kph;
+        sendCAN_WSBRR_Speed();
+        DEBUG_PRINT("Right wheel RPM: %.2f\r\n", rpm);
+        DEBUG_PRINT("Right wheel KPH: %.2f\r\n", kph);
 #endif
-
-        DEBUG_PRINT("Wheel speed: %.2f\r\n", wheelRpm);
 
         vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
     }
