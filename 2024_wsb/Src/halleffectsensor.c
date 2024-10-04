@@ -64,7 +64,7 @@ uint16_t getKph(uint32_t ticks, uint32_t count) { //todo: confirm whether this n
 
 void StartHallEffectSensorTask(void const * argument) {
     DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
-    WSBType_t wsbType = detectWSB();
+    WSBType wsbType = detectWSB();
     if (wsbType != WSBRL || wsbType != WSBRR) {
         DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting StartHallEffectSensorTask\n");
         vTaskDelete(NULL);
@@ -84,7 +84,7 @@ void StartHallEffectSensorTask(void const * argument) {
         }
 
         float rpm = getRpm(ticks, count);
-        int kph = getKph(ticks, count);
+        uint16_t kph = getKph(ticks, count);
 
         __HAL_TIM_SET_COUNTER(&htim4, 0);
         TIM4->CNT = 0;
@@ -93,16 +93,12 @@ void StartHallEffectSensorTask(void const * argument) {
         RLSpeedRPM = rpm;
         RLSpeedKPH = kph;
         sendCAN_WSBRL_Speed();
-        DEBUG_PRINT("Left wheel RPM: %.2f\r\n", rpm);
-        DEBUG_PRINT("Left wheel KPH: %.2f\r\n", kph);
 #elif BOARD_ID == ID_WSBRR
         RRSpeedRPM = rpm;
         RRSpeedKPH = kph;
         sendCAN_WSBRR_Speed();
-        DEBUG_PRINT("Right wheel RPM: %.2f\r\n", rpm);
-        DEBUG_PRINT("Right wheel KPH: %.2f\r\n", kph);
 #endif
-
+        printf("RPM: %f, KPH: %u\n", rpm, kph);
         vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
     }
 }
