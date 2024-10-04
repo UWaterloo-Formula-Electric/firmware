@@ -15,7 +15,7 @@
 #include "wsbrr_can.h"
 #endif
 
-#define NUM_TEETH 17
+#define NUM_TEETH 16
 #define HALL_EFFECT_TASK_PERIOD 100
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
@@ -45,7 +45,7 @@ float getRpm(uint32_t ticks, uint32_t count) {
      * teeth/s = count diff/time diff
      * rps = 1/num_teeth * teeth/s
      * rpm = 60rps
-     * 2024 car: 17 teeth measured
+     * 2024 car: 16 teeth
      */
     return (1.0*count) / (1.0*ticks) / (1.0*NUM_TEETH) * 60.0;
 }
