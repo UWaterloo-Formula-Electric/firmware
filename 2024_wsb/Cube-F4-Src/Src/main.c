@@ -22,8 +22,10 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
+#include "fatfs.h"
 #include "i2c.h"
 #include "iwdg.h"
+#include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -106,6 +108,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_IWDG_Init();
   MX_TIM12_Init();
+  MX_SDIO_SD_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
@@ -155,7 +159,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 80;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
