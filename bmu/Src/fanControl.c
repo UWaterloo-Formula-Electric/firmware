@@ -32,7 +32,8 @@ uint32_t calculateFanPeriod()
    * Duty = 0 (0% duty cycle) will cause the fans to run at low speed. 
    * Duty = 400 (100% duty cycle) is max speed.
    * If PWM signal is disconnected, the fans will run at max speed.
-   * Note: This doesn't match the expected behavior in the datasheet
+   * Note: Datasheet says when duty cycle is 0%, the fans should be stationary
+   *       which doesn't match our observation.
    * See: https://publish.sanyodenki.com/San_Ace_E/book/#target/page_no=79
    */
 

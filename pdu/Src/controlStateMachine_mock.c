@@ -9,6 +9,7 @@
 #include "pdu_can.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+extern volatile uint8_t acc_fan_command_override;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -318,6 +319,7 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
             FAN_RIGHT_DISABLE;
             FAN_LEFT_DISABLE;
             MC_RIGHT_DISABLE;
+            acc_fan_command_override = 0;
             break;
         case 1:
             DEBUG_PRINT("Turning right fan on!\r\n");
@@ -329,10 +331,12 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
             break;
         case 3:
             DEBUG_PRINT("Turning accumulator fans on!\r\n");
+            acc_fan_command_override = 1;
             MC_RIGHT_ENABLE;    // fans use MC_RIGHT
             break;
         case 4:
             DEBUG_PRINT("Turning all fans on!\r\n");
+            acc_fan_command_override = 1;
             FAN_LEFT_ENABLE;
             FAN_RIGHT_ENABLE;
             MC_RIGHT_ENABLE;
@@ -388,18 +392,35 @@ static const CLI_Command_Definition_t controlPumpsCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t mcEnable(char *writeBuffer, size_t writeBufferLength,
+BaseType_t powerMC(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    MC_ENABLE;
+    BaseType_t paramLen;
+    unsigned int MCPowerState;
+
+    const char *newMCPowerState = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(newMCPowerState, "%u", &MCPowerState);
+
+    if(MCPowerState == 1) {
+        MC_ENABLE;
+        DEBUG_PRINT("Turning on MC\r\n");
+    }
+    else if (MCPowerState == 0) {
+        MC_DISABLE;
+        DEBUG_PRINT("Turnning off MC\r\n");
+    }
+    else {
+        DEBUG_PRINT("unknown param, 1: turn on MC 0: turn off MC\r\n");
+    }
     return pdFALSE;
 }
-static const CLI_Command_Definition_t mcEnableCommandDefinition =
+static const CLI_Command_Definition_t powerMCCommandDefinition =
 {
-    "mcEnable",
-    "mcEnable:\r\n Turn on motor controller\r\n",
-    mcEnable,
-    0 /* Number of parameters */
+    "powerMC",
+    "powerMC:\r\n enbale or disable MC\r\n",
+    powerMC,
+    1 /* Number of parameters */
 };
 
 HAL_StatusTypeDef mockStateMachineInit()
@@ -443,7 +464,7 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&controlFansCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&mcEnableCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&powerMCCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;

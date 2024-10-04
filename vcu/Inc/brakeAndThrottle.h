@@ -6,21 +6,21 @@
 #include "FreeRTOS.h"
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
-#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
-#define MAX_ZERO_THROTTLE_VAL_PERCENT 2
+#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 50  // set experimentally based on driver feedback
+#define MAX_ZERO_THROTTLE_VAL_PERCENT 3
 
 #define TPS_TOLERANCE_PERCENT 15 // Should be 10 but pots are noisy
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
-#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
+#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 8
 
-#define THROTT_A_LOW (2272)
-#define THROTT_B_LOW (2160)
+#define THROTT_A_LOW (2305)
+#define THROTT_B_LOW (2145)
 
-#define THROTT_A_HIGH (2500)
-#define THROTT_B_HIGH (2405)
+#define THROTT_A_HIGH (2545)
+#define THROTT_B_HIGH (2407)
 
-#define BRAKE_POS_LOW (1080)
-#define BRAKE_POS_HIGH (1180)
+#define BRAKE_POS_LOW (1244)
+#define BRAKE_POS_HIGH (1320)
 
 #define STEERING_POT_LOW (1) //Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095) //Pot value when the wheel is all the way to the right

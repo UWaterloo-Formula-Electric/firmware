@@ -35,11 +35,13 @@
 
 #define DISABLE_ADC_WARNINGS
 
-
 #define MAX_CURRENT_ADC_VOLTAGE (0.03125F)
 
 #define READ_EN 0x4
 #define WRITE_EN 0xF8
+
+// static int64_t first50ADCSamples = 0;
+// static double SELF_CALIBRATED_OFFSET = 0;
 
 HAL_StatusTypeDef adc_spi_tx(uint8_t * tdata, unsigned int len) {
     HAL_GPIO_WritePin(ISO_ADC_CS_GPIO_Port, ISO_ADC_CS_Pin , GPIO_PIN_RESET);
@@ -130,8 +132,10 @@ HAL_StatusTypeDef adc_write(uint8_t addr, uint8_t data){
   return HAL_OK;
 }
 
+/* TODO: fix and clean up */
+
 HAL_StatusTypeDef adc_read_current(float *dataOut) {
-  int32_t raw;
+    int32_t raw;
   if (adc_read(ADDR_CURRENT, &raw) != HAL_OK) {
     return HAL_ERROR;
   }
@@ -139,6 +143,23 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     float shuntVoltage = CURRENT_SCALE * ((float)raw);
     shuntVoltage += CURRENT_OFFSET;
   (*dataOut) = shuntVoltage;
+
+  // /* This scale can be calibrated better. It was done with a small set of data due to 
+  //  * time constraint. See 
+  //  https://docs.google.com/spreadsheets/d/1Dg6KBPiAcXXJNS7SEqyT03LaAWOaKxsnVyL5yFkW4P8/edit?gid=0#gid=0
+  //  */
+  // shuntCurrent *= NEW_CURRENT_SCALE; // 1st order polynomial for gain error
+
+  // /* Convert digital value to analog value */
+  // // TODO: verify whether we should divide by 5.3 mil or full resolution(8.38 mil)
+  // shuntCurrent /= (ADE7913_FS_DIGITAL);   // 31.25 mV equates to 5,320,000 nominally (see datasheet)
+
+  // shuntCurrent *= ADE7913_FS_ANALOG_MV;  // Max differential input voltage for the current input
+
+  // /* Convert voltage to current */
+  // shuntCurrent /= CURRENT_SHUNT_VAL_OHMS;
+
+  // (*dataOut) = shuntCurrent;
 
   return HAL_OK;
 }
@@ -209,6 +230,21 @@ HAL_StatusTypeDef hvadc_init() {
     ERROR_PRINT("HVADC: config wrote %d != read %d\n", cfgWrite, cfgRead);
     return HAL_ERROR;
   }
+
+  // /* TODO: decide if we want to keep self-calibration */
+  // /* During boot up, the adc readings are unstable so add a delay*/
+  // vTaskDelay(pdMS_TO_TICKS(5000));
+  // int32_t tempRead;
+
+  // /* Get 50 samples for calibration  */
+  // for (int i = 0; i < SELF_CALIBRATION_NUM_SAMPLES; i++)
+  // {
+  //   tempRead = 0;
+  //   adc_read(ADDR_CURRENT, &tempRead);
+  //   first50ADCSamples += tempRead;
+  //   vTaskDelay(pdMS_TO_TICKS(10));
+  // }
+  // SELF_CALIBRATED_OFFSET = ((double)first50ADCSamples/(double)SELF_CALIBRATION_NUM_SAMPLES);
 
   return HAL_OK;
 }

@@ -32,7 +32,7 @@
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 3.0F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
-#define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
+#define DEFAULT_LIMIT_UNDERVOLTAGE 2.6F // TODO: revert. temporarily change to 2.6 should be 2.5
 /// Warning voltage of a cell, will send a warning DTC if it goes below
 #define LIMIT_LOWVOLTAGE_WARNING 2.8F
 /// Rate at which the low voltage threshold dynamically lowers vs current

@@ -120,18 +120,17 @@ uint32_t EM_Enable(uint32_t event)
     uint32_t state = STATE_EM_Enable;
 
     // These brake pressure checks were commented out as the sensor was not connected at 2024 Hybrid. They should be reintroduced.
-    // bool bpsState = checkBPSState();
-    // float brakePressure = getBrakePressure();
-    // if (!bpsState) {
-    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
-    //     state = STATE_EM_Disable;
-    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
-    //     state = STATE_EM_Disable;
-    // } else 
-    if (!(throttleIsZero())) {
+    bool bpsState = checkBPSState();
+    float brakePressure = getBrakePressure();
+    if (!bpsState) {
+        DEBUG_PRINT("Failed to em enable, bps fault\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(0);
+        state = STATE_EM_Disable;
+    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+        sendDTC_WARNING_EM_ENABLE_FAILED(1);
+        state = STATE_EM_Disable;
+    } else if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_EM_Disable;

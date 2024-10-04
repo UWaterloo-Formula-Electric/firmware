@@ -285,7 +285,8 @@ HAL_StatusTypeDef checkForOpenCircuit()
 		if (IBus_error > OPEN_WIRE_IBUS_TOLERANCE_A)
 		{
 			// Open Wire check only really works if IBus is constant
-			DEBUG_PRINT("Sharp IBus spike over > %f A, at %f A\n", OPEN_WIRE_IBUS_TOLERANCE_A, IBus_error);
+            // TODO: add this back once IBUS is fixed
+			// DEBUG_PRINT("Sharp IBus spike over > %f A, at %f A\n", OPEN_WIRE_IBUS_TOLERANCE_A, IBus_error);
 			return HAL_OK;
 		}
 	}

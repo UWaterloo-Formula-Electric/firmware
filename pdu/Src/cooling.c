@@ -19,6 +19,8 @@
 #define CASCADIA_CM200_DERATING_TEMP_C (45.0f) // Inverter can operate for 30s before derating performance
 #define EMRAX_228_LC_MAX_TEMP_C (120.0f) 
 
+volatile uint8_t acc_fan_command_override = 0;
+
 void coolingOff(void) {
     DEBUG_PRINT("Turning cooling off\n");
     PUMP_LEFT_DISABLE;
@@ -34,6 +36,7 @@ void coolingOn(void) {
     PUMP_RIGHT_ENABLE;
     FAN_LEFT_ENABLE;
     FAN_RIGHT_ENABLE;
+    vTaskDelay(pdMS_TO_TICKS(3));   // Sometimes the GLV fuse blows upon going to EM
     MC_RIGHT_ENABLE;    // Accumulator fans
 }
 
@@ -106,7 +109,7 @@ void coolingTask(void *pvParameters) {
         }
         else 
         {
-            coolingOff();
+            if (!acc_fan_command_override) { coolingOff(); }
         }
 
         watchdogTaskCheckIn(COOLING_TASK_ID);

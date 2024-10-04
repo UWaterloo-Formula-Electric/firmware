@@ -358,6 +358,21 @@ uint32_t cliGetStateBusHVSendPeriod()
     return StateBusHVSendPeriod;
 }
 
+/* TODO: Remove for 2025. Some thermistors are disconnected on the 2024 car*/
+uint8_t isChannelDisconnected(uint8_t channel)
+{
+    const uint8_t disconnectedChannels[] = {6, 30, 33, 52, 87, 102, 104, 114, 116, 141, 156, 160, 168, 174, 183, 188};
+    size_t numChannels = sizeof(disconnectedChannels) / sizeof(disconnectedChannels[0]);
+    
+    for (size_t i = 0; i < numChannels; i++) {
+        if (channel == disconnectedChannels[i]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 
 /**
  * Measures the voltage and current on the HV Bus as well as the HV battery
@@ -732,7 +747,8 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // We have 2 basically confidence measurements
       // We have an adjusted cell measurement which probably overestimates the cell voltage a little at high current
       // We have our standard cell measurement which probably underestimates the cell voltage a little at high current
-      measure_high = AdjustedVoltageCell[i];
+      //   measure_high = AdjustedVoltageCell[i];
+      measure_high = VoltageCell[i]; // TODO: add back adjusted 
       measure_low = VoltageCell[i];
 
       // Check it is within bounds
@@ -763,6 +779,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
+            if (isChannelDisconnected(i))
+            {
+                continue;
+            }
             measure = TempChannel[i];
                 
             // Check it is within bounds
@@ -1263,7 +1283,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 float maxCellSOC = getSOCFromVoltage(VoltageCellMax);
                 DEBUG_PRINT("Voltage min %f (SOC %f), max %f (SOC %f)\n\n", VoltageCellMin, minCellSOC, VoltageCellMax, maxCellSOC);
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
-                    float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
+                    // float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
+                    float cellSOC = getSOCFromVoltage(VoltageCell[cell]); // TODO: add back adjusted
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
 
