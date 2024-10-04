@@ -64,7 +64,7 @@ uint16_t getKph(uint32_t ticks, uint32_t count) { //todo: confirm whether this n
 
 void StartHallEffectSensorTask(void const * argument) {
     DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
-    WSBType wsbType = detectWSB();
+    WSBType_t wsbType = detectWSB();
     if (wsbType != WSBRL || wsbType != WSBRR) {
         DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting StartHallEffectSensorTask\n");
         vTaskDelete(NULL);

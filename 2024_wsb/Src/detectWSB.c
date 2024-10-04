@@ -7,7 +7,7 @@
 /**
  * @brief Detects the WSB type based on the front/back & left/right DIP switches
  */
-WSBType detectWSB() {
+WSBType_t detectWSB() {
     GPIO_PinState front = HAL_GPIO_ReadPin(FrontRear_DipSW_GPIO_Port, FrontRear_DipSW_Pin);
     GPIO_PinState left = HAL_GPIO_ReadPin(LeftRight_DipSW_GPIO_Port, LeftRight_DipSW_Pin);
 
