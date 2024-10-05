@@ -7,6 +7,7 @@
 #include "sensors.h"
 #include "canReceive.h"
 #include "pdu_can.h"
+#include "motorController.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -432,3 +433,69 @@ HAL_StatusTypeDef mockStateMachineInit()
     }
     return HAL_OK;
 }
+
+BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, const char *commandString){
+    uint16_t parameterAddress;
+    uint16_t newValue;
+    uint16_t readValue;
+    BaseType_t status;
+
+    uint32_t currentState = fsmGetState(&mainFsmHandle);
+    BaseType_t paramLen;
+
+    const char *addressParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    const char *valueParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    
+    sscanf(addressParam, "%hu", &parameterAddress);
+    sscanf(valueParam, "%hu", &newValue);
+
+    if (currentState == STATE_Boards_On){ 
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength, "Error: Car is at high voltage. Operation not permitted\n");
+        return pdFALSE;
+    }
+    if (currentState == STATE_Motors_On){ 
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength, "Error: Car is in drive mode. Operation not permitted\n");
+        return pdFALSE;
+    }
+
+    MC_ENABLE; //Enables inverter
+
+    status = mcWriteParamCommand(parameterAddress, newValue); 
+    if (status == HAL_OK){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter written successfully. \n");
+    }
+    if (status != HAL_OK){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Failed to write parameter message at address %u\n", parameterAddress);
+    }
+
+    MC_DISABLE;
+    HAL_Delay(1000);
+    MC_ENABLE;
+
+    status = mcReadParamCommand(parameterAddress, readValue);
+    if (status == HAL_OK){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter read successfully. \n");
+
+        if (newValue == readValue){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter verification successful: %u == %u\n", newValue, readValue);
+        return pdTRUE;
+        }
+        if (newValue != readValue){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
+        return pdFALSE;
+        }
+    }
+    if (status != HAL_OK){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Failed to read parameter message at address %u\n", parameterAddress);
+        return status;
+    }
+}
+
+static const CLI_Command_Definition_t modifyInverterEEPROM(){
+    "setInverterParam",
+    "setInverterParam:\r\n  Turns on the inverter, modifies an EEPROM parameter via CAN, power cycles the inverter, and verifies the parameter change.\r\n",
+    setInverterParameter,
+    2 /* Number of parameters */ 
+}
+
+
