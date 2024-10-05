@@ -22,6 +22,11 @@
 #define TICKS_PER_SECOND 1000
 
 /*
+ * TIM2:
+ * - Clock Source: Internal Clock
+ * - Channel1: Input Capture direct mode
+ * - auto-reload preload: Enable
+ * - NVIC Interrupt: Enabled
  *
  * WSBRL CAN message: WSBRL_Speed
  *  signals:
