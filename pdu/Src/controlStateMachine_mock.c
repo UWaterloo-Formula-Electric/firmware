@@ -7,6 +7,7 @@
 #include "sensors.h"
 #include "canReceive.h"
 #include "pdu_can.h"
+#include "motorController.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -432,3 +433,45 @@ HAL_StatusTypeDef mockStateMachineInit()
     }
     return HAL_OK;
 }
+
+BaseType_t checkInverterStatus(char *writeBuffer, size_t writeBufferLength,const char *commandString) {
+
+    uint32_t currentState = fsmGetState(&mainFsmHandle);
+
+    if (currentState == STATE_Boards_On){ // replace high voltage constant later 
+        COMMAND_OUTPUT("Car in high voltage mode: Cannot preform operation");
+        return pdFALSE;
+    }
+
+    if (currentState == STATE_Motors_On) { // replace drive mode constant later 
+        COMMAND_OUTPUT("Car in drive mode: Cannot perform operation");
+        return pdFALSE;
+    }
+
+    snprintf(writeBuffer, writeBufferLength, "Inverter is ready to turn on");
+
+    // get the second parameter from the command string, which is the EEPROM address and store its length in paramLen
+    BaseType_t paramLen;
+    const char *addressParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen); 
+    
+    uint32_t eepromAddress = strtoul(addressParam, NULL, 0); // convert addressParam to an integer address
+
+    MC_LEFT_ENABLE();
+    uint8_t eepromValue = readEeprom(eepromAddress);
+    HAL_StatusTypeDef status = mcReadParamCommand((uint16_t)eepromAddress, 0); // calls mcReadParamCommand function to read parameters
+
+    if (status != HAL_OK){
+        COMMAND_OUTPUT(writeBuffer, writeBufferLength, "Failed to read EEPROM value at address 0x%X", eepromAddress);
+        MC_LEFT_DISABLE();
+        return pdFALSE;
+    }
+
+    snprintf(writeBuffer, writeBufferLength, "EEPROM value at address 0x%X: %u", eepromAddress, VCU_INV_Parameter_Data);
+    return pdTRUE;
+}
+static const CLI_Command_Definition_t readEepromCommand = {
+    "read_eeprom",          // command string
+    "read_eeprom <address>:\r\n Read EEPROM value and control inverter\r\n",
+    checkInverterStatus, 
+    1 // # of parameters (address)
+};
