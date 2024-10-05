@@ -17,7 +17,7 @@
 #define BRAKE_IR_TASK_PERIOD 100
 #define BRAKE_IR_OUT_OF_RANGE_ACC 7
 
-int getBrakeTemp() {
+float getBrakeTemp() {
     // Expects voltage to be between 0V and 3.3
     // Scaling valid for 0V - 3.0V
     // See: https://file.notion.so/f/f/25bbe0bc-a989-4d45-a15e-d6e7c3242dda/f3fbc280-65ef-4afd-8836-2f6c47c351b4/SEN0256-TS01Product_Specification.pdf?table=block&id=5f9b59d9-e026-4e77-abf6-b7f972a7eb6c&spaceId=25bbe0bc-a989-4d45-a15e-d6e7c3242dda&expirationTimestamp=1726704000000&signature=SXDx2oLR74KdCoo4glLvfc6aYe2JPzyO8JGLEZRlrjM&downloadName=%5BSEN0256-TS01%5DProduct+Specification.pdf
@@ -54,18 +54,24 @@ void BrakeIRTask(void const* argument) {
         vTaskDelete(NULL);
         return;
     }
-
+    DEBUG_PRINT("1\n");
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    
+    
+    DEBUG_PRINT("2\n");
+    float brakeTemp;
+    // uint8_t brakeTempAccuracy;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         // If this is an empty loop shit works but without it it doesnt
 // #if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR
-//         float brakeTemp = getBrakeTemp();
-//         float brakeTempAccuracy = getBrakeTempAccuracy(brakeTemp);
+        brakeTemp = getBrakeTemp();
+        // brakeTempAccuracy = getBrakeTempAccuracy(brakeTemp);
 
 // #if BOARD_ID == ID_WSBFL
-//         BrakeTempFront = brakeTemp;
-//         BrakeTempFrontAccuracy = brakeTempAccuracy;
-//         sendCAN_WSBFL_BrakeTemp();
+        // BrakeTempFront = brakeTemp;
+        // BrakeTempFrontAccuracy = brakeTempAccuracy;
+        sendCAN_WSBFL_BrakeTemp();
 
 // #elif BOARD_ID == ID_WSBRR
 //         BrakeTempRear = brakeTemp;
@@ -73,8 +79,9 @@ void BrakeIRTask(void const* argument) {
 //         sendCAN_WSBRR_BrakeTemp();
 // #endif
 
-        DEBUG_PRINT("Temp %ld\n", multiSensorADC.sensors.sensor1);
+        DEBUG_PRINT("Temp %d\n", (int)brakeTemp);
 // #endif
+        // vTaskDelay(pdMS_TO_TICKS(BRAKE_IR_TASK_PERIOD));
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BRAKE_IR_TASK_PERIOD));
     }
 }

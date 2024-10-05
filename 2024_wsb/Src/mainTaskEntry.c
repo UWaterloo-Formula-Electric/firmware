@@ -24,18 +24,24 @@ void mainTaskFunction(void const* argument) {
 }
 
 void RotaryEncoderTask(void const* arg) {
+    DEBUG_PRINT("Deleting RotaryEncoderTask\n");
+    vTaskDelete(NULL);
     while (1) {
         vTaskDelay(10000);
     }
 }
 
 void HallEffectSensorTask(void const* arg) {
+    DEBUG_PRINT("Deleting HallEffectTask\n");
+    vTaskDelete(NULL);
     while (1) {
         vTaskDelay(10000);
     }
 }
 
 void WaterflowTempSensorTask(void const* arg) {
+    DEBUG_PRINT("Deleting WaterflowTempTask\n");
+    vTaskDelete(NULL);
     while (1) {
         vTaskDelay(10000);
     }

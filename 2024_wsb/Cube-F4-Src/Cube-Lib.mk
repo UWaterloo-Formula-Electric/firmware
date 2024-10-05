@@ -34,7 +34,6 @@ Src/dma.c \
 Src/freertos.c \
 Src/gpio.c \
 Src/i2c.c \
-Src/iwdg.c \
 Src/main.c \
 Src/tim.c \
 Src/spi.c \
@@ -64,7 +63,6 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c \
-Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_iwdg.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c \
 Src/system_stm32f4xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \

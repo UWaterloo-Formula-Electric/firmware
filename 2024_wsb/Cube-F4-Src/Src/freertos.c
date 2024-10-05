@@ -155,7 +155,7 @@ void MX_FREERTOS_Init(void) {
   rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
   /* definition and creation of brkIRTaskName */
-  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityLow, 0, 1024);
+  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityRealtime, 0, 1024);
   brkIRTaskNameHandle = osThreadCreate(osThread(brkIRTaskName), NULL);
 
   /* definition and creation of halEfSensName */
@@ -163,7 +163,7 @@ void MX_FREERTOS_Init(void) {
   halEfSensNameHandle = osThreadCreate(osThread(halEfSensName), NULL);
 
   /* definition and creation of wtrTempTaskName */
-  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 1024);
+  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 128);
   wtrTempTaskNameHandle = osThreadCreate(osThread(wtrTempTaskName), NULL);
 
   /* definition and creation of watchdogTaskNam */
@@ -183,7 +183,7 @@ void MX_FREERTOS_Init(void) {
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of canLogTaskName */
-  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 2048);
+  osThreadDef(canLogTaskName, canLogTask, osPriorityLow, 0, 1024);
   canLogTaskNameHandle = osThreadCreate(osThread(canLogTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
