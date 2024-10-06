@@ -110,6 +110,7 @@ int main(void)
   MX_TIM12_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();

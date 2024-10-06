@@ -53,12 +53,10 @@ FRESULT initCANLoggerSD() {
 }
 
 void canLogTask(void *arg) {
-    DEBUG_PRINT("Deleting CANLogTask\n");
-    vTaskDelete(NULL);
     DEBUG_PRINT("Starting CAN Logger\n");
-    // if (initCANLoggerSD() != FR_OK) {
-    //     handleError();
-    // }
+    if (initCANLoggerSD() != FR_OK) {
+        handleError();
+    }
     while (1) {
         vTaskDelay(10000);
     }
