@@ -1,5 +1,7 @@
 from string import Template
 import os
+
+
 class FSAETemplater:
     # Keys for locating template file
     # Format:
@@ -15,6 +17,7 @@ class FSAETemplater:
 
         "SIGNAL_RECEIVED_FUNC": "templates/signal/signal_received_function.txt",
         "SIGNAL_SENDING_FUNC": "templates/signal/signal_sending_function.txt",
+        "SIGNAL_SENDING_FLOAT_FUNC": "templates/signal/signal_sending_function_float.txt",
 
         "SIGNAL_VAR_DECL_HEADER": "templates/signal/signal_variable_and_declaration_header.txt",
         "SIGNAL_VAR_DECL_SOURCE": "templates/signal/signal_variable_and_declaration_source.txt",
@@ -46,16 +49,19 @@ class FSAETemplater:
         templateString = self.__getTemplate(fileKey)
         parsedTemplate = self.__parseTemplate(templateString, data)
         return parsedTemplate
+
     def __getTemplate(self, fileKey):
         if fileKey in self.loadedTemplates:
             return self.loadedTemplates[fileKey]
         return self.__loadTemplate(fileKey)
+
     def __loadTemplate(self, fileKey):
-        relPath = os.path.join(os.path.dirname(__file__),FSAETemplater.TEMPLATE_MAP[fileKey])
+        relPath = os.path.join(os.path.dirname(__file__), FSAETemplater.TEMPLATE_MAP[fileKey])
         with open(relPath, 'r') as file:
             src = file.read()
             self.loadedTemplates[fileKey] = src
             return self.loadedTemplates[fileKey]
+
     def __parseTemplate(self, templateString, data={}):
         template = Template(templateString)
         return template.substitute(data)
