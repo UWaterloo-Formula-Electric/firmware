@@ -44,6 +44,7 @@ Src/sd_diskio.c \
 Src/fatfs.c \
 Src/stm32f4xx_hal_msp.c \
 Src/stm32f4xx_it.c \
+Src/stm32f4xx_hal_timebase_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_adc_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c \
@@ -137,9 +138,9 @@ LIB_C_INCLUDES := $(addprefix -I, $(LIB_C_INCLUDES))
 
 
 # compile gcc flags
-LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(LIB_AS_INCLUDES) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
+LIB_ASFLAGS = $(LIB_MCU) $(LIB_AS_DEFS) $(LIB_AS_INCLUDES) $(LIB_OPT) -fdata-sections -ffunction-sections -c
 
-LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(LIB_C_INCLUDES) $(LIB_OPT) -Wall -fdata-sections -ffunction-sections -c
+LIB_CFLAGS = $(LIB_MCU) $(LIB_C_DEFS) $(LIB_C_INCLUDES) $(LIB_OPT) -fdata-sections -ffunction-sections -c
 
 ifeq ($(LIB_DEBUG), 1)
 LIB_CFLAGS += -g -gdwarf-2
@@ -159,6 +160,6 @@ LIB_LDSCRIPT = $(THIS_MAKEFILE_PATH)/STM32F417VGTx_FLASH.ld
 # libraries
 LIB_LIBS = -lc -lm -lnosys 
 LIB_LIBDIR = 
-LIB_LDFLAGS = $(LIB_MCU) -specs=nano.specs -T$(LIB_LDSCRIPT) $(LIB_LIBDIR) $(LIB_LIBS) -Wl,--gc-sections
+LIB_LDFLAGS = $(LIB_MCU) -specs=nano.specs -T$(LIB_LDSCRIPT) $(LIB_LIBDIR) $(LIB_LIBS) -Wl,--gc-sections -u_printf_float
 
 # *** EOF ***

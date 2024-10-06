@@ -38,4 +38,5 @@ void userInit() {
     // }
 
     printf("User init done\n");
+    // printf("Float test %f\n", 3.14);
 }

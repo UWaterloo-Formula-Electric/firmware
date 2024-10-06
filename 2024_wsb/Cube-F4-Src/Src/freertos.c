@@ -151,7 +151,7 @@ void MX_FREERTOS_Init(void) {
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of rtryEncTaskName */
-  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 128);
+  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 256);
   rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
   /* definition and creation of brkIRTaskName */
@@ -163,15 +163,15 @@ void MX_FREERTOS_Init(void) {
   halEfSensNameHandle = osThreadCreate(osThread(halEfSensName), NULL);
 
   /* definition and creation of wtrTempTaskName */
-  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 128);
+  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 256);
   wtrTempTaskNameHandle = osThreadCreate(osThread(wtrTempTaskName), NULL);
 
   /* definition and creation of watchdogTaskNam */
-  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
+  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 256);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* definition and creation of printTaskName */
-  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 128);
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 256);
   printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
 
   /* definition and creation of cliTaskName */

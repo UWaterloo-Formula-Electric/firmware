@@ -45,7 +45,7 @@ uint8_t getBrakeTempAccuracy(float brakeTemp) {
     else
         return 4;
 }
-
+#define STACK_SIZE configMINIMAL_STACK_SIZE * 3
 void BrakeIRTask(void const* argument) {
     DEBUG_PRINT("Starting BrakeIRTask\n");
     WSBType_t wsbType = detectWSB();
@@ -60,27 +60,25 @@ void BrakeIRTask(void const* argument) {
     
     DEBUG_PRINT("2\n");
     float brakeTemp;
-    // uint8_t brakeTempAccuracy;
+    uint8_t brakeTempAccuracy;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         // If this is an empty loop shit works but without it it doesnt
-// #if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR
+#if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR
         brakeTemp = getBrakeTemp();
-        // brakeTempAccuracy = getBrakeTempAccuracy(brakeTemp);
+        brakeTempAccuracy = getBrakeTempAccuracy(brakeTemp);
 
-// #if BOARD_ID == ID_WSBFL
-        // BrakeTempFront = brakeTemp;
-        // BrakeTempFrontAccuracy = brakeTempAccuracy;
+#if BOARD_ID == ID_WSBFL
+        BrakeTempFront = brakeTemp;
+        BrakeTempFrontAccuracy = brakeTempAccuracy;
         sendCAN_WSBFL_BrakeTemp();
 
-// #elif BOARD_ID == ID_WSBRR
-//         BrakeTempRear = brakeTemp;
-//         BrakeTempRearAccuracy = brakeTempAccuracy;
-//         sendCAN_WSBRR_BrakeTemp();
-// #endif
-
-        DEBUG_PRINT("Temp %d\n", (int)brakeTemp);
-// #endif
+#elif BOARD_ID == ID_WSBRR
+        BrakeTempRear = brakeTemp;
+        BrakeTempRearAccuracy = brakeTempAccuracy;
+        sendCAN_WSBRR_BrakeTemp();
+#endif
+#endif
         // vTaskDelay(pdMS_TO_TICKS(BRAKE_IR_TASK_PERIOD));
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BRAKE_IR_TASK_PERIOD));
     }
