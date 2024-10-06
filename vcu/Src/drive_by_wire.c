@@ -107,7 +107,7 @@ uint32_t runSelftTests(uint32_t event)
     
     if (brakeAndThrottleStart() != HAL_OK)
     {
-        sendDTC_CRITICAL_Throtte_Failure(3);
+        sendDTC_WARNING_Throttle_Failure(3);
         return EM_Fault(EV_Throttle_Failure);
     }
 
@@ -116,20 +116,22 @@ uint32_t runSelftTests(uint32_t event)
 
 uint32_t EM_Enable(uint32_t event)
 {
-    bool bpsState = checkBPSState();
     bool hvEnable = getHvEnableState();
-    float brakePressure = getBrakePressure();
     uint32_t state = STATE_EM_Enable;
 
-    if (!bpsState) {
-        DEBUG_PRINT("Failed to em enable, bps fault\n");
-        sendDTC_WARNING_EM_ENABLE_FAILED(0);
-        state = STATE_EM_Disable;
-    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-        sendDTC_WARNING_EM_ENABLE_FAILED(1);
-        state = STATE_EM_Disable;
-    } else if (!(throttleIsZero())) {
+    // These brake pressure checks were commented out as the sensor was not connected at 2024 Hybrid. They should be reintroduced.
+    // bool bpsState = checkBPSState();
+    // float brakePressure = getBrakePressure();
+    // if (!bpsState) {
+    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
+    //     state = STATE_EM_Disable;
+    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
+    //     state = STATE_EM_Disable;
+    // } else 
+    if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_EM_Disable;
@@ -167,8 +169,6 @@ uint32_t EM_Enable(uint32_t event)
 
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();
-
-    xTaskNotifyGive(throttlePollingHandle);
 
     return state;
 }
@@ -223,6 +223,14 @@ uint32_t EM_Fault(uint32_t event)
                     //disable TC
                     disable_TC();
                     DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
+
+                    // Turn off MC when CBRB pressed while in EM
+                    //if (MotorStop() != HAL_OK) {
+                    //    ERROR_PRINT("Failed to stop motors\n");
+                    //}
+
+                    EM_State = EM_State_Off;
+                    sendCAN_VCU_EM_State();
                 }
                 newState = STATE_EM_Disable;
             }
@@ -275,7 +283,7 @@ uint32_t DefaultTransition(uint32_t event)
     return STATE_Failure_Fatal;
 }
 
-HAL_StatusTypeDef turnOnMotorControllers() {
+HAL_StatusTypeDef turnOnMotorController() {
     uint32_t dbwTaskNotifications;
 
     // Request PDU to turn on motor controllers
@@ -337,12 +345,11 @@ HAL_StatusTypeDef MotorStart()
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
 
-    rc = turnOnMotorControllers();
+    rc = turnOnMotorController();
     if (rc != HAL_OK) {
         return rc;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(MC_STARTUP_TIME_MS));
     rc = mcInit();
     if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");
@@ -361,9 +368,9 @@ HAL_StatusTypeDef MotorStart()
 HAL_StatusTypeDef MotorStop()
 {
     DEBUG_PRINT("Stopping motors\n");
-    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
+    watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(2*MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
 
-    if (mcShutdown() != HAL_OK) {
+    if (sendDisableMC() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
         return HAL_ERROR;
     }

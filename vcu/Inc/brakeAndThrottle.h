@@ -5,22 +5,22 @@
 #include "bsp.h"
 #include "FreeRTOS.h"
 
-#define MIN_BRAKE_PRESSED_VAL_PERCENT 14
-#define MIN_BRAKE_PRESSED_HARD_VAL_PERCENT 50
-#define MAX_ZERO_THROTTLE_VAL_PERCENT 1
+#define MIN_BRAKE_PRESSED_VAL_PERCENT 15
+#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
+#define MAX_ZERO_THROTTLE_VAL_PERCENT 2
 
-#define TPS_TOLERANCE_PERCENT 15
-#define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 50
-#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 10
+#define TPS_TOLERANCE_PERCENT 15 // Should be 10 but pots are noisy
+#define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
+#define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2570)
-#define THROTT_B_LOW (1137+25)
+#define THROTT_A_LOW (2272)
+#define THROTT_B_LOW (2160)
 
-#define THROTT_A_HIGH (2889-25)
-#define THROTT_B_HIGH (1449)
+#define THROTT_A_HIGH (2500)
+#define THROTT_B_HIGH (2405)
 
-#define BRAKE_POS_LOW (1030)
-#define BRAKE_POS_HIGH (1150)
+#define BRAKE_POS_LOW (1080)
+#define BRAKE_POS_HIGH (1180)
 
 #define STEERING_POT_LOW (1) //Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095) //Pot value when the wheel is all the way to the right
@@ -42,8 +42,7 @@
 #define THROTTLE_POLLING_TASK_ID 4
 #define THROTTLE_POLLING_FLAG_BIT (0)
 #define VCU_DATA_PUBLISH_TIME_MS 50
-#define THROTTLE_POLLING_PERIOD_MS 50
-#define THROTTLE_POLLING_TASK_PERIOD_MS 100
+#define THROTTLE_POLLING_TASK_PERIOD_MS 50
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
@@ -77,7 +76,6 @@ typedef enum ThrottleStatus_t {
 } ThrottleStatus_t;
 
 bool isBrakePressed();
-bool isBrakePressedHard();
 bool throttleIsZero();
 void throttlePollingTask(void);
 bool checkBPSState();
@@ -89,8 +87,8 @@ float getBrakePositionPercent();
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
-uint16_t calculate_throttle_percent1(uint16_t tps_value);
-uint16_t calculate_throttle_percent2(uint16_t tps_value);
+float calculate_throttle_percent1(uint16_t tps_value);
+float calculate_throttle_percent2(uint16_t tps_value);
 ThrottleStatus_t getNewThrottle(float *throttleOut);
 
 #endif /* end of include guard: BRAKEANDTHROTTLE_H */

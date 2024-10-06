@@ -33,27 +33,14 @@
 #define DISABLE_ADC_WARNINGS
 
 // Voltage scale and offset convert to volts
-#define VOLTAGE_1_SCALE  (-0.000052670388F)
-#define VOLTAGE_1_OFFSET (20.451204825373F)
+#define VOLTAGE_1_SCALE  (-0.000104983756942f)
+#define VOLTAGE_1_OFFSET (48.352-5.258)
 
-#define VOLTAGE_2_SCALE  (-0.000052273823F)
-#define VOLTAGE_2_OFFSET (23.442233510687)
+#define VOLTAGE_2_SCALE  (-0.000104333513343f)
+#define VOLTAGE_2_OFFSET (48.416f)
 
-/*#define VOLTAGE_1_SCALE  (1)*/
-/*#define VOLTAGE_1_OFFSET (1)*/
-
-/*#define VOLTAGE_2_SCALE  (1)*/
-/*#define VOLTAGE_2_OFFSET (1)*/
-
-// Current scale and offset current to volts, then we use shunt val to get
-// current in amps
-//
-// This used to be
-// CURRENT_SCALE (0.000000005332795540972819F)
-// CURRENT_OFFSET (-0.002105965908664F)
-// Calibration Resulted in different answers
 #define CURRENT_SCALE  (0.0000000055036067569447039)
-#define CURRENT_OFFSET (-0.0023230F)
+#define CURRENT_OFFSET (-0.002238F)
 #define CURRENT_SHUNT_VAL_OHMS_HITL (0.000235F)
 #define CURRENT_SHUNT_VAL_OHMS_CAR (0.0001F)
 
@@ -161,12 +148,8 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
     return HAL_ERROR;
   }
 
-  /*DEBUG_PRINT("%ld, ", raw);*/
-
   float shuntVoltage = CURRENT_SCALE * ((float)raw);
-  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
   shuntVoltage += CURRENT_OFFSET;
-  /*DEBUG_PRINT("%.12f, ", shuntVoltage);*/
 #ifdef DISABLE_HV_WARNINGS
   // This should be "fixed"/removed when a smaller shunt resistor is found.
   // With our current setup we probably surpass the "nominal maximum" 31.25mV of the ADC
@@ -183,7 +166,6 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
   } else {
     shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS_CAR);
   }
-  /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
   (*dataOut) = shuntVoltage;
 
   return HAL_OK;

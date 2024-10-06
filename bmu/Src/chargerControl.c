@@ -67,15 +67,8 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
    MaxChargeCurrentHigh = (maxCurrentInt>>8);
    MaxChargeCurrentLow = (maxCurrentInt & 0xFF);
 
-   /*DEBUG_PRINT("MVH: 0x%X, MVL 0x%X, MCH 0x%X, MCL 0x%X\n", (uint8_t)MaxChargeVoltageHigh,*/
-               /*(uint8_t)MaxChargeVoltageLow, (uint8_t)MaxChargeCurrentHigh,*/
-               /*(uint8_t)MaxChargeCurrentLow);*/
+   StartStopCharge = startCharging?0:1;
 
-   StartStopCharge = startCharging?StartStopCharge_ChargeStart:StartStopCharge_ChargeStop;
-
-   /*DEBUG_PRINT("StartStop: %u\n", (uint8_t)StartStopCharge);*/
-
-   /*DEBUG_PRINT("Sending charger command can message\n");*/
    return sendCAN_ChargerCommand();
 }
 

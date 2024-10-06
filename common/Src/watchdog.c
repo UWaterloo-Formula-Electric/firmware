@@ -17,8 +17,10 @@
 #include "task.h"
 #include "debug.h"
 #include "userCan.h"
+#ifndef DISABLE_CAN_FEATURES
 #include "canHeartbeat.h"
 #include AUTOGEN_DTC_HEADER_NAME(BOARD_NAME)
+#endif
 
 typedef struct TaskNode {
     uint32_t id;
@@ -134,8 +136,11 @@ void watchdogSignalError(uint32_t id)
 {
     if (!signaledError) {
         ERROR_PRINT("Watchdog error for task id %lu\n", id);
+
+#ifndef DISABLE_CAN_FEATURES
         uint8_t data = id | (BOARD_ID << 4);
         sendDTC_FATAL_WatchdogTaskMissedCheckIn(data);
+#endif
 #if BOARD_TYPE != NUCLEO_F7
         handleError();
 #endif
@@ -151,19 +156,25 @@ HAL_StatusTypeDef watchdogSendEventToFSM(FSM_Handle_Struct *fsmHandle)
 void watchdogTask(void *pvParameters)
 {
     TaskNode *node = NULL;
+#ifndef DISABLE_CAN_FEATURES
 #if !BOARD_IS_WSB(BOARD_ID)
     uint32_t lastHeartbeatTick = 0;
 #endif
+#endif
 
+#ifndef DISABLE_CAN_FEATURES
     if (canStart(&CAN_HANDLE) != HAL_OK)
     {
         ERROR_PRINT("Failed to start CAN!\n");
         Error_Handler();
     }
+#endif
 
     // Send heartbeat on startup so it gets sent ASAP
+#ifndef DISABLE_CAN_FEATURES
 #if !BOARD_IS_WSB(BOARD_ID)
     sendHeartbeat();
+#endif
 #endif
 
     while (1) {
@@ -200,6 +211,7 @@ void watchdogTask(void *pvParameters)
             node = node->next;
         }
 
+#ifndef DISABLE_CAN_FEATURES
 #if !BOARD_IS_WSB(BOARD_ID)
         if (!signaledError) {
             if (checkAllHeartbeats() != HAL_OK) {
@@ -210,14 +222,17 @@ void watchdogTask(void *pvParameters)
             }
         }
 #endif
+#endif
 
         watchdogRefresh();
 
+#ifndef DISABLE_CAN_FEATURES
 #if !BOARD_IS_WSB(BOARD_ID)
         if (curTick - lastHeartbeatTick >= HEARTBEAT_PERIOD_TICKS) {
             sendHeartbeat();
             lastHeartbeatTick = curTick;
         }
+#endif
 #endif
         vTaskDelay(WATCHDOGTASK_PERIOD_TICKS);
     }
@@ -237,6 +252,7 @@ void checkForWDReset()
 void printWDResetState()
 {
     if (wdReset) {
+#ifndef DISABLE_CAN_FEATURES
         // Need to start CAN here since it won't be started already
         if (canStart(&CAN_HANDLE) != HAL_OK)
         {
@@ -244,6 +260,7 @@ void printWDResetState()
         }
 
         sendDTC_FATAL_WatchdogReset();
+#endif 
         printf("Watchdog reset occured!!!\n");
     } else {
         printf("Watchdog reset didn't occur\n");
@@ -254,7 +271,9 @@ void handleWatchdogReset()
 {
     if (wdReset) {
         while (1) {
+            DEBUG_PRINT("Watchdog Reset Loop!\r\n");
             watchdogRefresh();
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 }

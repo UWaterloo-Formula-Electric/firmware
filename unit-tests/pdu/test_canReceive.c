@@ -53,6 +53,6 @@ void test_CAN_Msg_VCU_EM_Power_State_Request_Callback() {
 
 void test_DTC_Fatal_Callback() {
     /*DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
-    fsmSendEventUrgentISR(&mainFsmHandle, MN_EV_HV_CriticalFailure);*/
+    fsmSendEventUrgentISR(&mainFsmHandle, EV_HV_CriticalFailure);*/
     TEST_ASSERT(1 == 1);
 }

@@ -8,10 +8,16 @@
 #include "drive_by_wire.h"
 #include "state_machine.h"
 #include "drive_by_wire.h"
+#include "canReceive.h"
+#include "mathUtils.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
 #endif
+
+
+bool appsBrakePedalPlausibilityCheckFail(float throttle);
+
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
@@ -47,9 +53,6 @@ HAL_StatusTypeDef startADCConversions()
     return HAL_OK;
 }
 
-// Flag set if throttle and brake pressed at same time
-bool throttleAndBrakePressedError = false;
-
 int map_range(int in, int low, int high, int low_out, int high_out) {
     if (in < low) {
         in = low;
@@ -76,16 +79,16 @@ bool is_throttle2_in_range(uint32_t throttle) {
   return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
 }
 
-uint16_t calculate_throttle_percent1(uint16_t tps_value)
+float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return 100 - map_range(tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
       0, 100);
 }
 
-uint16_t calculate_throttle_percent2(uint16_t tps_value)
+float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return map_range(tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return 100 - map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
       0, 100);
 }
 
@@ -99,7 +102,7 @@ uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
   return map_range(percent, 0, 100, THROTT_B_LOW, THROTT_B_HIGH);
 }
 
-bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_percent)
+bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
 {
     if (throttle1_percent == throttle2_percent
         || ((throttle1_percent > throttle2_percent) && ((throttle1_percent - throttle2_percent) < TPS_TOLERANCE_PERCENT))
@@ -115,7 +118,7 @@ bool is_tps_within_tolerance(uint16_t throttle1_percent, uint16_t throttle2_perc
 // @ret False if implausibility, true otherwise
 bool getThrottlePositionPercent(float *throttleOut)
 {
-    uint32_t throttle1_percent, throttle2_percent;
+    float throttle1_percent, throttle2_percent;
     float throttle;
     (*throttleOut) = 0;
 
@@ -140,7 +143,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
-        ERROR_PRINT("implausible pedal! difference: %ld %%\r\n", throttle1_percent - throttle2_percent);
+        ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
         DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
         return false;
     } else {
@@ -168,24 +171,8 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         return THROTTLE_FAULT;
     }
 
-    // Both throttle and brake were pressed, check if still the case
-    if (throttleAndBrakePressedError) {
-        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
-            throttleAndBrakePressedError = false;
-            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
-        } else {
-            (*throttleOut) = 0;
-            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
-            return THROTTLE_DISABLED;
-        }
-    }
-
-    // check if both throttle and brake are pressed
-    if (isBrakePressedHard() && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    if (appsBrakePedalPlausibilityCheckFail(throttle)) {
         (*throttleOut) = 0;
-        throttleAndBrakePressedError = true;
-        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
-        DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return THROTTLE_DISABLED;
     }
 
@@ -196,15 +183,6 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
 }
 
 /* Public Functions */
-
-bool isBrakePressedHard()
-{
-    if (getBrakePositionPercent() > MIN_BRAKE_PRESSED_HARD_VAL_PERCENT) {
-        return true;
-    } else {
-        return false;
-    }
-}
 bool isBrakePressed()
 {
     /*DEBUG_PRINT("Brake %f\n", getBrakePositionPercent());*/
@@ -214,6 +192,29 @@ bool isBrakePressed()
     } else {
         return false;
     }
+}
+
+bool appsBrakePedalPlausibilityCheckFail(float throttle)
+{
+    // Flag set if throttle and brake pressed at same time
+    static bool throttleAndBrakePressedError = false;
+    if (throttleAndBrakePressedError) {
+        // Both throttle and brake were pressed, check if still the case
+        if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
+            throttleAndBrakePressedError = false;
+            sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
+        } else {
+            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+            return true;
+        }
+    } else if (getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+        throttleAndBrakePressedError = true;
+        sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
+        DEBUG_PRINT("Throttle disabled, brakePressed\n");
+        return true;
+    }
+
+    return false;
 }
 
 bool throttleIsZero()
@@ -267,7 +268,6 @@ void canPublishTask(void *pvParameters)
         brakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
-        BrakeWhileThrottle = throttleAndBrakePressedError;
 
         if (sendCAN_VCU_Data() != HAL_OK) {
             ERROR_PRINT("Failed to send vcu can data\n");
@@ -276,39 +276,23 @@ void canPublishTask(void *pvParameters)
     }
 }
 
-void pollThrottle(TickType_t* xLastWakeTime)
-{
-    while(1)
-    {
-        //Wait until EM is enabled
-        if (fsmGetState(&fsmHandle) != STATE_EM_Enable) 
-        {
-            throttlePercentReading = 0;
-            return;
-        }
-        ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
-    
-        if (rc != THROTTLE_OK)
-        {
-            if (rc == THROTTLE_FAULT) {
-                sendDTC_CRITICAL_Throtte_Failure(0);
-                DEBUG_PRINT("Throttle value out of range\n");
-            } else if (rc == THROTTLE_DISABLED) {
-                sendDTC_CRITICAL_Throtte_Failure(1);
-                DEBUG_PRINT("Throttle disabled as brake pressed\n");
-            } else {
-                sendDTC_CRITICAL_Throtte_Failure(2);
-                DEBUG_PRINT("Unknown throttle error\r\n");
-            }
-            fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
-            return;
-        }
+HAL_StatusTypeDef pollThrottle(void) {
+    ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
 
-        sendThrottleValueToMCs(throttlePercentReading, getSteeringAngle());
-
-        watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
-        vTaskDelayUntil(xLastWakeTime, THROTTLE_POLLING_PERIOD_MS);
+    if (rc == THROTTLE_FAULT) {
+        sendDTC_WARNING_Throttle_Failure(0);
+        DEBUG_PRINT("Throttle value out of range\n");
+        return HAL_ERROR;
     }
+
+    if(!isLockoutDisabled()) {
+        // Send lockout release to MC
+        if (sendLockoutReleaseToMC() != HAL_OK) {
+            return HAL_ERROR;
+        }
+    }
+    
+    return requestTorqueFromMC(throttlePercentReading);
 }
 
 void throttlePollingTask(void) 
@@ -321,21 +305,25 @@ void throttlePollingTask(void)
         while(1);
     }
 
+    INV_Peak_Tractive_Power_kW = 0;
+    INV_DC_Bus_Voltage = 0;
+    INV_DC_Bus_Current = 0;
+
     while (1)
     {
-        uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS/2));
-
-        if (wait_flag & (1U << THROTTLE_POLLING_FLAG_BIT))
+        // Once EM Enabled, start polling throttle
+        if (fsmGetState(&fsmHandle) == STATE_EM_Enable)
         {
-            //Start polling throttle and send to MC
-            watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_PERIOD_MS));
-            watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
-            pollThrottle(&xLastWakeTime);
-            watchdogTaskChangeTimeout(THROTTLE_POLLING_TASK_ID, pdMS_TO_TICKS(2*THROTTLE_POLLING_TASK_PERIOD_MS));
+            // Poll throttle
+            if (pollThrottle() != HAL_OK) {
+                ERROR_PRINT("ERROR: Failed to request torque from MC\n");
+                fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+            }
         }
         else
         {
-            // The flag was never actually set, we just hit the timeout	
+            // EM disabled
+            throttlePercentReading = 0;
         }
 
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);

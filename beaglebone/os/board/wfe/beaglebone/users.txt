@@ -1,1 +1,0 @@
-wfe -1 fw_user -1 firmware /home/wfe/ /bin/sh

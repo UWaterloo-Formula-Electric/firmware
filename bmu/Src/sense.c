@@ -18,12 +18,12 @@
 /*#define SENSOR_TASK_PERIOD 50*/
 #define SENSOR_TASK_PERIOD 1000
 
-volatile uint32_t brakeAndHVILVals[2] = {0};
+volatile uint32_t brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_NUM] = {0};
 
 HAL_StatusTypeDef sensorTaskInit()
 {
 #if IS_BOARD_F7
-    if (HAL_ADC_Start_DMA(&BRAKE_ADC_HANDLE, (uint32_t *)brakeAndHVILVals, 2) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&BRAKE_ADC_HANDLE, (uint32_t *)brakeAndHallAdcVals, BRAKE_HALL_ADC_CHANNEL_NUM) != HAL_OK)
     {
         ERROR_PRINT("Failed to start Brake sensor ADC DMA conversions\n");
         Error_Handler();
@@ -38,7 +38,7 @@ HAL_StatusTypeDef sensorTaskInit()
     }
 #else
     // Init to full brake
-    brakeAndHVILVals[BRAKE_ADC_CHANNEL] = 100*BRAKE_ADC_DIVIDER;
+    brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE] = 100*BRAKE_ADC_DIVIDER;
 #endif
 
     return HAL_OK;
@@ -64,12 +64,12 @@ void sensorTask(void *pvParameters)
    TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1)
    {
-      BrakePressureBMU = brakeAndHVILVals[BRAKE_ADC_CHANNEL] / BRAKE_ADC_DIVIDER;
+      BrakePressureBMU = brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_BRAKE] / BRAKE_ADC_DIVIDER;
       if (sendCAN_BMU_BrakePressure() != HAL_OK) {
          ERROR_PRINT("Failed to send brake value over CAN\n");
       }
 
       watchdogTaskCheckIn(3);
-      vTaskDelayUntil(&xLastWakeTime, SENSOR_TASK_PERIOD);
+      vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(SENSOR_TASK_PERIOD));
    }
 }
