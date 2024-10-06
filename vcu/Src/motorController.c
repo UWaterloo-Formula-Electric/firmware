@@ -6,339 +6,171 @@
 #include "string.h"
 #include "inttypes.h"
 #include "drive_by_wire.h"
+#include "vcu_F7_dtc.h"
+#include "mathUtils.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
-/* Control Values - See 3.4.1 in ProCAN fundementals */
-#define INVERTER_NOP                    0x00
-#define INVERTER_ENABLE_BRIDGE          0x01
-#define INVERTER_RESET                  0x07
-#define INVERTER_DISABLE_BRIDGE         0x04
-#define INVERTER_DISCHARGE_DC_LINK      0x02
+//comment out to remove 80kw power limit
+#define ENABLE_POWER_LIMIT
+#define INV_POWER_LIMIT 70000.0 //80kw
+#define RPM_TO_RAD (2.0*3.14159/60.0)
 
-/* Status Values - See 3.4.2 in ProCAN fundementals */
-#define INVERTER_BRIDGE_DISABLED        0x18
-#define INVERTER_BRIDGE_ENABLED         0x1A
-#define INVERTER_SELF_TEST              0x15
-#define INVERTER_FAULT_OFF              0x25
-#define INVERTER_NOT_READY              0x00
+MotorControllerSettings mcSettings = {0};
 
-#define INVERTER_STATE_MASK             0x3F
-
-// Torque vectoring dead zone angle boundaries
-#define TV_DEADZONE_END_RIGHT 10
-#define TV_DEADZONE_END_LEFT -10
-
-MotorControllerProcanSettings mcLeftSettings = {0};
-MotorControllerProcanSettings mcRightSettings = {0};
-// This is bad but a band-aid, we should really create a good way and check inverter status
-volatile bool motors_active = false;
-
-float min(float a, float b)
+HAL_StatusTypeDef initMotorControllerSettings()
 {
-    if (a < b) {
-        return a;
-    } else {
-        return b;
-    }
-}
+    mcSettings.InverterMode = 0;
+    mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM; 
+    mcSettings.MaxTorqueDemand = MAX_MOTOR_TORQUE_NM;
+    mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
 
-HAL_StatusTypeDef mcRightCommand(uint16_t commandVal)
-{
-	
-    mcRightSettings.InverterCommand = commandVal;
-    InverterCommandRight = mcRightSettings.InverterCommand;
-    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
-    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
-    return sendCAN_SpeedLimitRight();
-}
-
-HAL_StatusTypeDef mcLeftCommand(uint16_t commandVal)
-{
-    mcLeftSettings.InverterCommand = commandVal;
-    InverterCommandLeft = mcLeftSettings.InverterCommand;
-    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
-    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
-    return sendCAN_SpeedLimitLeft();
-}
-
-HAL_StatusTypeDef initMotorControllerProcanSettings()
-{
-    mcLeftSettings.InverterCommand = 0;
-    mcLeftSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
-    mcLeftSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
-    mcLeftSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
-    mcLeftSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
-    mcLeftSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
-    mcLeftSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
-    mcLeftSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
-    mcLeftSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
-    mcLeftSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
-
-    mcRightSettings.InverterCommand = 0;
-    mcRightSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT;
-    mcRightSettings.BrakingTorqueLimit = BRAKING_TORQUE_LIMIT_DEFAULT;
-    mcRightSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
-    mcRightSettings.ReverseSpeedLimit = SPEED_LIMIT_DEFAULT;
-    mcRightSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
-    mcRightSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
-    mcRightSettings.HighVoltageLimit = HIGH_VOLTAGE_LIMIT_DEFAULT;
-    mcRightSettings.LowVoltageLimit = LOW_VOLTAGE_LIMIT_DEFAULT;
-    mcRightSettings.MaxTorqueDemand = MAX_TORQUE_DEMAND_DEFAULT;
-
+    // TODO - legacy settings - do we still need?
+    mcSettings.ForwardSpeedLimit = SPEED_LIMIT_DEFAULT;
+    mcSettings.DischargeCurrentLimit = DISCHARGE_CURRENT_LIMIT_DEFAULT;
+    mcSettings.ChargeCurrentLimit = CHARGE_CURRENT_LIMIT_DEFAULT;
     return HAL_OK;
 }
 
-HAL_StatusTypeDef setMotorControllerProcanSettings(MotorControllerProcanSettings settings)
+HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings)
 {
-    memcpy(&mcLeftSettings, &settings, sizeof(settings));
-    memcpy(&mcRightSettings, &settings, sizeof(settings));
-
+    memcpy(&mcSettings, &settings, sizeof(MotorControllerSettings));
     return HAL_OK;
 }
 
 HAL_StatusTypeDef setForwardSpeedLimit(float limit)
 {
-    mcLeftSettings.ForwardSpeedLimit = limit;
-    mcRightSettings.ForwardSpeedLimit = limit;
-
+    mcSettings.ForwardSpeedLimit = limit;
     return HAL_OK;
 }
 
 HAL_StatusTypeDef setTorqueLimit(float limit)
 {
-    mcRightSettings.DriveTorqueLimit = limit;
-    mcLeftSettings.DriveTorqueLimit = limit;
-
+    mcSettings.DriveTorqueLimit = limit;
     return HAL_OK;
 }
 
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
 {
-    mcRightSettings.DischargeCurrentLimit = limit;
-    mcLeftSettings.DischargeCurrentLimit = limit;
+    mcSettings.DischargeCurrentLimit = limit;
 	return HAL_OK;
 }
 
-// TODO: Probably need to set speed limits after init
-HAL_StatusTypeDef mcInit()
-{
-	DEBUG_PRINT("Discharging MCs for 1 second before turning on\n");
+HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
+    VCU_INV_Parameter_RW_Command = INVERTER_PARAM_READ;
+    VCU_INV_Parameter_Address = address;
+    VCU_INV_Parameter_Data = data; // Is this needed for reading? todo
 
-    if (mcRightCommand(INVERTER_DISCHARGE_DC_LINK) != HAL_OK) {
-        ERROR_PRINT("Failed to send discharge command to MC Right");
+    if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
+        ERROR_PRINT("Failed to send read param message to MC\n");
         return HAL_ERROR;
     }
+    return HAL_OK;
+}
 
-    if (mcLeftCommand(INVERTER_DISCHARGE_DC_LINK) != HAL_OK) {
-        ERROR_PRINT("Failed to send discharge command to MC Left");
+HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data) {
+    VCU_INV_Parameter_RW_Command = INVERTER_PARAM_WRITE;
+    VCU_INV_Parameter_Address = address;
+    VCU_INV_Parameter_Data = data;
+
+    if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
+        ERROR_PRINT("Failed to send write param message to MC\n");
         return HAL_ERROR;
     }
+    return HAL_OK;
+}
 
-    vTaskDelay(pdMS_TO_TICKS(MC_INIT_DISCHARGE_TIME_MS));
+HAL_StatusTypeDef mcClearFaults() {
+    return mcWriteParamCommand(INVERTER_FAULT_CLEAR_ADDRESS, 0);
+}
 
-    if (mcRightCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
-        return HAL_ERROR;
-    }
-
-    if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Left");
-        return HAL_ERROR;
-    }
-
+HAL_StatusTypeDef mcInit() {
     DEBUG_PRINT("Waiting for MC to complete startup checks\n");
+    // Todo - Read and check EEPROM values
 
-    // TODO: Do we need to check the voltage values from the MC, or are the BMU
-    // startup checks sufficient?
-
-    DEBUG_PRINT("Starting MC Left...\n");
+    DEBUG_PRINT("Starting MC ..\n");
 
     uint32_t startTick = xTaskGetTickCount();
-    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
+
+    // Attempt to disable the lockout
+    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) && 
+           (isLockoutDisabled() == false))
     {
-        sendThrottleValueToMCs(0, 0);
+        sendLockoutReleaseToMC();
         vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
     }
 
-    if ((StateInverterLeft & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
-        ERROR_PRINT("Timeout waiting for MC Left to be ready to turn on\n");
-        ERROR_PRINT("StateInverterLeft %d\n", (uint8_t)(StateInverterLeft & INVERTER_STATE_MASK));
+
+    if ((isLockoutDisabled() == false) ||
+        (getInverterVSMState() == INV_VSM_State_FAULT_STATE)) {
+        ERROR_PRINT("Inverter lockout could not be released\n");
         return HAL_TIMEOUT;
     }
 
-    DEBUG_PRINT("Left motor controller ready.\n");
+    DEBUG_PRINT("Motor controller ready.\n");
 
-    DEBUG_PRINT("Starting MC Right...\n");
+    // This isn't really used, but may have future use?
+    initMotorControllerSettings();
 
-    startTick = xTaskGetTickCount();
-    while ((xTaskGetTickCount() - startTick < (INVERTER_ON_TIMEOUT_MS)) &&
-           ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED))
-    {
-        sendThrottleValueToMCs(0, 0);
-        vTaskDelay(pdMS_TO_TICKS(THROTTLE_POLL_TIME_MS));
-    }
-
-    if ((StateInverterRight & INVERTER_STATE_MASK) != INVERTER_BRIDGE_DISABLED) {
-        ERROR_PRINT("Timeout waiting for MC Right to be ready to turn on\n");
-        ERROR_PRINT("StateInverterRight %d\n", (uint8_t)(StateInverterRight & INVERTER_STATE_MASK));
-        return HAL_TIMEOUT;
-    }
-
-    DEBUG_PRINT("Right motor controller ready.\n");
-
-    DEBUG_PRINT("Initializing default settings...");
-    initMotorControllerProcanSettings();
-
-    if (mcLeftCommand(INVERTER_ENABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send enable bridge command to MC Left");
-        return HAL_ERROR;
-    }
-
-    if (mcRightCommand(INVERTER_ENABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send enable bridge command to MC right");
-        return HAL_ERROR;
-    }
-    motors_active = true;
+    requestTorqueFromMC(0);
 
     return HAL_OK;
 }
 
-HAL_StatusTypeDef mcShutdown()
-{
-	motors_active = false;
-	// Wait for final throttle messages to exit our CAN queue
-    vTaskDelay(pdMS_TO_TICKS(250));
-    if (mcLeftCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Left");
-        return HAL_ERROR;
-    }
+HAL_StatusTypeDef sendDisableMC(void) {
+    VCU_INV_Inverter_Enable = INVERTER_OFF;
+    VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
+    VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
+    VCU_INV_Torque_Limit_Command = TORQUE_LIMIT_OVERRIDE_FALSE;
 
-    if (mcRightCommand(INVERTER_DISABLE_BRIDGE) != HAL_OK) {
-        ERROR_PRINT("Failed to send init disable bridge command to MC Right");
+    if (sendCAN_MC_Command_Message() != HAL_OK) {
+        ERROR_PRINT("Failed to send disable message to MC\n");
+        sendDTC_FATAL_VCU_F7_MC_DISABLE_ERROR();
         return HAL_ERROR;
     }
 
     return HAL_OK;
 }
 
-float map_range_float(float in, float low, float high, float low_out, float high_out) {
-    if (in < low) {
-        in = low;
-    } else if (in > high) {
-        in = high;
-    }
-    float in_range = high - low;
-    float out_range = high_out - low_out;
 
-    return (in - low) * out_range / in_range + low_out;
+HAL_StatusTypeDef sendLockoutReleaseToMC() {
+    // Based on Cascadia Motion documentation, need to send an inverter disable command to release lockout
+    // Note - lockout will not disable if inverter is faulted
+
+    return sendDisableMC();
 }
 
-float limit(float in, float min, float max)
-{
-    if (in > max) {
-        in = max;
-    } else if (in < min) {
-        in = min;
+
+HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
+
+    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE)
+    {
+        throttle_percent = 0.0f;
     }
+    // Per Cascadia Motion docs, torque requests are sent in Nm * 10
+    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+    #ifdef ENABLE_POWER_LIMIT
+    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+    #endif
 
-    return min;
-}
+    INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
+    sendCAN_VCU_INV_Power();
 
-HAL_StatusTypeDef sendThrottleValueToMCs(float throttle, int steeringAngle)
-{
+    float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
+    uint16_t requestTorque = scaledTorque; 
 
-	if(!motors_active)
-	{
-        
-		return HAL_OK;
-	}
+    VCU_INV_Torque_Command = requestTorque*10;
+    VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
+    VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
+    VCU_INV_Inverter_Enable = INVERTER_ON;
+    VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
+    VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
+    VCU_INV_Torque_Limit_Command = maxTorqueDemand;
 
-    float maxTorqueDemand = min(mcRightSettings.DriveTorqueLimit, mcLeftSettings.DriveTorqueLimit);
-
-	float throttleRight = throttle - (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-	float throttleLeft = throttle + (throttle * steeringAngle * TORQUE_VECTOR_FACTOR);
-
-    float torqueDemandR = map_range_float(throttleRight, 0, 100, 0, maxTorqueDemand);
-    float torqueDemandL = map_range_float(throttleLeft, 0, 100, 0, maxTorqueDemand);
-
-    TorqueLimitDriveRight = mcRightSettings.DriveTorqueLimit;
-    TorqueLimitBrakingRight = mcRightSettings.BrakingTorqueLimit;
-    TorqueDemandRight = torqueDemandR;
-
-    TorqueLimitDriveLeft = mcLeftSettings.DriveTorqueLimit;
-    TorqueLimitBrakingLeft = mcLeftSettings.BrakingTorqueLimit;
-    TorqueDemandLeft = torqueDemandL;
-
-    SpeedLimitForwardRight = mcRightSettings.ForwardSpeedLimit;
-    SpeedLimitReverseRight = mcRightSettings.ReverseSpeedLimit;
-    InverterCommandRight = mcRightSettings.InverterCommand; // Keep sending enable bridge command
-
-    SpeedLimitForwardLeft = mcLeftSettings.ForwardSpeedLimit;
-    SpeedLimitReverseLeft = mcLeftSettings.ReverseSpeedLimit;
-    InverterCommandLeft = mcLeftSettings.InverterCommand; // Keep sending enable bridge command
-
-    CurrentLimitDschrgInverterRight = mcRightSettings.DischargeCurrentLimit;
-    CurrentLimitChargeInverterRight = mcRightSettings.ChargeCurrentLimit;;
-
-    CurrentLimitDschrgInverterLeft = mcLeftSettings.DischargeCurrentLimit;
-    CurrentLimitChargeInverterLeft = mcLeftSettings.ChargeCurrentLimit;;
-
-    VoltageLimitHighInverterRight = mcRightSettings.HighVoltageLimit;
-    VoltageLimitLowInverterRight = mcRightSettings.LowVoltageLimit;;
-
-    VoltageLimitHighInverterLeft = mcLeftSettings.HighVoltageLimit;
-    VoltageLimitLowInverterLeft = mcLeftSettings.LowVoltageLimit;;
-
-    // Sevcon didn't explain what these are for, but said to set to 0
-    ActiveShortRight = 0;
-    ActiveShortLeft = 0;
-
-    if (sendCAN_TorqueLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send torque limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_TorqueLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send torque limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_SpeedLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send speed limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_SpeedLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send speed limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_CurrentLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send current limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_CurrentLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send current limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_VoltageLimitRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send voltage limit right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_VoltageLimitLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send voltage limit left\n");
-        return HAL_ERROR;
-    }
-
-    if (sendCAN_AuxRight() != HAL_OK) {
-        ERROR_PRINT("Failed to send aux right\n");
-        return HAL_ERROR;
-    }
-    if (sendCAN_AuxLeft() != HAL_OK) {
-        ERROR_PRINT("Failed to send aux left\n");
+    if (sendCAN_MC_Command_Message() != HAL_OK) {
+        ERROR_PRINT("Failed to send command message to MC\n");
         return HAL_ERROR;
     }
 

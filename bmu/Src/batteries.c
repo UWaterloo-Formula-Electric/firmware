@@ -32,6 +32,7 @@
 #include "canReceive.h"
 #include "chargerControl.h"
 #include "state_of_charge.h"
+#include "sense.h"
 
 /*
  *
@@ -133,13 +134,6 @@ extern osThreadId stateOfChargeHandle;
  * HV Measure
  */
 
-/**
- * @brief Filter constant for HV Bus current low pass filter
- * Designed around 1 ms sample period and 50 Hz cuttoff.
- * See the wikipedia page for the calculation: https://en.wikipedia.org/wiki/Low-pass_filter#Simple_infinite_impulse_response_filter
- */
-#define IBUS_FILTER_ALPHA 0.24
-
 
 // Filter constant for Filtered Cell Voltages
 // Designed for 75 ms sample period and 1 Hz cutoff
@@ -150,13 +144,21 @@ extern osThreadId stateOfChargeHandle;
  * @param[in] IBus the measured HV Bus current
  * @return The filtered HV Bus current
  */
+
+#define IBUS_HISTORY_SIZE 100
+static float IBusHistory[IBUS_HISTORY_SIZE];
+
 float filterIBus(float IBus)
 {
-  static float IBusOut = 0;
+    static uint8_t filterIndex = 0U;
+    static float runningIBusHistorySum = 0.0f;
 
-  IBusOut = IBUS_FILTER_ALPHA*IBus + (1-IBUS_FILTER_ALPHA)*IBusOut;
+    runningIBusHistorySum -= IBusHistory[filterIndex];
+    IBusHistory[filterIndex] = IBus;
+    runningIBusHistorySum += IBus;
+    filterIndex = (filterIndex + 1) % IBUS_HISTORY_SIZE;
 
-  return IBusOut;
+    return runningIBusHistorySum / IBUS_HISTORY_SIZE;
 }
 
 /**
@@ -211,19 +213,21 @@ HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float
 HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
 {
 #if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0;
+   float IBusTmp = 0.0f; //(0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
+   
+// TODO: Revert back to use shunt over hall once the lid is fixed
    if (adc_read_current(&IBusTmp) != HAL_OK) {
       ERROR_PRINT("Error reading IBUS\n");
       return HAL_ERROR;
    }
-
-   (*IBus) = filterIBus(IBusTmp);
-
-   if (adc_read_v1(VBus) != HAL_OK) {
+   
+    (*IBus) = filterIBus(IBusTmp);
+    
+   if (adc_read_v1(VBatt) != HAL_OK) {
       ERROR_PRINT("Error reading VBUS\n");
       return HAL_ERROR;
    }
-   if (adc_read_v2(VBatt) != HAL_OK) {
+   if (adc_read_v2(VBus) != HAL_OK) {
       ERROR_PRINT("Error reading VBatt\n");
       return HAL_ERROR;
    }
@@ -402,7 +406,7 @@ void HVMeasureTask(void *pvParamaters)
             VoltageBusHV = VBus;
             sendCAN_BMU_stateBusHV();
             vTaskDelay(2); // Added to prevent CAN mailbox full
-            AMS_PackVoltage = VBatt;
+            getAdjustedPackVoltage((float*)&AMS_PackVoltage);
             sendCAN_BMU_AmsVBatt();
             lastStateBusHVSend = xTaskGetTickCount();
         }
@@ -479,7 +483,7 @@ void imdTask(void *pvParamaters)
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
          default:
-            ERROR_PRINT_ISR("Unkown IMD Status\n");
+            ERROR_PRINT_ISR("Unknown IMD Status\n");
             sendDTC_FATAL_IMD_Failure(imdStatus);
             break;
       }
@@ -518,8 +522,6 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   /*_Static_assert(VOLTAGECELL_COUNT == NUM_VOLTAGE_CELLS, "Length of array for sending cell voltages over CAN doesn't match number of cells");*/
-   /*_Static_assert(TEMPCELL_COUNT == NUM_TEMP_CELLS, "Length of array for sending cell temperatures over CAN doesn't match number of temperature cells");*/
    return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
@@ -578,6 +580,10 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
    {
       TempChannel[i] = initTemp;
       warningSentForChannelTemp[i] = false;
+   }
+   for (int i=0; i < IBUS_HISTORY_SIZE; ++i)
+   {
+        IBusHistory[i] = 0.0f;
    }
 
    return HAL_OK;
@@ -708,12 +714,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    float measure;
    float measure_high;
    float measure_low;
-   float currentReading;
-   if(getIBus(&currentReading) != HAL_OK){
-       ERROR_PRINT("Cannot read current from bus!!");
-       sendDTC_FATAL_BMU_ERROR();
-       return HAL_ERROR;
-   } 
+   
    *maxVoltage = 0;
    *minVoltage = limit_overvoltage;
    *maxTemp = -100; // Cells shouldn't get this cold right??
@@ -758,7 +759,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= THERMISTORS_PER_BOARD/NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
@@ -775,11 +776,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
                     sendDTC_WARNING_CELL_TEMP_HIGH(i);
                     warningSentForChannelTemp[i] = true;
                 }
-            } else if(measure < CELL_UNDERTEMP){
+            } else if(measure > 0 && measure < CELL_UNDERTEMP){
                 ERROR_PRINT("Cell %d is undertemp at %f deg C\n", i, measure);
-                sendDTC_CRITICAL_CELL_TEMP_LOW(i);
-                rc = HAL_ERROR;
-            } else if(measure < CELL_UNDERTEMP_WARNING){
+                sendDTC_WARNING_CELL_TEMP_LOW(i);
+            } else if(measure > 0 && measure < CELL_UNDERTEMP_WARNING){
                 if(!warningSentForChannelTemp[i]) {
                     ERROR_PRINT("WARN: Cell %d is low temp at %f deg C\n", i, measure);
                     sendDTC_WARNING_CELL_TEMP_LOW(i);
@@ -972,7 +972,7 @@ HAL_StatusTypeDef continueCharging()
 #if IS_BOARD_F7 && defined(ENABLE_CHARGER)
    ChargerStatus status;
 
-   sendChargerCommand(maxChargeVoltage, maxChargeCurrent, true /* start charing */);
+   sendChargerCommand(maxChargeVoltage, maxChargeCurrent + 0.2, true /* start charing */);
 
    if (checkChargerStatus(&status) != HAL_OK) {
       ERROR_PRINT("Failed to get charger status\n");
@@ -984,6 +984,10 @@ HAL_StatusTypeDef continueCharging()
       sendDTC_FATAL_BMU_Charger_ERROR();
       return HAL_ERROR;
    }
+   DEBUG_PRINT("Charge Current: %f\n", status.current);
+   DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
+   DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
+   DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
 
 #endif
    return HAL_OK;
@@ -1414,7 +1418,7 @@ void batteryTask(void *pvParameter)
     }
 #endif
 
-    if (registerTaskToWatch(BATTERY_TASK_ID, 2*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(BATTERY_TASK_ID, 5*pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register battery task with watchdog!\n");
         Error_Handler();
@@ -1481,7 +1485,7 @@ void batteryTask(void *pvParameter)
                         DEBUG_PRINT("Stopped charge/balancing\n");
                         fsmSendEvent(&fsmHandle, EV_Notification_Stop, 20);
                     } else {
-                        ERROR_PRINT("Unkown charge return code %d\n", chargeRc);
+                        ERROR_PRINT("Unknown charge return code %d\n", chargeRc);
                         fsmSendEvent(&fsmHandle, EV_Charge_Error, portMAX_DELAY);
                     }
                 }

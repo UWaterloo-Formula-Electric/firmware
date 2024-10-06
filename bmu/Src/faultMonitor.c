@@ -244,6 +244,19 @@ void faultMonitorTask(void *pvParameters)
 			}
 		}
 
+      if (getBSPD_Status() == false)
+		{
+			ERROR_PRINT("Fault Monitor: BSPD broken!\n");
+			BMU_checkFailed = BSPD_FAILED_BIT;
+			sendCAN_BMU_Interlock_Loop_Status();
+
+			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+			while (1) {
+				watchdogTaskCheckIn(FAULT_TASK_ID);
+				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
+			}
+		}
+
 		bool il_ok = getIL_Status();
 		bool cbrb_ok = getCBRB_IL_Status();
 		bool hvd_ok = getHVD_Status();

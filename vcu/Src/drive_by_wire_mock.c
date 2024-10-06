@@ -12,6 +12,7 @@
 #include "motorController.h"
 #include "beaglebone.h"
 #include "traction_control.h"
+#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -188,7 +189,7 @@ static const CLI_Command_Definition_t getBrakeCommandDefinition =
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("Throttle A %u (ADC: %lu), B %u (ADC: %lu)\n",
+    COMMAND_OUTPUT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
                    calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
                    brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
                    calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
@@ -211,7 +212,7 @@ static const CLI_Command_Definition_t getThrottleABCommandDefinition =
 BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    DEBUG_PRINT("Throttle A %u (ADC: %lu), B %u (ADC: %lu)\n",
+    DEBUG_PRINT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
                    calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
                    brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
                    calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
@@ -353,7 +354,7 @@ BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
@@ -379,8 +380,8 @@ BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
     uint64_t maxTorqueDemand;
     sscanf(torqueMaxString, "%llu", &maxTorqueDemand);
 
-    if(maxTorqueDemand > 30){
-        COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 30");
+    if(maxTorqueDemand > MAX_MOTOR_TORQUE_NM){
+        COMMAND_OUTPUT("Max torque input out of range, must be between 0 and 231Nm");
     }else{
         setTorqueLimit(maxTorqueDemand);    
         COMMAND_OUTPUT("Setting max torque demand to %llu (Nm)\n", maxTorqueDemand); 

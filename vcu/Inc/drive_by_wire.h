@@ -7,12 +7,11 @@
 #define THROTTLE_POLL_TIME_MS 50
 
 #define MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS 1000 // TODO: Change to good value
-#define MC_STARTUP_TIME_MS           1000
 #define INVERTER_ON_TIMEOUT_MS       10000
 
 // While the motors are starting, increase the watchdog timeout to allow
 // delays to wait for motor controllers to start up
-#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS ((2 * INVERTER_ON_TIMEOUT_MS) + MC_STARTUP_TIME_MS + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
+#define MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS ((2 * INVERTER_ON_TIMEOUT_MS) + MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
 #define MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS (MOTOR_CONTROLLER_PDU_PowerOnOff_Timeout_MS + 1000)
 
 #define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
@@ -41,6 +40,7 @@ typedef enum VCU_Events_t {
     EV_DCU_Can_Timeout,
     EV_Throttle_Failure,
     EV_Fatal,
+    EV_Inverter_Fault,
     EV_ANY, // Must be the last event
 } VCU_Events_t;
 

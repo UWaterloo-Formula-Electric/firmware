@@ -223,6 +223,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     }
 
     if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
+        DEBUG_PRINT("Update falied\r\n");
         return PCDC_ERROR;
     }
 
@@ -242,12 +243,6 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
                     packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
-    ERROR_PRINT("INFO: VBatt %f\n", VBatt);
-    if (VBatt > packVoltage * PRECHARGE_STEP_1_VBATT_MAX_PERCENT_VPACK) {
-        ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
-                    packVoltage * PRECHARGE_STEP_1_VBUS_MAX_PERCENT_VPACK);
-        return PCDC_ERROR;
-    }
 
     ERROR_PRINT("INFO: IBus %f\n", IBus);
     if (IBus > PRECHARGE_STEP_1_CURRENT_MAX) {
@@ -261,7 +256,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
      * Step 2:
      * IShunt == 0
      * VBUS = 0
-     * VBATT = VPACK
+     * VBATT = 0.29*VPACK
      * Close Precharge contactor
      */
     setPrechargeContactor(CONTACTOR_CLOSED);
@@ -293,30 +288,20 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     DEBUG_PRINT("PC Step 2\n");
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
+    
+    //Due to IMD bias
     if (VBus > packVoltage * PRECHARGE_STEP_2_VBUS_MAX_PERCENT_VPACK)
     {
-        // If pack is disconnected from any external load (motor controllers or charger)
-        // and DCDC is disconnected, this might error, probably a false positive
-        // Nothing to discharge VBUS
         ERROR_PRINT("ERROR: VBUS %f > %f\n", VBus,
                     packVoltage * PRECHARGE_STEP_2_VBUS_MAX_PERCENT_VPACK);
         return PCDC_ERROR;
     }
     ERROR_PRINT("INFO: VBatt %f\n", VBatt);
-    if (VBatt < packVoltage*PRECHARGE_STEP_2_PERCENT_VBATT_MIN) {
-        ERROR_PRINT("ERROR: VBatt %f < %f\n", VBatt, packVoltage*PRECHARGE_STEP_2_PERCENT_VBATT_MIN);
+    if (VBatt > packVoltage*PRECHARGE_STEP_2_PERCENT_VBATT_MAX) {
+        ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt, packVoltage*PRECHARGE_STEP_2_PERCENT_VBATT_MAX);
         return PCDC_ERROR;
     }
     ERROR_PRINT("INFO: IBus %f\n", IBus);
-
-    // Store the pack voltage to use in step 4
-    // Check to make sure it is close to what AMS boards think is pack voltage
-    if (fabs(VBatt - packVoltage) > PACK_VOLTAGE_TOLERANCE_PERCENT*packVoltage) {
-        ERROR_PRINT("VBatt measurement %f different than packVoltage %f\n",
-                    VBatt, packVoltage);
-        return PCDC_ERROR;
-    }
-    packVoltage = VBatt;
 
     PrechargeState = 2; 
     sendCAN_PrechargeState();
@@ -347,7 +332,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     DEBUG_PRINT("PC Step 3\n");
     ERROR_PRINT("INFO: VBUS %f\n", VBus);
-    ERROR_PRINT("INFO: VBUS %f\n", VBus);
+    ERROR_PRINT("INFO: VBATT %f\n", VBatt);
     if (VBus > packVoltage * PRECHARGE_STEP_3_VBUS_MAX_PERCENT_VPACK)
     {
         ERROR_PRINT("ERROR: VBUS %f > %f\n", VBus,
@@ -355,9 +340,9 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         return PCDC_ERROR;
     }
     ERROR_PRINT("INFO: VBatt %f\n", VBatt);
-    if (VBatt > packVoltage * PRECHARGE_STEP_3_VBATT_MAX_PERCENT_VPACK) {
-        ERROR_PRINT("ERROR: VBatt %f > %f\n", VBatt,
-                    packVoltage * PRECHARGE_STEP_3_VBUS_MAX_PERCENT_VPACK);
+    if (VBatt < packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK) {
+        ERROR_PRINT("ERROR: VBatt %f < %f\n", VBatt,
+                    packVoltage * PRECHARGE_STEP_3_VBATT_MIN_PERCENT_VPACK);
         return PCDC_ERROR;
     }
     ERROR_PRINT("INFO: IBus %f\n", IBus);
@@ -378,25 +363,20 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     DEBUG_PRINT("PC Step 4\n");
 
+    float maxIBus = 0;
+    DEBUG_PRINT("VPack %f\r\nTick, VBUS, VBATT, IBUS\n", packVoltage);
+    startTickCount = xTaskGetTickCount();
+
     setPrechargeContactor(CONTACTOR_CLOSED);
     setNegContactor(CONTACTOR_CLOSED);
     setPosContactor(CONTACTOR_OPEN);
 
-    float maxIBus = 0;
-    float VBus_avg = 0;
-    uint8_t index = 0;
-    bool VBus_settled = false;
-    DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
-    startTickCount = xTaskGetTickCount();
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
         }
 
-        ERROR_PRINT("%lu,", xTaskGetTickCount());
-        ERROR_PRINT("%f,", VBus);
-        ERROR_PRINT("%f,", VBatt);
-        ERROR_PRINT("%f\n", IBus);
+        ERROR_PRINT("%lu, %f, %f, %f\r\n", xTaskGetTickCount(), VBus, VBatt, IBus);
         if (IBus > maxIBus) {
             maxIBus = IBus;
         }
@@ -409,21 +389,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: IBus %f\n", IBus);
             return PCDC_ERROR;
         }
-        VBus_avg += VBus/(float)PRECHARGE_STEP_4_AVERAGE;
-        index++;
-        if(index >= PRECHARGE_STEP_4_AVERAGE)
-		{	
-			index = 0;
-			float diff = VBus_avg - VBus;
-			diff = diff > 0.0F ? diff : -diff;
-			if(diff < PRECHARGE_STEP_4_DIFF_TOLERANCE)
-			{
-				VBus_settled = true;
-			}
-			VBus_avg = 0;
-		}
-        
-    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK) || !VBus_settled);
+    } while (VBus < (packVoltage*PRECHARGE_STEP_4_COMPLETE_PERCENT_VPACK));
 
     uint32_t prechargeTime = xTaskGetTickCount() - startTickCount;
     DEBUG_PRINT("Precharge took %lu ticks\n", prechargeTime);
@@ -486,7 +452,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
 
-    DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount());
+    DEBUG_PRINT("Precharge step 5 took %lu ticks\n", xTaskGetTickCount() - startTickCount);
 
     if (PC_MotorControllers) {
         float minIBusSpike = (packVoltage - step4EndVBus) / PRECHARGE_RESISTOR_OHMS;

@@ -18,14 +18,27 @@
  * @{
  */
 
-// TODO: Update these to 2021 values
-
 /// Number of AMS boards in system
-#define NUM_BOARDS                  5
+#define NUM_SEGMENTS 7
+#define NUM_BOARDS_PER_SEGMENT      2
+
+#define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             14
-/// Number of thermistors attached to each AMS, starting from A0
-#define THERMISTORS_PER_BOARD       14
+#define CELLS_PER_BOARD             10
+/// Number of thermistors attached to first AMS in each segment
+#define SEGMENT_THERMISTORS_AMS1    14
+/// Number of thermistors attached to second AMS in each segment
+#define SEGMENT_THERMISTORS_AMS2    13
+// Number of thermistors per segment
+#define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
+
+#if NUM_BOARDS%2 == 1
+#error "Number of AMS boards defined is odd, it must be even"
+#endif
+
+#if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
+#error "Number of thermistors defined must be 14 and 13 for AMS boards 1 and 2 of each segment respectively. Hard-coded values in batt_read_cell_temps and batt_read_thermistors will be affected"
+#endif
 
 // This specifies which chip architecture we are using
 // 6812/6804
@@ -36,7 +49,8 @@
 #define LTC_CHIP LTC_CHIP_6804
 
 #if LTC_CHIP == LTC_CHIP_6804
-#define NUM_LTC_CHIPS_PER_BOARD 2
+#define NUM_LTC_CHIPS_PER_BOARD 1
+#define CONVERSION_TIME_7kHz_US (2480)
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #else
@@ -56,7 +70,7 @@
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
-#define NUM_TEMP_CELLS              (NUM_BOARDS*THERMISTORS_PER_BOARD)
+#define NUM_TEMP_CELLS              (NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
 #error "DBC file has less voltage cells defined then they are in the system"
@@ -66,10 +80,14 @@
 #error "DBC file has less temp cells defined then they are in the system"
 #endif
 
+#define LTC_T_WAKE_MAX_US  300          // TYP=100us. Regulator Start-Up Time aka time to get VREG Generated from Drive Pin. This happens during transition from SLEEP to STANDBY states in core LTC state machine
+#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
+                                        /* When isoSPI port A receives a WAKEUP signal, the isoSPI enters the READY state. This transition happens quickly (within t_READY) if the Core is in the STANDBY state because the DRIVE and VREG pins are already biased up. If the Core is in the SLEEP state when the isoSPI receives a WAKEUP signal, then it transitions to the READY state within t_WAKE. */
+
 #if LTC_CHIP == LTC_CHIP_6804
 // We set this to 3 as the last 3 cell connections are actually CELL7 which is on the 2nd chip
 // If this changes in the future VOLTAGE_BLOCKS_PER_CHIP should be 4
-#define VOLTAGE_BLOCKS_PER_CHIP    3   // Number of voltage blocks per AMS board
+#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
 #elif LTC_CHIP == LTC_CHIP_6812
 #define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
 #endif
@@ -90,7 +108,6 @@ typedef enum DischargeTimerLength {
     INVALID_DT_TIME, // There is longer times, but we won't need it for now
 } DischargeTimerLength;
 
-
 /* Public Functions */
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
 
@@ -101,6 +118,7 @@ bool batt_is_cell_balancing(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
+HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
 
 HAL_StatusTypeDef batt_init();

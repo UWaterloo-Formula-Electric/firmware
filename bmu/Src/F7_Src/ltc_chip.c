@@ -13,7 +13,6 @@
 
 #define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
 
-
 HAL_StatusTypeDef batt_init()
 {
 
@@ -28,12 +27,35 @@ HAL_StatusTypeDef batt_init()
     	ERROR_PRINT("Failed to write batt config to boards\n");
         return HAL_ERROR;
     }
+    
+    batt_spi_wakeup(false);
 
 	if(batt_verify_config() != HAL_OK){
 		ERROR_PRINT("Failed to read batt config from boards\n");
 		return HAL_ERROR;
 	}
 
+    if(batt_start_ADC_conversion() != HAL_OK){
+        ERROR_PRINT("Failed to start ADC conversion\n");
+		return HAL_ERROR;
+    }
+    
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_start_ADC_conversion(void)
+{
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+    
+    batt_spi_wakeup(false);
+
+    if (batt_broadcast_command(ADCV) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    
     return HAL_OK;
 }
 
@@ -43,15 +65,15 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     {
         return HAL_ERROR;
     }
-	
-	batt_broadcast_command(ADCV);
 
-    vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-    delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    batt_broadcast_command(ADCV);
+
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
+
+    long_delay_us(CONVERSION_TIME_7kHz_US);
 
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {
@@ -61,10 +83,9 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cell_temp_array)
+HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *cell_temp_array)
 {
-
-    if (batt_spi_wakeup(true /* not sleeping*/))
+    if (batt_spi_wakeup(true))
     {
         return HAL_ERROR;
     }
@@ -72,6 +93,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     // Validate parameters
     if(c_assert(channel < TEMP_CHANNELS_PER_BOARD))
     {
+        DEBUG_PRINT("Temp channel %u index out of range\r\n", channel);
         return HAL_ERROR;
     }
 
@@ -83,14 +105,15 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     }
 
     delay_us(MUX_MEASURE_DELAY_US);
+    
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
 
 	batt_broadcast_command(ADAX);
-	
     delay_us(TEMP_MEASURE_DELAY_US);
+
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
@@ -105,21 +128,50 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(size_t channel, float *cel
     return HAL_OK;
 }
 
+/*
+              (Top of board #1) 
+        X  15                   X  0
+        X  14                   X  1
+        X  13                   X  2
+        X  12                   X  3
+        X  11                   X  4
+        X  10                   X  5
+        X  9                    X  6
+        NC 8                    NC 7
+
+
+              (Top of board #2)  
+        X  15                   X  0
+        X  14                   X  1
+        X  13                   X  2
+        X  12                   X  3
+        X  11                   X  4
+        X  10                   X  5
+        X  9                    NC 6
+        NC 8                    NC 7
+
+The images above represent the thermistor connections of the first and second AMS boards in each segment. The images are orineted upright (the text on the PCB will be correctly oriented).
+An 'X' represents a connected thermistor, and 'NC' represents no thermistor connection.
+On the actual connectors, a thermistor connection will require two adjacent pins, but this has been simplified to a sinlge 'X'.
+Thermistors #7 and #8 are not connected on either board, allowing us to skip these readings all together.
+Thermistor #6 is only connected on board 1, meaning we must still read it from both boards, but will parse the readings to only store the values from the first board in each segment.
+The parsing and mapping of thermistors to their correct indices is done in the "batt_read_thermistors" function.
+Differ any questions to Justin Vuong, Owen Brake or Andrew Stekar.
+
+Future todo: could add a reading of VREF2 to get a better estimate of thermistor resistance
+*/
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-	static uint8_t curr_channel = 0;
+    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15};
+	static uint8_t curr_channel_read_index = 0;
 	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
 	{
-		if (batt_read_cell_temps_single_channel(curr_channel, cell_temp_array) != HAL_OK)
+		if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
 		{
 			return HAL_ERROR;
 		}
-		curr_channel++;
-		if(curr_channel >= THERMISTORS_PER_BOARD)
-		{
-			curr_channel = 0;
-		}
-	}
+        curr_channel_read_index = (curr_channel_read_index + 1) % 14;
+    }
 
     return HAL_OK;
 }
@@ -218,7 +270,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
         return HAL_ERROR;
     }
 
-    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pullup */,
+    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pulldown */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
@@ -293,14 +345,14 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
+        DEBUG_PRINT("Tried to balance a cell out of range (needs to be < %u)\r\n", NUM_VOLTAGE_CELLS);
         return HAL_ERROR;
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD + chipIdx * CELLS_PER_CHIP);
+    int bmuCellIdx = (cell % CELLS_PER_BOARD);
 
-    batt_set_balancing_cell(boardIdx, chipIdx, amsCellIdx);
+    batt_set_balancing_cell(boardIdx, 0, bmuCellIdx);
 
     return HAL_OK;
 }
@@ -312,10 +364,9 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-    int amsCellIdx = cell - (boardIdx * CELLS_PER_BOARD + chipIdx * CELLS_PER_CHIP);
+    int bmuCellIdx = cell % CELLS_PER_BOARD;
 
-    batt_unset_balancing_cell(boardIdx, chipIdx, amsCellIdx);
+    batt_unset_balancing_cell(boardIdx, 0, bmuCellIdx);
 
     return HAL_OK;
 }

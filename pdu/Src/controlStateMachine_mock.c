@@ -5,6 +5,8 @@
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
 #include "sensors.h"
+#include "canReceive.h"
+#include "pdu_can.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
@@ -117,7 +119,7 @@ static const CLI_Command_Definition_t setBusVoltageCommandDefinition =
 BaseType_t mockCritical(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEvent(&mainFsmHandle, MN_EV_HV_CriticalFailure, portMAX_DELAY);
+    fsmSendEvent(&mainFsmHandle, EV_HV_CriticalFailure, portMAX_DELAY);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t criticalCommandDefinition =
@@ -128,20 +130,6 @@ static const CLI_Command_Definition_t criticalCommandDefinition =
     0 /* Number of parameters */
 };
 
-BaseType_t mockLVCuttoff(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("Sending lv cuttoff\n");
-    fsmSendEventISR(&mainFsmHandle, MN_EV_LV_Cuttoff);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t lvCuttoffCommandDefinition =
-{
-    "lvCuttoff",
-    "lvCuttoff:\r\n  Generates a lv cuttoff failure event\r\n",
-    mockLVCuttoff,
-    0 /* Number of parameters */
-};
 
 BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -155,7 +143,7 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
     } else if (STR_EQ(onOffParam, "off", paramLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
@@ -203,7 +191,7 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
             WSB_DISABLE;
         }
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 
     return pdFALSE;
@@ -224,11 +212,11 @@ BaseType_t mockEMEnableDisable(char *writeBuffer, size_t writeBufferLength,
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     if (STR_EQ(param, "enable", paramLen)) {
-        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_ENABLE);
+        fsmSendEventISR(&mainFsmHandle, EV_EM_Enable);
     } else if (STR_EQ(param, "disable", paramLen)) {
-        fsmSendEventISR(&motorFsmHandle, MTR_EV_EM_DISABLE);
+        fsmSendEventISR(&mainFsmHandle, EV_EM_Disable);
     } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
+        COMMAND_OUTPUT("Unknown parameter\n");
     }
 
     return pdFALSE;
@@ -241,88 +229,24 @@ static const CLI_Command_Definition_t emEnableDisableCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t mockHVEnableDisable(char *writeBuffer, size_t writeBufferLength,
+BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    BaseType_t paramLen;
-    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    if (STR_EQ(param, "enable", paramLen)) {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_ENABLE);
-    } else if (STR_EQ(param, "disable", paramLen)) {
-        fsmSendEventISR(&coolingFsmHandle, COOL_EV_EM_DISABLE);
-    } else {
-        COMMAND_OUTPUT("Unkown parameter\n");
-    }
-
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t hvEnableDisableCommandDefinition =
-{
-    "hv",
-    "hv <enable|disable>:\r\n  Generates either hv <enable|disable> event\r\n",
-    mockHVEnableDisable,
-    1 /* Number of parameters */
-};
-
-BaseType_t mockOvertempWarning(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    fsmSendEventISR(&coolingFsmHandle, COOL_EV_OVERTEMP_WARNING);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t mockOverTempCommandDefinition =
-{
-    "overtemp",
-    "overtemp:\r\n  Generates overtemp warning event\r\n",
-    mockOvertempWarning,
-    0 /* Number of parameters */
-};
-
-BaseType_t printStates(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    static int count = 0;
-
-    if(count == 0){
-        uint8_t cool_index;
-        cool_index = fsmGetState(&coolingFsmHandle);
-        if (cool_index >= 0 && cool_index < COOL_STATE_ANY){
-            COMMAND_OUTPUT("States:\nCooling: %s\n", PDU_Cool_States_String[cool_index]);
-        }else{
-            COMMAND_OUTPUT("States:\nError: cool state index out of range. Cool State Index: %u\n", cool_index);
-        }
-        count++;
-        return pdTRUE;
-    }else if(count == 1){
-        uint8_t motor_index;
-        motor_index = fsmGetState(&motorFsmHandle);
-        if (motor_index >= 0 && motor_index < MTR_STATE_ANY){
-            COMMAND_OUTPUT("Motor: %s\n", PDU_Motor_States_String[motor_index]);
-        }else{
-            COMMAND_OUTPUT("Error: motor state index out of range. Motor State Index: %u\n", motor_index);
-        }
-        count++;
-        return pdTRUE;
-    }else if(count == 2){
-        uint8_t main_index;
-        main_index = fsmGetState(&mainFsmHandle);
-        if (main_index >= 0 && main_index < MN_STATE_ANY){
-            COMMAND_OUTPUT("Main: %s\n", PDU_Main_States_String[main_index]);
-        }else{
-            COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %u\n", main_index);
-        }
-        return pdFALSE;
+    uint8_t main_index;
+    main_index = fsmGetState(&mainFsmHandle);
+    if (main_index >= 0 && main_index < STATE_ANY){
+        COMMAND_OUTPUT("Main: %s\n", PDU_Main_States_String[main_index]);
     }else{
-        COMMAND_OUTPUT("\nError: count out of range. count: %d\n", count);
-        return pdFALSE;
+        COMMAND_OUTPUT("Error: main state index out of range. Main State Index: %u\n", main_index);
     }
+    return pdFALSE;
+
 }
 static const CLI_Command_Definition_t printStateCommandDefinition =
 {
-    "states",
-    "states:\r\n  Output current state of all state machines\r\n",
-    printStates,
+    "state",
+    "state:\r\n  Output current state of all state machines\r\n",
+    printState,
     0 /* Number of parameters */
 };
 BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
@@ -340,12 +264,10 @@ BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
     PUMP_RIGHT_ENABLE;
     HAL_Delay(1000); 
     PUMP_RIGHT_DISABLE;
-    MC_LEFT_ENABLE; 
+    MC_ENABLE; 
     HAL_Delay(1000);
-    MC_LEFT_DISABLE;
-    MC_RIGHT_ENABLE; 
+    MC_DISABLE;
     HAL_Delay(1000);
-    MC_RIGHT_DISABLE; 
     BRAKE_LIGHT_ENABLE;
     HAL_Delay(1000);
     BRAKE_LIGHT_DISABLE;
@@ -450,6 +372,20 @@ static const CLI_Command_Definition_t controlPumpsCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t mcEnable(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    MC_ENABLE;
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t mcEnableCommandDefinition =
+{
+    "mcEnable",
+    "mcEnable:\r\n Turn on motor controller\r\n",
+    mcEnable,
+    0 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
@@ -458,16 +394,7 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&criticalCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&lvCuttoffCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&emEnableDisableCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&hvEnableDisableCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&mockOverTempCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
@@ -500,6 +427,8 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&controlFansCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&mcEnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }

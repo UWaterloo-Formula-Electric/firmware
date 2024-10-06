@@ -271,7 +271,9 @@ void handleWatchdogReset()
 {
     if (wdReset) {
         while (1) {
+            DEBUG_PRINT("Watchdog Reset Loop!\r\n");
             watchdogRefresh();
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 }

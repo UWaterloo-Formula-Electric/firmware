@@ -18,8 +18,10 @@
 
 // Encoder Information
 #define ENCODER_COUNTER (__HAL_TIM_GET_COUNTER(&ENCODER_TIM_HANDLE))
-#define ENCODER_PULSES_PER_REVOLUTION (1280.0f*2.0f)
-#define WHEEL_DIAMETER_MM (525)
+// #define ENCODER_PULSES_PER_REVOLUTION (1280.0f*2.0f)
+// #define WHEEL_DIAMETER_MM (525)
+#define ENCODER_PULSES_PER_REVOLUTION (10240.0f)
+#define WHEEL_DIAMETER_MM (406.3f)
 
 // About a 0.6% error due to integer rounding of PI
 // Increasing scale of PI does not improve accuracy

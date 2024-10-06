@@ -6,5 +6,10 @@
 
 bool getHvEnableState();
 bool getMotorControllersStatus();
+bool isLockoutDisabled();
+uint8_t getInverterVSMState();
+
+volatile uint8_t inverterVSMState;
+volatile uint8_t inverterInternalState;
 
 #endif /* USER_CAN_H_ */

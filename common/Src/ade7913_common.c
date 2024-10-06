@@ -138,9 +138,6 @@ HAL_StatusTypeDef adc_read_current(float *dataOut) {
 
     float shuntVoltage = CURRENT_SCALE * ((float)raw);
     shuntVoltage += CURRENT_OFFSET;
-    shuntVoltage /= (CURRENT_SHUNT_VAL_OHMS);
-
-  /*DEBUG_PRINT("%.12f\n", shuntVoltage);*/
   (*dataOut) = shuntVoltage;
 
   return HAL_OK;
@@ -199,7 +196,6 @@ HAL_StatusTypeDef hvadc_init() {
         ERROR_PRINT("Failed to config HV ADC\n");
         return HAL_ERROR;
     }
-    ERROR_PRINT("waiting for ADC on\r\n");
     vTaskDelay(5);
 
   // recomended by datasheet to read value after writing to double check
