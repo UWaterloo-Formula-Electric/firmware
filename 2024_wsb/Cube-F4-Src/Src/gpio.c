@@ -86,10 +86,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PEPin PEPin PEPin PEPin
-                           PEPin */
-  GPIO_InitStruct.Pin = LeftRight_DipSW_Pin|FrontRear_DipSW_Pin|SENSOR1_IC_IN_Pin|SENSOR2_IC_IN_Pin
-                          |SENSOR3_IC_IN_Pin;
+  /*Configure GPIO pins : PEPin PEPin */
+  GPIO_InitStruct.Pin = LeftRight_DipSW_Pin|FrontRear_DipSW_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
