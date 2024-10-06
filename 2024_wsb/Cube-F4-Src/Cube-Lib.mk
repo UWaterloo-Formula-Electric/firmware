@@ -37,6 +37,7 @@ Src/i2c.c \
 Src/iwdg.c \
 Src/main.c \
 Src/tim.c \
+Src/stm32f4xx_hal_timebase_tim.c \
 Src/spi.c \
 Src/usart.c \
 Src/sdio.c \
