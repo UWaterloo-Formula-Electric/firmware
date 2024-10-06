@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "bsp.h"
 #include "cmsis_os.h"
@@ -22,11 +23,6 @@
 #define TICKS_PER_SECOND 1000
 
 /*
- * TIM2:
- * - Clock Source: Internal Clock
- * - Channel1: Input Capture direct mode
- * - auto-reload preload: Enable
- * - NVIC Interrupt: Enabled
  *
  * WSBRL CAN message: WSBRL_Speed
  *  signals:
@@ -38,6 +34,8 @@
  *      - float RRSpeedRPM
  */
 
+
+//todo: cannot use float division
 float getRpm(uint32_t ticks, uint32_t count) {
     /*
      * teeth/s = count diff/time diff
@@ -62,7 +60,7 @@ uint16_t getKph(uint32_t ticks, uint32_t count) { //todo: confirm whether this n
 
 uint32_t pulse_count = 0;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == TIM2) {
+    if (htim->Instance == TIM1) {
         pulse_count++;
     }
 }
@@ -70,13 +68,13 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 uint32_t getTickDiff() {
     static uint32_t prev_tick = 0;
 
-    uint32_t cur_tick = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_1);
+    uint32_t cur_tick = HAL_TIM_ReadCapturedValue(&htim1, TIM_CHANNEL_3);
 
-    uint32_t time_diff;
+    uint32_t time_diff = 0;
     if (cur_tick >= prev_tick) {
         time_diff = cur_tick-prev_tick;
     } else {
-        time_diff = (0xFFFFFFFF-prev_tick) + cur_tick + 1;
+        time_diff = (0xFFFF-prev_tick) + cur_tick + 1;
     }
 
     prev_tick = cur_tick;
@@ -84,16 +82,16 @@ uint32_t getTickDiff() {
     return time_diff;
 }
 
-void StartHallEffectSensorTask(void const * argument) {
+void HallEffectSensorTask(void const * argument) {
     DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
     WSBType_t wsbType = detectWSB();
     if (wsbType != WSBRL && wsbType != WSBRR) {
-        DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting StartHallEffectSensorTask\n");
+        DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting HallEffectSensorTask\n");
         vTaskDelete(NULL);
         return;
     }
 
-    HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1); //todo: move this (await Aryan's input)
+    HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_3); //todo: move this (await Aryan's input)
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
@@ -120,7 +118,7 @@ void StartHallEffectSensorTask(void const * argument) {
         RRSpeedKPH = kph;
         sendCAN_WSBRR_Speed();
 #endif
-        printf("RPM: %f, KPH: %u\n", rpm, kph);
-        vTaskDelayUntil(&xLastWakeTime, HALL_EFFECT_TASK_PERIOD);
+        DEBUG_PRINT("RPM: %f, KPH: %u\n", rpm, kph);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }
