@@ -1,10 +1,10 @@
 #include "multiSensorADC.h"
 
+#include "bsp.h"
 #include "stm32f4xx_hal.h"
 
-uint32_t multiSensorADCBuf[NUM_ADC_CHANNELS];
+multiSensorADC_t multiSensorADC;
 
 HAL_StatusTypeDef multi_sensor_adc_init(void) {
-    // TODO: implement dma
-    return HAL_OK;
+    return HAL_ADC_Start_DMA(&MULTISENSOR_ADC_HANDLE, multiSensorADC.multiSensorADCBuf, NUM_ADC_CHANNELS);
 }
