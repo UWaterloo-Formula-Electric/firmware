@@ -161,6 +161,11 @@ void pot_init(void)
     setPotResistance(0);
 }
 
+void dc_dc_output_init(void)
+{
+    gpio_set_direction(DC_DC_TOGGLE_PIN, GPIO_MODE_OUTPUT);
+}
+
 void pdu_input_init(void)
 {
     gpio_set_direction(POW_AUX_PIN, GPIO_MODE_INPUT);
@@ -183,5 +188,6 @@ void app_main(void)
     spi_init();
     pot_init();
     pdu_input_init();
+    dc_dc_output_init();
     taskRegister();
 }

@@ -5,6 +5,7 @@
 
 #define CAN_TX GPIO_NUM_12
 #define CAN_RX GPIO_NUM_13
+#define DC_DC_TOGGLE_PIN 1
 #define POT_SPI_CLK_PIN 39
 #define POT_MOSI_PIN 40
 #define POT_CS_PIN 41
