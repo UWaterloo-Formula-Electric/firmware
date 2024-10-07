@@ -91,7 +91,7 @@ esp_err_t CAN_init (void)
         .alerts_enabled = TWAI_ALERT_NONE,  
         .clkout_divider = 0,        
         .intr_flags = ESP_INTR_FLAG_LEVEL1
-        };
+    };
 
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
