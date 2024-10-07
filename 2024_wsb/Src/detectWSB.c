@@ -1,8 +1,12 @@
 #include "detectWSB.h"
 
+#include <string.h>
+
+#include "FreeRTOS.h"
+#include "debug.h"
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include <string.h>
+#include "task.h"
 
 /**
  * @brief Detects the WSB type based on the front/back & left/right DIP switches
@@ -46,4 +50,37 @@ bool getWSBBoardName(char* boardName, size_t size) {
             break;
     }
     return true;
+}
+
+/**
+ * @brief Deletes the task if the WSB is not valid, else does nothing. Only call this function inside a task
+ * @param validWSBs The valid WSBs for the task
+ *
+ * Ex: deleteWSBTask(WSBFL | WSBFR); -> will delete the task if the WSB is not FL or FR
+ * @return If the task was deleted or not
+ */
+bool deleteWSBTask(uint8_t validWSBs) {
+    WSBType_t wsbType = detectWSB();
+    // no matching WSB, delete task
+    if ((wsbType & validWSBs) == 0) {
+        // put names of valid wsbs in str
+        char validNames[50] = {0};
+        int pos = 0;
+        if (validWSBs & WSBFL)
+            pos += snprintf(validNames + pos, sizeof(validNames), "WSBFL, ");
+        if (validWSBs & WSBFR)
+            pos += snprintf(validNames + pos, sizeof(validNames), "WSBFR, ");
+        if (validWSBs & WSBRL)
+            pos += snprintf(validNames + pos, sizeof(validNames), "WSBRL, ");
+        if (validWSBs & WSBRR)
+            pos += snprintf(validNames + pos, sizeof(validNames), "WSBRR, ");
+        validNames[pos - 2] = '\0';  // remove last comma
+        char boardName[15];
+        getWSBBoardName(boardName, sizeof(boardName));
+        char* taskName = pcTaskGetName(NULL);
+        DEBUG_PRINT("Expected: [%s], got wsb: %s, deleting %s\n", validNames, boardName, taskName);
+        vTaskDelete(NULL);
+        return true;
+    }
+    return false;
 }
