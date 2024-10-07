@@ -1,7 +1,0 @@
-${returnDataType} ${signalName}Sending(${params})
-{
-    ${sendDataType} sendValue = ${signalName}${optIndex};
-    sendValue -= ${offset};
-    sendValue *= 1.0f/${scaler};
-    return (${returnDataType})(int32_t)sendValue;
-}

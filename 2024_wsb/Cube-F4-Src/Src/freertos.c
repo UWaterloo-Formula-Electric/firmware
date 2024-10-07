@@ -155,7 +155,7 @@ void MX_FREERTOS_Init(void) {
   rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
   /* definition and creation of brkIRTaskName */
-  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityLow, 0, 256);
+  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityLow, 0, 512);
   brkIRTaskNameHandle = osThreadCreate(osThread(brkIRTaskName), NULL);
 
   /* definition and creation of halEfSensName */

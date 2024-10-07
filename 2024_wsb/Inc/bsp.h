@@ -20,9 +20,9 @@
 // TODO: Set these to the right values (double check all these values)
 #define DEBUG_UART_HANDLE huart1
 #define CAN_HANDLE hcan1
-#define IWDG_HANDLE hiwdg
 #define MULTISENSOR_ADC_HANDLE hadc1
 #define STATS_TIM_HANDLE htim12
+#define IWDG_HANDLE hiwdg
 // #define ENCODER_TIM_HANDLE htim3
 
 /* July 3, 2024 - Jacky

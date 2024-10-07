@@ -5,7 +5,7 @@
 
 #define NUM_ADC_CHANNELS 3 // Sensor1, Sensor2, Sensor3
 
-#define ADC_TO_VOLTAGE(adcValue) ((float)adcValue * (3.3f / 4095.f))
+#define ADC_TO_VOLTAGE(adcValue) ((float)adcValue * (3.3 / 4095.))
 
 #define get_sensor1_V() ADC_TO_VOLTAGE(multiSensorADC.sensors.sensor1)
 #define get_sensor2_V() ADC_TO_VOLTAGE(multiSensorADC.sensors.sensor2)
