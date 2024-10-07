@@ -21,7 +21,7 @@
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
 #define TICKS_PER_SECOND 1000
-#define PERIOD = HALL_EFFECT_TASK_PERIOD/TICKS_PER_SECOND
+#define PERIOD ((float)HALL_EFFECT_TASK_PERIOD/TICKS_PER_SECOND)
 
 /*
  *
@@ -44,22 +44,22 @@ float getRps(uint32_t count) {
     return count * (1.0f/PERIOD) * (1.0f/NUM_TEETH);
 }
 
-float getRpm(uint32_t rps) {
+int64_t getRpm(float rps) {
     /*
      * rpm = 60rps
      * 2024 car: 16 teeth
      */
-    return rps * 60.0;
+    return (int64_t)(int32_t)(rps * 60.0f);
 }
 
-uint16_t getKph(uint32_t rps) { //todo: confirm whether this needs rounding or not
+float getKph(float rps) {
     /*
      * rad/s = 2pi * rps
      * m/s = rad/s * RADIUS
      * kph = 3.6 * m/s
      * 2024 car: effective radius 0.40005m
      */
-    return (uint16_t)(rps * (2*PI) * WHEEL_RADIUS * 3.6);
+    return rps * (2.0f*PI) * WHEEL_RADIUS * 3.6f;
 }
 
 uint32_t pulse_count = 0;
@@ -70,7 +70,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HallEffectSensorTask(void const * argument) {
-    DEBUG_PRINT("Starting StartHallEffectSensorTask\n");
+    DEBUG_PRINT("Starting HallEffectSensorTask\n");
     WSBType_t wsbType = detectWSB();
     if (wsbType != WSBRL && wsbType != WSBRR) {
         DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting HallEffectSensorTask\n");
@@ -81,11 +81,9 @@ void HallEffectSensorTask(void const * argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1) {
-
         float rps = getRps(pulse_count);
-        float rpm = getRpm(rps);
-        uint16_t kph = getKph(rps);
-
+        int64_t rpm = getRpm(rps);
+        float kph = getKph(rps);
         pulse_count = 0;
 
 #if BOARD_ID == ID_WSBRL
@@ -97,7 +95,8 @@ void HallEffectSensorTask(void const * argument) {
         RRSpeedKPH = kph;
         sendCAN_WSBRR_Speed();
 #endif
-        DEBUG_PRINT("RPM: %f, KPH: %u\n", rpm, kph);
+
+        DEBUG_PRINT("RPM: %lld, KPH: %f\n", rpm, kph);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }
