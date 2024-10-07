@@ -33,6 +33,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <string.h>
 #include "watchdog.h"
 #include "generalErrorHandler.h"
 /* USER CODE END Includes */
@@ -106,11 +108,11 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
-  MX_IWDG_Init();
-  MX_TIM12_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
   MX_TIM1_Init();
+  MX_TIM12_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
