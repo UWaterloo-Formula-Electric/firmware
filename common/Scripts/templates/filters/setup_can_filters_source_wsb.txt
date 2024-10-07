@@ -1,0 +1,27 @@
+/**
+ * @brief This CAN filter is only valid for WSBs. The filter allows all id's to support CAN logging
+ */
+__weak void ${functionName}(CAN_HandleTypeDef* canHandle)
+{
+    CAN_FilterTypeDef sFilterConfig;
+
+    // Configure the filter to accept all messages
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+    sFilterConfig.FilterIdHigh = 0x0000;
+    sFilterConfig.FilterIdLow = 0x0000;
+    sFilterConfig.FilterMaskIdHigh = 0x0000;
+    sFilterConfig.FilterMaskIdLow = 0x0000;
+    sFilterConfig.FilterFIFOAssignment = 0;
+    sFilterConfig.FilterActivation = ENABLE;
+    sFilterConfig.FilterBank = 0;  // Use filter bank 0
+
+    // From the reference manual, it seems that setting SlaveStartFilterBank to 0 means all filters are used for the enabled CAN peripheral
+    // TODO: Verify this is the correct config
+    sFilterConfig.SlaveStartFilterBank = 0;
+
+    if (HAL_CAN_ConfigFilter(canHandle, &sFilterConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
