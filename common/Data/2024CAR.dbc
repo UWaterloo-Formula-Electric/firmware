@@ -64,11 +64,11 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
 BO_ 2215707149 WSBRR_BrakeTemp: 3 WSBRR
- SG_ BrakeTempRearAccuracy : 16|3@1+ (1,0) [0|4] "" Vector__XXX
+ SG_ BrakeTempRearAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
  SG_ BrakeTempRear : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX
 
 BO_ 2215707144 WSBFL_BrakeTemp: 5 WSBFL
- SG_ BrakeTempFrontAccuracy : 16|3@1+ (1,0) [0|4] "" Vector__XXX
+ SG_ BrakeTempFrontAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
  SG_ BrakeTempFront : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7

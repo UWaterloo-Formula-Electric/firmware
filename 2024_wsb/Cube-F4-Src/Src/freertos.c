@@ -151,11 +151,11 @@ void MX_FREERTOS_Init(void) {
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of rtryEncTaskName */
-  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 256);
+  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 128);
   rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
   /* definition and creation of brkIRTaskName */
-  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityRealtime, 0, 1024);
+  osThreadDef(brkIRTaskName, BrakeIRTask, osPriorityLow, 0, 512);
   brkIRTaskNameHandle = osThreadCreate(osThread(brkIRTaskName), NULL);
 
   /* definition and creation of halEfSensName */
@@ -163,15 +163,15 @@ void MX_FREERTOS_Init(void) {
   halEfSensNameHandle = osThreadCreate(osThread(halEfSensName), NULL);
 
   /* definition and creation of wtrTempTaskName */
-  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 256);
+  osThreadDef(wtrTempTaskName, WaterflowTempSensorTask, osPriorityNormal, 0, 1024);
   wtrTempTaskNameHandle = osThreadCreate(osThread(wtrTempTaskName), NULL);
 
   /* definition and creation of watchdogTaskNam */
-  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 256);
+  osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 160);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
 
   /* definition and creation of printTaskName */
-  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 256);
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 128);
   printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
 
   /* definition and creation of cliTaskName */
@@ -183,7 +183,7 @@ void MX_FREERTOS_Init(void) {
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of canLogTaskName */
-  osThreadDef(canLogTaskName, canLogTask, osPriorityLow, 0, 1024);
+  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 2048);
   canLogTaskNameHandle = osThreadCreate(osThread(canLogTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

@@ -129,11 +129,7 @@ HAL_StatusTypeDef watchdogTaskCheckIn(uint32_t id)
 
 HAL_StatusTypeDef watchdogRefresh()
 {
-#if !BOARD_IS_WSB(BOARD_ID)
     return HAL_IWDG_Refresh(&IWDG_HANDLE);
-#else
-    return HAL_OK;
-#endif
 }
 
 void watchdogSignalError(uint32_t id)

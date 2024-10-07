@@ -6,6 +6,7 @@
 #include "adc.h"
 #include "boardTypes.h"
 #include "can.h"
+#include "iwdg.h"
 #include "main.h"
 #include "stdbool.h"
 #include "tim.h"
@@ -21,6 +22,7 @@
 #define CAN_HANDLE hcan1
 #define MULTISENSOR_ADC_HANDLE hadc1
 #define STATS_TIM_HANDLE htim12
+#define IWDG_HANDLE hiwdg
 // #define ENCODER_TIM_HANDLE htim3
 
 /* July 3, 2024 - Jacky

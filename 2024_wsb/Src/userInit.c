@@ -34,9 +34,8 @@ void userInit() {
     }
 
     if (sensors_init() != HAL_OK) {
-      Error_Handler();
+        Error_Handler();
     }
 
     printf("User init done\n");
-    // printf("Float test %f\n", 3.14);
 }

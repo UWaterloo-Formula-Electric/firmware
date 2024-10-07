@@ -274,12 +274,6 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
         else:
             sendDataType = 'uint64_t'
 
-    # need to do this cuz on the wsb's a floating point division somehow causes a hardfault instantly
-    # compiler generates vcvt f64.f32 instructions for floating point division and sprintf which is an undefined instruction
-    # The SIGNAL_SENDING_FLOAT_FUNC corrects for the scale by mulitplying by val*=1.0f/scaler rather than val /= scaler
-    # Since the compiler converts constants, there is no floating division performed by the mcu
-    template_file = "SIGNAL_SENDING_FLOAT_FUNC" if sendDataType == 'float' else "SIGNAL_SENDING_FUNC"
-
     templateData = {
         "returnDataType": 'int64_t' if signal.is_signed else 'uint64_t',
         "signalName": variableName if variableName != '' else signal.name,
@@ -289,7 +283,7 @@ def writeSignalSendingFunction(signal, fileHandle, variableName='', multiplexed=
         "scaler": signal.scale,
         "offset": signal.offset,
     }
-    fWrite(canTemplater.load(template_file, templateData), fileHandle)
+    fWrite(canTemplater.load("SIGNAL_SENDING_FUNC", templateData), fileHandle)
 
 
 def writeValueTableEnum(signal, headerFileHandle):
