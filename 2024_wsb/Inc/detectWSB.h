@@ -11,9 +11,9 @@ typedef enum {
     WSBFR = ID_WSBFR,
     WSBRL = ID_WSBRL,
     WSBRR = ID_WSBRR
-} WSBType;
+} WSBType_t;
 
-WSBType detectWSB();
+WSBType_t detectWSB();
 bool getWSBBoardName(char* boardName, size_t size);
 
 #endif  // __DETECTWSB_H__
