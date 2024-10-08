@@ -1,5 +1,7 @@
-#include <stdio.h>
+#include "canLogger.h"
+
 #include <stdint.h>
+#include <stdio.h>
 
 #include "FreeRTOS.h"
 #include "debug.h"
@@ -11,6 +13,13 @@
 #include "task.h"
 #include "watchdog.h"
 
+#define CAN_LOGGER_TASK_PERIOD 1000
+#define BITRATE 500000
+#define CAN_OVERHEAD_EXT 66  // overhead for ext can msg with 0 data see https://en.wikipedia.org/wiki/CAN_bus#Extended_frame_format
+
+// welp we ran out of ram, 1000 seems to be the max we can do
+#define LOG_SB_SIZE 1000  // (BITRATE / CAN_OVERHEAD_EXT + 1)  // 1 second of data at max rate
+#define STREAM_BUFFER_TRIGGER_LEVEL ((BaseType_t)10)
 FRESULT mountSD(FATFS *fs) {
     // SDPath auto provided by fatfs.h, do not edit it
     return f_mount(fs, SDPath, 1);
@@ -28,7 +37,7 @@ FRESULT initCANLoggerSD() {
     FRESULT FR_status;
 
     watchdogRefresh();
-    FR_status = f_mount(&FatFs, SDPath, 1);
+    FR_status = mountSD(&FatFs);
     watchdogRefresh();
     if (FR_status != FR_OK) {
         ERROR_PRINT("Error mounting SD card with FRESULT: %d\n", FR_status);
@@ -49,7 +58,32 @@ FRESULT initCANLoggerSD() {
     FreeSpace = FreeClusters * FS_Ptr->csize / 2 / 1024;
     DEBUG_PRINT("SD Card Total Size: %lukB, Free Space: %lukB\n", TotalSize, FreeSpace);
 
+    // list files in root directory
+    // DIR dir;               // Directory
+    // FILINFO fno;           // File Info
+    // f_opendir(&dir, SDPath);  // Open Root
+    // do {
+    //     f_readdir(&dir, &fno);
+    //     if (fno.fname[0] != 0)
+    //         DEBUG_PRINT("File found: %s\n", fno.fname);  // Print File Name
+    // } while (fno.fname[0] != 0);
+
+    // f_closedir(&dir);
+
     return FR_status;
+}
+
+StaticStreamBuffer_t canLogSB_struct;
+StreamBufferHandle_t canLogSB = NULL;
+
+CanMsg canLogBuffer[LOG_SB_SIZE + 1];
+
+HAL_StatusTypeDef canLogSB_init() {
+    canLogSB = xStreamBufferCreateStatic(sizeof(canLogBuffer), STREAM_BUFFER_TRIGGER_LEVEL, (uint8_t *)&canLogBuffer, &canLogSB_struct);
+    if (!canLogSB) {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
 }
 
 void canLogTask(void *arg) {
@@ -57,7 +91,11 @@ void canLogTask(void *arg) {
     if (initCANLoggerSD() != FR_OK) {
         handleError();
     }
+    CanMsg rxMsg;
+
     while (1) {
-        vTaskDelay(10000);
+        xStreamBufferReceive(canLogSB, &rxMsg, sizeof(CanMsg), portMAX_DELAY);
+        DEBUG_PRINT("%08lx: %0x %0x %0x %0x %0x %0x %0x %0x\n", rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
+        vTaskDelay(1);
     }
 }

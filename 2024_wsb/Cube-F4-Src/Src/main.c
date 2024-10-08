@@ -218,6 +218,8 @@ void Error_Handler(void)
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1) {
+      HAL_GPIO_TogglePin(FW_HEARTBEAT_GPIO_Port, FW_HEARTBEAT_Pin);
+      HAL_Delay(100);
     }
   /* USER CODE END Error_Handler_Debug */
 }
