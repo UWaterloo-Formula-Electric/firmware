@@ -55,6 +55,7 @@ HAL_StatusTypeDef F4_canStart(CAN_HandleTypeDef *hcan) {
 }
 
 // We use this to process can messages
+volatile uint32_t failedFifoCount = 0;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     CAN_RxHeaderTypeDef RxHeader;
     uint8_t RxData[8];
@@ -67,9 +68,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 #if BOARD_IS_WSB(BOARD_ID)
     fifoTemp.id = RxHeader.ExtId;
     memcpy(fifoTemp.data, RxData, 8);
-    if (xStreamBufferSendFromISR(canLogSB, &fifoTemp, sizeof(CanMsg), NULL) != pdTRUE) {
-        ERROR_PRINT_ISR("Failed to send CAN message to log stream buffer\n");
-    }
+    // If the returned bytes != sizeof(CanMsg), then the message was not sent
+    if (xStreamBufferSendFromISR(canLogSB, &fifoTemp, sizeof(CanMsg), NULL) != sizeof(CanMsg)) 
+        failedFifoCount++;
+    else
+        failedFifoCount = 0;    
 #endif
     /*
         This check is essential as it was causing issues with our brake light flashing and our button presses were getting random values.

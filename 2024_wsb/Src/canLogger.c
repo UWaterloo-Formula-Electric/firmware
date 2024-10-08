@@ -18,7 +18,7 @@
 #define CAN_OVERHEAD_EXT 66  // overhead for ext can msg with 0 data see https://en.wikipedia.org/wiki/CAN_bus#Extended_frame_format
 
 // welp we ran out of ram, 1000 seems to be the max we can do
-#define LOG_SB_SIZE 1000  // (BITRATE / CAN_OVERHEAD_EXT + 1)  // 1 second of data at max rate
+#define LOG_SB_SIZE 500  // (BITRATE / CAN_OVERHEAD_EXT + 1)  // 1 second of data at max rate
 #define STREAM_BUFFER_TRIGGER_LEVEL ((BaseType_t)10)
 FRESULT mountSD(FATFS *fs) {
     // SDPath auto provided by fatfs.h, do not edit it
@@ -85,17 +85,23 @@ HAL_StatusTypeDef canLogSB_init() {
     }
     return HAL_OK;
 }
-
+extern volatile uint32_t failedFifoCount;
 void canLogTask(void *arg) {
     DEBUG_PRINT("Starting CAN Logger Task\n");
     if (initCANLoggerSD() != FR_OK) {
         handleError();
     }
-    CanMsg rxMsg;
+    CanMsg rxMsgs[100];
 
     while (1) {
-        xStreamBufferReceive(canLogSB, &rxMsg, sizeof(CanMsg), portMAX_DELAY);
-        DEBUG_PRINT("%08lx: %0x %0x %0x %0x %0x %0x %0x %0x\n", rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
-        vTaskDelay(1);
+        // Tested upto 100% bus load and it works
+        DEBUG_PRINT("Stream buffer size: %d\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg));
+        xStreamBufferReceive(canLogSB, rxMsgs, sizeof(rxMsgs), portMAX_DELAY);
+        // print size of stream buffer
+        
+        // DEBUG_PRINT("Read bytes: %d\n", readBytes);
+        // DEBUG_PRINT("Failed fifo count: %lu\n", failedFifoCount);
+        // DEBUG_PRINT("%08lx: %0x %0x %0x %0x %0x %0x %0x %0x\n", rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
+        vTaskDelay(10);
     }
 }
