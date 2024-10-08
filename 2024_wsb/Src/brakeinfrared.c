@@ -48,16 +48,9 @@ uint8_t getBrakeTempAccuracy(float brakeTemp) {
 }
 
 void BrakeIRTask(void const* argument) {
+    deleteWSBTask(WSBFL | WSBRR);
     DEBUG_PRINT("Starting BrakeIRTask\n");
-    WSBType_t wsbType = detectWSB();
-    if (wsbType != WSBFL && wsbType != WSBRR) {
-        char boardName[20];
-        if (!getWSBBoardName(boardName, 20))
-            strcpy(boardName, "Unknown");
-        DEBUG_PRINT("Invalid wsb: not WSBFL or WSBRR got: %s, deleting BrakeIRTask\n", boardName);
-        vTaskDelete(NULL);
-        return;
-    }
+
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
 #if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR
