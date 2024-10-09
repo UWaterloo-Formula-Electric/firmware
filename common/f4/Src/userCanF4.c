@@ -66,13 +66,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     }
 
 #if BOARD_IS_WSB(BOARD_ID)
-    fifoTemp.id = RxHeader.ExtId;
-    memcpy(fifoTemp.data, RxData, 8);
-    // If the returned bytes != sizeof(CanMsg), then the message was not sent
-    if (xStreamBufferSendFromISR(canLogSB, &fifoTemp, sizeof(CanMsg), NULL) != sizeof(CanMsg)) 
-        failedFifoCount++;
-    else
-        failedFifoCount = 0;    
+    if (isCanLogEnabled) {
+        fifoTemp.id = RxHeader.ExtId;
+        memcpy(fifoTemp.data, RxData, 8);
+        // If the returned bytes != sizeof(CanMsg), then the message was not sent
+        if (xStreamBufferSendFromISR(canLogSB, &fifoTemp, sizeof(CanMsg), NULL) != sizeof(CanMsg)) 
+            failedFifoCount++;
+    } 
 #endif
     /*
         This check is essential as it was causing issues with our brake light flashing and our button presses were getting random values.
