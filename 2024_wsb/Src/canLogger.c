@@ -13,16 +13,18 @@
 #include "stm32f4xx_hal.h"
 #include "task.h"
 
-#define CAN_LOG_TASK_PERIOD 10
-#define BITRATE 500000
-#define CAN_OVERHEAD_EXT 66  // overhead for ext can msg with 0 data see https://en.wikipedia.org/wiki/CAN_bus#Extended_frame_format
+#define CAN_LOG_TASK_PERIOD 50 // any higher and we might lose logs, any lower and we start starving runtime from other tasks
 
-#define LOG_SB_SIZE 500  // (BITRATE / CAN_OVERHEAD_EXT + 1)  // 1 second of data at max rate
-#define STREAM_BUFFER_TRIGGER_LEVEL 10
-#define MAX_LOG_FILE_BYTES (10*1024*1024)  // 10MB
-#define LOG_FILE_SYNC_BYTES (16*1024)  // 16kB
+#define LOG_SB_SIZE 500 // max size of the stream buffer
+#define STREAM_BUFFER_TRIGGER_LEVEL 10 // the reading task is unblocked after atleast 10 items are in the stream buffer
+#define MAX_LOG_FILE_BYTES (10 * 1024 * 1024)  // 10MB, rotate to new file after this size
+#define LOG_FILE_SYNC_BYTES (16 * 1024)        // 16kB
 // start logging only after this variable is set to true
+// it set to true if new log file is created successfully
 volatile bool isCanLogEnabled = false;
+
+char *LOG_DIR = "LOGS";
+
 FATFS FatFs;
 
 FRESULT mountSD(FATFS *fs) {
@@ -31,9 +33,15 @@ FRESULT mountSD(FATFS *fs) {
 }
 
 FRESULT unmountSD() {
+    // SDPath auto provided by fatfs.h, do not edit it
     return f_mount(NULL, SDPath, 0);
 }
 
+/**
+ * @brief Change the current directory to the specified path
+ * @param path [IN] the path name of the directory to change to
+ * @return error code from the fatfs library fn. calls, FR_OK if successful
+ */
 FRESULT chdir(const char *path) {
     FRESULT res = f_chdir(path);
     if (res != FR_OK) {
@@ -45,6 +53,7 @@ FRESULT chdir(const char *path) {
 /**
  * @brief Create a directory, if it already exists, do nothing
  * @param path [IN] the path name of the directory to create
+ * @return error code from the fatfs library fn. calls, FR_OK if successful
  */
 FRESULT mkdir(const char *path) {
     FRESULT res = f_mkdir(path);
@@ -56,9 +65,10 @@ FRESULT mkdir(const char *path) {
 }
 
 /**
- * @brief Open a file for writing, create it if it doesn't exist
+ * @brief Open a file for writing in append mode, create it if it doesn't exist
  * @param fp [OUT] File object to create
  * @param path [IN] File name to be opened
+ * @return error code from the fatfs library fn. calls, FR_OK if successful
  */
 FRESULT open_append(FIL *fp, const char *path) {
     FRESULT res;
@@ -190,7 +200,7 @@ FRESULT initCANLoggerSD() {
 StaticStreamBuffer_t canLogSB_struct;
 StreamBufferHandle_t canLogSB = NULL;
 
-CanMsg canLogBuffer[LOG_SB_SIZE + 1];
+CanMsg canLogBuffer[LOG_SB_SIZE + 1]; // stream buffer requires 1 extra byte
 
 HAL_StatusTypeDef canLogSB_init() {
     // init a static buffer for the can log stream buffer, call in user init
@@ -217,21 +227,16 @@ void canLogTask(void *arg) {
 
     isCanLogEnabled = false;
 
-    char *testDir = "A";
-    res = mkdir(testDir);
+    res = mkdir(LOG_DIR);
     if (res != FR_OK && res != FR_EXIST) {
-        ERROR_PRINT("Failed to create directory %s with error %d\n", testDir, res);
+        ERROR_PRINT("Failed to create directory %s with error %d\n", LOG_DIR, res);
         handleError();
     }
 
-   
-    // SIKE the following doesn't work when acc writing to sd
     // upto 100 messages can be read from buffer at a time
     // (this is arbitrary but, I measured @ 10ms task period, 100% CAN bus load, max #can msgs was ~50)
     // so 2x safety factor should be enough
-    CanMsg rxMsgs[100];
-    // uint8_t writeBuffer[512] = {0};
-    // memset(writeBuffer, 0, 512);
+    CanMsg rxMsgs[200];
     size_t kb = 0;
     int writtenBytes = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -239,22 +244,21 @@ void canLogTask(void *arg) {
         // Try to open the next file
         if (!isCanLogEnabled) {
             vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CAN_LOG_TASK_PERIOD));
-            res = createAndOpenNextFile(&file, testDir, fileName, 15);
+            res = createAndOpenNextFile(&file, LOG_DIR, fileName, 15);
             isCanLogEnabled = res == FR_OK;
             if (isCanLogEnabled) {
-                DEBUG_PRINT("Opened new log file %s/%s\n", testDir, fileName);
+                DEBUG_PRINT("Opened new log file %s/%s\n", LOG_DIR, fileName);
             } else {
-                ERROR_PRINT("Failed to open file %s/%s with error %d\n", testDir, fileName, res);
+                ERROR_PRINT("Failed to open file %s/%s with error %d\n", LOG_DIR, fileName, res);
             }
-           
         }
 
-        // Tested upto 100% bus load and it stream buffer works but writing to sd @ 30% bus load FAILS
+        // Tested upto 99.9% bus load
         size_t readBytes = xStreamBufferReceive(canLogSB, rxMsgs, sizeof(rxMsgs), portMAX_DELAY);
         size_t numReadMsgs = readBytes / sizeof(CanMsg);
         for (size_t i = 0; i < numReadMsgs; i++) {
             CanMsg rxMsg = rxMsgs[i];
-            // append to file
+            // append to file, note this doesn't acc write to sd card until f_sync is called
             writtenBytes = f_printf(&file, "%08lXx%08lX%02X%02X%02X%02X%02X%02X%02X%02X\n", xTaskGetTickCount(), rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
             if (writtenBytes < 0) {
                 ERROR_PRINT("Failed to write to file with error %d\n", writtenBytes);
@@ -263,26 +267,27 @@ void canLogTask(void *arg) {
                 failedFifoCount--;
         }
 
-        // sync every 32kB
+        // sync every 16kB, a sync will commit the data to the sd card
         kb += writtenBytes;
         if (kb / LOG_FILE_SYNC_BYTES >= 1) {
             f_sync(&file);
-            DEBUG_PRINT("Synced\n");
+            // DEBUG_PRINT("Synced\n");
             kb = 0;
         }
 
         // close file if it's too big
         if (f_size(&file) > MAX_LOG_FILE_BYTES) {
-            f_close(&file);
+            f_close(&file);  // close also syncs the file
             kb = 0;
             isCanLogEnabled = false;
         }
 
+        // uint32_t end = xTaskGetTickCount();
         // if (xTaskGetTickCount() % 1000 == 0) {
-        DEBUG_PRINT("SB: %u FF: %lu\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount);
+        // DEBUG_PRINT("SB: %u FF: %lu %ld\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount, end - start);
         // }
         // print size of stream buffer
-        
+
         // DEBUG_PRINT("%08lx: %0x %0x %0x %0x %0x %0x %0x %0x\n", rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CAN_LOG_TASK_PERIOD));
     }
