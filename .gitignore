@@ -22,6 +22,7 @@ info.dox
 *.bak
 Gen/
 .vscode
+.idea
 *.tmp
 Cube-Nucleo-Src/build/
 Docs/sphinx/build
