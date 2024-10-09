@@ -56,12 +56,13 @@ class DashPage(Page):
         self.update_battery_charge(0)
 
         self._is_flash_enabled = False
-
+        #todo: cell voltage 2.5-4.2V, get tag for specific cell that is high temp/voltage
         self.temp_targets = {
             "cell": {"target": 25, "range": 30, "max_temp": 55},
             "water": {"target": 25, "range": 35, "max_temp": 60},
             "inv": {"target": 25, "range": 55, "max_temp": 80},
-            "motor": {"target": 25, "range": 55, "max_temp": 80}
+            "motor": {"target": 25, "range": 55, "max_temp": 80},
+            "voltage": {"target": 2.5, "range": 1.7, "max_temp": 4.2}
         }
         
     def _calculate_temp_colour(self, temp, sensor_type):
@@ -226,6 +227,12 @@ class DashPage(Page):
     def updateMinCell(self, decoded_data: dict):
         cell_min = decoded_data['VoltageCellMin']        
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
+
+        voltage_colour = self._calculate_temp_colour(cell_min, "voltage")
+        cell_frame = self.min_cell_text.master
+        cell_frame.config(bg=voltage_colour)
+        for widget in cell_frame.winfo_children():
+            widget.config(bg=voltage_colour)
 
     def updateSpeed(self, decoded_data: dict):
         rpm = decoded_data['INV_Motor_Speed']
