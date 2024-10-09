@@ -70,13 +70,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HallEffectSensorTask(void const * argument) {
+    deleteWSBTask(WSBRL | WSBRR);
     DEBUG_PRINT("Starting HallEffectSensorTask\n");
-    WSBType_t wsbType = detectWSB();
-    if (wsbType != WSBRL && wsbType != WSBRR) {
-        DEBUG_PRINT("Invalid wsb: not WSBRL or WSBRR, deleting HallEffectSensorTask\n");
-        vTaskDelete(NULL);
-        return;
-    }
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
@@ -96,7 +91,7 @@ void HallEffectSensorTask(void const * argument) {
         sendCAN_WSBRR_Speed();
 #endif
 
-        DEBUG_PRINT("RPM: %lld, KPH: %f\n", rpm, kph);
+        DEBUG_PRINT("RPM: %ld, KPH: %f\n", (int32_t)rpm, kph);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }
