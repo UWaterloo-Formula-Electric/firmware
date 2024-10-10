@@ -1,5 +1,6 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
+#include "canLogger.h"
 #include "controlStateMachine_mock.h"
 #include "debug.h"
 #include "main.h"
@@ -26,6 +27,11 @@ void userInit() {
     }
 
     if (canInit(&CAN_HANDLE) != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (canLogSB_init() != HAL_OK) {
+        printf("Error initializing can log stream buffer\n");
         Error_Handler();
     }
 

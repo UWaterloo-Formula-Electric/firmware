@@ -183,7 +183,7 @@ void MX_FREERTOS_Init(void) {
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of canLogTaskName */
-  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 2048);
+  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 20000);
   canLogTaskNameHandle = osThreadCreate(osThread(canLogTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
