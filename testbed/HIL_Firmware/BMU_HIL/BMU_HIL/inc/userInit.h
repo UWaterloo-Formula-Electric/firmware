@@ -42,13 +42,13 @@
 #define AMS_RESET_PRESS_PIN   GPIO_NUM_33
 #define IMD_RESET_PRESS_PIN   GPIO_NUM_3
 
-#define IMD_STATUS_PIN        GPIO_NUM_9 //needs to produce PWM signal 9MHz to 55MHz with DC 0-100%
+#define IMD_STATUS_PIN        GPIO_NUM_9
 #define IMD_FAULT_PIN         GPIO_NUM_10
 
 #define DCDC_ON_PIN           GPIO_NUM_34
 
-#define FAN_TACH_PIN          GPIO_NUM_2 //Output: Simulate Fan tachometer with PWM
-#define FAN_PWM_PIN           GPIO_NUM_1 //Input: Measure duty cycle of PWM signal
+#define FAN_TACH_PIN          GPIO_NUM_2
+#define FAN_PWM_PIN           GPIO_NUM_1
 
 #define HVD_PIN               GPIO_NUM_11
 #define CBRB_PRESS_PIN        GPIO_NUM_14
