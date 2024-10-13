@@ -19,6 +19,7 @@
 
 // Inta-Component Includes
 #include "userInit.h"
+#include "dac.h"
 
 /***********************************
 ************ GLOBALS ***************
