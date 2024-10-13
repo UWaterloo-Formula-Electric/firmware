@@ -149,14 +149,20 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     {
         throttle_percent = 0.0f;
     }
-    // Per Cascadia Motion docs, torque requests are sent in Nm * 10
-    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-    #ifdef ENABLE_POWER_LIMIT
-    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
-    #endif
 
     INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
     sendCAN_VCU_INV_Power();
+
+    // Per Cascadia Motion docs, torque requests are sent in Nm * 10
+    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+
+    #ifdef ENABLE_POWER_LIMIT
+    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω
+    
+    if (INV_Tractive_Power_kW>INV_POWER_LIMIT){
+    	sendDTC_WARNING_VCU_F7_80Kw_Overload();
+    }
+    #endif
 
     float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
     uint16_t requestTorque = scaledTorque; 
