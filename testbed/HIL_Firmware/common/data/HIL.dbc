@@ -36,22 +36,28 @@ BS_:
 BU_: BMU_HIL Computer PDU_HIL VCU_HIL
 
 
-BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
- SG_ New_Signal_35 : 0|12@1+ (1.2,0) [0|4095] "" Vector__XXX
+BO_ 2281836289 BMU_HIL_OutputStatus: 8 BMU_HIL
 
-BO_ 2214854927 BMU_HIL_HVShuntPosNeg: 4 Vector__XXX
+BO_ 2281770753 BMU_HIL_InputStatus: 2 BMU_HIL
+ SG_ FanPWM : 8|8@1+ (1,0) [0|100] ""  Computer
+ SG_ DCDCOn : 2|1@1+ (1,0) [0|1] ""  Computer
+ SG_ ContPos : 1|1@1+ (1,0) [0|1] ""  Computer
+ SG_ ContNeg : 0|1@1+ (1,0) [0|1] ""  Computer
+
+BO_ 2214854927 BMU_HIL_HVShuntPosNeg: 4 Computer
  SG_ HVShuntPos : 16|12@1+ (1,0) [0|50] "mV"  BMU_HIL
  SG_ HVShuntNeg : 0|12@1+ (1,0) [0|50] "mV"  BMU_HIL
 
-BO_ 2214789391 BMU_HIL_HVPosNegOutput: 4 Vector__XXX
+BO_ 2214789391 BMU_HIL_HVPosNegOutput: 4 Computer
  SG_ HVPosOutput : 16|13@1- (1,0) [0|5000] "mV"  BMU_HIL
  SG_ HVNegOutput : 0|13@1+ (1,0) [0|5000] "mV"  BMU_HIL
 
-BO_ 2214723855 BMU_HIL_BattPosNeg: 4 Vector__XXX
+BO_ 2214723855 BMU_HIL_BattPosNeg: 4 Computer
  SG_ BattPos : 16|13@1+ (1,0) [0|5000] "mV"  BMU_HIL
  SG_ BattNeg : 0|13@1+ (1,0) [0|5000] "mV"  BMU_HIL
 
 BO_ 2214658319 BMU_HIL_GPIO_Outputs: 3 Computer
+ SG_ IMDFault : 7|1@1+ (1,0) [0|1] ""  BMU_HIL
  SG_ FanTach : 16|8@1+ (1,0) [0|100] "Percent"  BMU_HIL
  SG_ IMDStatus : 8|8@1+ (1,0) [0|100] "Percent"  BMU_HIL
  SG_ BPSDResetPress : 6|1@1+ (1,0) [0|1] ""  BMU_HIL
@@ -106,7 +112,6 @@ BO_ 2214658575 ThrottlePositionA: 2 Computer
 
 
 
-CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
 CM_ SG_ 2214658575 ThrottlePositionA "
 ";
 BA_DEF_  "BusType" STRING ;

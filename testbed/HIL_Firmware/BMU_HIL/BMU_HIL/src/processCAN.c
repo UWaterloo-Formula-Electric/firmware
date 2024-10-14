@@ -22,6 +22,9 @@
 *********************************/
 static uint16_t byte_1 = 0U;
 static uint16_t byte_2 = 0U;
+static uint16_t byte_3 = 0U;
+static uint16_t byte_4 = 0U;
+//Max 4 bytes in a message
 
 /***********************************************
 ************ Function Definitions **************
@@ -30,6 +33,27 @@ static uint16_t byte_2 = 0U;
 //Dealing with CAN inputs. Take instructions from computer and set outputs.
 void process_rx_task (void * pvParameters)
 {
-    //TODO: Fill this Task.
+    //Make sure this task isn't starved, check-in
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    while(1){
+        //Place a message from the bmu HIL queue into the current CAN msg
+        xQueueReceive(bmu_hil_queue, &can_msg, portMAX_DELAY);
+
+        switch(can_msg.identifier){
+            case(BMU_HIL_GPIO_OUTPUTS_MSG):
+                break;
+            case(BMU_HIL_BATTPOSNEG_MSG):
+                break;
+            case(BMU_HIL_HVPOSNEGOUTPUT_MSG):
+                break;
+            case(BMU_HIL_HVSHUNTPOSNEG_MSG):
+                break;
+            default:
+                printf("CAN ID not recognized %ld\r\n", can_msg.identifier);
+                break;
+
+        }
+    }
 }
 
