@@ -27,6 +27,7 @@ static uint16_t byte_2 = 0U;
 ************ Function Definitions **************
 ************************************************/
 
+//Dealing with CAN inputs. Take instructions from computer and set outputs.
 void process_rx_task (void * pvParameters)
 {
     //TODO: Fill this Task.

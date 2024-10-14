@@ -33,8 +33,19 @@ NS_ :
 
 BS_:
 
-BU_: Computer PDU_HIL VCU_HIL
+BU_: BMU_HIL Computer PDU_HIL VCU_HIL
 
+
+BO_ 2214658319 BMU_HIL_Outputs: 3 Computer
+ SG_ FanTach : 16|8@1+ (1,0) [0|150] "Hz"  BMU_HIL
+ SG_ IMDStatus : 8|8@1+ (1,0) [0|100] "Percent"  BMU_HIL
+ SG_ BPSDResetPress : 6|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ IMDResetPress : 5|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ AMSResetPress : 4|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ TSMSFault : 3|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ ILClose : 2|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ HVD : 1|1@1+ (1,0) [0|1] ""  BMU_HIL
+ SG_ CBRBPress : 0|1@1+ (1,0) [0|1] ""  BMU_HIL
 
 BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
  SG_ PowRightFan : 11|1@1+ (1,0) [0|1] ""  Computer
