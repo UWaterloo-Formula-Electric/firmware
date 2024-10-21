@@ -48,7 +48,7 @@ void process_rx_task (void * pvParameters)
         switch(can_msg.identifier){
             case(BMU_HIL_GPIO_OUTPUTS_MSG):
                 //Possible validation of inputs?
-                //Assuming that each time a CAN message is sent, all values are sent. Might be a bad idea subject to change.
+                //Assuming that each time a CAN message is sent, all values are sent. Might be a bad idea, subject to change.
 
                 //Bits  0-7
                 gpio_set_level(CBRB_PRESS_PIN, byte_0[BMU_HIL_GPIO_OUTPUTS_CBRB_PRESS]);
@@ -65,10 +65,28 @@ void process_rx_task (void * pvParameters)
                 //FanTach 8 bit number
                 break;
             case(BMU_HIL_BATTPOSNEG_MSG):
+                byte_0 = byte_0 << 8;
+                byte_0 |= byte_1; //13 bit battNeg
+                byte_2 = byte_2 <<8;
+                byte_2 |= byte_3; //13 bit battPos
+                
+                //Set DAC to 0-5000mV
                 break;
             case(BMU_HIL_HVPOSNEGOUTPUT_MSG):
+                byte_0 = byte_0 << 8;
+                byte_0 |= byte_1; //13 bit hvNeg
+                byte_2 = byte_2 <<8;
+                byte_2 |= byte_3; //13 bit hvPos
+                
+                //Set DAC to 0-5000mV
                 break;
             case(BMU_HIL_HVSHUNTPOSNEG_MSG):
+                byte_0 = byte_0 << 8;
+                byte_0 |= byte_1; //12 bit hvShNeg
+                byte_2 = byte_2 <<8;
+                byte_2 |= byte_3; //12 bit hvShPos
+
+                //Set DAC to 0-50mV
                 break;
             default:
                 printf("CAN ID not recognized %ld\r\n", can_msg.identifier);

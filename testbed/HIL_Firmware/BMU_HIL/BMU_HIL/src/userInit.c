@@ -258,27 +258,27 @@ esp_err_t GPIO_init (void)
     gpio_set_direction(DCDC_ON_PIN, GPIO_MODE_INPUT);
 
     //Ampseal
-    gpio_set_direction(CBRB_PRESS_PIN, GPIO_MODE_OUTPUT); //Active low
-    gpio_set_direction(IL_CLOSE_PIN, GPIO_MODE_OUTPUT); //Active low
-    gpio_set_direction(HVD_PIN, GPIO_MODE_OUTPUT); //Active low
-    gpio_set_direction(TSMS_FAULT_PIN, GPIO_MODE_OUTPUT); //Active low
+    gpio_set_direction(CBRB_PRESS_PIN, GPIO_MODE_OUTPUT); 
+    gpio_set_direction(IL_CLOSE_PIN, GPIO_MODE_OUTPUT); 
+    gpio_set_direction(HVD_PIN, GPIO_MODE_OUTPUT); 
+    gpio_set_direction(TSMS_FAULT_PIN, GPIO_MODE_OUTPUT); 
 
     //Contactor Control
     gpio_set_direction(CONT_NEG_PIN, GPIO_MODE_INPUT);
     gpio_set_direction(CONT_POS_PIN, GPIO_MODE_INPUT);
 
     //Reset Buttons
-    gpio_set_direction(AMS_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); //0V to press button
-    gpio_set_direction(IMD_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); //0V to press button
-    gpio_set_direction(BPSD_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); //0V to press button
+    gpio_set_direction(AMS_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); 
+    gpio_set_direction(IMD_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); 
+    gpio_set_direction(BPSD_RESET_PRESS_PIN, GPIO_MODE_OUTPUT); 
 
     //IMD
     gpio_set_direction(IMD_FAULT_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_direction(IMD_STATUS_PIN, GPIO_MODE_OUTPUT); //PWM Signal 9MHz to 55MHz with duty cycle of 0-100%
+    gpio_set_direction(IMD_STATUS_PIN, GPIO_MODE_OUTPUT);
 
     //Fan
     gpio_set_direction(FAN_PWM_PIN, GPIO_MODE_INPUT); //Will be measuring duty cycle (BMU sends 0-100% at 88Hz as defined by datasheet)
-    gpio_set_direction(FAN_TACH_PIN, GPIO_MODE_OUTPUT); //Send PWM signal to BMU (0-150Hz. Freq = 1/((60/rpm)/2) with max rpm 4500 as per datasheet)
+    gpio_set_direction(FAN_TACH_PIN, GPIO_MODE_OUTPUT); 
     
     //INITIALIZE OUTPUTS
     gpio_set_level(CBRB_PRESS_PIN,0);
@@ -291,9 +291,9 @@ esp_err_t GPIO_init (void)
     gpio_set_level(BPSD_RESET_PRESS_PIN,1);
 
     gpio_set_level(IMD_FAULT_PIN,0); //Set to HIGH to signify fault. Using open drain, BMU recognizes 0V as a fault.
-    gpio_set_level(IMD_STATUS_PIN,0); //PWM later
+    gpio_set_level(IMD_STATUS_PIN,0); //TODO: PWM Signal 9MHz to 55MHz with duty cycle of 0-100%
 
-    gpio_set_level(FAN_TACH_PIN,0); //PWM later
+    gpio_set_level(FAN_TACH_PIN,0); //TODO: Send PWM signal to BMU (0-150Hz. Freq = 1/((60/rpm)/2) with max rpm 4500 as per datasheet)
 
     return ESP_OK;
 }
