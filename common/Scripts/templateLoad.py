@@ -17,7 +17,6 @@ class FSAETemplater:
 
         "SIGNAL_RECEIVED_FUNC": "templates/signal/signal_received_function.txt",
         "SIGNAL_SENDING_FUNC": "templates/signal/signal_sending_function.txt",
-        "SIGNAL_SENDING_FLOAT_FUNC": "templates/signal/signal_sending_function_float.txt",
 
         "SIGNAL_VAR_DECL_HEADER": "templates/signal/signal_variable_and_declaration_header.txt",
         "SIGNAL_VAR_DECL_SOURCE": "templates/signal/signal_variable_and_declaration_source.txt",
@@ -34,6 +33,7 @@ class FSAETemplater:
         "VERSION_SEND_SOURCE": "templates/messages/version_send_source.txt",
 
         "SETUP_CAN_FILTERS_SOURCE": "templates/filters/setup_can_filters_source.txt",
+        "SETUP_CAN_FILTERS_SOURCE_WSB": "templates/filters/setup_can_filters_source_wsb.txt",
         "SETUP_CAN_FILTERS_HEADER": "templates/filters/setup_can_filters_header.txt",
         "SETUP_CAN_FILTERS_PARTIAL": "templates/filters/setup_can_filters_partial.txt",
     }
