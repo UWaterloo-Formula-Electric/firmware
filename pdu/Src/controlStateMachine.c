@@ -48,6 +48,11 @@ Transition_t mainTransitions[] = {
     { STATE_ANY, EV_ANY, &MainDefaultTransition}
 };
 
+/* 
+ * This is a temporary fix from the 2024 competition where the inverter would occassionally experience HW
+ * overcurrent fault. We power cycle the inverter to eliminate the fault. TODO: once this fault is permanently fixed,
+ * this should be removed
+ */
 uint32_t cycleMC(uint32_t event)
 {
     extern uint8_t resetting;
@@ -66,9 +71,9 @@ uint32_t cycleMC(uint32_t event)
 
     uint32_t current_state = fsmGetState(&mainFsmHandle);
     if (current_state == STATE_Motors_On) {
-        MC_DISABLE;
+        INVERTER_DISABLE;
         vTaskDelay(pdMS_TO_TICKS(50));
-        MC_ENABLE;
+        INVERTER_EN;
         resetting = 0U;
         return STATE_Motors_On;
     }
@@ -176,21 +181,21 @@ HAL_StatusTypeDef turnBoardsOn()
 {
     DEBUG_PRINT("Turning boards on\n");
 
-    VCU_ENABLE;
-    DCU_ENABLE;
-    WSB_ENABLE;
-    BMU_ENABLE;
-    AUX_ENABLE;
+    CDU_EN;
+    TCU_EN;
+    WSB_EN;
+    BMU_EN;
+    // AUX_1_EN; TODO: comfirm what we are connecting to AUX
     return HAL_OK;
 }
 
 HAL_StatusTypeDef turnBoardsOff()
 {
     DEBUG_PRINT("Turning boards off\n");
-    VCU_DISABLE;
-    DCU_DISABLE;
-    WSB_DISABLE;
+    CDU_DISABLE;
     BMU_DISABLE;
+    WSB_DISABLE;
+    TCU_DISABLE;
     return HAL_OK;
 }
 
@@ -198,10 +203,10 @@ uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
     if (fsmGetState(&mainFsmHandle) == STATE_Boards_On) {
-        MC_ENABLE;
+        INVERTER_EN;
     }
 
-    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON;
+    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON; // TODO: clean up CAN signals
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
@@ -214,7 +219,7 @@ uint32_t motorsOff(uint32_t event)
 {
     DEBUG_PRINT("Turning motors off\n");
 
-    MC_DISABLE;
+    INVERTER_DISABLE;
 
     StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
 
