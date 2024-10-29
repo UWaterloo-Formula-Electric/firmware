@@ -75,7 +75,10 @@ Src/can.c \
 Src/tim.c \
 Src/usart.c \
 Src/dma.c \
-Src/iwdg.c
+Src/iwdg.c \
+Src/i2c.c \
+Src/sysmem.c \
+Src/syscalls.c
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 
