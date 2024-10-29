@@ -9,6 +9,7 @@
 #include "pdu_can.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+extern volatile uint8_t acc_fan_command_override;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -310,28 +311,41 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     sscanf(selectionParam, "%u", &selection);
-    if (selection & 0x1)
-	{
-		FAN_RIGHT_ENABLE;
-	}
-	else
-	{
-		FAN_RIGHT_DISABLE;
-	}
-	if (selection & 0x2)
-	{
-		FAN_LEFT_ENABLE;
-	}
-	else
-	{
-		FAN_LEFT_DISABLE;
-	}
+    
+    switch (selection)
+    {
+        case 0:
+            DEBUG_PRINT("Turning all fans off!\r\n");
+            ACC_FANS_DISABLE;
+            RADIATOR_DISABLE;
+            acc_fan_command_override = 0;
+            break;
+        case 1:
+            DEBUG_PRINT("Turning radiator fan on!\r\n");
+            RADIATOR_EN;
+            break;
+        case 2:
+            DEBUG_PRINT("Turning accumulator fans on!\r\n");
+            acc_fan_command_override = 1;
+            ACC_FANS_EN;
+            break;
+        case 3:
+            DEBUG_PRINT("Turning all fans on!\r\n");
+            acc_fan_command_override = 1;
+            ACC_FANS_EN;
+            RADIATOR_EN;
+            break;
+        default:
+            DEBUG_PRINT("Error: reached default case in controlFans!\r\n");
+            break;
+    }
+
     return pdFALSE;
 }
 static const CLI_Command_Definition_t controlFansCommandDefinition =
 {
     "controlFans",
-    "controlFans <0|1|2|3>:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
+    "controlFans <0|1|2|3>:\r\n  Controls the power to the fans\r\n 0: Both off, 1: Radiator Fan On, 2: Acc. Fans On, 3: Both on\r\n",
     controlFans,
     1 /* Number of parameters */
 };
@@ -348,24 +362,25 @@ BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
     sscanf(selectionParam, "%u", &selection);
     if (selection & 0x1)
 	{
-		PUMP_RIGHT_ENABLE;
+		PUMP_1_EN;
 	}
 	else
 	{
-		PUMP_RIGHT_DISABLE;
+		PUMP_1_DISABLE;
 	}
 	if (selection & 0x2)
 	{
-		PUMP_LEFT_ENABLE;
+		PUMP_2_EN;
 	}
 	else
 	{
-		PUMP_LEFT_DISABLE;
+		PUMP_2_DISABLE;
 	}
     return pdFALSE;
 }
 static const CLI_Command_Definition_t controlPumpsCommandDefinition =
 {
+    /* TODO: Verify location of pump 1 and pump 2*/
     "controlPumps",
     "controlPumps <0|1|2|3>:\r\n  Controls the power to the pumps \r\n 0: Both off, 1: Right On, 2: Left On, 3: Both on\r\n",
     controlPumps,
