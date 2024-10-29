@@ -1,5 +1,5 @@
-#ifndef __DRIVE_BY_WIRE_H
-#define __DRIVE_BY_WIRE_H
+#ifndef __CONTROL_STATE_MACHINE_H_
+#define __CONTROL_STATE_MACHINE_H_
 #include "stm32f7xx_hal.h"
 #include "state_machine.h"
 
@@ -39,8 +39,9 @@ void mainControlTask(void *pvParameters);
 
 // Watchdog Task IDs - not sure where else to put these
 #define MAIN_CONTROL_TASK_ID 1
-#define COOLING_TASK_ID 6
+#define LOAD_SENSOR_TASK_ID 3
 #define SENSOR_TASK_ID 4
 #define POWER_TASK_ID 5
+#define COOLING_TASK_ID 6
 
-#endif // __DRIVE_BY_WIRE_H
+#endif // __CONTROL_STATE_MACHINE_H_
