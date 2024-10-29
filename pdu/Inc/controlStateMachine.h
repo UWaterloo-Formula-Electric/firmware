@@ -39,6 +39,7 @@ void mainControlTask(void *pvParameters);
 
 // Watchdog Task IDs - not sure where else to put these
 #define MAIN_CONTROL_TASK_ID 1
+#define TEMP_SENSOR_TASK_ID 2
 #define LOAD_SENSOR_TASK_ID 3
 #define SENSOR_TASK_ID 4
 #define POWER_TASK_ID 5
