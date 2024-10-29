@@ -84,6 +84,7 @@ osThreadId mainControlHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliHandle;
 osThreadId SensorHandle;
+osThreadId loadSensorHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId powerHandle;
 osThreadId canSendTaskHandle;
@@ -102,6 +103,7 @@ extern void cliTask(void const * argument);
 extern void sensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void powerTask(void const * argument);
+extern void loadSensorTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
 extern void coolingTask(void const * argument);
@@ -213,6 +215,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of Sensor */
   osThreadDef(Sensor, sensorTask, osPriorityHigh, 0, 1000);
   SensorHandle = osThreadCreate(osThread(Sensor), NULL);
+
+  /* definition and creation of Load Sensor */
+  osThreadDef(loadSensor, loadSensorTask, osPriorityHigh, 0, 1000);
+  loadSensorHandle = osThreadCreate(osThread(loadSensor), NULL);
 
   /* definition and creation of watchdogTaskNam */
   osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 1000);
