@@ -1,3 +1,13 @@
+/**
+ *******************************************************************************
+ * @file    sensor.c
+ * @author	Jacky Lim
+ * @date    Oct 2024
+ * @brief   Cycles through all 6 channels on ADC_1, process and report those values
+ *
+ ******************************************************************************
+ */
+
 #include "bsp.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -135,7 +145,7 @@ void setChannelCurrentSignal(PDU_Channels_t channel, float current) {
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
-    if (HAL_ADC_Start_DMA(&ADC_HANDLE, (uint32_t*)ADC_Buffer, NUM_PDU_CHANNELS) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&ADC1_HANDLE, (uint32_t*)ADC_Buffer, NUM_PDU_CHANNELS) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
         Error_Handler();
@@ -267,10 +277,10 @@ void canPublishFuseStatus() {
 }
 
 void canPublishPowerStates() {
-    DC_DC_ON = CHECK_DC_DC_ON_PIN;
-    BMGR1_State = CHECK_BMGR_GPIO1_PIN_STATE;
-    BMGR2_State = CHECK_BMGR_GPIO2_PIN_STATE;
-    BMGR3_State = CHECK_BMGR_GPIO3_PIN_STATE;
+    // DC_DC_ON = CHECK_DC_DC_ON_PIN;
+    // BMGR1_State = CHECK_BMGR_GPIO1_PIN_STATE;
+    // BMGR2_State = CHECK_BMGR_GPIO2_PIN_STATE;
+    // BMGR3_State = CHECK_BMGR_GPIO3_PIN_STATE;
     if (sendCAN_PDU_Power_States() != HAL_OK) {
         ERROR_PRINT("Failed to send the PDU power states on the CAN bus!\n");
     }
