@@ -28,18 +28,18 @@ void powerTask(void *pvParameters)
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1)
     {
-        bool newDCDCState = CHECK_DC_DC_ON_PIN;
+        // bool newDCDCState = CHECK_DC_DC_ON_PIN;
 
-        if (newDCDCState != DC_DC_state) {
-            if (newDCDCState)
-            {
-                DEBUG_PRINT("switched to DC to DC\n");
-            }
-            DC_DC_state = newDCDCState;
+        // if (newDCDCState != DC_DC_state) {
+        //     if (newDCDCState)
+        //     {
+        //         DEBUG_PRINT("switched to DC to DC\n");
+        //     }
+        //     DC_DC_state = newDCDCState;
 
-            sendCAN_PDU_DCDC_Status();
-        }
-        watchdogTaskCheckIn(POWER_TASK_ID);
+        //     sendCAN_PDU_DCDC_Status();
+        // }
+        // watchdogTaskCheckIn(POWER_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, POWER_TASK_INTERVAL_MS);
     }
 }
