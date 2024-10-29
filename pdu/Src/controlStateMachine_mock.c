@@ -153,43 +153,43 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
     if (STR_EQ(boardParam, "BMU", paramLen)) {
         COMMAND_OUTPUT("Turning BMU %s\n", onOff?"on":"off");
         if (onOff) {
-            BMU_ENABLE;
+            BMU_EN;
         } else {
             BMU_DISABLE;
         }
-    } else if (STR_EQ(boardParam, "DCU", paramLen)) {
+    } else if (STR_EQ(boardParam, "CDU", paramLen)) {
         COMMAND_OUTPUT("Turning DCU %s\n", onOff?"on":"off");
         if (onOff) {
-            DCU_ENABLE;
+            CDU_EN;
         } else {
-            DCU_DISABLE;
+            CDU_DISABLE;
         }
-    } else if (STR_EQ(boardParam, "VCU_F7", paramLen)) {
-        COMMAND_OUTPUT("Turning VCU_F7 %s\n", onOff?"on":"off");
+    } else if (STR_EQ(boardParam, "TCU", paramLen)) {
+        COMMAND_OUTPUT("Turning TCU %s\n", onOff?"on":"off");
         if (onOff) {
-            VCU_ENABLE;
+            TCU_EN;
         } else {
-            VCU_DISABLE;
+            TCU_DISABLE;
         }
     } else if (STR_EQ(boardParam, "WSB", paramLen)) {
-        COMMAND_OUTPUT("Turning WSB %s\n", onOff?"on":"off");
+        COMMAND_OUTPUT("Turning ALL WSB %s\n", onOff?"on":"off");
         if (onOff) {
-            WSB_ENABLE;
+            WSB_EN;
         } else {
             WSB_DISABLE;
         }
     } else if (STR_EQ(boardParam, "ALL", paramLen)) {
         COMMAND_OUTPUT("Turning ALL %s\n", onOff?"on":"off");
         if (onOff) {
-            BMU_ENABLE;
-            DCU_ENABLE;
-            VCU_ENABLE;
-            WSB_ENABLE;
+            CDU_EN;
+            TCU_EN;
+            WSB_EN;
+            BMU_EN;
         } else {
+            CDU_DISABLE;
             BMU_DISABLE;
-            DCU_DISABLE;
-            VCU_DISABLE;
             WSB_DISABLE;
+            TCU_DISABLE;
         }
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
@@ -201,7 +201,7 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t channelEnableCommandDefinition =
 {
     "board",
-    "board <BMU|DCU|VCU_F7|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
+    "board <BMU|CDU|TCU|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
     channelEnableCommand,
     2 /* Number of parameters */
 };
@@ -253,51 +253,45 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
 BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    FAN_LEFT_ENABLE;
-    HAL_Delay(1000);
-    FAN_LEFT_DISABLE;
-    FAN_RIGHT_ENABLE;
-    HAL_Delay(1000);
-    FAN_RIGHT_DISABLE;
-    PUMP_LEFT_ENABLE; 
-    HAL_Delay(1000);
-    PUMP_LEFT_DISABLE; 
-    PUMP_RIGHT_ENABLE;
-    HAL_Delay(1000); 
-    PUMP_RIGHT_DISABLE;
-    MC_ENABLE; 
-    HAL_Delay(1000);
-    MC_DISABLE;
-    HAL_Delay(1000);
+    RADIATOR_EN;
+    HAL_Delay(3000);
+    RADIATOR_DISABLE;
+    ACC_FANS_EN;
+    HAL_Delay(3000);
+    ACC_FANS_DISABLE;
+    PUMP_1_EN; 
+    HAL_Delay(3000);
+    PUMP_1_DISABLE; 
+    PUMP_2_EN;
+    HAL_Delay(3000); 
+    PUMP_2_DISABLE;
+    INVERTER_EN; 
+    HAL_Delay(3000);
+    INVERTER_DISABLE;
+    HAL_Delay(3000);
     BRAKE_LIGHT_ENABLE;
-    HAL_Delay(1000);
+    HAL_Delay(3000);
     BRAKE_LIGHT_DISABLE;
-    AUX_ENABLE;
-    HAL_Delay(1000);
-    AUX_DISABLE;
+    AUX_1_EN;
+    HAL_Delay(3000);
+    AUX_1_DISABLE;
+    AUX_2_EN;
+    HAL_Delay(3000);
+    AUX_2_DISABLE;
+    AUX_3_EN;
+    HAL_Delay(3000);
+    AUX_3_DISABLE;
+    AUX_4_EN;
+    HAL_Delay(3000);
+    AUX_4_DISABLE;
 
     return pdFALSE;
 }
 static const CLI_Command_Definition_t testOutputCommandDefinition =
 {
     "testOutput",
-    "testOutput:\r\n  Cycle through each of the outputs in 1s intervals.\r\n",
+    "testOutput:\r\n  Cycle through each of the outputs in 3s intervals.\r\n",
     testOutput,
-    0 /* Number of parameters */
-};
-
-BaseType_t printPowerStates(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-
-    COMMAND_OUTPUT("States:\n DC present:%d, BMGR1: %d, BMGR2: %d, BMGR3:%d\n", CHECK_DC_DC_ON_PIN, CHECK_BMGR_GPIO1_PIN_STATE, CHECK_BMGR_GPIO2_PIN_STATE, CHECK_BMGR_GPIO3_PIN_STATE);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t printPowerStatesCommandDefinition =
-{
-    "powerStates",
-    "powerStates:\r\n  Output current states of LTC4110\r\n",
-    printPowerStates,
     0 /* Number of parameters */
 };
 
@@ -387,17 +381,17 @@ static const CLI_Command_Definition_t controlPumpsCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t mcEnable(char *writeBuffer, size_t writeBufferLength,
+BaseType_t invEnable(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    MC_ENABLE;
+    INVERTER_EN;
     return pdFALSE;
 }
-static const CLI_Command_Definition_t mcEnableCommandDefinition =
+static const CLI_Command_Definition_t invEnableCommandDefinition =
 {
-    "mcEnable",
-    "mcEnable:\r\n Turn on motor controller\r\n",
-    mcEnable,
+    "invEnable",
+    "invEnable:\r\n Turn on motor controller\r\n",
+    invEnable,
     0 /* Number of parameters */
 };
 
@@ -433,16 +427,13 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&getChannelsRawDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&printPowerStatesCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&controlPumpsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&controlFansCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&mcEnableCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&invEnableCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;
