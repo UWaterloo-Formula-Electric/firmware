@@ -32,77 +32,136 @@ spi_device_handle_t hv_pos_output;
 spi_device_handle_t hv_shunt_pos;
 spi_device_handle_t hv_shunt_neg;
 
-// utilizes seperate isoSPI bus
+// uses seperate isoSPI bus
 spi_device_handle_t ams;
 
 /***********************************
 ***** FUNCTION DEFINITIONS *********
-************************************/
-esp_err_t CAN_init (void)
-{
-    memset(&rx_msg, 0, sizeof(twai_message_t));
-    memset(&can_msg, 0, sizeof(twai_message_t));
-    memset(&bmu_hil_queue, 0, sizeof(QueueHandle_t)); //not 0 ing other queues to avoid repetition
+************************************/ 
+// void taskRegister (void)
+// {
+//     BaseType_t xReturned = pdPASS;
+//     TaskHandle_t can_rx_task_handler = NULL;
+//     TaskHandle_t can_process_task_handler = NULL;
 
-    //TODO: these will probably have to be moved
-    twai_handle_t twai_hil;
-    twai_handle_t twai_chrgr;
 
-    // Config Structures
-    twai_general_config_t g_config = {
-        .mode = TWAI_MODE_NORMAL, 
-        .clkout_io = TWAI_IO_UNUSED, 
-        .bus_off_io = TWAI_IO_UNUSED,      
-        .tx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH, 
-        .rx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH,                          
-        .alerts_enabled = TWAI_ALERT_NONE,  
-        .clkout_divider = 0,        
-        .intr_flags = ESP_INTR_FLAG_LEVEL1
-    };
-    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
-    twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+//  BaseType_t xTaskCreate( TaskFunction_t pvTaskCode,
+//                          const char * const pcName,
+//                          const configSTACK_DEPTH_TYPE uxStackDepth,
+//                          void *pvParameters,
+//                          UBaseType_t uxPriority,
+//                          TaskHandle_t *pxCreatedTask
+//                        );
 
-    // Install CAN HIL driver
-    g_config.controller_id = CAN_HIL_ID,
-    g_config.tx_io = CAN_HIL_TX, 
-    g_config.rx_io = CAN_HIL_RX,
-    if (twai_driver_install_v2(&g_config, &t_config, &f_config, &twai_hil) != ESP_OK)
-    {
-        printf("Failed to install TWAI driver\r\n");
-        return ESP_FAIL;
-    } 
-    printf("TWAI driver installed\r\n");
+//     //xTaskCreate desc: create task and add it to list of things ready to run
+//     //TaskFunction_t taskCode, const char* const pcName, const configSTACK_DEPTH_TYPE 
+//     //uxStackDepth, void* pvParameters, UBaseType_t uxPriority, TaskHandle pxCreatedTask
 
-    // Start CAN HIL driver
-    if (twai_start_v2(&twai_hil) != ESP_OK) 
-    {
-        printf("Failed to start TWAI driver\r\n");
-        return ESP_FAIL;
+//     //Create the CAN Receive Task
+//     xReturned = xTaskCreate(
+//         can_rx_task,
+//         "CAN_RECEIVE_TASK",
+//         4000,
+//         ( void * ) NULL,
+//         configMAX_PRIORITIES-1,
+//         &can_rx_task_handler
+//     );
+
+//     if(xReturned != pdPASS)
+//     {
+//         while(1)
+//         {
+//             printf("Failed to register can_rx_task to RTOS");
+//         }
+//     }
+
+//     //Create CAN process task
+//     xReturned = xTaskCreate(
+//         BMU_HIL_process_rx_task,
+//         "HIL_CAN_PROCESS_TASK",
+//         4000,
+//         ( void * ) NULL,
+//         configMAX_PRIORITIES-1,
+//         &can_process_task_handler
+//     );
+
+//     if(xReturned != pdPASS)
+//     {
+//         while(1)
+//         {
+//             printf("Failed to register process_rx_task to RTOS");
+//         }
+//     }
+
+//     //TODO: Charger CAN Process and output
+//     //TODO: Output status
+// }
+
+// esp_err_t CAN_init (void)
+// {
+//     memset(&rx_msg, 0, sizeof(twai_message_t));
+//     memset(&can_msg, 0, sizeof(twai_message_t));
+//     memset(&bmu_hil_queue, 0, sizeof(QueueHandle_t)); //not 0 ing other queues to avoid repetition
+
+//     //TODO: these will probably have to be moved
+//     twai_handle_t twai_hil;
+//     twai_handle_t twai_chrgr;
+
+//     // Config Structures
+//     twai_general_config_t g_config = {
+//         .mode = TWAI_MODE_NORMAL, 
+//         .clkout_io = TWAI_IO_UNUSED, 
+//         .bus_off_io = TWAI_IO_UNUSED,      
+//         .tx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH, 
+//         .rx_queue_len = MAX_CAN_MSG_QUEUE_LENGTH,                          
+//         .alerts_enabled = TWAI_ALERT_NONE,  
+//         .clkout_divider = 0,        
+//         .intr_flags = ESP_INTR_FLAG_LEVEL1
+//     };
+//     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+//     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+//     // Install CAN HIL driver
+//     g_config.controller_id = CAN_HIL_ID,
+//     g_config.tx_io = CAN_HIL_TX, 
+//     g_config.rx_io = CAN_HIL_RX,
+//     if (twai_driver_install_v2(&g_config, &t_config, &f_config, &twai_hil) != ESP_OK)
+//     {
+//         printf("Failed to install TWAI driver\r\n");
+//         return ESP_FAIL;
+//     } 
+//     printf("TWAI driver installed\r\n");
+
+//     // Start CAN HIL driver
+//     if (twai_start_v2(&twai_hil) != ESP_OK) 
+//     {
+//         printf("Failed to start TWAI driver\r\n");
+//         return ESP_FAIL;
         
-    } 
-    printf("TWAI driver started\r\n");
+//     } 
+//     printf("TWAI driver started\r\n");
 
-    // Install CAN CHRGR driver
-    g_config.controller_id = CAN_CHRGR_ID,
-    g_config.tx_io = CAN_CHRGR_TX, 
-    g_config.rx_io = CAN_CHRGR_RX,
-    if (twai_driver_install_v2(&g_config, &t_config, &f_config, &twai_chrgr) != ESP_OK)
-    {
-        printf("Failed to install TWAI driver\r\n");
-        return ESP_FAIL;
-    } 
-    printf("TWAI driver installed\r\n");
+//     // Install CAN CHRGR driver
+//     g_config.controller_id = CAN_CHRGR_ID,
+//     g_config.tx_io = CAN_CHRGR_TX, 
+//     g_config.rx_io = CAN_CHRGR_RX,
+//     if (twai_driver_install_v2(&g_config, &t_config, &f_config, &twai_chrgr) != ESP_OK)
+//     {
+//         printf("Failed to install TWAI driver\r\n");
+//         return ESP_FAIL;
+//     } 
+//     printf("TWAI driver installed\r\n");
 
-    // Start CAN CHRGR driver
-    if (twai_start_v2(&twai_chrgr) != ESP_OK) 
-    {
-        printf("Failed to start TWAI driver\r\n");
-        return ESP_FAIL;
+//     // Start CAN CHRGR driver
+//     if (twai_start_v2(&twai_chrgr) != ESP_OK) 
+//     {
+//         printf("Failed to start TWAI driver\r\n");
+//         return ESP_FAIL;
         
-    } 
-    printf("TWAI driver started\r\n");
-    return ESP_OK;
-}
+//     } 
+//     printf("TWAI driver started\r\n");
+//     return ESP_OK;
+// }
 
 esp_err_t SPI_init(void)
 {

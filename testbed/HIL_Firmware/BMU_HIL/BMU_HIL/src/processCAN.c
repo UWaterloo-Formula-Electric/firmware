@@ -31,8 +31,9 @@ static uint16_t byte_3 = 0U;
 ************************************************/
 
 //Dealing with CAN inputs. Take instructions from computer and set outputs.
-void process_rx_task (void * pvParameters)
+void BMU_HIL_process_rx_task (void * pvParameters)
 {
+    printf("CAN Process Running\r\n");
     //Make sure this task isn't starved, check-in
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
