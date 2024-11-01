@@ -17,23 +17,6 @@
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
 #define LOAD_SENSOR_TASK_INTERVAL_MS        100     // TODO: adjust as necessary
-#define PDU_NUM_CHANNELS 14
-typedef enum PDU_Channels_t {
-    Pump_1_Channel = 1,  // Channel 1
-    Pump_2_Channel,      // Channel 2
-    CDU_Channel,         // Channel 3
-    BMU_Channel,         // Channel 4
-    WSB_1_Channel,       // Channel 5
-    TCU_Channel,         // Channel 6
-    Brake_Light_Channel, // Channel 7
-    Acc_Fans_Channel,    // Channel 8
-    Inverter_Channel,    // Channel 9
-    Radiator_Channel,    // Channel 10
-    Aux_1_Channel,       // Channel 11
-    Aux_2_Channel,       // Channel 12
-    Aux_3_Channel,       // Channel 13
-    Aux_4_Channel,       // Channel 14
-} PDU_Channels_New;
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Prototypes------------------------------------------------*/
