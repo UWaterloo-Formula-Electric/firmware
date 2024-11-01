@@ -24,9 +24,11 @@
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
 #define MAX_LOAD_CHANNELS 14
-#define CHANNEL_BUFFER_LENGTH 1
-#define ENABLE_CHANNEL_FLAG 1
-#define DISABLE_CHANNEL_FLAG 0
+
+#define ADC_BUFFER_LENGTH 1
+#define SELECT_ODD_CHANNEL_FLAG 0
+#define SELECT_EVEN_CHANNEL_FLAG 1
+#define CHANNEL_BUFFER_LENGTH 7 // may need to make this more clear?
 
 // ToDo: Find the correct mapping value
 #define ADC_TO_AMPS_DIVIDER 2.012
@@ -52,7 +54,14 @@ typedef enum PDU_Channels_t {
     Aux_4_Channel,       // Channel 14
 } Load_Channels;
 
-volatile uint32_t adcData[CHANNEL_BUFFER_LENGTH];
+struct ChannelCurrents
+{
+    uint32_t oddChannelCurrents[CHANNEL_BUFFER_LENGTH];
+    uint32_t evenChannelCurrents[CHANNEL_BUFFER_LENGTH];
+};
+
+volatile uint32_t adcData[ADC_BUFFER_LENGTH];
+struct ChannelCurrents currSensData;
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Definition------------------------------------------------*/
@@ -78,81 +87,47 @@ HAL_StatusTypeDef startADCConversions()
     return HAL_OK;
 }
 
-void enableDisableChannel(Load_Channels channel, int enableDisableFlag) {
-    if (channel <= MAX_LOAD_CHANNELS) {
-        switch (channel) {
-            case Pump_1_Channel:
-                enableDisableFlag ? PUMP_1_EN : PUMP_1_DISABLE;
-                break;
-            case Pump_2_Channel:
-                enableDisableFlag ? PUMP_2_EN : PUMP_2_DISABLE;
-                break;
-            case CDU_Channel:
-                enableDisableFlag ? CDU_EN : CDU_DISABLE;
-                break;
-            case BMU_Channel:
-                enableDisableFlag ? BMU_EN : BMU_DISABLE;
-                break;
-            case WSB_1_Channel:
-                enableDisableFlag ? WSB_EN : WSB_DISABLE;
-                break;
-            case TCU_Channel:
-                enableDisableFlag ? TCU_EN : TCU_DISABLE;
-                break;
-            case Brake_Light_Channel:
-                enableDisableFlag ? BRAKE_LIGHT_ENABLE : BRAKE_LIGHT_DISABLE;
-                break;
-            case Acc_Fans_Channel:
-                enableDisableFlag ? ACC_FANS_EN : ACC_FANS_DISABLE;
-                break;
-            case Inverter_Channel:
-                enableDisableFlag ? INVERTER_EN : INVERTER_DISABLE;
-                break;
-            case Radiator_Channel:
-                enableDisableFlag ? RADIATOR_EN : RADIATOR_DISABLE;
-                break;
-            case Aux_1_Channel:
-                enableDisableFlag ? AUX_1_EN : AUX_1_DISABLE;
-                break;
-            case Aux_2_Channel:
-                enableDisableFlag ? AUX_2_EN : AUX_2_DISABLE;
-                break;
-            case Aux_3_Channel:
-                enableDisableFlag ? AUX_3_EN : AUX_3_DISABLE;
-                break;
-            case Aux_4_Channel:
-                enableDisableFlag ? AUX_4_EN : AUX_4_DISABLE;
-                break;
-            default:
-                DEBUG_PRINT("Channel not handled by code\n");
-                break;
-        }
-    }
+void enableCurrentSens() 
+{
+    // Turn on current diagnosis
+    HAL_GPIO_WritePin(I_DIAG_SENSE_EN_GPIO_Port, I_DIAG_SENSE_EN_Pin, GPIO_PIN_SET);
 }
 
-void configureChannel(Load_Channels channel)
+void disableCurrentSens() 
 {
-    // Enable Channel
-    enableDisableChannel(channel, ENABLE_CHANNEL_FLAG);
+    // Disable current diagnosis on all load channels, select pins do not matter since line is 
+    // high impedance.
+    HAL_GPIO_WritePin(I_DIAG_SENSE_EN_GPIO_Port, I_DIAG_SENSE_EN_Pin, GPIO_PIN_RESET);
+}
 
+void switchLoadChannelsForRead(int selectChannelFlag) 
+{
+    // Switch load channels to read current from
+    // If flag = 1, select even load channels (2, 4, 6...) else (1, 3, 5..)
+    HAL_GPIO_WritePin(I_DIAG_SENSE_SEL_GPIO_Port, I_DIAG_SENSE_SEL_Pin, 
+                     (selectChannelFlag == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+void selectMuxChannelForRead(Load_Channels channel)
+{
     // Configure the MUX based on channel
     HAL_GPIO_WritePin(CURR_SENSE_MUX_S1_GPIO_Port, CURR_SENSE_MUX_S1_Pin, ((channel >> 0) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
     HAL_GPIO_WritePin(CURR_SENSE_MUX_S2_GPIO_Port, CURR_SENSE_MUX_S2_Pin, ((channel >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
     HAL_GPIO_WritePin(CURR_SENSE_MUX_S3_GPIO_Port, CURR_SENSE_MUX_S3_Pin, ((channel >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-void disableChannel(Load_Channels channel)
-{    
-    // Disable Channel
-    enableDisableChannel(channel, DISABLE_CHANNEL_FLAG);
+// void disableChannel(Load_Channels channel)
+// {    
+//     // Disable Channel
+//     enableDisableChannel(channel, DISABLE_CHANNEL_FLAG);
     
-    // Comments:
-    // What if the enabled channel is disabled but the mux is configured to that channel?
-    // What is read from MUX_OUT?
-}
+//     // Comments:
+//     // What if the enabled channel is disabled but the mux is configured to that channel?
+//     // What is read from MUX_OUT?
+// }
 
 void canPublishCurrent(Load_Channels channel, float current) {
-    // for (Load_Channels channel = 0; channel < MAX_NUM_CHANNELS; channel++) {
+    // for (Load_Channels channel = 0; channel < MAX_LOAD_CHANNELS; channel++) {
     //     switch (channel) {
     //         // case Pump_1_Channel:
     //         //     ChannelCurrentFanRight = current;
@@ -185,25 +160,50 @@ void loadSensorTask(void *pvParameters)
     while (1)
     {
         /* TODO: Add logic for reading current from all channels*/
+
+        // Logic for Current Sensing
+        // Enable current diagnosis
+        // Read from channel 0 and channel 1 at the same time. 
+        // Read data from all 14 channels at once and populate the ADC buffers.
+        // There is a delay between when you switch from one channel to another that needs to be included
+        // in the firmware.
+        // 0 to 1, 1 to 0 (different delays each time as per datasheet)
         
+        // Enable Current Diagnosis
+        enableCurrentSens();
+
         static Load_Channels channel = 1;
 
-        // Enable Channel and Configure the Mux Pins
-        configureChannel(channel);
+        for (int index = 0; index < CHANNEL_BUFFER_LENGTH; index++)
+        {
+            // Switch to all odd load channel currents
+            switchLoadChannelsForRead(SELECT_ODD_CHANNEL_FLAG);
 
-        // Read from MUX out and update ADC Buffer
-        // channelCurrent = adcData[0] / ADC_TO_AMPS_DIVIDER;
+            vTaskDelay(SETTLING_TIME_AFTER_CHANNEL_CHANGE_HIGH_TO_LOW_MS);
 
-        float channelCurrent = adcData[0] / ADC_TO_AMPS_DIVIDER;
+            // Set up Channel Mux
+            selectMuxChannelForRead(channel);
 
-        // Disable Channel
-        disableChannel(channel);
+            // Read from Mux Out and update ADC Buffer
+            currSensData.oddChannelCurrents[index] = adcData[0] / ADC_TO_AMPS_DIVIDER;
+            
+            // Switch to all even load channel currents
+            switchLoadChannelsForRead(SELECT_EVEN_CHANNEL_FLAG);
 
-        // Check if all channels have been iterated, else continue to next channel
-        channel = (channel == MAX_LOAD_CHANNELS) ? 1 : channel + 1;
+            // Wait for switching load channel to take effect then return back to task
+            vTaskDelay(SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_MS);
+            
+            currSensData.evenChannelCurrents[index] = adcData[0] / ADC_TO_AMPS_DIVIDER;
+
+            // Check if all channels have been iterated, else continue to next channel
+            channel = (channel == CHANNEL_BUFFER_LENGTH) ? 1 : channel + 1;
+        }
+
+        // Disable Current Diagnosis
+        disableCurrentSens();
 
         /* Send CAN Message */
-        canPublishCurrent(channel, channelCurrent);
+        // canPublishCurrent(channel, channelCurrent);
 
         watchdogTaskCheckIn(LOAD_SENSOR_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, LOAD_SENSOR_TASK_INTERVAL_MS);
