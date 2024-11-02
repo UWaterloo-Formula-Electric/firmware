@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import print_function
 # $ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
 import cantools
