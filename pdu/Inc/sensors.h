@@ -7,23 +7,36 @@
  * These are numbered to match which ADC channel they are connected to, don't
  * change the order or add channels unless you know what you're doing!!
  */
+
+/* This is enum is for all the PDU output channels */
 typedef enum PDU_Channels_t {
-    Fan_Right_Channel, // Channel 2
-    DCU_Channel, // Channel 3
-    MC_Left_Channel, // Channel 4
-    Pump_Left_Channel, // Channel 5
-    Fan_Left_Channel, // Channel 6
-    VCU_Channel, // Channel 7
-    Brake_Light_Channel, // Channel 8
-    AUX_Channel, // Channel 9
-    LV_Current, // Channel 10
-    LV_Voltage, // Channel 11
-    MC_Right_Channel, // Channel 12
-    Pump_Right_Channel, // Channel 13
-    BMU_Channel, // Channel 14
-    WSB_Channel, // Channel 15
+    Pump_1_Channel,     // Channel 1
+    Pump_2_channel,     // Channel 2
+    CDU_Channel,        // Channel 3
+    BMU_Channel,        // Channel 4
+    WSB_Channel,        // Channel 5
+    TCU_Channel,        // Channel 6
+    Brake_Light_Channel,// Channel 7
+    ACC_Fans_Channel,   // Channel 8
+    INV_Channel,        // Channel 9
+    Radiator_Channel,   // Channel 10
+    AUX_1_Channel,      // Channel 11
+    AUX_2_Channel,      // Channel 12
+    AUX_3_Channel,      // Channel 13
+    AUX_4_Channel,      // Channel 14
     NUM_PDU_CHANNELS
 } PDU_Channels_t;
+
+/* This enum is for the sense lines on ADC1 */
+typedef enum PDU_ADC1_Channels_t {
+    I_Main_Channel,             // ADC Channel 4
+    V_Main_Channel,             // ADC Channel 5
+    V_Lipo_Channel,             // ADC Channel 6
+    I_DCDC_Channel,             // ADC Channel 7
+    V_DCDC_Channel,             // ADC Channel 14
+    Lipo_Therm_Channel,         // ADC Channel 15
+    NUM_ADC1_CHANNELS           // Total = 6
+} PDU_ADC1_Channels_t;
 
 const char *channelNames[NUM_PDU_CHANNELS];
 
@@ -43,19 +56,18 @@ const char *channelNames[NUM_PDU_CHANNELS];
 // Max LV Bus current
 #define LV_MAX_CURRENT_AMPS 30.0f
 //
-// TODO: Find this value
-#define FUSE_BLOWN_MIN_CURRENT_AMPS 5.0
+// TODO: We should verify that no channels draw less this when it is on
+#define FUSE_BLOWN_MIN_CURRENT_AMPS 0.02
 
-// https://www.icloud.com/numbers/0S6koOG2vne6wmcGm2YSY_cUw#PDU_Calculations
-#define ADC_TO_AMPS_DIVIDER 225.168595041322
-#define ADC_TO_VOLTS_DIVIDER 198.545454545455
-
+// Todo: verify these values from the schematic
+#define ADC_TO_AMPS_DIVIDER 0.0002
+#define ADC_TO_VOLTS_DIVIDER 0.207143
 
  // #define MOCK_ADC_READINGS
 
 float readBusCurrent();
 float readBusVoltage();
-float readCurrent(PDU_Channels_t channel);
+float readCurrent(PDU_ADC1_Channels_t channel);
 void printRawADCVals();
 
 
