@@ -8,7 +8,7 @@
 #include "canReceive.h"
 #include "pdu_can.h"
 
-extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
+extern uint32_t ADC_3_Buffer[NUM_PDU_CHANNELS];
 extern volatile uint8_t acc_fan_command_override;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
@@ -29,16 +29,10 @@ static const CLI_Command_Definition_t debugUartOverCanCommandDefinition =
 BaseType_t getChannelCurrents(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    for (int i=0; i<NUM_PDU_CHANNELS; i++) {
-        if (i == LV_Voltage) {
-            DEBUG_PRINT("Bus Voltage: %f V\n", readBusVoltage());
-            continue;
-        } else if (i == LV_Current) {
-            DEBUG_PRINT("Bus current: %f A\n", readBusCurrent());
-            continue;
-        }
-        DEBUG_PRINT("Channel %s: %f A\n",channelNames[i], readCurrent(i));
-    }
+    // TODO: Add this once Rijin is done
+    // for (int i = 0; i < NUM_PDU_CHANNELS; i++) {
+    //     DEBUG_PRINT("Channel %s: %f A\n",channelNames[i], readChannelCurrent(i));
+    // }
 
     return pdFALSE;
 }
@@ -84,7 +78,7 @@ BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
     sscanf(currentParam, "%f", &current);
     COMMAND_OUTPUT("Channel %d current = %f A\n", channelIdx, current);
 
-    ADC_Buffer[channelIdx] = current * ADC_TO_AMPS_DIVIDER;
+    // ADC_3_Buffer[channelIdx] = current * ADC_TO_AMPS_DIVIDER; // TODO: either read from CAN message or an array
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setChannelCurrentCommandDefinition =
@@ -106,7 +100,8 @@ BaseType_t setBusVoltage(char *writeBuffer, size_t writeBufferLength,
     sscanf(voltageParam, "%f", &voltage);
     COMMAND_OUTPUT("Bus voltage = %f V\n", voltage);
 
-    ADC_Buffer[LV_Voltage] = voltage * ADC_TO_VOLTS_DIVIDER;
+    // TODO: fix this
+    // ADC_Buffer[LV_Voltage] = voltage * ADC_TO_VOLTS_DIVIDER;
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setBusVoltageCommandDefinition =
@@ -384,15 +379,103 @@ static const CLI_Command_Definition_t controlPumpsCommandDefinition =
 BaseType_t invEnable(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    INVERTER_EN;
+    BaseType_t paramLen;
+    unsigned int selection;
+
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(selectionParam, "%u", &selection);
+    if (selection == 1)
+	{
+		INVERTER_EN;
+	}
+	else if (selection == 0)
+	{
+		INVERTER_DISABLE;
+	}
+
     return pdFALSE;
 }
 static const CLI_Command_Definition_t invEnableCommandDefinition =
 {
     "invEnable",
-    "invEnable:\r\n Turn on motor controller\r\n",
+    "invEnable <0|1>:\r\n Turn off/on motor controller\r\n",
     invEnable,
-    0 /* Number of parameters */
+    1 /* Number of parameters */
+};
+
+BaseType_t fakeBrake(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	
+    BaseType_t paramLen;
+    unsigned int brakeValue;
+
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    sscanf(selectionParam, "%u", &brakeValue);
+
+    // Validate input
+    if (brakeValue > 100 || brakeValue < 0){
+        DEBUG_PRINT("Error: invalid brake percent. Acceptable range is 0-100!\r\n");
+        return pdFALSE;
+    }
+    
+    BrakePercent = brakeValue;
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t fakeBrakeCommandDefinition =
+{
+    "fakeBrake",
+    "fakeBrake <brakeValue>:\r\n  Mock value for BrakePercent \r\n",
+    fakeBrake,
+    1 /* Number of parameters */
+};
+
+BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    unsigned int channel, power;
+
+    const char *channelParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    const char *stateParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    sscanf(channelParam, "%u", &channel);
+    sscanf(stateParam, "%u", &power);
+
+    // Validate channel input
+    if (channel < 1 || channel > 4) {
+        DEBUG_PRINT("Error: Invalid channel in auxEnable!\r\n");
+        return pdFALSE;
+    }
+
+    switch (channel)
+    {
+        case 1:
+            if (power) { AUX_1_EN; } else { AUX_1_DISABLE; }
+        case 2:
+            if (power) { AUX_2_EN; } else { AUX_2_DISABLE; }
+        case 3:
+            if (power) { AUX_3_EN; } else { AUX_3_DISABLE; }
+        case 4:
+            if (power) { AUX_4_EN; } else { AUX_4_DISABLE; }
+        default:
+            DEBUG_PRINT("Error: reached default case in auxEnable!\r\n");
+            break;
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t auxEnableCommandDefinition =
+{
+    "auxEnable",
+    "auxEnable <channel> <0|1>:\r\n Turn auxiliary <channel> off/on\r\n",
+    auxEnable,
+    2 /* Number of parameters */
 };
 
 HAL_StatusTypeDef mockStateMachineInit()
@@ -434,6 +517,12 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&invEnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&fakeBrakeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&auxEnableCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     return HAL_OK;
