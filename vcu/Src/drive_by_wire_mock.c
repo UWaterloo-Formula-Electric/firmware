@@ -465,7 +465,6 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         return pdFALSE;
     } else{
 
-        MC_ENABLE; //Enables inverter
 
         status = mcWriteParamCommand(parameterAddress, newValue); 
         if (status == HAL_OK){
@@ -475,9 +474,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
             COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Failed to write parameter message at address %u\n", parameterAddress);
         }
 
-        MC_DISABLE;
         HAL_Delay(1000);
-        MC_ENABLE;
 
         status = mcReadParamCommand(parameterAddress, readValue);
         if (status == HAL_OK){
