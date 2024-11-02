@@ -206,7 +206,7 @@ uint32_t motorsOn(uint32_t event)
         INVERTER_EN;
     }
 
-    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_ON; // TODO: clean up CAN signals
+    StatusPowerInverter = StatusPowerInverter_CHANNEL_ON;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
@@ -221,7 +221,7 @@ uint32_t motorsOff(uint32_t event)
 
     INVERTER_DISABLE;
 
-    StatusPowerMCLeft = StatusPowerMCLeft_CHANNEL_OFF;
+    StatusPowerInverter = StatusPowerInverter_CHANNEL_OFF;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
