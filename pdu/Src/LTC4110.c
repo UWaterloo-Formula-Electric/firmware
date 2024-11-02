@@ -39,7 +39,7 @@ void powerTask(void *pvParameters)
 
         //     sendCAN_PDU_DCDC_Status();
         // }
-        // watchdogTaskCheckIn(POWER_TASK_ID);
+        watchdogTaskCheckIn(POWER_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, POWER_TASK_INTERVAL_MS);
     }
 }
