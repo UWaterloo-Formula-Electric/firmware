@@ -13,17 +13,15 @@
 #include "stm32f4xx_hal.h"
 #include "task.h"
 
-#define CAN_LOG_TASK_PERIOD 50 // any higher and we might lose logs, any lower and we start starving runtime from other tasks
+#define CAN_LOG_TASK_PERIOD 50  // any higher and we might lose logs, any lower and we start starving runtime from other tasks
 
-#define LOG_SB_SIZE 500 // max size of the stream buffer
-#define STREAM_BUFFER_TRIGGER_LEVEL 10 // the reading task is unblocked after atleast 10 items are in the stream buffer
+#define LOG_SB_SIZE 500                        // max size of the stream buffer
+#define STREAM_BUFFER_TRIGGER_LEVEL 10         // the reading task is unblocked after atleast 10 items are in the stream buffer
 #define MAX_LOG_FILE_BYTES (10 * 1024 * 1024)  // 10MB, rotate to new file after this size
 #define LOG_FILE_SYNC_BYTES (16 * 1024)        // 16kB
 // start logging only after this variable is set to true
 // it set to true if new log file is created successfully
 volatile bool isCanLogEnabled = false;
-
-char *LOG_DIR = "LOGS";
 
 FATFS FatFs;
 
@@ -170,6 +168,49 @@ FRESULT createAndOpenNextFile(FIL *file, char *path, char *fileName, size_t size
 }
 
 /**
+ * @brief Create a new directory with the next available dir name in the format "LOGSxxx"
+ * @param path [IN] the dir to search for the dir
+ * @param dirName [OUT] the buffer to store the dir name
+ * @param size [IN] the size of the buffer
+ * @return error code from the fatfs library fn. calls, FR_OK if successful
+ */
+FRESULT createNextDir(char *path, char *dirName, size_t size) {
+    TCHAR cwd[100];
+    FRESULT res = f_getcwd(cwd, 100);
+    if (res != FR_OK) {
+        ERROR_PRINT("Failed to get current directory with error %d\n", res);
+        return res;
+    }
+    // compare cwd + 1 as by default it returns "/<dir>"
+    // and for creeating dirs we can't use the leading "/"
+    // so ignore the leading "/" in the comparison
+    if (strncmp(path, cwd + 1, 100) != 0) {
+        res = f_chdir(path);
+
+        if (res != FR_OK) {
+            ERROR_PRINT("Failed to change directory to %s with error %d\n", path, res);
+            return res;
+        }
+    }
+
+    // Find the next available dir name
+    FILINFO fno;
+    static size_t diridx = 0;
+    do {
+        snprintf(dirName, size, "LOGS%d", (int)diridx);
+        res = f_stat(dirName, &fno);
+        diridx++;
+    } while (res != FR_NO_FILE);
+
+    res = f_mkdir(dirName);
+    if (res != FR_OK && res != FR_EXIST) {
+        ERROR_PRINT("Failed to create directory %s with error %d\n", dirName, res);
+    }
+
+    return res;
+}
+
+/**
  * @brief Initialize the SD card and mount it, must be called after RTOS scheduler is running
  */
 FRESULT initCANLoggerSD() {
@@ -200,7 +241,7 @@ FRESULT initCANLoggerSD() {
 StaticStreamBuffer_t canLogSB_struct;
 StreamBufferHandle_t canLogSB = NULL;
 
-CanMsg canLogBuffer[LOG_SB_SIZE + 1]; // stream buffer requires 1 extra byte
+CanMsg canLogBuffer[LOG_SB_SIZE + 1];  // stream buffer requires 1 extra byte
 
 HAL_StatusTypeDef canLogSB_init() {
     // init a static buffer for the can log stream buffer, call in user init
@@ -218,7 +259,6 @@ void canLogTask(void *arg) {
     if (initCANLoggerSD() != FR_OK) {
         handleError();
     }
-    vTaskDelay(pdMS_TO_TICKS(100));
 
     // Find and create new file
     char fileName[15];
@@ -227,9 +267,10 @@ void canLogTask(void *arg) {
 
     isCanLogEnabled = false;
 
-    res = mkdir(LOG_DIR);
+    char logDir[100] = "\0";
+    res = createNextDir(SDPath, logDir, 15);
     if (res != FR_OK && res != FR_EXIST) {
-        ERROR_PRINT("Failed to create directory %s with error %d\n", LOG_DIR, res);
+        ERROR_PRINT("Failed to create directory %s with error %d\n", logDir, res);
         handleError();
     }
 
@@ -244,12 +285,12 @@ void canLogTask(void *arg) {
         // Try to open the next file
         if (!isCanLogEnabled) {
             vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CAN_LOG_TASK_PERIOD));
-            res = createAndOpenNextFile(&file, LOG_DIR, fileName, 15);
+            res = createAndOpenNextFile(&file, logDir, fileName, 15);
             isCanLogEnabled = res == FR_OK;
             if (isCanLogEnabled) {
-                DEBUG_PRINT("Opened new log file %s/%s\n", LOG_DIR, fileName);
+                DEBUG_PRINT("Opened new log file %s/%s\n", logDir, fileName);
             } else {
-                ERROR_PRINT("Failed to open file %s/%s with error %d\n", LOG_DIR, fileName, res);
+                ERROR_PRINT("Failed to open file %s/%s with error %d\n", logDir, fileName, res);
             }
         }
 
@@ -269,7 +310,7 @@ void canLogTask(void *arg) {
 
         // sync every 16kB, a sync will commit the data to the sd card
         kb += writtenBytes;
-        if (kb / LOG_FILE_SYNC_BYTES >= 1) {
+        if (kb >= LOG_FILE_SYNC_BYTES) {
             f_sync(&file);
             // DEBUG_PRINT("Synced\n");
             kb = 0;
