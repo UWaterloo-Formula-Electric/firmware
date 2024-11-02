@@ -7,7 +7,6 @@
 #include "sensors.h"
 #include "canReceive.h"
 #include "pdu_can.h"
-#include "motorController.h"
 
 extern uint32_t ADC_Buffer[NUM_PDU_CHANNELS];
 
