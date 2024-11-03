@@ -446,7 +446,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     uint16_t newValue;
     uint16_t readValue;
     BaseType_t status;
-
+    uint16_t readValue = 0;
     uint32_t currentState = fsmGetState(&fsmHandle); //returns an index
     BaseType_t paramLen;
 
@@ -472,6 +472,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         }
         if (status != HAL_OK){
             COMMAND_OUTPUT("Failed to write parameter message at address %u\n", parameterAddress);
+            return pdFALSE;
         }
 
         HAL_Delay(1000);
@@ -494,6 +495,8 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         return status;
         }
     }
+
+    return pdFALSE;
 }
 
 
@@ -564,6 +567,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&modifyInverterEEPROM) != pdPASS) {
         return HAL_ERROR;
     }
 
