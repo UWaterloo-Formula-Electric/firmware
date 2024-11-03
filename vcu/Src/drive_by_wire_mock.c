@@ -447,7 +447,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     uint16_t readValue;
     BaseType_t status;
 
-    uint32_t currentState = fsmGetState(&mainFsmHandle);
+    uint32_t currentState = fsmGetState(&fsmHandle); //returns an index
     BaseType_t paramLen;
 
     const char *addressParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
@@ -456,11 +456,11 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     sscanf(addressParam, "%hu", &parameterAddress);
     sscanf(valueParam, "%hu", &newValue);
 
-    if (currentState == STATE_Boards_On){ 
+    if (HV_Power_State == HV_Power_State_On){ 
         COMMAND_OUTPUT("Error: Car is at high voltage. Operation not permitted\n");
         return pdFALSE;
     }
-    else if (currentState == STATE_Motors_On){ 
+    else if (currentState == STATE_EM_Enable){ 
         COMMAND_OUTPUT("Error: Car is in drive mode. Operation not permitted\n");
         return pdFALSE;
     } else{
@@ -495,7 +495,6 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         }
     }
 }
-
 
 
 static const CLI_Command_Definition_t modifyInverterEEPROM(){
