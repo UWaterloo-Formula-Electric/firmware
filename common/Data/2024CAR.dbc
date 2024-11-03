@@ -62,6 +62,26 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_PWM_Freq : 0|16@1+ (1,0) [0|24] "frequency:kHz" Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ FuseBlownMCRight : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
+ SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
+
+BO_ 2282621955 PDU_Charging_Status: 1 PDU
+ SG_ Charging_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 2285112323 PDU_Lipo_Info: 6 PDU
+ SG_ LIPO_Current : 32|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
+ SG_ LIPO_Temp : 16|16@1+ (0.01,-100) [-100|555.35] "C" Vector__XXX
+ SG_ LIPO_Voltage : 0|16@1+ (1,0) [0|65535] "mV" Vector__XXX
+
+BO_ 2287930371 PDU_Temperature: 2 PDU
+ SG_ PDU_Temp : 0|16@1+ (0.01,-100) [-100|555.35] "C" Vector__XXX
+
+BO_ 2286816259 PDU_Current_AUX_Readings: 8 PDU
+ SG_ ChannelCurrentAUX4 : 48|16@1+ (0.01,0) [0|0] "" Vector__XXX
+ SG_ ChannelCurrentAUX3 : 32|16@1+ (0.01,0) [0|0] "" Vector__XXX
+ SG_ ChannelCurrentAUX2 : 16|16@1+ (0.01,0) [0|0] "" Vector__XXX
+ SG_ ChannelCurrentAUX1 : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
  SG_ INV_Peak_Tractive_Power_kW : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
@@ -109,46 +129,40 @@ BO_ 2281898688 TractionControlConfig: 8 VCU_BeagleBone
  SG_ TC_kP : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_F7
 
 BO_ 2291796994 RearWheelSpeedRADS: 8 VCU_F7
- SG_ VCU_wheelSpeed_RR : 32|32@1+ (1E-005,0) [0|42949.67295] "rads/s" Vector__XXX
- SG_ VCU_wheelSpeed_RL : 0|32@1+ (1E-005,0) [0|42949.67295] "rads/s" Vector__XXX
+ SG_ VCU_wheelSpeed_RR : 32|32@1+ (1E-05,0) [0|42949.67295] "rads/s" Vector__XXX
+ SG_ VCU_wheelSpeed_RL : 0|32@1+ (1E-05,0) [0|42949.67295] "rads/s" Vector__XXX
 
 BO_ 2290355203 PDU_Board_Channels_Current: 8 PDU
  SG_ ChannelCurrentWSB : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentVCU : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentDCU : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentTCU : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentCDU : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
  SG_ ChannelCurrentBMU : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
 
-BO_ 2290945027 PDU_Current_Readings: 8 PDU
- SG_ ChannelCurrentMCRight : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentMCLeft : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentBrakeLight : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] ""  VCU_BeagleBone
+BO_ 2290945027 PDU_Current_Readings: 4 PDU
+ SG_ ChannelCurrentInverter : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentBrakeLight : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
 
 BO_ 2284129283 PDU_Fan_and_Pump_Current: 8 PDU
- SG_ ChannelCurrentPumpRight : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentPumpLeft : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentFanRight : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentFanLeft : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentPump2 : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentPump1 : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentAccFan : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentRadiator : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
 
 BO_ 2293566467 PDU_Fuse_Status: 2 PDU
- SG_ FuseBlownWSBChannel : 12|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownVCUChannel : 11|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownPumpRight : 10|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownPumpLeft : 9|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownMCRight : 8|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownMCLeft : 7|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownFanRight : 5|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownFanLeft : 4|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownDCUChannel : 3|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownAUX4 : 13|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ FuseBlownAUX3 : 12|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ FuseBlownAUX2 : 6|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ FuseBlownWSBChannel : 11|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownCDUChannel : 10|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownPump2 : 9|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownPump1 : 8|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownInverter : 7|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownAccFans : 5|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownRadiator : 4|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownTCUChannel : 3|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
  SG_ FuseBlownBrakeLight : 2|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
  SG_ FuseBlownBMUChannel : 1|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ FuseBlownAUX : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
-
-BO_ 2292190211 PDU_Power_States: 1 PDU
- SG_ BMGR3_State : 2|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ BMGR2_State : 1|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ BMGR1_State : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
- SG_ DC_DC_ON : 3|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FuseBlownAUX1 : 0|1@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2287471618 WheelSpeedKPH: 8 VCU_F7
  SG_ FRSpeedKPH : 48|16@1- (0.04,0) [-1310.72|1310.68] "km/h" Vector__XXX
@@ -239,7 +253,8 @@ BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
 BO_ 2227830532 ChargeCart_Heartbeat: 8 ChargeCart
  SG_ ChargeCart_Heartbeat_dummydata : 0|1@1- (1,0) [0|0] ""  BMU
 
-BO_ 2551190019 LV_Bus_Measurements: 4 PDU
+BO_ 2551190019 LV_Bus_Measurements: 6 PDU
+ SG_ PowerBusLV : 32|16@1+ (1,0) [0|65535] "W" Vector__XXX
  SG_ CurrentBusLV : 16|16@1+ (1,0) [0|0] "mA" Vector__XXX
  SG_ VoltageBusLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
 
@@ -827,18 +842,20 @@ BO_ 2281701889 BMU_stateBatteryHV: 8 BMU
  SG_ CurrentDCBatteryHV : 20|22@1- (0.001,0) [-2097.152|2097.151] "Amps"  VCU_BeagleBone,VCU_F7
  SG_ VoltageBatteryHV : 0|20@1+ (1,0) [0|1048575] "mV"  VCU_BeagleBone,VCU_F7
 
-BO_ 2214986243 PDU_ChannelStatus: 8 PDU
- SG_ StatusPowerVCU : 48|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerMCRight : 44|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
- SG_ StatusPowerMCLeft : 40|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
- SG_ StatusPowerIMD : 36|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerDCU : 32|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerDAU : 28|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerCoolingPumpRight : 24|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerCoolingPumpLeft : 20|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerCoolingFanRight : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerCoolingFanLeft : 8|4@1- (1,0) [0|0] ""  VCU_BeagleBone
- SG_ StatusPowerCoolingFanBattery : 4|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+BO_ 2214986243 PDU_ChannelStatus: 7 PDU
+ SG_ StatusPowerBrakeLight : 52|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StatusPowerWSB : 16|4@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StatusPowerTCU : 48|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerRadiator : 44|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
+ SG_ StatusPowerInverter : 40|4@1- (1,0) [0|0] ""  VCU_F7,VCU_BeagleBone
+ SG_ StatusPowerAccFan : 36|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerCDU : 32|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerCoolingPump2 : 28|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerCoolingPump1 : 24|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerAux4 : 20|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerAux3 : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerAux2 : 8|4@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ StatusPowerAux1 : 4|4@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ StatusPowerBMU : 0|4@1- (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2214597123 PDU_batteryStatusLV: 8 PDU
@@ -863,6 +880,7 @@ BO_ 2282754561 BMU_stateBusHV: 8 BMU
  SG_ VoltageBusHV : 0|16@1+ (0.01,0) [0|0] "V"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214596611 PDU_DCDC_Status: 8 PDU
+ SG_ VoltageOutputDCDC : 16|16@1+ (1,0) [0|65535] "mV" Vector__XXX
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
  SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
 
@@ -1152,43 +1170,141 @@ CM_ SG_ 2365566977 INV_Fast_DC_Bus_Voltage "DC Bus Voltage";
 BA_DEF_ BO_  "GenMsgCycleTime" INT 0 100000;
 BA_DEF_ SG_  "GenSigStartValue" FLOAT 0 100000000000;
 BA_DEF_  "BusType" STRING ;
+BA_DEF_  "ProtocolType" STRING ;
+BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","StandardCAN_FD","ExtendedCAN_FD";
 BA_DEF_DEF_  "GenMsgCycleTime" 0;
 BA_DEF_DEF_  "GenSigStartValue" 0;
 BA_DEF_DEF_  "BusType" "CAN";
+BA_DEF_DEF_  "ProtocolType" "J1939";
+BA_DEF_DEF_  "VFrameFormat" "";
+BA_ "VFrameFormat" BO_ 2282621955 1;
+BA_ "VFrameFormat" BO_ 2285112323 1;
+BA_ "VFrameFormat" BO_ 2287930371 1;
+BA_ "VFrameFormat" BO_ 2286816259 3;
+BA_ "VFrameFormat" BO_ 2292911106 3;
+BA_ "VFrameFormat" BO_ 2343239427 3;
+BA_ "VFrameFormat" BO_ 2147483648 3;
+BA_ "VFrameFormat" BO_ 2287209474 3;
+BA_ "VFrameFormat" BO_ 2284981250 3;
+BA_ "VFrameFormat" BO_ 2281898688 3;
+BA_ "VFrameFormat" BO_ 2291796994 3;
+BA_ "VFrameFormat" BO_ 2290355203 3;
+BA_ "VFrameFormat" BO_ 2290945027 3;
+BA_ "VFrameFormat" BO_ 2284129283 3;
+BA_ "VFrameFormat" BO_ 2293566467 3;
+BA_ "VFrameFormat" BO_ 2287471618 3;
+BA_ "VFrameFormat" BO_ 2214986495 3;
+BA_ "VFrameFormat" BO_ 2215051010 3;
+BA_ "VFrameFormat" BO_ 2214985474 3;
+BA_ "VFrameFormat" BO_ 2281901058 3;
+BA_ "VFrameFormat" BO_ 2215641611 3;
+BA_ "VFrameFormat" BO_ 2215641610 3;
+BA_ "VFrameFormat" BO_ 2215641609 3;
+BA_ "VFrameFormat" BO_ 2215641608 3;
+BA_ "VFrameFormat" BO_ 2281835521 3;
+BA_ "VFrameFormat" BO_ 2281769985 3;
+BA_ "VFrameFormat" BO_ 2282884097 3;
+BA_ "VFrameFormat" BO_ 2295598081 3;
+BA_ "VFrameFormat" BO_ 2287209473 3;
+BA_ "VFrameFormat" BO_ 2297236481 3;
+BA_ "VFrameFormat" BO_ 2298416383 3;
+BA_ "VFrameFormat" BO_ 2147548939 3;
+BA_ "VFrameFormat" BO_ 2147548938 3;
+BA_ "VFrameFormat" BO_ 2147548937 3;
+BA_ "VFrameFormat" BO_ 2147548936 3;
+BA_ "VFrameFormat" BO_ 2226717697 3;
+BA_ "VFrameFormat" BO_ 2227830532 3;
+BA_ "VFrameFormat" BO_ 2551190019 3;
+BA_ "VFrameFormat" BO_ 2282750722 3;
+BA_ "VFrameFormat" BO_ 2214987522 3;
+BA_ "VFrameFormat" BO_ 2214919943 3;
+BA_ "VFrameFormat" BO_ 2214919939 3;
+BA_ "VFrameFormat" BO_ 2214919938 3;
+BA_ "VFrameFormat" BO_ 2214919937 3;
+BA_ "VFrameFormat" BO_ 2282689025 3;
+BA_ "VFrameFormat" BO_ 2217082625 3;
+BA_ "VFrameFormat" BO_ 2214855426 3;
+BA_ "VFrameFormat" BO_ 2147548931 3;
+BA_ "VFrameFormat" BO_ 2147548935 3;
+BA_ "VFrameFormat" BO_ 2147548930 3;
+BA_ "VFrameFormat" BO_ 2147548929 3;
+BA_ "VFrameFormat" BO_ 2147548932 3;
+BA_ "VFrameFormat" BO_ 2214592772 3;
+BA_ "VFrameFormat" BO_ 2558526465 3;
+BA_ "VFrameFormat" BO_ 2558788609 3;
+BA_ "VFrameFormat" BO_ 2562720769 3;
+BA_ "VFrameFormat" BO_ 2281703170 3;
+BA_ "VFrameFormat" BO_ 2550137363 3;
+BA_ "VFrameFormat" BO_ 2550137362 3;
+BA_ "VFrameFormat" BO_ 2214662151 3;
+BA_ "VFrameFormat" BO_ 2550141444 3;
+BA_ "VFrameFormat" BO_ 2550141441 3;
+BA_ "VFrameFormat" BO_ 2550136839 3;
+BA_ "VFrameFormat" BO_ 2550141443 3;
+BA_ "VFrameFormat" BO_ 2550141442 3;
+BA_ "VFrameFormat" BO_ 2281701889 3;
+BA_ "VFrameFormat" BO_ 2214986243 3;
+BA_ "VFrameFormat" BO_ 2214597123 3;
+BA_ "VFrameFormat" BO_ 2281967617 3;
+BA_ "VFrameFormat" BO_ 2282754561 3;
+BA_ "VFrameFormat" BO_ 2214596611 3;
+BA_ "VFrameFormat" BO_ 2550137352 3;
+BA_ "VFrameFormat" BO_ 2550137353 3;
+BA_ "VFrameFormat" BO_ 2365566209 3;
 BA_ "GenMsgCycleTime" BO_ 2365565953 10;
+BA_ "VFrameFormat" BO_ 2365565953 3;
 BA_ "GenMsgCycleTime" BO_ 2365571585 0;
+BA_ "VFrameFormat" BO_ 2365571585 3;
 BA_ "GenMsgCycleTime" BO_ 2365571329 0;
+BA_ "VFrameFormat" BO_ 2365571329 3;
 BA_ "GenMsgCycleTime" BO_ 2365571073 10;
+BA_ "VFrameFormat" BO_ 2365571073 3;
 BA_ "GenMsgCycleTime" BO_ 2365565697 100;
+BA_ "VFrameFormat" BO_ 2365565697 3;
 BA_ "GenMsgCycleTime" BO_ 2365565441 100;
+BA_ "VFrameFormat" BO_ 2365565441 3;
 BA_ "GenMsgCycleTime" BO_ 2365565185 100;
+BA_ "VFrameFormat" BO_ 2365565185 3;
 BA_ "GenMsgCycleTime" BO_ 2365564929 10;
+BA_ "VFrameFormat" BO_ 2365564929 3;
 BA_ "GenMsgCycleTime" BO_ 2365564673 10;
+BA_ "VFrameFormat" BO_ 2365564673 3;
 BA_ "GenMsgCycleTime" BO_ 2365564417 10;
+BA_ "VFrameFormat" BO_ 2365564417 3;
 BA_ "GenMsgCycleTime" BO_ 2365564161 10;
+BA_ "VFrameFormat" BO_ 2365564161 3;
 BA_ "GenMsgCycleTime" BO_ 2365563905 10;
+BA_ "VFrameFormat" BO_ 2365563905 3;
 BA_ "GenMsgCycleTime" BO_ 2365563649 10;
+BA_ "VFrameFormat" BO_ 2365563649 3;
 BA_ "GenMsgCycleTime" BO_ 2365563393 100;
+BA_ "VFrameFormat" BO_ 2365563393 3;
 BA_ "GenMsgCycleTime" BO_ 2365563137 100;
+BA_ "VFrameFormat" BO_ 2365563137 3;
 BA_ "GenMsgCycleTime" BO_ 2365562881 100;
+BA_ "VFrameFormat" BO_ 2365562881 3;
+BA_ "VFrameFormat" BO_ 2365566465 3;
 BA_ "GenMsgCycleTime" BO_ 2365566977 3;
+BA_ "VFrameFormat" BO_ 2365566977 3;
 VAL_ 2147483648 StateContactorPositive 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
 VAL_ 2147483648 StateContactorNegative 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
 VAL_ 2226717697 ChargeEN_State 0 "Off" 1 "On" ;
 VAL_ 2214987522 EM_State 0 "Off" 1 "On" ;
 VAL_ 2217082625 HV_Power_State 0 "Off" 1 "On" ;
 VAL_ 2214855426 EM_Power_State_Request 0 "Off" 1 "On" ;
-VAL_ 2214986243 StatusPowerVCU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerMCRight 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerMCLeft 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerIMD 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerDCU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerDAU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerCoolingPumpRight 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerCoolingPumpLeft 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerCoolingFanRight 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerCoolingFanLeft 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
-VAL_ 2214986243 StatusPowerCoolingFanBattery 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerBrakeLight 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerWSB 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerTCU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerRadiator 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerInverter 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerAccFan 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerCDU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerCoolingPump2 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerCoolingPump1 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerAux4 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerAux3 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerAux2 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
+VAL_ 2214986243 StatusPowerAux1 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
 VAL_ 2214986243 StatusPowerBMU 0 "INVALID" 1 "CHANNEL_OFF" 2 "CHANNEL_ON" 3 "CHANNEL_OFF_FUSE_BLOWN" 4 "CHANNEL_ON_FUSE_BLOWN" ;
 VAL_ 2281967617 StateBMS 0 "Self_Check" 1 "Wait_System_Up" 2 "HV_Disable" 3 "HV_Enable" 4 "Precharge" 5 "Discharge" 6 "Charging" 7 "Failure_Fatal" ;
 VAL_ 2214596611 Status_DCDC 0 "Invalid" 1 "Off" 2 "On" 3 "Error" ;
