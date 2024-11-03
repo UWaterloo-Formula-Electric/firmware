@@ -444,7 +444,6 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
 BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, const char *commandString){
     uint16_t parameterAddress;
     uint16_t newValue;
-    uint16_t readValue;
     BaseType_t status;
     uint16_t readValue = 0;
     uint32_t currentState = fsmGetState(&fsmHandle); //returns an index
