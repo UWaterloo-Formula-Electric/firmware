@@ -12,8 +12,10 @@
 #include "loadSensor.h"
 
 #include "bsp.h"
-#include "debug.h"
 #include "controlStateMachine.h"
+#include "debug.h"
+#include "pdu_can.h"
+#include "sensors.h"
 #include "watchdog.h"
 
 /*********************************************************************************************************************/
@@ -23,38 +25,16 @@
 /*********************************************************************************************************************/
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
-#define MAX_LOAD_CHANNELS 14
 #define ADC_BUFFER_LENGTH 1
-#define CHANNEL_DATA_BUFFER_LEN 7
-
-// Todo: Find the correct mapping value
-#define ADC_TO_AMPS_DIVIDER 2.012
+#define CURRENT_SENS_CHANNELS 7
 
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
-
-typedef enum PDU_Channels_t {
-    Pump_1_Channel = 1,  // Channel 1
-    Pump_2_Channel,      // Channel 2
-    CDU_Channel,         // Channel 3
-    BMU_Channel,         // Channel 4
-    WSB_1_Channel,       // Channel 5
-    TCU_Channel,         // Channel 6
-    Brake_Light_Channel, // Channel 7
-    Acc_Fans_Channel,    // Channel 8
-    Inverter_Channel,    // Channel 9
-    Radiator_Channel,    // Channel 10
-    Aux_1_Channel,       // Channel 11
-    Aux_2_Channel,       // Channel 12
-    Aux_3_Channel,       // Channel 13
-    Aux_4_Channel,       // Channel 14
-} Load_Channels;
-
 struct ChannelCurrents
 {
-    uint32_t oddChannelCurrents[CHANNEL_DATA_BUFFER_LEN];
-    uint32_t evenChannelCurrents[CHANNEL_DATA_BUFFER_LEN];
+    uint32_t oddChannelCurrents[CURRENT_SENS_CHANNELS];
+    uint32_t evenChannelCurrents[CURRENT_SENS_CHANNELS];
 };
 
 volatile uint32_t adcData[ADC_BUFFER_LENGTH];
@@ -70,7 +50,7 @@ struct ChannelCurrents currSensData;
 
 HAL_StatusTypeDef startADCConversions()
 {
-    if (HAL_ADC_Start_DMA(&ADC3_HANDLE, (uint32_t*)adcData, MAX_LOAD_CHANNELS) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&ADC3_HANDLE, (uint32_t*)adcData, ADC_BUFFER_LENGTH) != HAL_OK)
     {
         ERROR_PRINT("Failed to start ADC DMA conversions\n");
         Error_Handler();
@@ -84,12 +64,12 @@ HAL_StatusTypeDef startADCConversions()
     return HAL_OK;
 }
 
-void selectMuxChannelForRead(Load_Channels channel)
+void selectMuxChannelForRead(uint8_t channel)
 {
     // Configure the MUX based on channel
-    GPIO_PinState muxS1 = (((channel-1) >> 0) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
-    GPIO_PinState muxS2 = (((channel-1) >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
-    GPIO_PinState muxS3 = (((channel-1) >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState muxS1 = ((channel >> 0) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState muxS2 = ((channel >> 1) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState muxS3 = ((channel >> 2) & 1) ? GPIO_PIN_SET : GPIO_PIN_RESET;
     
     HAL_GPIO_WritePin(CURR_SENSE_MUX_S1_GPIO_Port, CURR_SENSE_MUX_S1_Pin, muxS1);
     HAL_GPIO_WritePin(CURR_SENSE_MUX_S2_GPIO_Port, CURR_SENSE_MUX_S2_Pin, muxS2);
@@ -97,13 +77,33 @@ void selectMuxChannelForRead(Load_Channels channel)
 }
 
 void canPublishCurrents(struct ChannelCurrents channelCurrentData) {
-    // Todo: Populate CAN Messages to be sent on the bus.
-    // for (Load_Channels channel = 0; channel < MAX_LOAD_CHANNELS; channel++) {
-    //     switch (channel) {
-    //         // case Pump_1_Channel:
-    //         //     ChannelCurrentFanRight = current;
-    //     }
-    // }
+    // Load Channel 1
+    ChannelCurrentPump1 = channelCurrentData.oddChannelCurrents[0];
+    ChannelCurrentPump2 = channelCurrentData.evenChannelCurrents[0];
+    
+    // Load Channel 2
+    ChannelCurrentCDU = channelCurrentData.oddChannelCurrents[1];
+    ChannelCurrentBMU = channelCurrentData.evenChannelCurrents[1];
+
+    // Load Channel 3
+    ChannelCurrentWSB = channelCurrentData.oddChannelCurrents[2];
+    ChannelCurrentTCU = channelCurrentData.evenChannelCurrents[2];
+
+    // Load Channel 4
+    ChannelCurrentBrakeLight = channelCurrentData.oddChannelCurrents[3];
+    ChannelCurrentAccFan = channelCurrentData.evenChannelCurrents[3];
+
+    // Load Channel 5
+    ChannelCurrentInverter = channelCurrentData.oddChannelCurrents[4];
+    ChannelCurrentRadiator = channelCurrentData.evenChannelCurrents[4];
+
+    // Load Channel 6
+    ChannelCurrentAUX1 = channelCurrentData.oddChannelCurrents[5];
+    ChannelCurrentAUX2 = channelCurrentData.evenChannelCurrents[5];
+
+    // Load Channel 7
+    ChannelCurrentAUX3 = channelCurrentData.oddChannelCurrents[6];
+    ChannelCurrentAUX4 = channelCurrentData.evenChannelCurrents[6];
 }
 
 /*********************************************************************************************************************/
@@ -135,10 +135,8 @@ void loadSensorTask(void *pvParameters)
         // Enable Current Diagnosis
         HAL_GPIO_WritePin(I_DIAG_SENSE_EN_GPIO_Port, I_DIAG_SENSE_EN_Pin, GPIO_PIN_SET);
 
-        static Load_Channels channel = 1;
-
-        // Iterate through load channels
-        for (int index = 0; index < CHANNEL_DATA_BUFFER_LEN; index++)
+        // Iterate through load channels (7 in total, 2 sub channels in each)
+        for (uint8_t channel = 0; channel < CURRENT_SENS_CHANNELS; channel++)
         {
             // Switch to all odd load channel currents
             HAL_GPIO_WritePin(I_DIAG_SENSE_SEL_GPIO_Port, I_DIAG_SENSE_SEL_Pin, GPIO_PIN_RESET);;
@@ -147,16 +145,13 @@ void loadSensorTask(void *pvParameters)
             selectMuxChannelForRead(channel);
 
             // Read from Mux Out and update odd current channel buffer
-            currSensData.oddChannelCurrents[index] = adcData[0] / ADC_TO_AMPS_DIVIDER;
+            currSensData.oddChannelCurrents[channel] = adcData[0] / ADC_TO_AMPS_DIVIDER;
             
             // Switch to all even load channel currents
             HAL_GPIO_WritePin(I_DIAG_SENSE_SEL_GPIO_Port, I_DIAG_SENSE_SEL_Pin, GPIO_PIN_SET);
             vTaskDelay(pdMS_TO_TICKS(SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_MS));
             
-            currSensData.evenChannelCurrents[index] = adcData[0] / ADC_TO_AMPS_DIVIDER;
-
-            // Check if all 7 load channels have been iterated, else continue to next channel
-            channel = (channel == CHANNEL_DATA_BUFFER_LEN) ? 1 : channel + 1;
+            currSensData.evenChannelCurrents[channel] = adcData[0] / ADC_TO_AMPS_DIVIDER;
         }
 
         // Disable current diagnosis on all load channels
