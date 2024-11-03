@@ -503,7 +503,7 @@ static const CLI_Command_Definition_t modifyInverterEEPROM=
     "setInverterParam:\r\n  Turns on the inverter, modifies an EEPROM parameter via CAN, power cycles the inverter, and verifies the parameter change.\r\n",
     setInverterParameter,
     2 /* Number of parameters */ 
-}
+};
 
 
 
