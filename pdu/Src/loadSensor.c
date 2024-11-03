@@ -47,6 +47,15 @@ struct ChannelCurrents currSensData;
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Helpers-------------------------------------------------------*/
 /*********************************************************************************************************************/
+/* delay function for wakeup. Use for delays < 1ms to reduce tight polling time */
+void delay_us(uint16_t time_us)
+{
+	__HAL_TIM_SetCounter(&DELAY_TIMER,0);
+	__HAL_TIM_SetAutoreload(&DELAY_TIMER,0xffff);
+	HAL_TIM_Base_Start(&DELAY_TIMER);
+	while(DELAY_TIMER_INSTANCE->CNT < time_us);
+	HAL_TIM_Base_Stop(&DELAY_TIMER);
+}
 
 HAL_StatusTypeDef startADCConversions()
 {
@@ -140,7 +149,7 @@ void loadSensorTask(void *pvParameters)
         {
             // Switch to all odd load channel currents
             HAL_GPIO_WritePin(I_DIAG_SENSE_SEL_GPIO_Port, I_DIAG_SENSE_SEL_Pin, GPIO_PIN_RESET);;
-            vTaskDelay(pdMS_TO_TICKS(SETTLING_TIME_AFTER_CHANNEL_CHANGE_HIGH_TO_LOW_MS));
+            delay_us(SETTLING_TIME_AFTER_CHANNEL_CHANGE_HIGH_TO_LOW_MS);
 
             selectMuxChannelForRead(channel);
 
@@ -149,7 +158,7 @@ void loadSensorTask(void *pvParameters)
             
             // Switch to all even load channel currents
             HAL_GPIO_WritePin(I_DIAG_SENSE_SEL_GPIO_Port, I_DIAG_SENSE_SEL_Pin, GPIO_PIN_SET);
-            vTaskDelay(pdMS_TO_TICKS(SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_MS));
+            delay_us(SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_MS);
             
             currSensData.evenChannelCurrents[channel] = adcData[0] / ADC_TO_AMPS_DIVIDER;
         }
@@ -160,7 +169,6 @@ void loadSensorTask(void *pvParameters)
 
         /* Send CAN Message */
         // At this point, all current sens buffers must have been filled with current data. 
-
         canPublishCurrents(currSensData);
 
         watchdogTaskCheckIn(LOAD_SENSOR_TASK_ID);
