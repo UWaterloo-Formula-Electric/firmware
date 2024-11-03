@@ -468,36 +468,37 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
 
         status = mcWriteParamCommand(parameterAddress, newValue); 
         if (status == HAL_OK){
-            COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter written successfully. \n");
+            COMMAND_OUTPUT("Parameter written successfully. \n");
         }
         if (status != HAL_OK){
-            COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Failed to write parameter message at address %u\n", parameterAddress);
+            COMMAND_OUTPUT("Failed to write parameter message at address %u\n", parameterAddress);
         }
 
         HAL_Delay(1000);
 
         status = mcReadParamCommand(parameterAddress, readValue);
         if (status == HAL_OK){
-            COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter read successfully. \n");
+            COMMAND_OUTPUT("Parameter read successfully. \n");
 
         if (newValue == readValue){
-            COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter verification successful: %u == %u\n", newValue, readValue);
+            COMMAND_OUTPUT("Parameter verification successful: %u == %u\n", newValue, readValue);
             return pdTRUE;
         }
         if (newValue != readValue){
-            COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
+            COMMAND_OUTPUT("Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
             return pdFALSE;
         }
     }
     if (status != HAL_OK){
-        COMMAND_OUTPUT(writeBuffer, writeBufferLength,"Failed to read parameter message at address %u\n", parameterAddress);
+        COMMAND_OUTPUT("Failed to read parameter message at address %u\n", parameterAddress);
         return status;
         }
     }
 }
 
 
-static const CLI_Command_Definition_t modifyInverterEEPROM(){
+static const CLI_Command_Definition_t modifyInverterEEPROM=
+{
     "setInverterParam",
     "setInverterParam:\r\n  Turns on the inverter, modifies an EEPROM parameter via CAN, power cycles the inverter, and verifies the parameter change.\r\n",
     setInverterParameter,
