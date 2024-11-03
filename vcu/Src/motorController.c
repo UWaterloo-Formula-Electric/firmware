@@ -19,9 +19,6 @@
 #define RPM_TO_RAD (2.0*3.14159/60.0)
 
 
-HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data);
-HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data);
-
 MotorControllerSettings mcSettings = {0};
 
 HAL_StatusTypeDef initMotorControllerSettings()
