@@ -17,22 +17,20 @@
 #endif
 
 #define NUM_TEETH 16
-#define HALL_EFFECT_TASK_PERIOD 100
+#define HALL_EFFECT_TASK_PERIOD 1000
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
 #define TICKS_PER_SECOND 1000
 #define PERIOD ((float)HALL_EFFECT_TASK_PERIOD/TICKS_PER_SECOND)
 
 /*
- *
- * WSBRL CAN message: WSBRL_Speed
- *  signals:
- *      - int RLSpeedKPH
- *      - float RLSpeedRPM
- * WSBRR CAN message: WSBRR_Speed
- *  signals:
- *      - int RRSpeedKPH
- *      - float RRSpeedRPM
+ * increments pulses every time a magnetic field is detected
+ * timer config: (uses TIM1 Channel 3)
+ *  - Channel: input capture direct mode
+ *  - Polarity Selection: Falling Edge
+ *  - NVIC capture compare interrupt enabled
+ *  - GPIO Pull up
+ *  - GPIO open drain
  */
 
 
@@ -64,6 +62,7 @@ float getKph(float rps) {
 
 uint32_t pulse_count = 0;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+    DEBUG_PRINT("capture callback called\n");
     if (htim->Instance == TIM1) {
         pulse_count++;
     }
@@ -79,7 +78,6 @@ void HallEffectSensorTask(void const * argument) {
         float rps = getRps(pulse_count);
         int64_t rpm = getRpm(rps);
         float kph = getKph(rps);
-        pulse_count = 0;
 
 #if BOARD_ID == ID_WSBRL
         RLSpeedRPM = rpm;
@@ -91,7 +89,9 @@ void HallEffectSensorTask(void const * argument) {
         sendCAN_WSBRR_Speed();
 #endif
 
-        DEBUG_PRINT("RPM: %ld, KPH: %f\n", (int32_t)rpm, kph);
+        pulse_count = 0;
+
+        DEBUG_PRINT("RPM: %ld, KPH: %f, pulse counts: %ld\n", (int32_t)rpm, kph, pulse_count);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }
