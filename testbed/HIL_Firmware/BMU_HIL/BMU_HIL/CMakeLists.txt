@@ -1,6 +1,3 @@
-file(GLOB_RECURSE SOURCES "src/*.c")
-file(GLOB_RECURSE HEADERS "inc/*.h")
-
-idf_component_register(SRCS ${SOURCES}
+idf_component_register(SRCS "userInit.c" "processCan.c" "UserInit.c"
                     INCLUDE_DIRS "inc"
                     REQUIRES common driver)
