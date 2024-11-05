@@ -27,8 +27,10 @@
  * increments pulses every time a magnetic field is detected
  * timer config: (uses TIM1 Channel 3)
  *  - Channel: input capture direct mode
+ *  - auto-reload-preload: Enable
  *  - Polarity Selection: Falling Edge
- *  - NVIC capture compare interrupt enabled
+ *  - NVIC capture compare interrupt: enabled
+ *  - NVIC update interrupt & TIM10 global interrupt: enabled
  *  - GPIO Pull up
  *  - GPIO open drain
  */
@@ -91,6 +93,7 @@ void HallEffectSensorTask(void const * argument) {
 
         pulse_count = 0;
 
+        DEBUG_PRINT("Level: %d\n", HAL_GPIO_ReadPin(HALL_EFFECT_GPIO_Port, HALL_EFFECT_Pin));
         DEBUG_PRINT("RPM: %ld, KPH: %f, pulse counts: %ld\n", (int32_t)rpm, kph, pulse_count);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }

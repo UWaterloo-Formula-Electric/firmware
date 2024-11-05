@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import print_function
 # $ If you get a failure on this line, you need to install the python package cantools: install pip and run 'pip install -r requirements.txt' (you may want to do this in a virtual env)
 import cantools
@@ -695,7 +694,7 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
     return msgCallbackPrototypes
 
 
-def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
+def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False, isWSB=False):
     templateHolder = ""
     i = 2  # Start at 2 to accomodate inverter group
     for messageGroup in messageGroups:
@@ -712,7 +711,10 @@ def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileH
         "extraMessageTemplate": templateHolder,
     }
     fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER", finalTemplateData), headerFileHandle)
-    fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE", finalTemplateData), sourceFileHandle)
+    if isWSB:
+        fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE_WSB", finalTemplateData), sourceFileHandle)
+    else:
+        fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE", finalTemplateData), sourceFileHandle)
 
 
 def writeInitFunction(sourceFileHandle, headerFileHandle):
@@ -784,7 +786,7 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
     if isChargerDBC:
         writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFiltersCharger', isChargerDBC=True)
     else:
-        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
+        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, isWSB="wsb" in nodeName.lower())
 
     if not isChargerDBC:
         writeInitFunction(sourceFileHandle, headerFileHandle)
