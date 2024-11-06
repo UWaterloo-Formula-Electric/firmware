@@ -20,7 +20,7 @@
 #define HALL_EFFECT_TASK_PERIOD 1000
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
-#define TICKS_PER_SECOND 1000
+#define TICKS_PER_SECOND 1000 //todo: change back to 100
 #define PERIOD ((float)HALL_EFFECT_TASK_PERIOD/TICKS_PER_SECOND)
 
 /*
@@ -93,7 +93,7 @@ void HallEffectSensorTask(void const * argument) {
 
         pulse_count = 0;
 
-        DEBUG_PRINT("Level: %d\n", HAL_GPIO_ReadPin(HALL_EFFECT_GPIO_Port, HALL_EFFECT_Pin));
+        DEBUG_PRINT("Level: %d\n", HAL_GPIO_ReadPin(REAR_HALL_EFFECT_ENCODER_GPIO_Port, REAR_HALL_EFFECT_ENCODER_Pin));
         DEBUG_PRINT("RPM: %ld, KPH: %f, pulse counts: %ld\n", (int32_t)rpm, kph, pulse_count);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
