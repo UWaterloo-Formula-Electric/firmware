@@ -73,7 +73,6 @@ void tempSensorTask(void *pvParameters)
         temperature_reading = temperature_conversion(tempregister_info);
         
         /* Send CAN Message */
-        /*alias fix='vi +'\'':wq ++ff=unix'\'' common/Scripts/generateDTC.py && vi +'\'':wq ++ff=unix'\'' common/Scripts/generateCANHeadder.py'*/
 
         watchdogTaskCheckIn(TEMP_SENSOR_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, TEMP_SENSOR_TASK_INTERVAL_MS);
