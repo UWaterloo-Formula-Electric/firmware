@@ -31,12 +31,13 @@
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
-uint16_t tempregister_info [2];
+uint8_t tempregister_info [2];
 float temperature_reading;
+uint8_t CONFIG_VALUE = 0x28;
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Definition------------------------------------------------*/
 /*********************************************************************************************************************/
-float temperature_conversion(uint16_t temp_array[2]){
+float temperature_conversion(uint8_t temp_array[2]){
     uint16_t temp = (temp_array[0] << 4) | (temp_array[1] >> 4);
     if ((temp_array[0] & (1 << 7)) == 0){
         return (temp*0.0625);
@@ -60,7 +61,7 @@ void tempSensorTask(void *pvParameters)
     /* TODO: initialize the sensor (write config register if needed) */
     MX_I2C1_Init();
     //config register value would be set to 0x28 for continuous measurement, standard functioning
-    HAL_I2C_Mem_Write(&hi2c1,SENSOR_ADDRESS_WRITE,CONFIG_REGISTER,I2C_MEMADD_SIZE_8BIT,&0x28,1,HAL_MAX_DELAY);
+    HAL_I2C_Mem_Write(&hi2c1,SENSOR_ADDRESS_WRITE,CONFIG_REGISTER,I2C_MEMADD_SIZE_8BIT,&CONFIG_VALUE,1,HAL_MAX_DELAY);
     
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -69,7 +70,7 @@ void tempSensorTask(void *pvParameters)
     {
         /* TODO: reading and report temperature*/
         HAL_I2C_Mem_Read(&hi2c1,SENSOR_ADDRESS_READ,TEMP_REGISTER,I2C_MEMADD_SIZE_8BIT,tempregister_info,2,HAL_MAX_DELAY);
-        temperature_reading = temperature_conversion(temp_register);
+        temperature_reading = temperature_conversion(tempregister_info);
         
         /* Send CAN Message */
         /*alias fix='vi +'\'':wq ++ff=unix'\'' common/Scripts/generateDTC.py && vi +'\'':wq ++ff=unix'\'' common/Scripts/generateCANHeadder.py'*/
