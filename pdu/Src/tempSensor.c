@@ -15,7 +15,7 @@
 #include "watchdog.h"
 #include "i2c.h"
 #include "can.h"
-#include "stm32f7xx_hal_can.h"
+#include "pdu_can.h"
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Prototypes------------------------------------------------*/
@@ -70,9 +70,10 @@ void tempSensorTask(void *pvParameters)
     {
         /* TODO: reading and report temperature*/
         HAL_I2C_Mem_Read(&hi2c1,SENSOR_ADDRESS_READ,TEMP_REGISTER,I2C_MEMADD_SIZE_8BIT,tempregister_info,2,HAL_MAX_DELAY);
-        temperature_reading = temperature_conversion(tempregister_info);
+        PDU_Temp = temperature_conversion(tempregister_info);
         
         /* Send CAN Message */
+        sendCAN_PDU_Temperature();
 
         watchdogTaskCheckIn(TEMP_SENSOR_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, TEMP_SENSOR_TASK_INTERVAL_MS);
