@@ -17,31 +17,33 @@
 #endif
 
 #define NUM_TEETH 16
-#define HALL_EFFECT_TASK_PERIOD 1000
+#define HALL_EFFECT_TASK_PERIOD 100
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
-#define TICKS_PER_SECOND 1000 //todo: change back to 100
-#define PERIOD ((float)HALL_EFFECT_TASK_PERIOD/TICKS_PER_SECOND)
+#define TICKS_PER_SECOND 1000
 
 /*
- * increments pulses every time a magnetic field is detected
- * timer config: (uses TIM1 Channel 3)
- *  - Channel: input capture direct mode
- *  - auto-reload-preload: Enable
- *  - Polarity Selection: Falling Edge
- *  - NVIC capture compare interrupt: enabled
- *  - NVIC update interrupt & TIM10 global interrupt: enabled
- *  - GPIO Pull up
- *  - GPIO open drain
+ * IOC FILE CHANGES:
+ * PE13:
+ *  state: GPIO_EXTI13
+ *  GPIO MODE: external interrupt mode w/ pull-up resistor
+ *  user label: REAR_HALL_EFFECT_ENCODER
+ *  EXTI[15:10] interrupts: enabled
+ *
+ * TIM5:
+ *  clock source: internal clock
+ *  prescaler: 39999
+ *  auto preload reload: enabled
+ *  note: clock runs at 40 MHz
  */
 
 
-float getRps(uint32_t count) {
+float getRps(uint32_t count, uint32_t tick_diff) {
     /*
      * teeth/s = count diff/time diff
      * rps = 1/num_teeth * teeth/s
      */
-    return count * (1.0f/PERIOD) * (1.0f/NUM_TEETH);
+    return (1.0f*count) / (1.0f*tick_diff/TICKS_PER_SECOND) / NUM_TEETH;
 }
 
 int64_t getRpm(float rps) {
@@ -63,9 +65,8 @@ float getKph(float rps) {
 }
 
 uint32_t pulse_count = 0;
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-    DEBUG_PRINT("capture callback called\n");
-    if (htim->Instance == TIM1) {
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == REAR_HALL_EFFECT_ENCODER_Pin) {
         pulse_count++;
     }
 }
@@ -76,8 +77,17 @@ void HallEffectSensorTask(void const * argument) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
+    uint32_t last_tick = __HAL_TIM_GET_COUNTER(&htim5);
+    uint32_t cur_tick;
+    uint32_t tick_diff;
+
+    TIM5->CR1 |= TIM_CR1_CEN;
+
     while (1) {
-        float rps = getRps(pulse_count);
+        cur_tick = __HAL_TIM_GET_COUNTER(&htim5);
+        tick_diff = cur_tick - last_tick;
+
+        float rps = getRps(pulse_count, tick_diff);
         int64_t rpm = getRpm(rps);
         float kph = getKph(rps);
 
@@ -91,10 +101,11 @@ void HallEffectSensorTask(void const * argument) {
         sendCAN_WSBRR_Speed();
 #endif
 
-        pulse_count = 0;
+        DEBUG_PRINT("RPM: %ld, KPH: %f\n", (int32_t)rpm, kph);
 
-        DEBUG_PRINT("Level: %d\n", HAL_GPIO_ReadPin(REAR_HALL_EFFECT_ENCODER_GPIO_Port, REAR_HALL_EFFECT_ENCODER_Pin));
-        DEBUG_PRINT("RPM: %ld, KPH: %f, pulse counts: %ld\n", (int32_t)rpm, kph, pulse_count);
+        pulse_count = 0;
+        last_tick = __HAL_TIM_GET_COUNTER(&htim5);
+
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }

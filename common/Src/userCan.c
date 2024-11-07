@@ -324,13 +324,12 @@ void canTask(void *pvParameters)
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
-            //DEBUG_PRINT("All mailboxes full, waiting\n"); todo: uncomment this
+            DEBUG_PRINT("All mailboxes full, waiting\n");
             // Give semaphore again, since we haven't sent this message
             if (xSemaphoreGive(CAN_Msg_Semaphore) != pdTRUE)
             {
                 ERROR_PRINT("Failed to give CAN msg semaphore\n");
             }
-            HAL_CAN_AbortTxRequest(&CAN_HANDLE, CAN_TX_MAILBOX0 | CAN_TX_MAILBOX1 | CAN_TX_MAILBOX2); //todo: delete this
             // Short delay to wait for mailbox to be empty
             vTaskDelay(1);
             continue;
