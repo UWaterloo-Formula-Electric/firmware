@@ -17,7 +17,7 @@
 #endif
 
 #define NUM_TEETH 16
-#define HALL_EFFECT_TASK_PERIOD 100
+#define HALL_EFFECT_TASK_PERIOD 1000
 #define WHEEL_RADIUS 0.40005
 #define PI 3.14156
 #define TICKS_PER_SECOND 1000
@@ -29,12 +29,6 @@
  *  GPIO MODE: external interrupt mode w/ pull-up resistor
  *  user label: REAR_HALL_EFFECT_ENCODER
  *  EXTI[15:10] interrupts: enabled
- *
- * TIM5:
- *  clock source: internal clock
- *  prescaler: 39999
- *  auto preload reload: enabled
- *  note: clock runs at 40 MHz
  */
 
 
@@ -77,14 +71,12 @@ void HallEffectSensorTask(void const * argument) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    uint32_t last_tick = __HAL_TIM_GET_COUNTER(&htim5);
+    uint32_t last_tick = HAL_GetTick();
     uint32_t cur_tick;
     uint32_t tick_diff;
 
-    TIM5->CR1 |= TIM_CR1_CEN;
-
     while (1) {
-        cur_tick = __HAL_TIM_GET_COUNTER(&htim5);
+        cur_tick = HAL_GetTick();
         tick_diff = cur_tick - last_tick;
 
         float rps = getRps(pulse_count, tick_diff);
@@ -101,8 +93,10 @@ void HallEffectSensorTask(void const * argument) {
         sendCAN_WSBRR_Speed();
 #endif
 
+        DEBUG_PRINT("Level: %d\n", HAL_GPIO_ReadPin(REAR_HALL_EFFECT_ENCODER_GPIO_Port, REAR_HALL_EFFECT_ENCODER_Pin));
+        DEBUG_PRINT("RPM: %ld, KPH: %f, pulse counts: %ld\n", (int32_t)rpm, kph, pulse_count);
         pulse_count = 0;
-        last_tick = __HAL_TIM_GET_COUNTER(&htim5);
+        last_tick = HAL_GetTick();
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
