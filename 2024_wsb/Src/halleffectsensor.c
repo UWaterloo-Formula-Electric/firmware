@@ -101,8 +101,6 @@ void HallEffectSensorTask(void const * argument) {
         sendCAN_WSBRR_Speed();
 #endif
 
-        DEBUG_PRINT("RPM: %ld, KPH: %f\n", (int32_t)rpm, kph);
-
         pulse_count = 0;
         last_tick = __HAL_TIM_GET_COUNTER(&htim5);
 
