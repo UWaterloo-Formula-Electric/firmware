@@ -9,9 +9,9 @@ HAL_StatusTypeDef sensors_init(void) {
         return HAL_ERROR;
     }
 
-//    if (encoders_init() != HAL_OK) {
-//        return HAL_ERROR;
-//    }
+    if (encoders_init() != HAL_OK) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
