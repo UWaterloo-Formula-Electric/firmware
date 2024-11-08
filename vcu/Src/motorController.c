@@ -176,3 +176,19 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
 
     return HAL_OK;
 }
+
+HAL_StatusTypeDef sendInverter(bool enable) {
+    if(enable && fsmGetState(&fsmHandle) == STATE_EM_Enable) {
+        COMMAND_OUTPUT("Inverter is already enabled");
+        return HAL_OK;
+    }
+
+    EM_State = (enable)?EM_State_On:EM_State_Off;
+
+    if (sendCAN_VCU_EM_State() != HAL_OK) {
+        ERROR_PRINT("Failed to send command message to MC\n");
+        return HAL_ERROR;
+    }
+        
+    return HAL_OK;
+}

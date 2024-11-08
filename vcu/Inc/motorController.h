@@ -56,5 +56,6 @@ HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);
 HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);
+HAL_StatusTypeDef sendInverter(bool enable);
 
 #endif /* end of include guard: MOTORCONTROLLER_H */
