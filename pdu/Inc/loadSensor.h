@@ -17,6 +17,8 @@
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
 #define LOAD_SENSOR_TASK_INTERVAL_MS        100     // TODO: adjust as necessary
+#define SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_MS 20    // Taking max interval as per datasheet (needs to be checked)
+#define SETTLING_TIME_AFTER_CHANNEL_CHANGE_HIGH_TO_LOW_MS 20    // Taking max interval as per datasheet (needs to be checked)
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Prototypes------------------------------------------------*/

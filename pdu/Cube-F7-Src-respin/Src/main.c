@@ -138,6 +138,7 @@ int main(void)
   MX_TIM6_Init();
   MX_I2C1_Init();
   MX_ADC3_Init();
+  MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
