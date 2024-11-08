@@ -324,8 +324,8 @@ void canLogTask(void *arg) {
         }
 
         // uint32_t end = xTaskGetTickCount();
-        // if (xTaskGetTickCount() % 1000 == 0) {
-        // DEBUG_PRINT("SB: %u FF: %lu %ld\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount, end - start);
+        // if (HAL_GetTick() % 50 == 0) {
+        // DEBUG_PRINT("SB: %u FF: %lu UNSYNC: %u\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount, writtenBytes);
         // }
         // print size of stream buffer
 
