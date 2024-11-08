@@ -721,7 +721,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             }
 
             // Update max voltage
-            if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+            if (measure > (*maxTemp)) {
+                (*maxTemp) = measure;
+                HighestTempThermistor = i;
+            }
             if (measure < (*minTemp)) {(*minTemp) = measure;}
         }
    }
@@ -1299,6 +1302,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * - TempCellMax
          * - TempCellMin
          * - StateBMS
+         * - HighestTempThermistor
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send batter status HV\n");
@@ -1481,6 +1485,7 @@ void batteryTask(void *pvParameter)
          * - TempCellMax
          * - TempCellMin
          * - StateBMS
+         * - HighestTempThermistor
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send battery status HV\n");

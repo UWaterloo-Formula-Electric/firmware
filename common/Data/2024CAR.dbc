@@ -66,22 +66,22 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
-BO_ 2282621955 PDU_Charging_Status: 1 PDU
- SG_ Charging_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
+BO_ 2282621955 PDU_Charging_Lipo_Status: 1 PDU
+ SG_ Charging_Lipo_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2285112323 PDU_Lipo_Info: 6 PDU
- SG_ LIPO_Current : 32|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
+ SG_ LIPO_Current : 32|16@1+ (0.001,0) [0|65.535] "Amps" Vector__XXX
  SG_ LIPO_Temp : 16|16@1+ (0.01,-100) [-100|555.35] "C" Vector__XXX
- SG_ LIPO_Voltage : 0|16@1+ (1,0) [0|65535] "mV" Vector__XXX
+ SG_ LIPO_Voltage : 0|16@1+ (0.001,0) [0|65.535] "V" Vector__XXX
 
 BO_ 2287930371 PDU_Temperature: 2 PDU
  SG_ PDU_Temp : 0|16@1+ (0.01,-100) [-100|555.35] "C" Vector__XXX
 
 BO_ 2286816259 PDU_Current_AUX_Readings: 8 PDU
- SG_ ChannelCurrentAUX4 : 48|16@1+ (0.01,0) [0|0] "" Vector__XXX
- SG_ ChannelCurrentAUX3 : 32|16@1+ (0.01,0) [0|0] "" Vector__XXX
- SG_ ChannelCurrentAUX2 : 16|16@1+ (0.01,0) [0|0] "" Vector__XXX
- SG_ ChannelCurrentAUX1 : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
+ SG_ ChannelCurrentAUX4 : 48|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
+ SG_ ChannelCurrentAUX3 : 32|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
+ SG_ ChannelCurrentAUX2 : 16|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
+ SG_ ChannelCurrentAUX1 : 0|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
 
 BO_ 2566849012 IMD_Info_General: 7 Vector__XXX
  SG_ IMD_Device_activity : 48|8@1- (1,0) [0|0] ""  BMU
@@ -185,7 +185,6 @@ BO_ 2147483648 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ StateContactorNegative : 0|3@1- (1,0) [0|0] "" Vector__XXX
  SG_ VoltageHVBusInverterRight : 0|16@1+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageHVBusInverterLeft : 0|16@1+ (1,0) [0|0] "" Vector__XXX
- SG_ VoltageBatteryLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
  SG_ VoltageLimitLowInverterRight : 0|12@1+ (1,0) [0|4095] "V" Vector__XXX
  SG_ VoltageLimitHighInverterRight : 0|12@1+ (1,0) [0|4095] "V" Vector__XXX
  SG_ VoltageLimitLowInverterLeft : 0|12@1+ (1,0) [0|4095] "V" Vector__XXX
@@ -212,20 +211,20 @@ BO_ 2291796994 RearWheelSpeedRADS: 8 VCU_F7
  SG_ VCU_wheelSpeed_RL : 0|32@1+ (1E-05,0) [0|42949.67295] "rads/s" Vector__XXX
 
 BO_ 2290355203 PDU_Board_Channels_Current: 8 PDU
- SG_ ChannelCurrentWSB : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentTCU : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentCDU : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentBMU : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentWSB : 48|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentTCU : 32|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentCDU : 16|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentBMU : 0|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
 
 BO_ 2290945027 PDU_Current_Readings: 4 PDU
- SG_ ChannelCurrentInverter : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentBrakeLight : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentInverter : 16|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentBrakeLight : 0|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
 
 BO_ 2284129283 PDU_Fan_and_Pump_Current: 8 PDU
- SG_ ChannelCurrentPump2 : 48|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentPump1 : 32|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentAccFan : 16|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
- SG_ ChannelCurrentRadiator : 0|16@1+ (0.01,0) [0|0] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentPump2 : 48|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentPump1 : 32|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentAccFan : 16|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
+ SG_ ChannelCurrentRadiator : 0|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
 
 BO_ 2293566467 PDU_Fuse_Status: 2 PDU
  SG_ FuseBlownAUX4 : 13|1@1+ (1,0) [0|0] "" Vector__XXX
@@ -334,8 +333,8 @@ BO_ 2227830532 ChargeCart_Heartbeat: 8 ChargeCart
 
 BO_ 2551190019 LV_Bus_Measurements: 6 PDU
  SG_ PowerBusLV : 32|16@1+ (1,0) [0|65535] "W" Vector__XXX
- SG_ CurrentBusLV : 16|16@1+ (1,0) [0|0] "mA" Vector__XXX
- SG_ VoltageBusLV : 0|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+ SG_ CurrentBusLV : 16|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
+ SG_ VoltageBusLV : 0|14@1+ (0.001,0) [0|16.383] "V" Vector__XXX
 
 BO_ 2282750722 VCU_Data: 6 VCU_F7
  SG_ BrakeWhileThrottle : 40|1@1+ (1,0) [0|1] ""  VCU_BeagleBone
@@ -938,13 +937,13 @@ BO_ 2214986243 PDU_ChannelStatus: 7 PDU
  SG_ StatusPowerBMU : 0|4@1- (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2214597123 PDU_batteryStatusLV: 8 PDU
- SG_ VoltageBusLV : 44|14@1+ (1,0) [0|16383] "mV" Vector__XXX
- SG_ VoltageBatteryLV : 30|14@1+ (1,0) [0|16383] "mV" Vector__XXX
+ SG_ VoltageBusLV : 30|14@1+ (0.001,0) [0|16.383] "V" Vector__XXX
  SG_ StateBatteryPowerLV : 20|10@1+ (0.1,0) [0|100] "A"  VCU_BeagleBone
  SG_ StateBatteryHealthLV : 10|10@1+ (0.1,0) [0|100] "%"  VCU_BeagleBone
  SG_ StateBatteryChargeLV : 0|10@1+ (0.1,0) [0|102.3] "%"  VCU_BeagleBone
 
 BO_ 2281967617 BMU_batteryStatusHV: 8 BMU
+ SG_ HighestTempThermistor : 56|8@1+ (1,0) [0|255] "" Vector__XXX
  SG_ StateBMS : 52|4@1- (1,0) [0|0] ""  VCU_F7
  SG_ TempCellMin : 42|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
  SG_ TempCellMax : 32|10@1- (0.25,90) [-38|217.75] "C" Vector__XXX
@@ -959,9 +958,9 @@ BO_ 2282754561 BMU_stateBusHV: 8 BMU
  SG_ VoltageBusHV : 0|16@1+ (0.01,0) [0|0] "V"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214596611 PDU_DCDC_Status: 8 PDU
- SG_ VoltageOutputDCDC : 16|16@1+ (1,0) [0|65535] "mV" Vector__XXX
+ SG_ VoltageOutputDCDC : 16|16@1+ (0.001,0) [0|65.535] "V" Vector__XXX
  SG_ Status_DCDC : 12|4@1- (1,0) [0|0] ""  VCU_BeagleBone,BMU
- SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|60] "Amps"  VCU_BeagleBone
+ SG_ CurrentOutputDCDC : 0|12@1+ (0.01220703125,0) [0|49.98779296875] "Amps"  VCU_BeagleBone
 
 BO_ 2550137352 WSBFL_WheelData: 8 WSBFL
  SG_ StrainZLeftFront : 42|12@1+ (1,0) [0|0] "raw"  VCU_BeagleBone
