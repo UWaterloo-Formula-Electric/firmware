@@ -21,6 +21,8 @@
 #define ADC3_HANDLE hadc3
 #define I2C_HANDLE hi2c1
 #define IWDG_HANDLE hiwdg
+#define DELAY_TIMER htim9
+#define DELAY_TIMER_INSTANCE TIM9
 
 #define DEBUG_BLUE_LED_PIN LED_B_Pin
 #define DEBUG_BLUE_LED_PORT LED_B_GPIO_Port
