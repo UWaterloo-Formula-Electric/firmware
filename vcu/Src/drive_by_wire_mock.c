@@ -463,9 +463,12 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     else if (currentState == STATE_EM_Enable){ 
         COMMAND_OUTPUT("Error: Car is in drive mode. Operation not permitted\n");
         return pdFALSE;
-    } 
+    }
+    if (turnOnMotorController() != HAL_OK) {
+        COMMAND_OUTPUT("MC failed to turn on\n");
+        return pdFALSE;
+    }
 
-    turnOnMotorController();
     status = mcWriteParamCommand(parameterAddress, newValue); 
 
     if (status != HAL_OK){
@@ -474,7 +477,6 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     }
 
     turnOffMotorControllers();
-    HAL_Delay(1000);
     turnOnMotorController();
 
     status = mcReadParamCommand(parameterAddress, readValue);
