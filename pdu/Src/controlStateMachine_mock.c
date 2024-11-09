@@ -432,6 +432,3 @@ HAL_StatusTypeDef mockStateMachineInit()
     }
     return HAL_OK;
 }
-
-
-

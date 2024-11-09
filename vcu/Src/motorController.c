@@ -18,7 +18,6 @@
 #define INV_POWER_LIMIT 70000.0 //80kw
 #define RPM_TO_RAD (2.0*3.14159/60.0)
 
-
 MotorControllerSettings mcSettings = {0};
 
 HAL_StatusTypeDef initMotorControllerSettings()

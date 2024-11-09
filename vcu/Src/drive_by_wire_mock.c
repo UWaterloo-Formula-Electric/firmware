@@ -13,6 +13,7 @@
 #include "beaglebone.h"
 #include "traction_control.h"
 #include "motorController.h"
+#include "canReceive.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -442,12 +443,12 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
 
 
 BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, const char *commandString){
-    uint16_t parameterAddress;
-    uint16_t newValue;
+    uint16_t parameterAddress=0;
+    uint16_t newValue=0;
     BaseType_t status;
     uint16_t readValue = 0;
     uint32_t currentState = fsmGetState(&fsmHandle); //returns an index
-    BaseType_t paramLen;
+    BaseType_t paramLen = 0;
 
     const char *addressParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     const char *valueParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
@@ -455,54 +456,47 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     sscanf(addressParam, "%hu", &parameterAddress);
     sscanf(valueParam, "%hu", &newValue);
 
-    if (HV_Power_State == HV_Power_State_On){ 
+    if (getHvEnableState()){ 
         COMMAND_OUTPUT("Error: Car is at high voltage. Operation not permitted\n");
         return pdFALSE;
     }
     else if (currentState == STATE_EM_Enable){ 
         COMMAND_OUTPUT("Error: Car is in drive mode. Operation not permitted\n");
         return pdFALSE;
-    } else{
+    } 
 
+    turnOnMotorController();
+    status = mcWriteParamCommand(parameterAddress, newValue); 
 
-        status = mcWriteParamCommand(parameterAddress, newValue); 
-        if (status == HAL_OK){
-            COMMAND_OUTPUT("Parameter written successfully. \n");
-        }
-        if (status != HAL_OK){
-            COMMAND_OUTPUT("Failed to write parameter message at address %u\n", parameterAddress);
-            return pdFALSE;
-        }
+    if (status != HAL_OK){
+        COMMAND_OUTPUT("Failed to write parameter message at address %u\n", parameterAddress);
+        return pdFALSE;
+    }
 
-        HAL_Delay(1000);
+    turnOffMotorControllers();
+    HAL_Delay(1000);
+    turnOnMotorController();
 
-        status = mcReadParamCommand(parameterAddress, readValue);
-        if (status == HAL_OK){
-            COMMAND_OUTPUT("Parameter read successfully. \n");
+    status = mcReadParamCommand(parameterAddress, readValue);
 
-        if (newValue == readValue){
-            COMMAND_OUTPUT("Parameter verification successful: %u == %u\n", newValue, readValue);
-            return pdTRUE;
-        }
-        if (newValue != readValue){
-            COMMAND_OUTPUT("Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
-            return pdFALSE;
-        }
+    if (newValue != readValue){
+        COMMAND_OUTPUT("Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
+        return pdFALSE;
     }
     if (status != HAL_OK){
         COMMAND_OUTPUT("Failed to read parameter message at address %u\n", parameterAddress);
         return status;
         }
-    }
 
+    COMMAND_OUTPUT("Successfully set parameter at address %u to value %u\n", parameterAddress, newValue);
     return pdFALSE;
-}
+};
 
 
-static const CLI_Command_Definition_t modifyInverterEEPROM=
+static const CLI_Command_Definition_t modifyInverterEEPROMCommandDefinition=
 {
     "setInverterParam",
-    "setInverterParam:\r\n  Turns on the inverter, modifies an EEPROM parameter via CAN, power cycles the inverter, and verifies the parameter change.\r\n",
+    "setInverterParam <parameterAddress> <newValue>:\r\n Turns on the inverter, modifies an EEPROM parameter via CAN, power cycles the inverter, and verifies the parameter change\r\n",
     setInverterParameter,
     2 /* Number of parameters */ 
 };
@@ -568,7 +562,7 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&modifyInverterEEPROM) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&modifyInverterEEPROMCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
