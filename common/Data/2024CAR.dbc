@@ -64,7 +64,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
 BO_ 2214593035 WSBRR_Speed: 8 WSBRR
- SG_ RRSpeedRPM : 16|32@1- (1,0) [-55|770] "rpm"  VCU_F7
+ SG_ RRSpeedRPM : 16|16@1+ (1,0) [0|65535] "rpm"  VCU_F7
  SG_ RRSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
 
 BO_ 2214593034 WSBRL_Speed: 6 WSBRL
@@ -1216,6 +1216,5 @@ VAL_ 2365565441 INV_VSM_State 0 "START STATE" 1 "PRECHARGE INIT STATE" 2 "PRECHA
 VAL_ 2365565441 INV_Inverter_Discharge_State 0 "Disabled" 1 "Enabled" 2 "Speed Check" 3 "Active" 4 "Complete" 5 "Error" 6 "Override" 7 "Timeout" ;
 VAL_ 2365565441 INV_Limit_Stall_Burst_Model 0 "Not Limiting" 1 "Limiting" ;
 VAL_ 2365565441 INV_Burst_Model_Mode 0 "Stall" 1 "High Speed" ;
-SIG_VALTYPE_ 2214593035 RRSpeedRPM : 1;
 SIG_VALTYPE_ 2214593034 RLSpeedRPM : 1;
 
