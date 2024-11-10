@@ -8,7 +8,6 @@
 #define MAIN_TASK_PERIOD 1000
 
 void mainTaskFunction(void const* argument) {
-    
     char boardName[20];
     getWSBBoardName(boardName, 20);
     DEBUG_PRINT("Starting up main task for: %s\n", boardName);
@@ -22,12 +21,6 @@ void mainTaskFunction(void const* argument) {
 }
 
 void RotaryEncoderTask(void const* arg) {
-    while (1) {
-        vTaskDelay(10000);
-    }
-}
-
-void HallEffectSensorTask(void const* arg) {
     while (1) {
         vTaskDelay(10000);
     }
