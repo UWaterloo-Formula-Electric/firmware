@@ -64,6 +64,9 @@ float getKph(float rps) {
     return rps * (2.0f*PI) * WHEEL_RADIUS * 3.6f;
 }
 
+//pragma used to circumvent "-Werror=unused-variable" generated from rpm & kps
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 void HallEffectSensorTask(void const * argument) {
     deleteWSBTask(WSBRL | WSBRR);
     DEBUG_PRINT("Starting HallEffectSensorTask\n");
@@ -98,3 +101,4 @@ void HallEffectSensorTask(void const * argument) {
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
 }
+#pragma GCC diagnostic pop

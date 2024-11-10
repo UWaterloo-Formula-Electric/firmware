@@ -8,7 +8,6 @@
 #define MAIN_TASK_PERIOD 1000
 
 void mainTaskFunction(void const* argument) {
-
     char boardName[20];
     getWSBBoardName(boardName, 20);
     DEBUG_PRINT("Starting up main task for: %s\n", boardName);
