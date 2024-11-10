@@ -440,6 +440,47 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+
+BaseType_t getInverterParameter(char *writeBuffer, size_t writeBufferLength, const char *commandString){
+    uint16_t parameterAddress;
+    uint16_t readValue = 0;  // This is the correct type, uint16_t
+    uint32_t currentState = fsmGetState(&fsmHandle); // Returns the current state index
+    BaseType_t paramLen;
+
+    // Retrieve the parameter address from the command string
+    const char *addressParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    sscanf(addressParam, "%hu", &parameterAddress);
+
+    // Check if car is in high voltage mode
+    if (HV_Power_State == HV_Power_State_On){ 
+        COMMAND_OUTPUT("Error: Car is at high voltage. Operation not permitted\n");
+        return pdFALSE;
+    }
+
+    // Check if car is in drive mode
+    else if (currentState == STATE_EM_Enable){ 
+        COMMAND_OUTPUT("Error: Car is in drive mode. Operation not permitted\n");
+        return pdFALSE;
+    }
+
+    // Read parameter from the inverter
+    BaseType_t status = mcReadParamCommand(parameterAddress, readValue);  // Removed the & operator
+    if (status == HAL_OK) {
+        snprintf(writeBuffer, writeBufferLength, "Parameter read successfully. Value at address %u: %u\n", parameterAddress, readValue);
+        return pdTRUE;
+    } else {
+        COMMAND_OUTPUT("Failed to read parameter at address %u\n", parameterAddress);
+        return pdFALSE;
+    }
+}
+
+static const CLI_Command_Definition_t readInverterEEPROM = {
+    "getInverterParam",
+    "getInverterParam <address>:\r\n  Reads an EEPROM parameter from the inverter and displays its value.\r\n",
+    getInverterParameter,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -497,6 +538,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&readInverterEEPROM) != pdPASS) {
         return HAL_ERROR;
     }
 
