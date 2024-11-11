@@ -277,6 +277,7 @@ void canLogTask(void *arg) {
     // upto 100 messages can be read from buffer at a time
     // (this is arbitrary but, I measured @ 10ms task period, 100% CAN bus load, max #can msgs was ~50)
     // so 2x safety factor should be enough
+    char *formatStr = "%08lXx%08lX%02X%02X%02X%02X%02X%02X%02X%02X\n";
     CanMsg rxMsgs[200];
     size_t writtenBytes = 0;
     int sentBytes = 0;
@@ -297,19 +298,21 @@ void canLogTask(void *arg) {
         // Tested upto 99.9% bus load
         size_t readBytes = xStreamBufferReceive(canLogSB, rxMsgs, sizeof(rxMsgs), portMAX_DELAY);
         size_t numReadMsgs = readBytes / sizeof(CanMsg);
+        // DEBUG_PRINT("RM: %u FF: %lu UN: %u\t", numReadMsgs, failedFifoCount, writtenBytes);
         for (size_t i = 0; i < numReadMsgs; i++) {
             CanMsg rxMsg = rxMsgs[i];
             // append to file, note this doesn't acc write to sd card until f_sync is called
-            sentBytes = f_printf(&file, "%08lXx%08lX%02X%02X%02X%02X%02X%02X%02X%02X\n", xTaskGetTickCount(), rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
+            sentBytes = f_printf(&file, formatStr, xTaskGetTickCount(), rxMsg.id, rxMsg.data[0], rxMsg.data[1], rxMsg.data[2], rxMsg.data[3], rxMsg.data[4], rxMsg.data[5], rxMsg.data[6], rxMsg.data[7]);
             if (sentBytes < 0) {
                 ERROR_PRINT("Failed to write to file with error %d\n", sentBytes);
             }
+            writtenBytes += sentBytes;
+
             if (failedFifoCount > 0)
                 failedFifoCount--;
         }
 
         // sync every 16kB, a sync will commit the data to the sd card
-        writtenBytes += sentBytes;
         if (writtenBytes >= LOG_FILE_SYNC_BYTES) {
             f_sync(&file);
             // DEBUG_PRINT("Synced\n");
@@ -325,7 +328,7 @@ void canLogTask(void *arg) {
 
         // uint32_t end = xTaskGetTickCount();
         // if (xTaskGetTickCount() % 1000 == 0) {
-        // DEBUG_PRINT("SB: %u FF: %lu %ld\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount, end - start);
+        // DEBUG_PRINT("SB: %u FF: %lu UN: %u\n", xStreamBufferBytesAvailable(canLogSB) / sizeof(CanMsg), failedFifoCount, writtenBytes);
         // }
         // print size of stream buffer
 
