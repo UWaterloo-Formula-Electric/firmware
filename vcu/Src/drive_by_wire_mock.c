@@ -446,7 +446,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     uint16_t parameterAddress=0;
     uint16_t newValue=0;
     BaseType_t status;
-    uint16_t readValue = 0;
+    int readValue = 0;
     uint32_t currentState = fsmGetState(&fsmHandle); //returns an index
     BaseType_t paramLen = 0;
 
@@ -479,7 +479,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     turnOffMotorControllers();
     turnOnMotorController();
 
-    status = mcReadParamCommand(parameterAddress, readValue);
+    status = mcReadParamCommand(parameterAddress, &readValue);
 
     if (newValue != readValue){
         COMMAND_OUTPUT("Parameter verification unsuccessful: %u == %u\n", newValue, readValue);
@@ -491,6 +491,7 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         }
 
     COMMAND_OUTPUT("Successfully set parameter at address %u to value %u\n", parameterAddress, newValue);
+
     return pdFALSE;
 };
 

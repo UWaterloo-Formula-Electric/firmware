@@ -57,6 +57,6 @@ HAL_StatusTypeDef setDischargeCurrentLimit(float limit);
 HAL_StatusTypeDef setForwardSpeedLimit(float limit);
 HAL_StatusTypeDef setTorqueLimit(float limit);
 HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data);
-HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data);
+HAL_StatusTypeDef mcReadParamCommand(uint16_t address, int *data);
 
 #endif /* end of include guard: MOTORCONTROLLER_H */
