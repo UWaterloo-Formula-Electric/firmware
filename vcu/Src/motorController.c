@@ -185,7 +185,7 @@ HAL_StatusTypeDef sendInverter(bool enable) {
     // OFF command   OFF status   turn off 
 
     if(enable && fsmGetState(&fsmHandle) == STATE_EM_Enable) {
-        ERROR_PRINT("Unexpected Input: Inverter is already on... Turning off Inverter");
+        ERROR_PRINT("Unexpected Input: Inverter is already on... Turning off Inverter\n");
         
         EM_State = EM_State_Off;
         if (sendCAN_VCU_EM_State() != HAL_OK) {
@@ -193,7 +193,7 @@ HAL_StatusTypeDef sendInverter(bool enable) {
             return HAL_ERROR;
         }
         
-        return HAL_ERROR;
+        return HAL_OK;
     }
 
     EM_State = (enable)?EM_State_On:EM_State_Off;
