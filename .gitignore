@@ -21,6 +21,7 @@ info.dox
 .d/
 *.bak
 Gen/
+.idea
 .vscode
 *.tmp
 Cube-Nucleo-Src/build/
