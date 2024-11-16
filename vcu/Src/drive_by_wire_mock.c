@@ -464,8 +464,11 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
         COMMAND_OUTPUT("Error: Car is in drive mode. Operation not permitted\n");
         return pdFALSE;
     }
-    if (turnOnMotorController() != HAL_OK) {
-        COMMAND_OUTPUT("MC failed to turn on\n");
+
+    turnOnMotorController();
+    HAL_Delay(10);
+    if(StatusPowerMCLeft != StatusPowerMCLeft_CHANNEL_ON) {
+        COMMAND_OUTPUT("MC failed to turn on\r\n");
         return pdFALSE;
     }
 
@@ -477,7 +480,18 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     }
 
     turnOffMotorControllers();
+    HAL_Delay(10);
+    if(StatusPowerMCLeft != StatusPowerMCLeft_CHANNEL_OFF) {
+        COMMAND_OUTPUT("MC failed to turn off\r\n");
+        return pdFALSE;
+    }
+
     turnOnMotorController();
+    HAL_Delay(10);
+    if(StatusPowerMCLeft != StatusPowerMCLeft_CHANNEL_ON) {
+        COMMAND_OUTPUT("MC failed to turn on\r\n");
+        return pdFALSE;
+    }
 
     status = mcReadParamCommand(parameterAddress, &readValue);
 
@@ -488,10 +502,17 @@ BaseType_t setInverterParameter(char *writeBuffer, size_t writeBufferLength, con
     if (status != HAL_OK){
         COMMAND_OUTPUT("Failed to read parameter message at address %u\n", parameterAddress);
         return status;
-        }
+    }
 
     COMMAND_OUTPUT("Successfully set parameter at address %u to value %u\n", parameterAddress, newValue);
 
+    turnOffMotorControllers();
+    HAL_Delay(10);
+    if(StatusPowerMCLeft != StatusPowerMCLeft_CHANNEL_OFF) {
+        COMMAND_OUTPUT("MC failed to turn off\r\n");
+        return pdFALSE;
+    }
+    
     return pdFALSE;
 };
 
