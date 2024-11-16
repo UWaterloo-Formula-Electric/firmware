@@ -84,13 +84,12 @@ osThreadId mainControlHandle;
 osThreadId printTaskNameHandle;
 osThreadId cliHandle;
 osThreadId SensorHandle;
-osThreadId loadSensorHandle;
-osThreadId tempSensorHandle;
 osThreadId watchdogTaskNamHandle;
-osThreadId powerHandle;
 osThreadId canSendTaskHandle;
 osThreadId canPublishHandle;
 osThreadId coolingHandle;
+osThreadId loadSensorHandle;
+osThreadId tempSensorHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -102,13 +101,12 @@ extern void mainControlTask(void const * argument);
 extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void sensorTask(void const * argument);
-extern void tempSensorTask(void const * argument);
 extern void watchdogTask(void const * argument);
-extern void powerTask(void const * argument);
-extern void loadSensorTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
 extern void coolingTask(void const * argument);
+extern void loadSensorTask(void const * argument);
+extern void tempSensorTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -218,21 +216,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(Sensor, sensorTask, osPriorityHigh, 0, 1000);
   SensorHandle = osThreadCreate(osThread(Sensor), NULL);
 
-  /* definition and creation of Load Sensor */
-  osThreadDef(loadSensor, loadSensorTask, osPriorityHigh, 0, 1000);
-  loadSensorHandle = osThreadCreate(osThread(loadSensor), NULL);
-
-  /* definition and creation of temperature sensor */
-  osThreadDef(tempSensor, tempSensorTask, osPriorityBelowNormal, 0, 1000);
-  tempSensorHandle = osThreadCreate(osThread(tempSensor), NULL);
-
   /* definition and creation of watchdogTaskNam */
   osThreadDef(watchdogTaskNam, watchdogTask, osPriorityRealtime, 0, 1000);
   watchdogTaskNamHandle = osThreadCreate(osThread(watchdogTaskNam), NULL);
-
-  /* definition and creation of power */
-  osThreadDef(power, powerTask, osPriorityHigh, 0, 1000);
-  powerHandle = osThreadCreate(osThread(power), NULL);
 
   /* definition and creation of canSendTask */
   osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
@@ -245,6 +231,14 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of cooling */
   osThreadDef(cooling, coolingTask, osPriorityBelowNormal, 0, 1000);
   coolingHandle = osThreadCreate(osThread(cooling), NULL);
+
+  /* definition and creation of loadSensor */
+  osThreadDef(loadSensor, loadSensorTask, osPriorityHigh, 0, 1000);
+  loadSensorHandle = osThreadCreate(osThread(loadSensor), NULL);
+
+  /* definition and creation of tempSensor */
+  osThreadDef(tempSensor, tempSensorTask, osPriorityNormal, 0, 256);
+  tempSensorHandle = osThreadCreate(osThread(tempSensor), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
