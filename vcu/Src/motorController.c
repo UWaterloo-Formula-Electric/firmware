@@ -58,15 +58,22 @@ HAL_StatusTypeDef setDischargeCurrentLimit(float limit)
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
+HAL_StatusTypeDef mcReadParamCommand(uint16_t address, int *data) {
     VCU_INV_Parameter_RW_Command = INVERTER_PARAM_READ;
     VCU_INV_Parameter_Address = address;
-    VCU_INV_Parameter_Data = data; // Is this needed for reading? todo
+    VCU_INV_Parameter_Data = 0; // Is this needed for reading? todo
 
     if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
         ERROR_PRINT("Failed to send read param message to MC\n");
         return HAL_ERROR;
     }
+
+    if(INV_Parameter_Response_Addr != address) {
+        DEBUG_PRINT("INV response address does not match");
+        return HAL_ERROR;
+    }
+
+    *data = INV_Parameter_Response_Data;
     return HAL_OK;
 }
 

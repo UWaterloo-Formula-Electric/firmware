@@ -55,5 +55,7 @@ extern FSM_Handle_Struct fsmHandle;
 HAL_StatusTypeDef driveByWireInit(void);
 HAL_StatusTypeDef startDriveByWire();
 HAL_StatusTypeDef MotorStop();
+HAL_StatusTypeDef turnOnMotorController();
+HAL_StatusTypeDef turnOffMotorControllers();
 void driveByWireTask(void *pvParameters);
 #endif // __DRIVE_BY_WIRE_H
