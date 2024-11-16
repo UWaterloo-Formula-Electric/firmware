@@ -22,6 +22,7 @@
 #define BRAKE_POS_LOW (1080)
 #define BRAKE_POS_HIGH (1180)
 
+
 #define STEERING_POT_LOW (1) //Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095) //Pot value when the wheel is all the way to the right
 
@@ -60,8 +61,17 @@ typedef enum ADC_Indices_t {
 #define BRAKE_POSITION_DIVIDER 4095
 #define BRAKE_POSITION_MULTIPLIER 100
 
-#define BRAKE_PRESSURE_DIVIDER 4095
+#define BRAKE_PRESSURE_DIVIDER 4095 //I guess if you want brake pressure to be a percentage of the total ADC range???
 #define BRAKE_PRESSURE_MULTIPLIER 100
+
+////brake pressure new stuff, untested
+#define BRAKE_PRES_ADC_LOW (1080) //values that the ADC spits out
+#define BRAKE_PRES_ADC_HIGH (1180) //set these to the actual values, I need to look up what the ADC reference voltage is first
+#define BRAKE_PRES_BAR_LOW (0) //the actual pressure in bar
+#define BRAKE_PRES_BAR_HIGH (5) //set these later as well
+#define BAR_PSI_MULTIPLIER (145038) //conversion to PSI if needed
+#define BAR_PSI_DIVIDER (10000)
+////
 
 #define STEERING_DIVIDER 4095
 #define STEERING_MULTIPLIER 100
@@ -79,7 +89,7 @@ bool isBrakePressed();
 bool throttleIsZero();
 void throttlePollingTask(void);
 bool checkBPSState();
-int getBrakePressure();
+int getBrakePressure(); //keeping this here for now just in case it's used somewhere, this returns a percentage value based on the ADC reading (from 0 to reference voltage)
 HAL_StatusTypeDef brakeAndThrottleStart();
 int getSteeringAngle();
 float getBrakePositionPercent();
