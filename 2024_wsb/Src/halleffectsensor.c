@@ -37,6 +37,8 @@
  */
 
 uint32_t pulse_count = 0;
+uint32_t last_tick = 0;
+uint32_t cur_tick = 0;
 
 float getRps(uint32_t count, uint32_t tick_diff) {
     /*
@@ -73,12 +75,10 @@ void HallEffectSensorTask(void const * argument) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    uint32_t last_tick = HAL_GetTick();
-    uint32_t cur_tick;
+    last_tick = HAL_GetTick();
     uint32_t tick_diff;
 
     while (1) {
-        cur_tick = HAL_GetTick();
         tick_diff = cur_tick - last_tick;
 
         float rps = getRps(pulse_count, tick_diff);
@@ -96,7 +96,7 @@ void HallEffectSensorTask(void const * argument) {
 #endif
 
         pulse_count = 0;
-        last_tick = HAL_GetTick();
+        last_tick = cur_tick;
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
