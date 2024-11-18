@@ -34,10 +34,58 @@ typedef struct {
 	volatile uint32_t encoder_counts;
 	volatile uint32_t encoder_mm;
 	volatile float    encoder_speed;
+	volatile int rear_brake_pressure; //newly added
 } sensors_data_S;
 
-
 static sensors_data_S sensors_data;
+
+////brake pressure new stuff, untested
+
+uint32_t ADCVals[NUM_ADC_CHANNELS] = {0};
+
+int map_range(int in, int low, int high, int low_out, int high_out) { //copied from brake and throttle code in the VCU
+    if (in < low) {
+        in = low;
+    } else if (in > high) {
+        in = high;
+    }
+    int in_range = high - low;
+    int out_range = high_out - low_out;
+
+    return (in - low) * out_range / in_range + low_out;
+}
+HAL_StatusTypeDef startADCConversions() {
+	if (HAL_ADC_Start_DMA(&ADC_HANDLE, ADCVals, NUM_ADC_CHANNELS) != HAL_OK)
+	{
+		ERROR_PRINT("Failed to start ADC DMA conversions\n");
+		//Error_Handler(); //idk where this one is from
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+int calculateBrakePressure(uint32_t bp) {
+	return map_range(bp, BRAKE_PRES_ADC_LOW, BRAKE_PRES_ADC_HIGH, BRAKE_PRES_PSI_LOW, BRAKE_PRES_PSI_HIGH);
+}
+
+bool checkBPSRange(uint16_t bp) {
+	return (BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= bp && bp <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE);
+}
+int getBrakePressure() {
+	uint32_t rawBPres = ADCVals[BRAKE_PRES_INDEX];
+	if(!checkBPSRange(rawBPres)) {
+		DEBUG_PRINT("Brake pressure reading out of range!\n");
+		return -1;
+	}
+	return calculateBrakePressure(rawBPres);
+}
+static void poll_brake_pressure(void)
+{
+	sensors_data.rear_brake_pressure = getBrakePressure();
+}
+static void transmit_brake_pressure(void) {
+
+}
+////
 
 static void transmit_sensor_values(void);
 
@@ -67,6 +115,7 @@ void pollSensorsTask(void const * argument)
     while(1)
 	{
 		poll_encoder();
+		poll_brake_pressure();
 
 		transmit_sensor_values();
 
@@ -120,3 +169,5 @@ HAL_StatusTypeDef sensors_init(void)
 	}
 	return HAL_OK;
 }
+
+
