@@ -235,39 +235,21 @@ bool checkBPSState() {
   return true;
 }
 
-int getBrakePressure() { //keep for now idk why this is here
-  return brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] * BRAKE_PRESSURE_MULTIPLIER / BRAKE_PRESSURE_DIVIDER;
+////brake pressure new stuff, untested
+int calculateBrakePressure(uint32_t bp) {
+	return map_range(bp, BRAKE_PRES_ADC_LOW, BRAKE_PRES_ADC_HIGH, BRAKE_PRES_PSI_LOW, BRAKE_PRES_PSI_HIGH);
 }
 
-////brake pressure new stuff, untested
-float calculateBrakePressureBar(uint16_t bp) {
-	return map_range_float((float)bp, BRAKE_PRES_ADC_LOW, BRAKE_PRES_ADC_HIGH, BRAKE_PRES_BAR_LOW, BRAKE_PRES_BAR_HIGH);
-}
-float calculateBrakePressurePsi(uint16_t bp) {
-	return calculateBrakePressureBar(bp)*BAR_PSI_MULTIPLIER/BAR_PSI_DIVIDER;
-}
 bool checkBPSRange(uint16_t bp) {
-	return (BRAKE_PRES_ADC_LOW <= bp && bp <= BRAKE_PRES_ADC_HIGH);
+	return (BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= bp && bp <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE);
 }
-bool getBrakePressureBar(float* out) {
-	uint16_t rawBPres = brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
+int getBrakePressure() {
+	uint32_t rawBPres = brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
 	if(!checkBPSRange(rawBPres)) {
 		DEBUG_PRINT("Brake pressure reading out of range!\n");
-		*out = -1;
-		return false;
+		return -1;
 	}
-	*out = calculateBrakePressureBar(rawBPres);
-	return true;
-}
-bool getBrakePressurePsi(float* out) {
-	uint16_t rawBPres = brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
-	if(!checkBPSRange(rawBPres)) {
-		DEBUG_PRINT("Brake pressure reading out of range!\n");
-		*out = -1;
-		return false;
-	}
-	*out = calculateBrakePressurePsi(rawBPres);
-	return true;
+	return calculateBrakePressure(rawBPres);
 }
 ////
 

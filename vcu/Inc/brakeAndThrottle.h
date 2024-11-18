@@ -61,16 +61,12 @@ typedef enum ADC_Indices_t {
 #define BRAKE_POSITION_DIVIDER 4095
 #define BRAKE_POSITION_MULTIPLIER 100
 
-#define BRAKE_PRESSURE_DIVIDER 4095 //I guess if you want brake pressure to be a percentage of the total ADC range???
-#define BRAKE_PRESSURE_MULTIPLIER 100
-
 ////brake pressure new stuff, untested
-#define BRAKE_PRES_ADC_LOW (1080) //values that the ADC spits out
-#define BRAKE_PRES_ADC_HIGH (1180) //set these to the actual values, I need to look up what the ADC reference voltage is first
-#define BRAKE_PRES_BAR_LOW (0) //the actual pressure in bar
-#define BRAKE_PRES_BAR_HIGH (5) //set these later as well
-#define BAR_PSI_MULTIPLIER (145038) //conversion to PSI if needed
-#define BAR_PSI_DIVIDER (10000)
+#define BRAKE_PRES_ADC_LOW (409) //at 500mV (the sensor minumum)
+#define BRAKE_PRES_ADC_HIGH (3686) //at 4500mV (the sensor maximum)
+#define BRAKE_PRES_PSI_LOW (0) //this is a 0-2000PSI sensor
+#define BRAKE_PRES_PSI_HIGH (2000)
+#define BRAKE_PRES_DEADZONE (100)
 ////
 
 #define STEERING_DIVIDER 4095
@@ -89,7 +85,7 @@ bool isBrakePressed();
 bool throttleIsZero();
 void throttlePollingTask(void);
 bool checkBPSState();
-int getBrakePressure(); //keeping this here for now just in case it's used somewhere, this returns a percentage value based on the ADC reading (from 0 to reference voltage)
+int getBrakePressure();
 HAL_StatusTypeDef brakeAndThrottleStart();
 int getSteeringAngle();
 float getBrakePositionPercent();
