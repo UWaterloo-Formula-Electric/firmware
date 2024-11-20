@@ -34,13 +34,15 @@ typedef struct {
 	volatile uint32_t encoder_counts;
 	volatile uint32_t encoder_mm;
 	volatile float    encoder_speed;
+#ifdef (HAS_BRAKE_PRES)
 	volatile int rear_brake_pressure; //newly added
+#endif
 } sensors_data_S;
 
 static sensors_data_S sensors_data;
 
 ////brake pressure new stuff, untested
-
+#ifdef (HAS_BRAKE_PRES)
 uint32_t ADCVals[NUM_ADC_CHANNELS] = {0};
 
 int map_range(int in, int low, int high, int low_out, int high_out) { //copied from brake and throttle code in the VCU
@@ -83,8 +85,9 @@ static void poll_brake_pressure(void)
 	sensors_data.rear_brake_pressure = getBrakePressure();
 }
 static void transmit_brake_pressure(void) {
-
+	//add brake pressure CAN code
 }
+#endif
 ////
 
 static void transmit_sensor_values(void);
@@ -115,8 +118,9 @@ void pollSensorsTask(void const * argument)
     while(1)
 	{
 		poll_encoder();
+#ifdef (HAS_BRAKE_PRES)
 		poll_brake_pressure();
-
+#endif
 		transmit_sensor_values();
 
         watchdogTaskCheckIn(POLL_SENSORS_TASK_ID);
@@ -143,6 +147,9 @@ static void transmit_sensor_values(void)
 {
 	// Send over CAN
 	transmit_encoder();
+#ifdef (HAS_BRAKE_PRES)
+	transmit_brake_pres();
+#endif
 }
 
 uint32_t sensor_encoder_count(void)
@@ -167,6 +174,12 @@ HAL_StatusTypeDef sensors_init(void)
 		ERROR_PRINT("Failed to start Encoder timer\n");
 		return HAL_ERROR;	
 	}
+#ifdef (HAS_BRAKE_PRES)
+    if(startADCConversions() != HAL_OK) {
+    	ERROR_PRINT("Failed to start ADC\n");
+    	return HAL_ERROR;
+    }
+#endif
 	return HAL_OK;
 }
 
