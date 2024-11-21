@@ -5,8 +5,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(EXTRA_COMPONENT_DIRS "$/../../common" " WSB_HIL")
+set(EXTRA_COMPONENT_DIRS "$/../../common" "WSB_HIL")
 add_compile_definitions(WSB_HIL_ID)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(WSB_HIL)
-

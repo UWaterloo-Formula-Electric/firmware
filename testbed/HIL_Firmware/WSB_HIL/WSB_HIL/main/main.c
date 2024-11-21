@@ -7,7 +7,7 @@
 #include "esp_err.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
-#include "userInit.h"
+#include "../Inc/userInit.h"
 #include "dac.h"
 #include "canReceive.h"
 
@@ -53,7 +53,7 @@ void taskRegister (void)
     }
 }
 
-esp_err_t CAN_init (void){
+esp_err_t CAN_init (void) {
 
     memset(&rx_msg, 0, sizeof(twai_message_t));
     memset(&can_msg, 0, sizeof(twai_message_t));
