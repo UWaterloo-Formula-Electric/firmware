@@ -96,7 +96,10 @@ esp_err_t CAN_init (void) {
 
 }
 
-
+esp_err_t spi_init(void)
+{
+    
+}
 
 
 void app_main(void)

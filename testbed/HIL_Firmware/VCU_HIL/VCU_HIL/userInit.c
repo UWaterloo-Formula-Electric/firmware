@@ -64,6 +64,7 @@ esp_err_t CAN_init (void)
     memset(&can_msg, 0, sizeof(twai_message_t));
     memset(&vcu_hil_queue, 0, sizeof(QueueHandle_t));
     memset(&pdu_hil_queue, 0, sizeof(QueueHandle_t));
+    memset(&wsb_hil_queue, 0, sizeof(QueueHandle_t));
 
     twai_general_config_t g_config = {
         .mode = TWAI_MODE_NORMAL, 
