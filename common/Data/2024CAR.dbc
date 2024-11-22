@@ -63,10 +63,6 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
-BO_ 2215708942 WSBRL_BrakePres: 4 Vector__XXX
- SG_ BrakePresRearValid : 16|1@1+ (1,0) [0|1] "" Vector__XXX
- SG_ BrakePresRear : 0|12@1+ (1,0) [0|2000] "PSI" Vector__XXX
-
 BO_ 2214593035 WSBRR_Speed: 8 WSBRR
  SG_ RRSpeedRPM : 16|16@1+ (1,0) [0|65535] "rpm"  VCU_F7
  SG_ RRSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
@@ -469,7 +465,7 @@ BO_ 2558526465 BMU_CellVoltage: 8 BMU
 
 BO_ 2558788609 BMU_CellVoltage_Adjusted: 8 BMU
  SG_ AdjustedVoltageCellMuxSelect M : 0|8@1+ (1,0) [0|256] ""  VCU_BeagleBone
- SG_ BrakePresRearValid m0 : 8|1@1+ (1,0) [0|1] ""  VCU_BeagleBone
+ SG_ AdjustedVoltageCell01 m0 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell02 m0 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell03 m0 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell04 m1 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
@@ -581,7 +577,7 @@ BO_ 2558788609 BMU_CellVoltage_Adjusted: 8 BMU
  SG_ AdjustedVoltageCell110 m36 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell111 m36 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell112 m37 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
- SG_ BrakePresRear m37 : 24|12@1+ (1,0) [0|2000] "PSI"  VCU_BeagleBone
+ SG_ AdjustedVoltageCell113 m37 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell114 m37 : 40|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell115 m38 : 8|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
  SG_ AdjustedVoltageCell116 m38 : 24|16@1+ (0.0001,0) [0|6.5535] "V"  VCU_BeagleBone
