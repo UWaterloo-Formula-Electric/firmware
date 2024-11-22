@@ -238,6 +238,8 @@ void faultMonitorTask(void *pvParameters)
 			sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+         sendDTC_FATAL_HVIL_Runtime_Error();
+         
 			while (1) {
 				watchdogTaskCheckIn(FAULT_TASK_ID);
 				vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
