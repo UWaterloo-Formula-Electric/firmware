@@ -24,22 +24,16 @@ def read_response():
     data = struct.unpack('<H', msg.data[4:6])[0]
     return data
 
-# Open the file with parameter addresses and names
 with open("./common/Data/parameters.txt", "r") as file1:
-    # Open the output file in append mode to store the responses
     with open("./common/Data/response_data.txt", "a") as output_file:
         for line in file1:
-            # Process each line, extracting the parameter address and name
             parameter_list = line.strip().split(" ")
-            parameter_address = int(parameter_list[0], 16)  # Convert hex string to integer
-            parameter_name = parameter_list[1]  # The name is at index 1
+            parameter_address = int(parameter_list[0], 16) 
+            parameter_name = parameter_list[1]  
 
-            # Send the command and read the response
             send_command(parameter_address, read=True)
-            time.sleep(0.1)  # Small delay to allow time for response
+            time.sleep(0.1)  
             response_data = read_response()
 
-            # If response is not None, write it to the output file
             if response_data is not None:
-                # Format the response as hexadecimal and write it to the output file
                 output_file.write(f"Parameter Name: {parameter_name}, Address: {parameter_address:#04x}, Response Data: {response_data:#04x}\n")
