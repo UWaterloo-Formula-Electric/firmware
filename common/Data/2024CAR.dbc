@@ -63,6 +63,10 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 2215707150 WSBRR_BrakePres: 3 Vector__XXX
+ SG_ BrakePresRearValid : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ BrakePresRear : 0|16@1+ (1,0) [0|2000] "PSI" Vector__XXX
+
 BO_ 2214593035 WSBRR_Speed: 8 WSBRR
  SG_ RRSpeedRPM : 16|16@1+ (1,0) [0|65535] "rpm"  VCU_F7
  SG_ RRSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
@@ -72,8 +76,8 @@ BO_ 2214593034 WSBRL_Speed: 6 WSBRL
  SG_ RLSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
 
 BO_ 2215707149 WSBRR_BrakeTemp: 3 WSBRR
- SG_ BrakeTempRearAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
- SG_ BrakeTempRear : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX
+ SG_ BrakePresRearValid : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ BrakePresRear : 0|16@1+ (1,0) [0|2000] "PSI" Vector__XXX
 
 BO_ 2215707144 WSBFL_BrakeTemp: 5 WSBFL
  SG_ BrakeTempFrontAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
