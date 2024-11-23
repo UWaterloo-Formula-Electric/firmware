@@ -6,7 +6,6 @@
 #include "controlStateMachine.h"
 #include "userCan.h"
 #include "controlStateMachine_mock.h"
-#include "LTC4110.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )

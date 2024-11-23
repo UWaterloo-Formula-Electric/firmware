@@ -14,7 +14,7 @@
 #include "stm32f7xx_hal.h"
 
 #define STATS_TIM_HANDLE htim3      // For FreeRTOS
-#define ADC_TIM_HANDLE htim6        // For ADC1 (acts as trigger source)
+#define ADC_TIM_HANDLE htim6        // For ADC1 & ADC3 (acts as trigger source)
 #define DEBUG_UART_HANDLE huart4
 #define CAN_HANDLE hcan3
 #define ADC1_HANDLE hadc1
