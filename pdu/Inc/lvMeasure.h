@@ -1,6 +1,5 @@
-#ifndef SENSORS_H
-
-#define SENSORS_H
+#ifndef LV_MEASURE_H
+#define LV_MEASURE_H
 
 /*
  * !!IMPORTANT!!
@@ -9,23 +8,6 @@
  */
 
 /* This is enum is for all the PDU output channels */
-typedef enum PDU_Channels_t {
-    Pump_1_Channel,     // Channel 1
-    Pump_2_channel,     // Channel 2
-    CDU_Channel,        // Channel 3
-    BMU_Channel,        // Channel 4
-    WSB_Channel,        // Channel 5
-    TCU_Channel,        // Channel 6
-    Brake_Light_Channel,// Channel 7
-    ACC_Fans_Channel,   // Channel 8
-    INV_Channel,        // Channel 9
-    Radiator_Channel,   // Channel 10
-    AUX_1_Channel,      // Channel 11
-    AUX_2_Channel,      // Channel 12
-    AUX_3_Channel,      // Channel 13
-    AUX_4_Channel,      // Channel 14
-    NUM_PDU_CHANNELS
-} PDU_Channels_t;
 
 /* This enum is for the sense lines on ADC1 */
 typedef enum PDU_ADC1_Channels_t {
@@ -38,7 +20,24 @@ typedef enum PDU_ADC1_Channels_t {
     NUM_ADC1_CHANNELS           // Total = 6
 } PDU_ADC1_Channels_t;
 
-const char *channelNames[NUM_PDU_CHANNELS];
+typedef struct {
+    float I_Main_Channel_A;
+    float V_Main_Channel_V;
+    float V_Lipo_Channel_V;
+    float I_DCDC_Channel_A;
+    float V_DCDC_Channel_V;
+    float Lipo_Therm_Channel_C;
+} busMeas_t;
+
+// This union allows us to print out the data easily
+typedef union {
+    busMeas_t meas_s;
+    float busMeas_a[NUM_ADC1_CHANNELS];
+} busMeas_u;
+
+extern busMeas_u busResults;
+extern volatile uint32_t ADC1_Buffer[NUM_ADC1_CHANNELS];
+extern const char *diagnosticChannelNames[NUM_ADC1_CHANNELS];
 
 #define SENSOR_READ_PERIOD_MS 500
 #define PDU_CURRENT_PUBLISH_PERIOD_MS 1000
@@ -46,29 +45,27 @@ const char *channelNames[NUM_PDU_CHANNELS];
 #define PDU_FUSE_STATUS_PUBLISH_PERIOD_MS 10000
 #define PDU_PUBLISH_PERIOD_MS 1000
 
-/*
- * Sensor Valid Range˙
- */
-
 // Low voltage Cuttoff
 #define LOW_VOLTAGE_LIMIT_VOLTS 10.0f
 
 // Max LV Bus current
-#define LV_MAX_CURRENT_AMPS 30.0f
-//
+#define LV_MAX_CURRENT_AMPS 30.0f           // Fuse is set 30A
+
 // TODO: We should verify that no channels draw less this when it is on
 #define FUSE_BLOWN_MIN_CURRENT_AMPS 0.02
 
+// TODO: verify this. What's the current draw at LV?
+#define MIN_BUS_CURRENT 1.0f
+
 // Todo: verify these values from the schematic
-#define ADC_TO_AMPS_DIVIDER 0.0002
-#define ADC_TO_VOLTS_DIVIDER 0.207143
+#define ADC1_TO_VOLTS_DIVIDER   257.1084024         // 1 / ((3.3/4096.0) / (0.207143))
+#define ADC1_TO_AMPS_DIVIDER    49.64848485         // 1 / ((3.3/4096.0)/ (0.0002 * 200)) // TODO: will be changed in REV2
 
  // #define MOCK_ADC_READINGS
 
-float readBusCurrent();
-float readBusVoltage();
 float readCurrent(PDU_ADC1_Channels_t channel);
-void printRawADCVals();
+float readVoltage(PDU_ADC1_Channels_t channel);
 
+void printRawADCVals(void);
 
-#endif /* end of include guard: SENSORS_H */
+#endif /* end of include guard: LV_MEASURE_H */
