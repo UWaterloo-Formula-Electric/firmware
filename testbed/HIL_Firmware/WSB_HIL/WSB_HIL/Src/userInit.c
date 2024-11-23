@@ -10,7 +10,7 @@
 #include "../Inc/userInit.h"
 #include "dac.h"
 #include "canReceive.h"
-
+#include "../Inc/processCAN.h"
 
 void taskRegister (void)
 {
@@ -96,9 +96,8 @@ esp_err_t CAN_init (void) {
 
 }
 
-esp_err_t spi_init(void)
-{
-    
+esp_err_t spi_init(void) {
+    return ESP_OK;
 }
 
 
