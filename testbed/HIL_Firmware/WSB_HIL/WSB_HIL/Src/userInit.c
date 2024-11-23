@@ -7,7 +7,7 @@
 #include "esp_err.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
-#include "../Inc/userInit.h"
+#include "userInit.h"
 #include "dac.h"
 #include "canReceive.h"
 
