@@ -33,7 +33,7 @@ void coolingOn(void) {
     PUMP_1_EN;
     PUMP_2_EN;
     RADIATOR_EN;
-    vTaskDelay(pdMS_TO_TICKS(3));   // Sometimes the GLV fuse blows upon going to EM. TODO: not sure if this is needed for 2025
+    vTaskDelay(pdMS_TO_TICKS(3));   // Lessen in-rush current by introducing a delay
     ACC_FANS_EN;
 }
 
