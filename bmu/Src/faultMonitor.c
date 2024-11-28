@@ -17,6 +17,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "bmu_can.h"
+#include "bmu_dtc.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
