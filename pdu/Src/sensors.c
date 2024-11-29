@@ -224,10 +224,9 @@ void sensorTask(void *pvParameters)
         {
             ERROR_PRINT("Failed to send bus measurements on can!\n");
         }
-
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
+            sendDTC_ERROR_LV_Current_Exceeded();
             ERROR_PRINT("LV Current exceeded max value\n");
-            // TODO: Should we do anything?
         }
 
         if ((xTaskGetTickCount() - lastLvBattLowSent) > LV_BATTERY_VOLTAGE_LOW_DTC_PERIOD_MS && VoltageBusLV < 11.0f)
