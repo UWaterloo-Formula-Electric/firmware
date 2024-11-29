@@ -67,3 +67,4 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 66,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
 67,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
 68,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"
+69, PDU_Max_Current_Exceeded, PDU, 3, VCU_BEAGLEBONE,NA, "LV Current > 30A"
