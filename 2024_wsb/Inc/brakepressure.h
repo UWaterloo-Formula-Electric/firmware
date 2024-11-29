@@ -5,6 +5,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "FreeRTOS.h"
+#include "bsp.h"
+#include "cmsis_os.h"
+#include "debug.h"
+#include "detectWSB.h"
+#include "main.h"
+#include "multiSensorADC.h"
+#include "task.h"
+
 #define BRAKE_PRES_ADC_LOW (409) //at 500mV (the sensor minumum)
 #define BRAKE_PRES_ADC_HIGH (3686) //at 4500mV (the sensor maximum)
 #define BRAKE_PRES_PSI_LOW (0) //this is a 0-2000PSI sensor

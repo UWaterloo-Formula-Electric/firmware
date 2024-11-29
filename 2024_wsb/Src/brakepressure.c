@@ -11,7 +11,8 @@
 #include "main.h"
 #include "multiSensorADC.h"
 #include "task.h"
-#elif BOARD_ID == ID_WSBRL
+#include "brakepressure.h"
+#if BOARD_ID == ID_WSBRL
 #include "wsbrl_can.h"
 #endif
 
@@ -34,7 +35,7 @@ int calcPres(uint32_t raw) {
 
 bool isPresInRange(uint32_t raw) {
 	//we account for if it's off by a little on the ends, so if it's slightly lower or higher it just clips to 0 or 2000
-    return BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= raw && raw <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE
+    return BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= raw && raw <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE;
 }
 void BrakePresTask(void const* argument) {
     deleteWSBTask(WSBRL);
@@ -43,7 +44,7 @@ void BrakePresTask(void const* argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
 
-#elif BOARD_ID == ID_WSBRL
+#if BOARD_ID == ID_WSBRL
     	uint32_t raw = get_sensor1_V(); //still don't know which ADC channel it is, hope 1 is correct
         BrakePresRear = calcPres(raw);
         BrakePresRearValid = isPresInRange(raw);
