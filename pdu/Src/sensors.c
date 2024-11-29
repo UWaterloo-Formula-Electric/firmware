@@ -225,7 +225,7 @@ void sensorTask(void *pvParameters)
             ERROR_PRINT("Failed to send bus measurements on can!\n");
         }
         if (readBusCurrent() >= LV_MAX_CURRENT_AMPS) {
-            sendDTC_ERROR_LV_Current_Exceeded();
+            sendDTC_ERROR_PDU_Max_Current_Exceeded();
             ERROR_PRINT("LV Current exceeded max value\n");
         }
 
