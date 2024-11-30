@@ -41,7 +41,7 @@ const char *channelNames[NUM_PDU_CHANNELS];
 #define LOW_VOLTAGE_LIMIT_VOLTS 10.0f
 
 // Max LV Bus current
-#define LV_MAX_CURRENT_AMPS 50.0f
+#define LV_MAX_CURRENT_AMPS 30.0f
 //
 // TODO: Find this value
 #define FUSE_BLOWN_MIN_CURRENT_AMPS 5.0
