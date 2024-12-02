@@ -39,11 +39,11 @@ BU_: WSBRR_HIL WSBRL_HIL WSBFR_HIL WSBFL_HIL Computer PDU_HIL VCU_HIL
 BO_ 2214594831 WSBFR: 8 Computer
 
 BO_ 2214595087 WSBRL: 1 Computer
- SG_ WSBRearSpeed : 0|8@1+ (1,0) [0|255] "pulse/s"  WSBRL_HIL
+ SG_ WSBRearSpeed : 0|8@1+ (1,0) [0|255] "Hz"  WSBRL_HIL
 
 BO_ 2214595343 WSBRR: 3 Computer
  SG_ WSBBrakeTemp : 0|12@1+ (1,0) [0|3300] "mV"  WSBRR_HIL
- SG_ WSBRearSpeed : 16|8@1+ (1,0) [0|255] "pulse/s"  WSBRR_HIL
+ SG_ WSBRearSpeed : 16|8@1+ (1,0) [0|255] "Hz"  WSBRR_HIL
 
 BO_ 2214594575 WSBFL: 8 Computer
  SG_ WSBBrakeTemp : 0|12@1+ (1,0) [0|3300] "mV"  WSBFL_HIL
