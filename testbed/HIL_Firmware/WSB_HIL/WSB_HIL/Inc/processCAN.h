@@ -2,6 +2,7 @@
 #define PROCESS_CAN_H
 
 #include <stdio.h>
+#include "esp_err.h"
 
 #define PROCESS_RX_TASK_INTERVAL_MS 1
 
@@ -23,10 +24,10 @@
 #define WSBRR_MSG_LENGTH 3
 
 void process_rx_task (void * pvParamters);
-void processFL(twai_message_t* can_msg);
-void processFR(twai_message_t* can_msg);
-void processRL(twai_message_t* can_msg);
-void processRR(twai_message_t* can_msg);
+esp_err_t processFL(twai_message_t* can_msg);
+esp_err_t processFR(twai_message_t* can_msg);
+esp_err_t processRL(twai_message_t* can_msg);
+esp_err_t processRR(twai_message_t* can_msg);
 void input_data(twai_message_t* can_msg, uint8_t msg_length);
 
 //todo: add board identifier variable?
