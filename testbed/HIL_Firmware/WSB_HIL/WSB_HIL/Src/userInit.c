@@ -7,13 +7,13 @@
 #include "esp_err.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
+#include "driver/ledc.h"
 #include "../Inc/userInit.h"
 #include "dac.h"
 #include "canReceive.h"
 #include "../Inc/processCAN.h"
 
-void taskRegister (void)
-{
+void taskRegister (void) {
     BaseType_t xReturned = pdPASS;
     TaskHandle_t can_rx;
     TaskHandle_t can_process;
@@ -100,10 +100,42 @@ esp_err_t spi_init(void) {
     return ESP_OK;
 }
 
+esp_err_t pwm_init() {
+    ledc_timer_config_t hall_effect = {
+            .speed_mode       = LEDC_LOW_SPEED_MODE,
+            .timer_num        = PwmTimer_HallEff,
+            .duty_resolution  = LEDC_TIMER_8_BIT,
+            .freq_hz          = 0,
+            .clk_cfg          = LEDC_AUTO_CLK
+    };
+
+    ledc_channel_config_t hall_effect_channel = {
+            .speed_mode     = LEDC_LOW_SPEED_MODE,
+            .channel        = PwmChannel_HallEff,
+            .timer_sel      = PwmTimer_HallEff,
+            .intr_type      = LEDC_INTR_DISABLE,
+            .gpio_num       = HL_EFF,
+            .duty           = LEDC_TIMER_8_BIT/2,
+            .hpoint         = 0
+    };
+
+    if (ledc_timer_config(&hall_effect) != ESP_OK) {
+        printf("failed to initialize hall effect pwm timer");
+        return ESP_FAIL;
+    }
+
+    if (ledc_channel_config(&hall_effect_channel) != ESP_OK) {
+        printf("failed to initialize hall effect pwm channel");
+        return ESP_FAIL;
+    }
+
+    return ESP_OK;
+}
 
 void app_main(void)
 {
     spi_init();
+    pwm_init();
     CAN_init();
     taskRegister();
 }
