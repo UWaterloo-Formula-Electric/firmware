@@ -36,26 +36,9 @@
 
 bool skip_il = false;
 
-HAL_StatusTypeDef HVIL_Control(bool enable)
-{
-   if (enable)
-   {
-      HAL_GPIO_WritePin(HVIL_EN_GPIO_Port, HVIL_EN_Pin, GPIO_PIN_SET);
-   } else {
-      HAL_GPIO_WritePin(HVIL_EN_GPIO_Port, HVIL_EN_Pin, GPIO_PIN_RESET);
-   }
-
-   return HAL_OK;
-}
-
 bool getBSPD_Status()
 {
    return (HAL_GPIO_ReadPin(BSPD_SENSE_GPIO_Port, BSPD_SENSE_Pin) == GPIO_PIN_SET);
-}
-
-bool getTSMS_Status()
-{
-   return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET);
 }
 
 bool getHVD_Status()
@@ -63,23 +46,14 @@ bool getHVD_Status()
    return (HAL_GPIO_ReadPin(HVD_SENSE_GPIO_Port, HVD_SENSE_Pin) == GPIO_PIN_SET);
 }
 
-bool getHVIL_Status()
+// First thing coming in after BOTS
+bool getEbox_Il_Status()
 {
-#if HVIL_ENABLED
-	return (HAL_GPIO_ReadPin(HVIL_SENSE_GPIO_Port, HVIL_SENSE_Pin) == GPIO_PIN_SET);
-#else
-	return true;
-#endif
+   return (HAL_GPIO_ReadPin(IL_EBOX_SENSE_GPIO_Port, IL_EBOX_SENSE_Pin) == GPIO_PIN_RESET);
 }
 
-// IL in to the BMU
-bool getIL_BRB_Status()
-{
-   return (HAL_GPIO_ReadPin(IL_SENSE_GPIO_Port, IL_SENSE_Pin) == GPIO_PIN_SET);
-}
-
-// IL in to the BMU
-bool getIL_Status()
+// IL output after the TSMS
+bool getTSMS_IL_Status()
 {
    return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET || skip_il);
 }
@@ -97,9 +71,6 @@ void faultMonitorTask(void *pvParameters)
 {
 
 #ifdef ENABLE_IL_CHECKS
-
-   /* HVIL status */
-   HVIL_Control(true);
 
    if (getHVIL_Status() == false)
    {

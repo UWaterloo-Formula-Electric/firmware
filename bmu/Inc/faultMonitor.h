@@ -5,7 +5,6 @@
 #include "bsp.h"
 
 
-HAL_StatusTypeDef HVIL_Control(bool enable);
 bool getHVIL_Status();
 bool getIL_Status();
 bool getBSPD_Status();
