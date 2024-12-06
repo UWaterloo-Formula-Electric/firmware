@@ -1,8 +1,11 @@
-#include <stdio.h>
-#include <string.h>
+#ifndef BRAKE_PRES_C
+#define BRAKE_PRES_C
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
-
+#include <stdio.h>
+#include <string.h>
 #include "FreeRTOS.h"
 #include "bsp.h"
 #include "cmsis_os.h"
@@ -11,12 +14,20 @@
 #include "main.h"
 #include "multiSensorADC.h"
 #include "task.h"
-#include "brakepressure.h"
+
+#define BRAKE_PRES_ADC_LOW (409) //at 500mV (the sensor minumum)
+#define BRAKE_PRES_ADC_HIGH (3686) //at 4500mV (the sensor maximum)
+#define BRAKE_PRES_PSI_LOW (0) //this is a 0-2000PSI sensor
+#define BRAKE_PRES_PSI_HIGH (2000)
+#define BRAKE_PRES_DEADZONE (100)
+
+#define BRAKE_PRES_TASK_PERIOD 100
+
 #if BOARD_ID == ID_WSBRL
 #include "wsbrl_can.h"
 #endif
 
-int map_range(int in, int low, int high, int low_out, int high_out) { //copied from brake and throttle code in the VCU
+int32_t map_range(int32_t in, int32_t low, int32_t high, int32_t low_out, int32_t high_out) { //copied from brake and throttle code in the VCU
     if (in < low) {
         in = low;
     } else if (in > high) {
@@ -28,7 +39,7 @@ int map_range(int in, int low, int high, int low_out, int high_out) { //copied f
     return (in - low) * out_range / in_range + low_out;
 }
 
-int calcPres(uint32_t raw) {
+uint32_t calcPres(uint32_t raw) {
 	// note: the pressure reading will clip if the sensor voltage reading is out of range
 	return map_range(raw, BRAKE_PRES_ADC_LOW, BRAKE_PRES_ADC_HIGH, BRAKE_PRES_PSI_LOW, BRAKE_PRES_ADC_HIGH);
 }
@@ -45,7 +56,7 @@ void BrakePresTask(void const* argument) {
     while (1) {
 
 #if BOARD_ID == ID_WSBRL
-    	uint32_t raw = get_sensor1_V(); //still don't know which ADC channel it is, hope 1 is correct
+    	uint32_t raw = get_sensor3_V(); //sensor 3 it is
         BrakePresRear = calcPres(raw);
         BrakePresRearValid = isPresInRange(raw);
         sendCAN_WSBRL_BrakePres();
