@@ -19,7 +19,7 @@
 #define BRAKE_PRES_ADC_HIGH (3686) //at 4500mV (the sensor maximum)
 #define BRAKE_PRES_PSI_LOW (0) //this is a 0-2000PSI sensor
 #define BRAKE_PRES_PSI_HIGH (2000)
-#define BRAKE_PRES_DEADZONE (100)
+//#define BRAKE_PRES_DEADZONE (100)
 
 #define BRAKE_PRES_TASK_PERIOD 100
 
@@ -46,7 +46,8 @@ uint32_t calcPres(uint32_t raw) {
 
 bool isPresInRange(uint32_t raw) {
 	//we account for if it's off by a little on the ends, so if it's slightly lower or higher it just clips to 0 or 2000
-    return BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= raw && raw <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE;
+    //return BRAKE_PRES_ADC_LOW-BRAKE_PRES_DEADZONE <= raw && raw <= BRAKE_PRES_ADC_HIGH+BRAKE_PRES_DEADZONE;
+	return BRAKE_PRES_ADC_LOW <= raw && raw <= BRAKE_PRES_ADC_HIGH;
 }
 void BrakePresTask(void const* argument) {
     deleteWSBTask(WSBRL);
