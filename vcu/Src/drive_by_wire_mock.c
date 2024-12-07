@@ -456,15 +456,10 @@ BaseType_t setInverterCommand(char *writeBuffer, size_t writeBufferLength,
         return pdFALSE;
     }
 
-    bool hvEnable = getHvEnableState();
-
-    if(hvEnable) {
-        COMMAND_OUTPUT("High Voltage is enabled, command not sent");
-    } else {
-        COMMAND_OUTPUT("Turning inverter %s\n", onOff?"on":"off");
-        if(sendInverter(onOff) != HAL_OK) {
-            ERROR_PRINT("Command failed to toggle inverter");
-        }
+    COMMAND_OUTPUT("Turning inverter %s\n", onOff?"on":"off");
+    
+    if(sendInverter(onOff) != HAL_OK) {
+        ERROR_PRINT("Command failed");
     }
 
     return pdFALSE;

@@ -187,21 +187,22 @@ HAL_StatusTypeDef sendInverter(bool enable) {
     if(enable && fsmGetState(&fsmHandle) == STATE_EM_Enable) {
         ERROR_PRINT("Unexpected Input: Inverter is already on... Turning off Inverter\n");
         
-        EM_State = EM_State_Off;
-        if (sendCAN_VCU_EM_State() != HAL_OK) {
-            ERROR_PRINT("Failed to send command message to MC\n");
-            return HAL_ERROR;
-        }
-        
-        return HAL_OK;
-    }
+        // Request PDU to turn off motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_Off;
+        sendCAN_VCU_EM_Power_State_Request();
 
-    EM_State = (enable)?EM_State_On:EM_State_Off;
-
-    if (sendCAN_VCU_EM_State() != HAL_OK) {
-        ERROR_PRINT("Failed to send command message to MC\n");
         return HAL_ERROR;
     }
-        
+
+    if(enable) {
+        // Request PDU to turn on motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_On;
+        sendCAN_VCU_EM_Power_State_Request();
+    } else {
+        // Request PDU to turn off motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_Off;
+        sendCAN_VCU_EM_Power_State_Request();
+    }
+
     return HAL_OK;
 }
