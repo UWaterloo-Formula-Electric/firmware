@@ -440,6 +440,38 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t setInverterCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+    } else {
+        COMMAND_OUTPUT("Unknown parameter\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Turning inverter %s\n", onOff?"on":"off");
+    
+    if(sendInverter(onOff) != HAL_OK) {
+        ERROR_PRINT("Command failed");
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setInverterCommandDefinition =
+{
+    "setInverter",
+    "setInverter <on|off>:\r\n  Sends a CAN command to the PCU to turn on/off the inverter\r\n",
+    setInverterCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -497,6 +529,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setInverterCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

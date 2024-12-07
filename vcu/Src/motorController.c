@@ -176,3 +176,33 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
 
     return HAL_OK;
 }
+
+HAL_StatusTypeDef sendInverter(bool enable) {
+    
+    // ON  command   ON  status   turn off
+    // ON  command   OFF status   turn on
+    // OFF command   ON  status   turn off
+    // OFF command   OFF status   turn off 
+
+    if(enable && fsmGetState(&fsmHandle) == STATE_EM_Enable) {
+        ERROR_PRINT("Unexpected Input: Inverter is already on... Turning off Inverter\n");
+        
+        // Request PDU to turn off motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_Off;
+        sendCAN_VCU_EM_Power_State_Request();
+
+        return HAL_ERROR;
+    }
+
+    if(enable) {
+        // Request PDU to turn on motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_On;
+        sendCAN_VCU_EM_Power_State_Request();
+    } else {
+        // Request PDU to turn off motor controllers
+        EM_Power_State_Request = EM_Power_State_Request_Off;
+        sendCAN_VCU_EM_Power_State_Request();
+    }
+
+    return HAL_OK;
+}
