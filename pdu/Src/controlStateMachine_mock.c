@@ -4,11 +4,11 @@
 #include "string.h"
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
-#include "sensors.h"
+#include "lvMeasure.h"
+#include "loadSensor.h"
 #include "canReceive.h"
 #include "pdu_can.h"
 
-extern uint32_t ADC_3_Buffer[NUM_PDU_CHANNELS];
 extern volatile uint8_t acc_fan_command_override;
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
@@ -29,17 +29,14 @@ static const CLI_Command_Definition_t debugUartOverCanCommandDefinition =
 BaseType_t getChannelCurrents(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    // TODO: Add this once Rijin is done
-    // for (int i = 0; i < NUM_PDU_CHANNELS; i++) {
-    //     DEBUG_PRINT("Channel %s: %f A\n",channelNames[i], readChannelCurrent(i));
-    // }
-
+    printChannelCurrent();
     return pdFALSE;
 }
+
 static const CLI_Command_Definition_t getChannelCurrentsCommandDefinition =
 {
     "getChannels",
-    "getChannels:\r\n Print all channels voltages/currents\r\n",
+    "getChannels:\r\n Print all channels currents\r\n",
     getChannelCurrents,
     0,
 };
@@ -47,14 +44,48 @@ static const CLI_Command_Definition_t getChannelCurrentsCommandDefinition =
 BaseType_t getChannelsRaw(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    printRawADCVals();
+    printRawChannelADCVals();
     return pdFALSE;
 }
+
 static const CLI_Command_Definition_t getChannelsRawDefinition =
 {
     "adcRaw",
     "adcRaw:\r\n Print all channels raw adc values\r\n",
     getChannelsRaw,
+    0,
+};
+
+BaseType_t getBusMeasurements(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    for (int i = 0; i < NUM_ADC1_CHANNELS; i++) {
+        DEBUG_PRINT("%s: %f\r\n", diagnosticChannelNames[i], busResults.busMeas_a[i]);
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getBusMeasurementCommandDefinition =
+{
+    "getBusMeas",
+    "getBusMeas:\r\n Print all voltages/currents on the bus\r\n",
+    getBusMeasurements,
+    0,
+};
+
+BaseType_t getBusRaw(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    printRawADCVals();
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getBusRawDefinition =
+{
+    "busRaw",
+    "busRaw:\r\n Print all the raw ADC values for the bus measurements\r\n",
+    getBusRaw,
     0,
 };
 
@@ -78,7 +109,7 @@ BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
     sscanf(currentParam, "%f", &current);
     COMMAND_OUTPUT("Channel %d current = %f A\n", channelIdx, current);
 
-    // ADC_3_Buffer[channelIdx] = current * ADC_TO_AMPS_DIVIDER; // TODO: either read from CAN message or an array
+    // rawADC3Buffer[channelIdx] = current * ADC3_TO_AMPS_DIVIDER; // TODO: either read from CAN message or an array
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setChannelCurrentCommandDefinition =
@@ -100,8 +131,7 @@ BaseType_t setBusVoltage(char *writeBuffer, size_t writeBufferLength,
     sscanf(voltageParam, "%f", &voltage);
     COMMAND_OUTPUT("Bus voltage = %f V\n", voltage);
 
-    // TODO: fix this
-    // ADC_Buffer[LV_Voltage] = voltage * ADC_TO_VOLTS_DIVIDER;
+    ADC1_Buffer[V_Main_Channel] = voltage * ADC1_TO_VOLTS_DIVIDER;
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setBusVoltageCommandDefinition =
@@ -126,8 +156,7 @@ static const CLI_Command_Definition_t criticalCommandDefinition =
     0 /* Number of parameters */
 };
 
-
-BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
+BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     BaseType_t paramLen;
@@ -149,57 +178,97 @@ BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Turning BMU %s\n", onOff?"on":"off");
         if (onOff) {
             BMU_EN;
+            StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
         } else {
             BMU_DISABLE;
+            StatusPowerBMU = StatusPowerBMU_CHANNEL_OFF;
         }
     } else if (STR_EQ(boardParam, "CDU", paramLen)) {
         COMMAND_OUTPUT("Turning DCU %s\n", onOff?"on":"off");
         if (onOff) {
             CDU_EN;
+            StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
         } else {
             CDU_DISABLE;
+            StatusPowerCDU = StatusPowerCDU_CHANNEL_OFF;
         }
     } else if (STR_EQ(boardParam, "TCU", paramLen)) {
         COMMAND_OUTPUT("Turning TCU %s\n", onOff?"on":"off");
         if (onOff) {
             TCU_EN;
+            StatusPowerTCU = StatusPowerTCU_CHANNEL_ON;
         } else {
             TCU_DISABLE;
+            StatusPowerTCU = StatusPowerTCU_CHANNEL_OFF;
         }
     } else if (STR_EQ(boardParam, "WSB", paramLen)) {
         COMMAND_OUTPUT("Turning ALL WSB %s\n", onOff?"on":"off");
         if (onOff) {
             WSB_EN;
+            StatusPowerWSB = StatusPowerWSB_CHANNEL_ON;
         } else {
             WSB_DISABLE;
+            StatusPowerWSB = StatusPowerWSB_CHANNEL_OFF;
         }
     } else if (STR_EQ(boardParam, "ALL", paramLen)) {
         COMMAND_OUTPUT("Turning ALL %s\n", onOff?"on":"off");
         if (onOff) {
-            CDU_EN;
-            TCU_EN;
-            WSB_EN;
-            BMU_EN;
+            turnBoardsOn();
         } else {
-            CDU_DISABLE;
-            BMU_DISABLE;
-            WSB_DISABLE;
-            TCU_DISABLE;
+            turnBoardsOff();
         }
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
     }
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t boardEnableCommandDefinition =
+{
+    "board",
+    "board <BMU|CDU|TCU|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
+    boardEnableCommand,
+    2 /* Number of parameters */
+};
+
+BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    bool onOff = false;
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        onOff = true;
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        onOff = false;
+    } else {
+        COMMAND_OUTPUT("Unknown parameter\n");
+        return pdFALSE;
+    }
+
+    int channel;
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    sscanf(selectionParam, "%u", &channel);
+
+    toggleChannel(channel, onOff);
 
     return pdFALSE;
 }
 
 static const CLI_Command_Definition_t channelEnableCommandDefinition =
 {
-    "board",
-    "board <BMU|CDU|TCU|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
+    "channel",
+    "channel <0-13> <on|off>:\r\n  Turn on/off channel\r\n",
     channelEnableCommand,
     2 /* Number of parameters */
 };
+
 
 BaseType_t mockEMEnableDisable(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -308,25 +377,35 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
             ACC_FANS_DISABLE;
             RADIATOR_DISABLE;
             acc_fan_command_override = 0;
+            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_OFF;
+            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_OFF; 
             break;
         case 1:
             DEBUG_PRINT("Turning radiator fan on!\r\n");
             RADIATOR_EN;
+            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_ON;
             break;
         case 2:
             DEBUG_PRINT("Turning accumulator fans on!\r\n");
             acc_fan_command_override = 1;
             ACC_FANS_EN;
+            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_ON;
             break;
         case 3:
             DEBUG_PRINT("Turning all fans on!\r\n");
             acc_fan_command_override = 1;
             ACC_FANS_EN;
             RADIATOR_EN;
+            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_ON;
+            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_ON;
             break;
         default:
             DEBUG_PRINT("Error: reached default case in controlFans!\r\n");
             break;
+    }
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
     }
 
     return pdFALSE;
@@ -352,19 +431,27 @@ BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
     if (selection & 0x1)
 	{
 		PUMP_1_EN;
+        StatusPowerCoolingPump1 = StatusPowerCoolingPump1_CHANNEL_ON; 
 	}
 	else
 	{
 		PUMP_1_DISABLE;
+        StatusPowerCoolingPump1 = StatusPowerCoolingPump1_CHANNEL_OFF; 
 	}
 	if (selection & 0x2)
 	{
 		PUMP_2_EN;
+        StatusPowerCoolingPump2 = StatusPowerCoolingPump2_CHANNEL_ON; 
 	}
 	else
 	{
 		PUMP_2_DISABLE;
+        StatusPowerCoolingPump2 = StatusPowerCoolingPump2_CHANNEL_OFF; 
 	}
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t controlPumpsCommandDefinition =
@@ -388,12 +475,17 @@ BaseType_t invEnable(char *writeBuffer, size_t writeBufferLength,
     if (selection == 1)
 	{
 		INVERTER_EN;
+        StatusPowerInverter = StatusPowerInverter_CHANNEL_ON;
 	}
 	else if (selection == 0)
 	{
 		INVERTER_DISABLE;
+        StatusPowerInverter = StatusPowerInverter_CHANNEL_OFF;
 	}
 
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t invEnableCommandDefinition =
@@ -455,16 +547,44 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
     switch (channel)
     {
         case 1:
-            if (power) { AUX_1_EN; } else { AUX_1_DISABLE; }
+            if (power) { 
+                AUX_1_EN;
+                StatusPowerAux1 = StatusPowerAux1_CHANNEL_ON;  
+            } else { 
+                AUX_1_DISABLE;
+                StatusPowerAux1 = StatusPowerAux1_CHANNEL_OFF;  
+            }
         case 2:
-            if (power) { AUX_2_EN; } else { AUX_2_DISABLE; }
+            if (power) {
+                AUX_2_EN; 
+                StatusPowerAux2 = StatusPowerAux2_CHANNEL_ON;  
+            } else {
+                AUX_2_DISABLE;
+                StatusPowerAux2 = StatusPowerAux2_CHANNEL_OFF;  
+            }
         case 3:
-            if (power) { AUX_3_EN; } else { AUX_3_DISABLE; }
+            if (power) {
+                AUX_3_EN; 
+                StatusPowerAux3 = StatusPowerAux3_CHANNEL_ON;  
+            } else {
+                AUX_3_DISABLE;
+                StatusPowerAux3 = StatusPowerAux3_CHANNEL_OFF;  
+            }
         case 4:
-            if (power) { AUX_4_EN; } else { AUX_4_DISABLE; }
+            if (power) {
+                AUX_4_EN; 
+                StatusPowerAux4 = StatusPowerAux4_CHANNEL_ON;  
+            } else {
+                AUX_4_DISABLE;
+                StatusPowerAux4 = StatusPowerAux4_CHANNEL_OFF;  
+            }
         default:
             DEBUG_PRINT("Error: reached default case in auxEnable!\r\n");
             break;
+    }
+
+    if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
+        ERROR_PRINT("Failed to send pdu channel status CAN message\n");
     }
 
     return pdFALSE;
@@ -501,6 +621,9 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&testOutputCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&boardEnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&channelEnableCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -525,5 +648,12 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&auxEnableCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&getBusRawDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getBusMeasurementCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }
