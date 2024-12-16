@@ -7,7 +7,7 @@
 #include "driver/ledc.h"
 #include "esp_err.h"
 #include "../Inc/userInit.h"
-#include "dac.h"
+#include "../Inc/dac.h"
 #include "canReceive.h"
 #include "../Inc/processCAN.h"
 
@@ -49,7 +49,11 @@ esp_err_t processFL(twai_message_t* can_msg) {
 
     brake_ir_voltage = bytes[1] << 8;
     brake_ir_voltage |= bytes[0];
-    //todo: set voltage (blocked)
+
+    if (set_dac_voltage(&brake_ir_handle, brake_ir_voltage) != ESP_OK) {
+        printf("brake ir voltage not set");
+        return ESP_FAIL;
+    }
 
     return ESP_OK;
 }
@@ -78,8 +82,12 @@ esp_err_t processRR(twai_message_t* can_msg) {
 
     brake_ir_voltage = bytes[1] << 8;
     brake_ir_voltage |= bytes[0];
-    //todo: set voltage (blocked)
     hall_effect_freq = bytes[2];
+
+    if (set_dac_voltage(&brake_ir_handle, brake_ir_voltage) != ESP_OK) {
+        printf("brake ir voltage not set");
+        return ESP_FAIL;
+    }
 
     if (ledc_set_freq(LEDC_LOW_SPEED_MODE, PwmTimer_HallEff, hall_effect_freq) != ESP_OK) {
         printf("hall effect speed not set");
