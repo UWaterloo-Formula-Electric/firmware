@@ -818,20 +818,6 @@ static const CLI_Command_Definition_t hvdStatusCommandDefinition =
     0 /* Number of parameters */
 };
 
-BaseType_t ilBRBStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("brb IL State %s\n", getIL_BRB_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t ilBRBStatusCommandDefinition =
-{
-    "ilBRBStatus",
-    "ilBRBStatus:\r\n get the status of the IL in to the BMU from the BRBs\r\n",
-    ilBRBStatusCommand,
-    0 /* Number of parameters */
-};
-
 BaseType_t sendCellCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -943,7 +929,7 @@ static const CLI_Command_Definition_t setUnderVoltageLimitCommandDefinition =
 BaseType_t cbrbStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_IL_Status()?"OK":"Fault");
+    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_Status()?"OK":"Fault");
     return pdFALSE;
 }
 
