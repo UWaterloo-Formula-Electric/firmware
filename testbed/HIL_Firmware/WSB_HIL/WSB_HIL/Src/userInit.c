@@ -6,12 +6,14 @@
 #include "freertos/queue.h"
 #include "esp_err.h"
 #include "driver/twai.h"
-#include "driver/spi_master.h"
 #include "driver/ledc.h"
+#include "driver/dac_oneshot.h"
 #include "../Inc/userInit.h"
-#include "dac.h"
+#include "../Inc/dac.h"
 #include "canReceive.h"
 #include "../Inc/processCAN.h"
+
+dac_oneshot_handle_t brake_ir_handle;
 
 void taskRegister (void) {
     BaseType_t xReturned = pdPASS;
@@ -96,7 +98,22 @@ esp_err_t CAN_init (void) {
 
 }
 
-esp_err_t spi_init(void) {
+esp_err_t dac_init(void) {
+    memset(&brake_ir_handle, 0, sizeof(dac_oneshot_handle_t));
+
+    dac_oneshot_config_t brake_ir = {
+            .chan_id = DAC_CHAN_BRAKE_IR,
+    };
+
+    if (dac_oneshot_new_channel(&brake_ir, &brake_ir_handle) != ESP_OK) {
+        printf("failed to add brakeir DAC to bus");
+        return ESP_FAIL;
+    }
+
+    if (set_dac_voltage(&brake_ir_handle, 0) != ESP_OK) {
+        printf("failed to set DAC");
+        return ESP_FAIL;
+    }
     return ESP_OK;
 }
 
@@ -134,7 +151,7 @@ esp_err_t pwm_init() {
 
 void app_main(void)
 {
-    spi_init();
+    dac_init();
     pwm_init();
     CAN_init();
     taskRegister();
