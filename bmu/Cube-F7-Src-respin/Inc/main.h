@@ -143,8 +143,6 @@ void Error_Handler(void);
 #define TACH_3_GPIO_Port GPIOD
 #define TACH_4_Pin GPIO_PIN_15
 #define TACH_4_GPIO_Port GPIOD
-#define IMD_STATUS_Pin GPIO_PIN_7
-#define IMD_STATUS_GPIO_Port GPIOC
 #define IMD_SENSE_Pin GPIO_PIN_8
 #define IMD_SENSE_GPIO_Port GPIOC
 #define TACH_5_Pin GPIO_PIN_8
@@ -153,8 +151,8 @@ void Error_Handler(void);
 #define TACH_6_GPIO_Port GPIOA
 #define TACH_7_Pin GPIO_PIN_10
 #define TACH_7_GPIO_Port GPIOA
-#define HW_CHECK_Pin GPIO_PIN_15
-#define HW_CHECK_GPIO_Port GPIOA
+#define HW_CHECK_PWM_Pin GPIO_PIN_15
+#define HW_CHECK_PWM_GPIO_Port GPIOA
 #define COCKPIT_BRB_SENSE_Pin GPIO_PIN_0
 #define COCKPIT_BRB_SENSE_GPIO_Port GPIOD
 #define CONT_PRE_Pin GPIO_PIN_1
