@@ -30,6 +30,13 @@ static uint16_t byte_3 = 0U;
 ************ Function Definitions **************
 ************************************************/
 
+//UNTESTED
+int calcFanTachFreq(int rpm){
+    // Send PWM signal to BMU (0-150Hz. Freq = 1/((60/rpm)/2) with max rpm 4500 as per datasheet)
+    return 1.0/((60.0/float(rpm))/2.0);
+}
+
+//UNTESTED
 //Dealing with CAN inputs. Take instructions from computer and set outputs.
 // void BMU_HIL_process_rx_task (void * pvParameters)
 // {

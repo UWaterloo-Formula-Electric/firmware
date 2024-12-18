@@ -11,6 +11,8 @@
 #include "dac.h"
 #include "canReceive.h"
 #include "processCAN.h"
+#include "driver/ledc.h" //For generating PWM
+#include "hal/ledc_types.h"
 
 spi_device_handle_t throttle_A;
 spi_device_handle_t throttle_B;
@@ -213,6 +215,26 @@ esp_err_t spi_init(void)
         printf("failed to init brake pres raw DAC\r\n");
         return ESP_FAIL;
     }
+
+    return ESP_OK;
+}
+
+
+//PWM Pin Initialization
+esp_err_t PWM_init(void)
+{
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode       = LEDC_MODE,        // High-speed mode
+        .timer_num        = LEDC_TIMER,      // Timer index
+        .duty_resolution  = LEDC_TIMER_13_BIT, // Duty cycle resolution (2^13 levels)
+        .freq_hz          = LEDC_FREQUENCY, // Frequency in Hz
+        .clk_cfg          = LEDC_AUTO_CLK   // Automatically select clock source
+    };
+
+    esp_err_t ret = ledc_timer_config(&ledc_timer);
+    if (ret != ESP_OK) {
+        printf("LEDC timer configuration failed: %s\n", esp_err_to_name(ret));
+        return ESP_FAIL;
 
     return ESP_OK;
 }

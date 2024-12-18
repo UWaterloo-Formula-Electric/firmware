@@ -43,11 +43,14 @@
 #define IMD_RESET_PRESS_PIN   GPIO_NUM_3
 
 #define IMD_STATUS_PIN        GPIO_NUM_9
+#define IMD_STATUS_TIMER      1
+#define IMD_STATUS_FREQ       20E6
 #define IMD_FAULT_PIN         GPIO_NUM_10
 
 #define DCDC_ON_PIN           GPIO_NUM_34
 
-#define FAN_TACH_PIN          GPIO_NUM_2
+#define FAN_TACH_PIN          GPIO_NUM_2 //Good for pwm
+#define FAN_TACH_TIMER        0
 #define FAN_PWM_PIN           GPIO_NUM_1
 
 #define HVD_PIN               GPIO_NUM_11
@@ -57,6 +60,9 @@
 
 #define CONT_NEG_PIN          GPIO_NUM_37
 #define CONT_POS_PIN          GPIO_NUM_40
+
+#define RMT_RX_CHANNEL RMT_CHANNEL_0  // RMT channel for measuring duty cycle on FAN PWM
+
 
 /***********************************
 ***** FUNCTION DECLARATIONS ********

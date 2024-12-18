@@ -13,6 +13,8 @@
 #include "esp_err.h"
 #include "driver/twai.h"
 #include "driver/spi_master.h"
+#include "driver/rmt.h"
+#include "esp_log.h"
 
 // Inter-Component Includes
 #include "canReceive.h"
@@ -35,39 +37,75 @@ spi_device_handle_t hv_shunt_neg;
 // uses seperate isoSPI bus
 spi_device_handle_t ams;
 
+//Title of RMT log for fan PWM
+static const char *TAG = "RMT_DUTY_CYCLE";
+
 /***********************************
 ***** FUNCTION DEFINITIONS *********
 ************************************/ 
-int x=0;
-int y=0;
-int z=0;
 
+//TESTED: For testing if GPIO pins work. Can also be used for other stuff later on.
 void set_level_task (void * pvParameters){
     printf("Task Running\r\n");
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while(1){
-        gpio_set_level(AMS_RESET_PRESS_PIN,1);
-        gpio_set_level(IMD_RESET_PRESS_PIN,1);
-        gpio_set_level(BPSD_RESET_PRESS_PIN,1);
-        gpio_set_level(CBRB_PRESS_PIN,1);
-        gpio_set_level(IL_CLOSE_PIN,1);
-        gpio_set_level(HVD_PIN,1);
-        gpio_set_level(TSMS_FAULT_PIN,1);
-        gpio_set_level(IMD_FAULT_PIN,1);
-        gpio_set_level(IMD_STATUS_PIN,1);
-        gpio_set_level(FAN_TACH_PIN,1);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
-        gpio_set_level(AMS_RESET_PRESS_PIN,0);
-        gpio_set_level(IMD_RESET_PRESS_PIN,0);
-        gpio_set_level(BPSD_RESET_PRESS_PIN,0);
-        gpio_set_level(CBRB_PRESS_PIN,0);
-        gpio_set_level(IL_CLOSE_PIN,0);
-        gpio_set_level(HVD_PIN,0);
-        gpio_set_level(TSMS_FAULT_PIN,0);
-        gpio_set_level(IMD_FAULT_PIN,0);
-        gpio_set_level(IMD_STATUS_PIN,0);
-        gpio_set_level(FAN_TACH_PIN,0);
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        // gpio_set_level(AMS_RESET_PRESS_PIN,1);
+        // gpio_set_level(IMD_RESET_PRESS_PIN,1);
+        // gpio_set_level(BPSD_RESET_PRESS_PIN,1);
+        // gpio_set_level(CBRB_PRESS_PIN,1);
+        // gpio_set_level(IL_CLOSE_PIN,1);
+        // gpio_set_level(HVD_PIN,1);
+        // gpio_set_level(TSMS_FAULT_PIN,1);
+        // gpio_set_level(IMD_FAULT_PIN,1);
+        // gpio_set_level(IMD_STATUS_PIN,1);
+        // gpio_set_level(FAN_TACH_PIN,1);
+        // vTaskDelay(1000/portTICK_PERIOD_MS);
+        // gpio_set_level(AMS_RESET_PRESS_PIN,0);
+        // gpio_set_level(IMD_RESET_PRESS_PIN,0);
+        // gpio_set_level(BPSD_RESET_PRESS_PIN,0);
+        // gpio_set_level(CBRB_PRESS_PIN,0);
+        // gpio_set_level(IL_CLOSE_PIN,0);
+        // gpio_set_level(HVD_PIN,0);
+        // gpio_set_level(TSMS_FAULT_PIN,0);
+        // gpio_set_level(IMD_FAULT_PIN,0);
+        // gpio_set_level(IMD_STATUS_PIN,0);
+        // gpio_set_level(FAN_TACH_PIN,0);
+        // vTaskDelay(1000/portTICK_PERIOD_MS);
+    }
+}
+
+//UNTESTED: got straight from chatgpt
+void readFanPWMTask(){
+    printf("FANPWM Task Running\r\n");
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+     while (1) {
+        // Get captured RMT items
+        size_t length = 0;
+        ESP_ERROR_CHECK(rmt_get_ringbuf_handle(RMT_RX_CHANNEL, NULL));
+        int rx_items = rmt_read_items(RMT_RX_CHANNEL, items, 64, pdMS_TO_TICKS(100));
+
+        if (rx_items > 0) {
+            // Analyze the pulse durations
+            uint32_t high_time = 0, low_time = 0;
+
+            for (int i = 0; i < rx_items; i++) {
+                if (items[i].level0 == 1) {
+                    high_time = items[i].duration0;
+                    low_time = items[i].duration1;
+                    break;  // We only need one full cycle for duty cycle calculation
+                }
+            }
+
+            if (high_time + low_time > 0) {
+                float duty_cycle = (float)high_time / (high_time + low_time) * 100.0f;
+                ESP_LOGI(TAG, "High time: %uus, Low time: %uus, Duty Cycle: %.2f%%", 
+                         high_time, low_time, duty_cycle);
+            } else {
+                ESP_LOGW(TAG, "Invalid signal detected!");
+            }
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));  // Poll every 500 ms
     }
 }
 
@@ -109,9 +147,9 @@ void taskRegister (void)
 //         }
 //     }
 
-//Create random set level task
+//Create fan PWM task to read fan PWM duty cycle every now and then
     xReturned = xTaskCreate(
-        set_level_task,
+        readFanPWMTask,
         "SET_LEVEL_TASK",
         4000,
         ( void * ) NULL,
@@ -123,7 +161,7 @@ void taskRegister (void)
     {
         while(1)
         {
-            printf("Failed to register set_level_task to RTOS");
+            printf("Failed to register readFanPWMTask to RTOS");
         }
     }
 
@@ -149,6 +187,8 @@ void taskRegister (void)
     //TODO: Output status
 }
 
+
+//UNTESTED
 esp_err_t CAN_init (void)
 {
 //     memset(&rx_msg, 0, sizeof(twai_message_t));
@@ -215,6 +255,7 @@ esp_err_t CAN_init (void)
     return ESP_OK;
 }
 
+//UNTESTED
 esp_err_t SPI_init(void)
 {
     // printf("Initializing SPI bus\r\n");
@@ -362,6 +403,80 @@ esp_err_t SPI_init(void)
     return ESP_OK;
 }
 
+//UNTESTED: PWM Pins
+esp_err_t PWM_init(void)
+{
+    //CONFIGURE PWM TIMERS
+    ledc_timer_config_t fanTach_timer = {
+        .speed_mode       = LEDC_LOW_SPEED_MODE, //Low Speed mode, only doing 60Hz
+        .timer_num        = FAN_TACH_TIMER,      // Timer index
+        .duty_resolution  = LEDC_TIMER_13_BIT, // Duty cycle resolution (2^13 levels)
+        .freq_hz          = 0, // Frequency in Hz
+        .clk_cfg          = LEDC_APB_CLK   // Using 80MHz reference tick
+    };
+
+    ledc_timer_config_t IMDStatus_timer = {
+        .speed_mode       = LEDC_HIGH_SPEED_MODE, //Low Speed mode, only doing 60Hz
+        .timer_num        = IMD_STATUS_TIMER,      // Timer index
+        .duty_resolution  = LEDC_TIMER_13_BIT, // Duty cycle resolution (2^13 levels)
+        .freq_hz          = IMD_STATUS_FREQ, // 9 to 55 MHz
+        .clk_cfg          = LEDC_APB_CLK   // Using 80MHz reference tick
+    };
+
+    esp_err_t ret  =  led_timer_config(&fanTach_timer);
+    if (ret != ESP_OK) {
+        printf("fanTach timer configuration failed: %s\n", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+
+    ret  =  led_timer_config(&IMDStatus_timer);
+    if (ret != ESP_OK) {
+        printf("IMDStatus timer configuration failed: %s\n", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+
+    //CONFIGURE PWM CHANNELS
+    ledc_channel_config_t fanTach_channel = {
+        .gpio_num       = FAN_TACH_PIN,   // Output GPIO
+        .speed_mode     = LEDC_LOW_SPEED_MODE, //Low speed mode
+        .channel        = 0,    // LEDC Channel index
+        .intr_type      = LEDC_INTR_DISABLE,
+        .timer_sel      = FAN_TACH_TIMER,      // Use the configured timer
+        .duty           = 50,      // Initial duty cycle and will keep constant DC (50%)
+        //Unsure if highpoint needed. Time when output first latched ON
+    };
+
+    ledc_channel_config_t IMDStatus_channel = {
+        .gpio_num       = IMD_STATUS_PIN,   // Output GPIO
+        .speed_mode     = LEDC_HIGH_SPEED_MODE, //Low speed mode
+        .channel        = 1,    // LEDC Channel index
+        .intr_type      = LEDC_INTR_DISABLE,
+        .timer_sel      = IMD_STATUS_TIMER,      // Use the configured timer
+        .duty           = 0,      //Want to keep 0Hz duty cycle at the start
+        //Unsure if highpoint needed. Time when output first latched ON
+    };
+
+    ret = ledc_channel_config(&fanTach_channel);
+    if (ret != ESP_OK) {
+        printf("fanTach channel configuration failed: %s\n", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+
+    ret = ledc_channel_config(&IMDStatus_channel);
+    if (ret != ESP_OK) {
+        printf("IMDStatus channel configuration failed: %s\n", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+
+    //SET INITIAL PWM VALUES
+    ledc_set_freq(LEDC_LOW_SPEED_MODE, FAN_TACH_TIMER, 0); //Set FAN_TACH_PIN PWM to 0Hz frequency (fan is going 0 rpm)
+    ledc_set_duty(LEDC_HIGH_SPEED_MODE, IMD_STATUS_TIMER, 0); //Set IMDStatus PWM to 0% duty cycle.
+    ledc_update_duty(LEDC_HIGH_SPEED_MODE, IMD_STATUS_TIMER); //Update the duty cycle on the line, must be called after set
+
+    return ESP_OK;
+}
+
+//TESTED: WORKS. GPIO Pins are able to be setup and initialized
 esp_err_t GPIO_init (void)
 {
     //SET DIRECTIONS
@@ -385,11 +500,8 @@ esp_err_t GPIO_init (void)
 
     //IMD
     gpio_set_direction(IMD_FAULT_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_direction(IMD_STATUS_PIN, GPIO_MODE_OUTPUT);
 
-    //Fan
-    gpio_set_direction(FAN_PWM_PIN, GPIO_MODE_INPUT); //Will be measuring duty cycle (BMU sends 0-100% at 88Hz as defined by datasheet)
-    gpio_set_direction(FAN_TACH_PIN, GPIO_MODE_OUTPUT); 
+    //Fan: N/A
     
     //INITIALIZE OUTPUTS
     gpio_set_level(CBRB_PRESS_PIN,0);
@@ -402,17 +514,37 @@ esp_err_t GPIO_init (void)
     gpio_set_level(BPSD_RESET_PRESS_PIN,1);
 
     gpio_set_level(IMD_FAULT_PIN,0); //Set to HIGH to signify fault. Using open drain, BMU recognizes 0V as a fault.
-    gpio_set_level(IMD_STATUS_PIN,0); //TODO: PWM Signal 9MHz to 55MHz with duty cycle of 0-100%
-
-    gpio_set_level(FAN_TACH_PIN,0); //TODO: Send PWM signal to BMU (0-150Hz. Freq = 1/((60/rpm)/2) with max rpm 4500 as per datasheet)
 
     return ESP_OK;
+}
+
+//UNTESTED: Slightly modified from GPT
+esp_err_t RMT_Init(void){
+    // RMT receiver configuration
+    //Will be measuring duty cycle (BMU sends 0-100% at 88Hz as defined by datasheet)
+    rmt_config_t rmt_rx_config = {
+        .rmt_mode = RMT_MODE_RX,
+        .channel = RMT_RX_CHANNEL,
+        .gpio_num = FAN_PWM_PIN,
+        .clk_div = 80,  //Clock divider for 1µs resolution (80 MHz / 80 = 1 MHz)
+        .mem_block_num = 1,
+        .flags = 0,
+    };
+    ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
+    ESP_ERROR_CHECK(rmt_driver_install(RMT_RX_CHANNEL, 1000, 0));
+
+    // Enable RMT receiver
+    ESP_ERROR_CHECK(rmt_rx_start(RMT_RX_CHANNEL, true));
+
+    // Buffer for capturing RMT items
+    rmt_item32_t items[64];  // Adjust size as needed
 }
 
 void app_main(void)
 {
     // CAN_init();
     // SPI_init();
+    PWM_Init();
     GPIO_init();
     taskRegister();
 }
