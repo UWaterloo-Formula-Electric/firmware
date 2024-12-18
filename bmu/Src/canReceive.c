@@ -14,6 +14,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "boardTypes.h"
+#include "batteries.h"
 
 #include "controlStateMachine.h"
 
@@ -23,6 +24,9 @@
 #include "task.h"
 #include "cmsis_os.h"
 
+static float Vbus = 0.0f;
+static float Vbatt = 0.0f;
+static float Ibus = 0.0f;
 
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
@@ -69,4 +73,25 @@ void CAN_Msg_ChargeCart_ButtonEvents_Callback()
 void CAN_Msg_UartOverCanConfig_Callback()
 {
 	isUartOverCanEnabled = UartOverCanConfigSignal & 0x2;	
+}
+
+void CAN_Msg_IVT_Result_U1_Callback()
+{
+    Vbus = IVT_U1;
+    Vbus /= 1000.0f; //IVT module gives voltage in mV
+    publishBusVoltage(&Vbus);
+}
+
+void CAN_Msg_IVT_Result_U2_Callback()
+{
+    Vbatt = IVT_U2;
+    Vbatt /= 1000.0f; //IVT module gives voltage in mV
+    publishBattVoltage(&Vbatt);
+}
+
+void CAN_Msg_IVT_Result_I_Callback()
+{
+    Ibus = IVT_I;
+    Ibus /= 1000.0f; //IVT module gives current in mA
+    publishBusCurrent(&Ibus);
 }

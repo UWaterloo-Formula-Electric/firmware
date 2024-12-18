@@ -336,7 +336,7 @@ void faultMonitorTask(void *pvParameters)
 		
 		if ((!hvd_ok) || (!il_ok && cbrb_ok)) {
 			ERROR_PRINT("Fault Monitor: IL broken!\n");
-			BMU_checkFailed = IL_FAILED_BIT;
+			BMU_checkFailed = HW_CHECK_FAILED;
 			sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);

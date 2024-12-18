@@ -748,34 +748,6 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t hvilStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("HVIL State %s\n", getHVIL_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t hvilStatusCommandDefinition =
-{
-    "hvilStatus",
-    "hvilStatus:\r\n get HVIL status\r\n",
-    hvilStatusCommand,
-    0 /* Number of parameters */
-};
-
-BaseType_t ilStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("IL State %s\n", getIL_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t ilStatusCommandDefinition =
-{
-    "ilStatus",
-    "ilStatus:\r\n get IL status\r\n",
-    ilStatusCommand,
-    0 /* Number of parameters */
-};
-
 BaseType_t bspdStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1124,12 +1096,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&hitlPrechargeModeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&hvilStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&ilStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&bspdStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1137,9 +1103,6 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hvdStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&ilBRBStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&sendCellCommandDefinition) != pdPASS) {

@@ -192,54 +192,22 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
  *
  * @return HAL_StatusTypeDef
  */
-HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float *pVBatt)
+HAL_StatusTypeDef publishBusVoltage(float *pVBus)
 {
-   xQueueOverwrite(IBusQueue, pIBus);
-   xQueueOverwrite(VBusQueue, pVBus);
-   xQueueOverwrite(VBattQueue, pVBatt);
-
-   return HAL_OK;
+    xQueueOverwrite(VBusQueue, pVBus);
+    return HAL_OK;
 }
 
-/**
- * @brief Measures HV voltages and currents using the HV ADC
- *
- * @param[out] IBus pointer to the HV bus current measurement (in Amps)
- * @param[out] VBus pointer to the HV bus voltage measurement (in Volts)
- * @param[out] VBatt pointer to the HV battery voltage measurement (in Volts)
- *
- * @return HAL_StatusTypeDef
- */
-HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
+HAL_StatusTypeDef publishBattVoltage(float *pVBatt)
 {
-#if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0.0f; //(0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
-   
-// TODO: Revert back to use shunt over hall once the lid is fixed
-   if (adc_read_current(&IBusTmp) != HAL_OK) {
-      ERROR_PRINT("Error reading IBUS\n");
-      return HAL_ERROR;
-   }
-   
-    (*IBus) = filterIBus(IBusTmp);
-    
-   if (adc_read_v1(VBatt) != HAL_OK) {
-      ERROR_PRINT("Error reading VBUS\n");
-      return HAL_ERROR;
-   }
-   if (adc_read_v2(VBus) != HAL_OK) {
-      ERROR_PRINT("Error reading VBatt\n");
-      return HAL_ERROR;
-   }
-   return HAL_OK;
+    xQueueOverwrite(VBattQueue, pVBatt);
+    return HAL_OK;
+}
 
-#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_HV_MEASURE)
-   // For nucleo, voltages and current can be manually changed via CLI for
-   // testing, so we don't do anything here
-   return HAL_OK;
-#else
-#error Unsupported board type
-#endif
+HAL_StatusTypeDef publishBusCurrent(float *pIBus)
+{
+    xQueueOverwrite(IBusQueue, pIBus);
+    return HAL_OK;
 }
 
 /**
@@ -370,12 +338,6 @@ uint32_t cliGetStateBusHVSendPeriod()
  */
 void HVMeasureTask(void *pvParamaters)
 {
-#if IS_BOARD_F7
-    if (hvadc_init() != HAL_OK)
-    {
-       ERROR_PRINT("Failed to init HV ADC\n");
-    }
-#endif
 
     if (registerTaskToWatch(HV_MEASURE_TASK_ID, 5*pdMS_TO_TICKS(HV_MEASURE_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
@@ -390,14 +352,10 @@ void HVMeasureTask(void *pvParamaters)
     float IBus;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
-        if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
-            ERROR_PRINT("Failed to read bus voltages and current!\n");
-        }
 
-        if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {
-            ERROR_PRINT("Failed to publish bus voltages and current!\n");
-        }
-
+        getIBus(&IBus);
+        getVBus(&VBus);
+        getVBatt(&VBatt);
 
         if (xTaskGetTickCount() - lastStateBusHVSend
             > pdMS_TO_TICKS(StateBusHVSendPeriod))
