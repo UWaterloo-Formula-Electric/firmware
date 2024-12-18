@@ -152,6 +152,9 @@ void clearSendOnlyOneCell();
 HAL_StatusTypeDef cliSetVBatt(float VBatt);
 HAL_StatusTypeDef cliSetVBus(float VBus);
 HAL_StatusTypeDef cliSetIBus(float IBus);
+HAL_StatusTypeDef publishBusVoltage(float *pVBus);
+HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
+HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
 #endif /* end of include guard: BATTERIES_H */

@@ -64,49 +64,49 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
 BO_ 1320 IVT_Result_Wh: 6 IVT
- SG_ IVT_Wh : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_Wh : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1319 IVT_Result_As: 6 IVT
- SG_ IVT_As : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_As : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1318 IVT_Result_W: 6 IVT
- SG_ IVT_W : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_W : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1317 IVT_Result_T: 6 IVT
- SG_ IVT_T : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_T : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1316 IVT_Result_U3: 6 IVT
- SG_ IVT_U3 : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_U3 : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1315 IVT_Result_U2: 6 IVT
- SG_ IVT_U2 : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_U2 : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1314 IVT_Result_U1: 6 IVT
- SG_ IVT_U1 : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_U1 : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1313 IVT_Result_I: 6 IVT
- SG_ IVT_I : 16|32@1- (1,0) [0|0] ""  BMU
+ SG_ IVT_I : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU

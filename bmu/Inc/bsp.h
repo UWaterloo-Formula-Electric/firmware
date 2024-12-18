@@ -44,7 +44,6 @@
 #define CHARGER_CAN_HANDLE hcan1
 #define STATS_TIM_HANDLE htim4
 #define ISO_SPI_HANDLE hspi4
-#define HV_ADC_SPI_HANDLE hspi1
 #define IMD_TIM_HANDLE htim3
 #define IMD_TIM_INSTANCE TIM3
 #define BRAKE_ADC_HANDLE hadc2
