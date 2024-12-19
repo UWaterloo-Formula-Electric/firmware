@@ -104,7 +104,7 @@ BO_ 1315 IVT_Result_U2: 6 IVT
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1314 IVT_Result_U1: 6 IVT
- SG_ IVT_U1 : 16|32@1- (0.001,0) [0|0] ""  BMU
+ SG_ IVT_U1 : 16|32@1- (1,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
@@ -123,7 +123,7 @@ BO_ 1297 IVT_Response: 8 IVT
  SG_ IVT_respByte3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_respByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_respByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_MsgID_RX M : 0|8@1+ (1,0) [0|255] ""  BMU
+ SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1041 IVT_Cmd: 8 BMU
  SG_ IVT_cmdByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -133,7 +133,7 @@ BO_ 1041 IVT_Cmd: 8 BMU
  SG_ IVT_cmdByte4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_MsgID_TX M : 0|8@1+ (1,0) [0|255] ""  IVT
+ SG_ IVT_MsgID_TX : 0|8@1+ (1,0) [0|255] ""  IVT
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
  SG_ INV_Peak_Tractive_Power_kW : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
