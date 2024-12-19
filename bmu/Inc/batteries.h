@@ -13,7 +13,6 @@
 // This is subject to change and is expected to be 100ms
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_CHARGE_TASK_PERIOD_MS 500
-#define BATTERY_TASK_ID 2
 
 /**
  * @defgroup CellConfig

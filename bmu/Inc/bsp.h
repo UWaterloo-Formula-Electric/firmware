@@ -57,7 +57,19 @@
 #define DELAY_TIMER_INSTANCE TIM9
 #define FAN_HANDLE htim12
 #define HW_CHECK_HANDLE htim2
+#define CONT_SENSE_ADC_HANDLE hadc1
 
+typedef enum taskId_e{
+    FSM_TASK_ID = 1,                // 1
+    BATTERY_TASK_ID,                // 2
+    BSPD_SENSE_TASK_ID,             // 3
+    HV_MEASURE_TASK_ID,             // 4
+    IMD_TASK_ID,                    // 5
+    FAULT_TASK_ID,                  // 6
+    SOC_TASK_ID,                    // 7
+    CAN_CELL_SEND_TASK_ID,          // 8
+    CONT_CURRENT_SENSE_TASK_ID,     // 9
+}taskId_e;
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"

@@ -1,0 +1,13 @@
+#ifndef CONTACTOR_CONTROL_H
+#define CONTACTOR_CONTROL_H
+
+#define CONTACTOR_SENSE_PERIOD 500
+
+typedef enum {
+    CONT_NEG_SENSE_INDEX = 0,
+    CONT_POS_SENSE_INDEX,
+    THERMISTOR_INDEX,
+    NUM_CONT_THERMISTOR_INDEX,
+}contactorThermistorIndex_e;
+
+#endif

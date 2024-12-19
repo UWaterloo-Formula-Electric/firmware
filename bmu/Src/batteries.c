@@ -33,6 +33,7 @@
 #include "chargerControl.h"
 #include "state_of_charge.h"
 #include "sense.h"
+#include "bsp.h"
 
 /*
  *
@@ -103,7 +104,6 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
  * HV Measure task Defines and Variables
  */
 #define HV_MEASURE_TASK_PERIOD_MS 1
-#define HV_MEASURE_TASK_ID 4
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
 
@@ -123,7 +123,6 @@ QueueHandle_t AdjustedPackVoltageQueue;
  * IMD Task defines and variables
  */
 #define IMD_TASK_PERIOD_MS 1000
-#define IMD_TASK_ID 5
 
 /// Array is used to store the filtered voltages
 float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
@@ -1535,7 +1534,6 @@ void batteryTask(void *pvParameter)
 
 /// The period to send cell voltage and temperature CAN messages
 #define CAN_CELL_SEND_PERIOD_MS 50
-#define CAN_CELL_SEND_TASK_ID 8
 
 bool sendOneCellVoltAndTemp = false;
 int cellToSend;
