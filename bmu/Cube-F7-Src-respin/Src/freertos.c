@@ -93,6 +93,7 @@ osThreadId canSendCellsHandle;
 osThreadId canSendTaskHandle;
 osThreadId fanHandle;
 osThreadId stateOfChargeHandle;
+osThreadId contCurrentSensHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -114,6 +115,7 @@ extern void canSendCellTask(void const * argument);
 extern void canTask(void const * argument);
 extern void fanTask(void const * argument);
 void socTask(void const * argument);
+extern void contCurrentSenseTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -262,6 +264,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of stateOfCharge */
   osThreadDef(stateOfCharge, socTask, osPriorityNormal, 0, 500);
   stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
+
+  /* definition and creation of contCurrentSens */
+  osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 128);
+  contCurrentSensHandle = osThreadCreate(osThread(contCurrentSens), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
