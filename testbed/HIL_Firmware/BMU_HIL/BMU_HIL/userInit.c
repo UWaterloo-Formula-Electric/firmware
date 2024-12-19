@@ -14,6 +14,8 @@
 #include "driver/twai.h"
 #include "driver/spi_master.h"
 #include "driver/rmt.h"
+#include "driver/rmt_rx.h"
+#include "hal/rmt_types.h"
 #include "esp_log.h"
 
 // Inter-Component Includes
@@ -39,76 +41,76 @@ spi_device_handle_t ams;
 
 //Title of RMT log for fan PWM
 static const char *TAG = "RMT_DUTY_CYCLE";
+float fanDC = 0;
 
 /***********************************
 ***** FUNCTION DEFINITIONS *********
 ************************************/ 
 
-//TESTED: For testing if GPIO pins work. Can also be used for other stuff later on.
-void set_level_task (void * pvParameters){
-    printf("Task Running\r\n");
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    while(1){
-        // gpio_set_level(AMS_RESET_PRESS_PIN,1);
-        // gpio_set_level(IMD_RESET_PRESS_PIN,1);
-        // gpio_set_level(BPSD_RESET_PRESS_PIN,1);
-        // gpio_set_level(CBRB_PRESS_PIN,1);
-        // gpio_set_level(IL_CLOSE_PIN,1);
-        // gpio_set_level(HVD_PIN,1);
-        // gpio_set_level(TSMS_FAULT_PIN,1);
-        // gpio_set_level(IMD_FAULT_PIN,1);
-        // gpio_set_level(IMD_STATUS_PIN,1);
-        // gpio_set_level(FAN_TACH_PIN,1);
-        // vTaskDelay(1000/portTICK_PERIOD_MS);
-        // gpio_set_level(AMS_RESET_PRESS_PIN,0);
-        // gpio_set_level(IMD_RESET_PRESS_PIN,0);
-        // gpio_set_level(BPSD_RESET_PRESS_PIN,0);
-        // gpio_set_level(CBRB_PRESS_PIN,0);
-        // gpio_set_level(IL_CLOSE_PIN,0);
-        // gpio_set_level(HVD_PIN,0);
-        // gpio_set_level(TSMS_FAULT_PIN,0);
-        // gpio_set_level(IMD_FAULT_PIN,0);
-        // gpio_set_level(IMD_STATUS_PIN,0);
-        // gpio_set_level(FAN_TACH_PIN,0);
-        // vTaskDelay(1000/portTICK_PERIOD_MS);
-    }
+//UNTESTED: Using espressif documentation
+esp_err_t RMT_Init(void){
+    // RMT receiver configuration
+    //Will be measuring duty cycle (BMU sends 0-100% at 88Hz as defined by datasheet)
+    rmt_channel_handle_t rx_chan = NULL;
+    rmt_crx_channel_config_t rx_chan_config = {
+        .clk_src = RMT_CLK_SRC_DEFAULT,   // select source clock
+        .resolution_hz = 1 * 1000 * 1000, // 1 MHz tick resolution, i.e., 1 tick = 1 µs
+        .mem_block_symbols = 64,          // memory block size, 64 * 4 = 256 Bytes
+        .gpio_num = FAN_PWM_PIN,          // GPIO number
+        .flags.invert_in = false,         // do not invert input signal
+        .flags.with_dma = false,          // do not need DMA backend
+    };
+    ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_chan_config, &rx_chan));
+
+    // Enable RMT receiver
+    ESP_ERROR_CHECK(rmt_enable(rx_chan));
+
+    QueueHandle_t receive_queue = xQueueCreate(1, sizeof(rmt_rx_done_event_data_t));
+    rmt_rx_event_callbacks_t cbs = {
+        .on_recv_done = example_rmt_rx_done_callback,
+    };
+    ESP_ERROR_CHECK(rmt_rx_register_event_callbacks(rx_channel, &cbs, receive_queue));
+
+    // the following timing requirement is based on NEC protocol
+    rmt_receive_config_t receive_config = {
+        .signal_range_min_ns = 1250,     // the shortest duration for NEC signal is 560 µs, 1250 ns < 560 µs, valid signal is not treated as noise
+        .signal_range_max_ns = 12000000, // the longest duration for NEC signal is 9000 µs, 12000000 ns > 9000 µs, the receive does not stop early
+    };
+
+    return ESP_OK;
 }
 
-//UNTESTED: got straight from chatgpt
+//Callback for when receive is finished.
+static bool example_rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt_rx_done_event_data_t *edata, void *user_data)
+{
+    BaseType_t high_task_wakeup = pdFALSE;
+    QueueHandle_t receive_queue = (QueueHandle_t)user_data;
+    // send the received RMT symbols to the parser task
+    xQueueSendFromISR(receive_queue, edata, &high_task_wakeup);
+    // return whether any task is woken up
+    return high_task_wakeup == pdTRUE;
+}
+
+//UNTESTED: From espressif documentation.
 void readFanPWMTask(){
-    printf("FANPWM Task Running\r\n");
+    printf("RMT Receive Task Running\r\n");
+    //Make sure this task isn't starved, check-in
     TickType_t xLastWakeTime = xTaskGetTickCount();
-     while (1) {
-        // Get captured RMT items
-        size_t length = 0;
-        ESP_ERROR_CHECK(rmt_get_ringbuf_handle(RMT_RX_CHANNEL, NULL));
-        int rx_items = rmt_read_items(RMT_RX_CHANNEL, items, 64, pdMS_TO_TICKS(100));
+    while(1){
+         rmt_symbol_word_t raw_symbols[2]; // 64 symbols should be sufficient for a standard NEC frame
+        //Stores 2 full RMT symbols which should be sufficient for duty cycle:
+        //1 RMT symbol includes duration and level of one value, duration and level of opposite value.
 
-        if (rx_items > 0) {
-            // Analyze the pulse durations
-            uint32_t high_time = 0, low_time = 0;
-
-            for (int i = 0; i < rx_items; i++) {
-                if (items[i].level0 == 1) {
-                    high_time = items[i].duration0;
-                    low_time = items[i].duration1;
-                    break;  // We only need one full cycle for duty cycle calculation
-                }
-            }
-
-            if (high_time + low_time > 0) {
-                float duty_cycle = (float)high_time / (high_time + low_time) * 100.0f;
-                ESP_LOGI(TAG, "High time: %uus, Low time: %uus, Duty Cycle: %.2f%%", 
-                         high_time, low_time, duty_cycle);
-            } else {
-                ESP_LOGW(TAG, "Invalid signal detected!");
-            }
-        }
+        // ready to receive
+        ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
+        // parse the received symbols into
+        example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+        
+        //Add caluclation of duty cycle here
 
         vTaskDelay(pdMS_TO_TICKS(500));  // Poll every 500 ms
     }
 }
-
 
 void taskRegister (void)
 {
@@ -518,33 +520,12 @@ esp_err_t GPIO_init (void)
     return ESP_OK;
 }
 
-//UNTESTED: Slightly modified from GPT
-esp_err_t RMT_Init(void){
-    // RMT receiver configuration
-    //Will be measuring duty cycle (BMU sends 0-100% at 88Hz as defined by datasheet)
-    rmt_config_t rmt_rx_config = {
-        .rmt_mode = RMT_MODE_RX,
-        .channel = RMT_RX_CHANNEL,
-        .gpio_num = FAN_PWM_PIN,
-        .clk_div = 80,  //Clock divider for 1µs resolution (80 MHz / 80 = 1 MHz)
-        .mem_block_num = 1,
-        .flags = 0,
-    };
-    ESP_ERROR_CHECK(rmt_config(&rmt_rx_config));
-    ESP_ERROR_CHECK(rmt_driver_install(RMT_RX_CHANNEL, 1000, 0));
-
-    // Enable RMT receiver
-    ESP_ERROR_CHECK(rmt_rx_start(RMT_RX_CHANNEL, true));
-
-    // Buffer for capturing RMT items
-    rmt_item32_t items[64];  // Adjust size as needed
-}
-
 void app_main(void)
 {
     // CAN_init();
     // SPI_init();
     PWM_Init();
+    RMT_Init();
     GPIO_init();
     taskRegister();
 }
