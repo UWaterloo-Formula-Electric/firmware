@@ -129,8 +129,8 @@ BO_ 1041 IVT_Cmd: 8 BMU
  SG_ IVT_cmdByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_cmdByte3 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_cmdByte4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_MsgID_TX M : 0|8@1+ (1,0) [0|255] ""  IVT
