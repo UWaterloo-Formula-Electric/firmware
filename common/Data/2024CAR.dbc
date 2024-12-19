@@ -63,6 +63,10 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 2282360577 BMU_contactorCurrent: 2 BMU
+ SG_ negContCurrent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ posContCurrent : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
 BO_ 1320 IVT_Result_Wh: 6 IVT
  SG_ IVT_Wh : 16|32@1- (0.001,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
@@ -112,9 +116,23 @@ BO_ 1313 IVT_Result_I: 6 IVT
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1297 IVT_Response: 8 IVT
+ SG_ IVT_respByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_MsgID_RX M : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1041 IVT_Cmd: 8 BMU
+ SG_ IVT_cmdByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte3 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte4 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_cmdByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_MsgID_TX M : 0|8@1+ (1,0) [0|255] ""  IVT
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
