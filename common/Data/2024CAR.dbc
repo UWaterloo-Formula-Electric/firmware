@@ -33,7 +33,7 @@ NS_ :
 
 BS_:
 
-BU_: IVT VCU_BeagleBone DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart INV
+BU_: IMD IVT VCU_BeagleBone DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart INV
 VAL_TABLE_ BMS_State 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_TABLE_ Contactor 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
 VAL_TABLE_ DCDC_State 3 "Error" 2 "On" 1 "Off" 0 "Invalid" ;
@@ -62,6 +62,13 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_PWM_Freq : 0|16@1+ (1,0) [0|24] "frequency:kHz" Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2566849012 IMD_Info_General: 7 Vector__XXX
+ SG_ IMD_Device_activity : 48|8@1- (1,0) [0|0] ""  BMU
+ SG_ IMD_Faults : 32|16@1+ (1,0) [0|0] ""  BMU
+ SG_ IMD_R_Measurement_Counter : 24|8@1+ (1,0) [0|0] ""  BMU
+ SG_ IMD_R_iso_status : 16|8@1+ (1,0) [0|0] ""  BMU
+ SG_ IMD_R_iso_corrected : 0|16@1+ (1,0) [0|0] ""  BMU
 
 BO_ 2282360577 BMU_contactorCurrent: 2 BMU
  SG_ negContCurrent : 8|8@1+ (1,0) [0|0] "" Vector__XXX
