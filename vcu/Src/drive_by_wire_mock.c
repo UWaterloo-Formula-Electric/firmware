@@ -10,7 +10,6 @@
 #include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "motorController.h"
-#include "beaglebone.h"
 #include "traction_control.h"
 #include "motorController.h"
 
@@ -342,34 +341,6 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     printState,
     0/* Number of parameters */
 };
-BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    bool onOff = false;
-    if (STR_EQ(onOffParam, "on", paramLen)) {
-        onOff = true;
-    } else if (STR_EQ(onOffParam, "off", paramLen)) {
-        onOff = false;
-    } else {
-        COMMAND_OUTPUT("Unknown parameter\n");
-        return pdFALSE;
-    }
-
-    COMMAND_OUTPUT("Turning BeagleBone %s\n", onOff?"on":"off");
-    beaglebonePower(onOff);
-
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t beagleBonePowerCommandDefinition =
-{
-    "BB",
-    "BB <on|off>:\r\n  sets the power state for the BeagleBone\r\n",
-    beagleBonePower,
-    1 /* Number of parameters */
-};
 
 BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -478,9 +449,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getThrottleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }    
-    if (FreeRTOS_CLIRegisterCommand(&beagleBonePowerCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&getADCInputsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

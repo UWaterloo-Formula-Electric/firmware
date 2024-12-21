@@ -1,3 +1,14 @@
+/**
+ *******************************************************************************
+ * @file    brakeAndThrottle.c
+ * @author	Richard
+ * @date    Dec 2024
+ * @brief   Obtain readings for brake pressure, brake position, steering and 
+ *          throttle position
+ *
+ ******************************************************************************
+ */
+
 #include "brakeAndThrottle.h"
 #include "debug.h"
 #include "FreeRTOS.h"
@@ -15,13 +26,17 @@
 #define MOCK_ADC_READINGS
 #endif
 
-
+/*********************************************************************************************************************/
+/*-------------------------------------------------Global variables--------------------------------------------------*/
+/*********************************************************************************************************************/
 bool appsBrakePedalPlausibilityCheckFail(float throttle);
-
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
+/*********************************************************************************************************************/
+/*-----------------------------------------------------Helpers-------------------------------------------------------*/
+/*********************************************************************************************************************/
 HAL_StatusTypeDef startADCConversions()
 {
 #ifndef MOCK_ADC_READINGS
@@ -32,7 +47,7 @@ HAL_StatusTypeDef startADCConversions()
         Error_Handler();
         return HAL_ERROR;
     }
-    if (HAL_TIM_Base_Start(&BRAKE_ADC_TIM_HANDLE) != HAL_OK) {
+    if (HAL_TIM_Base_Start(&ADC_TIM_HANDLE) != HAL_OK) {
       ERROR_PRINT("Failed to start brake and throttle adc timer\n");
       Error_Handler();
       return HAL_ERROR;
@@ -53,18 +68,6 @@ HAL_StatusTypeDef startADCConversions()
     return HAL_OK;
 }
 
-int map_range(int in, int low, int high, int low_out, int high_out) {
-    if (in < low) {
-        in = low;
-    } else if (in > high) {
-        in = high;
-    }
-    int in_range = high - low;
-    int out_range = high_out - low_out;
-
-    return (in - low) * out_range / in_range + low_out;
-}
-
 float getBrakePositionPercent()
 {	
     return map_range(   brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
@@ -76,7 +79,7 @@ bool is_throttle1_in_range(uint32_t throttle) {
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
-  return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW - MAX_THROTTLE_B_DEADZONE;
+  return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW-MAX_THROTTLE_B_DEADZONE;
 }
 
 float calculate_throttle_percent1(uint16_t tps_value)
@@ -231,7 +234,7 @@ bool throttleIsZero()
 }
 
 bool checkBPSState() {
-  // TODO: Monitor BPS for failures
+  // TODO: Monitor brake pressure sensor (BPS) for failures
   return true;
 }
 
@@ -257,25 +260,6 @@ HAL_StatusTypeDef brakeAndThrottleStart()
     return HAL_OK;
 }
 
-void canPublishTask(void *pvParameters)
-{
-    // Delay to allow first ADC readings to come in
-    vTaskDelay(500);
-    while (1) {
-
-        // Update value to be sent over can
-        ThrottlePercent = throttlePercentReading;
-        brakePressure = getBrakePressure();
-        SteeringAngle = getSteeringAngle();
-        BrakePercent = getBrakePositionPercent();
-
-        if (sendCAN_VCU_Data() != HAL_OK) {
-            ERROR_PRINT("Failed to send vcu can data\n");
-        }
-        vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
-    }
-}
-
 HAL_StatusTypeDef pollThrottle(void) {
     ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
 
@@ -295,6 +279,29 @@ HAL_StatusTypeDef pollThrottle(void) {
     return requestTorqueFromMC(throttlePercentReading);
 }
 
+/*********************************************************************************************************************/
+/*----------------------------------------------------Tasks----------------------------------------------------------*/
+/*********************************************************************************************************************/
+
+void canPublishTask(void *pvParameters)
+{
+    // Delay to allow first ADC readings to come in
+    vTaskDelay(500);
+    while (1) {
+
+        // Update value to be sent over can
+        ThrottlePercent = throttlePercentReading;
+        brakePressure = getBrakePressure();
+        SteeringAngle = getSteeringAngle();
+        BrakePercent = getBrakePositionPercent();
+
+        if (sendCAN_VCU_Data() != HAL_OK) {
+            ERROR_PRINT("Failed to send vcu can data\n");
+        }
+        vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
+    }
+}
+
 void throttlePollingTask(void) 
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -302,7 +309,7 @@ void throttlePollingTask(void)
     if (registerTaskToWatch(THROTTLE_POLLING_TASK_ID, 2*pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("ERROR: Failed to init throttle polling task, suspending throttle polling task\n");
-        while(1);
+        Error_Handler();
     }
 
     INV_Peak_Tractive_Power_kW = 0;

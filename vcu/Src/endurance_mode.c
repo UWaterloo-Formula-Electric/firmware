@@ -1,3 +1,12 @@
+/**
+ *******************************************************************************
+ * @file    endurance_mode.c
+ * @author	Unknown
+ * @date    Dec 2024
+ * @brief   Code for endurance mode (not currently used)
+ *
+ ******************************************************************************
+ */
 #include "endurance_mode.h"
 #include "FreeRTOS.h"
 #include "stm32f7xx_hal.h"
@@ -8,6 +17,9 @@
 #include "motorController.h"
 #include "debug.h"
 
+/*********************************************************************************************************************/
+/*------------------------------------------------------Macros-------------------------------------------------------*/
+/*********************************************************************************************************************/
 #define ENDURANCE_MODE_TASK_ID 2
 #define ENDURANCE_MODE_TASK_PERIOD (500)
 #define ENDURANCE_MODE_FLAG_BIT (0)
@@ -16,6 +28,9 @@
 #define DISCHARGE_CURRENT_MIN_A (5.0f)
 #define SATURATION_INTEGRAL_BUFFER (2.0f)
 
+/*********************************************************************************************************************/
+/*-------------------------------------------------Global variables--------------------------------------------------*/
+/*********************************************************************************************************************/
 static float initial_soc = 0.0f;
 static uint32_t num_laps = 0;
 static uint32_t num_laps_to_complete = NUMBER_OF_LAPS_TO_COMPLETE_DEFAULT*(ENDURANCE_MODE_BUFFER);
@@ -24,6 +39,9 @@ static const float em_kP = 200.0f;
 static const float em_kI = 0.2f;
 extern osThreadId enduranceModeHandle;
 
+/*********************************************************************************************************************/
+/*-----------------------------------------------------Helpers-------------------------------------------------------*/
+/*********************************************************************************************************************/
 void endurance_mode_EM_callback(void)
 {
 	static bool has_set_initial_soc = false;
@@ -87,12 +105,15 @@ static HAL_StatusTypeDef compute_discharge_limit(float * current_limit)
 	return HAL_OK;
 }
 
+/*********************************************************************************************************************/
+/*-------------------------------------------enduranceModeTask-------------------------------------------------------*/
+/*********************************************************************************************************************/
 void enduranceModeTask(void *pvParameters)
 {
 	if (registerTaskToWatch(ENDURANCE_MODE_TASK_ID, 2*pdMS_TO_TICKS(ENDURANCE_MODE_TASK_PERIOD), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init endurance mode task, suspending endurance mode task\n");
-		while(1);
+		Error_Handler();
 	}
 	while(1)
 	{
