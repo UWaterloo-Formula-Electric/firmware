@@ -7,7 +7,6 @@
 #include "userCan.h"
 #include "drive_by_wire_mock.h"
 #include "motorController.h"
-#include "beaglebone.h"
 #include "generalErrorHandler.h"
 #include "vcu_F7_can.h"
 
@@ -44,10 +43,6 @@ void userInit()
     }
 
     if (initMotorControllerSettings() != HAL_OK) {
-      Error_Handler();
-    }
-
-    if (beagleboneOff() != HAL_OK) {
       Error_Handler();
     }
 }

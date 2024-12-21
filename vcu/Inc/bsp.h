@@ -45,14 +45,14 @@
 #define ENDURANCE_LED_GPIO_Port         LED_BTN_ENDUR_EN_GPIO_Port
 
 // Fault LEDs
-#define IMD_FAULT_LED_EN_Pin               IMD_FAULT_LED_EN_Pin
-#define IMD_FAULT_LED_EN_GPIO_Port         IMD_FAULT_LED_EN_GPIO_Port
-#define AMS_FAULT_LED_EN_Pin               AMS_FAULT_LED_EN_Pin
-#define AMS_FAULT_LED_EN_GPIO_Port         AMS_FAULT_LED_EN_GPIO_Port
-#define MC_FAULT_LED_EN_Pin                MC_FAULT_LED_EN_Pin
-#define MC_FAULT_LED_EN_GPIO_Port          MC_FAULT_LED_EN_GPIO_Port
-#define MOT_FAULT_LED_EN_Pin               MOT_FAULT_LED_EN_Pin
-#define MOT_FAULT_LED_EN_GPIO_Port         MOT_FAULT_LED_EN_GPIO_Port
+#define IMD_FAULT_LED_Pin               IMD_FAULT_LED_EN_Pin
+#define IMD_FAULT_LED_GPIO_Port         IMD_FAULT_LED_EN_GPIO_Port
+#define AMS_FAULT_LED_Pin               AMS_FAULT_LED_EN_Pin
+#define AMS_FAULT_LED_GPIO_Port         AMS_FAULT_LED_EN_GPIO_Port
+#define MC_FAULT_LED_Pin                MC_FAULT_LED_EN_Pin
+#define MC_FAULT_LED_GPIO_Port          MC_FAULT_LED_EN_GPIO_Port
+#define MOT_FAULT_LED_Pin               MOT_FAULT_LED_EN_Pin
+#define MOT_FAULT_LED_GPIO_Port         MOT_FAULT_LED_EN_GPIO_Port
 
 /* High-level macros for the users */
 #define BUZZER_ENABLE   HAL_GPIO_WritePin(BUZZER_EN_GPIO_Port,BUZZER_EN_Pin,GPIO_PIN_SET)

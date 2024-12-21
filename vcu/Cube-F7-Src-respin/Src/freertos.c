@@ -56,7 +56,6 @@ osThreadId cliTaskNameHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId canSendTaskHandle;
 osThreadId canPublishHandle;
-osThreadId beagleboneHandle;
 osThreadId enduranceModeHandle;
 osThreadId tractionControlHandle;
 osThreadId throttlePollingHandle;
@@ -73,7 +72,6 @@ extern void cliTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
-extern void bbTask(void const * argument);
 extern void enduranceModeTask(void const * argument);
 extern void tractionControlTask(void const * argument);
 extern void throttlePollingTask(void const * argument);
@@ -193,10 +191,6 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of canPublish */
   osThreadDef(canPublish, canPublishTask, osPriorityNormal, 0, 1000);
   canPublishHandle = osThreadCreate(osThread(canPublish), NULL);
-
-  /* definition and creation of beaglebone */
-  osThreadDef(beaglebone, bbTask, osPriorityNormal, 0, 1000);
-  beagleboneHandle = osThreadCreate(osThread(beaglebone), NULL);
 
   /* definition and creation of enduranceMode */
   osThreadDef(enduranceMode, enduranceModeTask, osPriorityNormal, 0, 10000);

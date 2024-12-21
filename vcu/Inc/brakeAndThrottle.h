@@ -29,15 +29,8 @@
 #define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER/(100)) //Scale the pot value to range (-100,100) 
 #define STEERING_POT_OFFSET (STEERING_POT_CENTER)
 
-/*#define THROTT_A_LOW (0xd44)*/
-/*#define THROTT_B_LOW (0x5d2)*/
-
-/*#define THROTT_A_HIGH (0xf08)*/
-/*#define THROTT_B_HIGH (0x71f)*/
-
 #define MAX_THROTTLE_A_DEADZONE (200)
 #define MAX_THROTTLE_B_DEADZONE (200)
-/*#define MAX_THROTTLE_DEADZONE (0x20)*/
 
 #define THROTTLE_POLLING_TASK_ID 4
 #define THROTTLE_POLLING_FLAG_BIT (0)
@@ -48,8 +41,8 @@ typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
     THROTTLE_B_INDEX,
     BRAKE_POS_INDEX,
-    STEERING_INDEX,
     BRAKE_PRES_INDEX,
+    STEERING_INDEX,
     NUM_ADC_CHANNELS
 } ADC_Indices_t;
 
