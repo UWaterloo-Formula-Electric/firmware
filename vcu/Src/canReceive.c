@@ -1,3 +1,12 @@
+/**
+ *******************************************************************************
+ * @file    canReceive.c
+ * @author	Richard
+ * @date    Dec 2024
+ * @brief   Contains CAN callback functions and functions to obtain CAN signals
+ *
+ ******************************************************************************
+ */
 #include "canReceive.h"
 
 #include "userCan.h"

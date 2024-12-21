@@ -1,3 +1,14 @@
+/**
+ *******************************************************************************
+ * @file    motorController.c
+ * @author	Unknown
+ * @date    Dec 2024
+ * @brief   Motor controller initialization, torque command, and write + read
+ *          commands
+ *
+ ******************************************************************************
+ */
+
 #include "motorController.h"
 #include "bsp.h"
 #include "vcu_F7_can.h"

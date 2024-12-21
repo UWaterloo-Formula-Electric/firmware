@@ -1,3 +1,13 @@
+/**
+ *******************************************************************************
+ * @file    drive_by_wire.c
+ * @author	Richard
+ * @date    Dec 2024
+ * @brief   VCU's state machine, logic to go to EM, and starting the motor controller
+ *
+ ******************************************************************************
+ */
+
 #include "drive_by_wire.h"
 #include "stm32f7xx_hal.h"
 #include "drive_by_wire_mock.h"
@@ -18,6 +28,10 @@
 #include "traction_control.h"
 
 #define DRIVE_BY_WIRE_TASK_ID 1
+
+/*********************************************************************************************************************/
+/*-------------------------------------------------Global variables--------------------------------------------------*/
+/*********************************************************************************************************************/
 
 FSM_Handle_Struct fsmHandle;
 
@@ -54,6 +68,9 @@ Transition_t transitions[] = {
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
+/*********************************************************************************************************************/
+/*-----------------------------------------------------Helpers-------------------------------------------------------*/
+/*********************************************************************************************************************/
 HAL_StatusTypeDef driveByWireInit()
 {
     FSM_Init_Struct init;
@@ -82,6 +99,7 @@ HAL_StatusTypeDef driveByWireInit()
     return HAL_OK;
 }
 
+// State machine task
 void driveByWireTask(void *pvParameters)
 {
     // Pre send EV_INIT to kick off self tests
@@ -119,6 +137,7 @@ uint32_t EM_Enable(uint32_t event)
     bool hvEnable = getHvEnableState();
     uint32_t state = STATE_EM_Enable;
 
+    // TODO: reintroduce this once brake pressure reading is validated and calibrated!
     // These brake pressure checks were commented out as the sensor was not connected at 2024 Hybrid. They should be reintroduced.
     // bool bpsState = checkBPSState();
     // float brakePressure = getBrakePressure();
@@ -224,6 +243,8 @@ uint32_t EM_Fault(uint32_t event)
                     disable_TC();
                     DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
 
+                    // TODO: decide whether the MC should be on/off when the CBRB is pressed.
+                    //       might be good for logging if we keep it on 
                     // Turn off MC when CBRB pressed while in EM
                     //if (MotorStop() != HAL_OK) {
                     //    ERROR_PRINT("Failed to stop motors\n");

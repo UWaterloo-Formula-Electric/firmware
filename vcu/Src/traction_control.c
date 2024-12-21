@@ -1,3 +1,13 @@
+/**
+ *******************************************************************************
+ * @file    traction_control.c
+ * @author	Unknown
+ * @date    Dec 2024
+ * @brief   Traction control algorithm (not currently used)
+ *
+ ******************************************************************************
+ */
+
 #include "traction_control.h"
 #include "stdint.h"
 #include "stdbool.h"
@@ -206,7 +216,7 @@ void tractionControlTask(void *pvParameters)
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
-		while(1);
+		Error_Handler();
 	}
 
 	WheelSpeed_S wheel_data = {0};
