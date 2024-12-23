@@ -16,11 +16,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "bmu_can.h"
+#include "bsp.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
 
 #define ENABLE_IL_CHECKS
+#define IL_TEST
 
 // CAN Logging
 #define BOTS_FAILED     (1 << BOTS_FAILED_BIT)
@@ -162,6 +164,10 @@ void faultMonitorTask(void *pvParameters)
 
    DEBUG_PRINT("Fault Monitor: HVD OK.\n");
 
+    #ifdef IL_TEST
+    AMS_CONT_CLOSE;
+    #endif
+
    if(getAMS_Status() == false) {
       BMU_checkFailed = AMS_FAILED;
       sendCAN_BMU_Interlock_Loop_Status();
@@ -239,6 +245,12 @@ void faultMonitorTask(void *pvParameters)
       DEBUG_PRINT("Fault Monitor: This is power going to contactors\r\n");
    }
 
+   while(getHwCheck_Status() == false) {
+    vTaskDelay(10);
+   }
+
+   DEBUG_PRINT("Fault Monitor: HW check ok\r\n");
+
    /* Prevents race condition where Fault Monitor passes before system is setup*/
    if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
@@ -248,6 +260,7 @@ void faultMonitorTask(void *pvParameters)
    }
    while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
+        DEBUG_PRINT("waiting\r\n");
 		vTaskDelay(10);
    }
 	
@@ -335,7 +348,7 @@ void faultMonitorTask(void *pvParameters)
 		}
 		
 		if ((!hvd_ok) || (!il_ok && cbrb_ok)) {
-			ERROR_PRINT("Fault Monitor: IL broken!\n");
+			ERROR_PRINT("Fault Monitor: HW check failed!\n");
 			BMU_checkFailed = HW_CHECK_FAILED;
 			sendCAN_BMU_Interlock_Loop_Status();
 

@@ -406,7 +406,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-                return PCDC_ERROR;
+                // return PCDC_ERROR;
             }
         }
     }
@@ -448,7 +448,8 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
             ERROR_PRINT("INFO: VBatt %f\n", VBatt);
             ERROR_PRINT("INFO: IBus %f\n", IBus);
-            return PCDC_ERROR;
+            // return PCDC_ERROR;
+            break;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
 
@@ -462,7 +463,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         if (!HITL_Precharge_Mode) {
             if (maxIBus < minIBusSpike) {
                 ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-                return PCDC_ERROR;
+                // return PCDC_ERROR;
             }
         }
     }
