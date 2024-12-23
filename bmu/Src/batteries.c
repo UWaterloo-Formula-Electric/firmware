@@ -191,21 +191,23 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
  *
  * @return HAL_StatusTypeDef
  */
+BaseType_t *higherPriorityTaskAwoken;
+
 HAL_StatusTypeDef publishBusVoltage(float *pVBus)
 {
-    xQueueOverwrite(VBusQueue, pVBus);
+    xQueueOverwriteFromISR(VBusQueue, pVBus, higherPriorityTaskAwoken);
     return HAL_OK;
 }
 
 HAL_StatusTypeDef publishBattVoltage(float *pVBatt)
 {
-    xQueueOverwrite(VBattQueue, pVBatt);
+    xQueueOverwriteFromISR(VBattQueue, pVBatt, higherPriorityTaskAwoken);
     return HAL_OK;
 }
 
 HAL_StatusTypeDef publishBusCurrent(float *pIBus)
 {
-    xQueueOverwrite(IBusQueue, pIBus);
+    xQueueOverwriteFromISR(IBusQueue, pIBus, higherPriorityTaskAwoken);
     return HAL_OK;
 }
 
@@ -385,19 +387,11 @@ void HVMeasureTask(void *pvParamaters)
 void imdTask(void *pvParamaters)
 {
 #if IS_BOARD_F7 && defined(ENABLE_IMD)
-   IMDStatus imdStatus;
 
-   if (begin_imd_measurement() != HAL_OK) {
-      ERROR_PRINT("Failed to start IMD measurement\n");
-      Error_Handler();
-   }
+    ImdData_s *imdData;
 
-   // Wait for IMD to startup
-   DEBUG_PRINT("Waiting for IMD...");
-   do {
-      imdStatus = get_imd_status();
-      vTaskDelay(100);
-   } while (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good));
+    // Wait for IMD to start
+   begin_imd_measurement();
 
    // Notify control fsm that IMD is ready
    fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
@@ -407,50 +401,29 @@ void imdTask(void *pvParamaters)
      ERROR_PRINT("Failed to register imd task with watchdog!\n");
      Error_Handler();
    }
+
    TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1) {
-      imdStatus =  get_imd_status();
-
-      switch (imdStatus) {
-         case IMDSTATUS_Normal:
-         case IMDSTATUS_SST_Good:
-            // All good
-            break;
-         case IMDSTATUS_Invalid:
-            ERROR_PRINT_ISR("Invalid IMD measurement\n");
-            break;
-         case IMDSTATUS_Undervoltage:
-            ERROR_PRINT_ISR("IMD Status: Undervoltage\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_SST_Bad:
-            ERROR_PRINT_ISR("IMD Status: SST_Bad\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_Device_Error:
-            ERROR_PRINT_ISR("IMD Status: Device Error\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_Fault_Earth:
-            ERROR_PRINT_ISR("IMD Status: Fault Earth\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_HV_Short:
-            ERROR_PRINT_ISR("IMD Status: fault hv short\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         default:
-            ERROR_PRINT_ISR("Unknown IMD Status\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-      }
-
-      if (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good))
-      {
-         // ERROR!!!
-         fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
-      }
-
+        imdData = getImdData();
+        
+        while(!(imdData->deviceStatus)) {
+            watchdogTaskCheckIn(IMD_TASK_ID);
+            vTaskDelay(50);
+        }
+        if(imdData->faults) {
+            if(imdData->faults & ISOLATION_FAULT) {
+                DEBUG_PRINT("IMD faulted!!\r\n");
+                fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+                sendDTC_FATAL_IMD_Failure(1);
+                    TSSI_GREEN_OFF;
+                    TSSI_RED_ON;
+            }
+            else {
+                fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+            }
+            
+        }
+        
       watchdogTaskCheckIn(IMD_TASK_ID);
       vTaskDelayUntil(&xLastWakeTime, IMD_TASK_PERIOD_MS);
    }
@@ -558,6 +531,8 @@ void BatteryTaskError()
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
     AMS_CONT_OPEN;
+    TSSI_GREEN_OFF;
+    TSSI_RED_ON;
 #endif
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     TickType_t xLastWakeTime = xTaskGetTickCount();

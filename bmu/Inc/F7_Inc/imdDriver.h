@@ -3,29 +3,29 @@
 
 #include "bsp.h"
 
-typedef struct {
-  uint32_t meas_freq_mHz;
-  uint32_t meas_duty;
-  uint8_t status;
-} IMDMeasurements;
-
 typedef enum {
-	IMDSTATUS_Normal,
-	IMDSTATUS_Undervoltage,
-	IMDSTATUS_SST_Good,
-	IMDSTATUS_SST_Bad,
-	IMDSTATUS_Device_Error,
-	IMDSTATUS_Fault_Earth,
-	IMDSTATUS_Invalid,
-	IMDSTATUS_HV_Short,
-} IMDStatus;
+	IMD_INITIALIZATION,
+    IMD_OPERATIONAL,
+    IMD_SELF_TEST,
+} ImdStatus_e;
 
-HAL_StatusTypeDef begin_imd_measurement(void);
+typedef struct ImdData {
+    uint16_t isoRes;
+    uint8_t isoStatus;
+    uint8_t measurementCounter;
+    uint16_t faults;
+    uint8_t deviceStatus;
+} ImdData_s;
 
-HAL_StatusTypeDef stop_imd_measurement(void);
+// typedef enum ImdFaults_e {
 
-HAL_StatusTypeDef init_imd_measurement(void);
+// } ImdFaults_e;
 
-IMDStatus get_imd_status();
+#define ISOLATION_FAULT 1 << 4
+
+void begin_imd_measurement(void);
+HAL_StatusTypeDef initImdData();
+void updateImdData(ImdData_s *ImdData);
+ImdData_s * getImdData();
 
 #endif

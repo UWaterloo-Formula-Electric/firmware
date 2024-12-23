@@ -336,7 +336,7 @@ uint32_t handleFault(uint32_t event)
             }
             break;
     }
-
+    Error_Handler();
     return STATE_Failure_Fatal;
 }
 

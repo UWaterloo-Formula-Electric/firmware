@@ -19,6 +19,7 @@
 #include "controlStateMachine.h"
 
 #include "bmu_can.h"
+#include "imdDriver.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -27,6 +28,7 @@
 static float Vbus = 0.0f;
 static float Vbatt = 0.0f;
 static float Ibus = 0.0f;
+static ImdData_s ImdData = {};
 
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
@@ -78,20 +80,27 @@ void CAN_Msg_UartOverCanConfig_Callback()
 void CAN_Msg_IVT_Result_U1_Callback()
 {
     Vbus = IVT_U1;
-    Vbus /= 1000.0f; //IVT module gives voltage in mV
     publishBusVoltage(&Vbus);
 }
 
 void CAN_Msg_IVT_Result_U2_Callback()
 {
     Vbatt = IVT_U2;
-    Vbatt /= 1000.0f; //IVT module gives voltage in mV
     publishBattVoltage(&Vbatt);
 }
 
 void CAN_Msg_IVT_Result_I_Callback()
 {
     Ibus = IVT_I;
-    Ibus /= 1000.0f; //IVT module gives current in mA
     publishBusCurrent(&Ibus);
+}
+
+void CAN_Msg_IMD_Info_General_Callback()
+{
+    ImdData.isoRes = IMD_R_iso_corrected;
+    ImdData.isoStatus = IMD_R_iso_status;
+    ImdData.measurementCounter = IMD_R_Measurement_Counter;
+    ImdData.faults = IMD_Faults;
+    ImdData.deviceStatus = IMD_Device_activity;
+    updateImdData(&ImdData);
 }
