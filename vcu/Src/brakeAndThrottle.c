@@ -319,12 +319,12 @@ void throttlePollingTask(void)
     while (1)
     {
         // Once EM Enabled, start polling throttle
-        if (fsmGetState(&fsmHandle) == STATE_EM_Enable)
+        if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
             // Poll throttle
             if (pollThrottle() != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
-                fsmSendEventUrgent(&fsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+                fsmSendEventUrgent(&VCUFsmHandle, EV_Throttle_Failure, portMAX_DELAY);
             }
         }
         else

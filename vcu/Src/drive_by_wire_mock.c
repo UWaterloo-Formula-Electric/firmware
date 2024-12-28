@@ -245,7 +245,7 @@ BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
 
     COMMAND_OUTPUT("setting brake pressure %lu\n", pressure);
     if (pressure < MIN_BRAKE_PRESSURE) {
-        fsmSendEventISR(&fsmHandle, EV_Brake_Pressure_Fault);
+        fsmSendEventISR(&VCUFsmHandle, EV_Brake_Pressure_Fault);
     }
     brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] = pressure * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
 
@@ -259,31 +259,17 @@ static const CLI_Command_Definition_t brakePressureCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t setFakeDCUCanTimeout(char *writeBuffer, size_t writeBufferLength,
+BaseType_t fakeEM_Toggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEventISR(&fsmHandle, EV_DCU_Can_Timeout);
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t dcuTimeoutCommandDefinition =
-{
-    "dcuTimeout",
-    "dcuTimeout:\r\n Send dcu timeout event\r\n",
-    setFakeDCUCanTimeout,
-    0 /* Number of parameters */
-};
-
-BaseType_t fakeEM_ToggleDCU(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+    fsmSendEventISR(&VCUFsmHandle, EV_EM_Toggle);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t emToggleCommandDefinition =
 {
     "emToggle",
     "emToggle:\r\n Send em toggle event\r\n",
-    fakeEM_ToggleDCU,
+    fakeEM_Toggle,
     0 /* Number of parameters */
 };
 
@@ -298,13 +284,13 @@ BaseType_t fakeHVStateChange(char *writeBuffer, size_t writeBufferLength,
         newHVState = true;
     } else if (STR_EQ(param, "disable", paramLen)) {
         newHVState = false;
-        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
     if (HV_Power_State == HV_Power_State_On && !newHVState) {
-        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
     }
 
     if (newHVState) {
@@ -325,7 +311,7 @@ static const CLI_Command_Definition_t hvStateCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    uint8_t index = fsmGetState(&fsmHandle);
+    uint8_t index = fsmGetState(&VCUFsmHandle);
     if (index >= 0 && index < STATE_ANY){
         COMMAND_OUTPUT("State: %s\n", VCU_States_String[index]);
     } else {
@@ -420,9 +406,6 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&throttleCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&dcuTimeoutCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&emToggleCommandDefinition) != pdPASS) {
