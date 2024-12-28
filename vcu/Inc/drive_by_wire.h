@@ -18,9 +18,11 @@
 
 typedef enum VCU_States_t {
     STATE_Self_Check = 0,
-    STATE_EM_Disable = 1,
-    STATE_EM_Enable = 2,
-    STATE_Failure_Fatal = 3,
+    STATE_HV_Disable = 1,
+    STATE_HV_Enable = 2,
+    STATE_EM_Disable = 3,
+    STATE_EM_Enable = 4,
+    STATE_Failure_Fatal = 5,
     STATE_ANY, // Must be the last state
 } VCU_States_t;
 
@@ -36,8 +38,12 @@ typedef enum VCU_Events_t {
     EV_EM_Toggle,
     EV_Bps_Fail,
     EV_Hv_Disable,
+    EV_BTN_HV_Toggle,       // From the DCU
+    EV_BTN_EM_Toggle,       // From the DCU
+    EV_BTN_TC_Toggle,       // From the DCU
+    EV_CAN_Receive_HV,      // From the DCU
+    EV_BTN_Endurance_Mode_Toggle,   // From the DCU
     EV_Brake_Pressure_Fault,
-    EV_DCU_Can_Timeout,
     EV_Throttle_Failure,
     EV_Fatal,
     EV_Inverter_Fault,
@@ -50,10 +56,15 @@ typedef enum DBW_Task_Notifications_t {
     NTFY_MCs_OFF = 1,
 } DBW_Task_Notifications_t;
 
-extern FSM_Handle_Struct fsmHandle;
+extern FSM_Handle_Struct VCUFsmHandle;
 
 HAL_StatusTypeDef driveByWireInit(void);
 HAL_StatusTypeDef startDriveByWire();
 HAL_StatusTypeDef MotorStop();
 void driveByWireTask(void *pvParameters);
+
+bool pendingHvResponse(void);
+bool pendingEmResponse(void);
+void receivedHvResponse(void);
+void receivedEmResponse(void);
 #endif // __DRIVE_BY_WIRE_H
