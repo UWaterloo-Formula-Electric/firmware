@@ -11,6 +11,7 @@
 #include "drive_by_wire.h"
 #include "stm32f7xx_hal.h"
 #include "drive_by_wire_mock.h"
+#include "bsp.h"
 #include "stdbool.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -33,14 +34,13 @@
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
 
-FSM_Handle_Struct fsmHandle;
+FSM_Handle_Struct VCUFsmHandle;
 
 uint32_t runSelftTests(uint32_t event);
 uint32_t EM_Enable(uint32_t event);
 uint32_t EM_Fault(uint32_t event);
 uint32_t EM_Update_Throttle(uint32_t event);
-uint32_t doNothing(uint32_t event);
-uint32_t DefaultTransition(uint32_t event);
+static uint32_t DefaultTransition(uint32_t event);
 
 void throttleTimerCallback(TimerHandle_t timer);
 HAL_StatusTypeDef MotorStart();
@@ -48,22 +48,58 @@ HAL_StatusTypeDef MotorStop();
 
 extern osThreadId throttlePollingHandle;
 
+/* From the DCU */
+#define BUZZER_LENGTH_MS 2000
+#define DEBOUNCE_WAIT_MS 50
+#define EM_BUTTON_RATE_LIMIT_MS 1000  // prevents multiple button presses within this duration
 
+
+// TODO: can definitely be optimized later
+static uint32_t sendHvToggle(uint32_t event);
+static uint32_t sendEmToggle(uint32_t event);
+static uint32_t processHvState(uint32_t event);
+// static uint32_t processEmState(uint32_t event);
+static uint32_t fatalTransition(uint32_t event);
+static uint32_t toggleTC(uint32_t event);
+static uint32_t toggleEnduranceMode(uint32_t event);
+static void debounceTimerCallback(TimerHandle_t timer);
+static void buzzerTimerCallback(TimerHandle_t timer);
+static int sendHVToggleMsg(void);
+static int sendEMToggleMsg(void);
+static int sendEnduranceToggleMsg(void);
+static int sendTCToggleMsg(void);
+
+static TimerHandle_t buzzerSoundTimer;
+static TimerHandle_t debounceTimer;
+static bool TC_on = false;
+static bool endurance_on = false;
+static bool sentFatalDTC = false;
+static bool buzzerTimerStarted = false;
+static bool alreadyDebouncing = false;
+static uint16_t debouncingPin = 0;
+static bool isPendingHvResponse = false;
+static bool isPendingEmResponse = false;
+
+// TODO: clean up this state machine
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
     { STATE_EM_Disable, EV_EM_Toggle, &EM_Enable },
     { STATE_EM_Disable, EV_Bps_Fail, &EM_Fault },
     { STATE_EM_Disable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
-    { STATE_EM_Disable, EV_DCU_Can_Timeout, &EM_Fault },
     { STATE_EM_Disable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_Bps_Fail, &EM_Fault },
     { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
-    { STATE_EM_Enable, EV_DCU_Can_Timeout, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
-    { STATE_Failure_Fatal, EV_ANY, &doNothing },
+    { STATE_Failure_Fatal, EV_ANY, &fatalTransition },
+    { STATE_ANY, EV_CAN_Receive_HV, &processHvState},       // From DCU. Check HV toggle response from the BMU
+    // { STATE_ANY, EV_CAN_Receive_EM, &processEmState},       // From DCU. Happens locally now so remove it
+    { STATE_ANY, EV_BTN_HV_Toggle, &sendHvToggle},          // From DCU
+    { STATE_ANY, EV_BTN_EM_Toggle, &sendEmToggle},          // From DCU
+    { STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC},        // From DCU
+    { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU
     { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
@@ -84,13 +120,43 @@ HAL_StatusTypeDef driveByWireInit()
     init.transitionTableLength = TRANS_COUNT(transitions);
     init.eventQueueLength = 5;
     init.watchdogTaskId = DRIVE_BY_WIRE_TASK_ID;
-    if (fsmInit(STATE_Self_Check, &init, &fsmHandle) != HAL_OK) {
+    if (fsmInit(STATE_Self_Check, &init, &VCUFsmHandle) != HAL_OK) {
         ERROR_PRINT("Failed to init drive by wire fsm\n");
         return HAL_ERROR;
     }
 
+        if (canStart(&CAN_HANDLE) != HAL_OK)
+    {
+        ERROR_PRINT("Failed to start CAN!\n");
+        Error_Handler();
+    }
+
+    buzzerSoundTimer = xTimerCreate("BuzzerTimer",
+                                    pdMS_TO_TICKS(BUZZER_LENGTH_MS),
+                                    pdFALSE /* Auto Reload */,
+                                    0,
+                                    buzzerTimerCallback);
+
+    if (buzzerSoundTimer == NULL)
+    {
+        ERROR_PRINT("Failed to create buzzer timer!\n");
+        Error_Handler();
+    }
+
+    debounceTimer = xTimerCreate("DebounceTimer",
+                                 pdMS_TO_TICKS(DEBOUNCE_WAIT_MS),
+                                 pdFALSE /* Auto Reload */,
+                                 0,
+                                 debounceTimerCallback);
+
+    if (debounceTimer == NULL) 
+    {
+        ERROR_PRINT("Failed to create debounce timer!\n");
+        Error_Handler();
+    }
+
     if (registerTaskToWatch(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS),
-                            true, &fsmHandle) != HAL_OK)
+                            true, &VCUFsmHandle) != HAL_OK)
     {
         return HAL_ERROR;
     }
@@ -109,14 +175,14 @@ void driveByWireTask(void *pvParameters)
         Error_Handler();
     }
 
-    fsmTaskFunction(&fsmHandle);
+    fsmTaskFunction(&VCUFsmHandle);
 
     for(;;); // Shouldn't reach here
 }
 
 HAL_StatusTypeDef startDriveByWire()
 {
-    return fsmSendEvent(&fsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
+    return fsmSendEvent(&VCUFsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
 uint32_t runSelftTests(uint32_t event)
@@ -189,18 +255,35 @@ uint32_t EM_Enable(uint32_t event)
     EM_State = (state == STATE_EM_Enable)?EM_State_On:EM_State_Off;
     sendCAN_VCU_EM_State();
 
+    if (state == STATE_EM_Enable)
+    {
+        /* Only ring buzzer when going to motors enabled */
+        DEBUG_PRINT("Kicking off buzzer\n");
+        if (!buzzerTimerStarted)
+        {
+            if (xTimerStart(buzzerSoundTimer, 100) != pdPASS)
+            {
+                ERROR_PRINT("Failed to start buzzer timer\n");
+                Error_Handler();
+            }
+
+            buzzerTimerStarted = true;
+            BUZZER_ENABLE;
+        }
+    }
+
     return state;
 }
 
 uint32_t EM_Fault(uint32_t event)
 {
     int newState = STATE_Failure_Fatal;
-    int currentState = fsmGetState(&fsmHandle);
+    int currentState = fsmGetState(&VCUFsmHandle);
     
     EMFaultEvent = event;
     sendCAN_VCU_EM_Fault();
 
-    if (fsmGetState(&fsmHandle) == STATE_Failure_Fatal) {
+    if (fsmGetState(&VCUFsmHandle) == STATE_Failure_Fatal) {
         DEBUG_PRINT("EM Fault, already in fatal failure state\n");
         return STATE_Failure_Fatal;
     }
@@ -218,13 +301,6 @@ uint32_t EM_Fault(uint32_t event)
             {
                 sendDTC_CRITICAL_Brake_Pressure_FAIL();
                 DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
-                newState = STATE_Failure_Fatal;
-            }
-            break;
-        case EV_DCU_Can_Timeout:
-            {
-                sendDTC_FATAL_DCU_CAN_Timeout();
-                DEBUG_PRINT("DCU CAN Timeout, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
@@ -279,7 +355,7 @@ uint32_t EM_Fault(uint32_t event)
             break;
     }
 
-    if (fsmGetState(&fsmHandle) == STATE_EM_Enable) {
+    if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable) {
         if (MotorStop() != HAL_OK) {
             ERROR_PRINT("Failed to stop motors\n");
             newState = STATE_Failure_Fatal;
@@ -292,10 +368,10 @@ uint32_t EM_Fault(uint32_t event)
     return newState;
 }
 
-uint32_t DefaultTransition(uint32_t event)
+static uint32_t DefaultTransition(uint32_t event)
 {
     ERROR_PRINT("No transition function registered for state %lu, event %lu\n",
-                fsmGetState(&fsmHandle), event);
+                fsmGetState(&VCUFsmHandle), event);
 
     sendDTC_FATAL_VCU_F7_NoTransition();
     if (MotorStop() != HAL_OK) {
@@ -406,7 +482,361 @@ HAL_StatusTypeDef MotorStop()
     return HAL_OK;
 }
 
-uint32_t doNothing(uint32_t event)
+/*********************  DCU's functions **********************/
+static uint32_t sendHvToggle(uint32_t event)
 {
-    return fsmGetState(&fsmHandle);
+    const VCU_States_t current_state = fsmGetState(&VCUFsmHandle);
+    VCU_States_t new_state = STATE_HV_Disable;
+
+    switch (current_state)
+    {
+        case STATE_Failure_Fatal:
+        {
+            DEBUG_PRINT("Fault: Shouldn't toggle HV while faulted\r\n");
+            sentFatalDTC = true;
+            sendDTC_WARNING_VCU_SM_ERROR(2);
+            new_state = STATE_Failure_Fatal;
+            break;
+        }
+        case STATE_HV_Disable:  // fall through to STATE_EM_ENABLE
+        case STATE_HV_Enable:
+        case STATE_EM_Enable:
+        {
+            DEBUG_PRINT("Sending HV Toggle button event\n");
+            if (sendHVToggleMsg() != HAL_OK)
+            {
+                ERROR_PRINT("Failed to send HV Toggle button event!\n");
+                Error_Handler();
+            }
+            isPendingHvResponse = true;
+
+            new_state = current_state;
+            break;
+        }
+        default:
+        {
+            DEBUG_PRINT("Fault: Unhandled State for sending HV Toggle\r\n");
+            sentFatalDTC = true;
+            sendDTC_WARNING_VCU_SM_ERROR(6);
+            new_state = STATE_Failure_Fatal;
+            break;
+        }
+    }
+
+    return new_state;
+}
+
+// TODO: probably can be removed
+bool pendingHvResponse(void)
+{
+    return isPendingHvResponse == true;
+}
+
+void receivedHvResponse(void)
+{
+    isPendingHvResponse = false;
+}
+
+static uint32_t sendEmToggle(uint32_t event)
+{
+    // TODO: double check if we still need this extra debouncing logic
+    // static TickType_t lastToggleTime = 0U;
+
+    // /*
+    // temporary check to prevent button from double clicking
+    // remove after 2024 michigan (the issue is probably the button itself??)
+    // */
+    // if (xTaskGetTickCount() - lastToggleTime < pdMS_TO_TICKS(EM_BUTTON_RATE_LIMIT_MS))
+    // {
+    //     DEBUG_PRINT("Ignoring EM Toggle button event\n");
+    //     return fsmGetState(&VCUFsmHandle);
+    // } else {
+    //     lastToggleTime = xTaskGetTickCount();
+    // }
+
+    const VCU_States_t current_state = fsmGetState(&VCUFsmHandle);
+
+    if (current_state == STATE_HV_Disable || current_state == STATE_Failure_Fatal)
+    {
+        sentFatalDTC = true;
+        DEBUG_PRINT("Cant EM while in state %d\r\n", current_state);
+
+        sendDTC_WARNING_VCU_SM_ERROR(3);
+        return current_state;
+    }
+    
+    DEBUG_PRINT("Sending EM Toggle button event\n");
+    // Should still log the EM toggle button event 
+    if (sendEMToggleMsg() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send EM Toggle button event!\n");
+        Error_Handler();
+    } else {
+        // Go to EM
+        // TODO: double check this logic. Might be wrong cause this event causes a change in the state
+        fsmSendEvent(&VCUFsmHandle, EV_EM_Toggle, portMAX_DELAY);
+        isPendingEmResponse = true;
+    }
+    return current_state;
+}
+
+// TODO: don't think the two functions below is needed. Leave for now
+bool pendingEmResponse(void)
+{
+    return isPendingEmResponse == true;
+}
+
+void receivedEmResponse(void)
+{
+    isPendingEmResponse = false;
+}
+
+static uint32_t processHvState(uint32_t event)
+{
+    const VCU_States_t current_state = fsmGetState(&VCUFsmHandle);
+    if(getHVState() == HV_Power_State_On)
+    {
+        if (current_state == STATE_HV_Enable || current_state == STATE_EM_Enable)
+        {
+            // Boards are probably out of sync. Power cycle should fix
+            DEBUG_PRINT("FSM already at HV. FAULT\r\n");
+            sentFatalDTC = true;
+            sendDTC_WARNING_VCU_SM_ERROR(1);
+            return STATE_Failure_Fatal;
+        }
+        DEBUG_PRINT("State: HV Enabled\r\n");
+        return STATE_HV_Enable;
+    }
+    else
+    {
+        TC_LED_OFF;
+        ENDURANCE_LED_OFF;
+        if (current_state == STATE_HV_Disable)
+        {
+            DEBUG_PRINT("Warning: State already HV Disabled\r\n");
+        }
+        DEBUG_PRINT("State: HV Disabled\r\n");
+        return STATE_HV_Disable;
+    }
+}
+
+static uint32_t fatalTransition(uint32_t event)
+{
+    DEBUG_PRINT("Fatal Event. Entering Fatal State\r\n");
+    if (!sentFatalDTC)
+    {
+        sentFatalDTC = true;
+        DEBUG_PRINT("Sending SM Fatal DTC\r\n");
+        sendDTC_WARNING_VCU_SM_ERROR(0);
+    }
+    return STATE_Failure_Fatal;
+}
+
+static uint32_t toggleTC(uint32_t event)
+{
+    if(sendTCToggleMsg() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send TC Toggle button event!\n");
+        Error_Handler();
+    }
+
+    TC_on = !TC_on;
+    toggle_TC();
+    if (TC_on)
+    {
+        TC_LED_ON;
+        
+        DEBUG_PRINT("TC on\n");
+    }
+    else 
+    {
+        TC_LED_OFF;
+        DEBUG_PRINT("TC off\n");
+    }
+    return STATE_EM_Enable;
+}
+
+static uint32_t toggleEnduranceMode(uint32_t event)
+{
+    if(sendEnduranceToggleMsg() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send EnduranceMode Toggle button event!\n");
+        Error_Handler();
+    }
+    endurance_on = !endurance_on;
+    if (endurance_on)
+    {
+        ENDURANCE_LED_ON;
+        toggle_endurance_mode();
+        DEBUG_PRINT("Endurance on\n");
+    }
+    else 
+    {
+        ENDURANCE_LED_OFF;
+        DEBUG_PRINT("Endurance off\n");
+    }
+    return STATE_EM_Enable;
+}
+
+/*
+ * A button press is considered valid if it is still low (active) after
+ * TIMER_WAIT_MS milliseconds.
+ */
+static void debounceTimerCallback(TimerHandle_t timer)
+{
+    GPIO_PinState pin_val;
+
+    switch (debouncingPin)
+    {
+        case HV_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
+                    HV_TOGGLE_BUTTON_PIN);
+            break;
+
+        case EM_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
+                    EM_TOGGLE_BUTTON_PIN);
+            break;
+        
+        case TC_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT,
+                    TC_TOGGLE_BUTTON_PIN);
+            break;
+         
+        case ENDURANCE_TOGGLE_BUTTON_PIN:
+            pin_val = HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT,
+                    ENDURANCE_TOGGLE_BUTTON_PIN);
+            break;
+
+        default:
+            /* Shouldn't get here */ 
+            DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
+            pin_val = GPIO_PIN_SET;
+            break;
+    }
+
+
+    if (pin_val == GPIO_PIN_RESET)
+    {
+        switch (debouncingPin)
+        {
+            case HV_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
+                break;
+
+            case EM_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&VCUFsmHandle, EV_BTN_EM_Toggle);
+                break;
+            
+            case TC_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&VCUFsmHandle, EV_BTN_TC_Toggle);
+                break;
+
+            case ENDURANCE_TOGGLE_BUTTON_PIN:
+                fsmSendEventISR(&VCUFsmHandle, EV_BTN_Endurance_Mode_Toggle);
+                break;
+
+            default:
+                /* Shouldn't get here */
+                DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
+                break;
+        }
+
+    }
+
+    alreadyDebouncing = false;
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t pin)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    if (alreadyDebouncing)
+    {
+        /* Already debouncing, do nothing with this interrupt */
+        return;
+    }
+    alreadyDebouncing = true;
+
+    switch (pin)
+    {
+        case HV_TOGGLE_BUTTON_PIN:
+            debouncingPin = HV_TOGGLE_BUTTON_PIN;
+            break;
+
+        case EM_TOGGLE_BUTTON_PIN:
+            debouncingPin = EM_TOGGLE_BUTTON_PIN;
+            break;
+        
+        case TC_TOGGLE_BUTTON_PIN:
+            debouncingPin = TC_TOGGLE_BUTTON_PIN;
+            break;
+
+        case ENDURANCE_TOGGLE_BUTTON_PIN:
+            debouncingPin = ENDURANCE_TOGGLE_BUTTON_PIN;
+            break;
+
+        default:
+            /* Not a fatal error here, but report error and return */
+            DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
+            return;
+            break;
+    }
+
+    xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+static void buzzerTimerCallback(TimerHandle_t timer)
+{
+    buzzerTimerStarted = false;
+    BUZZER_DISABLE;
+}
+
+static int sendHVToggleMsg(void)
+{
+    ButtonHVEnabled = 1;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_VCU_buttonEvents();
+}
+
+static int sendEMToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 1;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_VCU_buttonEvents();
+}
+
+static int sendEnduranceToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 1;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_VCU_buttonEvents();
+}
+
+static int sendTCToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 1;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_VCU_buttonEvents();
 }
