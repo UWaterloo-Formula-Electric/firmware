@@ -3,7 +3,7 @@
   * @file    canReceive.c
   * @author  Richard Matthews
   * @brief   Module containing callback functions for receiving CAN messages
-  * @details Receives DCU HV toggle button press, charge cart messages, and
+  * @details Receives VCU HV toggle button press, charge cart messages, and
   * DTCs
   *****************************************************************************
   */
@@ -24,9 +24,9 @@
 #include "cmsis_os.h"
 
 
-void CAN_Msg_DCU_buttonEvents_Callback()
+void CAN_Msg_VCU_buttonEvents_Callback()
 {
-	DEBUG_PRINT_ISR("DCU Button events\n");
+	DEBUG_PRINT_ISR("VCU Button events\n");
     if (ButtonHVEnabled) {
 		DEBUG_PRINT_ISR("HV Toggle button event\n");
         fsmSendEventISR(&fsmHandle, EV_HV_Toggle);

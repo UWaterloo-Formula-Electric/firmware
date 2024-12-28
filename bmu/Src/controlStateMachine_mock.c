@@ -342,7 +342,7 @@ static const CLI_Command_Definition_t hvFaultCommandDefinition =
     0 /* Number of parameters */
 };
 
-BaseType_t fakeHV_ToggleDCU(char *writeBuffer, size_t writeBufferLength,
+BaseType_t fakeHV_Toggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
@@ -352,7 +352,7 @@ static const CLI_Command_Definition_t hvToggleCommandDefinition =
 {
     "hvToggle",
     "hvToggle:\r\n Send hv toggle event\r\n",
-    fakeHV_ToggleDCU,
+    fakeHV_Toggle,
     0 /* Number of parameters */
 };
 
