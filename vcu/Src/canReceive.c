@@ -3,7 +3,8 @@
  * @file    canReceive.c
  * @author	Richard
  * @date    Dec 2024
- * @brief   Contains CAN callback functions and functions to obtain CAN signals
+ * @brief   Contains CAN callback functions and functions to obtain CAN signals.
+ *          Receives IMD and AMS Faults for IMD and AMS fault lights
  *
  ******************************************************************************
  */
@@ -67,25 +68,27 @@ uint8_t getInverterVSMState()
 
 extern osThreadId driveByWireHandle;
 
-void CAN_Msg_DCU_buttonEvents_Callback()
-{
-    DEBUG_PRINT_ISR("Received DCU button Event\n");
-    if (ButtonEMEnabled) {
-        fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
-    }
-    else if(ButtonEnduranceToggleEnabled) 
-    {
-		toggle_endurance_mode();
-	}
-	else if(ButtonEnduranceLapEnabled)
-	{
-		trigger_lap();
-	}
-	else if(ButtonTCEnabled)
-	{
-		toggle_TC();
-	}
-}
+
+// TODO: remove. This is happening locally now
+// void CAN_Msg_VCU_buttonEvents_Callback()
+// {
+//     DEBUG_PRINT_ISR("Received button event\n");
+//     if (ButtonEMEnabled) {
+//         fsmSendEventISR(&VCUFsmHandle, EV_EM_Toggle);
+//     }
+//     else if(ButtonEnduranceToggleEnabled) 
+//     {
+// 		toggle_endurance_mode();
+// 	}
+// 	else if(ButtonEnduranceLapEnabled)
+// 	{
+// 		trigger_lap();
+// 	}
+// 	else if(ButtonTCEnabled)
+// 	{
+// 		toggle_TC();
+// 	}
+// }
 
 void CAN_Msg_PDU_ChannelStatus_Callback()
 {
@@ -112,21 +115,38 @@ void CAN_Msg_PDU_ChannelStatus_Callback()
 void DTC_Fatal_Callback(BoardIDs board)
 {
     DEBUG_PRINT_ISR("DTC Receieved from board %lu \n", board);
-    fsmSendEventUrgentISR(&fsmHandle, EV_Fatal);
+    fsmSendEventUrgentISR(&VCUFsmHandle, EV_Fatal);
 }
 
+/**
+ * BMU Power state CAN message callback.
+ * Signals to the main task the HV power state has changed
+ */
 void CAN_Msg_BMU_HV_Power_State_Callback() {
     DEBUG_PRINT_ISR("Receive hv power state\n");
+    receivedHvResponse();
     if (HV_Power_State != HV_Power_State_On) {
-        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
         resetMCLockout();
+    } else {
+        fsmSendEventISR(&VCUFsmHandle, EV_CAN_Receive_HV);
     }
 }
 
 void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
     switch (DTC_CODE) {
         case WARNING_CONTACTOR_OPEN_IMPENDING:
-            fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+            fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
+            break;
+        case FATAL_IMD_Failure:
+            ERROR_PRINT_ISR("Got IMD failure\n");
+            IMD_FAIL_LED_ON
+        case CRITICAL_CELL_VOLTAGE_LOW: // All 4 cases fall through
+        case CRITICAL_CELL_VOLTAGE_HIGH:
+        case CRITICAL_CELL_TEMP_HIGH:
+        case ERROR_CELL_TEMP_LOW:
+            ERROR_PRINT_ISR("Got AMS failure\n");
+            AMS_FAIL_LED_ON
             break;
         default:
             // Do nothing, other events handled by fatal callback
@@ -163,7 +183,6 @@ void CAN_Msg_MC_Read_Write_Param_Response_Callback()
     sendLockoutReleaseToMC();
 }
 
-
 void CAN_Msg_MC_Current_Info_Callback(void)
 {
     const float instPowerKw = (INV_DC_Bus_Current * INV_DC_Bus_Voltage) * W_TO_KW;
@@ -171,4 +190,21 @@ void CAN_Msg_MC_Current_Info_Callback(void)
     {
         INV_Peak_Tractive_Power_kW = instPowerKw;
     }
+}
+
+/* PORTED FROM THE DCU!!! */
+/**
+ * Get current HV power state, updated from BMU CAN messages
+ */
+bool getHVState()
+{
+    return HV_Power_State;
+}
+
+/**
+ * Get current EM enabled state, updated from VCU CAN messages
+ */
+bool getEMState()
+{
+    return EM_State;
 }
