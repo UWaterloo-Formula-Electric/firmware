@@ -17,18 +17,18 @@
 #define DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS 20
 
 typedef enum VCU_States_t {
-    STATE_Self_Check = 0,
-    STATE_HV_Disable = 1,
-    STATE_HV_Enable = 2,
-    STATE_EM_Disable = 3,
-    STATE_EM_Enable = 4,
-    STATE_Failure_Fatal = 5,
+    STATE_Self_Check = 0,       // 0
+    STATE_HV_Disable,           // 1
+    STATE_HV_Enable,            // 2
+    STATE_EM_Enable,            // 3
+    STATE_Failure_Fatal,        // 4
     STATE_ANY, // Must be the last state
 } VCU_States_t;
 
 char VCU_States_String[][20]={
     "Self Check", 
-    "Em Disable", 
+    "HV Disable",
+    "HV Enable" 
     "Em Enable", 
     "Failure Fatal"
 };

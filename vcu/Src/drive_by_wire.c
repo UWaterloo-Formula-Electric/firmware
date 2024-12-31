@@ -78,16 +78,16 @@ static bool buzzerTimerStarted = false;
 static bool alreadyDebouncing = false;
 static uint16_t debouncingPin = 0;
 static bool isPendingHvResponse = false;
-static bool isPendingEmResponse = false;
 
 // TODO: clean up this state machine
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelftTests },
-    { STATE_EM_Disable, EV_EM_Toggle, &EM_Enable },
-    { STATE_EM_Disable, EV_Bps_Fail, &EM_Fault },
-    { STATE_EM_Disable, EV_Hv_Disable, &EM_Fault },
-    { STATE_EM_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
-    { STATE_EM_Disable, EV_Throttle_Failure, &EM_Fault },
+    { STATE_HV_Disable, EV_Bps_Fail, &EM_Fault },
+    { STATE_HV_Disable, EV_Hv_Disable, &EM_Fault },
+    { STATE_HV_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
+    { STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault },
+    { STATE_HV_Enable, EV_EM_Toggle, &EM_Enable },
+    { STATE_HV_Enable, EV_Hv_Disable, & EM_Fault},
     { STATE_EM_Enable, EV_Bps_Fail, &EM_Fault },
     { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
@@ -195,7 +195,7 @@ uint32_t runSelftTests(uint32_t event)
         return EM_Fault(EV_Throttle_Failure);
     }
 
-    return STATE_EM_Disable;
+    return STATE_HV_Disable;
 }
 
 uint32_t EM_Enable(uint32_t event)
@@ -205,29 +205,29 @@ uint32_t EM_Enable(uint32_t event)
 
     // TODO: reintroduce this once brake pressure reading is validated and calibrated!
     // These brake pressure checks were commented out as the sensor was not connected at 2024 Hybrid. They should be reintroduced.
-    // bool bpsState = checkBPSState();
-    // float brakePressure = getBrakePressure();
-    // if (!bpsState) {
-    //     DEBUG_PRINT("Failed to em enable, bps fault\n");
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(0);
-    //     state = STATE_EM_Disable;
-    // } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
-    //     DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
-    //     sendDTC_WARNING_EM_ENABLE_FAILED(1);
-    //     state = STATE_EM_Disable;
-    // } else 
+    bool bpsState = checkBPSState();
+    float brakePressure = getBrakePressure();
+    if (!bpsState) {
+        DEBUG_PRINT("Failed to em enable, bps fault\n");
+        sendDTC_WARNING_EM_ENABLE_FAILED(0);
+        state = STATE_HV_Enable;
+    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+        DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
+        sendDTC_WARNING_EM_ENABLE_FAILED(1);
+        state = STATE_HV_Enable;
+    } else 
     if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
-        state = STATE_EM_Disable;
+        state = STATE_HV_Enable;
     } else if (!isBrakePressed()) {
         DEBUG_PRINT("Failed to em enable, brake is not pressed\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(3);
-        state = STATE_EM_Disable;
+        state = STATE_HV_Enable;
     } else if (!hvEnable) {
         sendDTC_WARNING_EM_ENABLE_FAILED(4);
         DEBUG_PRINT("Failed to em enable, not HV enabled\n");
-        state = STATE_EM_Disable;
+        state = STATE_HV_Disable;
     }
 
     if (state != STATE_EM_Enable) {
@@ -243,7 +243,7 @@ uint32_t EM_Enable(uint32_t event)
         ERROR_PRINT("Failed to turn on motors\n");
         if (rc == HAL_TIMEOUT) {
             sendDTC_WARNING_EM_ENABLE_FAILED(5);
-            state = STATE_EM_Disable;
+            state = STATE_HV_Enable;
         } else {
             sendDTC_FATAL_EM_ENABLE_FAILED(6);
             state = STATE_Failure_Fatal;
@@ -312,7 +312,7 @@ uint32_t EM_Fault(uint32_t event)
             break;
         case EV_Hv_Disable:
             {
-                if (currentState == STATE_EM_Disable) {
+                if (currentState == STATE_HV_Enable) {
                     DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
                 } else {
                     //disable TC
@@ -322,14 +322,14 @@ uint32_t EM_Fault(uint32_t event)
                     // TODO: decide whether the MC should be on/off when the CBRB is pressed.
                     //       might be good for logging if we keep it on 
                     // Turn off MC when CBRB pressed while in EM
-                    //if (MotorStop() != HAL_OK) {
+                    // if (MotorStop() != HAL_OK) {
                     //    ERROR_PRINT("Failed to stop motors\n");
-                    //}
+                    // }
 
                     EM_State = EM_State_Off;
                     sendCAN_VCU_EM_State();
                 }
-                newState = STATE_EM_Disable;
+                newState = STATE_HV_Disable;
             }
             break;
         case EV_EM_Toggle:
@@ -337,7 +337,7 @@ uint32_t EM_Fault(uint32_t event)
                 DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
                 //disable TC
                 disable_TC();
-                newState = STATE_EM_Disable;
+                newState = STATE_HV_Enable;
             }
             break;
         case EV_Fatal:
@@ -540,19 +540,19 @@ void receivedHvResponse(void)
 static uint32_t sendEmToggle(uint32_t event)
 {
     // TODO: double check if we still need this extra debouncing logic
-    // static TickType_t lastToggleTime = 0U;
+    static TickType_t lastToggleTime = 0U;
 
-    // /*
-    // temporary check to prevent button from double clicking
-    // remove after 2024 michigan (the issue is probably the button itself??)
-    // */
-    // if (xTaskGetTickCount() - lastToggleTime < pdMS_TO_TICKS(EM_BUTTON_RATE_LIMIT_MS))
-    // {
-    //     DEBUG_PRINT("Ignoring EM Toggle button event\n");
-    //     return fsmGetState(&VCUFsmHandle);
-    // } else {
-    //     lastToggleTime = xTaskGetTickCount();
-    // }
+    /*
+    temporary check to prevent button from double clicking
+    remove after 2024 michigan (the issue is probably the button itself??)
+    */
+    if (xTaskGetTickCount() - lastToggleTime < pdMS_TO_TICKS(EM_BUTTON_RATE_LIMIT_MS))
+    {
+        DEBUG_PRINT("Ignoring EM Toggle button event\n");
+        return fsmGetState(&VCUFsmHandle);
+    } else {
+        lastToggleTime = xTaskGetTickCount();
+    }
 
     const VCU_States_t current_state = fsmGetState(&VCUFsmHandle);
 
@@ -575,20 +575,8 @@ static uint32_t sendEmToggle(uint32_t event)
         // Go to EM
         // TODO: double check this logic. Might be wrong cause this event causes a change in the state
         fsmSendEvent(&VCUFsmHandle, EV_EM_Toggle, portMAX_DELAY);
-        isPendingEmResponse = true;
     }
     return current_state;
-}
-
-// TODO: don't think the two functions below is needed. Leave for now
-bool pendingEmResponse(void)
-{
-    return isPendingEmResponse == true;
-}
-
-void receivedEmResponse(void)
-{
-    isPendingEmResponse = false;
 }
 
 static uint32_t processHvState(uint32_t event)
@@ -722,9 +710,11 @@ static void debounceTimerCallback(TimerHandle_t timer)
         {
             case HV_TOGGLE_BUTTON_PIN:
                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
+                // DEBUG_PRINT_ISR("received HV button\r\n");
                 break;
 
             case EM_TOGGLE_BUTTON_PIN:
+                // DEBUG_PRINT_ISR("received EM button\r\n");
                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_EM_Toggle);
                 break;
             
@@ -750,7 +740,6 @@ static void debounceTimerCallback(TimerHandle_t timer)
 void HAL_GPIO_EXTI_Callback(uint16_t pin)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     if (alreadyDebouncing)
     {
         /* Already debouncing, do nothing with this interrupt */

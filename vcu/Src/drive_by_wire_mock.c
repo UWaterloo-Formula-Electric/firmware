@@ -259,6 +259,20 @@ static const CLI_Command_Definition_t brakePressureCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t fakeHvToggle(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+	fsmSendEvent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
+	return pdFALSE;
+}
+static const CLI_Command_Definition_t fakeHvToggleCommandDefinition =
+{
+	"hv",
+	"hv \r\n fake press of HV Toggle\r\n",
+	fakeHvToggle,
+	0 /*Number of parameters*/
+};
+
 BaseType_t fakeEM_Toggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -406,6 +420,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&throttleCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&fakeHvToggleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&emToggleCommandDefinition) != pdPASS) {

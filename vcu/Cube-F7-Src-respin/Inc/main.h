@@ -75,12 +75,16 @@ void Error_Handler(void);
 #define Steering_GPIO_Port GPIOA
 #define BTN_HV_SNS_Pin GPIO_PIN_4
 #define BTN_HV_SNS_GPIO_Port GPIOC
+#define BTN_HV_SNS_EXTI_IRQn EXTI4_IRQn
 #define BTN_EM_SNS_Pin GPIO_PIN_5
 #define BTN_EM_SNS_GPIO_Port GPIOC
+#define BTN_EM_SNS_EXTI_IRQn EXTI9_5_IRQn
 #define BTN_TC_SNS_Pin GPIO_PIN_0
 #define BTN_TC_SNS_GPIO_Port GPIOB
+#define BTN_TC_SNS_EXTI_IRQn EXTI0_IRQn
 #define BTN_ENDUR_SNS_Pin GPIO_PIN_1
 #define BTN_ENDUR_SNS_GPIO_Port GPIOB
+#define BTN_ENDUR_SNS_EXTI_IRQn EXTI1_IRQn
 #define IMD_FAULT_LED_EN_Pin GPIO_PIN_8
 #define IMD_FAULT_LED_EN_GPIO_Port GPIOD
 #define AMS_FAULT_LED_EN_Pin GPIO_PIN_9
