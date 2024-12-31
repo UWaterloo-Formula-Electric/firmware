@@ -314,7 +314,7 @@ void canTask(void *pvParameters)
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
-            DEBUG_PRINT("All mailboxes full, waiting\n");
+            // DEBUG_PRINT("All mailboxes full, waiting\n");
             // Give semaphore again, since we haven't sent this message
             if (xSemaphoreGive(CAN_Msg_Semaphore) != pdTRUE)
             {
