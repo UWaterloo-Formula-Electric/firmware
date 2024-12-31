@@ -43,7 +43,6 @@
 #if IS_BOARD_F7
 #include "ltc_chip.h"
 #include "ltc_chip_interface.h"
-#include "ade7913.h"
 #include "imdDriver.h"
 #endif
 
@@ -391,7 +390,7 @@ void imdTask(void *pvParamaters)
     ImdData_s *imdData;
 
     // Wait for IMD to start
-   begin_imd_measurement();
+   initImdMeasurements();
 
    // Notify control fsm that IMD is ready
    fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);

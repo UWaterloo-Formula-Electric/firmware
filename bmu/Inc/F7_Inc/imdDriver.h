@@ -17,14 +17,23 @@ typedef struct ImdData {
     uint8_t deviceStatus;
 } ImdData_s;
 
-// typedef enum ImdFaults_e {
-
-// } ImdFaults_e;
+typedef enum ImdFaults_e {
+    DEVICE_ERROR_ACTIVE = 0,
+    HV_POS_CONN_FAILURE,
+    HV_NEG_CONN_FAILURE,
+    EARTH_CONN_FAILURE,
+    ISO_ALARM,
+    ISO_WARNING,
+    ISO_OUTDATED,
+    UNBALANCE_ALARM,
+    UNDERVOLTAGE_ALARM,
+    UNSAFE_TO_START,
+    EARTHLIFT_OPEN,
+} ImdFaults_e;
 
 #define ISOLATION_FAULT 1 << 4
 
-void begin_imd_measurement(void);
-HAL_StatusTypeDef initImdData();
+void initImdMeasurements();
 void updateImdData(ImdData_s *ImdData);
 ImdData_s * getImdData();
 

@@ -27,15 +27,7 @@
 QueueHandle_t ImdDataHandle;
 ImdData_s *pImdData;
 
-HAL_StatusTypeDef initImdData() {
-    ImdDataHandle = xQueueCreate(1, sizeof(ImdData_s));
-    if(ImdDataHandle == NULL) {
-        DEBUG_PRINT("Failed to Init IMD data Queue!\r\n");
-        return HAL_ERROR;
-    }
-    return HAL_OK;
-}
-void begin_imd_measurement() {
+void initImdMeasurements() {
     memset(pImdData, 0, sizeof(ImdData_s));
     vTaskDelay(1000);
 }
@@ -46,6 +38,4 @@ ImdData_s * getImdData(){
 
 void updateImdData(ImdData_s *ImdData) {
     memcpy(pImdData, ImdData, sizeof(ImdData_s));
-    // DEBUG_PRINT_ISR("faults: %d\r\n", pImdData->faults);
-    // DEBUG_PRINT_ISR("device status: %d\r\n", pImdData->deviceStatus);
 }
