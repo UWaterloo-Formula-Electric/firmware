@@ -28,7 +28,6 @@
 static float Vbus = 0.0f;
 static float Vbatt = 0.0f;
 static float Ibus = 0.0f;
-static ImdData_s ImdData = {};
 
 void CAN_Msg_DCU_buttonEvents_Callback()
 {
@@ -97,6 +96,7 @@ void CAN_Msg_IVT_Result_I_Callback()
 
 void CAN_Msg_IMD_Info_General_Callback()
 {
+    static ImdData_s ImdData = {};
     ImdData.isoRes = IMD_R_iso_corrected;
     ImdData.isoStatus = IMD_R_iso_status;
     ImdData.measurementCounter = IMD_R_Measurement_Counter;
