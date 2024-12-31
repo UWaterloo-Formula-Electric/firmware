@@ -57,14 +57,7 @@ void ledTask(void *pvParameters)
                 break;
 
             case STATE_HV_Enable:
-                if (pendingEmResponse())
-                {
-                    HAL_GPIO_TogglePin(EM_LED_GPIO_Port, EM_LED_Pin);
-                }
-                else
-                {
-                    EM_LED_OFF;
-                }
+                EM_LED_OFF;
                 HV_LED_ON;
                 break;
 
