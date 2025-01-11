@@ -391,7 +391,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
             ERROR_PRINT("INFO: VBatt %f\n", VBatt);
             ERROR_PRINT("INFO: IBus %f\n", IBus);
-            // return PCDC_ERROR;
+            return PCDC_ERROR;
             break;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));

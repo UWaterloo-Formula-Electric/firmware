@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "contactorControl.h"
 #include "bsp.h"
 #include "bmu_can.h"
@@ -5,6 +7,12 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "watchdog.h"
+
+#define ADC_RESOLUTION_BITS 12
+#define ADC_FS_RANGE 3.3f
+#define ADC_LSB ADC_FS_RANGE/(float)pow(2, ADC_RESOLUTION_BITS)
+#define VOLTAGE_TO_CURRENT_GAIN 0.8f
+#define ADC_TO_CURRENT ADC_LSB/VOLTAGE_TO_CURRENT_GAIN
 
 uint32_t contactorThermistorADCValues[NUM_CONT_THERMISTOR_INDEX] = {0};
 
@@ -57,6 +65,9 @@ void openAllContactors()
     setPrechargeContactor(CONTACTOR_OPEN);
 }
 
+/**
+ * @brief Initialize contactor current sesning using DMA
+ */
 HAL_StatusTypeDef contactorCurrentSenseInit()
 {
     if(HAL_ADC_Start_DMA(&CONT_SENSE_ADC_HANDLE, contactorThermistorADCValues, NUM_CONT_THERMISTOR_INDEX) != HAL_OK) {
@@ -68,8 +79,17 @@ HAL_StatusTypeDef contactorCurrentSenseInit()
     return HAL_OK;
 }
 
+void getContactorCurrent (float * posContCurrent, float * negContCurrent)
+{
+    *posContCurrent = contactorThermistorADCValues[CONT_POS_SENSE_INDEX]*ADC_TO_CURRENT;
+    *negContCurrent = contactorThermistorADCValues[CONT_NEG_SENSE_INDEX]*ADC_TO_CURRENT;
+}
+
 void contCurrentSenseTask(void *pvParameters)
 {
+    static float posCurrent = 0.0f;
+    static float negCurrent = 0.0f;
+
     if (registerTaskToWatch(CONT_CURRENT_SENSE_TASK_ID, 2*pdMS_TO_TICKS(CONTACTOR_SENSE_PERIOD), false, NULL) != HAL_OK) {
         ERROR_PRINT("Failed to register contactor current sense task with watchdog!\n");
         Error_Handler();
@@ -83,6 +103,11 @@ void contCurrentSenseTask(void *pvParameters)
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while(1){
+
+        getContactorCurrent(&posCurrent, &negCurrent);
+
+        DEBUG_PRINT("Pos cont current: %f\r\n", posCurrent);
+        DEBUG_PRINT("Neg cont current: %f\r\n", negCurrent);
 
         watchdogTaskCheckIn(CONT_CURRENT_SENSE_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CONTACTOR_SENSE_PERIOD));
