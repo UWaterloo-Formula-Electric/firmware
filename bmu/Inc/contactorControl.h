@@ -3,7 +3,7 @@
 
 #include "controlStateMachine.h"
 
-#define CONTACTOR_SENSE_PERIOD 500
+#define CONTACTOR_SENSE_PERIOD 2000
 
 typedef enum {
     CONT_NEG_SENSE_INDEX = 0,
