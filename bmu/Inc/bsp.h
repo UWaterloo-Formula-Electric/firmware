@@ -62,6 +62,7 @@
 #define FAN_HANDLE htim12
 #define HW_CHECK_HANDLE htim2
 #define CONT_SENSE_ADC_HANDLE hadc1
+#define CONT_SENSE_TIM htim7
 
 typedef enum taskId_e{
     FSM_TASK_ID = 1,                // 1

@@ -266,7 +266,7 @@ void MX_FREERTOS_Init(void) {
   stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
 
   /* definition and creation of contCurrentSens */
-  osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 128);
+  osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 1000);
   contCurrentSensHandle = osThreadCreate(osThread(contCurrentSens), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */

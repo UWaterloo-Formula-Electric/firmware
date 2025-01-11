@@ -76,6 +76,12 @@ HAL_StatusTypeDef contactorCurrentSenseInit()
         return HAL_ERROR;
     }
 
+    if(HAL_TIM_Base_Start(&CONT_SENSE_TIM) != HAL_OK) {
+        ERROR_PRINT("Failed to start cont sense timer!\r\n");
+        Error_Handler();
+        return HAL_ERROR;
+    }
+
     return HAL_OK;
 }
 
