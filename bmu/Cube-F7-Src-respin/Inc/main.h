@@ -167,6 +167,7 @@ void Error_Handler(void);
 #define CONT_NEG_GPIO_Port GPIOD
 #define TSMS_SENSE_Pin GPIO_PIN_7
 #define TSMS_SENSE_GPIO_Port GPIOD
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -176,5 +177,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
