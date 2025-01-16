@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    can.c
@@ -6,17 +7,16 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
-
+/* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
 
@@ -92,8 +92,6 @@ void MX_CAN3_Init(void)
 
 }
 
-static uint32_t HAL_RCC_CAN1_CLK_ENABLED=0;
-
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
 {
 
@@ -104,10 +102,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
 
   /* USER CODE END CAN1_MspInit 0 */
     /* CAN1 clock enable */
-    HAL_RCC_CAN1_CLK_ENABLED++;
-    if(HAL_RCC_CAN1_CLK_ENABLED==1){
-      __HAL_RCC_CAN1_CLK_ENABLE();
-    }
+    __HAL_RCC_CAN1_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**CAN1 GPIO Configuration
@@ -141,11 +136,6 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
   /* USER CODE END CAN3_MspInit 0 */
     /* CAN3 clock enable */
     __HAL_RCC_CAN3_CLK_ENABLE();
-    __HAL_RCC_CAN2_CLK_ENABLE();
-    HAL_RCC_CAN1_CLK_ENABLED++;
-    if(HAL_RCC_CAN1_CLK_ENABLED==1){
-      __HAL_RCC_CAN1_CLK_ENABLE();
-    }
 
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**CAN3 GPIO Configuration
@@ -207,11 +197,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
   /* USER CODE END CAN3_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_CAN3_CLK_DISABLE();
-    __HAL_RCC_CAN2_CLK_DISABLE();
-    HAL_RCC_CAN1_CLK_ENABLED--;
-    if(HAL_RCC_CAN1_CLK_ENABLED==0){
-      __HAL_RCC_CAN1_CLK_DISABLE();
-    }
 
     /**CAN3 GPIO Configuration
     PB3     ------> CAN3_RX
@@ -233,5 +218,3 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
