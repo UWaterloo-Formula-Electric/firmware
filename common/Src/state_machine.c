@@ -128,20 +128,44 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
                     return HAL_ERROR;
                 } else {
                     #if BOARD_ID == ID_BMU
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_BMU_State_Change();
                     #elif BOARD_ID  == ID_DCU
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_DCU_State_Change();
                     #elif BOARD_ID  == ID_VCU_F7
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_VCU_State_Change();
                     #elif BOARD_ID  == ID_PDU
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_PDU_State_Change();
                     #elif BOARD_ID  == ID_WSBFL
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_WSBFL_State_Change();
                     #elif BOARD_ID  == ID_WSBFR
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_WSBFR_State_Change();
                     #elif BOARD_ID  == ID_WSBRL
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_WSBRL_State_Change();
                     #elif BOARD_ID  == ID_WSBRR
+                        StateMachineEvent = event;
+                        StateMachineNewState = newState;
+                        StateMachineState = current_state;
                         sendCAN_WSBRR_State_Change();
                     #endif
                     handle->state = newState;
