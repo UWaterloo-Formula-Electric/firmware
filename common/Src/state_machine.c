@@ -127,6 +127,23 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
                     ERROR_PRINT("FSM: New state out of range\n");
                     return HAL_ERROR;
                 } else {
+                    #if BOARD_ID == ID_BMU
+                        sendCAN_BMU_State_Change();
+                    #elif BOARD_ID  == ID_DCU
+                        sendCAN_DCU_State_Change();
+                    #elif BOARD_ID  == ID_VCU_F7
+                        sendCAN_VCU_State_Change();
+                    #elif BOARD_ID  == ID_PDU
+                        sendCAN_PDU_State_Change();
+                    #elif BOARD_ID  == ID_WSBFL
+                        sendCAN_WSBFL_State_Change();
+                    #elif BOARD_ID  == ID_WSBFR
+                        sendCAN_WSBFR_State_Change();
+                    #elif BOARD_ID  == ID_WSBRL
+                        sendCAN_WSBRL_State_Change();
+                    #elif BOARD_ID  == ID_WSBRR
+                        sendCAN_WSBRR_State_Change();
+                    #endif
                     handle->state = newState;
                     break;
                 }
