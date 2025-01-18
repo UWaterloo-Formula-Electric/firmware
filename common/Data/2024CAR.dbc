@@ -63,6 +63,46 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
+BO_ 2281705227 WSBRR_State_Change: 8 WSBRR
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705226 WSBRL_State_Change: 8 WSBRL
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705225 WSBFR_State_Change: 8 WSBFR
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705224 WSBFL_State_Change: 8 WSBFL
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705223 DCU_State_Change: 8 DCU
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705219 PDU_State_Change: 8 PDU
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705218 VCU_State_Change: 8 VCU_F7
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2281705217 BMU_State_Change: 3 BMU
+ SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
  SG_ INV_Peak_Tractive_Power_kW : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
  SG_ INV_Tractive_Power_kW : 0|16@1- (0.01,0) [-327.68|327.67] ""  VCU_BeagleBone
