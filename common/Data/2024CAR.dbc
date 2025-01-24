@@ -71,6 +71,12 @@ BO_ 2214593034 WSBRL_Speed: 6 WSBRL
  SG_ RLSpeedRPM : 16|32@1- (1,0) [-55|770] "rpm"  VCU_F7
  SG_ RLSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
 
+BO_ 2214658571 WSBRR_FlowRate: 8 WSBRR
+ SG_ RRFlowRateMLMin : 0|14@1+ (1,0) [0|2500] "ml/min" VCU_F7
+
+BO_ 2214658570 WSBRL_FlowRate: 6 WSBRL
+ SG_ RLFlowRateMLMin : 0|14@1+ (1,0) [0|2500] "ml/min" VCU_F7
+
 BO_ 2215707149 WSBRR_BrakeTemp: 3 WSBRR
  SG_ BrakeTempRearAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
  SG_ BrakeTempRear : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX

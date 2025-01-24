@@ -163,3 +163,11 @@ void CAN_Msg_MC_Current_Info_Callback(void)
         INV_Peak_Tractive_Power_kW = instPowerKw;
     }
 }
+
+void CAN_Msg_WSBRR_FlowRate_Callback() {
+    // TODO: implement behaviour on data receive.
+}
+
+void CAN_Msg_WSBRL_FlowRate_Callback() {
+    // TODO: implement behaviour on data receive.
+}
