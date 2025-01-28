@@ -133,8 +133,6 @@ void Error_Handler(void);
 #define HVD_SENSE_GPIO_Port GPIOD
 #define TSSI_GREEN_EN_Pin GPIO_PIN_9
 #define TSSI_GREEN_EN_GPIO_Port GPIOD
-#define TSSI_RED_EN_Pin GPIO_PIN_10
-#define TSSI_RED_EN_GPIO_Port GPIOD
 #define TACH_1_Pin GPIO_PIN_12
 #define TACH_1_GPIO_Port GPIOD
 #define TACH_2_Pin GPIO_PIN_13

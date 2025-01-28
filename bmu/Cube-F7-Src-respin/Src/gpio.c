@@ -59,8 +59,8 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, TSSI_GREEN_EN_Pin|TSSI_RED_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin
-                          |CONT_POS_Pin|CONT_DC_DC_Pin|CONT_NEG_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, TSSI_GREEN_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin|CONT_POS_Pin
+                          |CONT_DC_DC_Pin|CONT_NEG_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PEPin PEPin PEPin PEPin */
   GPIO_InitStruct.Pin = HW_CHECK_SENSE_Pin|BOTS_SENSE_Pin|AMS_SENSE_Pin|BUT3_Pin;
@@ -101,9 +101,9 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
-                           PDPin PDPin PDPin */
-  GPIO_InitStruct.Pin = TSSI_GREEN_EN_Pin|TSSI_RED_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin
-                          |CONT_POS_Pin|CONT_DC_DC_Pin|CONT_NEG_Pin;
+                           PDPin PDPin */
+  GPIO_InitStruct.Pin = TSSI_GREEN_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin|CONT_POS_Pin
+                          |CONT_DC_DC_Pin|CONT_NEG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
