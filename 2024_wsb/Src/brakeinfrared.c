@@ -48,7 +48,7 @@ uint8_t getBrakeTempAccuracy(float brakeTemp) {
 }
 
 void BrakeIRTask(void const* argument) {
-    deleteWSBTask(WSBFL | WSBRR);
+    deleteWSBTaskIfNot(WSBFL | WSBRR);
     DEBUG_PRINT("Starting BrakeIRTask\n");
 
     TickType_t xLastWakeTime = xTaskGetTickCount();

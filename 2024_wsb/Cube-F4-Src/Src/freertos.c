@@ -151,7 +151,7 @@ void MX_FREERTOS_Init(void) {
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of rtryEncTaskName */
-  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityLow, 0, 128);
+  osThreadDef(rtryEncTaskName, RotaryEncoderTask, osPriorityNormal, 0, 1024);
   rtryEncTaskNameHandle = osThreadCreate(osThread(rtryEncTaskName), NULL);
 
   /* definition and creation of brkIRTaskName */

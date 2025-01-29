@@ -37,6 +37,7 @@
 #include <string.h>
 #include "watchdog.h"
 #include "generalErrorHandler.h"
+#include "callbacks.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,6 +114,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM12_Init();
   MX_IWDG_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
@@ -204,7 +206,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  encoderRPSCallback(htim);
   /* USER CODE END Callback 1 */
 }
 

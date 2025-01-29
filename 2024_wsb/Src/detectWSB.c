@@ -10,15 +10,23 @@
 
 /**
  * @brief Detects the WSB type based on the front/back & left/right DIP switches
+ *        The WSB type is stored in a static variable to prevent re-detecting
+ *        and switching mid-run
  */
 WSBType_t detectWSB() {
+    static WSBType_t lastDetectedWSB = INVALID_WSB;
+    // prevent re-detecting the and swithcing mid-run
+    if (lastDetectedWSB != INVALID_WSB) {
+        return lastDetectedWSB;
+    }
+
     GPIO_PinState front = HAL_GPIO_ReadPin(FrontRear_DipSW_GPIO_Port, FrontRear_DipSW_Pin);
     GPIO_PinState left = HAL_GPIO_ReadPin(LeftRight_DipSW_GPIO_Port, LeftRight_DipSW_Pin);
 
     if (front == GPIO_PIN_SET) {
-        return left == GPIO_PIN_SET ? WSBFL : WSBFR;
+        return lastDetectedWSB = (left == GPIO_PIN_SET ? WSBFL : WSBFR);
     } else {
-        return left == GPIO_PIN_SET ? WSBRL : WSBRR;
+        return lastDetectedWSB = (left == GPIO_PIN_SET ? WSBRL : WSBRR);
     }
 }
 
@@ -56,10 +64,10 @@ bool getWSBBoardName(char* boardName, size_t size) {
  * @brief Deletes the task if the WSB is not valid, else does nothing. Only call this function inside a task
  * @param validWSBs The valid WSBs for the task
  *
- * Ex: deleteWSBTask(WSBFL | WSBFR); -> will delete the task if the WSB is not FL or FR
+ * Ex: deleteWSBTaskIfNot(WSBFL | WSBFR); -> will delete the task if the WSB is not FL or FR
  * @return If the task was deleted or not
  */
-bool deleteWSBTask(uint8_t validWSBs) {
+bool deleteWSBTaskIfNot(uint8_t validWSBs) {
     WSBType_t wsbType = detectWSB();
     // no matching WSB, delete task
     if ((wsbType & validWSBs) == 0) {

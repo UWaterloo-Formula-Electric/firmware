@@ -20,11 +20,7 @@ void mainTaskFunction(void const* argument) {
     }
 }
 
-void RotaryEncoderTask(void const* arg) {
-    while (1) {
-        vTaskDelay(10000);
-    }
-}
+
 
 void WaterflowTempSensorTask(void const* arg) {
     while (1) {

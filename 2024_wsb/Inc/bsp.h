@@ -23,7 +23,9 @@
 #define MULTISENSOR_ADC_HANDLE hadc1
 #define STATS_TIM_HANDLE htim12
 #define IWDG_HANDLE hiwdg
-// #define ENCODER_TIM_HANDLE htim3
+#define ENCODER_TIM_HANDLE htim1
+#define ENCODER_RPS_TIM_HANDLE htim13
+#define ENCODER_RPS_TIM_MS 10  // edit TIM13 prescaler and arr to change this. currently set to 10ms
 
 /* July 3, 2024 - Jacky
  * The 2024 WSBs no longer have these RED and YELLOW LEDs. generalErrorHandler.c requires these
