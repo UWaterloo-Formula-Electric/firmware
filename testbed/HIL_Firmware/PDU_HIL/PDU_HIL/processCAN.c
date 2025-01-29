@@ -7,6 +7,7 @@
 #include "canReceive.h"
 #include "processCAN.h"
 #include "digitalPot.h"
+#include "dcdcToggle.h"
 
 static uint32_t byte_0 = 0U;
 static uint32_t byte_1 = 0U;
@@ -31,6 +32,9 @@ void process_rx_task (void * pvParameters)
                 byte_2 = byte_2 << 16;
                 byte_2 |= byte_1;
                 setPotResistance(byte_2);
+                break;
+            case DC_DC_TOGGLE_CAN_ID:
+                setDCDC(can_msg.data[0]);
                 break;
             default:
                 printf("CAN ID not recognized %ld\r\n", can_msg.identifier);

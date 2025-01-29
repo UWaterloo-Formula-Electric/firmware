@@ -36,6 +36,9 @@ BS_:
 BU_: Computer PDU_HIL VCU_HIL
 
 
+BO_ 2214724367 DCDCToggle: 1 Computer
+ SG_ DCDCToggle : 0|1@1+ (1,0) [0|0] ""  PDU_HIL
+
 BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
  SG_ PowRightFan : 11|1@1+ (1,0) [0|1] ""  Computer
  SG_ PowLeftFan : 10|1@1+ (1,0) [0|1] ""  Computer
@@ -51,6 +54,7 @@ BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
  SG_ PowAux : 0|1@1+ (1,0) [0|1] ""  Computer
 
 BO_ 2281836291 PDU_MessageStatus: 1 PDU_HIL
+ SG_ DCDCToggleStatus : 1|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ BattThermistorStatus : 0|1@1+ (1,0) [0|1] ""  Computer
 
 BO_ 2214658831 BattThermistor: 3 Computer
