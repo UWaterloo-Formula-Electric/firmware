@@ -144,6 +144,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM1_Init();
   MX_TIM7_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
@@ -224,7 +225,9 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_10);
+}
 /* USER CODE END 4 */
 
 /**
