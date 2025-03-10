@@ -18,8 +18,8 @@
 #include "controlStateMachine.h"
 #include "state_machine.h"
 
-#define FAN_OFF_TEMP 25
-#define FAN_PEAK_TEMP 35
+#define FAN_OFF_TEMP 15
+#define FAN_PEAK_TEMP 25
 // Fans need pwm of 25 kHz, so we set timer to have 10 MHz freq, and 400 period
 #define FAN_MAX_DUTY_PERCENT 1.0
 #define FAN_ON_DUTY_PERCENT 0.2
