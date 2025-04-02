@@ -23,7 +23,7 @@
 //period kept at 1 second to avoid reading jitters
 //  - 1 pulse count & 2 pulse counts make a big difference if period is 100ms
 
-#define WHEEL_RADIUS 0.40005
+#define WHEEL_RADIUS 0.19685
 #define PI 3.14156
 #define TICKS_PER_SECOND 1000
 
