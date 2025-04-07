@@ -58,6 +58,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "bsp.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -226,7 +227,9 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_10);
+  if (htim->Instance == TSSI_TIMER_HANDLE.Instance) {
+    HAL_GPIO_TogglePin(TSSI_RED_EN_GPIO_Port, TSSI_RED_EN_Pin);
+  }
 }
 /* USER CODE END 4 */
 
