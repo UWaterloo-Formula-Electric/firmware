@@ -58,7 +58,6 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "bsp.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
