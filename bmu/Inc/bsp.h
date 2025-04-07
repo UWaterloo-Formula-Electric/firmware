@@ -41,8 +41,8 @@
 #define DC_DC_OFF           HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_RESET);
 #define TSSI_GREEN_ON       HAL_GPIO_WritePin(TSSI_GREEN_EN_GPIO_Port, TSSI_GREEN_EN_Pin, GPIO_PIN_SET)
 #define TSSI_GREEN_OFF      HAL_GPIO_WritePin(TSSI_GREEN_EN_GPIO_Port, TSSI_GREEN_EN_Pin, GPIO_PIN_RESET)
-#define TSSI_RED_ON         HAL_GPIO_WritePin(TSSI_RED_EN_GPIO_Port, TSSI_RED_EN_Pin, GPIO_PIN_SET)
-#define TSSI_RED_OFF         HAL_GPIO_WritePin(TSSI_RED_EN_GPIO_Port, TSSI_RED_EN_Pin, GPIO_PIN_RESET)
+#define TSSI_RED_ON         HAL_TIM_Base_Start_IT(&TSSI_TIMER_HANDLE);
+#define TSSI_RED_OFF        HAL_TIM_Base_Stop_IT(&TSSI_TIMER_HANDLE);
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
 #define CHARGER_CAN_HANDLE hcan1
@@ -63,6 +63,7 @@
 #define HW_CHECK_HANDLE htim2
 #define CONT_SENSE_ADC_HANDLE hadc1
 #define CONT_SENSE_TIM htim7
+#define TSSI_TIMER_HANDLE htim8
 
 typedef enum taskId_e{
     FSM_TASK_ID = 1,                // 1
