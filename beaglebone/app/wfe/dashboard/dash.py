@@ -67,15 +67,16 @@ class CANProcessor:
 
         # Messed up too many times with the CANBUS variable
         # just detect user and set the CANBUS variable
-        if os.getlogin() == 'vagrant':
-            CANBUS = 'vcan0'
-            self.home_dir = Path("/home/vagrant/shared")
-        else:
+        self.home_dir = Path().home()
+        
+        if 'dietpi' in self.home_dir:
             CANBUS = 'can1'
-            self.home_dir = Path("/home/debian")
+        else:
+            CANBUS = 'vcan0'
+            self.home_dir = self.home_dir / 'shared'
 
         self.db = cantools.db.load_file(self.home_dir / 'firmware/common/Data/2024CAR.dbc')
-        self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
+        self.can_bus = can.interface.Bus(channel=CANBUS, interface='socketcan')
 
         # CAN arbitration ID constants
         self.BATTERYSTATUSHV_ARB_ID = self.db.get_message_by_name('BMU_batteryStatusHV').frame_id
