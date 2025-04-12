@@ -432,22 +432,27 @@ BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
 	{
 		PUMP_1_EN;
         StatusPowerCoolingPump1 = StatusPowerCoolingPump1_CHANNEL_ON; 
-	}
+        DEBUG_PRINT("Pump 1 on\n");
+    }
 	else
 	{
 		PUMP_1_DISABLE;
         StatusPowerCoolingPump1 = StatusPowerCoolingPump1_CHANNEL_OFF; 
-	}
+        DEBUG_PRINT("Pump 1 off\n");
+    }
 	if (selection & 0x2)
 	{
 		PUMP_2_EN;
         StatusPowerCoolingPump2 = StatusPowerCoolingPump2_CHANNEL_ON; 
-	}
+        DEBUG_PRINT("Pump 2 on\n");
+    }
 	else
 	{
 		PUMP_2_DISABLE;
         StatusPowerCoolingPump2 = StatusPowerCoolingPump2_CHANNEL_OFF; 
-	}
+        DEBUG_PRINT("Pump 2 off\n");
+    }
+    
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
