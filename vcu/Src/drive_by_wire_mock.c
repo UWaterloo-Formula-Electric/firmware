@@ -411,6 +411,60 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t setTcGainsCommand(char *writeBuffer, size_t writeBufferLength,
+                        const char *commandString)
+{
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+    BaseType_t paramLen;
+    char controller;
+    float gain;
+
+    const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    sscanf(param, "%c", &controller);
+    param = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    sscanf(param, "%f", &gain);
+
+    HAL_StatusTypeDef status = tune_tc_PID(controller, gain);
+    if (status != HAL_OK) {
+        ERROR_PRINT("Failed to set gain");
+        return status;
+    }
+
+    COMMAND_OUTPUT("Set %c controller to %f\n", controller, gain);
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t setTcGainsCommandDefinition =
+{
+    "setTcGains",
+    "setTcGains <controller> <gain>:\r\n    set controller gain to gain value\r\n",
+    setTcGainsCommand,
+    2
+};
+
+BaseType_t getTcGainsCommand(char *writeBuffer, size_t writeBufferLength,
+                        const char *commandString)
+{
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+    const float* gains = get_tc_PID_gains();
+    COMMAND_OUTPUT("P: %f\r\nI: %f\r\nD: %f\r\n", gains[0], gains[1], gains[2]);
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getTcGainsCommandDefinition =
+{
+    "tcGains",
+    "tcGains:\r\n  prints tc PID gains",
+    getTcGainsCommand,
+    0
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -467,7 +521,12 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&setTcGainsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getTcGainsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }

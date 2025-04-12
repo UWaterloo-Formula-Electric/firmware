@@ -2,7 +2,7 @@
  *******************************************************************************
  * @file    traction_control.c
  * @author	Unknown
- * @date    Dec 2024
+ * @date    Apr 2025
  * @brief   Traction control algorithm (not currently used)
  *
  ******************************************************************************
@@ -20,12 +20,15 @@
 #include "task.h"
 #include "bsp.h"
 #include "stm32f7xx_hal_tim.h"
+#include "canReceive.h"
 
 #define PI 3.14159
 
 /*
-The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
-This exists and isn't done in the DBC bc the CAN driver has issues with the order of casting gives us large numbers around the middle point when the speed is around 0 
+The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the
+    middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
+This exists and isn't done in the DBC bc the CAN driver has issues with the order of casting gives us large numbers
+    around the middle point when the speed is around 0
 We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uint32_t)rpm-32768)
 */
 #define MC_ENCODER_OFFSET 32768
@@ -33,20 +36,20 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 35
 #define TRACTION_CONTROL_TASK_PERIOD_S (((float)TRACTION_CONTROL_TASK_PERIOD_MS)/1000.0f)
-#define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
 // Macros for converting RPM to KPH
-#define GEAR_RATIO ((float)(12.0/45.0))
 #define M_TO_KM 1.0/1000.0f
-#define WHEEL_DIAMETER_M 0.525
+#define WHEEL_DIAMETER_M 0.19685 * 2
 #define WHEEL_CIRCUMFERENCE WHEEL_DIAMETER_M*PI
 #define SECS_PER_HOUR (3600.0f)
-#define RADS_TO_KPH(rads) ((rads) * (WHEEL_DIAMETER_M/2.0) * SECS_PER_HOUR * M_TO_KM)
+#define RADS_TO_KPH(rads) ((rads) * (WHEEL_DIAMETER_M/2.0) * SECS_PER_HOUR * M_TO_KM) //todo: delete
+
+//PID gains
 #define TC_kP_DEFAULT (10.0f)
 #define TC_kI_DEFAULT (0.0f)
 #define TC_kD_DEFAULT (0.0f)
 
-// With our tire radius, rads/s ~ km/h
+//tc params
 #define SLIP_PERCENT_DEFAULT (0.1f)
 #define ADJUSTMENT_TORQUE_FLOOR_DEFAULT (0.0f)
 #define ZERO_SPEED_LOWER_BOUND (10.0f)
@@ -77,6 +80,7 @@ float tc_kI = TC_kI_DEFAULT;
 float tc_kD = TC_kD_DEFAULT;
 float desired_slip = SLIP_PERCENT_DEFAULT;
 float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
+float tc_pid_gains[3] = {0, 0, 0};
 
 void disable_TC(void)
 {
@@ -102,14 +106,35 @@ static float get_FL_speed()
 
 static float get_RR_speed()
 {
-	//Value comes from MC
-	return INV_Motor_Speed * GEAR_RATIO; // in rpm
+	//Value comes from WSB
+	return RRSpeedKPH;
 }
 
 static float get_RL_speed()
 {
-	//Value comes from MC
-	return INV_Motor_Speed * GEAR_RATIO; // in rpm
+	//Value comes from WSB
+	return RLSpeedKPH;
+}
+
+HAL_StatusTypeDef tune_tc_PID(char controller, float val) {
+	if (controller == 'P' || controller == 'p') {
+		tc_kP = val;
+	} else if (controller == 'I' || controller == 'i') {
+		tc_kI = val;
+	} else if (controller == 'D' || controller == 'd') {
+		tc_kD = val;
+	} else {
+		return HAL_ERROR;
+	}
+
+	return HAL_OK;
+}
+
+const float* get_tc_PID_gains() {
+	tc_pid_gains[0] = tc_kP;
+	tc_pid_gains[1] = tc_kI;
+	tc_pid_gains[2] = tc_kD;
+	return tc_pid_gains;
 }
 
 static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
@@ -123,13 +148,15 @@ static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	VCU_wheelSpeed_RR = wheel_data->RR;
 	sendCAN_RearWheelSpeedRADS();
 	vTaskDelay(2); // Added to prevent CAN mailbox full
+    //todo: not needed
 
 	FLSpeedKPH = RADS_TO_KPH(wheel_data->FL);
 	FRSpeedKPH = RADS_TO_KPH(wheel_data->FR);
-	RLSpeedKPH = RADS_TO_KPH(wheel_data->RL);
-	RRSpeedKPH = RADS_TO_KPH(wheel_data->RR);
+	RLSpeedKPH = wheel_data->RL;
+	RRSpeedKPH = wheel_data->RR;
 	sendCAN_WheelSpeedKPH();
 	vTaskDelay(2); // Added to prevent CAN mailbox full
+    //todo: not needed
 
 	TCTorqueMax = tc_data->torque_max;
 	TCTorqueAdjustment = tc_data->torque_adjustment;
@@ -195,13 +222,16 @@ static float tc_compute_limit(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	tc_data->torque_max = MAX_TORQUE_DEMAND_DEFAULT_NM;
 	tc_data->torque_adjustment = 0.0f;
 
-	tc_data->left_slip = compute_side_slip(wheel_data->FL, wheel_data->RL); 
+    //returns slip as a decimal
+	tc_data->left_slip = compute_side_slip(wheel_data->FL, wheel_data->RL);
 	tc_data->right_slip = compute_side_slip(wheel_data->FR, wheel_data->RR);
 
 	if(fabs(wheel_data->RL) < INTEGRAL_RESET_SPEED && fabs(wheel_data->RR) < INTEGRAL_RESET_SPEED)
 	{
 		tc_data->cum_error = 0.0f;
 	}
+
+    // TODO: compute gains is change in slip???
 	tc_data->torque_adjustment = compute_gains(tc_data);
 
 	float desired_torque = MAX_TORQUE_DEMAND_DEFAULT_NM - tc_data->torque_adjustment;
@@ -219,7 +249,9 @@ void tractionControlTask(void *pvParameters)
 		Error_Handler();
 	}
 
-	WheelSpeed_S wheel_data = {0};
+    DEBUG_PRINT("traction control task started");
+
+    WheelSpeed_S wheel_data = {0};
 	TCData_S tc_data = {0};
 
 	tc_data.torque_max = MAX_TORQUE_DEMAND_DEFAULT_NM;
