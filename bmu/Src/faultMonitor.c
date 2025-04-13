@@ -21,7 +21,7 @@
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
 
-#define ENABLE_IL_CHECKS
+// #define ENABLE_IL_CHECKS
 #define IL_TEST
 
 // CAN Logging

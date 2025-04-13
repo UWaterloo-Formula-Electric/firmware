@@ -51,9 +51,9 @@
  * Defines to enable/disable different functionality for testing purposes
  */
 
-#define ENABLE_IMD
-#define ENABLE_HV_MEASURE
-#define ENABLE_AMS
+// #define ENABLE_IMD
+// #define ENABLE_HV_MEASURE
+// #define ENABLE_AMS
 #define ENABLE_CHARGER
 #define ENABLE_BALANCE
 

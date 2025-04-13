@@ -17,6 +17,8 @@
 #include "pdu_can.h"
 #include "watchdog.h"
 
+// #define ENABLE_LOAD_SENSOR
+
 /*********************************************************************************************************************/
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -166,6 +168,11 @@ void loadSensorTask(void *pvParameters)
         Error_Handler();
     }
 
+     // Delay to allow system to turn on
+    // vTaskDelay(pdMS_TO_TICKS(100));
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+#ifdef ENABLE_LOAD_SENSOR
     // Start Mux ADC Pin
     if (startADCConversions() != HAL_OK) {
         ERROR_PRINT("Failed to start ADC conversions\n");
@@ -174,7 +181,7 @@ void loadSensorTask(void *pvParameters)
 
     // Delay to allow system to turn on
     vTaskDelay(pdMS_TO_TICKS(100));
-    TickType_t xLastWakeTime = xTaskGetTickCount();
+    // TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1)
     {
@@ -230,4 +237,11 @@ void loadSensorTask(void *pvParameters)
         watchdogTaskCheckIn(LOAD_SENSOR_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, LOAD_SENSOR_TASK_INTERVAL_MS);
     }
+#else
+    while (1){
+        watchdogTaskCheckIn(LOAD_SENSOR_TASK_ID);
+        vTaskDelayUntil(&xLastWakeTime, LOAD_SENSOR_TASK_INTERVAL_MS);
+    }
+#endif
+
 }

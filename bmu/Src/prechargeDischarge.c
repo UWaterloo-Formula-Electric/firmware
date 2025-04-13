@@ -27,7 +27,7 @@
 /** Define this to enable contactor control, otherwise PCDC will always
  *  return successful.
  */
-#define ENABLE_PRECHARGE_DISCHARGE
+// #define ENABLE_PRECHARGE_DISCHARGE
 
 /**
  * Return types for precharge and discharge functions
