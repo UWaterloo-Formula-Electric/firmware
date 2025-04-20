@@ -215,8 +215,7 @@ uint32_t EM_Enable(uint32_t event)
         DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
         sendDTC_WARNING_EM_ENABLE_FAILED(1);
         state = STATE_HV_Enable;
-    } else 
-    if (!(throttleIsZero())) {
+    } else if (!(throttleIsZero())) {
         DEBUG_PRINT("Failed to em enable, non-zero throttle\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(2);
         state = STATE_HV_Enable;
