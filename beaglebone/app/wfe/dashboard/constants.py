@@ -21,6 +21,7 @@ class TagEnum(enum.Enum):
     DESC = "desc"
     TIME = "time"
 
+# see Appendix: Faults on https://www.cascadiamotion.com/uploads/5/1/3/0/51309945/0a-0163-02_sw_user_manual.pdf
 
 INV_FAULT_CODES_DESC = {
     1 << 0: "Hardware Gate/Desaturation Fault",
