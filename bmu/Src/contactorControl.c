@@ -111,7 +111,7 @@ void contCurrentSenseTask(void *pvParameters) {
     while (1) {
         getContactorCurrent(&posCurrent, &negCurrent);
 
-        DEBUG_PRINT("Pos Neg cont current: %f %f\n", posCurrent, negCurrent);
+        // DEBUG_PRINT("Pos Neg cont current: %f %f\n", posCurrent, negCurrent);
 
         watchdogTaskCheckIn(CONT_CURRENT_SENSE_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(CONTACTOR_SENSE_PERIOD));

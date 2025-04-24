@@ -826,7 +826,7 @@ HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 HAL_StatusTypeDef getAdjustedPackVoltage(float *adjustedPackVoltage)
 {
     if (xQueuePeek(AdjustedPackVoltageQueue, adjustedPackVoltage, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive Adjusted Pack Voltage from queue\n");
+        // ERROR_PRINT("Failed to receive Adjusted Pack Voltage from queue\n");
         return HAL_ERROR;
     }
 

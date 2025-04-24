@@ -289,6 +289,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 			return HAL_OK;
 		}
 	}
+    HAL_StatusTypeDef ret = HAL_OK;
 
     for (int board = 0; board < NUM_BOARDS; board++)
     {
@@ -305,14 +306,14 @@ HAL_StatusTypeDef checkForOpenCircuit()
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f > 0.4)\n",
 								cellIdx, pullup, pulldown,
 								float_abs(pullup - pulldown));
-					return HAL_ERROR;
+					ret = HAL_ERROR;
 				}
 				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_pulldown[cellIdx] - 0) < 0.0002))
 				{	
 					ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
 								cellIdx, cell_voltages_pulldown[cellIdx],
 								float_abs(cell_voltages_pulldown[cellIdx] - 0));
-					return HAL_ERROR;
+					ret = HAL_ERROR;
 				}
 			}
 			else // PEC mismatch on this cell
@@ -328,7 +329,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
                             first_cell_idx, cell_voltages_pullup[first_cell_idx],
                             float_abs(cell_voltages_pullup[first_cell_idx] - 0));
-                return HAL_ERROR;
+                ret = HAL_ERROR;
         }
 		else if(open_wire_failure[first_cell_idx].occurred) // PEC mismatch on this cell
 		{
@@ -337,7 +338,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 	
     }
 
-    return HAL_OK;
+    return ret;
 }
 
 // Need to write config after
@@ -356,6 +357,7 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
 
     return HAL_OK;
 }
+
 HAL_StatusTypeDef batt_stop_balance_cell(int cell)
 {
     if (c_assert(cell < NUM_VOLTAGE_CELLS))
