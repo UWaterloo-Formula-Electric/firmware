@@ -1335,7 +1335,7 @@ void batteryTask(void *pvParameter)
     }
 
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
+#if IS_  BOARD_F7 && defined(ENABLE_AMS)
     HAL_StatusTypeDef ret = HAL_ERROR;
     for(int num_tries = 0; num_tries < START_NUM_TRIES; num_tries++)
     {
