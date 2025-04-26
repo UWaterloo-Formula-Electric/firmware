@@ -60,6 +60,7 @@ osThreadId enduranceModeHandle;
 osThreadId tractionControlHandle;
 osThreadId throttlePollingHandle;
 osThreadId ledHandle;
+osThreadId buttonTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -77,6 +78,7 @@ extern void enduranceModeTask(void const * argument);
 extern void tractionControlTask(void const * argument);
 extern void throttlePollingTask(void const * argument);
 extern void ledTask(void const * argument);
+extern void buttonTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -209,6 +211,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of led */
   osThreadDef(led, ledTask, osPriorityNormal, 0, 128);
   ledHandle = osThreadCreate(osThread(led), NULL);
+
+  /* definition and creation of buttonTaskName */
+  osThreadDef(buttonTaskName, buttonTask, osPriorityAboveNormal, 0, 128);
+  buttonTaskNameHandle = osThreadCreate(osThread(buttonTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
