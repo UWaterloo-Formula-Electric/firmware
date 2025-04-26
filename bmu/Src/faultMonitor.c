@@ -260,7 +260,7 @@ void faultMonitorTask(void *pvParameters)
    }
    while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-        DEBUG_PRINT("waiting\r\n");
+      DEBUG_PRINT("waiting\r\n");
 		vTaskDelay(10);
    }
 	
