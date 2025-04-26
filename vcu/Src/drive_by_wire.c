@@ -36,7 +36,7 @@
 
 FSM_Handle_Struct VCUFsmHandle;
 
-uint32_t runSelftTests(uint32_t event);
+uint32_t runSelfTests(uint32_t event);
 uint32_t EM_Enable(uint32_t event);
 uint32_t EM_Fault(uint32_t event);
 uint32_t EM_Update_Throttle(uint32_t event);
@@ -62,7 +62,7 @@ static uint32_t processHvState(uint32_t event);
 static uint32_t fatalTransition(uint32_t event);
 static uint32_t toggleTC(uint32_t event);
 static uint32_t toggleEnduranceMode(uint32_t event);
-static void debounceTimerCallback(TimerHandle_t timer);
+// static void debounceTimerCallback(TimerHandle_t timer);
 static void buzzerTimerCallback(TimerHandle_t timer);
 static int sendHVToggleMsg(void);
 static int sendEMToggleMsg(void);
@@ -81,7 +81,7 @@ static bool isPendingHvResponse = false;
 
 // TODO: clean up this state machine
 Transition_t transitions[] = {
-    { STATE_Self_Check, EV_Init, &runSelftTests },
+    { STATE_Self_Check, EV_Init, &runSelfTests },
     { STATE_HV_Disable, EV_Bps_Fail, &EM_Fault },
     { STATE_HV_Disable, EV_Hv_Disable, &EM_Fault },
     { STATE_HV_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
@@ -143,17 +143,17 @@ HAL_StatusTypeDef driveByWireInit()
         Error_Handler();
     }
 
-    debounceTimer = xTimerCreate("DebounceTimer",
-                                 pdMS_TO_TICKS(DEBOUNCE_WAIT_MS),
-                                 pdFALSE /* Auto Reload */,
-                                 0,
-                                 debounceTimerCallback);
+    // debounceTimer = xTimerCreate("DebounceTimer",
+    //                              pdMS_TO_TICKS(DEBOUNCE_WAIT_MS),
+    //                              pdFALSE /* Auto Reload */,
+    //                              0,
+    //                              debounceTimerCallback);
 
-    if (debounceTimer == NULL) 
-    {
-        ERROR_PRINT("Failed to create debounce timer!\n");
-        Error_Handler();
-    }
+    // if (debounceTimer == NULL) 
+    // {
+    //     ERROR_PRINT("Failed to create debounce timer!\n");
+    //     Error_Handler();
+    // }
 
     if (registerTaskToWatch(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS),
                             true, &VCUFsmHandle) != HAL_OK)
@@ -185,7 +185,7 @@ HAL_StatusTypeDef startDriveByWire()
     return fsmSendEvent(&VCUFsmHandle, EV_Init, portMAX_DELAY /* timeout */); // Force run of self checks
 }
 
-uint32_t runSelftTests(uint32_t event)
+uint32_t runSelfTests(uint32_t event)
 {
     // TODO: Run some tests
     
@@ -665,115 +665,115 @@ static uint32_t toggleEnduranceMode(uint32_t event)
     return STATE_EM_Enable;
 }
 
-/*
- * A button press is considered valid if it is still low (active) after
- * TIMER_WAIT_MS milliseconds.
- */
-static void debounceTimerCallback(TimerHandle_t timer)
-{
-    GPIO_PinState pin_val;
+// /*
+//  * A button press is considered valid if it is still low (active) after
+//  * TIMER_WAIT_MS milliseconds.
+//  */
+// static void debounceTimerCallback(TimerHandle_t timer)
+// {
+//     GPIO_PinState pin_val;
 
-    switch (debouncingPin)
-    {
-        case HV_TOGGLE_BUTTON_PIN:
-            pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
-                    HV_TOGGLE_BUTTON_PIN);
-            break;
+//     switch (debouncingPin)
+//     {
+//         case HV_TOGGLE_BUTTON_PIN:
+//             pin_val = HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT,
+//                     HV_TOGGLE_BUTTON_PIN);
+//             break;
 
-        case EM_TOGGLE_BUTTON_PIN:
-            pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
-                    EM_TOGGLE_BUTTON_PIN);
-            break;
+//         case EM_TOGGLE_BUTTON_PIN:
+//             pin_val = HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT,
+//                     EM_TOGGLE_BUTTON_PIN);
+//             break;
         
-        case TC_TOGGLE_BUTTON_PIN:
-            pin_val = HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT,
-                    TC_TOGGLE_BUTTON_PIN);
-            break;
+//         case TC_TOGGLE_BUTTON_PIN:
+//             pin_val = HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT,
+//                     TC_TOGGLE_BUTTON_PIN);
+//             break;
          
-        case ENDURANCE_TOGGLE_BUTTON_PIN:
-            pin_val = HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT,
-                    ENDURANCE_TOGGLE_BUTTON_PIN);
-            break;
+//         case ENDURANCE_TOGGLE_BUTTON_PIN:
+//             pin_val = HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT,
+//                     ENDURANCE_TOGGLE_BUTTON_PIN);
+//             break;
 
-        default:
-            /* Shouldn't get here */ 
-            DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
-            pin_val = GPIO_PIN_SET;
-            break;
-    }
+//         default:
+//             /* Shouldn't get here */ 
+//             DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
+//             pin_val = GPIO_PIN_SET;
+//             break;
+//     }
 
 
-    if (pin_val == GPIO_PIN_RESET)
-    {
-        switch (debouncingPin)
-        {
-            case HV_TOGGLE_BUTTON_PIN:
-                fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
-                // DEBUG_PRINT_ISR("received HV button\r\n");
-                break;
+//     if (pin_val == GPIO_PIN_RESET)
+//     {
+//         switch (debouncingPin)
+//         {
+//             case HV_TOGGLE_BUTTON_PIN:
+//                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
+//                 // DEBUG_PRINT_ISR("received HV button\r\n");
+//                 break;
 
-            case EM_TOGGLE_BUTTON_PIN:
-                // DEBUG_PRINT_ISR("received EM button\r\n");
-                fsmSendEventISR(&VCUFsmHandle, EV_BTN_EM_Toggle);
-                break;
+//             case EM_TOGGLE_BUTTON_PIN:
+//                 // DEBUG_PRINT_ISR("received EM button\r\n");
+//                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_EM_Toggle);
+//                 break;
             
-            case TC_TOGGLE_BUTTON_PIN:
-                fsmSendEventISR(&VCUFsmHandle, EV_BTN_TC_Toggle);
-                break;
+//             case TC_TOGGLE_BUTTON_PIN:
+//                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_TC_Toggle);
+//                 break;
 
-            case ENDURANCE_TOGGLE_BUTTON_PIN:
-                fsmSendEventISR(&VCUFsmHandle, EV_BTN_Endurance_Mode_Toggle);
-                break;
+//             case ENDURANCE_TOGGLE_BUTTON_PIN:
+//                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_Endurance_Mode_Toggle);
+//                 break;
 
-            default:
-                /* Shouldn't get here */
-                DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
-                break;
-        }
+//             default:
+//                 /* Shouldn't get here */
+//                 DEBUG_PRINT_ISR("Unknown pin specified to debounce\n");
+//                 break;
+//         }
 
-    }
+//     }
 
-    alreadyDebouncing = false;
-}
+//     alreadyDebouncing = false;
+// }
 
-void HAL_GPIO_EXTI_Callback(uint16_t pin)
-{
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    if (alreadyDebouncing)
-    {
-        /* Already debouncing, do nothing with this interrupt */
-        return;
-    }
-    alreadyDebouncing = true;
+// void HAL_GPIO_EXTI_Callback(uint16_t pin)
+// {
+//     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//     if (alreadyDebouncing)
+//     {
+//         /* Already debouncing, do nothing with this interrupt */
+//         return;
+//     }
+//     alreadyDebouncing = true;
 
-    switch (pin)
-    {
-        case HV_TOGGLE_BUTTON_PIN:
-            debouncingPin = HV_TOGGLE_BUTTON_PIN;
-            break;
+//     switch (pin)
+//     {
+//         case HV_TOGGLE_BUTTON_PIN:
+//             debouncingPin = HV_TOGGLE_BUTTON_PIN;
+//             break;
 
-        case EM_TOGGLE_BUTTON_PIN:
-            debouncingPin = EM_TOGGLE_BUTTON_PIN;
-            break;
+//         case EM_TOGGLE_BUTTON_PIN:
+//             debouncingPin = EM_TOGGLE_BUTTON_PIN;
+//             break;
         
-        case TC_TOGGLE_BUTTON_PIN:
-            debouncingPin = TC_TOGGLE_BUTTON_PIN;
-            break;
+//         case TC_TOGGLE_BUTTON_PIN:
+//             debouncingPin = TC_TOGGLE_BUTTON_PIN;
+//             break;
 
-        case ENDURANCE_TOGGLE_BUTTON_PIN:
-            debouncingPin = ENDURANCE_TOGGLE_BUTTON_PIN;
-            break;
+//         case ENDURANCE_TOGGLE_BUTTON_PIN:
+//             debouncingPin = ENDURANCE_TOGGLE_BUTTON_PIN;
+//             break;
 
-        default:
-            /* Not a fatal error here, but report error and return */
-            DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
-            return;
-            break;
-    }
+//         default:
+//             /* Not a fatal error here, but report error and return */
+//             DEBUG_PRINT_ISR("Unknown GPIO interrupted in ISR!\n");
+//             return;
+//             break;
+//     }
 
-    xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
+//     xTimerStartFromISR(debounceTimer, &xHigherPriorityTaskWoken);
+//     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+// }
 
 static void buzzerTimerCallback(TimerHandle_t timer)
 {
