@@ -70,13 +70,13 @@ static int sendEnduranceToggleMsg(void);
 static int sendTCToggleMsg(void);
 
 static TimerHandle_t buzzerSoundTimer;
-static TimerHandle_t debounceTimer;
+// static TimerHandle_t debounceTimer;
 static bool TC_on = false;
 static bool endurance_on = false;
 static bool sentFatalDTC = false;
 static bool buzzerTimerStarted = false;
-static bool alreadyDebouncing = false;
-static uint16_t debouncingPin = 0;
+// static bool alreadyDebouncing = false;
+// static uint16_t debouncingPin = 0;
 static bool isPendingHvResponse = false;
 
 // TODO: clean up this state machine
@@ -708,7 +708,7 @@ static uint32_t toggleEnduranceMode(uint32_t event)
 //         switch (debouncingPin)
 //         {
 //             case HV_TOGGLE_BUTTON_PIN:
-//                 fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
+                // fsmSendEventISR(&VCUFsmHandle, EV_BTN_HV_Toggle);
 //                 // DEBUG_PRINT_ISR("received HV button\r\n");
 //                 break;
 
