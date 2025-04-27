@@ -137,10 +137,10 @@ BO_ 1314 IVT_Result_U1: 6 IVT
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1313 IVT_Result_I: 6 IVT
- SG_ IVT_I : 16|32@1- (0.001,0) [0|0] ""  BMU
- SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
- SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
- SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
+ SG_ IVT_I : 16|32@1- (0.001,0) [0|0] ""  BMU,VCU_F7
+ SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU,VCU_F7
+ SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU,VCU_F7
+ SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU,VCU_F7
 
 BO_ 1297 IVT_Response: 8 IVT
  SG_ IVT_respByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -281,7 +281,7 @@ BO_ 2281835521 BMU_BatteryChecks: 8 BMU
  SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2281769985 BMU_AmsVBatt: 8 BMU
- SG_ AMS_PackVoltage : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_BeagleBone
+ SG_ AMS_PackVoltage : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_BeagleBone,VCU_F7
 
 BO_ 2282884097 BMU_FanPeriod: 8 BMU
  SG_ FanPeriod : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
@@ -953,7 +953,7 @@ BO_ 2281967617 BMU_batteryStatusHV: 8 BMU
 
 BO_ 2282754561 BMU_stateBusHV: 8 BMU
  SG_ CurrentBusHV : 48|16@1+ (0.01,0) [0|0] "A" Vector__XXX
- SG_ VoltageCellMin : 32|16@1+ (0.0001,0) [0|0] "V" Vector__XXX
+ SG_ VoltageCellMin : 32|16@1+ (0.0001,0) [0|0] "V" Vector__XXX,VCU_F7
  SG_ VoltageCellMax : 16|16@1+ (0.0001,0) [0|0] "V" Vector__XXX
  SG_ VoltageBusHV : 0|16@1+ (0.01,0) [0|0] "V"  VCU_BeagleBone,VCU_F7
 

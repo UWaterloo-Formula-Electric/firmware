@@ -26,8 +26,13 @@
 
 //comment out to remove 80kw power limit
 #define ENABLE_POWER_LIMIT
+#define CURRENT_DERATING
+
 #define INV_POWER_LIMIT 70000.0 //80kw
 #define RPM_TO_RAD (2.0*3.14159/60.0)
+#define CELL_ISR_M_OHM (0.026)
+#define P_COUNT (6.0f)
+#define CEL_VOLTAGE_FLOOR (2.6f)
 
 MotorControllerSettings mcSettings = {0};
 
@@ -164,6 +169,12 @@ HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
     #ifdef ENABLE_POWER_LIMIT
     maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+    #endif
+
+    #ifdef CURRENT_DERATING
+    float maxCellCurrent = (VoltageCellMin - CEL_VOLTAGE_FLOOR)/CELL_ISR_M_OHM;
+    float maxPackCurrent = maxCellCurrent*P_COUNT;
+    maxTorqueDemand = min( maxTorqueDemand, (maxPackCurrent*AMS_PackVoltage)/(INV_Motor_Speed*RPM_TO_RAD));
     #endif
 
     INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
