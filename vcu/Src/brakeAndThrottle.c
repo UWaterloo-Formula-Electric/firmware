@@ -29,6 +29,8 @@
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
+#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 9))
+
 bool appsBrakePedalPlausibilityCheckFail(float throttle);
 
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
@@ -126,19 +128,20 @@ bool getThrottlePositionPercent(float *throttleOut)
     (*throttleOut) = 0;
 
 
-    ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
-    ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+    ThrottleAReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    ThrottleBReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+    // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
     sendCAN_VCU_ADCReadings();
 
     // Read both TPS sensors
-    if (is_throttle1_in_range(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX])
-        && is_throttle2_in_range(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]))
+    if (is_throttle1_in_range(ThrottleAReading)
+        && is_throttle2_in_range(ThrottleBReading))
     {
-        throttle1_percent = calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-        throttle2_percent = calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+        throttle1_percent = calculate_throttle_percent1(ThrottleAReading);
+        throttle2_percent = calculate_throttle_percent2(ThrottleBReading);
     } else {
-      ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+      ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)ThrottleAReading, (uint32_t)ThrottleBReading);
       return false;
     }
 
@@ -147,7 +150,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     {
         (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
-        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", brakeThrottleSteeringADCVals[THROTTLE_A_INDEX], brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", (uint32_t)ThrottleAReading,(uint32_t) ThrottleBReading);
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
@@ -332,7 +335,10 @@ void throttlePollingTask(void)
             // EM disabled
             throttlePercentReading = 0;
         }
-
+        // // just to print out what it is delete after testing
+        // float discard;
+        // getThrottlePositionPercent(&discard);
+        // // end
         watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
     }
