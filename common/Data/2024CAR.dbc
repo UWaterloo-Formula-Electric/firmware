@@ -66,6 +66,26 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
+BO_ 2565862644 IMD_SetParameters: 8 BMU
+ SG_ IMD_Byte7 : 56|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte6 : 48|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte5 : 40|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte4 : 32|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte3 : 24|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte2 : 16|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte1 : 8|8@1+ (1,0) [0|0] "" IMD
+ SG_ Index : 0|8@1+ (1,0) [0|0] "" IMD
+
+BO_ 2565800180 IMD_ReadParameters: 8 BMU
+ SG_ IMD_Byte7 : 56|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte6 : 48|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte5 : 40|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte4 : 32|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte3 : 24|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte2 : 16|8@1+ (1,0) [0|0] "" IMD
+ SG_ IMD_Byte1 : 8|8@1+ (1,0) [0|0] "" IMD
+ SG_ Index : 0|8@1+ (1,0) [0|0] "" IMD
+
 BO_ 2282621955 PDU_Charging_Lipo_Status: 1 PDU
  SG_ Charging_Lipo_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
 
@@ -83,7 +103,7 @@ BO_ 2286816259 PDU_Current_AUX_Readings: 8 PDU
  SG_ ChannelCurrentAUX2 : 16|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
  SG_ ChannelCurrentAUX1 : 0|16@1+ (0.001,0) [0|65.535] "A" Vector__XXX
 
-BO_ 2566849012 IMD_Info_General: 7 Vector__XXX
+BO_ 2566849012 IMD_Info_General: 7 IMD
  SG_ IMD_Device_activity : 48|8@1- (1,0) [0|0] ""  BMU
  SG_ IMD_Faults : 32|16@1+ (1,0) [0|0] ""  BMU
  SG_ IMD_R_Measurement_Counter : 24|8@1+ (1,0) [0|0] ""  BMU
@@ -1116,6 +1136,7 @@ BO_ 2365566977 MC_Fast_Info: 8 INV
  SG_ INV_Fast_Motor_Speed : 32|16@1- (1,0) [-32768|32767] "angular_speed:rpm"  VCU_F7
  SG_ INV_Fast_DC_Bus_Voltage : 48|16@1- (0.1,0) [-3276.8|3276.7] "voltage:V"  VCU_F7
 
+BO_TX_BU_ 2565800180 : BMU,IMD;
 BO_TX_BU_ 2214986495 : PDU,BMU,ChargeCart,DCU,VCU_F7,WSBFL,WSBFR,WSBRL,WSBRR;
 BO_TX_BU_ 2298416383 : VCU_F7,BMU,DCU,PDU,VCU_BeagleBone,WSBFL,WSBFR,WSBRL,WSBRR;
 
