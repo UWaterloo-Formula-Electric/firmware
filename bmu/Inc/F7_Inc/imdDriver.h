@@ -31,7 +31,8 @@ typedef enum ImdFaults_e {
     EARTHLIFT_OPEN,
 } ImdFaults_e;
 
-#define ISOLATION_FAULT 1 << 4
+#define ISOLATION_FAULT (1 << ISO_ALARM)
+#define ISOLATION_WARNING (1 << ISO_WARNING)
 
 void initImdMeasurements();
 void updateImdData(ImdData_s *ImdData);
