@@ -186,7 +186,7 @@ HAL_StatusTypeDef turnBoardsOn()
     TCU_EN;
     WSB_EN;
     BMU_EN;
-    AUX_3_EN;   // TODO: might be for the transponder (needs to be specced)
+    TRANSPONDER_EN;   // TODO: might be for the transponder (needs to be specced)
 
     StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
@@ -254,7 +254,7 @@ void toggleChannel(uint8_t channel, uint8_t On)
             if (On) { RADIATOR_EN; } else { RADIATOR_DISABLE; }
             break;
         case AUX_1_Channel:
-            if (On) { AUX_1_EN; } else { AUX_1_DISABLE; }
+            if (On) { TRANSPONDER_EN; } else { TRANSPONDER_DISABLE; }
             break;
         case AUX_2_Channel:
             if (On) { AUX_2_EN; } else { AUX_2_DISABLE; }
