@@ -523,7 +523,7 @@ HAL_StatusTypeDef initVoltageAndTempArrays()
  * @brief Called if an error with batteries is detected. Raises error and stops
  * battery task execution (without tripping watchdog)
  */
-void BatteryTaskError()
+void BatteryTaskError( bool triggerTSSI )
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
@@ -531,8 +531,11 @@ void BatteryTaskError()
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
     AMS_CONT_OPEN;
-    TSSI_GREEN_OFF;
-    TSSI_RED_ON;
+    if( triggerTSSI )
+    {
+        TSSI_GREEN_OFF;
+        TSSI_RED_ON;
+    }
 #endif
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -560,7 +563,14 @@ static uint32_t errorCounter = 0;
 bool boundedContinue()
 {
     if ((++errorCounter) > MAX_ERROR_COUNT) {
-        BatteryTaskError();
+        if( BatteryTaskFailure & CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT )
+        {
+            BatteryTaskError(true);
+        }
+        else
+        {
+            BatteryTaskError(false);
+        }
         return false;
     } else {
         DEBUG_PRINT("Error counter %d\n", (int)errorCounter);
@@ -1141,7 +1151,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         if (CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS) {
             ERROR_PRINT("Cell relaxation time %d > task period %d",
                         CELL_RELAXATION_TIME_MS, BATTERY_CHARGE_TASK_PERIOD_MS);
-            BatteryTaskError();
+            BatteryTaskError( false );
         } else {
             vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
         }
@@ -1150,13 +1160,13 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            BatteryTaskError();
+            BatteryTaskError( false );
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            BatteryTaskError();
+            BatteryTaskError( false );
         }
 #endif
 
@@ -1174,7 +1184,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 ((float *)&TempCellMax), ((float *)&TempCellMin),
                 &packVoltage, &adjustedPackVoltage) != HAL_OK)
         {
-            BatteryTaskError();
+            BatteryTaskError( true );
         }
 
         /*
@@ -1350,7 +1360,7 @@ void batteryTask(void *pvParameter)
     {
         BatteryTaskFailure = BATTERY_START_FAIL_BIT;
         sendCAN_BMU_BatteryChecks();
-        BatteryTaskError();
+        BatteryTaskError( false );
     }
 #endif
 
