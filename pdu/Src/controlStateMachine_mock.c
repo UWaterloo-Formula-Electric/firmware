@@ -336,9 +336,9 @@ BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
     BRAKE_LIGHT_ENABLE;
     HAL_Delay(3000);
     BRAKE_LIGHT_DISABLE;
-    AUX_1_EN;
+    TRANSPONDER_EN;
     HAL_Delay(3000);
-    AUX_1_DISABLE;
+    TRANSPONDER_DISABLE;
     AUX_2_EN;
     HAL_Delay(3000);
     AUX_2_DISABLE;
@@ -553,10 +553,10 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
     {
         case 1:
             if (power) { 
-                AUX_1_EN;
+                TRANSPONDER_EN;
                 StatusPowerAux1 = StatusPowerAux1_CHANNEL_ON;  
             } else { 
-                AUX_1_DISABLE;
+                TRANSPONDER_DISABLE;
                 StatusPowerAux1 = StatusPowerAux1_CHANNEL_OFF;  
             }
         case 2:
