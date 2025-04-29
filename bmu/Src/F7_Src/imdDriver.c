@@ -29,7 +29,7 @@ ImdData_s *pImdData;
 
 void initImdMeasurements() {
     memset(pImdData, 0, sizeof(ImdData_s));
-    vTaskDelay(1000);
+    vTaskDelay(3000);
 }
 
 ImdData_s * getImdData(){
