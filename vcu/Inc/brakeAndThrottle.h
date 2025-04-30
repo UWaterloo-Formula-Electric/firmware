@@ -5,6 +5,8 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
 
+#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 9))
+
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 2
@@ -13,11 +15,11 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (239)
-#define THROTT_B_LOW (233)
+#define THROTT_A_LOW (238)
+#define THROTT_B_LOW (237)
 
 #define THROTT_A_HIGH (278)
-#define THROTT_B_HIGH (277)
+#define THROTT_B_HIGH (280)
 
 #define BRAKE_POS_LOW (1986)
 #define BRAKE_POS_HIGH (2121)

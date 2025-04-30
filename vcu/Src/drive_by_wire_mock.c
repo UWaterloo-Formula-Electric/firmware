@@ -187,12 +187,15 @@ static const CLI_Command_Definition_t getBrakeCommandDefinition =
 
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
-{
+{   
+    uint32_t thA = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    uint32_t thB = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    
     COMMAND_OUTPUT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
-                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
-                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+                   calculate_throttle_percent1(thA),
+                   thA,
+                   calculate_throttle_percent2(thB),
+                   thB);
 
     /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
                    /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
@@ -211,11 +214,15 @@ static const CLI_Command_Definition_t getThrottleABCommandDefinition =
 BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+
+    uint32_t thA = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    uint32_t thB = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+
     DEBUG_PRINT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
-                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
-                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+                calculate_throttle_percent1(thA),
+                thA,
+                calculate_throttle_percent2(thB),
+                thB);
     DEBUG_PRINT("Brake Pos: %lu, brake pres: %lu, steering pos: %lu\n",
                 brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
                 brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX],
