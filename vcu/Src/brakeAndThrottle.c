@@ -263,8 +263,8 @@ HAL_StatusTypeDef brakeAndThrottleStart()
     return HAL_OK;
 }
 
-HAL_StatusTypeDef pollThrottle(void) {
-    ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
+HAL_StatusTypeDef pollThrottle(float *throttleOut) {
+    ThrottleStatus_t rc = getNewThrottle(throttleOut);
 
     if (rc == THROTTLE_FAULT) {
         sendDTC_WARNING_Throttle_Failure(0);
@@ -278,8 +278,8 @@ HAL_StatusTypeDef pollThrottle(void) {
             return HAL_ERROR;
         }
     }
-    
-    return requestTorqueFromMC(throttlePercentReading);
+
+    return HAL_OK;
 }
 
 /*********************************************************************************************************************/
@@ -305,6 +305,20 @@ void canPublishTask(void *pvParameters)
     }
 }
 
+float getMedian(float *throttleReadings, int N_readings) {
+    // Sort the readings bubble sort is fine here cuz of low N_readings
+    for (int i = 0; i < N_readings - 1; i++) {
+        for (int j = i + 1; j < N_readings; j++) {
+            if (throttleReadings[i] > throttleReadings[j]) {
+                float temp = throttleReadings[i];
+                throttleReadings[i] = throttleReadings[j];
+                throttleReadings[j] = temp;
+            }
+        }
+    }
+    // Take the median value
+    return throttleReadings[N_readings / 2];
+}
 void throttlePollingTask(void) 
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -318,14 +332,30 @@ void throttlePollingTask(void)
     INV_Peak_Tractive_Power_kW = 0;
     INV_DC_Bus_Voltage = 0;
     INV_DC_Bus_Current = 0;
-
+    // rolling median on throttle
+    #define N_readings 5
+    float throttleReadings[N_readings] = {0};
     while (1)
     {
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
             // Poll throttle
-            if (pollThrottle() != HAL_OK) {
+            float throttleOut = 0;
+            if (pollThrottle(&throttleOut) != HAL_OK) {
+                ERROR_PRINT("ERROR: Throttle Failure\n");
+                fsmSendEventUrgent(&VCUFsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+            }
+            // Add throttle to rolling median
+            for (int i = 0; i < N_readings - 1; i++) {
+                throttleReadings[i] = throttleReadings[i + 1];
+            }
+            throttleReadings[N_readings - 1] = throttleOut;
+            // Get median throttle value
+            throttleOut = getMedian(throttleReadings, N_readings);
+
+            throttlePercentReading = throttleOut;
+            if (requestTorqueFromMC(throttlePercentReading) != HAL_OK){
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
                 fsmSendEventUrgent(&VCUFsmHandle, EV_Throttle_Failure, portMAX_DELAY);
             }
