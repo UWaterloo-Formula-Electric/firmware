@@ -307,6 +307,7 @@ uint32_t EM_Fault(uint32_t event)
             {
                 DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
+                sendDTC_FATAL_VCU_F7_EV_FATAL();
             }
             break;
         case EV_Hv_Disable:
