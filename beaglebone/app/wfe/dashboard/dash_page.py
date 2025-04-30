@@ -34,7 +34,6 @@ class DashPage(Page):
         self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
         self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
         self.il_text = self._create_mid_cell("Interlock State:", row=3, col=1)
-        
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
@@ -42,7 +41,7 @@ class DashPage(Page):
 
         ### Voltages and mode ###
         self.vbatt_text = self._create_cell("#6B6B6B", "Pack Voltage", row=1, col=2)
-        self.power_text = self._create_cell("#6B6B6B", "HV Power", row=2, col=2)
+        self.power_text = self._create_cell("#6B6B6B", "HV Energy", row=2, col=2)
         self.lvbatt_text = self._create_cell("#6B6B6B", "LV Batt Voltage", row=3, col=2)
         self.min_cell_text = self._create_cell("#6B6B6B", "Min Cell Voltage", row=4, col=2)
 
@@ -156,12 +155,11 @@ class DashPage(Page):
         self.vbatt_text.config(text='%.5s' % ('%.3f' % vbatt) + 'V')
 
     def updateLVbatt(self, decoded_data: dict):
-        # lvbatt is in mV, convert to V
-        lvbatt = int(decoded_data['VoltageBusLV']) / 1000.
+        lvbatt = int(decoded_data['VoltageBusLV'])
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
-        cell_min = decoded_data['VoltageCellMin']        
+        cell_min = decoded_data['VoltageCellMin']
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
@@ -183,10 +181,10 @@ class DashPage(Page):
             self.disable_flash()
         if fault != InterlockFaultEnum.CBRB:
             self.il_text.config(text=fault.name)
-    
-    def updatePower(self, decoded_data: dict):
-        power = decoded_data['INV_Tractive_Power_kW']
-        self.power_text.config(text='%.5s' % ('%.3f' % power) + 'kW')
+
+    def updateEnergy(self, decoded_data: dict):
+        energy = decoded_data['IVT_Wh']
+        self.power_text.config(text='%.5s' % ('%.3f' % energy) + 'Wh')
 
     def enable_flash(self):
         self._is_flash_enabled = True

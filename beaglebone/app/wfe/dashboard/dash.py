@@ -100,6 +100,7 @@ class CANProcessor:
         self.LV_BATT_ARB_ID = self.db.get_message_by_name('LV_Bus_Measurements').frame_id
 
         # self.DCU_BUTTONS_ARB_ID = self.db.get_message_by_name('DCU_buttonEvents').frame_id
+        self.IVT_POWER_WH_ARB_ID = self.db.get_message_by_name('IVT_Result_Wh')
         self.BMU_IL_STATUS_ID = self.db.get_message_by_name('BMU_Interlock_Loop_Status').frame_id
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
         self.MC_POS_INFO = self.db.get_message_by_name('MC_Motor_Position_Info').frame_id
@@ -242,8 +243,8 @@ class CANProcessor:
                         # if decoded_data['BMU_checkFailed'] == INTERLOCK_FAULT_CODES_DESC.get():
                         dashPage.updateIL(decoded_data)
 
-                    case self.VCU_INV_POWER:
-                        dashPage.updatePower(decoded_data)
+                    case self.IVT_POWER_WH_ARB_ID:
+                        dashPage.updateEnergy(decoded_data)
                     # case for screen navigation button events
                     # case self.DCU_BUTTONS_ARB_ID:
                     #     # scroll up if R button double clicked
