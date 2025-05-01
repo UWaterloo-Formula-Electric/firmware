@@ -208,7 +208,7 @@ class CANProcessor:
         _last_scr_btn_ts = time.time()
         _last_scr_btn = None
 
-        dashPage.updateEnergy(self.wh_value)
+        dashPage.updateEnergy(self.wh_init)
 
         print("reading can messages...")
         while True:
