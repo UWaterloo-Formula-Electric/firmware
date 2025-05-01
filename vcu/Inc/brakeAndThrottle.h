@@ -11,7 +11,7 @@
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 2
 
-#define TPS_TOLERANCE_PERCENT 10  // Should be 10 but pots are noisy
+#define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
