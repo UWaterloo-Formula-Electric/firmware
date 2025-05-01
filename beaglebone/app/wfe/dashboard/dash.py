@@ -192,8 +192,7 @@ class CANProcessor:
         dtc_origin, dtc_code, dtc_data, dtc_desc = self.format_dtc(dtc_origin, dtc_code, dtc_data)
         self.main_view.update_debug_text(dtc_origin, dtc_code, dtc_data, dtc_desc)
 
-    def save_shunt_wh(self, shunt_wh: int):
-        wh = shunt_wh + self.wh_init
+    def save_shunt_wh(self, wh: int):
         self.wh_store.seek(0)
         self.wh_store.write(f"{wh}\n")
         self.wh_store.truncate()
@@ -266,11 +265,13 @@ class CANProcessor:
 
                     case self.IVT_POWER_WH_ARB_ID:
                         shunt_wh = decoded_data['IVT_Wh']
-                        self.save_shunt_wh(shunt_wh)
-                        dashPage.updateEnergy(self.wh_value)
+                        wh = shunt_wh + self.wh_init
+                        self.save_shunt_wh(wh)
+                        dashPage.updateEnergy(wh)
 
                     case self.VCU_BUTTONS_ARB_ID:
-                        self.reset_shunt_wh()
+                        if decoded_data['ButtonTCEnabled'] == 1:
+                            self.reset_shunt_wh()
                     # case for screen navigation button events
                     # case self.DCU_BUTTONS_ARB_ID:
                     #     # scroll up if R button double clicked
