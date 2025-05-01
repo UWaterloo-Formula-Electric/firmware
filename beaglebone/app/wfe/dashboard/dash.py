@@ -117,7 +117,7 @@ class CANProcessor:
             with open(self.wh_file, 'w') as f:
                 f.write("0\n")
         self.wh_store = open(self.wh_file, 'r+')
-        self.wh_init = int(self.wh_store.read())
+        self.wh_init = int(self.wh_store.readline())
 
 
     def load_dtcs(self):
