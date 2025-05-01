@@ -155,7 +155,7 @@ class DashPage(Page):
         self.vbatt_text.config(text='%.5s' % ('%.3f' % vbatt) + 'V')
 
     def updateLVbatt(self, decoded_data: dict):
-        lvbatt = int(decoded_data['VoltageBusLV'])
+        lvbatt = decoded_data['VoltageBusLV']
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
