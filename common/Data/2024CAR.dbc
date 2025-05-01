@@ -95,7 +95,7 @@ BO_ 2282360577 BMU_contactorCurrent: 2 BMU
  SG_ posContCurrent : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1320 IVT_Result_Wh: 6 IVT
- SG_ IVT_Wh : 16|32@1- (0.001,0) [0|0] ""  BMU
+ SG_ IVT_Wh : 16|32@1- (1,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
@@ -296,7 +296,7 @@ BO_ 2287209473 Discharge_Data: 8 BMU
  SG_ DischargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2297236481 BMU_Interlock_Loop_Status: 8 BMU
- SG_ BMU_checkFailed : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ BMU_checkFailed : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7
  SG_ StateMachineNewState : 32|8@1+ (1,0) [0|0] "" Vector__XXX

@@ -41,7 +41,7 @@ class DashPage(Page):
 
         ### Voltages and mode ###
         self.vbatt_text = self._create_cell("#6B6B6B", "Pack Voltage", row=1, col=2)
-        self.power_text = self._create_cell("#6B6B6B", "HV Energy", row=2, col=2)
+        self.energy_text = self._create_cell("#6B6B6B", "HV Energy", row=2, col=2)
         self.lvbatt_text = self._create_cell("#6B6B6B", "LV Batt Voltage", row=3, col=2)
         self.min_cell_text = self._create_cell("#6B6B6B", "Min Cell Voltage", row=4, col=2)
 
@@ -182,9 +182,8 @@ class DashPage(Page):
         if fault != InterlockFaultEnum.CBRB:
             self.il_text.config(text=fault.name)
 
-    def updateEnergy(self, decoded_data: dict):
-        energy = decoded_data['IVT_Wh']
-        self.power_text.config(text='%.5s' % ('%.3f' % energy) + 'Wh')
+    def updateEnergy(self, wh):
+        self.energy_text.config(text='%.5s' % ('%.3f' % wh) + 'Wh')
 
     def enable_flash(self):
         self._is_flash_enabled = True

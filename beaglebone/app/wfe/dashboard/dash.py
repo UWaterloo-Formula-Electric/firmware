@@ -99,8 +99,8 @@ class CANProcessor:
 
         self.LV_BATT_ARB_ID = self.db.get_message_by_name('LV_Bus_Measurements').frame_id
 
-        # self.DCU_BUTTONS_ARB_ID = self.db.get_message_by_name('DCU_buttonEvents').frame_id
-        self.IVT_POWER_WH_ARB_ID = self.db.get_message_by_name('IVT_Result_Wh')
+        self.VCU_BUTTONS_ARB_ID = self.db.get_message_by_name('VCU_buttonEvents').frame_id
+        self.IVT_POWER_WH_ARB_ID = self.db.get_message_by_name('IVT_Result_Wh').frame_id
         self.BMU_IL_STATUS_ID = self.db.get_message_by_name('BMU_Interlock_Loop_Status').frame_id
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
         self.MC_POS_INFO = self.db.get_message_by_name('MC_Motor_Position_Info').frame_id
@@ -110,6 +110,14 @@ class CANProcessor:
         self.DTC_ARB_IDS = [msg.frame_id for msg in self.db.messages if 'DTC' in msg.name]
         self.dtcs = {}
         self.load_dtcs()
+
+        self.wh_file = self.home_dir / "wh.txt"
+        if not self.wh_file.exists():
+            self.wh_file.touch()
+            with open(self.wh_file, 'w') as f:
+                f.write("0\n")
+        self.wh_store = open(self.wh_file, 'r+')
+        self.wh_value = int(self.wh_store.read())
 
     def load_dtcs(self):
         """
@@ -183,12 +191,24 @@ class CANProcessor:
         dtc_origin, dtc_code, dtc_data, dtc_desc = self.format_dtc(dtc_origin, dtc_code, dtc_data)
         self.main_view.update_debug_text(dtc_origin, dtc_code, dtc_data, dtc_desc)
 
+    def save_shunt_wh(self, shunt_wh: int):
+        wh = self.wh_value + shunt_wh
+        self.wh_value = wh
+        self.wh_store.seek(0)
+        self.wh_store.write(f"{wh}\n")
+        self.wh_store.truncate()
+
+    def reset_shunt_wh(self):
+        self.wh_value = 0
+        self.wh_store.write(f"\033[F{self.wh_value}\n")
+        self.wh_store.flush()
+
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
         _last_scr_btn_ts = time.time()
         _last_scr_btn = None
 
-        _cbrb_pressed = False
+        dashPage.updateEnergy(self.wh_value)
 
         print("reading can messages...")
         while True:
@@ -211,7 +231,7 @@ class CANProcessor:
                 print(f"Message decode failed for {message.arbitration_id}")
                 continue
 
-            print(message)
+            # print(message)
             try:
                 match message.arbitration_id:
                     # Case for battery temp/soc
@@ -244,7 +264,12 @@ class CANProcessor:
                         dashPage.updateIL(decoded_data)
 
                     case self.IVT_POWER_WH_ARB_ID:
-                        dashPage.updateEnergy(decoded_data)
+                        shunt_wh = decoded_data['IVT_Wh']
+                        self.save_shunt_wh(shunt_wh)
+                        dashPage.updateEnergy(self.wh_value)
+
+                    case self.VCU_BUTTONS_ARB_ID:
+                        self.reset_shunt_wh()
                     # case for screen navigation button events
                     # case self.DCU_BUTTONS_ARB_ID:
                     #     # scroll up if R button double clicked
