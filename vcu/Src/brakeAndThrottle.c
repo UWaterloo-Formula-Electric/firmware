@@ -327,7 +327,7 @@ void throttlePollingTask(void)
             // Poll throttle
             if (pollThrottle() != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
-                fsmSendEventUrgent(&VCUFsmHandle, EV_Throttle_Failure, portMAX_DELAY);
+                fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
             }
         }
         else
