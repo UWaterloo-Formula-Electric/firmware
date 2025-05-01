@@ -117,7 +117,8 @@ class CANProcessor:
             with open(self.wh_file, 'w') as f:
                 f.write("0\n")
         self.wh_store = open(self.wh_file, 'r+')
-        self.wh_value = int(self.wh_store.read())
+        self.wh_init = int(self.wh_store.read())
+
 
     def load_dtcs(self):
         """
@@ -192,16 +193,16 @@ class CANProcessor:
         self.main_view.update_debug_text(dtc_origin, dtc_code, dtc_data, dtc_desc)
 
     def save_shunt_wh(self, shunt_wh: int):
-        wh = self.wh_value + shunt_wh
-        self.wh_value = wh
+        wh = shunt_wh + self.wh_init
         self.wh_store.seek(0)
         self.wh_store.write(f"{wh}\n")
         self.wh_store.truncate()
 
     def reset_shunt_wh(self):
-        self.wh_value = 0
-        self.wh_store.write(f"\033[F{self.wh_value}\n")
-        self.wh_store.flush()
+        self.wh_init = 0
+        self.wh_store.seek(0)
+        self.wh_store.write(f"{self.wh_init}\n")
+        self.wh_store.truncate()
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
