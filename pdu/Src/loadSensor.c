@@ -17,7 +17,7 @@
 #include "pdu_can.h"
 #include "watchdog.h"
 
-// #define ENABLE_LOAD_SENSOR
+#define ENABLE_LOAD_SENSOR
 
 /*********************************************************************************************************************/
 /*------------------------------------------------------Macros-------------------------------------------------------*/
@@ -130,6 +130,24 @@ void canPublishCurrents() {
     ChannelCurrentAUX3 = channelCurrents.meas_s.AUX_3_Channel_A;
     ChannelCurrentAUX4 = channelCurrents.meas_s.AUX_4_Channel_A;
 
+    // DEBUG_PRINT("\nPump 1: %.3fA\n", ChannelCurrentPump1);
+    // DEBUG_PRINT("Pump 2: %.3fA\n", ChannelCurrentPump2);
+    // DEBUG_PRINT("VCU: %.3fA\n", ChannelCurrentCDU);
+    // DEBUG_PRINT("BMU: %.3fA\n", ChannelCurrentBMU);
+    // DEBUG_PRINT("WSB: %.3fA\n", ChannelCurrentWSB);
+    // DEBUG_PRINT("TCU: %.3fA\n", ChannelCurrentTCU);
+    // DEBUG_PRINT("Brake Light: %.3fA\n", ChannelCurrentBrakeLight);
+    // DEBUG_PRINT("Acc. Fans: %.3fA\n", ChannelCurrentAccFan);
+    // DEBUG_PRINT("Inverter: %.3fA\n", ChannelCurrentInverter);
+    // DEBUG_PRINT("Radiator: %.3fA\n", ChannelCurrentRadiator);
+    // DEBUG_PRINT("AUX 1: %.3fA\n", ChannelCurrentAUX1);
+    // DEBUG_PRINT("AUX 2: %.3fA\n", ChannelCurrentAUX2);
+    // DEBUG_PRINT("AUX 3: %.3fA\n", ChannelCurrentAUX3);
+    // DEBUG_PRINT("AUX 4: %.3fA\n", ChannelCurrentAUX4);
+    
+
+
+
     if (sendCAN_PDU_Fan_and_Pump_Current() != HAL_OK) {     // 4 channels
         ERROR_PRINT("Publish PDU_Fan_and_Pump_Current msg failed! \n");
     }
@@ -162,7 +180,7 @@ void canPublishCurrents() {
 
 void loadSensorTask(void *pvParameters)
 {
-    if (registerTaskToWatch(LOAD_SENSOR_TASK_ID, 15*LOAD_SENSOR_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
+    if (registerTaskToWatch(LOAD_SENSOR_TASK_ID, 2*LOAD_SENSOR_TASK_INTERVAL_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register power task with watchdog!\n");
         Error_Handler();
@@ -200,7 +218,7 @@ void loadSensorTask(void *pvParameters)
             // TODO: fix this timing issue (worst results with longer delays)
             // delay_us(MUX_TRANSITION_DELAY_US);
             // vTaskDelay(pdMS_TO_TICKS(300));
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(1));
 
 
             rawADC3Buffer[channel] = adcData[0];    // Only reason to save the raw ADC value is for the CLI commands
@@ -221,7 +239,7 @@ void loadSensorTask(void *pvParameters)
             // TODO: fix the timing
             selectMuxChannelForRead(MUX_MAPPING[channel]);
             // delay_us(MUX_TRANSITION_DELAY_US);
-            vTaskDelay(pdMS_TO_TICKS(300));
+            vTaskDelay(pdMS_TO_TICKS(1));
 
             rawADC3Buffer[channel] = adcData[0];
             channelCurrents.meas_a[channel] = ((float)rawADC3Buffer[channel] - 19) / ADC3_TO_AMPS_DIVIDER;

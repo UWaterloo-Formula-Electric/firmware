@@ -61,13 +61,13 @@ extern uint32_t rawADC3Buffer[NUM_PDU_CHANNELS];
 /*********************************************************************************************************************/
 /*------------------------------------------------------Macros-------------------------------------------------------*/
 /*********************************************************************************************************************/
-#define MUX_CHANNELS        7
+#define MUX_CHANNELS 7
 
-#define LOAD_SENSOR_TASK_INTERVAL_MS        100
+#define LOAD_SENSOR_TASK_INTERVAL_MS 100
 #define SETTLING_TIME_AFTER_CHANNEL_CHANGE_LOW_TO_HIGH_US 20    // Taking max interval as per datasheet (needs to be checked)
 #define SETTLING_TIME_AFTER_CHANNEL_CHANGE_HIGH_TO_LOW_US 20    // Taking max interval as per datasheet (needs to be checked)
 
-#define ADC3_TO_AMPS_DIVIDER      74.47272727                   // 1 / ([(3.3/4096) / 330] * 5500)
+#define ADC3_TO_AMPS_DIVIDER (1 / (((3.3/4096) / 330) * 5500)) // 1 / ([(3.3/4096) / 330] * 5500)
 
 /*********************************************************************************************************************/
 /*------------------------------------------------Function Prototypes------------------------------------------------*/
