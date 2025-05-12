@@ -13,7 +13,7 @@ import csv
 
 from dash_page import DashPage
 from debug_page import DebugPage
-from constants import WIDTH, HEIGHT, INV_FAULT_CODES_DESC, BUTTON_SCROLL_TIMEOUT_S
+from constants import WIDTH, HEIGHT, INV_FAULT_CODES_DESC, BUTTON_SCROLL_TIMEOUT_S, INTERLOCK_FAULT_CODES_DESC
 
 
 class MainView(tk.Frame):
@@ -67,15 +67,25 @@ class CANProcessor:
 
         # Messed up too many times with the CANBUS variable
         # just detect user and set the CANBUS variable
-        if os.getlogin() == 'vagrant':
+        # check for windows first, then vagrant, then default to can1
+        if os.name == 'nt':
+            CANBUS = 'vcan0'
+            self.home_dir = Path("..")
+        elif os.getlogin() == 'vagrant':
             CANBUS = 'vcan0'
             self.home_dir = Path("/home/vagrant/shared")
+        elif os.getlogin() == 'dietpi':
+            CANBUS = 'can0'
+            self.home_dir = Path().home()
         else:
             CANBUS = 'can1'
             self.home_dir = Path("/home/debian")
 
         self.db = cantools.db.load_file(self.home_dir / 'firmware/common/Data/2024CAR.dbc')
-        self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
+        if os.name == 'nt':
+            self.can_bus = can.Bus(interface='virtualcan', channel='localhost:18881')
+        else:
+            self.can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
 
         # CAN arbitration ID constants
         self.BATTERYSTATUSHV_ARB_ID = self.db.get_message_by_name('BMU_batteryStatusHV').frame_id
@@ -89,8 +99,9 @@ class CANProcessor:
 
         self.LV_BATT_ARB_ID = self.db.get_message_by_name('LV_Bus_Measurements').frame_id
 
-        self.DCU_BUTTONS_ARB_ID = self.db.get_message_by_name('DCU_buttonEvents').frame_id
-
+        self.VCU_BUTTONS_ARB_ID = self.db.get_message_by_name('VCU_buttonEvents').frame_id
+        self.IVT_POWER_WH_ARB_ID = self.db.get_message_by_name('IVT_Result_Wh').frame_id
+        self.BMU_IL_STATUS_ID = self.db.get_message_by_name('BMU_Interlock_Loop_Status').frame_id
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
         self.MC_POS_INFO = self.db.get_message_by_name('MC_Motor_Position_Info').frame_id
 
@@ -99,6 +110,15 @@ class CANProcessor:
         self.DTC_ARB_IDS = [msg.frame_id for msg in self.db.messages if 'DTC' in msg.name]
         self.dtcs = {}
         self.load_dtcs()
+
+        self.wh_file = self.home_dir / "wh.txt"
+        if not self.wh_file.exists():
+            self.wh_file.touch()
+            with open(self.wh_file, 'w') as f:
+                f.write("0\n")
+        self.wh_store = open(self.wh_file, 'r+')
+        self.wh_init = int(self.wh_store.readline())
+
 
     def load_dtcs(self):
         """
@@ -172,10 +192,23 @@ class CANProcessor:
         dtc_origin, dtc_code, dtc_data, dtc_desc = self.format_dtc(dtc_origin, dtc_code, dtc_data)
         self.main_view.update_debug_text(dtc_origin, dtc_code, dtc_data, dtc_desc)
 
+    def save_shunt_wh(self, wh: int):
+        self.wh_store.seek(0)
+        self.wh_store.write(f"{wh}\n")
+        self.wh_store.truncate()
+
+    def reset_shunt_wh(self):
+        self.wh_init = 0
+        self.wh_store.seek(0)
+        self.wh_store.write(f"{self.wh_init}\n")
+        self.wh_store.truncate()
+
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
         _last_scr_btn_ts = time.time()
         _last_scr_btn = None
+
+        dashPage.updateEnergy(self.wh_init)
 
         print("reading can messages...")
         while True:
@@ -198,65 +231,77 @@ class CANProcessor:
                 print(f"Message decode failed for {message.arbitration_id}")
                 continue
 
-            print(message)
+            # print(message)
             try:
-                # Case for battery temp/soc
-                if message.arbitration_id == self.BATTERYSTATUSHV_ARB_ID:
-                    dashPage.updateSoc(decoded_data)
-                    # Case for motor temp
-                if message.arbitration_id == self.MC_TEMP_ARB_ID:
-                    dashPage.updateMotorTemp(decoded_data)
+                match message.arbitration_id:
+                    # Case for battery temp/soc
+                    case self.BATTERYSTATUSHV_ARB_ID:
+                        dashPage.updateSoc(decoded_data)
+                        # Case for motor temp
+                    case self.MC_TEMP_ARB_ID:
+                        dashPage.updateMotorTemp(decoded_data)
 
-                # Case for inverter temp
-                if message.arbitration_id == self.MC_TEMP_INV_ARB_ID:
-                    dashPage.updateInverterTemp(decoded_data)
-                    # Case for VBATT
-                if message.arbitration_id == self.BMU_VBATT_ARB_ID:
-                    dashPage.updateVBatt(decoded_data)
+                    # Case for inverter temp
+                    case self.MC_TEMP_INV_ARB_ID:
+                        dashPage.updateInverterTemp(decoded_data)
+                        # Case for VBATT
+                    case self.BMU_VBATT_ARB_ID:
+                        dashPage.updateVBatt(decoded_data)
 
-                # Case for LV batt
-                if message.arbitration_id == self.LV_BATT_ARB_ID:
-                    dashPage.updateLVbatt(decoded_data)
+                    # Case for LV batt
+                    case self.LV_BATT_ARB_ID:
+                        dashPage.updateLVbatt(decoded_data)
 
-                # Case for Min HV Cell voltage
-                if message.arbitration_id == self.HV_BUS_STATE_ARB_ID:
-                    dashPage.updateMinCell(decoded_data)
-                # Case for Speeeeeed
-                if message.arbitration_id == self.MC_POS_INFO:
-                    dashPage.updateSpeed(decoded_data)
+                    # Case for Min HV Cell voltage
+                    case self.HV_BUS_STATE_ARB_ID:
+                        dashPage.updateMinCell(decoded_data)
+                    # Case for Speeeeeed
+                    case self.MC_POS_INFO:
+                        dashPage.updateSpeed(decoded_data)
 
-                if message.arbitration_id == self.VCU_INV_POWER:
-                    dashPage.updatePower(decoded_data)
-                # case for screen navigation button events
-                if message.arbitration_id == self.DCU_BUTTONS_ARB_ID:
-                    # scroll up if R button double clicked
-                    # scroll down if L button double
-                    # Open debug menu if R button is pressed
-                    # Close debug menu if L button is pressed
+                    case self.BMU_IL_STATUS_ID:
+                        # if decoded_data['BMU_checkFailed'] == INTERLOCK_FAULT_CODES_DESC.get():
+                        dashPage.updateIL(decoded_data)
 
-                    t1 = time.time()
-                    r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
-                    l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
-                    scrolled = False
+                    case self.IVT_POWER_WH_ARB_ID:
+                        shunt_wh = decoded_data['IVT_Wh']
+                        wh = shunt_wh + self.wh_init
+                        self.save_shunt_wh(wh)
+                        dashPage.updateEnergy(wh)
 
-                    if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
-                        if r_btn and _last_scr_btn == "R":
-                            self.main_view.scroll_debug_text(5)
-                            scrolled = True
+                    case self.VCU_BUTTONS_ARB_ID:
+                        if decoded_data['ButtonTCEnabled'] == 1:
+                            self.reset_shunt_wh()
+                    # case for screen navigation button events
+                    # case self.DCU_BUTTONS_ARB_ID:
+                    #     # scroll up if R button double clicked
+                    #     # scroll down if L button double
+                    #     # Open debug menu if R button is pressed
+                    #     # Close debug menu if L button is pressed
 
-                        if l_btn and _last_scr_btn == "L":
-                            self.main_view.scroll_debug_text(-5)
-                            scrolled = True
+                    #     t1 = time.time()
+                    #     r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
+                    #     l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
+                    #     scrolled = False
 
-                    if r_btn:
-                        _last_scr_btn = "R"
-                    if l_btn:
-                        _last_scr_btn = "L"
+                    #     if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
+                    #         if r_btn and _last_scr_btn == "R":
+                    #             self.main_view.scroll_debug_text(5)
+                    #             scrolled = True
 
-                    if scrolled:
-                        _last_scr_btn = None
+                    #         if l_btn and _last_scr_btn == "L":
+                    #             self.main_view.scroll_debug_text(-5)
+                    #             scrolled = True
 
-                    _last_scr_btn_ts = t1
+                    #     if r_btn:
+                    #         _last_scr_btn = "R"
+                    #     if l_btn:
+                    #         _last_scr_btn = "L"
+
+                    #     if scrolled:
+                    #         _last_scr_btn = None
+
+                    #     _last_scr_btn_ts = t1
 
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 
 from page import Page
-from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH
+from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH, INTERLOCK_FAULT_CODES_DESC, InterlockFaultEnum
 
 
 class DashPage(Page):
@@ -33,15 +33,15 @@ class DashPage(Page):
         ### CENTER ###
         self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
         self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
-        self.deployment_text = self._create_mid_cell("Deployment:", row=3, col=1)
+        self.il_text = self._create_mid_cell("Interlock State:", row=3, col=1)
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
         self.uwfe_text.grid(row=4, column=1, pady=1, padx=1)
 
         ### Voltages and mode ###
-        self.vbatt_text = self._create_cell("#6B6B6B", "AMS Pack Voltage", row=1, col=2)
-        self.power_text = self._create_cell("#6B6B6B", "HV Power", row=2, col=2)
+        self.vbatt_text = self._create_cell("#6B6B6B", "Pack Voltage", row=1, col=2)
+        self.energy_text = self._create_cell("#6B6B6B", "HV Energy", row=2, col=2)
         self.lvbatt_text = self._create_cell("#6B6B6B", "LV Batt Voltage", row=3, col=2)
         self.min_cell_text = self._create_cell("#6B6B6B", "Min Cell Voltage", row=4, col=2)
 
@@ -56,6 +56,7 @@ class DashPage(Page):
         self.update_battery_charge(0)
 
         self._is_flash_enabled = False
+        self.il_text.config(text=InterlockFaultEnum.PASSED.name)
 
     def _create_cell_frame(self, bg, row, col, sticky=tk.NSEW) -> tk.Frame:
         cell_frame = tk.Frame(self, bg=bg, height=74, highlightthickness=1, relief=tk.GROOVE)
@@ -154,22 +155,35 @@ class DashPage(Page):
         self.vbatt_text.config(text='%.5s' % ('%.3f' % vbatt) + 'V')
 
     def updateLVbatt(self, decoded_data: dict):
-        # lvbatt is in mV, convert to V
-        lvbatt = int(decoded_data['VoltageBusLV']) / 1000.
+        lvbatt = decoded_data['VoltageBusLV']
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
     def updateMinCell(self, decoded_data: dict):
-        cell_min = decoded_data['VoltageCellMin']        
+        cell_min = decoded_data['VoltageCellMin']
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
     def updateSpeed(self, decoded_data: dict):
         rpm = decoded_data['INV_Motor_Speed']
         kph = rpm * RPM_TO_KPH
         self.speed_text.config(text='%.4s' % ('%.2f' % kph) + 'kph')
-    
-    def updatePower(self, decoded_data: dict):
-        power = decoded_data['INV_Tractive_Power_kW']
-        self.power_text.config(text='%.5s' % ('%.3f' % power) + 'kW')
+
+    def clearIL(self):
+        self.il_text.config(text=INTERLOCK_FAULT_CODES_DESC[0])
+        self.disable_flash()
+
+    def updateIL(self, decoded_data: dict):
+        il = decoded_data['BMU_checkFailed']
+        fault = InterlockFaultEnum(il)
+        if fault not in (InterlockFaultEnum.PASSED, InterlockFaultEnum.CBRB):
+            self.uwfe_text.config(bg="#FF0101", fg="#000000")
+            self.enable_flash()
+        else:
+            self.disable_flash()
+        if fault != InterlockFaultEnum.CBRB:
+            self.il_text.config(text=fault.name)
+
+    def updateEnergy(self, wh):
+        self.energy_text.config(text='%.5s' % ('%.3f' % wh) + 'Wh')
 
     def enable_flash(self):
         self._is_flash_enabled = True
