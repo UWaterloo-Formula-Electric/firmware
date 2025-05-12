@@ -61,12 +61,19 @@ void coolingTask(void *pvParameters) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
+    bool isCoolingEnabled = false;
+    coolingOff();
+
     while(1)
     {
         // Only cool if motor controller on and EM enabled
         // Should we check if MC is on?
         if (fsmGetState(&mainFsmHandle) == STATE_Motors_On) {
-            coolingOn();
+            if (!isCoolingEnabled) {
+                isCoolingEnabled = true;
+                coolingOn();
+            }
+            
 
             if (inverterOverheated())
             {
@@ -106,7 +113,12 @@ void coolingTask(void *pvParameters) {
         }
         else 
         {
-            if (!acc_fan_command_override) { coolingOff(); }
+            if (!acc_fan_command_override) {
+                if (isCoolingEnabled) {
+                    coolingOff();
+                    isCoolingEnabled = false;
+                }
+            }
         }
 
         watchdogTaskCheckIn(COOLING_TASK_ID);
