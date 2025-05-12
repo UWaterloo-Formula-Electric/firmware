@@ -24,17 +24,7 @@
 #define ENABLE_IL_CHECKS
 #define IL_TEST
 
-// CAN Logging
-#define BOTS_FAILED     (1 << BOTS_FAILED_BIT)
-#define EBOX_FAILED     (1 << EBOX_FAILED_BIT)
-#define BSPD_FAILED     (1 << BSPD_FAILED_BIT)
-#define HVD_FAILED      (1 << HVD_FAILED_BIT)
-#define AMS_FAILED      (1 << AMS_FAILED_BIT)
-#define IMD_FAILED      (1 << IMD_FAILED_BIT)
-#define CBRB_FAILED     (1 << CBRB_FAILED_BIT)
-#define TSMS_FAILED     (1 << TSMS_FAILED_BIT)
-#define HW_CHECK_FAILED (1 << HW_CHECK_FAILED_BIT)
-#define FSM_STATE       (1 << FSM_STATE_BIT)
+
 
 // When charging, some IL checks should be ignored since we are not plugged into vehicle harness
 bool skip_il = false;
@@ -129,7 +119,7 @@ void faultMonitorTask(void *pvParameters)
 
    /* BSPD Status */
    if (getBSPD_Status() == false) {
-      BMU_checkFailed = BSPD_FAILED_BIT;
+      BMU_checkFailed = BSPD_FAILED;
       sendCAN_BMU_Interlock_Loop_Status();
 
       DEBUG_PRINT("Fault Monitor: BSPD is down!\r\n");
@@ -147,7 +137,7 @@ void faultMonitorTask(void *pvParameters)
 
    /* HVD Status */
    if (getHVD_Status() == false) {
-      BMU_checkFailed = HVD_FAILED_BIT;
+      BMU_checkFailed = HVD_FAILED;
       sendCAN_BMU_Interlock_Loop_Status();
 
       DEBUG_PRINT("Fault Monitor: HVD is down!\r\n");
@@ -254,7 +244,7 @@ void faultMonitorTask(void *pvParameters)
    /* Prevents race condition where Fault Monitor passes before system is setup*/
    if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up)
    {
-      BMU_checkFailed = FSM_STATE_BIT;
+      BMU_checkFailed = FSM_STATE_FAILED;
       sendCAN_BMU_Interlock_Loop_Status();
       DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
    }
@@ -336,7 +326,7 @@ void faultMonitorTask(void *pvParameters)
 		bool hvd_ok = getHVD_Status();
 		if((!cbrb_ok && hvd_ok) && !last_cbrb_ok) {	
 			ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
-			BMU_checkFailed = CBRB_FAILED_BIT;
+			BMU_checkFailed = CBRB_FAILED;
 			sendCAN_BMU_Interlock_Loop_Status();
 
 			fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
