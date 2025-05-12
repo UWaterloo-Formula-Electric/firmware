@@ -95,7 +95,7 @@ BO_ 2282360577 BMU_contactorCurrent: 2 BMU
  SG_ posContCurrent : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 1320 IVT_Result_Wh: 6 IVT
- SG_ IVT_Wh : 16|32@1- (0.001,0) [0|0] ""  BMU
+ SG_ IVT_Wh : 16|32@1- (1,0) [0|0] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
@@ -207,8 +207,8 @@ BO_ 2281898688 TractionControlConfig: 8 VCU_BeagleBone
  SG_ TC_kP : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_F7
 
 BO_ 2291796994 RearWheelSpeedRADS: 8 VCU_F7
- SG_ VCU_wheelSpeed_RR : 32|32@1+ (1E-05,0) [0|42949.67295] "rads/s" Vector__XXX
- SG_ VCU_wheelSpeed_RL : 0|32@1+ (1E-05,0) [0|42949.67295] "rads/s" Vector__XXX
+ SG_ VCU_wheelSpeed_RR : 32|32@1+ (1E-005,0) [0|42949.67295] "rads/s" Vector__XXX
+ SG_ VCU_wheelSpeed_RL : 0|32@1+ (1E-005,0) [0|42949.67295] "rads/s" Vector__XXX
 
 BO_ 2290355203 PDU_Board_Channels_Current: 8 PDU
  SG_ ChannelCurrentWSB : 48|16@1+ (0.001,0) [0|65.535] "Amps"  VCU_BeagleBone
