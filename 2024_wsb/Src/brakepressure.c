@@ -23,8 +23,8 @@
 
 #define BRAKE_PRES_TASK_PERIOD 100
 
-#if BOARD_ID == ID_WSBRL
-#include "wsbrl_can.h"
+#if BOARD_ID == ID_WSBFR
+#include "wsbfr_can.h"
 #endif
 
 int32_t map_range(int32_t in, int32_t low, int32_t high, int32_t low_out, int32_t high_out) { //copied from brake and throttle code in the VCU
@@ -60,7 +60,7 @@ void BrakePresTask(void const* argument) {
     	uint32_t raw = get_sensor3_V(); //sensor 3 it is
         BrakePresRear = calcPres(raw);
         BrakePresRearValid = isPresInRange(raw);
-        sendCAN_WSBRL_BrakePres();
+        sendCAN_WSBFR_BrakePres();
 #endif
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BRAKE_PRES_TASK_PERIOD));
