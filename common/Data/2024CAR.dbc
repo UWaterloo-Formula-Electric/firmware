@@ -296,7 +296,8 @@ BO_ 2287209473 Discharge_Data: 8 BMU
  SG_ VBatt_Data : 16|16@1+ (0.01,0) [0|655.35] "" Vector__XXX
  SG_ DischargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
-BO_ 2297236481 BMU_Interlock_Loop_Status: 8 BMU
+BO_ 2297236481 BMU_Interlock_Loop_Status: 3 BMU
+ SG_ BMU_InterlockInitialized : 16|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ BMU_checkFailed : 0|16@1+ (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7

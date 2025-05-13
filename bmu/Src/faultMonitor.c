@@ -81,11 +81,13 @@ bool getHwCheck_Status() {
     return (HAL_GPIO_ReadPin(HW_CHECK_SENSE_GPIO_Port, HW_CHECK_SENSE_Pin) == GPIO_PIN_SET);
 }
 
-// static bool isInitialized = false;
+static bool isInitialized = false;
 void faultMonitorSendStatusTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-
+    BMU_checkFailed = NO_FAULTS;
+    
     while (1) {
+        BMU_InterlockInitialized = isInitialized;
         sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD));
         // DEBUG_PRINT("BOTS: %d, EBOX: %d, BSPD: %d, HVD: %d, AMS: %d, IMD: %d, CBRB: %d, TSMS: %d, HW_CHECK: %d\n",
@@ -357,6 +359,8 @@ void faultMonitorTask(void *pvParameters) {
     /* IL checks complete at this point, fault monitoring system ready */
 
     fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
+
+    isInitialized = true;
 
     if (registerTaskToWatch(FAULT_TASK_ID, 2 * pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD), false, NULL) != HAL_OK) {
         ERROR_PRINT("Fault Monitor: Failed to register fault monitor task with watchdog!\n");
