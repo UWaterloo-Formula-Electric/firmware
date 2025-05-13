@@ -50,13 +50,13 @@ bool isPresInRange(uint32_t raw) {
 	return BRAKE_PRES_ADC_LOW <= raw && raw <= BRAKE_PRES_ADC_HIGH;
 }
 void BrakePresTask(void const* argument) {
-    deleteWSBTask(WSBRL);
+    deleteWSBTask(WSBFR);
     DEBUG_PRINT("Starting BrakePresTask\n");
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
 
-#if BOARD_ID == ID_WSBRL
+#if BOARD_ID == ID_WSBFR
     	uint32_t raw = get_sensor3_V(); //sensor 3 it is
         BrakePresRear = calcPres(raw);
         BrakePresRearValid = isPresInRange(raw);

@@ -63,7 +63,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ INV_Diag_Run_Faults_Lo : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ INV_Diag_Run_Faults_Hi : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
 
-BO_ 2151747630 WSBRL_BrakePres: 2 WSBRL
+BO_ 2151747630 WSBFR_BrakePres: 2 WSBFR
  SG_ BrakePresRearValid : 11|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ BrakePresRear : 0|11@1+ (1,0) [0|2000] "PSI" Vector__XXX
 
@@ -1054,6 +1054,7 @@ CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
 CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
 CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
 CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
+CM_ BO_ 2151747630 "Changed to front-right wheel sensor board";
 CM_ SG_ 2292911106 INV_Tractive_Power_kW "Value is in KW (no x10)";
 CM_ BO_ 2147483648 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
 CM_ BO_ 2550141444 "VERSION";
