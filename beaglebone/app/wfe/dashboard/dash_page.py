@@ -1,5 +1,8 @@
+from cantools.typechecking import DecodeResultType
+from cantools.database.namedsignalvalue import NamedSignalValue
 import tkinter as tk
 from tkinter import scrolledtext
+
 
 from page import Page
 from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH, INTERLOCK_FAULT_CODES_DESC, InterlockFaultEnum
@@ -31,9 +34,9 @@ class DashPage(Page):
         self.temp_motor_text = self._create_cell("#FF0101", "Max Motor Temp", row=4, col=0)
 
         ### CENTER ###
-        self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
-        self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
-        self.il_text = self._create_mid_cell("Interlock State:", row=3, col=1)
+        self.soc_text, _, _ = self._create_mid_cell("SOC:", row=1, col=1)
+        self.speed_text, _, _ = self._create_mid_cell("Speed:", row=2, col=1)
+        self.il_text, self.il_title, self.il_frame = self._create_mid_cell("Interlock:", row=3, col=1)
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
@@ -77,8 +80,8 @@ class DashPage(Page):
         cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=(self.title_font, -20))
         cell_title.place(x=10, rely=0.5, anchor="w")
         cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=(self.text_font, -53))
-        cell_text.place(x=150, rely=0.5, anchor="w")
-        return cell_text
+        cell_text.place(x=130, rely=0.5, anchor="w")
+        return cell_text, cell_title, cell_frame
 
     def update_battery_charge(self, value):
         def calculate_charge_color(charge):
@@ -127,21 +130,21 @@ class DashPage(Page):
         # Scroll to the bottom to show the latest message
         self.dtc_text_area.yview("end")
 
-    def updateSoc(self, decoded_data: dict):
+    def updateSoc(self, decoded_data: DecodeResultType):
         soc_value = decoded_data['StateBatteryChargeHV']
         battery_temp = decoded_data['TempCellMax']
 
         self.update_battery_charge(soc_value)
         self.temp_cell_text.config(text='%.4s' % ('%.1f' % battery_temp) + '°C')
 
-    def updateMotorTemp(self, decoded_data: dict):
+    def updateMotorTemp(self, decoded_data: DecodeResultType):
         motor_temp = decoded_data['INV_Motor_Temp']
         coolant_temp = decoded_data['INV_Coolant_Temp']
 
         self.temp_motor_text.config(text='%.4s' % ('%.1f' % motor_temp) + '°C')
         self.temp_water_text.config(text='%.4s' % ('%.1f' % coolant_temp) + '°C')
 
-    def updateInverterTemp(self, decoded_data: dict):
+    def updateInverterTemp(self, decoded_data: DecodeResultType):
         inv_temp1 = decoded_data['INV_Module_A_Temp']
         inv_temp2 = decoded_data['INV_Module_B_Temp']
         inv_temp3 = decoded_data['INV_Module_C_Temp']
@@ -150,46 +153,52 @@ class DashPage(Page):
 
         self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
 
-    def updateVBatt(self, decoded_data: dict):
+    def updateVBatt(self, decoded_data: DecodeResultType):
         vbatt = decoded_data['AMS_PackVoltage']
         self.vbatt_text.config(text='%.5s' % ('%.3f' % vbatt) + 'V')
 
-    def updateLVbatt(self, decoded_data: dict):
+    def updateLVbatt(self, decoded_data: DecodeResultType):
         lvbatt = decoded_data['VoltageBusLV']
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
-    def updateMinCell(self, decoded_data: dict):
+    def updateMinCell(self, decoded_data: DecodeResultType):
         cell_min = decoded_data['VoltageCellMin']
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
-    def updateSpeed(self, decoded_data: dict):
+    def updateSpeed(self, decoded_data: DecodeResultType):
         rpm = decoded_data['INV_Motor_Speed']
         kph = rpm * RPM_TO_KPH
         self.speed_text.config(text='%.4s' % ('%.2f' % kph) + 'kph')
 
-    def clearIL(self):
-        self.il_text.config(text=INTERLOCK_FAULT_CODES_DESC[0])
-        self.disable_flash()
-
-    def updateIL(self, decoded_data: dict):
+    def updateIL(self, decoded_data: DecodeResultType):
         il = decoded_data['BMU_checkFailed']
+        if isinstance(il, NamedSignalValue):
+            il = il.value
         fault = InterlockFaultEnum(il)
-        if fault not in (InterlockFaultEnum.PASSED, InterlockFaultEnum.CBRB):
-            self.uwfe_text.config(bg="#FF0101", fg="#000000")
-            self.enable_flash()
+        isInitialized = decoded_data['BMU_InterlockInitialized']
+        if fault == InterlockFaultEnum.CBRB and not isInitialized:
+            msg = f"{fault.name}|{InterlockFaultEnum.IMD.name}"
         else:
-            self.disable_flash()
-        if fault != InterlockFaultEnum.CBRB:
-            self.il_text.config(text=fault.name)
+            msg = fault.name
+
+        bg = self["bg"] if fault == InterlockFaultEnum.PASSED else "#FF0101" if isInitialized else "#ff9900"
+        self.il_text.config(text=msg, bg=bg)
+        self.il_title.config(bg=bg)
+        self.il_frame.config(bg=bg)
+
 
     def updateEnergy(self, wh):
-        self.energy_text.config(text='%.5s' % ('%.3f' % wh) + 'Wh')
+        self.energy_text.config(text=f'{wh:<4} Wh')
 
     def enable_flash(self):
+        if self._is_flash_enabled:
+            return
         self._is_flash_enabled = True
         self._flash_uwfe()
 
     def disable_flash(self):
+        if not self._is_flash_enabled:
+            return
         self._is_flash_enabled = False
         self.uwfe_text.config(bg=self["bg"], fg="#afafaf")
 
