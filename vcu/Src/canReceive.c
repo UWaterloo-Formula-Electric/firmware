@@ -119,6 +119,16 @@ void DTC_Fatal_Callback(BoardIDs board)
 }
 
 /**
+ * Precharge state CAN message callback.
+ * Toggles the HV led when precharging
+ */
+void CAN_Msg_PrechargeState_Callback() {
+    DEBUG_PRINT_ISR("Received precharge state %u\n", (uint8_t)PrechargeState);
+    if (PrechargeState < 5){
+        setPendingHvResponse();
+    }
+}
+/**
  * BMU Power state CAN message callback.
  * Signals to the main task the HV power state has changed
  */

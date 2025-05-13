@@ -508,7 +508,6 @@ static uint32_t sendHvToggle(uint32_t event)
                 ERROR_PRINT("Failed to send HV Toggle button event!\n");
                 Error_Handler();
             }
-            isPendingHvResponse = true;
 
             new_state = current_state;
             break;
@@ -526,6 +525,10 @@ static uint32_t sendHvToggle(uint32_t event)
     return new_state;
 }
 
+void setPendingHvResponse(void)
+{
+    isPendingHvResponse = true;
+}
 // TODO: probably can be removed
 bool pendingHvResponse(void)
 {

@@ -63,6 +63,7 @@ HAL_StatusTypeDef startDriveByWire();
 HAL_StatusTypeDef MotorStop();
 void driveByWireTask(void *pvParameters);
 
+void setPendingHvResponse(void);
 bool pendingHvResponse(void);
 bool pendingEmResponse(void);
 void receivedHvResponse(void);
