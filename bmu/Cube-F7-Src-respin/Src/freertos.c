@@ -94,6 +94,7 @@ osThreadId canSendTaskHandle;
 osThreadId fanHandle;
 osThreadId stateOfChargeHandle;
 osThreadId contCurrentSensHandle;
+osThreadId FaultMonSendNamHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -116,6 +117,7 @@ extern void canTask(void const * argument);
 extern void fanTask(void const * argument);
 void socTask(void const * argument);
 extern void contCurrentSenseTask(void const * argument);
+extern void faultMonitorSendStatusTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -268,6 +270,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of contCurrentSens */
   osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 1000);
   contCurrentSensHandle = osThreadCreate(osThread(contCurrentSens), NULL);
+
+  /* definition and creation of FaultMonSendNam */
+  osThreadDef(FaultMonSendNam, faultMonitorSendStatusTask, osPriorityHigh, 0, 2000);
+  FaultMonSendNamHandle = osThreadCreate(osThread(FaultMonSendNam), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
