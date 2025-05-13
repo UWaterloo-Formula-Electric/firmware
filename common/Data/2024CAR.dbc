@@ -286,8 +286,8 @@ BO_ 2281769985 BMU_AmsVBatt: 8 BMU
 BO_ 2282884097 BMU_FanPeriod: 8 BMU
  SG_ FanPeriod : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
 
-BO_ 2295598081 PrechargeState: 8 BMU
- SG_ PrechargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone
+BO_ 2295660289 PrechargeState: 8 BMU
+ SG_ PrechargeState : 0|8@1+ (1,0) [0|0] ""  VCU_BeagleBone,VCU_F7
 
 BO_ 2287209473 Discharge_Data: 8 BMU
  SG_ IBus_Data : 48|16@1- (1,0) [0|0] "" Vector__XXX
