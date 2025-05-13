@@ -20,7 +20,6 @@
 #include "watchdog.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
-#define FAULT_MEASURE_TASK_INIT_PERIOD 10
 #define FAULT_TASK_ID 6
 
 #define ENABLE_IL_CHECKS
@@ -159,10 +158,8 @@ void faultMonitorTask(void *pvParameters) {
 #ifdef ENABLE_IL_CHECKS
 
     DEBUG_PRINT("Fault Monitor: IL Started.\n");
-    // CLEAR_FAULTS();
 
     if (getBOTS_Status() == false) {
-        // LATCH_FAULT(BOTS_FAILED);
         DEBUG_PRINT("Fault Monitor: BOTS is down!\r\n");
         DEBUG_PRINT("Fault Monitor: -- help --\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL_A in 2025 BMU schematic.\r\n");
@@ -170,16 +167,12 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getBOTS_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(BOTS_FAILED);
     DEBUG_PRINT("Fault Monitor: BOTS OK.\n");
 
     if (getEbox_Il_Status() == false) {
-        // LATCH_FAULT(EBOX_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: Ebox conectors are down!\r\n");
         DEBUG_PRINT("Fault Monitor: -- help --\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL_B in 2025 BMU schematic.\r\n");
@@ -187,19 +180,13 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getEbox_Il_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
-
-    // UNLATCH_FAULT(EBOX_FAILED);
 
     DEBUG_PRINT("Fault Monitor: EBOX connections OK.\n");
 
     /* BSPD Status */
     if (getBSPD_Status() == false) {
-        // LATCH_FAULT(BSPD_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
-
         DEBUG_PRINT("Fault Monitor: BSPD is down!\r\n");
         DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL_C in the 2025 BMU schematic.\r\n");
@@ -208,19 +195,14 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getBSPD_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(BSPD_FAILED);
 
     DEBUG_PRINT("Fault Monitor: BSPD OK.\n");
 
     /* HVD Status */
     if (getHVD_Status() == false) {
-        // LATCH_FAULT(HVD_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
-
         DEBUG_PRINT("Fault Monitor: HVD is down!\r\n");
         DEBUG_PRINT("Fault Monitor: Waiting for HVD OK.\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL D in the 2025 BMU schematic.\r\n");
@@ -230,11 +212,8 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getHVD_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
-
-    // UNLATCH_FAULT(HVD_FAILED);
 
     DEBUG_PRINT("Fault Monitor: HVD OK.\n");
 
@@ -243,8 +222,6 @@ void faultMonitorTask(void *pvParameters) {
 #endif
 
     if (getAMS_Status() == false) {
-        // LATCH_FAULT(AMS_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: AMS is down!\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL E in 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: -- help --\r\n");
@@ -254,17 +231,12 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getAMS_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
-
-    // UNLATCH_FAULT(AMS_FAILED);
 
     DEBUG_PRINT("Fault Monitor: AMS OK.\n");
 
     if (getIMD_Status() == false) {
-        // LATCH_FAULT(IMD_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: IMD is down!\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL F in 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: -- help --\r\n");
@@ -275,11 +247,9 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getIMD_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(IMD_FAILED);
 
     DEBUG_PRINT("Fault Monitor: IMD OK.\n");
 
@@ -287,8 +257,6 @@ void faultMonitorTask(void *pvParameters) {
     // if IMD has not faulted but reset button was not pressed this can return false
     // even if CBRB is not pressed in
     if (getCBRB_Status() == false) {
-        // LATCH_FAULT(CBRB_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: CBRB is down!\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL G in 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: Things to check:\n");
@@ -297,17 +265,13 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getCBRB_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(CBRB_FAILED);
 
     DEBUG_PRINT("Fault Monitor: CBRB OK.\n");
 
     if (getTSMS_Status() == false) {
-        // LATCH_FAULT(TSMS_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: TSMS is down!\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL H in 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: Things to check:\n");
@@ -315,47 +279,35 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     while (getTSMS_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(TSMS_FAILED);
 
     DEBUG_PRINT("Fault Monitor: TSMS OK.\n");
 
     if (getHwCheck_Status() == false) {
-        // LATCH_FAULT(HW_CHECK_FAILED);
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("Fault Monitor: HW check is down!\r\n");
         DEBUG_PRINT("Fault Monitor: This is IL I in 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: This is power going to contactors\r\n");
     }
 
     while (getHwCheck_Status() == false) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(HW_CHECK_FAILED);
 
     DEBUG_PRINT("Fault Monitor: HW check ok\r\n");
 
     /* Prevents race condition where Fault Monitor passes before system is setup*/
     if (fsmGetState(&fsmHandle) != STATE_Wait_System_Up) {
-        // LATCH_FAULT(FSM_STATE_FAILED);
-
         DEBUG_PRINT("Fault Monitor: Waiting for fsm to be in state: STATE_Wait_System_Up\n");
     }
     while (fsmGetState(&fsmHandle) != STATE_Wait_System_Up) {
-        // sendCAN_BMU_Interlock_Loop_Status();
         DEBUG_PRINT("waiting\r\n");
         vTaskDelay(10);
     }
 
-    // UNLATCH_FAULT(FSM_STATE_FAILED);
-
     DEBUG_PRINT("Fault Monitor: fsm in proper state: STATE_Wait_System_Up\n");
-    // isInitialized = true;
     /* IL checks complete at this point, fault monitoring system ready */
 
     fsmSendEvent(&fsmHandle, EV_FaultMonitorReady, portMAX_DELAY);
@@ -369,8 +321,6 @@ void faultMonitorTask(void *pvParameters) {
 
     bool last_cbrb_ok = false;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-
-    // CLEAR_FAULTS();
 
     uint16_t sentEvent = 0xffff;
     while (1) {
