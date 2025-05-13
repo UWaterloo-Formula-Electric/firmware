@@ -62,8 +62,8 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 61,PDU_Inverter_Run_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has run faulted #data"
 62,MC_Temp_Reading_Lost,PDU,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,No longer reading motor temp
 63,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
-64,DCU_SM_ERROR,DCU,4,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",code,DCU State Machine Fault #data
-65,DCU_NoTransition,DCU,1,"PDU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: No state machine transition found
+64,VCU_SM_ERROR,VCU_F7,4,"PDU,VCU_BEAGLEBONE,BMU",code,VCU State Machine Fault #data
+65,VCU_NoTransition,VCU_F7,1,"PDU,VCU_BEAGLEBONE,BMU",NA,VCU: No state machine transition found
 66,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
 67,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
 68,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"

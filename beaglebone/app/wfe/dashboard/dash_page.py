@@ -1,8 +1,11 @@
+from cantools.typechecking import DecodeResultType
+from cantools.database.namedsignalvalue import NamedSignalValue
 import tkinter as tk
 from tkinter import scrolledtext
 
+
 from page import Page
-from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH
+from constants import WIDTH, HEIGHT, TagEnum, RPM_TO_KPH, INTERLOCK_FAULT_CODES_DESC, InterlockFaultEnum
 
 
 class DashPage(Page):
@@ -31,17 +34,17 @@ class DashPage(Page):
         self.temp_motor_text = self._create_cell("#FF0101", "Max Motor Temp", row=4, col=0)
 
         ### CENTER ###
-        self.soc_text = self._create_mid_cell("SOC:", row=1, col=1)
-        self.speed_text = self._create_mid_cell("Speed:", row=2, col=1)
-        self.deployment_text = self._create_mid_cell("Deployment:", row=3, col=1)
+        self.soc_text, _, _ = self._create_mid_cell("SOC:", row=1, col=1)
+        self.speed_text, _, _ = self._create_mid_cell("Speed:", row=2, col=1)
+        self.il_text, self.il_title, self.il_frame = self._create_mid_cell("Interlock:", row=3, col=1)
 
         ### UWFE ###
         self.uwfe_text = tk.Label(self, text="UWFE", font=("Helvetica", -50, "italic"), bg=self["bg"], fg="#afafaf")
         self.uwfe_text.grid(row=4, column=1, pady=1, padx=1)
 
         ### Voltages and mode ###
-        self.vbatt_text = self._create_cell("#6B6B6B", "AMS Pack Voltage", row=1, col=2)
-        self.power_text = self._create_cell("#6B6B6B", "HV Power", row=2, col=2)
+        self.vbatt_text = self._create_cell("#6B6B6B", "Pack Voltage", row=1, col=2)
+        self.energy_text = self._create_cell("#6B6B6B", "HV Energy", row=2, col=2)
         self.lvbatt_text = self._create_cell("#6B6B6B", "LV Batt Voltage", row=3, col=2)
         self.min_cell_text = self._create_cell("#6B6B6B", "Min Cell Voltage", row=4, col=2)
 
@@ -56,6 +59,7 @@ class DashPage(Page):
         self.update_battery_charge(0)
 
         self._is_flash_enabled = False
+        self.il_text.config(text=InterlockFaultEnum.PASSED.name)
 
     def _create_cell_frame(self, bg, row, col, sticky=tk.NSEW) -> tk.Frame:
         cell_frame = tk.Frame(self, bg=bg, height=74, highlightthickness=1, relief=tk.GROOVE)
@@ -76,8 +80,8 @@ class DashPage(Page):
         cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=(self.title_font, -20))
         cell_title.place(x=10, rely=0.5, anchor="w")
         cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=(self.text_font, -53))
-        cell_text.place(x=150, rely=0.5, anchor="w")
-        return cell_text
+        cell_text.place(x=130, rely=0.5, anchor="w")
+        return cell_text, cell_title, cell_frame
 
     def update_battery_charge(self, value):
         def calculate_charge_color(charge):
@@ -126,21 +130,21 @@ class DashPage(Page):
         # Scroll to the bottom to show the latest message
         self.dtc_text_area.yview("end")
 
-    def updateSoc(self, decoded_data: dict):
+    def updateSoc(self, decoded_data: DecodeResultType):
         soc_value = decoded_data['StateBatteryChargeHV']
         battery_temp = decoded_data['TempCellMax']
 
         self.update_battery_charge(soc_value)
         self.temp_cell_text.config(text='%.4s' % ('%.1f' % battery_temp) + '°C')
 
-    def updateMotorTemp(self, decoded_data: dict):
+    def updateMotorTemp(self, decoded_data: DecodeResultType):
         motor_temp = decoded_data['INV_Motor_Temp']
         coolant_temp = decoded_data['INV_Coolant_Temp']
 
         self.temp_motor_text.config(text='%.4s' % ('%.1f' % motor_temp) + '°C')
         self.temp_water_text.config(text='%.4s' % ('%.1f' % coolant_temp) + '°C')
 
-    def updateInverterTemp(self, decoded_data: dict):
+    def updateInverterTemp(self, decoded_data: DecodeResultType):
         inv_temp1 = decoded_data['INV_Module_A_Temp']
         inv_temp2 = decoded_data['INV_Module_B_Temp']
         inv_temp3 = decoded_data['INV_Module_C_Temp']
@@ -149,33 +153,52 @@ class DashPage(Page):
 
         self.temp_inv_text.config(text='%.4s' % ('%.1f' % max_inv_temp) + '°C')
 
-    def updateVBatt(self, decoded_data: dict):
+    def updateVBatt(self, decoded_data: DecodeResultType):
         vbatt = decoded_data['AMS_PackVoltage']
         self.vbatt_text.config(text='%.5s' % ('%.3f' % vbatt) + 'V')
 
-    def updateLVbatt(self, decoded_data: dict):
-        # lvbatt is in mV, convert to V
-        lvbatt = int(decoded_data['VoltageBusLV']) / 1000.
+    def updateLVbatt(self, decoded_data: DecodeResultType):
+        lvbatt = decoded_data['VoltageBusLV']
         self.lvbatt_text.config(text='%.6s' % ('%.5f' % lvbatt) + 'V')
 
-    def updateMinCell(self, decoded_data: dict):
-        cell_min = decoded_data['VoltageCellMin']        
+    def updateMinCell(self, decoded_data: DecodeResultType):
+        cell_min = decoded_data['VoltageCellMin']
         self.min_cell_text.config(text='%.6s' % ('%.5f' % cell_min) + 'V')
 
-    def updateSpeed(self, decoded_data: dict):
+    def updateSpeed(self, decoded_data: DecodeResultType):
         rpm = decoded_data['INV_Motor_Speed']
         kph = rpm * RPM_TO_KPH
         self.speed_text.config(text='%.4s' % ('%.2f' % kph) + 'kph')
-    
-    def updatePower(self, decoded_data: dict):
-        power = decoded_data['INV_Tractive_Power_kW']
-        self.power_text.config(text='%.5s' % ('%.3f' % power) + 'kW')
+
+    def updateIL(self, decoded_data: DecodeResultType):
+        il = decoded_data['BMU_checkFailed']
+        if isinstance(il, NamedSignalValue):
+            il = il.value
+        fault = InterlockFaultEnum(il)
+        isInitialized = decoded_data['BMU_InterlockInitialized']
+        if fault == InterlockFaultEnum.CBRB and not isInitialized:
+            msg = f"{fault.name}|{InterlockFaultEnum.IMD.name}"
+        else:
+            msg = fault.name
+
+        bg = self["bg"] if fault == InterlockFaultEnum.PASSED else "#FF0101" if isInitialized else "#ff9900"
+        self.il_text.config(text=msg, bg=bg)
+        self.il_title.config(bg=bg)
+        self.il_frame.config(bg=bg)
+
+
+    def updateEnergy(self, wh):
+        self.energy_text.config(text=f'{wh:<4} Wh')
 
     def enable_flash(self):
+        if self._is_flash_enabled:
+            return
         self._is_flash_enabled = True
         self._flash_uwfe()
 
     def disable_flash(self):
+        if not self._is_flash_enabled:
+            return
         self._is_flash_enabled = False
         self.uwfe_text.config(bg=self["bg"], fg="#afafaf")
 

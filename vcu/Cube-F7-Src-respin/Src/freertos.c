@@ -56,10 +56,11 @@ osThreadId cliTaskNameHandle;
 osThreadId watchdogTaskNamHandle;
 osThreadId canSendTaskHandle;
 osThreadId canPublishHandle;
-osThreadId beagleboneHandle;
 osThreadId enduranceModeHandle;
 osThreadId tractionControlHandle;
 osThreadId throttlePollingHandle;
+osThreadId ledHandle;
+osThreadId buttonTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -73,10 +74,11 @@ extern void cliTask(void const * argument);
 extern void watchdogTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canPublishTask(void const * argument);
-extern void bbTask(void const * argument);
 extern void enduranceModeTask(void const * argument);
 extern void tractionControlTask(void const * argument);
 extern void throttlePollingTask(void const * argument);
+extern void ledTask(void const * argument);
+extern void buttonTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -194,10 +196,6 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(canPublish, canPublishTask, osPriorityNormal, 0, 1000);
   canPublishHandle = osThreadCreate(osThread(canPublish), NULL);
 
-  /* definition and creation of beaglebone */
-  osThreadDef(beaglebone, bbTask, osPriorityNormal, 0, 1000);
-  beagleboneHandle = osThreadCreate(osThread(beaglebone), NULL);
-
   /* definition and creation of enduranceMode */
   osThreadDef(enduranceMode, enduranceModeTask, osPriorityNormal, 0, 10000);
   enduranceModeHandle = osThreadCreate(osThread(enduranceMode), NULL);
@@ -209,6 +207,14 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of throttlePolling */
   osThreadDef(throttlePolling, throttlePollingTask, osPriorityRealtime, 0, 1000);
   throttlePollingHandle = osThreadCreate(osThread(throttlePolling), NULL);
+
+  /* definition and creation of led */
+  osThreadDef(led, ledTask, osPriorityNormal, 0, 128);
+  ledHandle = osThreadCreate(osThread(led), NULL);
+
+  /* definition and creation of buttonTaskName */
+  osThreadDef(buttonTaskName, buttonTask, osPriorityAboveNormal, 0, 1024);
+  buttonTaskNameHandle = osThreadCreate(osThread(buttonTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

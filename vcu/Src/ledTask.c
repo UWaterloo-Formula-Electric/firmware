@@ -11,13 +11,13 @@
   *****************************************************************************
   */
 #include "bsp.h"
-#include "mainTaskEntry.h"
+// #include "mainTaskEntry.h"
 #include "canReceive.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "debug.h"
-#include "controlStateMachine.h"
+#include "drive_by_wire.h"
 
 #define DEFAULT_LED_BLINK_PERIOD_MS 500
 #define ERROR_LED_BLINK_PERIOD_MS 100
@@ -42,7 +42,7 @@ void ledTask(void *pvParameters)
 
     while (1)
     {
-        switch(fsmGetState(&DCUFsmHandle))
+        switch(fsmGetState(&VCUFsmHandle))
         {
             case STATE_HV_Disable:
                 if (pendingHvResponse())
@@ -57,14 +57,7 @@ void ledTask(void *pvParameters)
                 break;
 
             case STATE_HV_Enable:
-                if (pendingEmResponse())
-                {
-                    HAL_GPIO_TogglePin(EM_LED_GPIO_Port, EM_LED_Pin);
-                }
-                else
-                {
-                    EM_LED_OFF;
-                }
+                EM_LED_OFF;
                 HV_LED_ON;
                 break;
 
@@ -96,14 +89,14 @@ void ledTask(void *pvParameters)
 
 void selfTestLEDs(void)
 {
-    flashLED(MOT_LED_EN_GPIO_Port, MOT_LED_EN_Pin);
-    flashLED(IMD_LED_EN_GPIO_Port, IMD_LED_EN_Pin);
-    flashLED(TC_LED_EN_GPIO_Port, TC_LED_EN_Pin);
-    flashLED(HV_LED_EN_GPIO_Port, HV_LED_EN_Pin);
-    flashLED(EV_LED_EN_GPIO_Port, EV_LED_EN_Pin);
+    flashLED(MOT_FAULT_LED_GPIO_Port, MOT_FAULT_LED_Pin);
+    flashLED(IMD_FAULT_LED_GPIO_Port, IMD_FAULT_LED_Pin);
+    flashLED(TC_LED_GPIO_Port, TC_LED_Pin);
+    flashLED(HV_LED_GPIO_Port, HV_LED_Pin);
+    flashLED(EM_LED_GPIO_Port, EM_LED_Pin);
     flashLED(ENDURANCE_LED_GPIO_Port, ENDURANCE_LED_Pin);
-    flashLED(AMS_LED_EN_GPIO_Port, AMS_LED_EN_Pin);
-    flashLED(MC_LED_EN_GPIO_Port, MC_LED_EN_Pin);
+    flashLED(AMS_FAULT_LED_GPIO_Port, AMS_FAULT_LED_Pin);
+    flashLED(MC_FAULT_LED_GPIO_Port, MC_FAULT_LED_Pin);
 }
 
 void flashLED(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)

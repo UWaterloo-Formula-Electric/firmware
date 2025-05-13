@@ -125,6 +125,7 @@ LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
+LINKER_FLAGS += -Wl,--no-warn-rwx-segments
 LINKER_FLAGS += -z muldefs
 
 # Assembler Flags

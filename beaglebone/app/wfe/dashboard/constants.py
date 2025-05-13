@@ -21,6 +21,34 @@ class TagEnum(enum.Enum):
     DESC = "desc"
     TIME = "time"
 
+class InterlockFaultEnum(enum.Enum):
+    PASSED = 0
+    BOTS = 1 << 0
+    EBOX = 1 << 1
+    BSPD = 1 << 2
+    HVD = 1 << 3
+    AMS = 1 << 4
+    IMD = 1 << 5
+    CBRB = 1 << 6
+    TSMS = 1 << 7
+    HW = 1 << 8
+    FSM = 1 << 9
+
+
+INTERLOCK_FAULT_CODES_DESC = {
+    0: "No Fault",
+    1 << 0: "BOTS",
+    1 << 1: "EBOX",
+    1 << 2: "BSPD",
+    1 << 3: "HVD",
+    1 << 4: "AMS",
+    1 << 5: "IMD",
+    1 << 6: "CBRB",
+    1 << 7: "TSMS",
+    1 << 8: "HW",
+    1 << 9: "FSM",
+}
+# see Appendix: Faults on https://www.cascadiamotion.com/uploads/5/1/3/0/51309945/0a-0163-02_sw_user_manual.pdf
 
 INV_FAULT_CODES_DESC = {
     1 << 0: "Hardware Gate/Desaturation Fault",

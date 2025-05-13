@@ -180,7 +180,7 @@ def parseCanDB(db, nodeName):
 
 
 def getStrippedSignalName(signalName):
-    strippedSignalName = re.sub('\d+$', '', signalName)
+    strippedSignalName = re.sub(r'\d+$', '', signalName)
     return strippedSignalName
 
 
@@ -205,7 +205,7 @@ def writeStructForMsg(msg, structName, fileHandle):
                 if signal.start != currentPos:
                     fWrite('    uint64_t FILLER_{num} : {fillerSize};'.format(num=str(currentPos), fillerSize=str(signal.start - currentPos)), fileHandle)
                 if signal.multiplexer_signal != None:
-                    signalName = re.sub('\d+$', '', signalName) + str(multiplexedSignalCount)
+                    signalName = re.sub(r'\d+$', '', signalName) + str(multiplexedSignalCount)
                     multiplexedSignalCount += 1
                 if signal.is_signed:
                     fWrite('    int64_t {signalName} : {size};'.format(signalName=signalName, size=signal.length), fileHandle)

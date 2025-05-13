@@ -13,7 +13,6 @@
 // This is subject to change and is expected to be 100ms
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_CHARGE_TASK_PERIOD_MS 500
-#define BATTERY_TASK_ID 2
 
 /**
  * @defgroup CellConfig
@@ -152,6 +151,9 @@ void clearSendOnlyOneCell();
 HAL_StatusTypeDef cliSetVBatt(float VBatt);
 HAL_StatusTypeDef cliSetVBus(float VBus);
 HAL_StatusTypeDef cliSetIBus(float IBus);
+HAL_StatusTypeDef publishBusVoltage(float *pVBus);
+HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
+HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
 #endif /* end of include guard: BATTERIES_H */

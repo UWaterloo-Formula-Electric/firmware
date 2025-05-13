@@ -118,7 +118,7 @@ HAL_StatusTypeDef controlInit()
         return HAL_ERROR;
     }
 
-    if (registerTaskToWatch(1, 100, true, &fsmHandle) != HAL_OK) {
+    if (registerTaskToWatch(FSM_TASK_ID, 100, true, &fsmHandle) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -336,7 +336,7 @@ uint32_t handleFault(uint32_t event)
             }
             break;
     }
-
+    Error_Handler();
     return STATE_Failure_Fatal;
 }
 
