@@ -18,16 +18,17 @@ typedef enum faultMonitorBits_e {
 }faultMonitorBits_e;
 
 // CAN Logging
-#define BOTS_FAILED      (1 << BOTS_FAILED_BIT)
-#define EBOX_FAILED      (1 << EBOX_FAILED_BIT)
-#define BSPD_FAILED      (1 << BSPD_FAILED_BIT)
-#define HVD_FAILED       (1 << HVD_FAILED_BIT)
-#define AMS_FAILED       (1 << AMS_FAILED_BIT)
-#define IMD_FAILED       (1 << IMD_FAILED_BIT)
-#define CBRB_FAILED      (1 << CBRB_FAILED_BIT)
-#define TSMS_FAILED      (1 << TSMS_FAILED_BIT)
-#define HW_CHECK_FAILED  (1 << HW_CHECK_FAILED_BIT)
-#define FSM_STATE_FAILED (1 << FSM_STATE_BIT)
+#define NO_FAULTS        (0ul) 
+#define BOTS_FAILED      (1ul << BOTS_FAILED_BIT)
+#define EBOX_FAILED      (1ul << EBOX_FAILED_BIT)
+#define BSPD_FAILED      (1ul << BSPD_FAILED_BIT)
+#define HVD_FAILED       (1ul << HVD_FAILED_BIT)
+#define AMS_FAILED       (1ul << AMS_FAILED_BIT)
+#define IMD_FAILED       (1ul << IMD_FAILED_BIT)
+#define CBRB_FAILED      (1ul << CBRB_FAILED_BIT)
+#define TSMS_FAILED      (1ul << TSMS_FAILED_BIT)
+#define HW_CHECK_FAILED  (1ul << HW_CHECK_FAILED_BIT)
+#define FSM_STATE_FAILED (1ul << FSM_STATE_BIT)
 
 bool getBOTS_Status();
 bool getEbox_Il_Status();
