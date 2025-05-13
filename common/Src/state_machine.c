@@ -127,7 +127,7 @@ HAL_StatusTypeDef fsmProcessEvent(FSM_Handle_Struct *handle, uint32_t event)
                     ERROR_PRINT("FSM: New state out of range\n");
                     return HAL_ERROR;
                 } else {
-                                        #if BOARD_ID == ID_BMU
+                    #if BOARD_ID == ID_BMU
                         StateMachineEvent_BMU = event;
                         StateMachineNewState_BMU = newState;
                         StateMachineState_BMU = current_state;
