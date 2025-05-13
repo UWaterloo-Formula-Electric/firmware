@@ -1,0 +1,91 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: Computer PDU_HIL VCU_HIL
+
+
+BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
+ SG_ PowRightFan : 11|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowLeftFan : 10|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowRightPump : 9|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowLeftPump : 8|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowMcRight : 7|1@1+ (1,0) [0|1] ""  Computer
+ SG_ BatteryRaw : 2|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowDcu : 5|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowMcLeft : 6|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowVcu : 4|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowBmu : 3|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowBrakeLight : 1|1@1+ (1,0) [0|1] ""  Computer
+ SG_ PowAux : 0|1@1+ (1,0) [0|1] ""  Computer
+
+BO_ 2281836291 PDU_MessageStatus: 1 PDU_HIL
+ SG_ BattThermistorStatus : 0|1@1+ (1,0) [0|1] ""  Computer
+
+BO_ 2214658831 BattThermistor: 3 Computer
+ SG_ BattThermistor : 0|18@1+ (1,0) [60|200060] "Ohm"  PDU_HIL
+
+BO_ 2282098434 VCU_MessageStatus: 1 VCU_HIL
+ SG_ ThrottleBStatus : 4|1@1+ (1,0) [0|1] ""  Computer
+ SG_ ThrottleAStatus : 3|1@1+ (1,0) [0|1] ""  Computer
+ SG_ SteeringStatus : 2|1@1+ (1,0) [0|1] ""  Computer
+ SG_ BrakePosStatus : 1|1@1+ (1,0) [0|1] ""  Computer
+ SG_ BrakePresStatus : 0|1@1+ (1,0) [0|1] ""  Computer
+
+BO_ 2214920719 SteeringRaw: 2 Computer
+ SG_ SteeringRaw : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+
+BO_ 2214855183 BrakePosition: 2 Computer
+ SG_ BrakePosition : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+
+BO_ 2214789647 BrakePresRaw: 2 Computer
+ SG_ BrakePresRaw : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+
+BO_ 2214724111 ThrottlePositionB: 2 Computer
+ SG_ ThrottlePositionB : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+
+BO_ 2214658575 ThrottlePositionA: 2 Computer
+ SG_ ThrottlePositionA : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
+
+CM_ BU_ Computer "Test Computer";
+CM_ BU_ PDU_HIL "3__Power Distribution Unit Hardware in the Loop board";
+CM_ BU_ VCU_HIL "2_1_Vehicle Control Unit Hardware in the Loop board";
+
+CM_ SG_ 2214658575 ThrottlePositionA "
+";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+
+
+
