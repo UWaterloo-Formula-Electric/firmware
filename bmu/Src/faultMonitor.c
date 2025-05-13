@@ -84,7 +84,7 @@ bool getHwCheck_Status() {
 // static bool isInitialized = false;
 void faultMonitorSendStatusTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    
+
     while (1) {
         sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD));
@@ -93,62 +93,61 @@ void faultMonitorSendStatusTask(void *pvParameters) {
         //             getAMS_Status(), getIMD_Status(), getCBRB_Status(), getTSMS_Status(),
         //             getHwCheck_Status());
         BMU_checkFailed = NO_FAULTS;
-        if (getBOTS_Status() == false){
+        if (getBOTS_Status() == false) {
             // DEBUG_PRINT("FIM: BOTS\n");
             BMU_checkFailed = BOTS_FAILED;
             continue;
         }
 
-        if (getEbox_Il_Status() == false){
+        if (getEbox_Il_Status() == false) {
             // DEBUG_PRINT("FIM: EBOX\n");
             BMU_checkFailed = EBOX_FAILED;
             continue;
         }
 
-        if (getBSPD_Status() == false){
+        if (getBSPD_Status() == false) {
             // DEBUG_PRINT("FIM: BSPD\n");
             BMU_checkFailed = BSPD_FAILED;
             continue;
         }
 
-        if (getHVD_Status() == false){
+        if (getHVD_Status() == false) {
             // DEBUG_PRINT("FIM: HVD\n");
             BMU_checkFailed = HVD_FAILED;
             continue;
         }
 
-        if (getAMS_Status() == false){
+        if (getAMS_Status() == false) {
             // DEBUG_PRINT("FIM: AMS\n");
             BMU_checkFailed = AMS_FAILED;
             continue;
         }
 
-        if (getIMD_Status() == false){
+        if (getIMD_Status() == false) {
             // DEBUG_PRINT("FIM: IMD\n");
             BMU_checkFailed = IMD_FAILED;
             continue;
         }
 
-        if (getCBRB_Status() == false){
+        if (getCBRB_Status() == false) {
             // DEBUG_PRINT("FIM: CBRB\n");
             BMU_checkFailed = CBRB_FAILED;
             continue;
         }
 
-        if (getTSMS_Status() == false){
+        if (getTSMS_Status() == false) {
             // DEBUG_PRINT("FIM: TSMS\n");
             BMU_checkFailed = TSMS_FAILED;
             continue;
         }
 
-        if (getHwCheck_Status() == false){
+        if (getHwCheck_Status() == false) {
             // DEBUG_PRINT("FIM: HW_CHECK\n");
             BMU_checkFailed = HW_CHECK_FAILED;
             continue;
         }
 
         // DEBUG_PRINT("FIM: PASSED\n");
-
     }
 }
 /**
@@ -368,125 +367,72 @@ void faultMonitorTask(void *pvParameters) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     // CLEAR_FAULTS();
+
+    uint16_t sentEvent = 0xffff;
     while (1) {
-        if (getBOTS_Status() == false) {
+        watchdogTaskCheckIn(FAULT_TASK_ID);
+        vTaskDelayUntil(&xLastWakeTime, FAULT_MEASURE_TASK_PERIOD);
+
+        if (getBOTS_Status() == false && sentEvent > BOTS_FAILED) {
             ERROR_PRINT("Fault Monitor: BOTS tripped!\n");
-            // LATCH_FAULT(BOTS_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(BOTS_FAILED);
-        // }
+            sentEvent = BOTS_FAILED;
+            continue;
+        }
 
-        if (getEbox_Il_Status() == false) {
+        if (getEbox_Il_Status() == false && sentEvent > EBOX_FAILED) {
             ERROR_PRINT("Fault Monitor: EBOX connector disconnected!\n");
-            // LATCH_FAULT(EBOX_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(EBOX_FAILED);
-        // }
+            sentEvent = EBOX_FAILED;
+            continue;
+        }
 
-        if (getBSPD_Status() == false) {
+        if (getBSPD_Status() == false && sentEvent > BSPD_FAILED) {
             ERROR_PRINT("Fault Monitor: BSPD tripped!\n");
-            // LATCH_FAULT(BSPD_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(BSPD_FAILED);
-        // }
+            sentEvent = BSPD_FAILED;
+            continue;
+        }
 
-        if (getHVD_Status() == false) {
+        if (getHVD_Status() == false && sentEvent > HVD_FAILED) {
             ERROR_PRINT("Fault Monitor: HVD removed!\n");
-            // LATCH_FAULT(HVD_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(HVD_FAILED);
-        // }
+            sentEvent = HVD_FAILED;
+            continue;
+        }
 
         // AMS and IMD monitored by battery task and IMD
         // task respectively, so won't monitor here
 
-        bool il_ok = getHwCheck_Status();
         bool cbrb_ok = getCBRB_Status();
-        bool hvd_ok = getHVD_Status();
-        if ((!cbrb_ok && hvd_ok) && !last_cbrb_ok) {
-            ERROR_PRINT("Fault Monitor: Cockpit BRB pressed\n");
-            // LATCH_FAULT(CBRB_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
-            fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+        if (!cbrb_ok && sentEvent > CBRB_FAILED) {
+            if (!last_cbrb_ok) {
+                ERROR_PRINT("Fault Monitor: Cockpit BRB pressed!\n");
+                fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+                sentEvent = CBRB_FAILED;
+            }
             last_cbrb_ok = true;
+            continue;
         } else if (cbrb_ok && last_cbrb_ok) {
-            // UNLATCH_FAULT(CBRB_FAILED);
+            DEBUG_PRINT("Fault Monitor: Cockpit BRB released!\n");
             fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
             last_cbrb_ok = false;
+            sentEvent = 0xffff;
         }
 
-        if (getTSMS_Status() == false) {
+        if (getTSMS_Status() == false && sentEvent > TSMS_FAILED) {
             ERROR_PRINT("Fault Monitor: TSMS removed!\n");
-            // LATCH_FAULT(TSMS_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(TSMS_FAILED);
-        // }
+            sentEvent = TSMS_FAILED;
+            continue;
+        }
 
-        if ((!hvd_ok) || (!il_ok && cbrb_ok)) {
+        if (getHwCheck_Status() == false && sentEvent > HW_CHECK_FAILED) {
             ERROR_PRINT("Fault Monitor: HW check failed!\n");
-            // LATCH_FAULT(HW_CHECK_FAILED);
-            // sendCAN_BMU_Interlock_Loop_Status();
-
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            while (1) {
-                // sendCAN_BMU_Interlock_Loop_Status();
-                watchdogTaskCheckIn(FAULT_TASK_ID);
-                vTaskDelay(FAULT_MEASURE_TASK_PERIOD);
-            }
-        } 
-        // else {
-        //     UNLATCH_FAULT(HW_CHECK_FAILED);
-        // }
-
-        // sendCAN_BMU_Interlock_Loop_Status();
-        watchdogTaskCheckIn(FAULT_TASK_ID);
-        vTaskDelayUntil(&xLastWakeTime, FAULT_MEASURE_TASK_PERIOD);
+            sentEvent = HW_CHECK_FAILED;
+            continue;
+        }
     }
 
 #else
