@@ -51,7 +51,7 @@ class MainView(tk.Frame):
         self.debugPage.debug_text_area.yview_scroll(scroll_amount, "units")
 
     def update_inv_fault(self, inv_post_fault: int = 0, inv_run_fault: int = 0):
-        # force unsgined 32 bit
+        # force unsigned 32 bit
         inv_post_fault = inv_post_fault & 0xffffffff
         inv_run_fault = inv_run_fault & 0xffffffff
         inv_fault = (inv_run_fault << 32) | inv_post_fault
@@ -224,6 +224,12 @@ class CANProcessor:
         if self.mid.is_pressed and curr_time - self.last_page_swap_time > MIN_PAGE_SWAP_TIMEOUT_S:
             self.main_view.go_to_next_page()
             self.last_page_swap_time = curr_time
+        
+        if self.up.is_pressed:
+            self.main_view.scroll_debug_text(-1)
+        
+        if self.down.is_pressed:
+            self.main_view.scroll_debug_text(1)
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
@@ -232,12 +238,6 @@ class CANProcessor:
         print("reading can messages...")
         while True:
             self.process_button_press()
-            # if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > BUTTON_SCROLL_TIMEOUT_S:
-            #     if _last_scr_btn == "R":
-            #         self.main_view.debugPage.show()
-            #     if _last_scr_btn == "L":
-            #         self.main_view.dashPage.show()
-            #     _last_scr_btn = None
 
             message = self.can_bus.recv(timeout=0.1)
             try:
@@ -257,7 +257,7 @@ class CANProcessor:
                     # Case for battery temp/soc
                     case self.BATTERYSTATUSHV_ARB_ID:
                         dashPage.updateSoc(decoded_data)
-                        # Case for motor temp
+                    # Case for motor temp
                     case self.MC_TEMP_ARB_ID:
                         dashPage.updateMotorTemp(decoded_data)
 
@@ -289,37 +289,6 @@ class CANProcessor:
                         self.save_shunt_wh(wh)
                         dashPage.updateEnergy(wh)
 
-                    # case for screen navigation button events
-                    # case self.DCU_BUTTONS_ARB_ID:
-                    #     # scroll up if R button double clicked
-                    #     # scroll down if L button double
-                    #     # Open debug menu if R button is pressed
-                    #     # Close debug menu if L button is pressed
-
-                    #     t1 = time.time()
-                    #     r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
-                    #     l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
-                    #     scrolled = False
-
-                    #     if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
-                    #         if r_btn and _last_scr_btn == "R":
-                    #             self.main_view.scroll_debug_text(5)
-                    #             scrolled = True
-
-                    #         if l_btn and _last_scr_btn == "L":
-                    #             self.main_view.scroll_debug_text(-5)
-                    #             scrolled = True
-
-                    #     if r_btn:
-                    #         _last_scr_btn = "R"
-                    #     if l_btn:
-                    #         _last_scr_btn = "L"
-
-                    #     if scrolled:
-                    #         _last_scr_btn = None
-
-                    #     _last_scr_btn_ts = t1
-
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
                     dtc_origin = self.db.get_message_by_frame_id(message.arbitration_id).name
@@ -346,9 +315,6 @@ class CANProcessor:
                 # not a good way to do this. should not be calling the dash page directly
                 self.main_view.debugPage.debug_text_area.insert("end", "\n" + str(e) +
                                                                 " | " + str(time.strftime("%H:%M:%S")))
-
-    def buttons_thread(self):
-        pass
 
     def start_can_thread(self):
         # enable daemon to kill the thread when the main thread exits)
