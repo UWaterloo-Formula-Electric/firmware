@@ -1,9 +1,11 @@
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
 import os
+from itertools import cycle
 from threading import Thread
 import tkinter as tk
 from tkinter import scrolledtext
 from pathlib import Path
+from gpiozero import Button
 
 import time
 import traceback
@@ -11,9 +13,10 @@ import can
 import cantools
 import csv
 
+from page import Page
 from dash_page import DashPage
 from debug_page import DebugPage
-from constants import WIDTH, HEIGHT, INV_FAULT_CODES_DESC, BUTTON_SCROLL_TIMEOUT_S, INTERLOCK_FAULT_CODES_DESC
+from constants import *
 
 
 class MainView(tk.Frame):
@@ -29,7 +32,15 @@ class MainView(tk.Frame):
         self.dashPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         self.debugPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        self.dashPage.show()
+        self.pages: list[Page] = cycle([self.dashPage, self.debugPage])
+
+        self.current_page = next(self.pages)
+        self.current_page.show()
+
+    def go_to_next_page(self):
+        self.current_page = next(self.pages)
+        self.current_page.show()
+
 
     def update_debug_text(self, dtc_origin, dtc_code, dtc_data, dtc_desc):
         self.debugPage.update_debug_text(dtc_origin, dtc_code, dtc_data, dtc_desc)
@@ -40,7 +51,7 @@ class MainView(tk.Frame):
         self.debugPage.debug_text_area.yview_scroll(scroll_amount, "units")
 
     def update_inv_fault(self, inv_post_fault: int = 0, inv_run_fault: int = 0):
-        # force unsgined 32 bit
+        # force unsigned 32 bit
         inv_post_fault = inv_post_fault & 0xffffffff
         inv_run_fault = inv_run_fault & 0xffffffff
         inv_fault = (inv_run_fault << 32) | inv_post_fault
@@ -99,7 +110,6 @@ class CANProcessor:
 
         self.LV_BATT_ARB_ID = self.db.get_message_by_name('LV_Bus_Measurements').frame_id
 
-        self.VCU_BUTTONS_ARB_ID = self.db.get_message_by_name('VCU_buttonEvents').frame_id
         self.IVT_POWER_WH_ARB_ID = self.db.get_message_by_name('IVT_Result_Wh').frame_id
         self.BMU_IL_STATUS_ID = self.db.get_message_by_name('BMU_Interlock_Loop_Status').frame_id
         self.BMU_VBATT_ARB_ID = self.db.get_message_by_name('BMU_AmsVBatt').frame_id
@@ -111,6 +121,10 @@ class CANProcessor:
         self.dtcs = {}
         self.load_dtcs()
 
+        self.up = Button(5, pull_up=True, bounce_time=0.05)
+        self.mid = Button(6, pull_up=True, bounce_time=0.05)
+        self.down = Button(13, pull_up=True, bounce_time=0.05)
+
         self.wh_file = self.home_dir / "wh.txt"
         if not self.wh_file.exists():
             self.wh_file.touch()
@@ -119,6 +133,7 @@ class CANProcessor:
         self.wh_store = open(self.wh_file, 'r+')
         self.wh_init = int(self.wh_store.readline())
 
+        self.last_page_swap_time = time.time()
 
     def load_dtcs(self):
         """
@@ -203,21 +218,26 @@ class CANProcessor:
         self.wh_store.write(f"{self.wh_init}\n")
         self.wh_store.truncate()
 
+    def process_button_press(self):
+        # don't switch pages too fast
+        curr_time = time.time()
+        if self.mid.is_pressed and curr_time - self.last_page_swap_time > MIN_PAGE_SWAP_TIMEOUT_S:
+            self.main_view.go_to_next_page()
+            self.last_page_swap_time = curr_time
+        
+        if self.up.is_pressed:
+            self.main_view.scroll_debug_text(-1)
+        
+        if self.down.is_pressed:
+            self.main_view.scroll_debug_text(1)
+
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
-        _last_scr_btn_ts = time.time()
-        _last_scr_btn = None
-
         dashPage.updateEnergy(self.wh_init)
 
         print("reading can messages...")
         while True:
-            if _last_scr_btn is not None and time.time() - _last_scr_btn_ts > BUTTON_SCROLL_TIMEOUT_S:
-                if _last_scr_btn == "R":
-                    self.main_view.debugPage.show()
-                if _last_scr_btn == "L":
-                    self.main_view.dashPage.show()
-                _last_scr_btn = None
+            self.process_button_press()
 
             message = self.can_bus.recv(timeout=0.1)
             try:
@@ -225,7 +245,7 @@ class CANProcessor:
                     continue
                 decoded_data = self.db.decode_message(message.arbitration_id, message.data)
             except KeyError:
-                print(f"Missing key {message.arbitration_id} in message decode")
+                # print(f"Missing key {message.arbitration_id} in message decode")
                 continue
             except cantools.database.errors.DecodeError:
                 print(f"Message decode failed for {message.arbitration_id}")
@@ -237,7 +257,7 @@ class CANProcessor:
                     # Case for battery temp/soc
                     case self.BATTERYSTATUSHV_ARB_ID:
                         dashPage.updateSoc(decoded_data)
-                        # Case for motor temp
+                    # Case for motor temp
                     case self.MC_TEMP_ARB_ID:
                         dashPage.updateMotorTemp(decoded_data)
 
@@ -269,40 +289,6 @@ class CANProcessor:
                         self.save_shunt_wh(wh)
                         dashPage.updateEnergy(wh)
 
-                    case self.VCU_BUTTONS_ARB_ID:
-                        if decoded_data['ButtonTCEnabled'] == 1:
-                            self.reset_shunt_wh()
-                    # case for screen navigation button events
-                    # case self.DCU_BUTTONS_ARB_ID:
-                    #     # scroll up if R button double clicked
-                    #     # scroll down if L button double
-                    #     # Open debug menu if R button is pressed
-                    #     # Close debug menu if L button is pressed
-
-                    #     t1 = time.time()
-                    #     r_btn = decoded_data['ButtonScreenNavRightEnabled'] == 1
-                    #     l_btn = decoded_data['ButtonScreenNavLeftEnabled'] == 1
-                    #     scrolled = False
-
-                    #     if t1 - _last_scr_btn_ts < BUTTON_SCROLL_TIMEOUT_S:
-                    #         if r_btn and _last_scr_btn == "R":
-                    #             self.main_view.scroll_debug_text(5)
-                    #             scrolled = True
-
-                    #         if l_btn and _last_scr_btn == "L":
-                    #             self.main_view.scroll_debug_text(-5)
-                    #             scrolled = True
-
-                    #     if r_btn:
-                    #         _last_scr_btn = "R"
-                    #     if l_btn:
-                    #         _last_scr_btn = "L"
-
-                    #     if scrolled:
-                    #         _last_scr_btn = None
-
-                    #     _last_scr_btn_ts = t1
-
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
                     dtc_origin = self.db.get_message_by_frame_id(message.arbitration_id).name
@@ -329,9 +315,6 @@ class CANProcessor:
                 # not a good way to do this. should not be calling the dash page directly
                 self.main_view.debugPage.debug_text_area.insert("end", "\n" + str(e) +
                                                                 " | " + str(time.strftime("%H:%M:%S")))
-
-    def buttons_thread(self):
-        pass
 
     def start_can_thread(self):
         # enable daemon to kill the thread when the main thread exits)
