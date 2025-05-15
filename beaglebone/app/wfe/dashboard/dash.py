@@ -16,6 +16,7 @@ import csv
 from page import Page
 from dash_page import DashPage
 from debug_page import DebugPage
+from reset_page import ResetPage
 from constants import *
 
 
@@ -25,14 +26,16 @@ class MainView(tk.Frame):
         bg = "#262626"
         self.dashPage = DashPage(self, bg=bg)
         self.debugPage = DebugPage(self, bg=bg)
+        self.resetPage = ResetPage(self, bg=bg)
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
 
-        self.dashPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        self.debugPage.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        self.pages = [self.dashPage, self.debugPage, self.resetPage]
+        for page in self.pages:
+            page.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        self.pages: list[Page] = cycle([self.dashPage, self.debugPage])
+        self.pages = cycle(self.pages)
 
         self.current_page = next(self.pages)
         self.current_page.show()
@@ -124,6 +127,7 @@ class CANProcessor:
         self.up = Button(5, pull_up=True, bounce_time=0.05)
         self.mid = Button(6, pull_up=True, bounce_time=0.05)
         self.down = Button(13, pull_up=True, bounce_time=0.05)
+
 
         self.wh_file = self.home_dir / "wh.txt"
         if not self.wh_file.exists():
@@ -225,15 +229,23 @@ class CANProcessor:
             self.main_view.go_to_next_page()
             self.last_page_swap_time = curr_time
         
-        if self.up.is_pressed:
-            self.main_view.scroll_debug_text(-1)
-        
-        if self.down.is_pressed:
-            self.main_view.scroll_debug_text(1)
+        if self.main_view.current_page == self.main_view.resetPage:
+            if self.up.is_pressed:
+                self.reset_shunt_wh()
+            self.main_view.resetPage.parse_buttons(self.up.is_pressed, self.mid.is_pressed, self.down.is_pressed)
+        else:
+            if self.up.is_pressed:
+                self.main_view.scroll_debug_text(-1)
+            
+            if self.down.is_pressed:
+                self.main_view.scroll_debug_text(1)
 
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
+        resetPage = self.main_view.resetPage
+
         dashPage.updateEnergy(self.wh_init)
+        resetPage.updateEnergy(self.wh_init)
 
         print("reading can messages...")
         while True:
@@ -288,6 +300,8 @@ class CANProcessor:
                         wh = shunt_wh + self.wh_init
                         self.save_shunt_wh(wh)
                         dashPage.updateEnergy(wh)
+                        resetPage.updateEnergy(wh)
+                        
 
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
