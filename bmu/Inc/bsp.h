@@ -75,6 +75,7 @@ typedef enum taskId_e{
     SOC_TASK_ID,                    // 7
     CAN_CELL_SEND_TASK_ID,          // 8
     CONT_CURRENT_SENSE_TASK_ID,     // 9
+    IVT_TASK_ID,                     // 10
 }taskId_e;
 
 #elif IS_BOARD_NUCLEO_F7
