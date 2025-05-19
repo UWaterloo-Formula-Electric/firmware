@@ -67,6 +67,10 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
+BO_ 2365587201 MC_Torque_Capability: 8 INV
+ SG_ Regen_Torque_Available : 16|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
+ SG_ Motor_Torque_Available : 0|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
+
 BO_ 2282621955 PDU_Charging_Lipo_Status: 1 PDU
  SG_ Charging_Lipo_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
 
@@ -108,7 +112,7 @@ BO_ 1319 IVT_Result_As: 6 IVT
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1318 IVT_Result_W: 6 IVT
- SG_ IVT_W : 16|32@1- (0.001,0) [0|0] ""  BMU
+ SG_ IVT_W : 16|32@1- (1,0) [-2147483648|2147483647] ""  BMU
  SG_ IVT_Result_state : 12|4@1+ (1,0) [0|0] ""  BMU
  SG_ IVT_MsgCount : 8|4@1+ (1,0) [0|15] ""  BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
@@ -1013,6 +1017,7 @@ BO_ 2365565697 MC_Fault_Codes: 8 INV
  SG_ INV_Post_Fault_Lo : 0|16@1+ (1,0) [0|65535] ""  PDU,VCU_F7
 
 BO_ 2365565441 MC_Internal_States: 8 INV
+ SG_ INV_BMS_Limiting_Regen_Torque : 50|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ INV_Direction_Command : 56|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Inverter_Enable_State : 48|1@1+ (1,0) [0|1] ""  VCU_F7
  SG_ INV_Relay_3_Status : 26|1@1+ (1,0) [0|1] ""  VCU_F7

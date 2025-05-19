@@ -72,8 +72,8 @@ HAL_StatusTypeDef startADCConversions()
 
 float getBrakePositionPercent()
 {	
-    return map_range(   brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
-                        BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
+    return map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
+                     BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
@@ -263,8 +263,8 @@ HAL_StatusTypeDef brakeAndThrottleStart()
     return HAL_OK;
 }
 
-HAL_StatusTypeDef pollThrottle(void) {
-    ThrottleStatus_t rc = getNewThrottle(&throttlePercentReading);
+HAL_StatusTypeDef pollThrottle(float *throttlePercentReading) {
+    ThrottleStatus_t rc = getNewThrottle(throttlePercentReading);
 
     if (rc == THROTTLE_FAULT) {
         sendDTC_WARNING_Throttle_Failure(0);
@@ -279,7 +279,7 @@ HAL_StatusTypeDef pollThrottle(void) {
         }
     }
     
-    return requestTorqueFromMC(throttlePercentReading);
+    return HAL_OK;
 }
 
 /*********************************************************************************************************************/
@@ -305,11 +305,15 @@ void canPublishTask(void *pvParameters)
     }
 }
 
-void throttlePollingTask(void) 
+/**
+ * @brief  Commands the inverter with motoring or regenerative torque
+ *         Polls the throttle and brakes to determine the torque command
+ */
+void InvCommandTask(void) 
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    if (registerTaskToWatch(THROTTLE_POLLING_TASK_ID, 2*pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(INV_COMMAND_TASK_ID, 2*pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("ERROR: Failed to init throttle polling task, suspending throttle polling task\n");
         Error_Handler();
@@ -318,14 +322,32 @@ void throttlePollingTask(void)
     INV_Peak_Tractive_Power_kW = 0;
     INV_DC_Bus_Voltage = 0;
     INV_DC_Bus_Current = 0;
-
+    InvCommandMode_t commandMode = MOTORING;
     while (1)
     {
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
+            float requestTorque = 0;
             // Poll throttle
-            if (pollThrottle() != HAL_OK) {
+            if (pollThrottle(&throttlePercentReading) != HAL_OK) {
+                ERROR_PRINT("ERROR: Failed to poll throttle\n");
+                fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
+            }
+
+            // poll brake
+            float brakePercent = getBrakePositionPercent();
+
+            if (throttlePercentReading < MAX_ZERO_THROTTLE_VAL_PERCENT && brakePercent > 2) {
+                requestTorque = mapBrakeToRegenTorque(brakePercent);
+                commandMode = REGEN;
+            } else {
+                requestTorque = mapThrottleToTorque(throttlePercentReading);
+                commandMode = MOTORING;
+            }
+            DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
+
+            if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
                 fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
             }
@@ -339,7 +361,7 @@ void throttlePollingTask(void)
         // float discard;
         // getThrottlePositionPercent(&discard);
         // // end
-        watchdogTaskCheckIn(THROTTLE_POLLING_TASK_ID);
-        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(THROTTLE_POLLING_TASK_PERIOD_MS));
+        watchdogTaskCheckIn(INV_COMMAND_TASK_ID);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS));
     }
 }
