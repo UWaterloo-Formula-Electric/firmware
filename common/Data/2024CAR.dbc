@@ -67,8 +67,8 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
-BO_ 2565800180 Read_IMD_Error_Threshold: 8 BMU
- SG_ IMD_Error_Threshold : 0|64@1+ (1,0) [0|1.84467440737096E+019] "" Vector__XXX
+BO_ 2565800180 Read_IMD_Error_Threshold: 8 IMD
+ SG_ IMD_Index : 0|64@1+ (1,0) [0|1.84467440737096E+019] ""  BMU
 
 BO_ 2282621955 PDU_Charging_Lipo_Status: 1 PDU
  SG_ Charging_Lipo_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
