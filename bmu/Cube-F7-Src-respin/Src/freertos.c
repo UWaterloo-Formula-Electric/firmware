@@ -278,7 +278,7 @@ void MX_FREERTOS_Init(void) {
   FaultMonSendNamHandle = osThreadCreate(osThread(FaultMonSendNam), NULL);
 
   /* definition and creation of IVTMonitorTask */
-  osThreadDef(IVTMonitorTask, IVTmonitorTask, osPriorityNormal, 0, 1000);
+  osThreadDef(IVTMonitorTask, IVTmonitorTask, osPriorityAboveNormal, 0, 1000);
   IVTMonitorTaskHandle = osThreadCreate(osThread(IVTMonitorTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
