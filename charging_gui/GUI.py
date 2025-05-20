@@ -1,61 +1,94 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton
-import pyqtgraph as pg
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QGroupBox, QGridLayout
 import numpy as np
-
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
+import pyqtgraph as pg
 
 # simulate real time data for now
 # replace with real time CAN data later
+labels = []
+voltage_threshold = 3.0
+temp_threshold_h = 45
+temp_threshold_l = 30
+
 def update():
-    global voltages, temperatures, voltage_bar, temp_bar
-    voltages = np.random.uniform(0, 6.55, 140)
-    temperatures = np.random.uniform(15, 60, 140)
-    voltage_plot.removeItem(voltage_bar)
-    temperature_plot.removeItem(temp_bar)
+    voltages = np.round(np.random.uniform(3.0, 4.2, 140), 1)
+    temperatures = np.round(np.random.uniform(0, 60, 140), 1)
+    for index, label in enumerate(labels):
+        voltage = voltages[index]
+        temperature = temperatures[index]
+        if voltage > voltage_threshold:
+            voltage_color = "green"
+        else:
+            voltage_color = "red"
 
-    voltage_bar = pg.BarGraphItem(x=x, height = voltages, width=0.8, brush='green')
-    temp_bar = pg.BarGraphItem(x=x, height=temperatures, width=0.8, brush='green')
-    voltage_plot.addItem(voltage_bar)
-    temperature_plot.addItem(temp_bar)
+        if temperature > temp_threshold_h:
+            temperature_color = "red"
+        elif temperature > temp_threshold_l:
+            temperature_color = 'yellow'
+        else:
+            temperature_color = 'green'
 
-app = QApplication([])
+        label.setText(
+                f"<span style='color: {voltage_color};'>{voltages[index]} V</span><br>"
+                f"<span style='color: {temperature_color};'>{temperatures[index]}°C</span>"
+        )        
 
-window = QWidget()
-window.setWindowTitle("Charging GUI")
-window.setGeometry(100, 100, 1000, 700)
-layout = QVBoxLayout()
-window.setLayout(layout)
+def main():
+    app = QApplication([])
 
-# set up bar chart for temperature and voltage
-voltage_plot = pg.PlotWidget(title='cell voltage')
-voltage_plot.setLabel("left", 'voltage', units='V')
-voltage_plot.setLabel("bottom", 'Cell Index')
-voltage_plot.setYRange(0, 6.55)
-layout.addWidget(voltage_plot)
+    window = QWidget()
+    window.setWindowTitle("Charging GUI")
+    window.setGeometry(100, 100, 1000, 700)
+    layout = QGridLayout()
+    window.setLayout(layout)
 
-temperature_plot = pg.PlotWidget(title='cell temperature')
-temperature_plot.setLabel("left", "voltage", units="°C")
-temperature_plot.setLabel("bottom", "Cell Index")
-temperature_plot.setYRange(15, 60)
-layout.addWidget(temperature_plot)
+    x = np.arange(140)  
+    voltages = np.round(np.random.uniform(0, 6.55, 140), 1)
+    temperatures = np.round(np.random.uniform(20, 40, 140), 1)
 
-x = np.arange(140)  
-voltages = np.random.uniform(3.0, 4.2, 140)
-temperatures = np.random.uniform(20, 40, 140)
+    
+    for i in range(140):
+        row = i%20
+        col = i // 20
+        voltage = voltages[i]
+        voltage_color = None
+        temperature = temperatures[i]
+        temperature_color = None
+        # setting voltage color
+        if voltage > voltage_threshold:
+            voltage_color = "green"
+        else:
+            voltage_color = "red"
 
-voltage_bar = pg.BarGraphItem(x=x, height=voltages, width=0.8, brush='green')
-temp_bar = pg.BarGraphItem(x=x, height=temperatures, width=0.8, brush='green')
+        if temperature > temp_threshold_h:
+            temperature_color = "red"
+        elif temperature > temp_threshold_l:
+            temperature_color = 'yellow'
+        else:
+            temperature_color = 'green'
 
-voltage_plot.addItem(voltage_bar)
-temperature_plot.addItem(temp_bar)
+        label = QLabel()
+        label.setText(
+            f"<span style='color: {voltage_color};'>{voltages[i]} V</span><br>"
+            f"<span style='color: {temperature_color};'>{temperatures[i]}°C</span>"
+        )
+        label.setFixedSize(150, 30)
+        label.setStyleSheet("border: 1px solid black; background-color: black;")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setFont(QFont("Arial", 8))
+        labels.append(label)
+        layout.addWidget(label, row, col)
+    
 
-x = np.arange(140)
-voltages = np.random.uniform(0, 6.55, 140)
-temperatures = np.random.uniform(15, 60, 140)
+   
 
+    timer = pg.QtCore.QTimer()
+    timer.timeout.connect(update)
+    timer.start(1000)
 # update the GUI every second
-timer = pg.QtCore.QTimer()
-timer.timeout.connect(update)
-timer.start(1000)
-window.show()
-app.exec()
+    window.show()
+    app.exec()
+
+main()
 
