@@ -75,42 +75,42 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
-BO_ 2281705227 WSBRR_State_Change: 8 WSBRR
+BO_ 2298478347 WSBRR_State_Change: 8 WSBRR
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705226 WSBRL_State_Change: 8 WSBRL
+BO_ 2298478346 WSBRL_State_Change: 8 WSBRL
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705225 WSBFR_State_Change: 8 WSBFR
+BO_ 2298478345 WSBFR_State_Change: 8 WSBFR
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705224 WSBFL_State_Change: 8 WSBFL
+BO_ 2298478344 WSBFL_State_Change: 8 WSBFL
  SG_ StateMachineState : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705223 DCU_State_Change: 8 DCU
+BO_ 2298478343 DCU_State_Change: 8 DCU
  SG_ StateMachineState_DCU : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState_DCU : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent_DCU : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705219 PDU_State_Change: 8 PDU
+BO_ 2298478339 PDU_State_Change: 8 PDU
  SG_ StateMachineState_PDU : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState_PDU : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent_PDU : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705218 VCU_State_Change: 8 VCU_F7
+BO_ 2298478338 VCU_State_Change: 8 VCU_F7
  SG_ StateMachineState_VCU : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState_VCU : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent_VCU : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 2281705217 BMU_State_Change: 8 BMU
+BO_ 2298478337 BMU_State_Change: 8 BMU
  SG_ StateMachineState_BMU : 16|8@1- (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineNewState_BMU : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ StateMachineEvent_BMU : 0|8@1- (1,0) [0|0] "" Vector__XXX
@@ -1318,18 +1318,18 @@ BA_ "GenMsgCycleTime" BO_ 2365563393 100;
 BA_ "GenMsgCycleTime" BO_ 2365563137 100;
 BA_ "GenMsgCycleTime" BO_ 2365562881 100;
 BA_ "GenMsgCycleTime" BO_ 2365566977 3;
-VAL_ 2281705223 StateMachineState_DCU 4 "STATE_ANY" 3 "STATE_Failure_Fatal" 2 "STATE_EM_Enable" 1 "STATE_HV_Enable" 0 "STATE_HV_Disable" ;
-VAL_ 2281705223 StateMachineNewState_DCU 4 "STATE_ANY" 3 "STATE_Failure_Fatal" 2 "STATE_EM_Enable" 1 "STATE_HV_Enable" 0 "STATE_HV_Disable" ;
-VAL_ 2281705223 StateMachineEvent_DCU 8 "EV_ANY" 7 "EV_Fatal" 6 "EV_CAN_Receive_EM" 5 "EV_CAN_Receive_HV" 4 "EV_BTN_Endurance_Lap" 3 "EV_BTN_Endurance_Mode_Toggle" 2 "EV_BTN_TC_Toggle" 1 "EV_BTN_EM_Toggle" 0 "EV_BTN_HV_Toggle" ;
-VAL_ 2281705219 StateMachineState_PDU 5 "STATE_ANY" 4 "STATE_Critical_Failure" 3 "STATE_Warning_Critical" 2 "STATE_Motors_On" 1 "STATE_Boards_On" 0 "STATE_Boards_Off" ;
-VAL_ 2281705219 StateMachineNewState_PDU 5 "STATE_ANY" 4 "STATE_Critical_Failure" 3 "STATE_Warning_Critical" 2 "STATE_Motors_On" 1 "STATE_Boards_On" 0 "STATE_Boards_Off" ;
-VAL_ 2281705219 StateMachineEvent_PDU 6 "EV_ANY" 5 "EV_Cycle_MC" 4 "EV_EM_Disable" 3 "EV_EM_Enable" 2 "EV_CriticalDelayElapsed" 1 "EV_HV_CriticalFailure" 0 "EV_Init" ;
-VAL_ 2281705218 StateMachineState_VCU 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
-VAL_ 2281705218 StateMachineNewState_VCU 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
-VAL_ 2281705218 StateMachineEvent_VCU 13 "EV_ANY" 12 "EV_Inverter_Fault" 11 "EV_Fatal" 10 "EV_Throttle_Failure" 9 "EV_Brake_Pressure_Fault" 8 "EV_BTN_Endurance_Mode_Toggle" 7 "EV_CAN_Receive_HV" 6 "EV_BTN_TC_Toggle" 5 "EV_BTN_EM_Toggle" 4 "EV_BTN_HV_Toggle" 3 "EV_Hv_Disable" 2 "EV_Bps_Fail" 1 "EV_EM_Toggle" 0 "EV_Init" ;
-VAL_ 2281705217 StateMachineState_BMU 11 "STATE_ANY" 10 "STATE_Balancing" 9 "STATE_Failure_CBRB_Enabled" 8 "STATE_Failure_CBRB_Disabled" 7 "STATE_Failure_Fatal" 6 "STATE_Charging" 5 "STATE_Discharge" 4 "STATE_Precharge" 3 "STATE_HV_Enable" 2 "STATE_HV_Disable" 1 "STATE_Wait_System_Up" 0 "STATE_Self_Check" ;
-VAL_ 2281705217 StateMachineNewState_BMU 11 "STATE_ANY" 10 "STATE_Balancing" 9 "STATE_Failure_CBRB_Enabled" 8 "STATE_Failure_CBRB_Disabled" 7 "STATE_Failure_Fatal" 6 "STATE_Charging" 5 "STATE_Discharge" 4 "STATE_Precharge" 3 "STATE_HV_Enable" 2 "STATE_HV_Disable" 1 "STATE_Wait_System_Up" 0 "STATE_Self_Check" ;
-VAL_ 2281705217 StateMachineEvent_BMU 17 "EV_ANY" 16 "EV_Balance_Stop" 15 "EV_Balance_Start" 14 "EV_Cockpit_BRB_Unpressed" 13 "EV_Cockpit_BRB_Pressed" 12 "EV_Notification_Stop" 11 "EV_Charge_Error" 10 "EV_Notification_Done" 9 "EV_Charge_Start" 8 "EV_Enter_Charge_Mode" 7 "EV_FaultMonitorReady" 6 "EV_IMD_Ready" 5 "EV_HV_Fault" 4 "EV_PrechargeDischarge_Fail" 3 "EV_Discharge_Finished" 2 "EV_Precharge_Finished" 1 "EV_HV_Toggle" 0 "EV_Init" ;
+VAL_ 2298478343 StateMachineState_DCU 4 "STATE_ANY" 3 "STATE_Failure_Fatal" 2 "STATE_EM_Enable" 1 "STATE_HV_Enable" 0 "STATE_HV_Disable" ;
+VAL_ 2298478343 StateMachineNewState_DCU 4 "STATE_ANY" 3 "STATE_Failure_Fatal" 2 "STATE_EM_Enable" 1 "STATE_HV_Enable" 0 "STATE_HV_Disable" ;
+VAL_ 2298478343 StateMachineEvent_DCU 8 "EV_ANY" 7 "EV_Fatal" 6 "EV_CAN_Receive_EM" 5 "EV_CAN_Receive_HV" 4 "EV_BTN_Endurance_Lap" 3 "EV_BTN_Endurance_Mode_Toggle" 2 "EV_BTN_TC_Toggle" 1 "EV_BTN_EM_Toggle" 0 "EV_BTN_HV_Toggle" ;
+VAL_ 2298478339 StateMachineState_PDU 5 "STATE_ANY" 4 "STATE_Critical_Failure" 3 "STATE_Warning_Critical" 2 "STATE_Motors_On" 1 "STATE_Boards_On" 0 "STATE_Boards_Off" ;
+VAL_ 2298478339 StateMachineNewState_PDU 5 "STATE_ANY" 4 "STATE_Critical_Failure" 3 "STATE_Warning_Critical" 2 "STATE_Motors_On" 1 "STATE_Boards_On" 0 "STATE_Boards_Off" ;
+VAL_ 2298478339 StateMachineEvent_PDU 6 "EV_ANY" 5 "EV_Cycle_MC" 4 "EV_EM_Disable" 3 "EV_EM_Enable" 2 "EV_CriticalDelayElapsed" 1 "EV_HV_CriticalFailure" 0 "EV_Init" ;
+VAL_ 2298478338 StateMachineState_VCU 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
+VAL_ 2298478338 StateMachineNewState_VCU 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
+VAL_ 2298478338 StateMachineEvent_VCU 13 "EV_ANY" 12 "EV_Inverter_Fault" 11 "EV_Fatal" 10 "EV_Throttle_Failure" 9 "EV_Brake_Pressure_Fault" 8 "EV_BTN_Endurance_Mode_Toggle" 7 "EV_CAN_Receive_HV" 6 "EV_BTN_TC_Toggle" 5 "EV_BTN_EM_Toggle" 4 "EV_BTN_HV_Toggle" 3 "EV_Hv_Disable" 2 "EV_Bps_Fail" 1 "EV_EM_Toggle" 0 "EV_Init" ;
+VAL_ 2298478337 StateMachineState_BMU 11 "STATE_ANY" 10 "STATE_Balancing" 9 "STATE_Failure_CBRB_Enabled" 8 "STATE_Failure_CBRB_Disabled" 7 "STATE_Failure_Fatal" 6 "STATE_Charging" 5 "STATE_Discharge" 4 "STATE_Precharge" 3 "STATE_HV_Enable" 2 "STATE_HV_Disable" 1 "STATE_Wait_System_Up" 0 "STATE_Self_Check" ;
+VAL_ 2298478337 StateMachineNewState_BMU 11 "STATE_ANY" 10 "STATE_Balancing" 9 "STATE_Failure_CBRB_Enabled" 8 "STATE_Failure_CBRB_Disabled" 7 "STATE_Failure_Fatal" 6 "STATE_Charging" 5 "STATE_Discharge" 4 "STATE_Precharge" 3 "STATE_HV_Enable" 2 "STATE_HV_Disable" 1 "STATE_Wait_System_Up" 0 "STATE_Self_Check" ;
+VAL_ 2298478337 StateMachineEvent_BMU 17 "EV_ANY" 16 "EV_Balance_Stop" 15 "EV_Balance_Start" 14 "EV_Cockpit_BRB_Unpressed" 13 "EV_Cockpit_BRB_Pressed" 12 "EV_Notification_Stop" 11 "EV_Charge_Error" 10 "EV_Notification_Done" 9 "EV_Charge_Start" 8 "EV_Enter_Charge_Mode" 7 "EV_FaultMonitorReady" 6 "EV_IMD_Ready" 5 "EV_HV_Fault" 4 "EV_PrechargeDischarge_Fail" 3 "EV_Discharge_Finished" 2 "EV_Precharge_Finished" 1 "EV_HV_Toggle" 0 "EV_Init" ;
 VAL_ 2147483648 StateContactorPositive 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
 VAL_ 2147483648 StateContactorNegative 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
 VAL_ 2297236481 BMU_checkFailed 512 "FSM_STATE_FAILED" 256 "HW_CHECK_FAILED" 128 "TSMS_FAILED" 64 "CBRB_FAILED" 32 "IMD_FAILED" 16 "AMS_FAILED" 8 "HVD_FAILED" 4 "BSPD_FAILED" 2 "EBOX_FAILED" 1 "BOTS_FAILED" 0 "No Fault" ;
