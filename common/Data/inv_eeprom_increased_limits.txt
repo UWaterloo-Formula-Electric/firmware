@@ -1,0 +1,110 @@
+# 05/20/2025 22:27:17
+# Firmware Date-code: 20221201
+# Firmware Version  : 6526
+# Hardware Version  : 37794
+# Hardware ID       : G2
+# Com Port          : com13
+
+#decimal:
+
+
+
+
+Serial_Number_EEPROM                  ,   2271  
+PWM_Nominal_Freq_EEPROM_(kHz)         ,     12  
+PWM_Minimum_Variable_Freq_EEPROM_(kHz),      6  
+PWM_Maximum_Variable_Freq_EEPROM_(kHz),     17  
+PWM_Stall_Freq_EEPROM_(kHz)           ,     12  
+PWM_Var_Freq_Mode_EEPROM(0=NOM_1=VARS_2=VAR),      0  
+PWM_Var_Dwell_Rate_EEPROM_(x3ms)      ,     10  
+Motor_Type_EEPROM                     ,    128  
+Veh_Flux_EEPROM_(Wb)_x_1000           ,     34  
+Angle_Advance_Factor_EEPROM_x_100     ,      0  
+Gamma_Adjust_EEPROM_(Deg)_x_10        ,  -3063  
+Run_Mode_EEPROM(Trq=0_Spd=1)          ,      0  
+Inv_Cmd_Mode_EEPROM(CAN=0_VSM=1)      ,      0  
+Key_Switch_Mode_EEPROM                ,      0  
+Precharge_Bypassed_EEPROM_(0=N_1=Y)   ,      1  
+Relay_Output_State_EEPROM_(0=OFF_1=ON),     12  
+Discharge_Enable_EEPROM               ,      0  
+CAN_ID_Offset_EEPROM                  ,    160  
+CAN_Extended_Msg_ID_EEPROM(0=N_1=Y)   ,      1  
+CAN_J1939_Option_Active_EEPROM        ,      1  
+CAN_OBD2_Enable_EEPROM                ,      0  
+CAN_BMS_Limit_Enable_EEPROM           ,      0  
+CAN_Command_Message_Active_EEPROM     ,      1  
+CAN_Bit_Rate_EEPROM_(kbps)            ,    500  
+CAN_ACTIVE_MSGS_EEPROM_(Lo_Word)      ,  65535  
+CAN_ACTIVE_MSGS_EEPROM_(Hi_Word)      ,  65535  
+CAN_Fast_Msg_Rate_EEPROM_(ms)         ,     20  
+CAN_Slow_Msg_Rate_EEPROM_(ms)         ,    100  
+CAN_Diag_Data_Tx_Active_EEPROM        ,      1  
+CAN_Inv_Enab_Switch_Active_EEPROM     ,      0  
+CAN_TimeOut_(/3ms)_EEPROM             ,    333  
+CAN_Slave_Cmd_ID_EEPROM               ,    255  
+CAN_Slave_Dir_EEPROM_(0=SAME_1=FLIP)  ,      0  
+CAN_Debounce_Counter_Max_EEPROM       ,      0  
+CAN_Debounce_Up_Count_EEPROM          ,      0  
+CAN_Debounce_Down_Count_EEPROM        ,      0  
+IQ_Limit_EEPROM_(Amps)_x_10           ,   4000  
+ID_Limit_EEPROM_(Amps)_x_10           ,      0  
+Amp_Hours_EEPROM_(AHrx10)             ,  10000  
+DC_Volt_Limit_EEPROM_(V)_x_10         ,   9000  
+DC_Volt_Hyst_EEPROM_(V)_x_10          ,    300  
+DC_UnderVolt_Thresh_EEPROM_(V)_x_10   ,   1000  
+Inv_OverTemp_Limit_EEPROM_(C)_x_10    ,    950  
+Mtr_OverTemp_Limit_EEPROM_(C)_x_10    ,   2000  
+Zero_Torque_Temp_EEPROM_(C)_x_10      ,   1650  
+Full_Torque_Temp_EEPROM_(C)_x_10      ,   1600  
+RTD_Selection_EEPROM_(BITS_1_0)       ,      3  
+Accel_Pedal_Flipped_EEPROM_(0=N_1=Y)  ,      0  
+Pedal_Lo_EEPROM_(V)_x_100             ,      0  
+Accel_Min_EEPROM_(V)_x_100            ,  10000  
+Coast_Lo_EEPROM_(V)_x_100             ,     92  
+Coast_Hi_EEPROM_(V)_x_100             ,    108  
+Accel_Max_EEPROM_(V)_x_100            ,   2850  
+Pedal_Hi_EEPROM_(V)_x_100             ,    500  
+Motor_Torque_Limit_EEPROM_(Nm)_x_10   ,   2000  
+Regen_Torque_Limit_EEPROM_(Nm)_x_10   ,    150  
+Braking_Torque_Limit_EEPROM_(Nm)_x_10 ,    200  
+Kp_Torque_EEPROM_x_10000              ,  10000  
+w1_Torque_EEPROM_(rads/s)             ,    360  
+Kd_Torque_EEPROM_x_100                ,      0  
+Klp_Torque_EEPROM_x_10000             ,      0  
+Torque_Rate_Limit_EEPROM_(Nm)_x_10    ,     10  
+Motor_Overspeed_EEPROM_(RPM)          ,  10500  
+Max_Speed_EEPROM_(RPM)                ,  10000  
+Valet_Mode_Speed_EEPROM_(RPM)         ,      0  
+Regen_Fade_Speed_EEPROM_(RPM)         ,    200  
+Break_Speed_EEPROM_(RPM)              ,   5000  
+Kp_Speed_EEPROM_x_100                 ,   1600  
+w1_Speed_EEPROM_(rads/s)              ,      1  
+Kd_Speed_EEPROM_x_100                 ,      0  
+Klp_Speed_EEPROM_x_10000              ,  10000  
+Speed_Rate_Limit_EEPROM_(RPM/sec)     ,    360  
+Shudder_Compensation_Enable_EEPROM    ,      0  
+Kp_Shudder_EEPROM_x_100               ,   1600  
+TCLAMP_Shudder_EEPROM_(Nm)_x_10       ,      0  
+Shudder_Filter_Freq_EEPROM_(Hz)_x_10  ,      0  
+Shudder_Speed_Fade_EEPROM_(RPM)       ,  10000  
+Shudder_Speed_Lo_EEPROM_(RPM)         ,      0  
+Shudder_Speed_Hi_EEPROM_(RPM)         ,      0  
+Brake_Mode_EEPROM_(0=SWITCH_1=POT)    ,      0  
+Brake_Switch_Bypassed_EEPROM          ,      1  
+Brake_Lo_EEPROM_(V)_x_100             ,      0  
+Brake_Thresh_Lo_EEPROM_(V)_x_100      ,      0  
+Brake_Thresh_Hi_EEPROM_(V)_x_100      ,    300  
+Brake_Min_EEPROM_(V)_x_100            ,    200  
+Brake_Max_EEPROM_(V)_x_100            ,    300  
+Brake_Hi_EEPROM_(V)_x_100             ,    500  
+Regen_Ramp_Rate_EEPROM_(Sec)_x_1000   ,   3000  
+Brake_Pedal_Flipped_EEPROM_(0=N_1=Y)  ,      0  
+U2C_Enable_EEPROM                     ,      3  
+U2C_Setpoint_EEPROM_(Vx10)            ,      0  
+LV_Indicator_Threshold_EEPROM_(Vx10)  ,      0  
+LV_Indicator_Hysteresis_EEPROM_(Vx10) ,      0  
+Analog_Input_Pull_Up_Control_EEPROM_  ,      0  
+Self_Sense_Assist_Enabled_EEPROM      ,      0  
+User_EEPROM_1                         ,      0  
+User_EEPROM_2                         ,      0  
+User_EEPROM_3                         ,      0  

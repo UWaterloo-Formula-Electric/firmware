@@ -6,13 +6,13 @@
 #include "canReceive.h"
 
 #define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
-#define MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE 50.0f // If over 50% brake pedal don't request regen torque
-#define MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE 0.0f // If under 0% brake pedal don't request regen torque
+#define MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE 70.0f // If over this percent, regen torque is maxed out
+#define MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE 5.0f // If under 5% brake pedal don't request regen torque
 
 #define MAX_TORQUE_DEMAND_DEFAULT_NM        200
 #define MAX_MOTOR_TORQUE_NM                 231
-#define MAX_REGEN_TORQUE_DEMAND_DEFAULT_NM  10
-#define MAX_REGEN_TORQUE_NM                 10
+#define MAX_REGEN_TORQUE_DEMAND_DEFAULT_NM  15
+#define MAX_REGEN_TORQUE_NM                 15
 #define SPEED_LIMIT_DEFAULT                 10000
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT     250
 #define CHARGE_CURRENT_LIMIT_DEFAULT        0
@@ -22,8 +22,8 @@
 
 #define INVERTER_LOCKOUT_ENABLED        0x1
 #define INVERTER_LOCKOUT_DISABLED       0x0
-#define INVERTER_DIRECTION_FORWARD      0x0
-#define INVERTER_DIRECTION_REVERSE      0x1
+#define INVERTER_DIRECTION_FORWARD      0x1
+#define INVERTER_DIRECTION_REVERSE      0x0
 #define INVERTER_ON                     0x1
 #define INVERTER_OFF                    0x0
 #define INVERTER_DISCHARGE_ENABLE       0x1

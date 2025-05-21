@@ -10,6 +10,7 @@
  */
 
 #include "motorController.h"
+#include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "vcu_F7_can.h"
 #include "debug.h"
@@ -185,7 +186,7 @@ float mapBrakeToRegenTorque(float brake_percent) {
     }
 
     float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
-    float scaledTorque = map_range_float(brake_percent, 0, 100, 0, maxRegenTorqueDemand);
+    float scaledTorque = map_range_float(brake_percent, 0, MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE, 0, maxRegenTorqueDemand);
     return scaledTorque;
 }
 
@@ -227,7 +228,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
     VCU_INV_Inverter_Enable = INVERTER_ON;
     VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
-    VCU_INV_Torque_Limit_Command = maxTorqueDemand;
+    VCU_INV_Torque_Limit_Command = 0;
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");
