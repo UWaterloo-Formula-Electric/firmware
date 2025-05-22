@@ -86,6 +86,8 @@ void Error_Handler(void);
 #define UART_MCU2DEBUG_GPIO_Port GPIOA
 #define UART_DEBUG2MCU_Pin GPIO_PIN_10
 #define UART_DEBUG2MCU_GPIO_Port GPIOA
+#define SDIO_CD_Pin GPIO_PIN_11
+#define SDIO_CD_GPIO_Port GPIOC
 #define SPI1_CS1_Pin GPIO_PIN_6
 #define SPI1_CS1_GPIO_Port GPIOB
 #define SPI1_CS2_Pin GPIO_PIN_7

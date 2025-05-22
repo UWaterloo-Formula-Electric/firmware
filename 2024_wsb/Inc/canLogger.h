@@ -12,6 +12,7 @@ typedef struct {
     uint8_t data[8];
 } CanMsg;
 
+extern volatile bool isSDInserted;
 extern StreamBufferHandle_t canLogSB;
 extern volatile bool isCanLogEnabled;
 HAL_StatusTypeDef canLogSB_init();

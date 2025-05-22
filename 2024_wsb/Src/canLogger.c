@@ -22,6 +22,7 @@
 // start logging only after this variable is set to true
 // it set to true if new log file is created successfully
 volatile bool isCanLogEnabled = false;
+volatile bool isSDInserted = false;  // set to true if SD card is inserted
 
 FATFS FatFs;
 
@@ -255,7 +256,12 @@ HAL_StatusTypeDef canLogSB_init() {
 extern volatile uint32_t failedFifoCount;
 void canLogTask(void *arg) {
     DEBUG_PRINT("Starting CAN Logger Task\n");
-
+    if (!isSDInserted) {
+        ERROR_PRINT("SD card not inserted, cannot start CAN logger task\n");
+        while (1) {
+            vTaskDelay(pdMS_TO_TICKS(CAN_LOG_TASK_PERIOD));
+        }
+    }
     if (initCANLoggerSD() != FR_OK) {
         handleError();
     }
