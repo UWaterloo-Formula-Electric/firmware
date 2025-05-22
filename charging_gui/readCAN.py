@@ -5,9 +5,9 @@ import cantools.database
 # filters to read only the battery voltage and temperature messages
 filters = [
     # temperature
-    {"can_id": 0x98C00401, "can_mask": 0x1FFFFFFF, "extended": True}, 
+    {"can_id": 0x01, "can_mask": 0x1FFFFFFF, "extended": True}, 
     # cell voltage
-    {"can_id": 0x98800401, "can_mask": 0x1FFFFFFF, "extended": True}
+    {"can_id": 0x01, "can_mask": 0x1FFFFFFF, "extended": True}
 ]
 
 can_bus = VectorBus(channel=1, can_filters=filters)
@@ -17,35 +17,72 @@ BATTERYSTATUS_TEMPERATURE_ID = db.get_message_by_name('BMU_ChannelTemp').frame_i
 BATTERYSTATUS_VOLTAGE_ID = db.get_message_by_name('BMU_CellVoltage').frame_id
 
 
-def process_can_message(msg):
+class CANBMUMonitor:
     """
-    Process a CAN message and extract the battery voltage and temperature.
+    Class to monitor the battery management unit (BMU) over CAN bus.
     """
-    print("reading can messages...")
-    while True:
-        message = can_bus.recv(timeout=0.1)
-        if message is None:
-            continue
-        print(message)
 
+    def __init__(self):
+        self.can_bus = can_bus
+        self.db = db
+
+        # temperature_channels has temperatures of the cells in Celcius, [0] is TempChannel01, [189] is TempChannel190
+        self.temperature_channels = []
+        
+        # voltage_channels has voltages of the cells in Volts, [0] is VoltageCell01, [139] is VoltageCell140
+        self.voltage_channels = []
+
+    def get_temperatures(self):
+        """
+        Return the latest list of temperature channel values.
+        """
+        return self.temperature_channels
+
+    def get_voltages(self):
+        """
+        Return the latest list of voltage channel values.
+        """
+        return self.voltage_channels
+
+    def start(self):
+        """
+        Start monitoring the CAN bus for battery messages.
+        """
+        print("Starting CAN BMU monitor...")
+        while True:
+            msg = self.get_message()
+            self.process_can_message(msg)
+
+    def get_message(self):
+        """
+        Get the latest CAN message.
+        """
+        msg = self.can_bus.recv(timeout=0.1)
+        if msg is None:
+            return None
+        return msg
+
+    def process_can_message(self, msg):
+        """
+        Process a CAN message and extract the battery voltage and temperature.
+        """
         try:
             if msg.arbitration_id == BATTERYSTATUS_TEMPERATURE_ID:
                 decoded = db.decode_message(BATTERYSTATUS_TEMPERATURE_ID, msg.data)
+                self.temperature_channels = [] # Reset
+
                 # Collect all temperature channel values into a list
-                temperature_channels = []
                 for i in range(1, 190):
                     channel_name = f"TempChannel{i:02d}" # TempChannel01 to TempChannel189
-                    temperature_channels.append(decoded[channel_name])
-                print(f"Battery Temperature [01]: {temperature_channels[0]}")
+                    self.temperature_channels.append(decoded[channel_name])
             
             elif msg.arbitration_id == BATTERYSTATUS_VOLTAGE_ID:
                 decoded = db.decode_message(BATTERYSTATUS_VOLTAGE_ID, msg.data)
-                voltage_channels = []
+                self.voltage_channels = [] # Reset
+
                 # Extract the voltage value
                 for i in range(1, 141):
                     channel_name = f"VoltageCell{i:02d}" # VoltageCell01 to VoltageCell140
-                    voltage_channels.append(decoded[channel_name])
-                print(f"Battery Voltage [01]: {voltage_channels[0]}")
+                    self.voltage_channels.append(decoded[channel_name]) 
         except Exception as e:
             print(f"Error decoding message: {e}")
-            continue
