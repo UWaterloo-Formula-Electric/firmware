@@ -15,6 +15,7 @@
 
 #include "prechargeDischarge.h"
 #include "controlStateMachine.h"
+#include "contactorControl.h"
 #include "debug.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -55,64 +56,6 @@ HAL_StatusTypeDef pcdcInit()
     DEBUG_PRINT("PCDC Init\n");
     return HAL_OK;
 }
-
-/**
- * Enum to translate between contactor open/closed and GPIO pin state
- */
-typedef enum ContactorState_t {
-    CONTACTOR_CLOSED = GPIO_PIN_RESET,
-    CONTACTOR_OPEN = GPIO_PIN_SET,
-} ContactorState_t;
-
-/**
- * @brief Control negative contactor
- *
- * @param state The state to set contactor to
- */
-void setNegContactor(ContactorState_t state)
-{
-    DEBUG_PRINT("%s negative contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
-    if (state==CONTACTOR_CLOSED) CONT_NEG_CLOSE;
-    else if (state == CONTACTOR_OPEN) CONT_NEG_OPEN;
-}
-
-/**
- * @brief Control positive contactor
- *
- * @param state The state to set contactor to
- */
-void setPosContactor(ContactorState_t state)
-{
-    DEBUG_PRINT("%s positive contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
-
-    if (state==CONTACTOR_CLOSED) CONT_POS_CLOSE;
-    else if (state == CONTACTOR_OPEN) CONT_POS_OPEN;
-}
-
-/**
- * @brief Control precharge discharge contactor
- *
- * @param state The state to set contactor to. Note for PCDC contactor closed
- * means precharge mode, open means discharge mode
- */
-void setPrechargeContactor(ContactorState_t state)
-{
-    DEBUG_PRINT("%s precharge contactor\n", state==CONTACTOR_CLOSED?"Closing":"Opening");
-
-    if (state==CONTACTOR_CLOSED) PCDC_PC;
-    else if (state == CONTACTOR_OPEN) PCDC_DC;
-}
-
-/**
- * @brief Opens all contactors (safe state)
- */
-void openAllContactors()
-{
-    setPosContactor(CONTACTOR_OPEN);
-    setNegContactor(CONTACTOR_OPEN);
-    setPrechargeContactor(CONTACTOR_OPEN);
-}
-
 
 /**
  * @brief Delay measure period, and interrupt delay if receive notification
@@ -406,7 +349,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-                return PCDC_ERROR;
+                // return PCDC_ERROR;
             }
         }
     }
@@ -449,6 +392,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             ERROR_PRINT("INFO: VBatt %f\n", VBatt);
             ERROR_PRINT("INFO: IBus %f\n", IBus);
             return PCDC_ERROR;
+            break;
         }
     } while (VBus < (packVoltage*PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK));
 
@@ -462,7 +406,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         if (!HITL_Precharge_Mode) {
             if (maxIBus < minIBusSpike) {
                 ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-                return PCDC_ERROR;
+                // return PCDC_ERROR;
             }
         }
     }

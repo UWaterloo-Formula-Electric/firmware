@@ -1,5 +1,7 @@
 from string import Template
 import os
+
+
 class FSAETemplater:
     # Keys for locating template file
     # Format:
@@ -31,6 +33,7 @@ class FSAETemplater:
         "VERSION_SEND_SOURCE": "templates/messages/version_send_source.txt",
 
         "SETUP_CAN_FILTERS_SOURCE": "templates/filters/setup_can_filters_source.txt",
+        "SETUP_CAN_FILTERS_SOURCE_WSB": "templates/filters/setup_can_filters_source_wsb.txt",
         "SETUP_CAN_FILTERS_HEADER": "templates/filters/setup_can_filters_header.txt",
         "SETUP_CAN_FILTERS_PARTIAL": "templates/filters/setup_can_filters_partial.txt",
     }
@@ -46,16 +49,19 @@ class FSAETemplater:
         templateString = self.__getTemplate(fileKey)
         parsedTemplate = self.__parseTemplate(templateString, data)
         return parsedTemplate
+
     def __getTemplate(self, fileKey):
         if fileKey in self.loadedTemplates:
             return self.loadedTemplates[fileKey]
         return self.__loadTemplate(fileKey)
+
     def __loadTemplate(self, fileKey):
-        relPath = os.path.join(os.path.dirname(__file__),FSAETemplater.TEMPLATE_MAP[fileKey])
+        relPath = os.path.join(os.path.dirname(__file__), FSAETemplater.TEMPLATE_MAP[fileKey])
         with open(relPath, 'r') as file:
             src = file.read()
             self.loadedTemplates[fileKey] = src
             return self.loadedTemplates[fileKey]
+
     def __parseTemplate(self, templateString, data={}):
         template = Template(templateString)
         return template.substitute(data)

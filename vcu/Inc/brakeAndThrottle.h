@@ -2,54 +2,49 @@
 
 #define BRAKEANDTHROTTLE_H
 
-#include "bsp.h"
 #include "FreeRTOS.h"
+#include "bsp.h"
+
+#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 9))
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 2
 
-#define TPS_TOLERANCE_PERCENT 15 // Should be 10 but pots are noisy
+#define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (2272)
-#define THROTT_B_LOW (2160)
+#define THROTT_A_LOW (1675)
+#define THROTT_B_LOW (1617)
 
-#define THROTT_A_HIGH (2500)
-#define THROTT_B_HIGH (2405)
+#define THROTT_A_HIGH (1872)
+#define THROTT_B_HIGH (1812)
 
-#define BRAKE_POS_LOW (1080)
-#define BRAKE_POS_HIGH (1180)
+#define BRAKE_POS_LOW (1980)
+#define BRAKE_POS_HIGH (2232)
 
-#define STEERING_POT_LOW (1) //Pot value when the wheel is all the way to the left
-#define STEERING_POT_HIGH (4095) //Pot value when the wheel is all the way to the right
+#define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
+#define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right
 
-#define STEERING_POT_CENTER (((STEERING_POT_HIGH-STEERING_POT_LOW)/2) + STEERING_POT_LOW) //The pot value while the wheel is neutral
-#define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER/(100)) //Scale the pot value to range (-100,100) 
+#define STEERING_POT_CENTER (((STEERING_POT_HIGH - STEERING_POT_LOW) / 2) + STEERING_POT_LOW)  // The pot value while the wheel is neutral
+#define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER / (100))                                   // Scale the pot value to range (-100,100)
 #define STEERING_POT_OFFSET (STEERING_POT_CENTER)
 
-/*#define THROTT_A_LOW (0xd44)*/
-/*#define THROTT_B_LOW (0x5d2)*/
+#define MAX_THROTTLE_A_DEADZONE (30)
+#define MAX_THROTTLE_B_DEADZONE (30)
 
-/*#define THROTT_A_HIGH (0xf08)*/
-/*#define THROTT_B_HIGH (0x71f)*/
-
-#define MAX_THROTTLE_A_DEADZONE (200)
-#define MAX_THROTTLE_B_DEADZONE (200)
-/*#define MAX_THROTTLE_DEADZONE (0x20)*/
-
-#define THROTTLE_POLLING_TASK_ID 4
-#define THROTTLE_POLLING_FLAG_BIT (0)
+#define INV_COMMAND_TASK_ID 4
+#define INV_COMMAND_FLAG_BIT (0)
 #define VCU_DATA_PUBLISH_TIME_MS 50
-#define THROTTLE_POLLING_TASK_PERIOD_MS 50
+#define INV_COMMAND_TASK_PERIOD_MS 50
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
     THROTTLE_B_INDEX,
     BRAKE_POS_INDEX,
-    STEERING_INDEX,
     BRAKE_PRES_INDEX,
+    STEERING_INDEX,
     NUM_ADC_CHANNELS
 } ADC_Indices_t;
 
@@ -70,14 +65,13 @@ typedef enum ADC_Indices_t {
 /* End of CLI mock testing stuff */
 
 typedef enum ThrottleStatus_t {
-    THROTTLE_OK, // Throttle is OK
-    THROTTLE_DISABLED, // Throttle disabled due to brake being pressed, but don't need to enter fault state, the value returned for throttle value will be zero
-    THROTTLE_FAULT // Throttle fault occured, need to enter fault state
+    THROTTLE_OK,        // Throttle is OK
+    THROTTLE_DISABLED,  // Throttle disabled due to brake being pressed, but don't need to enter fault state, the value returned for throttle value will be zero
+    THROTTLE_FAULT      // Throttle fault occured, need to enter fault state
 } ThrottleStatus_t;
 
 bool isBrakePressed();
 bool throttleIsZero();
-void throttlePollingTask(void);
 bool checkBPSState();
 int getBrakePressure();
 HAL_StatusTypeDef brakeAndThrottleStart();

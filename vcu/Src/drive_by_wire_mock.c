@@ -10,7 +10,6 @@
 #include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "motorController.h"
-#include "beaglebone.h"
 #include "traction_control.h"
 #include "motorController.h"
 
@@ -188,12 +187,15 @@ static const CLI_Command_Definition_t getBrakeCommandDefinition =
 
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
-{
+{   
+    uint32_t thA = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
+    uint32_t thB = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+    
     COMMAND_OUTPUT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
-                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
-                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+                   calculate_throttle_percent1(thA),
+                   thA,
+                   calculate_throttle_percent2(thB),
+                   thB);
 
     /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
                    /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
@@ -212,11 +214,15 @@ static const CLI_Command_Definition_t getThrottleABCommandDefinition =
 BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+
+    uint32_t thA = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
+    uint32_t thB = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+
     DEBUG_PRINT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
-                   calculate_throttle_percent1(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_A_INDEX],
-                   calculate_throttle_percent2(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]),
-                   brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+                calculate_throttle_percent1(thA),
+                thA,
+                calculate_throttle_percent2(thB),
+                thB);
     DEBUG_PRINT("Brake Pos: %lu, brake pres: %lu, steering pos: %lu\n",
                 brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
                 brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX],
@@ -245,8 +251,8 @@ BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
     sscanf(param, "%lu", &pressure);
 
     COMMAND_OUTPUT("setting brake pressure %lu\n", pressure);
-    if (pressure < MIN_BRAKE_PRESSURE) {
-        fsmSendEventISR(&fsmHandle, EV_Brake_Pressure_Fault);
+    if (pressure < MIN_BRAKE_PRESSURE_PSI) {
+        fsmSendEventISR(&VCUFsmHandle, EV_Brake_Pressure_Fault);
     }
     brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] = pressure * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
 
@@ -260,31 +266,31 @@ static const CLI_Command_Definition_t brakePressureCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t setFakeDCUCanTimeout(char *writeBuffer, size_t writeBufferLength,
+BaseType_t fakeHvToggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEventISR(&fsmHandle, EV_DCU_Can_Timeout);
-    return pdFALSE;
+	fsmSendEvent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
+	return pdFALSE;
 }
-static const CLI_Command_Definition_t dcuTimeoutCommandDefinition =
+static const CLI_Command_Definition_t fakeHvToggleCommandDefinition =
 {
-    "dcuTimeout",
-    "dcuTimeout:\r\n Send dcu timeout event\r\n",
-    setFakeDCUCanTimeout,
-    0 /* Number of parameters */
+	"hv",
+	"hv \r\n fake press of HV Toggle\r\n",
+	fakeHvToggle,
+	0 /*Number of parameters*/
 };
 
-BaseType_t fakeEM_ToggleDCU(char *writeBuffer, size_t writeBufferLength,
+BaseType_t fakeEM_Toggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    fsmSendEventISR(&fsmHandle, EV_EM_Toggle);
+    fsmSendEventISR(&VCUFsmHandle, EV_EM_Toggle);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t emToggleCommandDefinition =
 {
     "emToggle",
     "emToggle:\r\n Send em toggle event\r\n",
-    fakeEM_ToggleDCU,
+    fakeEM_Toggle,
     0 /* Number of parameters */
 };
 
@@ -299,13 +305,13 @@ BaseType_t fakeHVStateChange(char *writeBuffer, size_t writeBufferLength,
         newHVState = true;
     } else if (STR_EQ(param, "disable", paramLen)) {
         newHVState = false;
-        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
     if (HV_Power_State == HV_Power_State_On && !newHVState) {
-        fsmSendEventISR(&fsmHandle, EV_Hv_Disable);
+        fsmSendEventISR(&VCUFsmHandle, EV_Hv_Disable);
     }
 
     if (newHVState) {
@@ -326,7 +332,7 @@ static const CLI_Command_Definition_t hvStateCommandDefinition =
 BaseType_t printState(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    uint8_t index = fsmGetState(&fsmHandle);
+    uint8_t index = fsmGetState(&VCUFsmHandle);
     if (index >= 0 && index < STATE_ANY){
         COMMAND_OUTPUT("State: %s\n", VCU_States_String[index]);
     } else {
@@ -341,34 +347,6 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     "state:\r\n  Output current state of state machine\r\n",
     printState,
     0/* Number of parameters */
-};
-BaseType_t beagleBonePower(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    BaseType_t paramLen;
-    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    bool onOff = false;
-    if (STR_EQ(onOffParam, "on", paramLen)) {
-        onOff = true;
-    } else if (STR_EQ(onOffParam, "off", paramLen)) {
-        onOff = false;
-    } else {
-        COMMAND_OUTPUT("Unknown parameter\n");
-        return pdFALSE;
-    }
-
-    COMMAND_OUTPUT("Turning BeagleBone %s\n", onOff?"on":"off");
-    beaglebonePower(onOff);
-
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t beagleBonePowerCommandDefinition =
-{
-    "BB",
-    "BB <on|off>:\r\n  sets the power state for the BeagleBone\r\n",
-    beagleBonePower,
-    1 /* Number of parameters */
 };
 
 BaseType_t torqueDemandMaxCommand(char *writeBuffer, size_t writeBufferLength,
@@ -451,7 +429,7 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&throttleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&dcuTimeoutCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&fakeHvToggleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&emToggleCommandDefinition) != pdPASS) {
@@ -478,9 +456,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getThrottleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }    
-    if (FreeRTOS_CLIRegisterCommand(&beagleBonePowerCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&getADCInputsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

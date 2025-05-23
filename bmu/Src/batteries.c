@@ -33,6 +33,8 @@
 #include "chargerControl.h"
 #include "state_of_charge.h"
 #include "sense.h"
+#include "bsp.h"
+#include "mathUtils.h"
 
 /*
  *
@@ -42,7 +44,6 @@
 #if IS_BOARD_F7
 #include "ltc_chip.h"
 #include "ltc_chip_interface.h"
-#include "ade7913.h"
 #include "imdDriver.h"
 #endif
 
@@ -103,7 +104,6 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
  * HV Measure task Defines and Variables
  */
 #define HV_MEASURE_TASK_PERIOD_MS 1
-#define HV_MEASURE_TASK_ID 4
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
 
@@ -123,7 +123,6 @@ QueueHandle_t AdjustedPackVoltageQueue;
  * IMD Task defines and variables
  */
 #define IMD_TASK_PERIOD_MS 1000
-#define IMD_TASK_ID 5
 
 /// Array is used to store the filtered voltages
 float cellVoltagesFiltered[NUM_VOLTAGE_CELLS];
@@ -192,54 +191,24 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
  *
  * @return HAL_StatusTypeDef
  */
-HAL_StatusTypeDef publishBusVoltagesAndCurrent(float *pIBus, float *pVBus, float *pVBatt)
-{
-   xQueueOverwrite(IBusQueue, pIBus);
-   xQueueOverwrite(VBusQueue, pVBus);
-   xQueueOverwrite(VBattQueue, pVBatt);
+BaseType_t *higherPriorityTaskAwoken;
 
-   return HAL_OK;
+HAL_StatusTypeDef publishBusVoltage(float *pVBus)
+{
+    xQueueOverwriteFromISR(VBusQueue, pVBus, higherPriorityTaskAwoken);
+    return HAL_OK;
 }
 
-/**
- * @brief Measures HV voltages and currents using the HV ADC
- *
- * @param[out] IBus pointer to the HV bus current measurement (in Amps)
- * @param[out] VBus pointer to the HV bus voltage measurement (in Volts)
- * @param[out] VBatt pointer to the HV battery voltage measurement (in Volts)
- *
- * @return HAL_StatusTypeDef
- */
-HAL_StatusTypeDef readBusVoltagesAndCurrents(float *IBus, float *VBus, float *VBatt)
+HAL_StatusTypeDef publishBattVoltage(float *pVBatt)
 {
-#if IS_BOARD_F7 && defined(ENABLE_HV_MEASURE)
-   float IBusTmp = 0.0f; //(0.29*brakeAndHallAdcVals[BRAKE_HALL_ADC_CHANNEL_HALL]) - 41.926;
-   
-// TODO: Revert back to use shunt over hall once the lid is fixed
-   if (adc_read_current(&IBusTmp) != HAL_OK) {
-      ERROR_PRINT("Error reading IBUS\n");
-      return HAL_ERROR;
-   }
-   
-    (*IBus) = filterIBus(IBusTmp);
-    
-   if (adc_read_v1(VBatt) != HAL_OK) {
-      ERROR_PRINT("Error reading VBUS\n");
-      return HAL_ERROR;
-   }
-   if (adc_read_v2(VBus) != HAL_OK) {
-      ERROR_PRINT("Error reading VBatt\n");
-      return HAL_ERROR;
-   }
-   return HAL_OK;
+    xQueueOverwriteFromISR(VBattQueue, pVBatt, higherPriorityTaskAwoken);
+    return HAL_OK;
+}
 
-#elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_HV_MEASURE)
-   // For nucleo, voltages and current can be manually changed via CLI for
-   // testing, so we don't do anything here
-   return HAL_OK;
-#else
-#error Unsupported board type
-#endif
+HAL_StatusTypeDef publishBusCurrent(float *pIBus)
+{
+    xQueueOverwriteFromISR(IBusQueue, pIBus, higherPriorityTaskAwoken);
+    return HAL_OK;
 }
 
 /**
@@ -370,12 +339,6 @@ uint32_t cliGetStateBusHVSendPeriod()
  */
 void HVMeasureTask(void *pvParamaters)
 {
-#if IS_BOARD_F7
-    if (hvadc_init() != HAL_OK)
-    {
-       ERROR_PRINT("Failed to init HV ADC\n");
-    }
-#endif
 
     if (registerTaskToWatch(HV_MEASURE_TASK_ID, 5*pdMS_TO_TICKS(HV_MEASURE_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
@@ -390,14 +353,10 @@ void HVMeasureTask(void *pvParamaters)
     float IBus;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
-        if (readBusVoltagesAndCurrents(&IBus, &VBus, &VBatt) != HAL_OK) {
-            ERROR_PRINT("Failed to read bus voltages and current!\n");
-        }
 
-        if (publishBusVoltagesAndCurrent(&IBus, &VBus, &VBatt) != HAL_OK) {
-            ERROR_PRINT("Failed to publish bus voltages and current!\n");
-        }
-
+        getIBus(&IBus);
+        getVBus(&VBus);
+        getVBatt(&VBatt);
 
         if (xTaskGetTickCount() - lastStateBusHVSend
             > pdMS_TO_TICKS(StateBusHVSendPeriod))
@@ -428,19 +387,11 @@ void HVMeasureTask(void *pvParamaters)
 void imdTask(void *pvParamaters)
 {
 #if IS_BOARD_F7 && defined(ENABLE_IMD)
-   IMDStatus imdStatus;
 
-   if (begin_imd_measurement() != HAL_OK) {
-      ERROR_PRINT("Failed to start IMD measurement\n");
-      Error_Handler();
-   }
+    ImdData_s *imdData;
 
-   // Wait for IMD to startup
-   DEBUG_PRINT("Waiting for IMD...");
-   do {
-      imdStatus = get_imd_status();
-      vTaskDelay(100);
-   } while (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good));
+    // Wait for IMD to start
+   initImdMeasurements();
 
    // Notify control fsm that IMD is ready
    fsmSendEvent(&fsmHandle, EV_IMD_Ready, portMAX_DELAY);
@@ -450,50 +401,30 @@ void imdTask(void *pvParamaters)
      ERROR_PRINT("Failed to register imd task with watchdog!\n");
      Error_Handler();
    }
+
    TickType_t xLastWakeTime = xTaskGetTickCount();
    while (1) {
-      imdStatus =  get_imd_status();
-
-      switch (imdStatus) {
-         case IMDSTATUS_Normal:
-         case IMDSTATUS_SST_Good:
-            // All good
-            break;
-         case IMDSTATUS_Invalid:
-            ERROR_PRINT_ISR("Invalid IMD measurement\n");
-            break;
-         case IMDSTATUS_Undervoltage:
-            ERROR_PRINT_ISR("IMD Status: Undervoltage\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_SST_Bad:
-            ERROR_PRINT_ISR("IMD Status: SST_Bad\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_Device_Error:
-            ERROR_PRINT_ISR("IMD Status: Device Error\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_Fault_Earth:
-            ERROR_PRINT_ISR("IMD Status: Fault Earth\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         case IMDSTATUS_HV_Short:
-            ERROR_PRINT_ISR("IMD Status: fault hv short\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-         default:
-            ERROR_PRINT_ISR("Unknown IMD Status\n");
-            sendDTC_FATAL_IMD_Failure(imdStatus);
-            break;
-      }
-
-      if (!(imdStatus == IMDSTATUS_Normal || imdStatus == IMDSTATUS_SST_Good))
-      {
-         // ERROR!!!
-         fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
-      }
-
+        imdData = getImdData();
+        
+        while(!(imdData->deviceStatus)) {
+            watchdogTaskCheckIn(IMD_TASK_ID);
+            vTaskDelay(50);
+        }
+        if(imdData->faults) {
+            if(imdData->faults & ISOLATION_FAULT || imdData->faults & ISOLATION_WARNING ) {
+                DEBUG_PRINT("IMD faulted!!\r\n");
+                fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+                sendDTC_FATAL_IMD_Failure(1);
+                    TSSI_GREEN_OFF;
+                    TSSI_RED_ON;
+            }
+            else {
+                DEBUG_PRINT("else!!\r\n");
+                fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
+            }
+            
+        }
+        
       watchdogTaskCheckIn(IMD_TASK_ID);
       vTaskDelayUntil(&xLastWakeTime, IMD_TASK_PERIOD_MS);
    }
@@ -601,6 +532,8 @@ void BatteryTaskError()
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
     AMS_CONT_OPEN;
+    TSSI_GREEN_OFF;
+    TSSI_RED_ON;
 #endif
     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -790,7 +723,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             }
 
             // Update max voltage
-            if (measure > (*maxTemp)) {(*maxTemp) = measure;}
+            if (measure > (*maxTemp)) {
+                (*maxTemp) = measure;
+                HighestTempThermistor = i;
+            }
             if (measure < (*minTemp)) {(*minTemp) = measure;}
         }
    }
@@ -892,7 +828,7 @@ HAL_StatusTypeDef getPackVoltage(float *packVoltage)
 HAL_StatusTypeDef getAdjustedPackVoltage(float *adjustedPackVoltage)
 {
     if (xQueuePeek(AdjustedPackVoltageQueue, adjustedPackVoltage, 0) != pdTRUE) {
-        ERROR_PRINT("Failed to receive Adjusted Pack Voltage from queue\n");
+        // ERROR_PRINT("Failed to receive Adjusted Pack Voltage from queue\n");
         return HAL_ERROR;
     }
 
@@ -1106,29 +1042,6 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
     return HAL_OK;
 }
 
-
-/**
- * @brief Maps a value from one range to another in a linear manner
- *
- * @param in The value to map
- * @param low low value of in range
- * @param high high value of in range
- * @param low_out low value of out range
- * @param high_out high value of out range
- *
- * @return in value mapped to out range
- */
-float map_range_float(float in, float low, float high, float low_out, float high_out) {
-    if (in < low) {
-        return low_out;
-    } else if (in > high) {
-        return high_out;
-    }
-    float in_range = high - low;
-    float out_range = high_out - low_out;
-
-    return (in - low) * out_range / in_range + low_out;
-}
 
 /**
  * @brief Calculates the SoC of a cell from the cell's voltage
@@ -1368,6 +1281,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * - TempCellMax
          * - TempCellMin
          * - StateBMS
+         * - HighestTempThermistor
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send batter status HV\n");
@@ -1550,6 +1464,7 @@ void batteryTask(void *pvParameter)
          * - TempCellMax
          * - TempCellMin
          * - StateBMS
+         * - HighestTempThermistor
          */
         if (sendCAN_BMU_batteryStatusHV() != HAL_OK) {
             ERROR_PRINT("Failed to send battery status HV\n");
@@ -1577,7 +1492,6 @@ void batteryTask(void *pvParameter)
 
 /// The period to send cell voltage and temperature CAN messages
 #define CAN_CELL_SEND_PERIOD_MS 50
-#define CAN_CELL_SEND_TASK_ID 8
 
 bool sendOneCellVoltAndTemp = false;
 int cellToSend;
