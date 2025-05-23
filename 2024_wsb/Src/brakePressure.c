@@ -36,8 +36,10 @@ void BrakePressureTask(void const* argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     
     while (1) {
+#if BOARD_ID == ID_WSBFL
         RearBrakePressure = getBrakePressure();
         sendCAN_WSBFL_BrakePressure();
+#endif
         // DEBUG_PRINT("Brake Pressure: %d\n", brakePressure);
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BRAKE_PRESSURE_TASK_PERIOD));
