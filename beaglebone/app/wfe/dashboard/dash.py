@@ -17,6 +17,7 @@ from page import Page
 from dash_page import DashPage
 from debug_page import DebugPage
 from reset_page import ResetPage
+from brake_bias_page import BrakeBiasPage
 from constants import *
 
 
@@ -27,11 +28,12 @@ class MainView(tk.Frame):
         self.dashPage = DashPage(self, bg=bg)
         self.debugPage = DebugPage(self, bg=bg)
         self.resetPage = ResetPage(self, bg=bg)
+        self.brakeBiasPage = BrakeBiasPage(self, bg=bg)
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
 
-        self.pages = [self.dashPage, self.debugPage, self.resetPage]
+        self.pages = [self.dashPage, self.debugPage, self.resetPage, self.brakeBiasPage]
         for page in self.pages:
             page.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
@@ -119,6 +121,9 @@ class CANProcessor:
         self.MC_POS_INFO = self.db.get_message_by_name('MC_Motor_Position_Info').frame_id
 
         self.VCU_INV_POWER = self.db.get_message_by_name('VCU_INV_Power').frame_id
+
+        self.VCU_DATA_ARB_ID = self.db.get_message_by_name('VCU_Data').frame_id
+        self.REAR_BRAKE_PRES_ARB_ID = self.db.get_message_by_name('WSBFL_BrakePressure').frame_id
 
         self.DTC_ARB_IDS = [msg.frame_id for msg in self.db.messages if 'DTC' in msg.name]
         self.dtcs = {}
@@ -233,7 +238,7 @@ class CANProcessor:
             if self.up.is_pressed:
                 self.reset_shunt_wh()
             self.main_view.resetPage.parse_buttons(self.up.is_pressed, self.mid.is_pressed, self.down.is_pressed)
-        else:
+        elif self.main_view.current_page in (self.main_view.debugPage, self.main_view.dashPage):
             if self.up.is_pressed:
                 self.main_view.scroll_debug_text(-1)
             
@@ -243,6 +248,7 @@ class CANProcessor:
     def process_can_messages(self):
         dashPage = self.main_view.dashPage
         resetPage = self.main_view.resetPage
+        brakePage = self.main_view.brakeBiasPage
 
         dashPage.updateEnergy(self.wh_init)
         resetPage.updateEnergy(self.wh_init)
@@ -301,7 +307,12 @@ class CANProcessor:
                         self.save_shunt_wh(wh)
                         dashPage.updateEnergy(wh)
                         resetPage.updateEnergy(wh)
-                        
+                    
+                    case self.VCU_DATA_ARB_ID:
+                        brakePage.updateVCUData(decoded_data)
+
+                    case self.REAR_BRAKE_PRES_ARB_ID:
+                        brakePage.updateRearPres(decoded_data)
 
                 # Case for BMU DTC
                 if message.arbitration_id in self.DTC_ARB_IDS:
