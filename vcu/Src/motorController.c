@@ -181,13 +181,32 @@ float mapThrottleToTorque(float throttle_percent) {
  * @returns the regen torque in Nm (this is a positive value), see requestTorqueFromMC for details
  */
 float mapBrakeToRegenTorque(float brake_percent) {
-    if (brake_percent < MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
-        brake_percent = 0.0f;
-    }
-
+    float rearBrakePres = RearBrakePressure;
+    float frontBrakePres = FrontBrakePressure;
     float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
-    float scaledTorque = map_range_float(brake_percent, 0, MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE, 0, maxRegenTorqueDemand);
-    return scaledTorque;
+    // if we have low brake pressure, work of off the brake angle as it gets very jittery otherwise
+    // if (rearBrakePres < MIN_REGEN_REAR_BRAKE_PRESSURE) {
+    //     float scaledTorque = map_range_float(brake_percent, MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE, 100, 0, 0.7*maxRegenTorqueDemand);
+    //     return scaledTorque;
+    // }
+    // (rear + psi_reqd) / (rear + psi_reqd + front) = pct
+    // (rear + psi_reqd)  = pct * (rear + psi_reqd + front)
+    // (1-pct)*(rear + psi_reqd) = pct * front
+    // rear + psi_reqd = (pct * front) / (1-pct)
+    // psi_reqd = (pct * front) / (1-pct) - rear
+    float psi_reqd = DESIRED_REAR_BRAKE_BIAS_PCT * frontBrakePres / (1 - DESIRED_REAR_BRAKE_BIAS_PCT) - rearBrakePres;
+    // from jeremy: Brake torque per wheel [Nm} = Pressure in circuit [Pa] * 4.489x10^-5 [m^3]
+    float Pa_reqd = psi_reqd * PSI_2_PA; // psi to Pa
+    float torque_reqd = Pa_reqd * 4.489e-5f; // m^3 to Nm
+    // DEBUG_PRINT("T: %.3f, P: %.0f, F: %.0f, R: %.0f, psi_reqd: %.0f\n", torque_reqd, Pa_reqd, frontBrakePres, rearBrakePres, psi_reqd);
+    
+    if (torque_reqd > maxRegenTorqueDemand) {
+        torque_reqd = maxRegenTorqueDemand;
+    }
+    if (torque_reqd < 0) {
+        torque_reqd = 0;
+    }
+    return torque_reqd;
 }
 
 /**

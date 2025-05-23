@@ -342,7 +342,7 @@ void InvCommandTask(void)
             // poll brake
             float brakePercent = getBrakePositionPercent();
 
-            if (throttlePercentReading < MAX_ZERO_THROTTLE_VAL_PERCENT && brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+            if (brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
                 requestTorque = mapBrakeToRegenTorque(brakePercent);
                 commandMode = REGEN;
             } else {

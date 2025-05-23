@@ -5,6 +5,9 @@
 #include "bsp.h"
 #include "canReceive.h"
 
+#define PSI_2_PA 6894.7572f // psi to Pa
+
+#define DESIRED_REAR_BRAKE_BIAS_PCT 0.2f // 20% rear brake bias
 #define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
 #define MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE 70.0f // If over this percent, regen torque is maxed out
 #define MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE 5.0f // If under 5% brake pedal don't request regen torque

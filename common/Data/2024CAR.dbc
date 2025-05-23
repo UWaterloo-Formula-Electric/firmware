@@ -68,7 +68,7 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
 BO_ 2215772680 WSBFL_BrakePressure: 8 WSBFL
- SG_ RearBrakePressure : 0|16@1- (1,0) [0|0] "PSI" Vector__XXX
+ SG_ RearBrakePressure : 0|16@1- (1,0) [0|0] "PSI" VCU_F7
 
 BO_ 2365587201 MC_Torque_Capability: 8 INV
  SG_ Regen_Torque_Available : 16|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
