@@ -15,14 +15,14 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (204)
-#define THROTT_B_LOW (212)
+#define THROTT_A_LOW (1675)
+#define THROTT_B_LOW (1617)
 
-#define THROTT_A_HIGH (245)
-#define THROTT_B_HIGH (253)
+#define THROTT_A_HIGH (1872)
+#define THROTT_B_HIGH (1812)
 
-#define BRAKE_POS_LOW (1993)
-#define BRAKE_POS_HIGH (2289)
+#define BRAKE_POS_LOW (1980)
+#define BRAKE_POS_HIGH (2232)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right

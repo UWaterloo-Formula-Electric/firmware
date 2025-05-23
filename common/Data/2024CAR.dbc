@@ -67,6 +67,9 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
+BO_ 2215772680 WSBFL_BrakePressure: 8 WSBFL
+ SG_ RearBrakePressure : 0|16@1- (1,0) [0|0] "PSI" Vector__XXX
+
 BO_ 2365587201 MC_Torque_Capability: 8 INV
  SG_ Regen_Torque_Available : 16|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
  SG_ Motor_Torque_Available : 0|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
@@ -166,6 +169,22 @@ BO_ 1041 IVT_Cmd: 8 BMU
  SG_ IVT_cmdByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_cmdByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ IVT_MsgID_TX : 0|8@1+ (1,0) [0|255] ""  IVT
+
+BO_ 2214593035 WSBRR_Speed: 8 WSBRR
+ SG_ RRSpeedRPM : 16|16@1+ (1,0) [0|65535] "rpm"  VCU_F7
+ SG_ RRSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
+
+BO_ 2214593034 WSBRL_Speed: 6 WSBRL
+ SG_ RLSpeedRPM : 16|32@1- (1,0) [-55|770] "rpm"  VCU_F7
+ SG_ RLSpeedKPH : 0|16@1- (0.04,0) [-1310.72|1310.68] "kph"  VCU_F7
+
+BO_ 2215707149 WSBRR_BrakeTemp: 3 WSBRR
+ SG_ BrakeTempRearAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
+ SG_ BrakeTempRear : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX
+
+BO_ 2215707144 WSBFL_BrakeTemp: 5 WSBFL
+ SG_ BrakeTempFrontAccuracy : 16|3@1+ (1,0) [0|4] "+- deg C" Vector__XXX
+ SG_ BrakeTempFront : 0|16@1- (0.01,200) [-127.68|527.67] "deg C" Vector__XXX
 
 BO_ 2292911106 VCU_INV_Power: 3 VCU_F7
  SG_ INV_Peak_Tractive_Power_kW : 16|8@1- (1,0) [0|0] ""  VCU_BeagleBone
@@ -344,7 +363,7 @@ BO_ 2551190019 LV_Bus_Measurements: 6 PDU
 
 BO_ 2282750722 VCU_Data: 6 VCU_F7
  SG_ BrakeWhileThrottle : 40|1@1+ (1,0) [0|1] ""  VCU_BeagleBone
- SG_ brakePressure : 16|16@1- (1,0) [0|0] ""  VCU_BeagleBone
+ SG_ FrontBrakePressure : 16|16@1- (1,0) [0|0] "PSI"  VCU_BeagleBone
  SG_ SteeringAngle : 32|8@1- (1,0) [0|0] "degrees" Vector__XXX
  SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "percent"  PDU
  SG_ ThrottlePercent : 0|8@1+ (1,0) [0|0] "percent" Vector__XXX
@@ -1306,4 +1325,5 @@ VAL_ 2365565441 INV_VSM_State 0 "START STATE" 1 "PRECHARGE INIT STATE" 2 "PRECHA
 VAL_ 2365565441 INV_Inverter_Discharge_State 0 "Disabled" 1 "Enabled" 2 "Speed Check" 3 "Active" 4 "Complete" 5 "Error" 6 "Override" 7 "Timeout" ;
 VAL_ 2365565441 INV_Limit_Stall_Burst_Model 0 "Not Limiting" 1 "Limiting" ;
 VAL_ 2365565441 INV_Burst_Model_Mode 0 "Stall" 1 "High Speed" ;
+SIG_VALTYPE_ 2214593034 RLSpeedRPM : 1;
 
