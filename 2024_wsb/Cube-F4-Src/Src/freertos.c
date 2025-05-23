@@ -57,6 +57,7 @@ osThreadId printTaskNameHandle;
 osThreadId cliTaskNameHandle;
 osThreadId canSendTaskHandle;
 osThreadId canLogTaskNameHandle;
+osThreadId brkPresTaskNameHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -73,6 +74,7 @@ extern void printTask(void const * argument);
 extern void cliTask(void const * argument);
 extern void canTask(void const * argument);
 extern void canLogTask(void const * argument);
+extern void BrakePressureTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -183,8 +185,12 @@ void MX_FREERTOS_Init(void) {
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of canLogTaskName */
-  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 20000);
+  osThreadDef(canLogTaskName, canLogTask, osPriorityRealtime, 0, 3000);
   canLogTaskNameHandle = osThreadCreate(osThread(canLogTaskName), NULL);
+
+  /* definition and creation of brkPresTaskName */
+  osThreadDef(brkPresTaskName, BrakePressureTask, osPriorityBelowNormal, 0, 1024);
+  brkPresTaskNameHandle = osThreadCreate(osThread(brkPresTaskName), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

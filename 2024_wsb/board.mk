@@ -1,7 +1,7 @@
 BUILD_TARGET = 2024_wsb
 BOARD_ARCHITECTURE = F4
 
-COMMON_LIB_SRC = userCan.c debug.c state_machine.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c canReceiveCommon.c newlibHack.c
+COMMON_LIB_SRC = userCan.c debug.c state_machine.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c generalErrorHandler.c canReceiveCommon.c mathUtils.c newlibHack.c
 COMMON_F4_LIB_SRC = userCanF4.c
 
 F4_INC_DIR :=  # handled by tail.mk in common

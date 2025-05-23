@@ -242,7 +242,10 @@ bool checkBPSState() {
 }
 
 int getBrakePressure() {
-  return brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] * BRAKE_PRESSURE_MULTIPLIER / BRAKE_PRESSURE_DIVIDER;
+  float raw =  brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
+  float v = raw/4095.*3.3*3/2;
+  float psi = map_range_float(v, 0.5, 4.5, 0, 2500);
+  return (int)psi;
 }
 
 // Full left turn angle: -100 degrees
@@ -297,6 +300,7 @@ void canPublishTask(void *pvParameters)
         brakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
+        DEBUG_PRINT("Pres: %d\n",(int) brakePressure);
 
         if (sendCAN_VCU_Data() != HAL_OK) {
             ERROR_PRINT("Failed to send vcu can data\n");

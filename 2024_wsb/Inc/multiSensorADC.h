@@ -3,6 +3,8 @@
 
 #include "stm32f4xx_hal.h"
 
+#define VOUT_5V 5.05f
+#define SCALING_5V (160000.f / (80600.f + 160000.f))
 #define NUM_ADC_CHANNELS 3 // Sensor1, Sensor2, Sensor3
 
 #define ADC_TO_VOLTAGE(adcValue) ((float)adcValue * (3.3 / 4095.))

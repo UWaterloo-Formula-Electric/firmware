@@ -34,6 +34,7 @@
 #include "state_of_charge.h"
 #include "sense.h"
 #include "bsp.h"
+#include "mathUtils.h"
 
 /*
  *
@@ -1041,29 +1042,6 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
     return HAL_OK;
 }
 
-
-/**
- * @brief Maps a value from one range to another in a linear manner
- *
- * @param in The value to map
- * @param low low value of in range
- * @param high high value of in range
- * @param low_out low value of out range
- * @param high_out high value of out range
- *
- * @return in value mapped to out range
- */
-float map_range_float(float in, float low, float high, float low_out, float high_out) {
-    if (in < low) {
-        return low_out;
-    } else if (in > high) {
-        return high_out;
-    }
-    float in_range = high - low;
-    float out_range = high_out - low_out;
-
-    return (in - low) * out_range / in_range + low_out;
-}
 
 /**
  * @brief Calculates the SoC of a cell from the cell's voltage

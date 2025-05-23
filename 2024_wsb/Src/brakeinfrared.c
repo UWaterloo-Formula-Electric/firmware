@@ -50,7 +50,7 @@ uint8_t getBrakeTempAccuracy(float brakeTemp) {
 void BrakeIRTask(void const* argument) {
     deleteWSBTask(WSBFL | WSBRR);
     DEBUG_PRINT("Starting BrakeIRTask\n");
-
+    vTaskDelay(pdMS_TO_TICKS(200));
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
 #if BOARD_ID == ID_WSBFL || BOARD_ID == ID_WSBRR

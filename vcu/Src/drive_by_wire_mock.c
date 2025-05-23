@@ -251,7 +251,7 @@ BaseType_t setFakeBrakePressure(char *writeBuffer, size_t writeBufferLength,
     sscanf(param, "%lu", &pressure);
 
     COMMAND_OUTPUT("setting brake pressure %lu\n", pressure);
-    if (pressure < MIN_BRAKE_PRESSURE) {
+    if (pressure < MIN_BRAKE_PRESSURE_PSI) {
         fsmSendEventISR(&VCUFsmHandle, EV_Brake_Pressure_Fault);
     }
     brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX] = pressure * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;

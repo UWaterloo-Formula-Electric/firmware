@@ -70,7 +70,7 @@ float getKph(float rps) {
 void HallEffectSensorTask(void const * argument) {
     deleteWSBTask(WSBRL | WSBRR);
     DEBUG_PRINT("Starting HallEffectSensorTask\n");
-
+    vTaskDelay(pdMS_TO_TICKS(200));
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     uint32_t last_tick = HAL_GetTick();

@@ -211,7 +211,7 @@ uint32_t EM_Enable(uint32_t event)
         DEBUG_PRINT("Failed to em enable, bps fault\n");
         sendDTC_WARNING_EM_ENABLE_FAILED(0);
         state = STATE_HV_Enable;
-    } else if (!(brakePressure > MIN_BRAKE_PRESSURE)) {
+    } else if (!(brakePressure > MIN_BRAKE_PRESSURE_PSI)) {
         DEBUG_PRINT("Failed to em enable, brake pressure low (%f)\n", brakePressure);
         sendDTC_WARNING_EM_ENABLE_FAILED(1);
         state = STATE_HV_Enable;
