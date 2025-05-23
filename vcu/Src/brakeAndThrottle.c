@@ -128,8 +128,8 @@ bool getThrottlePositionPercent(float *throttleOut)
     (*throttleOut) = 0;
 
 
-    ThrottleAReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-    ThrottleBReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
+    ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
     // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
     sendCAN_VCU_ADCReadings();
@@ -297,10 +297,10 @@ void canPublishTask(void *pvParameters)
 
         // Update value to be sent over can
         ThrottlePercent = throttlePercentReading;
-        brakePressure = getBrakePressure();
+        FrontBrakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
-        DEBUG_PRINT("Pres: %d\n",(int) brakePressure);
+        // DEBUG_PRINT("Pres: %d\n",(int) brakePressure);
 
         if (sendCAN_VCU_Data() != HAL_OK) {
             ERROR_PRINT("Failed to send vcu can data\n");
