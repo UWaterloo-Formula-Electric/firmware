@@ -80,7 +80,7 @@ class DashPage(Page):
         cell_title = tk.Label(cell_frame, text=title, bg=self["bg"], fg="#ffffff", font=(self.title_font, -20))
         cell_title.place(x=10, rely=0.5, anchor="w")
         cell_text = tk.Label(cell_frame, text="N/A", bg=self["bg"], fg="#ffffff", font=(self.text_font, -53))
-        cell_text.place(x=130, rely=0.5, anchor="w")
+        cell_text.place(x=110, rely=0.5, anchor="w")
         return cell_text, cell_title, cell_frame
 
     def update_battery_charge(self, value):

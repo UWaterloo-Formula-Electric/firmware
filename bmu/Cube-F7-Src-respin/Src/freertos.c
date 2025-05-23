@@ -115,7 +115,7 @@ extern void faultMonitorTask(void const * argument);
 extern void canSendCellTask(void const * argument);
 extern void canTask(void const * argument);
 extern void fanTask(void const * argument);
-void socTask(void const * argument);
+extern void socTask(void const * argument);
 extern void contCurrentSenseTask(void const * argument);
 extern void faultMonitorSendStatusTask(void const * argument);
 
@@ -272,7 +272,7 @@ void MX_FREERTOS_Init(void) {
   contCurrentSensHandle = osThreadCreate(osThread(contCurrentSens), NULL);
 
   /* definition and creation of FaultMonSendNam */
-  osThreadDef(FaultMonSendNam, faultMonitorSendStatusTask, osPriorityHigh, 0, 2000);
+  osThreadDef(FaultMonSendNam, faultMonitorSendStatusTask, osPriorityAboveNormal, 0, 2000);
   FaultMonSendNamHandle = osThreadCreate(osThread(FaultMonSendNam), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -297,24 +297,6 @@ __weak void mainTaskFunction(void const * argument)
     osDelay(1);
   }
   /* USER CODE END mainTaskFunction */
-}
-
-/* USER CODE BEGIN Header_socTask */
-/**
-* @brief Function implementing the stateOfCharge thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_socTask */
-void socTask(void const * argument)
-{
-  /* USER CODE BEGIN socTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END socTask */
 }
 
 /* Private application code --------------------------------------------------*/
