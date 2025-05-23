@@ -263,7 +263,9 @@ void canLogTask(void *arg) {
         }
     }
     if (initCANLoggerSD() != FR_OK) {
-        handleError();
+        while(1) {
+            vTaskDelay(pdMS_TO_TICKS(CAN_LOG_TASK_PERIOD));
+        }
     }
 
     // Find and create new file

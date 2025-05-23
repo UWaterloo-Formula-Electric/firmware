@@ -216,9 +216,9 @@
 /  Note that enabling exFAT discards C89 compatibility. */
 
 #define _FS_NORTC	1
-#define _NORTC_MON	9
-#define _NORTC_MDAY	26
-#define _NORTC_YEAR	2024
+#define _NORTC_MON	5
+#define _NORTC_MDAY	22
+#define _NORTC_YEAR	2025
 /* The option _FS_NORTC switches timestamp function. If the system does not have
 /  any RTC function or valid timestamp is not needed, set _FS_NORTC = 1 to disable
 /  the timestamp function. All objects modified by FatFs will have a fixed timestamp
@@ -242,7 +242,7 @@
 #define _FS_REENTRANT    1  /* 0:Disable or 1:Enable */
 
 #define _USE_MUTEX       1 /* 0:Disable or 1:Enable */
-#define _FS_TIMEOUT      3000 /* Timeout period in unit of time ticks */
+#define _FS_TIMEOUT      300 /* Timeout period in unit of time ticks */
 #define _SYNC_t          osMutexId
 /* The option _FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different

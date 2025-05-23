@@ -53,22 +53,25 @@ void MX_SDIO_SD_Init(void)
   hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
   // Read CD pin (DAT3) if high sd is connected
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  GPIO_InitStruct.Pin = SDIO_CD_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(SDIO_CD_GPIO_Port, &GPIO_InitStruct);
-  isSDInserted = HAL_GPIO_ReadPin(SDIO_CD_GPIO_Port, SDIO_CD_Pin) == GPIO_PIN_SET;
-  HAL_GPIO_DeInit(SDIO_CD_GPIO_Port, SDIO_CD_Pin);
-
+  // GPIO_InitTypeDef GPIO_InitStruct = {0};
+  // __HAL_RCC_GPIOC_CLK_ENABLE();
+  // GPIO_InitStruct.Pin = SDIO_CD_Pin;
+  // GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  // GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  // HAL_GPIO_Init(SDIO_CD_GPIO_Port, &GPIO_InitStruct);
+  // isSDInserted = HAL_GPIO_ReadPin(SDIO_CD_GPIO_Port, SDIO_CD_Pin) == GPIO_PIN_SET;
+  // HAL_GPIO_DeInit(SDIO_CD_GPIO_Port, SDIO_CD_Pin);
+  isSDInserted = true;  // for testing, always assume sd card is inserted
   if (isSDInserted) {
     if (HAL_SD_Init(&hsd) != HAL_OK){
-      Error_Handler();
+      isSDInserted = false;
+      return;
+      // Error_Handler();
     }
     if (HAL_SD_ConfigWideBusOperation(&hsd, SDIO_BUS_WIDE_4B) != HAL_OK){
-      Error_Handler();
+      isSDInserted = false;
+      // Error_Handler();
     }
   }
   /* USER CODE END SDIO_Init 2 */
@@ -128,7 +131,7 @@ void HAL_SD_MspInit(SD_HandleTypeDef* sdHandle)
     hdma_sdio_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_sdio_rx.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_sdio_rx.Init.Mode = DMA_PFCTRL;
-    hdma_sdio_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_sdio_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_sdio_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
     hdma_sdio_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
     hdma_sdio_rx.Init.MemBurst = DMA_MBURST_INC4;

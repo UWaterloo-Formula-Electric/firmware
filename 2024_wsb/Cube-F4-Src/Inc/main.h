@@ -41,7 +41,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define USE_FULL_ASSERT    1U
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
