@@ -142,7 +142,7 @@ COMPILER_FLAGS += -D RELEASE_NOTES=\"$(NOTES)\"
 ifeq ($(DEBUG), 1)
 COMPILER_FLAGS += -g -Og
 else
-COMPILER_FLAGS += -g -O3 -Ofast
+COMPILER_FLAGS += -g -O2
 endif
 
 POSTCOMPILE = @mv -f $(BOARD_DEPDIR)/$*.Td $(BOARD_DEPDIR)/$*.d && touch $@
