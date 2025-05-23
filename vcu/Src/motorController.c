@@ -10,6 +10,7 @@
  */
 
 #include "motorController.h"
+#include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "vcu_F7_can.h"
 #include "debug.h"
@@ -24,10 +25,7 @@
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
-//comment out to remove 80kw power limit
-#define ENABLE_POWER_LIMIT
-#define INV_POWER_LIMIT 70000.0 //80kw
-#define RPM_TO_RAD (2.0*3.14159/60.0)
+
 
 MotorControllerSettings mcSettings = {0};
 
@@ -36,6 +34,8 @@ HAL_StatusTypeDef initMotorControllerSettings()
     mcSettings.InverterMode = 0;
     mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM; 
     mcSettings.MaxTorqueDemand = MAX_MOTOR_TORQUE_NM;
+    mcSettings.BrakeRegenTorqueDemand = MAX_REGEN_TORQUE_DEMAND_DEFAULT_NM;
+    mcSettings.MaxRegenTorqueDemand = MAX_REGEN_TORQUE_NM;
     mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
 
     // TODO - legacy settings - do we still need?
@@ -60,6 +60,12 @@ HAL_StatusTypeDef setForwardSpeedLimit(float limit)
 HAL_StatusTypeDef setTorqueLimit(float limit)
 {
     mcSettings.DriveTorqueLimit = limit;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef setRegenTorqueLimit(float limit)
+{
+    mcSettings.MaxRegenTorqueDemand = limit;
     return HAL_OK;
 }
 
@@ -125,7 +131,7 @@ HAL_StatusTypeDef mcInit() {
     // This isn't really used, but may have future use?
     initMotorControllerSettings();
 
-    requestTorqueFromMC(0);
+    requestTorqueFromMC(0, MOTORING);
 
     return HAL_OK;
 }
@@ -153,32 +159,76 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     return sendDisableMC();
 }
 
-
-HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
-
-    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE)
-    {
+/**
+ * @brief Maps the positive throttle percent to a motoring torque demand
+ */
+float mapThrottleToTorque(float throttle_percent) {
+    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE) {
         throttle_percent = 0.0f;
     }
-    // Per Cascadia Motion docs, torque requests are sent in Nm * 10
+   
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
     #ifdef ENABLE_POWER_LIMIT
-    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+    maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω 
     #endif
 
-    INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
+    float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
+    return scaledTorque; 
+}
+
+/**
+ * @brief Maps the positive brake percent to a regen torque demand
+ * @returns the regen torque in Nm (this is a positive value), see requestTorqueFromMC for details
+ */
+float mapBrakeToRegenTorque(float brake_percent) {
+    if (brake_percent < MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+        brake_percent = 0.0f;
+    }
+
+    float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+    float scaledTorque = map_range_float(brake_percent, 0, MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE, 0, maxRegenTorqueDemand);
+    return scaledTorque;
+}
+
+/**
+ * @brief Requests positive or negative torque from the motor controller
+ * @param requestTorque The requested torque in Nm (this must be positive)
+ * @param commandMode The command mode (MOTORING or REGEN)
+ */
+HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t commandMode) {
+    if (requestTorque < 0) {
+        ERROR_PRINT("Requested torque must be positive, to command regen torque set commandMode to REGEN\n");
+        return HAL_ERROR;
+    }
+
+    float maxTorqueDemand = 0.1; // Cannot be 0 as this would default to the values in the CM200DZ eeprom. see page 89 of https://www.cascadiamotion.com/uploads/5/1/3/0/51309945/0a-0163-02_sw_user_manual.pdf
+    switch (commandMode) {
+        case MOTORING:
+            requestTorque = requestTorque;
+            maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+            #ifdef ENABLE_POWER_LIMIT
+            maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+            #endif
+            break;
+        case REGEN:
+            requestTorque = -requestTorque;
+            maxTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+            break;
+        default:
+            ERROR_PRINT("Invalid command mode\n");
+            return HAL_ERROR;
+    }
+
+    INV_Tractive_Power_kW = INV_DC_Bus_Voltage*INV_DC_Bus_Current*W_TO_KW; //V and I values are sent as V*10 and A*10
     sendCAN_VCU_INV_Power();
 
-    float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
-    uint16_t requestTorque = scaledTorque; 
-
-    VCU_INV_Torque_Command = requestTorque*10;
+    VCU_INV_Torque_Command = requestTorque*INV_TORQUE_SCALING_FACTOR;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;
     VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
-    VCU_INV_Torque_Limit_Command = maxTorqueDemand;
+    VCU_INV_Torque_Limit_Command = 0;
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");

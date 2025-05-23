@@ -21,8 +21,8 @@
 #define THROTT_A_HIGH (245)
 #define THROTT_B_HIGH (253)
 
-#define BRAKE_POS_LOW (1966)
-#define BRAKE_POS_HIGH (2259)
+#define BRAKE_POS_LOW (1993)
+#define BRAKE_POS_HIGH (2289)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right
@@ -34,10 +34,10 @@
 #define MAX_THROTTLE_A_DEADZONE (30)
 #define MAX_THROTTLE_B_DEADZONE (30)
 
-#define THROTTLE_POLLING_TASK_ID 4
-#define THROTTLE_POLLING_FLAG_BIT (0)
+#define INV_COMMAND_TASK_ID 4
+#define INV_COMMAND_FLAG_BIT (0)
 #define VCU_DATA_PUBLISH_TIME_MS 50
-#define THROTTLE_POLLING_TASK_PERIOD_MS 50
+#define INV_COMMAND_TASK_PERIOD_MS 50
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
@@ -72,7 +72,6 @@ typedef enum ThrottleStatus_t {
 
 bool isBrakePressed();
 bool throttleIsZero();
-void throttlePollingTask(void);
 bool checkBPSState();
 int getBrakePressure();
 HAL_StatusTypeDef brakeAndThrottleStart();
