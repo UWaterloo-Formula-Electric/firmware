@@ -48,6 +48,8 @@
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
+osThreadId ButtontaskHandle;
+osThreadId RecieveCANHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -55,6 +57,8 @@ osThreadId defaultTaskHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
+extern void ButtonTask(void const * argument);
+extern void Recieve_CAN_Task(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -104,6 +108,14 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of defaultTask */
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* definition and creation of Buttontask */
+  osThreadDef(Buttontask, ButtonTask, osPriorityNormal, 0, 1000);
+  ButtontaskHandle = osThreadCreate(osThread(Buttontask), NULL);
+
+  /* definition and creation of RecieveCAN */
+  osThreadDef(RecieveCAN, Recieve_CAN_Task, osPriorityNormal, 0, 1000);
+  RecieveCANHandle = osThreadCreate(osThread(RecieveCAN), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
