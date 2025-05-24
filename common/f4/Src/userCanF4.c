@@ -67,7 +67,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
 #if BOARD_IS_WSB(BOARD_ID)
     if (isCanLogEnabled) {
-        fifoTemp.id = RxHeader.ExtId;
+        if (RxHeader.IDE == CAN_ID_STD) {
+            fifoTemp.id = RxHeader.StdId;
+        } else {
+            fifoTemp.id = RxHeader.ExtId;
+        }
         memcpy(fifoTemp.data, RxData, 8);
         // If the returned bytes != sizeof(CanMsg), then the message was not sent
         if (xStreamBufferSendFromISR(canLogSB, &fifoTemp, sizeof(CanMsg), NULL) != sizeof(CanMsg)) 
