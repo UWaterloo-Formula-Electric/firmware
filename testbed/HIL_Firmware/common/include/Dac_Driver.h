@@ -1,8 +1,11 @@
-#ifndef DAC_H
-#define DAC_H
+#ifndef DAC_DRIVER_H
+#define DAC__DRIVER_H
 
 // Note that the unique address of dac can range from 1 to 8
-
+#include "main.h"
+#include "gpio.h"
+#include "stm32f7xx_hal.h" 
+#include "stm32xxxx_hal_dac.h"
 //the 8 MSB on the DAC6551 is constant
 //the power down mode connects a 100kOhm pulldow resistor to Vout
 #define I2C_Port GPIOB

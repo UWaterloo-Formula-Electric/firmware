@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "dac.h"
-#include "driver/dac_oneshot.h"
-
+#include "Dac_Driver.h"
+#include <stdint.h>
+#include "main.h"
 
 void Timer_Delay(uint8_t ns)
 {
@@ -41,7 +42,7 @@ void I2C_Start()
 void I2C_SendByte(uint8_t byte)
 {
     // if bit is 1
-    for(int i{0}; i < 8; i++)
+    for(int i =0; i < 8; i++)
     {
         if(byte&SendMask)
         {
@@ -172,8 +173,19 @@ HAL_StatusTypeDef SetPower(I2C_HandleTypeDef *hi2c, DAC_t *config)
 }
 
 // use single write command, make sure ldac is low
-HAL_StatusTypeDef DAC_SendSignal(I2C_HandleTypeDef *hi2c, DAC_t *config, uint16_t voltage)
+// voltage in V
+HAL_StatusTypeDef DAC_SendSignal(I2C_HandleTypeDef *hi2c, DAC_t *config, float voltage)
 {
+    if(voltage>3.3)
+    {
+        // print("voltge too high. Max voltage output is 3.3V");
+        voltage = 3.3;
+    }
+    else if (voltage<0)
+    {
+        // print("voltage needs to be greater than 0");
+        voltage = 0;
+    }
     // convert the desired output into digital code value for dac
     // with vref = 2.048, gain=2
     voltage *= 1000;
@@ -242,4 +254,22 @@ HAL_StatusTypeDef DAC_Init(I2C_HandleTypeDef *hi2c, DAC_t *config, uint8_t new_a
         return status;
     }
     return HAL_OK;
+}
+
+void onboard_DAC_Start(uint32_t dac_channel, float output)
+{
+    if (output > 3.3)
+    {
+        //print("voltage too high");
+        output = 3.3;
+    }
+    else if (output < 0)
+    {
+        //print("voltage too low")
+        output = 0;
+    }
+    HAL_DAC_START(&hdac, dac_channel);
+    // vref of 3.3V, convert the desired output to digital code
+    output *= 1241;
+    HAL_DAC_SetValue(&hdac, dac_channel, DAC_ALIGN_12B_R, output);
 }
