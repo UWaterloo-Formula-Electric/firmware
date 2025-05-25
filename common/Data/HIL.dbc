@@ -36,6 +36,12 @@ BS_:
 BU_: Computer PDU_HIL VCU_HIL
 
 
+BO_ 2214986255 VCU_Button_Input: 1 Computer
+ SG_ ENDUR : 3|1@1- (1,0) [0|0] ""  VCU_HIL
+ SG_ TC_BTN : 2|1@1- (1,0) [0|0] ""  VCU_HIL
+ SG_ EM_BTN : 1|1@1- (1,0) [0|0] ""  VCU_HIL
+ SG_ HV_BTN : 0|1@1- (1,0) [-1|0] ""  VCU_HIL
+
 BO_ 2281901827 PDU_RelayOutputs: 2 PDU_HIL
  SG_ PowRightFan : 11|1@1+ (1,0) [0|1] ""  Computer
  SG_ PowLeftFan : 10|1@1+ (1,0) [0|1] ""  Computer
@@ -78,10 +84,11 @@ BO_ 2214724111 ThrottlePositionB: 2 Computer
 BO_ 2214658575 ThrottlePositionA: 2 Computer
  SG_ ThrottlePositionA : 0|12@1+ (1,0) [0|3300] "mV"  VCU_HIL
 
+
+
 CM_ BU_ Computer "Test Computer";
 CM_ BU_ PDU_HIL "3__Power Distribution Unit Hardware in the Loop board";
 CM_ BU_ VCU_HIL "2_1_Vehicle Control Unit Hardware in the Loop board";
-
 CM_ SG_ 2214658575 ThrottlePositionA "
 ";
 BA_DEF_  "BusType" STRING ;

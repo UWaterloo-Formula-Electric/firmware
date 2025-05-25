@@ -49,7 +49,10 @@
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 osThreadId ButtontaskHandle;
-osThreadId RecieveCANHandle;
+osThreadId BrakePressureHandle;
+osThreadId BrakePositionHandle;
+osThreadId ThrottleHandle;
+osThreadId SteeringHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -58,7 +61,10 @@ osThreadId RecieveCANHandle;
 
 void StartDefaultTask(void const * argument);
 extern void ButtonTask(void const * argument);
-extern void Recieve_CAN_Task(void const * argument);
+extern void BrakePressureTask(void const * argument);
+extern void BrakePositionTask(void const * argument);
+extern void ThrottleTask(void const * argument);
+extern void SteeringTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -113,9 +119,21 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(Buttontask, ButtonTask, osPriorityNormal, 0, 1000);
   ButtontaskHandle = osThreadCreate(osThread(Buttontask), NULL);
 
-  /* definition and creation of RecieveCAN */
-  osThreadDef(RecieveCAN, Recieve_CAN_Task, osPriorityNormal, 0, 1000);
-  RecieveCANHandle = osThreadCreate(osThread(RecieveCAN), NULL);
+  /* definition and creation of BrakePressure */
+  osThreadDef(BrakePressure, BrakePressureTask, osPriorityNormal, 0, 1000);
+  BrakePressureHandle = osThreadCreate(osThread(BrakePressure), NULL);
+
+  /* definition and creation of BrakePosition */
+  osThreadDef(BrakePosition, BrakePositionTask, osPriorityNormal, 0, 1000);
+  BrakePositionHandle = osThreadCreate(osThread(BrakePosition), NULL);
+
+  /* definition and creation of Throttle */
+  osThreadDef(Throttle, ThrottleTask, osPriorityNormal, 0, 1000);
+  ThrottleHandle = osThreadCreate(osThread(Throttle), NULL);
+
+  /* definition and creation of Steering */
+  osThreadDef(Steering, SteeringTask, osPriorityNormal, 0, 1000);
+  SteeringHandle = osThreadCreate(osThread(Steering), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
