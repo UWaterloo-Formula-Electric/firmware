@@ -121,6 +121,46 @@ bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
     }
 }
 
+uint16_t get_median(uint16_t *arr, uint16_t size)
+{
+    // Sort the array
+    for (uint16_t i = 0; i < size - 1; i++) {
+        for (uint16_t j = i + 1; j < size; j++) {
+            if (arr[i] > arr[j]) {
+                uint16_t temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+    }
+    // Return the median value
+    if (size % 2 == 0) {
+        // If even, return the average of the two middle values
+        return (arr[size / 2 - 1] + arr[size / 2]) / 2;
+    }
+
+    return arr[size / 2];
+}
+#define N_READINGS 10
+uint16_t getThrottleAReading(){
+    static uint16_t throttleAReadings[N_READINGS] = {0};
+    static uint8_t throttleAIndex = 0;
+    // Store the current reading in the array
+    throttleAReadings[throttleAIndex] = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    throttleAIndex = (throttleAIndex + 1) % N_READINGS;
+    return get_median(throttleAReadings, N_READINGS);
+}
+
+uint16_t getThrottleBReading()
+{
+    static uint16_t throttleBReadings[N_READINGS] = {0};
+    static uint8_t throttleBIndex = 0;
+    // Store the current reading in the array
+    throttleBReadings[throttleBIndex] = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    throttleBIndex = (throttleBIndex + 1) % N_READINGS;
+    return get_median(throttleBReadings, N_READINGS);
+}
+
 // Get the throttle position as a percent
 // @ret False if implausibility, true otherwise
 bool getThrottlePositionPercent(float *throttleOut)
@@ -130,8 +170,8 @@ bool getThrottlePositionPercent(float *throttleOut)
     (*throttleOut) = 0;
 
 
-    ThrottleAReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-    ThrottleBReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    ThrottleAReading = getThrottleAReading();
+    ThrottleBReading = getThrottleBReading();
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
     // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
     sendCAN_VCU_ADCReadings();
@@ -335,6 +375,9 @@ void InvCommandTask(void)
     InvCommandMode_t commandMode = MOTORING;
     while (1)
     {
+        // pollThrottle(&throttlePercentReading);
+        // DEBUG_PRINT("T: %.2f\n", throttlePercentReading);
+        // throttlePercentReading = 0;
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
@@ -346,7 +389,7 @@ void InvCommandTask(void)
             }
 
             // poll brake
-            float brakePercent = getBrakePositionPercent();
+            // float brakePercent = getBrakePositionPercent();
 
             // if (brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
             //     requestTorque = mapBrakeToRegenTorque(brakePercent);
@@ -355,7 +398,7 @@ void InvCommandTask(void)
             requestTorque = mapThrottleToTorque(throttlePercentReading);
             commandMode = MOTORING;
             // }
-            DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
+            // DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
 
             if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");

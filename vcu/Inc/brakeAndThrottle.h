@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
 
-#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 9))
+#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 12))
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
@@ -15,11 +15,11 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (238)
-#define THROTT_B_LOW (404)
+#define THROTT_A_LOW (1910)
+#define THROTT_B_LOW (3249)
 
-#define THROTT_A_HIGH (264)
-#define THROTT_B_HIGH (430)
+#define THROTT_A_HIGH (2107)
+#define THROTT_B_HIGH (3444)
 
 #define BRAKE_POS_LOW (2005)
 #define BRAKE_POS_HIGH (2272)
@@ -36,8 +36,8 @@
 
 #define INV_COMMAND_TASK_ID 4
 #define INV_COMMAND_FLAG_BIT (0)
-#define VCU_DATA_PUBLISH_TIME_MS 50
-#define INV_COMMAND_TASK_PERIOD_MS 50
+#define VCU_DATA_PUBLISH_TIME_MS 10
+#define INV_COMMAND_TASK_PERIOD_MS 4
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
