@@ -528,6 +528,7 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
+    sendDTC_FATAL_AMS_Failure();
 #if IS_BOARD_F7
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor

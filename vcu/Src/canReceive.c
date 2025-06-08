@@ -152,6 +152,7 @@ void CAN_Msg_BMU_DTC_Callback(int DTC_CODE, int DTC_Severity, int DTC_Data) {
             ERROR_PRINT_ISR("Got IMD failure\n");
             IMD_FAIL_LED_ON
             break;
+        case FATAL_AMS_Failure:
         case CRITICAL_CELL_VOLTAGE_LOW: // All 4 cases fall through
         case CRITICAL_CELL_VOLTAGE_HIGH:
         case CRITICAL_CELL_TEMP_HIGH:
