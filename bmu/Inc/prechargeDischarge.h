@@ -2,9 +2,9 @@
 
 #define PRECHARGEDISCHARGE_H
 
-#include "main.h"
 #include "FreeRTOS.h"
 #include "bsp.h"
+#include "main.h"
 
 typedef enum PCDC_Notifications_t {
     PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS,
@@ -27,7 +27,7 @@ typedef enum PCDC_Notifications_t {
  * Precharge constants
  */
 
-#define PRECHARGE_RESISTOR_OHMS (10000)
+#define PRECHARGE_RESISTOR_OHMS (2000)
 
 // Timeouts
 #define PRECHARGE_STEP_1_WAIT_TIME_MS 2000

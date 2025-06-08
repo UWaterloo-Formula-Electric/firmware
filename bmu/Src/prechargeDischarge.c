@@ -471,7 +471,7 @@ Precharge_Discharge_Return_t discharge()
     openAllContactors();
 
     DEBUG_PRINT("Tick, VBUS, VBATT, IBUS\n");
-    uint32_t startTickCount = xTaskGetTickCount();
+    // uint32_t startTickCount = xTaskGetTickCount();
     do {
         if (updateMeasurements(&VBus, &VBatt, &IBus) != HAL_OK) {
             return PCDC_ERROR;
@@ -482,13 +482,13 @@ Precharge_Discharge_Return_t discharge()
         ERROR_PRINT("%f,", VBatt);
         ERROR_PRINT("%f\n", IBus);
 
-        if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_4_TIMEOUT) {
-            ERROR_PRINT("Discharge timed out\n");
-            ERROR_PRINT("INFO: VBUS %f\n", VBus);
-            ERROR_PRINT("INFO: VBatt %f\n", VBatt);
-            ERROR_PRINT("INFO: IBus %f\n", IBus);
-            return PCDC_ERROR;
-        }
+        // if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_4_TIMEOUT) {
+        //     ERROR_PRINT("Discharge timed out\n");
+        //     ERROR_PRINT("INFO: VBUS %f\n", VBus);
+        //     ERROR_PRINT("INFO: VBatt %f\n", VBatt);
+        //     ERROR_PRINT("INFO: IBus %f\n", IBus);
+        //     return PCDC_ERROR;
+        // }
         VBus_Data = VBus;
         VBatt_Data = VBatt;
         IBus_Data = IBus;
