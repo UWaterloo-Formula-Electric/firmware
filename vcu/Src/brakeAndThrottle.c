@@ -121,13 +121,13 @@ bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
     }
 }
 
-uint16_t get_median(uint16_t *arr, uint16_t size)
+float get_median(float *arr, uint16_t size)
 {
     // Sort the array
     for (uint16_t i = 0; i < size - 1; i++) {
         for (uint16_t j = i + 1; j < size; j++) {
             if (arr[i] > arr[j]) {
-                uint16_t temp = arr[i];
+                float temp = arr[i];
                 arr[i] = arr[j];
                 arr[j] = temp;
             }
@@ -141,24 +141,25 @@ uint16_t get_median(uint16_t *arr, uint16_t size)
 
     return arr[size / 2];
 }
-#define N_READINGS 10
-uint16_t getThrottleAReading(){
-    static uint16_t throttleAReadings[N_READINGS] = {0};
+
+
+float getThrottleAReading(){
+    static float throttleAReadings[MEDIAN_FILTER_SAMPLES] = {0};
     static uint8_t throttleAIndex = 0;
     // Store the current reading in the array
-    throttleAReadings[throttleAIndex] = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-    throttleAIndex = (throttleAIndex + 1) % N_READINGS;
-    return get_median(throttleAReadings, N_READINGS);
+    throttleAReadings[throttleAIndex] = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    throttleAIndex = (throttleAIndex + 1) % MEDIAN_FILTER_SAMPLES;
+    return get_median(throttleAReadings, MEDIAN_FILTER_SAMPLES);
 }
 
-uint16_t getThrottleBReading()
+float getThrottleBReading()
 {
-    static uint16_t throttleBReadings[N_READINGS] = {0};
+    static float throttleBReadings[MEDIAN_FILTER_SAMPLES] = {0};
     static uint8_t throttleBIndex = 0;
     // Store the current reading in the array
-    throttleBReadings[throttleBIndex] = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
-    throttleBIndex = (throttleBIndex + 1) % N_READINGS;
-    return get_median(throttleBReadings, N_READINGS);
+    throttleBReadings[throttleBIndex] = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    throttleBIndex = (throttleBIndex + 1) % MEDIAN_FILTER_SAMPLES;
+    return get_median(throttleBReadings, MEDIAN_FILTER_SAMPLES);
 }
 
 // Get the throttle position as a percent
@@ -169,25 +170,29 @@ bool getThrottlePositionPercent(float *throttleOut)
     float throttle;
     (*throttleOut) = 0;
 
+    float thA = getThrottleAReading();
+    float thB = getThrottleBReading();
+    float brake = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
 
-    ThrottleAReading = getThrottleAReading();
-    ThrottleBReading = getThrottleBReading();
-    BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+    ThrottleAReading = thA;
+    ThrottleBReading = thB;
+    BrakeReading = brake;
     // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
     sendCAN_VCU_ADCReadings();
 
+    
     // Read both TPS sensors
-    if (is_throttle1_in_range(ThrottleAReading)
-        && is_throttle2_in_range(ThrottleBReading))
+    if (is_throttle1_in_range(thA)
+        && is_throttle2_in_range(thB))
     {
-        throttle1_percent = calculate_throttle_percent1(ThrottleAReading);
+        throttle1_percent = calculate_throttle_percent1(thA);
 #ifdef DISABLE_THROTTLE_B_CHECKS
         throttle2_percent = throttle1_percent; // If throttle B checks are disabled, just use throttle A
 #else
-        throttle2_percent = calculate_throttle_percent2(ThrottleBReading);
+        throttle2_percent = calculate_throttle_percent2(thB);
 #endif
     } else {
-      ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)ThrottleAReading, (uint32_t)ThrottleBReading);
+      ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)thA, (uint32_t)thB);
       return false;
     }
 
@@ -196,7 +201,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     {
         (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
-        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", (uint32_t)ThrottleAReading,(uint32_t) ThrottleBReading);
+        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", (uint32_t)thA, (uint32_t)thB);
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
@@ -340,7 +345,6 @@ void canPublishTask(void *pvParameters)
     // Delay to allow first ADC readings to come in
     vTaskDelay(500);
     while (1) {
-
         // Update value to be sent over can
         ThrottlePercent = throttlePercentReading;
         FrontBrakePressure = getBrakePressure();
@@ -375,9 +379,6 @@ void InvCommandTask(void)
     InvCommandMode_t commandMode = MOTORING;
     while (1)
     {
-        // pollThrottle(&throttlePercentReading);
-        // DEBUG_PRINT("T: %.2f\n", throttlePercentReading);
-        // throttlePercentReading = 0;
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
@@ -408,6 +409,9 @@ void InvCommandTask(void)
         else
         {
             // EM disabled
+            // still update throttle ADC moving filter
+            getThrottleAReading();
+            getThrottleBReading();
             throttlePercentReading = 0;
         }
         // // just to print out what it is delete after testing

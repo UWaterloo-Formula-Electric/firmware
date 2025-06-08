@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "bsp.h"
 
-#define ADC_12_BIT_2_9_BIT(x) ((x) >> (12 - 12))
+#define ADC_12_BIT_2_12_BIT(x) ((x) >> (12 - 12))
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
@@ -38,6 +38,9 @@
 #define INV_COMMAND_FLAG_BIT (0)
 #define VCU_DATA_PUBLISH_TIME_MS 10
 #define INV_COMMAND_TASK_PERIOD_MS 4
+
+#define MEDIAN_FILTER_MS 40
+#define MEDIAN_FILTER_SAMPLES (MEDIAN_FILTER_MS / INV_COMMAND_TASK_PERIOD_MS)  // Number of samples to take for median filter
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
