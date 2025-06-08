@@ -13,10 +13,13 @@
 #define BUTTON_TASK_PERIOD_MS 5
 #define NUM_DEBOUNCE_CHECKS (DEBOUNCE_TIME_MS / BUTTON_TASK_PERIOD_MS)  // Holds the states that the particular port is transitioning through
 
-#define HV_TOGGLE_OFFSET 0
-#define EM_TOGGLE_OFFSET 1
-#define TC_TOGGLE_OFFSET 2
-#define ENDURANCE_TOGGLE_OFFSET 3
+enum ButtonOffsets {
+    HV_TOGGLE_OFFSET = 0,
+    EM_TOGGLE_OFFSET,
+    TC_TOGGLE_OFFSET,
+    ENDURANCE_TOGGLE_OFFSET
+};
+
 
 void buttonTask(void *pvParameters) {
     uint8_t index = 0;

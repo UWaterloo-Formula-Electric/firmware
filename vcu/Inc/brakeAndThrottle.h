@@ -40,7 +40,7 @@
 #define INV_COMMAND_TASK_PERIOD_MS 4
 
 #define MEDIAN_FILTER_MS 40
-#define MEDIAN_FILTER_SAMPLES (MEDIAN_FILTER_MS / INV_COMMAND_TASK_PERIOD_MS)  // Number of samples to take for median filter
+#define NUM_MEDIAN_FILTER_SAMPLES (MEDIAN_FILTER_MS / INV_COMMAND_TASK_PERIOD_MS)  // Number of samples to take for median filter
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,
@@ -65,7 +65,9 @@ typedef enum ADC_Indices_t {
 #define STEERING_MULTIPLIER 100
 #define STEERING_CENTRE_OFFSET_PERCENT 50
 
-/* End of CLI mock testing stuff */
+
+bool isRegenEnabled();
+void toggleRegen();
 
 typedef enum ThrottleStatus_t {
     THROTTLE_OK,        // Throttle is OK

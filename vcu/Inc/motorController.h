@@ -4,8 +4,11 @@
 
 #include "bsp.h"
 #include "canReceive.h"
+#include "mathUtils.h"
 
 #define PSI_2_PA 6894.7572f // psi to Pa
+
+#define MIN_KPH_FOR_REGEN 5.f // EV.3.3.3 required by michigan rules, if under this speed, regen cannot be enabled
 
 #define DESIRED_REAR_BRAKE_BIAS_PCT 0.2f // 20% rear brake bias
 #define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
@@ -44,7 +47,7 @@
 
 #define ENABLE_POWER_LIMIT
 #define INV_POWER_LIMIT 70000.0 //80kw
-#define RPM_TO_RAD (2.0*3.14159/60.0)
+
 
 typedef enum InvCommandMode_t {
     MOTORING = 0,

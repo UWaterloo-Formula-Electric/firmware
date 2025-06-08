@@ -20,6 +20,7 @@
 #include "drive_by_wire.h"
 #include "vcu_F7_dtc.h"
 #include "mathUtils.h"
+#include "wheelConstants.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?

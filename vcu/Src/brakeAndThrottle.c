@@ -20,6 +20,7 @@
 #include "state_machine.h"
 #include "drive_by_wire.h"
 #include "canReceive.h"
+#include "wheelConstants.h"
 #include "mathUtils.h"
 
 #if IS_BOARD_NUCLEO_F7
@@ -121,45 +122,24 @@ bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
     }
 }
 
-float get_median(float *arr, uint16_t size)
-{
-    // Sort the array
-    for (uint16_t i = 0; i < size - 1; i++) {
-        for (uint16_t j = i + 1; j < size; j++) {
-            if (arr[i] > arr[j]) {
-                float temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }
-        }
-    }
-    // Return the median value
-    if (size % 2 == 0) {
-        // If even, return the average of the two middle values
-        return (arr[size / 2 - 1] + arr[size / 2]) / 2;
-    }
 
-    return arr[size / 2];
-}
-
-
-float getThrottleAReading(){
-    static float throttleAReadings[MEDIAN_FILTER_SAMPLES] = {0};
-    static uint8_t throttleAIndex = 0;
+float getThrottleAFiltered(){
+    static float throttleAReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
+    static size_t throttleAIndex = 0;
     // Store the current reading in the array
     throttleAReadings[throttleAIndex] = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-    throttleAIndex = (throttleAIndex + 1) % MEDIAN_FILTER_SAMPLES;
-    return get_median(throttleAReadings, MEDIAN_FILTER_SAMPLES);
+    throttleAIndex = (throttleAIndex + 1) % NUM_MEDIAN_FILTER_SAMPLES;
+    return get_median(throttleAReadings, NUM_MEDIAN_FILTER_SAMPLES);
 }
 
-float getThrottleBReading()
+float getThrottleBFiltered()
 {
-    static float throttleBReadings[MEDIAN_FILTER_SAMPLES] = {0};
-    static uint8_t throttleBIndex = 0;
+    static float throttleBReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
+    static size_t throttleBIndex = 0;
     // Store the current reading in the array
     throttleBReadings[throttleBIndex] = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
-    throttleBIndex = (throttleBIndex + 1) % MEDIAN_FILTER_SAMPLES;
-    return get_median(throttleBReadings, MEDIAN_FILTER_SAMPLES);
+    throttleBIndex = (throttleBIndex + 1) % NUM_MEDIAN_FILTER_SAMPLES;
+    return get_median(throttleBReadings, NUM_MEDIAN_FILTER_SAMPLES);
 }
 
 // Get the throttle position as a percent
@@ -170,8 +150,8 @@ bool getThrottlePositionPercent(float *throttleOut)
     float throttle;
     (*throttleOut) = 0;
 
-    float thA = getThrottleAReading();
-    float thB = getThrottleBReading();
+    float thA = getThrottleAFiltered();
+    float thB = getThrottleBFiltered();
     float brake = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
 
     ThrottleAReading = thA;
@@ -336,6 +316,15 @@ HAL_StatusTypeDef pollThrottle(float *throttlePercentReading) {
     return HAL_OK;
 }
 
+bool regenEnabled = false;
+void toggleRegen(){
+    regenEnabled = !regenEnabled;
+}
+
+bool isRegenEnabled() {
+    return regenEnabled;
+}
+
 /*********************************************************************************************************************/
 /*----------------------------------------------------Tasks----------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -358,6 +347,7 @@ void canPublishTask(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(VCU_DATA_PUBLISH_TIME_MS));
     }
 }
+
 
 /**
  * @brief  Commands the inverter with motoring or regenerative torque
@@ -390,15 +380,17 @@ void InvCommandTask(void)
             }
 
             // poll brake
-            // float brakePercent = getBrakePositionPercent();
+            float brakePercent = getBrakePositionPercent();
+            float kph = INV_Motor_Speed * RPM_TO_KPH;
 
-            // if (brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
-            //     requestTorque = mapBrakeToRegenTorque(brakePercent);
-            //     commandMode = REGEN;
-            // } else {
-            requestTorque = mapThrottleToTorque(throttlePercentReading);
-            commandMode = MOTORING;
-            // }
+            // EV.3.3.3 < 5kmh = no regen
+            if (kph > MIN_KPH_FOR_REGEN && isRegenEnabled() && brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+                requestTorque = mapBrakeToRegenTorque(brakePercent);
+                commandMode = REGEN;
+            } else {
+                requestTorque = mapThrottleToTorque(throttlePercentReading);
+                commandMode = MOTORING;
+            }
             // DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
 
             if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
@@ -410,8 +402,8 @@ void InvCommandTask(void)
         {
             // EM disabled
             // still update throttle ADC moving filter
-            getThrottleAReading();
-            getThrottleBReading();
+            getThrottleAFiltered();
+            getThrottleBFiltered();
             throttlePercentReading = 0;
         }
         // // just to print out what it is delete after testing
