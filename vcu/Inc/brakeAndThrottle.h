@@ -15,14 +15,14 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (1098)
-#define THROTT_B_LOW (1462)
+#define THROTT_A_LOW (238)
+#define THROTT_B_LOW (404)
 
-#define THROTT_A_HIGH (1305)
-#define THROTT_B_HIGH (1653)
+#define THROTT_A_HIGH (264)
+#define THROTT_B_HIGH (430)
 
-#define BRAKE_POS_LOW (1990)
-#define BRAKE_POS_HIGH (2244)
+#define BRAKE_POS_LOW (2005)
+#define BRAKE_POS_HIGH (2272)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right
@@ -36,8 +36,8 @@
 
 #define INV_COMMAND_TASK_ID 4
 #define INV_COMMAND_FLAG_BIT (0)
-#define VCU_DATA_PUBLISH_TIME_MS 20
-#define INV_COMMAND_TASK_PERIOD_MS 20
+#define VCU_DATA_PUBLISH_TIME_MS 50
+#define INV_COMMAND_TASK_PERIOD_MS 50
 
 typedef enum ADC_Indices_t {
     THROTTLE_A_INDEX = 0,

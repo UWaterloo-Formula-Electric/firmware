@@ -187,10 +187,10 @@ static const CLI_Command_Definition_t getBrakeCommandDefinition =
 
 BaseType_t getFakeThrottleAB(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
-{   
-    uint32_t thA = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
-    uint32_t thB = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
-    
+{
+    uint32_t thA = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    uint32_t thB = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+
     COMMAND_OUTPUT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
                    calculate_throttle_percent1(thA),
                    thA,
@@ -215,8 +215,8 @@ BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 
-    uint32_t thA = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
-    uint32_t thB = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+    uint32_t thA = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    uint32_t thB = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
 
     DEBUG_PRINT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
                 calculate_throttle_percent1(thA),

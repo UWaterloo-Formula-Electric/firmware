@@ -26,6 +26,8 @@
 #define MOCK_ADC_READINGS
 #endif
 
+#define DISABLE_THROTTLE_B_CHECKS
+
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -128,8 +130,8 @@ bool getThrottlePositionPercent(float *throttleOut)
     (*throttleOut) = 0;
 
 
-    ThrottleAReading = brakeThrottleSteeringADCVals[THROTTLE_A_INDEX];
-    ThrottleBReading = brakeThrottleSteeringADCVals[THROTTLE_B_INDEX];
+    ThrottleAReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
+    ThrottleBReading = ADC_12_BIT_2_9_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
     BrakeReading = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
     // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
     sendCAN_VCU_ADCReadings();
@@ -139,7 +141,11 @@ bool getThrottlePositionPercent(float *throttleOut)
         && is_throttle2_in_range(ThrottleBReading))
     {
         throttle1_percent = calculate_throttle_percent1(ThrottleAReading);
+#ifdef DISABLE_THROTTLE_B_CHECKS
+        throttle2_percent = throttle1_percent; // If throttle B checks are disabled, just use throttle A
+#else
         throttle2_percent = calculate_throttle_percent2(ThrottleBReading);
+#endif
     } else {
       ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)ThrottleAReading, (uint32_t)ThrottleBReading);
       return false;
@@ -342,13 +348,13 @@ void InvCommandTask(void)
             // poll brake
             float brakePercent = getBrakePositionPercent();
 
-            if (brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
-                requestTorque = mapBrakeToRegenTorque(brakePercent);
-                commandMode = REGEN;
-            } else {
-                requestTorque = mapThrottleToTorque(throttlePercentReading);
-                commandMode = MOTORING;
-            }
+            // if (brakePercent > MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+            //     requestTorque = mapBrakeToRegenTorque(brakePercent);
+            //     commandMode = REGEN;
+            // } else {
+            requestTorque = mapThrottleToTorque(throttlePercentReading);
+            commandMode = MOTORING;
+            // }
             DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
 
             if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
