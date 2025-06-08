@@ -39,6 +39,9 @@
 #define TORQUE_MODE_SPEED_REQUEST       0x0
 #define INVERTER_PARAM_WRITE            0x1
 #define INVERTER_PARAM_READ             0x0
+#define USE_INV_LIMITS                  (true)
+#define INV_TORQUE_REGEN_LIMIT_ENABLED_VALUE  0x0
+
 
 #define INVERTER_FAULT_CLEAR_ADDRESS    20
 

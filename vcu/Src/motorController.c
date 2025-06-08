@@ -227,7 +227,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
             requestTorque = requestTorque;
             maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
             #ifdef ENABLE_POWER_LIMIT
-            maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+            maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω
             #endif
             break;
         case REGEN:
@@ -248,7 +248,9 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
     VCU_INV_Inverter_Enable = INVERTER_ON;
     VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
-    VCU_INV_Torque_Limit_Command = 0;
+
+    // if torque limit is set to 0 then we use the default limits from the CM200DZ eeprom
+    VCU_INV_Torque_Limit_Command = USE_INV_LIMITS ? INV_TORQUE_REGEN_LIMIT_ENABLED_VALUE: maxTorqueDemand;
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");
