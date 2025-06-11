@@ -72,6 +72,7 @@ float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
 void disable_TC(void)
 {
 	tc_on = false;
+	TC_LED_OFF;
 }
 
 void toggle_TC(void)

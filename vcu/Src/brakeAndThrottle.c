@@ -325,6 +325,12 @@ bool isRegenEnabled() {
     return regenEnabled;
 }
 
+void disableRegen() {
+    regenEnabled = false;
+    // DEBUG_PRINT("Regen disabled\n");
+    ENDURANCE_LED_OFF;
+}
+
 /*********************************************************************************************************************/
 /*----------------------------------------------------Tasks----------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -359,7 +365,7 @@ void InvCommandTask(void)
 
     if (registerTaskToWatch(INV_COMMAND_TASK_ID, 2*pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
-        ERROR_PRINT("ERROR: Failed to init throttle polling task, suspending throttle polling task\n");
+        ERROR_PRINT("ERROR: Failed to init inverter command task, suspending throttle polling task\n");
         Error_Handler();
     }
 

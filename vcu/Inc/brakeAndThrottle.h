@@ -15,14 +15,14 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (1910)
-#define THROTT_B_LOW (3249)
+#define THROTT_A_LOW (2134)
+#define THROTT_B_LOW (3609)
 
-#define THROTT_A_HIGH (2107)
-#define THROTT_B_HIGH (3444)
+#define THROTT_A_HIGH (2331)
+#define THROTT_B_HIGH (3826)
 
-#define BRAKE_POS_LOW (2005)
-#define BRAKE_POS_HIGH (2272)
+#define BRAKE_POS_LOW (1268)
+#define BRAKE_POS_HIGH (1542)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right
@@ -68,6 +68,7 @@ typedef enum ADC_Indices_t {
 
 bool isRegenEnabled();
 void toggleRegen();
+void disableRegen();
 
 typedef enum ThrottleStatus_t {
     THROTTLE_OK,        // Throttle is OK

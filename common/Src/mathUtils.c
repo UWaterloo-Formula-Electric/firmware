@@ -16,6 +16,14 @@ float max(float a, float b) {
     }
 }
 
+float clip(float in, float low, float high) {
+    if (in < low)
+        return low;
+    if (in > high)
+        return high;
+    return in;
+}
+
 int map_range(int in, int low, int high, int low_out, int high_out) {
     if (in < low) {
         in = low;
@@ -25,7 +33,7 @@ int map_range(int in, int low, int high, int low_out, int high_out) {
     int in_range = high - low;
     int out_range = high_out - low_out;
 
-    return (in - low) * out_range / in_range + low_out;
+    return (float)(in - low) * out_range / in_range + low_out;
 }
 
 float map_range_float(float in, float low, float high, float low_out, float high_out) {
@@ -37,7 +45,7 @@ float map_range_float(float in, float low, float high, float low_out, float high
     const float in_range = high - low;
     const float out_range = high_out - low_out;
 
-    return (((in - low) * out_range) / (in_range + low_out));
+    return (in - low) * out_range / in_range + low_out;
 }
 
 float get_median(float *arr, size_t size) {

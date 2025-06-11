@@ -22,7 +22,6 @@
 #define SPEED_LIMIT_DEFAULT                 10000
 #define DISCHARGE_CURRENT_LIMIT_DEFAULT     250
 #define CHARGE_CURRENT_LIMIT_DEFAULT        0
-#define INV_TORQUE_SCALING_FACTOR           10.0f // Torque command is sent as Nm * 10
 #define INVERTER_STOP_TIMEOUT_MS            10000   // TODO: Chose a good value for this
 #define MC_INIT_DISCHARGE_TIME_MS           1000
 

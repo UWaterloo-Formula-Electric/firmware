@@ -26,6 +26,7 @@
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
+#define USE_BRAKE_ANGLE_FOR_REGEN
 
 
 MotorControllerSettings mcSettings = {0};
@@ -160,18 +161,28 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     return sendDisableMC();
 }
 
+float maxMotoringTorque(){
+    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
+    #ifdef ENABLE_POWER_LIMIT
+    maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω 
+    #endif
+    return maxTorqueDemand;
+}
+
+float maxRegenTorque(){
+    float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+    return maxRegenTorqueDemand;
+}
+
 /**
  * @brief Maps the positive throttle percent to a motoring torque demand
  */
 float mapThrottleToTorque(float throttle_percent) {
     if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE) {
-        throttle_percent = 0.0f;
+        throttle_percent = 0;
     }
    
-    float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-    #ifdef ENABLE_POWER_LIMIT
-    maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω 
-    #endif
+    float maxTorqueDemand = maxMotoringTorque();
 
     float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
     return scaledTorque; 
@@ -182,13 +193,19 @@ float mapThrottleToTorque(float throttle_percent) {
  * @returns the regen torque in Nm (this is a positive value), see requestTorqueFromMC for details
  */
 float mapBrakeToRegenTorque(float brake_percent) {
-    float rearBrakePres = RearBrakePressure;
-    float frontBrakePres = FrontBrakePressure;
-    float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+    float maxRegenTorqueDemand = maxRegenTorque();
+    
     // if we have low brake pressure, work of off the brake angle as it gets very jittery otherwise
     // if (rearBrakePres < MIN_REGEN_REAR_BRAKE_PRESSURE) {
-    //     float scaledTorque = map_range_float(brake_percent, MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE, 100, 0, 0.7*maxRegenTorqueDemand);
-    //     return scaledTorque;
+#ifdef USE_BRAKE_ANGLE_FOR_REGEN
+    if (brake_percent < MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+        brake_percent = 0;
+    }
+    float scaledTorque = map_range_float(brake_percent, MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE, MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE, 0, maxRegenTorqueDemand);
+    return scaledTorque;
+#else
+    float rearBrakePres = RearBrakePressure;
+    float frontBrakePres = FrontBrakePressure;
     // }
     // (rear + psi_reqd) / (rear + psi_reqd + front) = pct
     // (rear + psi_reqd)  = pct * (rear + psi_reqd + front)
@@ -201,13 +218,9 @@ float mapBrakeToRegenTorque(float brake_percent) {
     float torque_reqd = Pa_reqd * 4.489e-5f; // m^3 to Nm
     // DEBUG_PRINT("T: %.3f, P: %.0f, F: %.0f, R: %.0f, psi_reqd: %.0f\n", torque_reqd, Pa_reqd, frontBrakePres, rearBrakePres, psi_reqd);
     
-    if (torque_reqd > maxRegenTorqueDemand) {
-        torque_reqd = maxRegenTorqueDemand;
-    }
-    if (torque_reqd < 0) {
-        torque_reqd = 0;
-    }
+    torque_reqd = clip(torque_reqd, 0, maxRegenTorqueDemand);
     return torque_reqd;
+#endif
 }
 
 /**
@@ -225,14 +238,11 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
     switch (commandMode) {
         case MOTORING:
             requestTorque = requestTorque;
-            maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
-            #ifdef ENABLE_POWER_LIMIT
-            maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω
-            #endif
+            maxTorqueDemand = maxMotoringTorque();
             break;
         case REGEN:
             requestTorque = -requestTorque;
-            maxTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+            maxTorqueDemand = maxRegenTorque();
             break;
         default:
             ERROR_PRINT("Invalid command mode\n");
@@ -242,7 +252,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
     INV_Tractive_Power_kW = INV_DC_Bus_Voltage*INV_DC_Bus_Current*W_TO_KW; //V and I values are sent as V*10 and A*10
     sendCAN_VCU_INV_Power();
 
-    VCU_INV_Torque_Command = requestTorque*INV_TORQUE_SCALING_FACTOR;
+    VCU_INV_Torque_Command = requestTorque;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;

@@ -1,9 +1,9 @@
-# 06/08/2025 02:03:54
+# 06/09/2025 00:10:24
 # Firmware Date-code: 20221201
 # Firmware Version  : 6526
 # Hardware Version  : 37794
 # Hardware ID       : G2
-# Com Port          : com9
+# Com Port          : com15
 
 #decimal:
 
@@ -64,7 +64,7 @@ Coast_Lo_EEPROM_(V)_x_100             ,     92
 Coast_Hi_EEPROM_(V)_x_100             ,    108  
 Accel_Max_EEPROM_(V)_x_100            ,   2850  
 Pedal_Hi_EEPROM_(V)_x_100             ,    500  
-Motor_Torque_Limit_EEPROM_(Nm)_x_10   ,   2000  
+Motor_Torque_Limit_EEPROM_(Nm)_x_10   ,   2310  
 Regen_Torque_Limit_EEPROM_(Nm)_x_10   ,    150  
 Braking_Torque_Limit_EEPROM_(Nm)_x_10 ,    200  
 Kp_Torque_EEPROM_x_10000              ,  10000  

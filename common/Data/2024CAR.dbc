@@ -1027,7 +1027,7 @@ BO_ 2365571073 MC_Command_Message: 8 VCU_F7
  SG_ VCU_INV_Inverter_Enable : 40|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ VCU_INV_Direction_Command : 32|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ VCU_INV_Speed_Command : 16|16@1- (1,0) [-32768|32767] "angular_speed:rpm" Vector__XXX
- SG_ VCU_INV_Torque_Command : 0|16@1- (1,0) [-32768|32767] "torque:N.m" Vector__XXX
+ SG_ VCU_INV_Torque_Command : 0|16@1- (0.1,0) [-32768|32767] "torque:N.m" Vector__XXX
  SG_ VCU_INV_Inverter_Discharge : 41|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ VCU_INV_Torque_Limit_Command : 48|16@1- (0.1,0) [-3276.8|3276.7] "torque:N.m" Vector__XXX
  SG_ VCU_INV_Speed_Mode_Enable : 42|1@1+ (1,0) [0|1] "" Vector__XXX
