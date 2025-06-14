@@ -215,8 +215,8 @@ BaseType_t getADCInputs(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 
-    uint32_t thA = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_A_INDEX]);
-    uint32_t thB = ADC_12_BIT_2_12_BIT(brakeThrottleSteeringADCVals[THROTTLE_B_INDEX]);
+    uint32_t thA = getThrottleAFiltered();
+    uint32_t thB = getThrottleBFiltered();
 
     DEBUG_PRINT("Throttle A %f (ADC: %lu), B %f (ADC: %lu)\n",
                 calculate_throttle_percent1(thA),

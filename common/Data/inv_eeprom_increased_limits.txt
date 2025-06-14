@@ -1,9 +1,9 @@
-# 06/09/2025 00:10:24
+# 06/13/2025 00:15:12
 # Firmware Date-code: 20221201
 # Firmware Version  : 6526
 # Hardware Version  : 37794
 # Hardware ID       : G2
-# Com Port          : com15
+# Com Port          : com13
 
 #decimal:
 
@@ -20,7 +20,7 @@ PWM_Var_Dwell_Rate_EEPROM_(x3ms)      ,     10
 Motor_Type_EEPROM                     ,    128  
 Veh_Flux_EEPROM_(Wb)_x_1000           ,     34  
 Angle_Advance_Factor_EEPROM_x_100     ,      0  
-Gamma_Adjust_EEPROM_(Deg)_x_10        ,  -3063  
+Gamma_Adjust_EEPROM_(Deg)_x_10        ,   1687  
 Run_Mode_EEPROM(Trq=0_Spd=1)          ,      0  
 Inv_Cmd_Mode_EEPROM(CAN=0_VSM=1)      ,      0  
 Key_Switch_Mode_EEPROM                ,      0  
