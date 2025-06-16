@@ -921,11 +921,9 @@ HAL_StatusTypeDef continueCharging()
       sendDTC_FATAL_BMU_Charger_ERROR();
       return HAL_ERROR;
    }
+
    DEBUG_PRINT("Charge Current: %f\n", status.current);
    DEBUG_PRINT("Charge Voltage: %f\n", status.voltage);
-   DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
-   DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
-
 #endif
    return HAL_OK;
 }
@@ -1104,7 +1102,21 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
              if (boundedContinue()) { continue; }
           }
        }
-
+       /*
+         * Print out the cell voltages and temperatures
+         */
+        float avgTemp = 0;
+        for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+            avgTemp += TempChannel[i];
+        }
+        avgTemp /= NUM_TEMP_CELLS;
+        DEBUG_PRINT("Pack Voltage: %f\n", AMS_PackVoltage);
+        DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
+        DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
+        DEBUG_PRINT("Max Cell Temp: %f\n", TempCellMax);
+        DEBUG_PRINT("Avg Cell Temp: %f\n", avgTemp);
+        DEBUG_PRINT("Min Cell Temp: %f\n", TempCellMin);
+        DEBUG_PRINT("__________________________________\n");
         /*
          * Perform cell reading, need to pause any ongoing balance in order to
          * get good voltage readings

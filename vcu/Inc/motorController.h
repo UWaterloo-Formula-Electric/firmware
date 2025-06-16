@@ -13,9 +13,9 @@
 #define DESIRED_REAR_BRAKE_BIAS_PCT 0.2f // 20% rear brake bias
 #define MIN_THROTTLE_PERCENT_FOR_TORQUE 5.0f // If under 5% throttle pedal don't request torque
 #define MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE 70.0f // If over this percent, regen torque is maxed out
-#define MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE 5.0f // If under 5% brake pedal don't request regen torque
+#define MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE 15.0f // If under 5% brake pedal don't request regen torque
 
-#define MAX_TORQUE_DEMAND_DEFAULT_NM        231
+#define MAX_TORQUE_DEMAND_DEFAULT_NM        200
 #define MAX_MOTOR_TORQUE_NM                 231
 #define MAX_REGEN_TORQUE_DEMAND_DEFAULT_NM  15
 #define MAX_REGEN_TORQUE_NM                 15

@@ -122,7 +122,7 @@ typedef enum ChargeReturn
 } ChargeReturn;
 
 // Used by FAN Control to determine when to turn on fans
-#define CELL_MAX_TEMP_C (55.0)
+#define CELL_MAX_TEMP_C (60.0)
 
 typedef enum Balance_Type_t {
     USING_CLI,
