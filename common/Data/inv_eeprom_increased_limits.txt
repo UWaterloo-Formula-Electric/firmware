@@ -20,7 +20,7 @@ PWM_Var_Dwell_Rate_EEPROM_(x3ms)      ,     10
 Motor_Type_EEPROM                     ,    128  
 Veh_Flux_EEPROM_(Wb)_x_1000           ,     34  
 Angle_Advance_Factor_EEPROM_x_100     ,      0  
-Gamma_Adjust_EEPROM_(Deg)_x_10        ,   1687  
+Gamma_Adjust_EEPROM_(Deg)_x_10        ,   1591  
 Run_Mode_EEPROM(Trq=0_Spd=1)          ,      0  
 Inv_Cmd_Mode_EEPROM(CAN=0_VSM=1)      ,      0  
 Key_Switch_Mode_EEPROM                ,      0  
