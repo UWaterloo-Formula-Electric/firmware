@@ -87,6 +87,10 @@ bool is_throttle2_in_range(uint32_t throttle) {
   return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW-MAX_THROTTLE_B_DEADZONE;
 }
 
+bool is_brake_in_range(uint32_t brake) {
+  return brake <= BRAKE_POS_HIGH + MAX_BRAKE_DEADZONE && brake >= BRAKE_POS_LOW - MAX_BRAKE_DEADZONE;
+}
+
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
@@ -192,6 +196,16 @@ bool getThrottlePositionPercent(float *throttleOut)
     return true;
 }
 
+bool brakePlausibilityCheckFail()
+{
+    uint32_t brakePotVal = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+    if (!is_brake_in_range(brakePotVal)) {
+        ERROR_PRINT("Brake pot out of range, motor disabled T.4.3.3: %lu [%lu, %lu]\n", brakePotVal, (uint32_t)BRAKE_POS_LOW, (uint32_t)BRAKE_POS_HIGH);
+        return true;
+    }
+    return false;
+}
+
 /*
  * This functions gets the current throttle value, performs the throttle and
  * brake plausibility checks, and returns the throttle value in throttle out
@@ -209,6 +223,11 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
     }
 
     if (appsBrakePedalPlausibilityCheckFail(throttle)) {
+        (*throttleOut) = 0;
+        return THROTTLE_DISABLED;
+    }
+
+    if (brakePlausibilityCheckFail()) {
         (*throttleOut) = 0;
         return THROTTLE_DISABLED;
     }
@@ -408,8 +427,16 @@ void InvCommandTask(void)
         {
             // EM disabled
             // still update throttle ADC moving filter
-            getThrottleAFiltered();
-            getThrottleBFiltered();
+            float thA = getThrottleAFiltered();
+            float thB = getThrottleBFiltered();
+            float brake = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+
+            ThrottleAReading = thA;
+            ThrottleBReading = thB;
+            BrakeReading = brake;
+            // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
+            sendCAN_VCU_ADCReadings();
+            
             throttlePercentReading = 0;
         }
         // // just to print out what it is delete after testing
