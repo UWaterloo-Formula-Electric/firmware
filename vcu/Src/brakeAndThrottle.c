@@ -27,7 +27,7 @@
 #define MOCK_ADC_READINGS
 #endif
 
-#define DISABLE_THROTTLE_B_CHECKS
+// #define DISABLE_THROTTLE_B_CHECKS
 
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
@@ -227,10 +227,10 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         return THROTTLE_DISABLED;
     }
 
-    if (brakePlausibilityCheckFail()) {
-        (*throttleOut) = 0;
-        return THROTTLE_DISABLED;
-    }
+    // if (brakePlausibilityCheckFail()) {
+    //     (*throttleOut) = 0;
+    //     return THROTTLE_DISABLED;
+    // }
 
     // If we get here, all checks have passed, so can safely output throttle
     (*throttleOut) = throttle;
@@ -416,8 +416,7 @@ void InvCommandTask(void)
                 requestTorque = mapThrottleToTorque(throttlePercentReading);
                 commandMode = MOTORING;
             }
-            // DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
-
+            DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
             if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
                 fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
