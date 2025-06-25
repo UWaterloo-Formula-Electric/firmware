@@ -48,7 +48,7 @@
 //comment out to remove 80kw power limit
 
 #define ENABLE_POWER_LIMIT
-#define INV_POWER_LIMIT 70000.0 //80kw
+#define INV_POWER_LIMIT 62000.0 //80kw
 
 
 typedef enum InvCommandMode_t {
