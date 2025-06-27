@@ -23,7 +23,7 @@
 //period kept at 1 second to avoid reading jitters
 //  - 1 pulse count & 2 pulse counts make a big difference if period is 100ms
 
-#define WHEEL_RADIUS 0.40005
+#define WHEEL_RADIUS 0.19685
 #define PI 3.14156
 #define TICKS_PER_SECOND 1000
 
@@ -37,6 +37,8 @@
  */
 
 uint32_t pulse_count = 0;
+uint32_t last_tick = 0;
+uint32_t cur_tick = 0;
 
 float getRps(uint32_t count, uint32_t tick_diff) {
     /*
@@ -73,12 +75,10 @@ void HallEffectSensorTask(void const * argument) {
     vTaskDelay(pdMS_TO_TICKS(200));
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    uint32_t last_tick = HAL_GetTick();
-    uint32_t cur_tick;
+    last_tick = HAL_GetTick();
     uint32_t tick_diff;
 
     while (1) {
-        cur_tick = HAL_GetTick();
         tick_diff = cur_tick - last_tick;
 
         float rps = getRps(pulse_count, tick_diff);
@@ -96,7 +96,7 @@ void HallEffectSensorTask(void const * argument) {
 #endif
 
         pulse_count = 0;
-        last_tick = HAL_GetTick();
+        last_tick = cur_tick;
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(HALL_EFFECT_TASK_PERIOD));
     }
