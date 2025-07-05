@@ -549,20 +549,56 @@ void BatteryTaskError()
 /// Maximum number of errors battery task can encounter before reporting error
 #define MAX_ERROR_COUNT 5
 
-static uint32_t errorCounter = 0;
+static uint32_t errorCounterRed = 0;
 
 /**
- * @brief Called by battery task in an error is encountered that is not
+ * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
  * immediately fatal. This causes the task to retry its readings/whatever else
  * failed MAX_ERROR_COUNT times, then fail and send error event.
  * TODO: ensure this is max 500 ms to meet rules for cell reading times
+ *
+ * @return true if errorCounterRed is below or equal to max error count, false otherwise
+ */
+bool boundedContinueRedCar()
+{
+    if ((++errorCounterRed) > MAX_ERROR_COUNT) {
+        BatteryTaskError();
+        return false;
+    } else {
+        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        return true;
+    }
+}
+
+/**
+ * @brief Call on a succesful run through main loop.
+ * Decrements error counter on succesful run through main loop
+ */
+void ERROR_COUNTER_RED_SUCCESS()
+{
+  if (errorCounterRed > 0)
+  {
+    errorCounterRed--;
+  }
+}
+
+static uint32_t errorCounter = 0;
+
+/**
+ * @brief This is NOT for a red car state and can be used for places we should go hv down. Called by battery task in an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
  *
  * @return true if errorCounter is below or equal to max error count, false otherwise
  */
 bool boundedContinue()
 {
     if ((++errorCounter) > MAX_ERROR_COUNT) {
-        BatteryTaskError();
+        ERROR_PRINT("Battery Error occured!\n");
+        sendDTC_FATAL_BMU_ERROR();
+        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
         return false;
     } else {
         DEBUG_PRINT("Error counter %d\n", (int)errorCounter);
@@ -571,6 +607,7 @@ bool boundedContinue()
         return true;
     }
 }
+
 
 /**
  * @brief Call on a succesful run through main loop.
@@ -583,7 +620,6 @@ void ERROR_COUNTER_SUCCESS()
     errorCounter--;
   }
 }
-
 
 /**
  * Alpha value for cell voltage filter
@@ -1129,25 +1165,19 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         // Check in before delay
         watchdogTaskCheckIn(BATTERY_TASK_ID);
-        if (CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS) {
-            ERROR_PRINT("Cell relaxation time %d > task period %d",
-                        CELL_RELAXATION_TIME_MS, BATTERY_CHARGE_TASK_PERIOD_MS);
-            BatteryTaskError();
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
-        }
+        vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
 
         if (readCellVoltagesAndTemps() != HAL_OK) {
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            BatteryTaskError();
+            if (boundedContinueRedCar()) { continue; }
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (checkForOpenCircuit() != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            BatteryTaskError();
+            if (boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1165,7 +1195,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 ((float *)&TempCellMax), ((float *)&TempCellMin),
                 &packVoltage, &adjustedPackVoltage) != HAL_OK)
         {
-            BatteryTaskError();
+            if (boundedContinueRedCar()) { continue; }
         }
 
         /*
@@ -1305,6 +1335,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         publishAdjustedPackVoltage(adjustedPackVoltage);
 
         // Succesfully reach end of loop, update error counter to reflect that
+        ERROR_COUNTER_RED_SUCCESS();
         ERROR_COUNTER_SUCCESS();
         /* !!! Change the check in in bounded continue as well if you change
          * this */
@@ -1316,6 +1347,31 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 }
 
 /**
+ * @brief Check if the cell parameters are close to the red car according to rules
+ * @param maxCell Maximum cell voltage
+ * @param minCell Minimum cell voltage
+ * @param maxTemp Maximum cell temperature
+ * @return true if close to red zone, false otherwise
+ */
+bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
+    if (maxCell > DEFAULT_LIMIT_OVERVOLTAGE - 0.1) {
+        DEBUG_PRINT("max cell");
+        return true;
+    }
+
+    if (minCell < DEFAULT_LIMIT_UNDERVOLTAGE + 0.15) {
+        DEBUG_PRINT("min cell");
+        return true;
+    }
+
+    if (maxTemp > CELL_MAX_TEMP_C - 2) {
+        DEBUG_PRINT("max temp");
+        return true;
+    }
+    
+    return false;
+}
+/**
  * @brief Task to monitor cell voltages and temperatures, as well as perform
  * balance charging
  */
@@ -1325,7 +1381,6 @@ void batteryTask(void *pvParameter)
     {
        Error_Handler();
     }
-
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
     HAL_StatusTypeDef ret = HAL_ERROR;
@@ -1341,7 +1396,13 @@ void batteryTask(void *pvParameter)
     {
         BatteryTaskFailure = BATTERY_START_FAIL_BIT;
         sendCAN_BMU_BatteryChecks();
-        BatteryTaskError();
+        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+        TickType_t xLastWakeTime = xTaskGetTickCount();
+        while (1) {
+            // Suspend this task while still updating watchdog
+            watchdogTaskCheckIn(BATTERY_TASK_ID);
+            vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        }
     }
 #endif
 
@@ -1433,7 +1494,7 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinue()) { continue; }
+            if (boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1442,18 +1503,28 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinue()) { continue; }
+            if (boundedContinueRedCar()) { continue; }
         }
 #endif
-        if (checkCellVoltagesAndTemps(
+        //  read the voltages and temps for close to red checks
+        HAL_StatusTypeDef ret = checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
-              &packVoltage, &adjustedPackVoltage) != HAL_OK)
-        {
+              &packVoltage, &adjustedPackVoltage);
+        
+        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+            BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
+            ERROR_PRINT("Going HV Down close to edge");
+            if (boundedContinue()) { continue; }
+        }
+
+        // check if the voltages and temps are within safe limits
+        if (ret != HAL_OK) {
             BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed check of battery cell voltages and temps\n");
-            if (boundedContinue()) { continue; }
+            if (boundedContinueRedCar()) { continue; }
         }
 
         if (publishPackVoltage(packVoltage) != HAL_OK) {
@@ -1491,6 +1562,7 @@ void batteryTask(void *pvParameter)
             released_soc = true;
         }
         // Succesfully reach end of loop, update error counter to reflect that
+        ERROR_COUNTER_RED_SUCCESS();
         ERROR_COUNTER_SUCCESS();
         /*!!! Change the check in in bounded continue as well if you change
          * this */
