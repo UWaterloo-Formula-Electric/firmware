@@ -9,6 +9,8 @@
  ******************************************************************************
  */
 
+#include <stdlib.h>
+
 #include "brakeAndThrottle.h"
 #include "debug.h"
 #include "FreeRTOS.h"
@@ -28,6 +30,7 @@
 #endif
 
 // #define DISABLE_THROTTLE_B_CHECKS
+#define MAX_CONSECUTIVE_THROTTLE_IMPLAUSABILITIES 10
 
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
@@ -116,13 +119,21 @@ uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
 
 bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
 {
-    if (throttle1_percent == throttle2_percent
-        || ((throttle1_percent > throttle2_percent) && ((throttle1_percent - throttle2_percent) < TPS_TOLERANCE_PERCENT))
-        || ((throttle2_percent > throttle1_percent) && ((throttle2_percent - throttle1_percent) < TPS_TOLERANCE_PERCENT)))
+    static uint8_t implausabilityCount = 0;
+    if ( abs( throttle1_percent - throttle2_percent ) < TPS_TOLERANCE_PERCENT )
     {
+        implausabilityCount = 0;
         return true;
-    } else {
-        return false;
+    } 
+    else 
+    {
+        implausabilityCount++;
+        if (implausabilityCount >= MAX_CONSECUTIVE_THROTTLE_IMPLAUSABILITIES)
+        {
+            return false;
+        }
+        
+        return true;
     }
 }
 
