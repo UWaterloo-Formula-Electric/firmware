@@ -47,7 +47,7 @@
 #define W_TO_KW (1.0f/1000.0f)
 //comment out to remove 80kw power limit
 
-#define ENABLE_POWER_LIMIT
+// #define ENABLE_POWER_LIMIT
 #define INV_POWER_LIMIT 62000.0 //80kw
 
 
