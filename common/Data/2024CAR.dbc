@@ -67,8 +67,42 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
+<<<<<<< Updated upstream
 BO_ 2565800180 Read_IMD_Error_Threshold: 8 IMD
  SG_ IMD_Index : 0|64@1+ (1,0) [0|1.84467440737096E+019] ""  BMU
+=======
+BO_ 2565862644 Read_IMD_Error_Threshold: 8 Vector__XXX
+ SG_ IMD_Index : 0|8@1- (1,0) [0|0] "" Vector__XXX
+
+BO_ 2365566721 MC_Diag_Data: 8 INV
+ SG_ INV_Diag_SubIndex M : 8|8@1+ (1,0) [0|5] "" Vector__XXX
+ SG_ INV_Diag_Record : 0|8@1+ (1,0) [0|160] "" Vector__XXX
+ SG_ INV_Diag_Vqs_Cmd m4 : 48|16@1- (0.1,0) [-1000|1000] "voltage:V" Vector__XXX
+ SG_ INV_Diag_Vq_Cmd m4 : 16|16@1- (0.1,0) [-1000|1000] "voltage:V" Vector__XXX
+ SG_ INV_Diag_Vdc m2 : 32|16@1- (0.1,0) [0|1000] "voltage:V" Vector__XXX
+ SG_ INV_Diag_Vd_Cmd m4 : 32|16@1- (0.1,0) [-1000|1000] "voltage:V" Vector__XXX
+ SG_ INV_Diag_Sin_Corr m0 : 48|16@1- (0.01,0) [-327.68|327.67] "voltage:V" Vector__XXX
+ SG_ INV_Diag_Flux_Weak_Out m3 : 48|16@1+ (0.1,0) [0|25.5] "" Vector__XXX
+ SG_ INV_Diag_Run_Faults_Lo m5 : 32|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ INV_Diag_Run_Faults_Hi m5 : 48|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ INV_Diag_PWM_Freq m5 : 16|16@1+ (1,0) [0|24] "frequency:kHz" Vector__XXX
+ SG_ INV_Diag_Mod_Index m3 : 32|16@1- (0.0001,0) [0|2] "" Vector__XXX
+ SG_ INV_Diag_Iq_cmd m2 : 48|16@1- (0.1,0) [-2000|2000] "current:A" Vector__XXX
+ SG_ INV_Diag_Id_cmd m3 : 16|16@1- (0.1,0) [-2000|2000] "current:A" Vector__XXX
+ SG_ INV_Diag_Ic m2 : 16|16@1- (0.1,0) [-2000|2000] "current:A" Vector__XXX
+ SG_ INV_Diag_Ib m1 : 48|16@1- (0.1,0) [-2000|2000] "current:A" Vector__XXX
+ SG_ INV_Diag_Ia m1 : 32|16@1- (0.1,0) [-2000|2000] "current:A" Vector__XXX
+ SG_ INV_Diag_Gamma_Resolver m0 : 16|16@1- (0.1,0) [0|360] "angle:deg" Vector__XXX
+ SG_ INV_Diag_Gamma_Observer m0 : 32|16@1- (0.1,0) [0|360] "angle:deg" Vector__XXX
+ SG_ INV_Diag_Cos_Corr m1 : 16|16@1- (0.01,0) [-327.68|327.67] "voltage:V" Vector__XXX
+
+BO_ 2215772680 WSBFL_BrakePressure: 8 WSBFL
+ SG_ RearBrakePressure : 0|16@1- (1,0) [0|0] "PSI"  VCU_F7
+
+BO_ 2365587201 MC_Torque_Capability: 8 INV
+ SG_ Regen_Torque_Available : 16|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
+ SG_ Motor_Torque_Available : 0|16@1- (1,0) [0|0] "Nm_x_10" Vector__XXX
+>>>>>>> Stashed changes
 
 BO_ 2282621955 PDU_Charging_Lipo_Status: 1 PDU
  SG_ Charging_Lipo_Status : 0|4@1+ (1,0) [0|0] "" Vector__XXX
