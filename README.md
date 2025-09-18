@@ -123,10 +123,7 @@ sudo nano /etc/paths
 2. There are some security issues with ARM Mac when you run `make all`
   - Some messages like this: “arm-none-eabi” cannot be opened because the developer cannot be verified
   - Please do **NOT** click delete the file -> click cancel
-  - Copy the file name such as "ar" or "as" and search the executable with the same name in the folder `arm-none-eabi-gcc` you just renamed
-  - Right-click on the executable -> click open -> click open again
-  - A terminal should pop up -> just close the terminal -> run `make all` again
-  - If the file name is not an executable -> open it with a text editor
+  - To fix this, follow the instructions found [here](https://support.apple.com/en-ca/guide/mac-help/mh40616/mac).
   - Continue the above steps until it doesn't show you the message again (there are around 10~15 executables)
 
 
