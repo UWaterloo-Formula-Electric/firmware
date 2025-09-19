@@ -50,9 +50,9 @@ HAL_StatusTypeDef sensorTaskInit()
 void sensorTask(void *pvParameters)
 {
     
-    if (registerTaskToWatch(3, 2*pdMS_TO_TICKS(SENSOR_TASK_PERIOD), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(BSPD_SENSE_TASK_ID, 2*pdMS_TO_TICKS(SENSOR_TASK_PERIOD), false, NULL) != HAL_OK)
     {
-        ERROR_PRINT("Failed to register battery task with watchdog!\n");
+        ERROR_PRINT("Failed to register sensor task with watchdog!\n");
         Error_Handler();
     }
 

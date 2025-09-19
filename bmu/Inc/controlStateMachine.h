@@ -47,7 +47,7 @@ char BMU_states_string[][25] =
 
 typedef enum BMU_Events_t {
     EV_Init = 0,                ///< 0: Event to init the state machine
-    EV_HV_Toggle,               ///< 1: Triggered by CAN message from DCU
+    EV_HV_Toggle,               ///< 1: Triggered by CAN message from VCU
     EV_Precharge_Finished,      ///< 2: Precharge is complete
     EV_Discharge_Finished,      ///< 3: Discharge is complete
     EV_PrechargeDischarge_Fail, ///< 4: PC/DC has failed, check debug log

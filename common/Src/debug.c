@@ -286,21 +286,13 @@ static const CLI_Command_Definition_t boardHeartbeatInfoCommandDefinition =
 #endif // DISABLE_CAN_FEATURES
 
 #define TASK_LIST_NUM_BYTES_PER_TASK 50
-char *taskListBuffer = NULL; // A buffer to store taskList string in,
+#define MAX_NUM_TASKS 50 // originally was dynamically allocated but caused resets on the bmu, we really shouldn't be using more than 50 tasks so this is fine
+char taskListBuffer[MAX_NUM_TASKS * TASK_LIST_NUM_BYTES_PER_TASK]; // A buffer to store taskList string in,
                             // should be on first call, and never freed
 BaseType_t taskListCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     static char *currentStringPointer = NULL;
-
-    if (taskListBuffer == NULL) {
-        UBaseType_t numTasks = uxTaskGetNumberOfTasks();
-        taskListBuffer = (char *)pvPortMalloc(numTasks*TASK_LIST_NUM_BYTES_PER_TASK);
-        if (taskListBuffer == NULL) {
-            COMMAND_OUTPUT("Failed to malloc taskListBuffer!\n");
-            return pdFALSE;
-        }
-    }
 
     if (currentStringPointer == NULL) {
         // We haven't created any output yet, so gather the stats to output
@@ -337,21 +329,12 @@ static const CLI_Command_Definition_t taskListCommandDefinition =
 };
 
 #define STATS_LIST_NUM_BYTES_PER_TASK 50
-char *statsListBuffer = NULL; // A buffer to store taskList string in,
+char statsListBuffer[MAX_NUM_TASKS * STATS_LIST_NUM_BYTES_PER_TASK]; // A buffer to store taskList string in,
                             // should be on first call, and never freed
 BaseType_t statsListCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     static char *currentStringPointer = NULL;
-
-    if (statsListBuffer == NULL) {
-        UBaseType_t numTasks = uxTaskGetNumberOfTasks();
-        statsListBuffer = (char *)pvPortMalloc(numTasks*STATS_LIST_NUM_BYTES_PER_TASK);
-        if (statsListBuffer == NULL) {
-            COMMAND_OUTPUT("Failed to malloc statsListBuffer!\n");
-            return pdFALSE;
-        }
-    }
 
     if (currentStringPointer == NULL) {
         // We haven't created any output yet, so gather the stats to output

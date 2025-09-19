@@ -87,6 +87,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         }
 #endif
     }
+    /* the IVT-S (shunt) module uses CAN standard IDs*/
+    else if (RxHeader.IDE == CAN_ID_STD) {
+        if (parseCANData(RxHeader.StdId, RxData) != HAL_OK) { 
+                ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.StdId);
+            }
+    }
 }
 
 //Currently not used (we use FIFO0)

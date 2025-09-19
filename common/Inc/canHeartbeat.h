@@ -8,7 +8,7 @@
 #include "boardTypes.h"
 
 #define HEARTBEAT_PERIOD_TICKS 1000
-#define HEARTBEAT_TIMEOUT_TICKS 2500
+#define HEARTBEAT_TIMEOUT_TICKS 15000
 
 extern bool heartbeatEnabled;
 extern bool DCU_heartbeatEnabled;

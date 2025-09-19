@@ -1,3 +1,13 @@
+/**
+ *******************************************************************************
+ * @file    traction_control.c
+ * @author	Unknown
+ * @date    Dec 2024
+ * @brief   Traction control algorithm (not currently used)
+ *
+ ******************************************************************************
+ */
+
 #include "traction_control.h"
 #include "stdint.h"
 #include "stdbool.h"
@@ -10,8 +20,7 @@
 #include "task.h"
 #include "bsp.h"
 #include "stm32f7xx_hal_tim.h"
-
-#define PI 3.14159
+#include "wheelConstants.h"
 
 /*
 The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
@@ -23,15 +32,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 35
 #define TRACTION_CONTROL_TASK_PERIOD_S (((float)TRACTION_CONTROL_TASK_PERIOD_MS)/1000.0f)
-#define RPM_TO_RADS(rpm) ((rpm)*2*PI/60.0f)
 
-// Macros for converting RPM to KPH
-#define GEAR_RATIO ((float)(12.0/45.0))
-#define M_TO_KM 1.0/1000.0f
-#define WHEEL_DIAMETER_M 0.525
-#define WHEEL_CIRCUMFERENCE WHEEL_DIAMETER_M*PI
-#define SECS_PER_HOUR (3600.0f)
-#define RADS_TO_KPH(rads) ((rads) * (WHEEL_DIAMETER_M/2.0) * SECS_PER_HOUR * M_TO_KM)
 #define TC_kP_DEFAULT (10.0f)
 #define TC_kI_DEFAULT (0.0f)
 #define TC_kD_DEFAULT (0.0f)
@@ -71,6 +72,7 @@ float adjustment_torque_floor = ADJUSTMENT_TORQUE_FLOOR_DEFAULT;
 void disable_TC(void)
 {
 	tc_on = false;
+	TC_LED_OFF;
 }
 
 void toggle_TC(void)
@@ -206,7 +208,7 @@ void tractionControlTask(void *pvParameters)
 	if (registerTaskToWatch(TRACTION_CONTROL_TASK_ID, 2*pdMS_TO_TICKS(TRACTION_CONTROL_TASK_PERIOD_MS), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init traction control task, suspending traction control task\n");
-		while(1);
+		Error_Handler();
 	}
 
 	WheelSpeed_S wheel_data = {0};

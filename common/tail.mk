@@ -26,6 +26,7 @@ MAP_FILE = $(BIN_DIR)/$(MAP_FILE_NAME)
 SRC_DIR = $(BUILD_TARGET)/Src
 COMMON_LIB_DIR = common/
 COMMON_F7_LIB_DIR = $(COMMON_LIB_DIR)/f7
+COMMON_F4_LIB_DIR = $(COMMON_LIB_DIR)/f4
 COMMON_F0_LIB_DIR = $(COMMON_LIB_DIR)/f0
 GITHOOKS_DIR = $(COMMON_LIB_DIR)/.githooks
 
@@ -79,6 +80,8 @@ else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F0)
 	include $(CUBE_NUCLEO_F0_MAKEFILE_PATH)/Cube-Lib.mk
 else ifeq ($(BOARD_ARCHITECTURE), F0)
 	include $(CUBE_F0_MAKEFILE_PATH)/Cube-Lib.mk
+else ifeq ($(BOARD_ARCHITECTURE), F4)
+	include $(CUBE_F4_MAKEFILE_PATH)/Cube-Lib.mk
 else
     $(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
@@ -92,6 +95,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(BOARD_DEPDIR)/$*.Td
 INCLUDE_DIRS = $(COMMON_LIB_DIR)/Inc \
 			  $(COMMON_F7_LIB_DIR)/Inc \
 			  $(COMMON_F0_LIB_DIR)/Inc \
+			  $(COMMON_F4_LIB_DIR)/Inc \
 			  $(BUILD_TARGET)/Inc \
 			  $(F7_INC_DIR) \
 			  $(GEN_INC_DIR)
@@ -107,6 +111,8 @@ ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
 DEFINES := "STM32F767xx"
 else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
 DEFINES := "STM32F072xB"
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F4 F4))
+DEFINES := "STM32F417xx"
 else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
@@ -119,6 +125,7 @@ LINKER_FLAGS =$(LIB_LDFLAGS)
 LINKER_FLAGS += -Wl,-Map=$(MAP_FILE),--cref
 LINKER_FLAGS += -u_printf_float -u_scanf_float
 LINKER_FLAGS += -Wl,--undefined=uxTopUsedPriority
+LINKER_FLAGS += -Wl,--no-warn-rwx-segments
 LINKER_FLAGS += -z muldefs
 
 # Assembler Flags
@@ -127,7 +134,7 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 NOTES ?= "N/A"
 # Compiler Flags
 COMPILER_FLAGS = $(LIB_CFLAGS)
-COMPILER_FLAGS += $(DEFINE_FLAGS) -Werror
+COMPILER_FLAGS += $(DEFINE_FLAGS) -Werror -Wno-format-truncation
 COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
 COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
 COMPILER_FLAGS += -D CUR_HASH=$(CURRENT_HASH)
@@ -151,10 +158,12 @@ SRCASM = $(LIB_ASM_SOURCES)
 
 ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
    SRC += $(addprefix $(COMMON_F7_LIB_DIR)/Src/, $(COMMON_F7_LIB_SRC))
-else ifeq ($(BOARD_TYPE), $(filter $(BOARD_TYPE), NUCLEO_F0 F0))
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
    SRC += $(addprefix $(COMMON_F0_LIB_DIR)/Src/, $(COMMON_F0_LIB_SRC))
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F4 F4))
+   SRC += $(addprefix $(COMMON_F4_LIB_DIR)/Src/, $(COMMON_F4_LIB_SRC))
 else
-	$(error "Unsupported Board type: $(BOARD_TYPE)")
+	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
 
 ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F7)
@@ -165,6 +174,10 @@ else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F0)
    SRC += $(addprefix $(NUCLEO_F0_SRC_DIR)/, $(NUCLEO_F0_SRC))
 else ifeq ($(BOARD_ARCHITECTURE), F0)
    SRC += $(addprefix $(F0_SRC_DIR)/, $(F0_SRC))
+else ifeq ($(BOARD_ARCHITECTURE), NUCLEO_F4)
+   SRC += $(addprefix $(NUCLEO_F4_SRC_DIR)/, $(NUCLEO_F4_SRC))
+else ifeq ($(BOARD_ARCHITECTURE), F4)
+   SRC += $(addprefix $(F4_SRC_DIR)/, $(F4_SRC))
 else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
@@ -239,9 +252,11 @@ $(BIN_DIR)/%.o: %.S
 #######################################
 
 ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F7 F7))
-F0_OR_F7 := "F7"
+F0_OR_F7_OR_F4 := "F7"
 else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F0 F0))
-F0_OR_F7 := "F0"
+F0_OR_F7_OR_F4 := "F0"
+else ifeq ($(BOARD_ARCHITECTURE), $(filter $(BOARD_ARCHITECTURE), NUCLEO_F4 F4))
+F0_OR_F7_OR_F4 := "F4"
 else
 	$(error "Unsupported Board type: $(BOARD_ARCHITECTURE)")
 endif
@@ -250,10 +265,10 @@ autogen: $(GEN_FILES)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
-$(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: BOARD_F0_OR_F7 := $(F0_OR_F7)
+$(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: BOARD_F0_OR_F7_OR_F4 := $(F0_OR_F7_OR_F4)
 $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c: $(CAN_FILES_GEN_SCRIPT) $(DBC_FILE)
 	@mkdir -p $(GEN_DIR)
-	@$(CAN_FILES_GEN_SCRIPT) $(CURR_BOARD) $(BOARD_F0_OR_F7)
+	@python $(CAN_FILES_GEN_SCRIPT) $(CURR_BOARD) $(BOARD_F0_OR_F7_OR_F4)
 
 $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c
 
@@ -318,6 +333,8 @@ ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F7 F7))
    OPENOCD_FILE := target/stm32f7x.cfg
 else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F0 F0))
    OPENOCD_FILE := target/stm32f0x.cfg
+else ifeq ($(LOAD_BOARD_ARCH), $(filter $(LOAD_BOARD_ARCH), NUCLEO_F4 F4))
+   OPENOCD_FILE := target/stm32f4x.cfg
 else
 	$(error "Unsupported Board type: $(BOARD_TYPE)")
 endif

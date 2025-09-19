@@ -13,7 +13,6 @@
 // This is subject to change and is expected to be 100ms
 #define BATTERY_TASK_PERIOD_MS 100
 #define BATTERY_CHARGE_TASK_PERIOD_MS 500
-#define BATTERY_TASK_ID 2
 
 /**
  * @defgroup CellConfig
@@ -104,6 +103,11 @@
 #define READ_CELL_VOLTAGE_TEMPS_FAIL_BIT            (1U << 2)
 #define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
 #define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
+#define CLOSE_TO_RED_FAIL_BIT                       (1U << 5)
+
+#if CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS
+#error "Cell relaxation time must be < task period battery charge task period"
+#endif
 
 /* 
  * canSendTask sends in multiples of 3 as 8 bits must be used for the muxIndex leaving 56 data bits for cell readings of 16 bits each
@@ -123,7 +127,7 @@ typedef enum ChargeReturn
 } ChargeReturn;
 
 // Used by FAN Control to determine when to turn on fans
-#define CELL_MAX_TEMP_C (55.0)
+#define CELL_MAX_TEMP_C (60.0)
 
 typedef enum Balance_Type_t {
     USING_CLI,
@@ -152,6 +156,9 @@ void clearSendOnlyOneCell();
 HAL_StatusTypeDef cliSetVBatt(float VBatt);
 HAL_StatusTypeDef cliSetVBus(float VBus);
 HAL_StatusTypeDef cliSetIBus(float IBus);
+HAL_StatusTypeDef publishBusVoltage(float *pVBus);
+HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
+HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
 #endif /* end of include guard: BATTERIES_H */
