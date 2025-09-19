@@ -4,7 +4,7 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 
 # Onboarding Instructions
 
-- [OpenProject Access](#open-project)
+- [Notion Access](#notion)
 - [SSH Key](#ssh-key-set-up)
 - [Vagrant (Windows Only)](#Vagrant-Environment-Set-Up-for-Windows-Users)
 - [Mac OS](#mac-os-set-up)
@@ -12,13 +12,12 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 - [Other Resources](#other-resources)
 - [FAQ](#FAQ)
 
-# Open Project
+# Notion
 
-We use Open Project for task management. Steps to get set up:
+We use Notion for task management and documentation. Steps to get set up:
 
-1. Visit http://owenbrake.com/pm
-2. Create an account with your school email
-3. Message your email in the new-members thread under #firmware on Slack, and a lead will add you to the project
+1. Create a Notion account with your school email
+2. Fill out this [form](https://forms.gle/Mz7rk66djoDZY9Fv9) and we will invite you to the team's Notion workspace
 
 # SSH Key Set Up
 
@@ -39,7 +38,7 @@ The repository we use is found [here](https://github.com/UWaterloo-Formula-Elect
 ### Prerequisites
 
 - Install the latest version of [Vagrant](https://developer.hashicorp.com/vagrant/downloads)
-- Install the latest version of [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+- Install 7.0.18 version of [VirtualBox](https://www.virtualbox.org/wiki/Download_Old_Builds_7_0). DON'T install the latest version, there are compatibility issues with Vagrant.
 - Install the matching [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads) to get USB data
   After installing the above, verify the Vagrant installation worked by opening a new command prompt or console, and checking that **vagrant** is available.
 
@@ -105,8 +104,8 @@ brew install open-ocd
 brew info open-cd
 ```
 
-4. install [the compiler toolchain](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-mac.tar.bz2?revision=d0d318de-b746-489f-98b0-9d89648ce910&hash=DB1DA90A2BC0E5A0D3FA92D4E7D2E9A6F4A2118D)
-5. Unzip the package you just installed and put it in the directory `/Applications/ARM` (you may need to create the `ARM` directory)
+4. Download [the compiler toolchain](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-mac.tar.bz2?revision=d0d318de-b746-489f-98b0-9d89648ce910&hash=DB1DA90A2BC0E5A0D3FA92D4E7D2E9A6F4A2118D)
+5. Unzip the package you just downloaded and put it in the directory `/Applications/ARM` (you may need to create the `ARM` directory)
 6. Rename the folder name in the directory `/Applications/ARM` to `arm-none-eabi-gcc` (old name should be something like this: `gcc-arm-none-eabi-9-2020-q2-update-mac`)
 7. in the file `/etc/paths` add the directory `/Applications/ARM/arm-none-eabi-gcc/bin`. ([see the original instructions](https://gist.github.com/disposedtrolley/06d37e1db82b80ccf8c5d801eaa29373))
   - Enter following command to open paths file in `/etc/paths`:
@@ -124,10 +123,7 @@ sudo nano /etc/paths
 2. There are some security issues with ARM Mac when you run `make all`
   - Some messages like this: “arm-none-eabi” cannot be opened because the developer cannot be verified
   - Please do **NOT** click delete the file -> click cancel
-  - Copy the file name such as "ar" or "as" and search the executable with the same name in the folder `arm-none-eabi-gcc` you just renamed
-  - Right-click on the executable -> click open -> click open again
-  - A terminal should pop up -> just close the terminal -> run `make all` again
-  - If the file name is not an executable -> open it with a text editor
+  - To fix this, follow the instructions found [here](https://support.apple.com/en-ca/guide/mac-help/mh40616/mac).
   - Continue the above steps until it doesn't show you the message again (there are around 10~15 executables)
 
 
