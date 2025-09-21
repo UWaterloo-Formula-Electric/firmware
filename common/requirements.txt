@@ -1,5 +1,5 @@
 bitstruct>=6.0.0
-cantools>=37.0.0
+cantools==35.0.0
 pyparsing>=3.0.9
 python-can>=3.3.0
 sphinx>=3.3.1

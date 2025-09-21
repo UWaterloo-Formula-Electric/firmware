@@ -1,0 +1,45 @@
+{
+  "name": "UWFE Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      // Pin your exact ARM toolchain here (matches Dockerfile ARG)
+      "ARM_GCC_VERSION": "14.3.rel1"
+    }
+  },
+
+  // Let the container see USB + allow debugging (ptrace)
+  "runArgs": [
+    "--privileged",
+    "--cap-add=SYS_PTRACE",
+    "--security-opt", "seccomp=unconfined",
+    "--device=/dev/bus/usb:/dev/bus/usb"
+  ],
+
+  // Handy features/utilities
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.makefile-tools",
+        "ms-vscode.cmake-tools",
+        "ms-python.python"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  // Build/test right after first open
+  "postCreateCommand": "arm-none-eabi-gcc --version && openocd --version || true",
+}

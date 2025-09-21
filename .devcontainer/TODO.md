@@ -1,0 +1,3 @@
+- [X] Set the right ARM toolchain version in `Dockerfile` and `devcontainer.json`. `devcontainer.json` should inherit the value/arg from Dockerfile
+- [ ] Update instructions in `README.md`
+- [ ] Describe developer workflow when using the container. Git operations should be done locally (not in the container)
