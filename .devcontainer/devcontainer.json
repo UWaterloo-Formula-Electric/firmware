@@ -41,5 +41,5 @@
   },
 
   // Build/test right after first open
-  "postCreateCommand": "arm-none-eabi-gcc --version && openocd --version || true",
+  "postCreateCommand": "arm-none-eabi-gcc --version && openocd --version || true"
 }
