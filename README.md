@@ -75,7 +75,7 @@ swap=8GB            # swap size (0 disables)
 3. In VSC, open the Dev Container. To do this: `Ctrl + Shift + P` or `Cmd + Shift + P` and type `Dev Containers: Open Folder in Container`
     - This builds the image once, installs the toolchain & Python deps, and opens a shell in the container. 
     - Note: First time building the container will take a long time (~5-8 minutes) but subsequent builds will be significantly faster (~15 seconds)
-3. Build the code by running the following command:
+3. Open a terminal inside VSC Dev Container. Then build the code by running the following command:
     ```
     # Format
     make {board}
