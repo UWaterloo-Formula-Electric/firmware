@@ -101,7 +101,7 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
 
 ```
 brew install open-ocd
-brew info open-cd
+open-ocd
 ```
 
 4. Download the compiler toolchain from here [Apple silicon](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-arm64-arm-none-eabi.tar.xz) or here [x86 Macbook](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-x86_64-arm-none-eabi.tar.xz)
@@ -133,10 +133,6 @@ python3 -m pip install -r common/requirements.txt
 
 
 ### Building the Firmware
-
-When running `make` it looks for the python binary, which is pointed to Python 2.7 on the VM. However, you probably want to use Python 3.8. If Python 3.8 isn't installed on your machine, install it by running: `brew install python3.8`
-
-Then, link the python binary to Python 3.8 by running: `sudo ln -s -f /usr/local/bin/python3.8 /usr/local/bin/python`
 
 Make sure you have the right version of cantools. If you run into issues regarding this, you can try running the following commands
 
@@ -186,3 +182,63 @@ arm-none-eabi-gcc --version
 # FAQ
 
 (will be updated over time, feel free to open a PR)
+
+# Deprecated Section
+__Everything below is deprecated!!!__
+# Vagrant Environment Set Up for Windows Users
+
+### Overview
+
+Vagrant is an open-source software product for building and maintaining portable virtual software development environments. We will be using it to create an Ubuntu VM for VirtualBox.
+The repository we use is found [here](https://github.com/UWaterloo-Formula-Electric/vagrant).
+
+### Prerequisites
+
+- Install the latest version of [Vagrant](https://developer.hashicorp.com/vagrant/downloads)
+- Install 7.0.18 version of [VirtualBox](https://www.virtualbox.org/wiki/Download_Old_Builds_7_0). DON'T install the latest version, there are compatibility issues with Vagrant.
+- Install the matching [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads) to get USB data
+  After installing the above, verify the Vagrant installation worked by opening a new command prompt or console, and checking that **vagrant** is available.
+
+```
+$ vagrant
+Usage: vagrant [options] <command> [<args>]
+
+    -v, --version                    Print the version and exit.
+    -h, --help                       Print this help.
+
+# ...
+```
+
+### Getting Started
+
+Make sure everything under **Prerequisites** has been installed, and that you have an SSH key added for your host computer to have GitHub access (check the link above).
+
+Then, run the following commands:
+
+```
+git clone git@github.com:UWaterloo-Formula-Electric/vagrant.git
+cd vagrant
+vagrant up
+vagrant reload
+```
+
+(may take a while to complete)
+The commands above clone the vagrant repo which you only need to do this one time in your set up. The next time, you can just call `vagrant up`. When its done, you will see a login window pop up. Do not maximize the window when on the login page (for some reason, this causes it to freeze). Click on the user "vagrant" and login with the password: **vagrant**.
+
+The **shared/** directory in the VM is shared between your host computer (your laptop) and the virtual environment. The location in your host computer is the path to where you cloned the vagrant repo.
+
+To turn off the machine, run `vagrant halt` in the same terminal.
+
+### Clone Firmware
+
+Clone the firmware repository into the `vagrant/shared/` directory on your host computer. Navigate to where you cloned the **vagrant** repo.
+
+```
+cd shared
+git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
+
+```
+
+### Troubleshooting
+
+This [document](http://208.68.36.87/projects/firmware/wiki/vagrant-set-up) contains more in-depth instructions in case you have any issues you need to troubleshoot. Also feel free to message in #firmware for asssistance!
