@@ -2,8 +2,8 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG ARM_GCC_VERSION=14.3.rel1 
-# This is the latest version as of Sept 2025
+ARG ARM_GCC_VERSION=14.2.rel1 
+# This is the latest version as of Sept 2025 that still supports Mac on X86_64 chips.
 
 # 1) system tools
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -6,7 +6,8 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 
 - [Notion Access](#notion)
 - [SSH Key](#ssh-key-set-up)
-- [Vagrant (Windows Only)](#Vagrant-Environment-Set-Up-for-Windows-Users)
+- [Git Configuration](#git-configuration)
+- [Windows](#windows-setup)
 - [Mac OS](#mac-os-set-up)
 - [Linux](#linux-set-up)
 - [Other Resources](#other-resources)
@@ -28,85 +29,84 @@ SSH key is used for access credentials (think of it as your username and passwor
 
 Note: You can skip this step if you already have a SSH key configured on GitHub
 
-# Vagrant Environment Set Up for Windows Users
+# Git Configuration
+Regardless of what operating system you use, please run the following commands in a terminal (remember to replace the arguments with your name + email). If you are using a Windows machine, you need to install [Git first](#windows-setup)
+```
+git config --global user.name "Your Name"
+git config --global user.email "your_email@example.com"
+git config --global push.autoSetupRemote true
+```
 
+# Windows Setup
+## Installing Git and Cloning the Firmware Repository
+__For Windows only__: By default, Git is not installed on Windows machines. Download Git from [here](https://git-scm.com/downloads/win). When going through the installation, use default options.
+
+Now, navigate to a directory where you want to clone the firmware repository (e.g., `/c/Users/Jacky/UWFE` is my setup on a Windows machine). Inside that directory, right-click and `Open Git Bash Here`. A Git terminal should be opened. Then, run the following command:
+```
+git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
+```
+Now, you have cloned the firmware locally to your computer.
+
+## Docker Container Setup for Windows Users
 ### Overview
-
-Vagrant is an open-source software product for building and maintaining portable virtual software development environments. We will be using it to create an Ubuntu VM for VirtualBox.
-The repository we use is found [here](https://github.com/UWaterloo-Formula-Electric/vagrant).
+Previously, the team used Vagrant to setup a Ubuntu virtual machine to do development but that is method was slow and non-trivial to setup & maintain. We have now transitioned to using a docker container. The process is to use WSL2 to build the Linux container.
 
 ### Prerequisites
+- Open Powershell and run `wsl --install --distribution Ubuntu-24.04`
+- In Visual Studio Code (VSC), install the `Dev Containers` extension: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+- In Powershell, run `winget install usbipd`. This is used to pass the ST-Link to WSL
+- Install [Docker Desktop](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-win-amd64) or [here](https://docs.docker.com/desktop/setup/install/windows-install/). Please use the 2nd hyperlink if you are using an ARM processor on your Windows machine.
 
-- Install the latest version of [Vagrant](https://developer.hashicorp.com/vagrant/downloads)
-- Install 7.0.18 version of [VirtualBox](https://www.virtualbox.org/wiki/Download_Old_Builds_7_0). DON'T install the latest version, there are compatibility issues with Vagrant.
-- Install the matching [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads) to get USB data
-  After installing the above, verify the Vagrant installation worked by opening a new command prompt or console, and checking that **vagrant** is available.
+### Setting Up the Container
+1. Launch Docker Desktop and do the following steps:
+    - Go to `Settings -> General` and ensure "Use the WSL 2 based engine" is ticked
+    - Go to `Settings -> Resources -> WSL Integration` and ensure "Enable integration with my default WSL distro" is ticked
+2. Verify you can launch WSL and run Docker inside it
+    - Open a terminal and run `wsl`
+    - `docker --version` -> should return a version (e.g., `Docker version 26.1.1, build 4cf5afa`)
+    - `docker run hello-world` -> if you see `Hello from Docker!`, everything is good so far!
+3. Open VSC and navigate to the firmware directory that you cloned from earlier. Open a terminal (Ctrl + Shift + `) and launch WSL.
+4. Open up the command pallete by pressing *Ctrl + Shift + P* and type in `Dev Containers: Rebuild and Reopen in Container` and press *Enter*
+    - The container should be building now (Can take up to 5 minutes for the first time) and if the operation was successful, you should see "Done. Press any key to close the terminal" in the terminal.
+    - Click inside the terminal and press any key to close it.
+    - You should now see something similar to `vscode ➜ /workspaces/firmware (main) $ ` in the terminal
+5. Verify you can build the code by running `make all`
+6. __IMPORTANT NOTE__: if you want to flash a board, you need to connect the ST-Link to your computer -> attach it to WSL -> then build the container.
+    - To attach the ST-Link to WSL:
+    ```
+    usbipd list 
+    usbipd attach --wsl --busid <BUSID>
+    ```
 
-```
-$ vagrant
-Usage: vagrant [options] <command> [<args>]
+### Useful WSL Commands to Know
+The following commands only work inside WSL.
+- `exit`  -> to quit WSL environment
 
-    -v, --version                    Print the version and exit.
-    -h, --help                       Print this help.
-
-# ...
-```
-
-### Getting Started
-
-Make sure everything under **Prerequisites** has been installed, and that you have an SSH key added for your host computer to have GitHub access (check the link above).
-
-Then, run the following commands:
-
-```
-git clone git@github.com:UWaterloo-Formula-Electric/vagrant.git
-cd vagrant
-vagrant up
-vagrant reload
-```
-
-(may take a while to complete)
-The commands above clone the vagrant repo which you only need to do this one time in your set up. The next time, you can just call `vagrant up`. When its done, you will see a login window pop up. Do not maximize the window when on the login page (for some reason, this causes it to freeze). Click on the user "vagrant" and login with the password: **vagrant**.
-
-The **shared/** directory in the VM is shared between your host computer (your laptop) and the virtual environment. The location in your host computer is the path to where you cloned the vagrant repo.
-
-To turn off the machine, run `vagrant halt` in the same terminal.
-
-### Clone Firmware
-
-Clone the firmware repository into the `vagrant/shared/` directory on your host computer. Navigate to where you cloned the **vagrant** repo.
-
-```
-cd shared
-git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
-
-```
-
-### Troubleshooting
-
-This [document](http://208.68.36.87/projects/firmware/wiki/vagrant-set-up) contains more in-depth instructions in case you have any issues you need to troubleshoot. Also feel free to message in #firmware for asssistance!
+### Useful Container Commands to Know
+The following commands are expected to be used in VSC, command pallete (*Ctrl + Shift + P*).
+- `Dev Containers: Reopen Folder Locally` -> to quit the container
 
 # Mac OS Set Up
 
 ### Installation
 
-1. Clone the repository from GitHub, run the following command in terminal
+1. Open a terminal and navigate to a local directory where you want to clone the repository from GitHub (e.g., `Users/jacky/UWFE` is my setup on a Mac). Then run the following command:
 
 ```
   git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
 ```
 
 2. Install home-brew http://brew.sh
-3. Install openOCD, in terminal run the following commands (you may have to install missing packages after)
+3. Install openOCD by running the following commands in a terminal (you may have to install missing packages after):
 
 ```
 brew install open-ocd
 brew info open-cd
 ```
 
-4. Download [the compiler toolchain](https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-mac.tar.bz2?revision=d0d318de-b746-489f-98b0-9d89648ce910&hash=DB1DA90A2BC0E5A0D3FA92D4E7D2E9A6F4A2118D)
+4. Download the compiler toolchain from here [Apple silicon](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-arm64-arm-none-eabi.tar.xz) or here [x86 Macbook](https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-x86_64-arm-none-eabi.tar.xz)
 5. Unzip the package you just downloaded and put it in the directory `/Applications/ARM` (you may need to create the `ARM` directory)
-6. Rename the folder name in the directory `/Applications/ARM` to `arm-none-eabi-gcc` (old name should be something like this: `gcc-arm-none-eabi-9-2020-q2-update-mac`)
+6. Rename the folder name in the directory `/Applications/ARM` to `arm-none-eabi-gcc`
 7. in the file `/etc/paths` add the directory `/Applications/ARM/arm-none-eabi-gcc/bin`. ([see the original instructions](https://gist.github.com/disposedtrolley/06d37e1db82b80ccf8c5d801eaa29373))
   - Enter following command to open paths file in `/etc/paths`:
 ```
@@ -116,7 +116,12 @@ sudo nano /etc/paths
   - Add `/Applications/ARM/arm-none-eabi-gcc/bin` to the file
   - Control + X ->  Enter Y -> Hit Enter to save the file
   - Quit the terminal instance
-8. Try to build the firmware, run `make all`
+8. Install the required Python packages:
+```
+python3 -m pip install --upgrade pip
+python3 -m pip install -r common/requirements.txt
+```
+9. Try to build the firmware, run `make all`
    
 ### ARM Mac security issues
 1. If you are getting "Bad CPU type in executable" please install the Mac emulator by running ```softwareupdate --install-rosetta```
@@ -167,17 +172,9 @@ arm-none-eabi-gcc --version
 # warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
-5. Config your git with the following commands
-
-```
-git config --global core.autocrlf input
-git config --global user.email "your_email"
-git config --global user.name "your_name"
-```
-
-6. Clone the firmware repo using the following command: `git clone git@github.com:UWaterloo-Formula-Electric/firmware.git`
-7. Make sure you are in the same directory as the requirements.txt (firmware/common), and run `pip install -r requirements.txt`
-8. Run `make all` within the firmware repo to try and build the code :)
+4. Clone the firmware repo using the following command: `git clone git@github.com:UWaterloo-Formula-Electric/firmware.git`
+5. Make sure you are in the same directory as the requirements.txt (firmware/common), and run `pip install -r requirements.txt`
+6. Run `make all` within the firmware repo to try and build the code :)
 
 # Other Resources
 

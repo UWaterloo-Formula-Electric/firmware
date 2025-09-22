@@ -5,7 +5,7 @@
     "context": "..",
     "args": {
       // Pin your exact ARM toolchain here (matches Dockerfile ARG)
-      "ARM_GCC_VERSION": "14.3.rel1"
+      "ARM_GCC_VERSION": "14.2.rel1"
     }
   },
 
