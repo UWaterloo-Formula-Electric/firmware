@@ -54,7 +54,7 @@ We ship a Dev Container so everyone uses the same toolchain (ARM GCC, OpenOCD, P
     - macOS: brew install open-ocd
     - Linux: your distro’s openocd package
     - Windows: OpenOCD or STM32CubeProgrammer CLI (either is fine)
-- __IMPORTANT__: If you are using Windows, there are additional steps required. Please [read here](#windows-setup). Then reutrn to [Quick Start](#quick-start).
+- __IMPORTANT__: If you are using Windows, there are additional steps required. Please [read here](#windows-setup). Then return to [Quick Start](#quick-start).
 
 Tuning WSL2 (Windows): if builds feel RAM-starved, adjust `%UserProfile%\.wslconfig` and wsl --shutdown. (Optional.). You will need to create `.wslconfig` if it doesn't exist. See an example of `.wslconfig` below:
 ```
