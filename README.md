@@ -92,14 +92,14 @@ swap=8GB            # swap size (0 disables)
 4. To flash a board, you will need a ST-Link connected to your computer + the board you're flashing: 
     ```
     # Command format (only for Mac + Linux)
-    flash {board}
+    make load LOAD_TARGET={board}
 
     # Example: Flashing the BMU (only for Mac + Linux)
-    flash bmu
+    make load LOAD_TARGET=bmu
 
-    # Example for Macbook:
+    # Example for Macbook & Linux:
     1. Open a terminal and navigate to your firmware directory (not using the container here)
-    2. flash {board}
+    2. make load LOAD_TARGET={board}
 
     # Example for Windows:
     1. Open STM32CubeProgrammer
@@ -108,10 +108,6 @@ swap=8GB            # swap size (0 disables)
        e.g., firmware/Bin/bmu/Release/bmu.elf
     4. Click 'Connect' on the top right
     5. Click 'Start Programming'
-
-    # Example for Linux:
-    1. Open a terminal and navigate to the firmware directory.
-    2. flash {board}
     ```
 5. To push your changes, please review [Git Workflow](#git-workflow).
 6. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
@@ -157,6 +153,22 @@ Then, inside the container:
 openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 # and debug with servertype:"openocd" in Cortex-Debug
 ```
+## Example Workflow
+1. Create a new branch for your task
+    - Branch Name Format: `{year}_{baseBranch}_{taskName}`
+    - Branch Name Example: `2025_main_fix_IMD_value`
+    - Command: `git checkout -b 2025_main_fix_IMD_value`
+2. Make changes in code for the bmu
+3. In the container, ensure it can compile by running `make bmu`
+4. Upon successful compilation, flash it onto the BMU
+    - Windows: Use STM32CubeProgrammer to flash the __.elf__ file onto the board
+    - Mac/Linux: Open a terminal outside of the container environment and run `make load LOAD_TARGET=bmu`
+5. The changes has been verified on the board and I have reviewed my changes thoroughly. Now I am ready to push my changes to Git
+    - `git add {modifiedFiles}`
+    - `git commit -m "message summarizing the changes I made"`
+    - `git push`
+6. Once I am confident with my work, create a pull request (PR) and notify one of the firmware leads
+
 ## Notes & troubleshooting
 
 - “How does the container reach my host?”
@@ -176,8 +188,6 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
 ## Windows Setup
 ### Prerequisites
 - Open Powershell and run `wsl --install --distribution Ubuntu-24.04`
-- In Powershell, run `winget install usbipd`. This is used to pass the ST-Link to WSL
-
 
 1. Launch Docker Desktop and do the following steps:
     - Go to `Settings -> General` and ensure "Use the WSL 2 based engine" is ticked
