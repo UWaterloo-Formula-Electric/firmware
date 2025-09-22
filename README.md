@@ -96,6 +96,7 @@ swap=8GB            # swap size (0 disables)
     # Example: Flashing the BMU
     flash bmu
     ```
+5. To push your changes, please review [Git Workflow](#git-workflow).
 5. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
     ```
     # example target; adjust your target cfg (f4x, f7x, etc.)
@@ -177,8 +178,10 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
     usbipd list 
     usbipd attach --wsl --busid <BUSID>
     ```
-4. Now, follow the instructions in __[Quick Start](#quick-start)__
+4. Now, follow the instructions in __[Quick Start](#quick-start)__.
 
+# Git Workflow
+[Git Tutorial](https://www.freecodecamp.org/news/what-is-git-learn-git-version-control/)
 
 
 # Everything below is deprecated!!!__
