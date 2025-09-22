@@ -50,10 +50,10 @@ We ship a Dev Container so everyone uses the same toolchain (ARM GCC, OpenOCD, P
 - VS Code (VSC) + [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
     - To start the container environment in VSC, `Ctrl + Shift + P` or `Cmd + Shift + P` to open the command palette and type in `Open Folder in Container`
 - [Git](#installing-git)
--  OpenOCD on the host (i.e., not in the container).
-    - macOS: brew install open-ocd
+-  Flashing tool on the host (i.e., not in the container).
+    - macOS: `brew install open-ocd` (run the command in a terminal)
     - Linux: your distro’s openocd package
-    - Windows: OpenOCD or STM32CubeProgrammer CLI (either is fine)
+    - Windows: [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html#overview)
 - __IMPORTANT__: If you are using Windows, there are additional steps required. Please [read here](#windows-setup). Then return to [Quick Start](#quick-start).
 
 Tuning WSL2 (Windows): if builds feel RAM-starved, adjust `%UserProfile%\.wslconfig` and wsl --shutdown. (Optional.). You will need to create `.wslconfig` if it doesn't exist. See an example of `.wslconfig` below:
@@ -90,10 +90,10 @@ swap=8GB            # swap size (0 disables)
     ```
 4. To flash a board, you will need a ST-Link connected to your computer + the board you're flashing: 
     ```
-    # Command format
+    # Command format (only for Mac + Linux)
     flash {board}
 
-    # Example: Flashing the BMU
+    # Example: Flashing the BMU (only for Mac + Linux)
     flash bmu
 
     # Example for Macbook:
@@ -101,15 +101,12 @@ swap=8GB            # swap size (0 disables)
     2. flash {board}
 
     # Example for Windows:
-    1. In VSC, run `Dev Containers: Reopen Folder Locally` to quit the container
-    2. Run the following commands in a terminal:
-      usbipd list 
-      usbipd attach --wsl --busid <BUSID>
-      # <BUDID> should correspond to the ST-Link's BUSID
-    3. Create the following file '.devcontainer/devcontainer.local.json' in the firmware folder and add the line below:
-      { "runArgs": ["--device=/dev/bus/usb:/dev/bus/usb"] }
-    4. Launch the container
-    5. flash {board}
+    1. Open STM32CubeProgrammer
+    2. On the left sidebar, click on the download icon (2nd from the top) to open up the 'Erasing & Programming Section'
+    3. Click on 'Browse', navigate to your firmware directory, and select the elf. file for the desired board
+       e.g., firmware/Bin/bmu/Release/bmu.elf
+    4. Click 'Connect' on the top right
+    5. Click 'Start Programming'
 
     # Example for Linux:
     1. Open a terminal and navigate to the firmware directory.
@@ -164,9 +161,6 @@ openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
 - “How does the container reach my host?”
 Use host.docker.internal. On Docker Desktop this is built-in; on Linux engines we map it to the host gateway so it works the same. (OpenOCD listens on :3333 by default.) 
 
-- ST-LINK not detected (WSL path): confirm the device is attached to WSL via usbipd wsl list / attach, then check lsusb in WSL before opening the container. 
-Microsoft Learn
-
 - Git “safe.directory” warning: our container sets a system-wide trust for /workspaces/* on first run. If you still see it, run:
 git config --global --add safe.directory $(pwd)
 
@@ -191,13 +185,7 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
     - Open a terminal and run `wsl`
     - `docker --version` -> should return a version (e.g., `Docker version 26.1.1, build 4cf5afa`)
     - `docker run hello-world` -> if you see `Hello from Docker!`, everything is good so far!
-3. __IMPORTANT NOTE__: if you want to flash a board inside your container, you need to connect the ST-Link to your computer -> attach it to WSL -> then build the container.
-    - To attach the ST-Link to WSL:
-    ```
-    usbipd list 
-    usbipd attach --wsl --busid <BUSID>
-    ```
-4. Now, follow the instructions in __[Quick Start](#quick-start)__.
+3. Now, follow the instructions in __[Quick Start](#quick-start)__.
 
 # Git Workflow
 [Git Tutorial](https://www.freecodecamp.org/news/what-is-git-learn-git-version-control/)
