@@ -109,7 +109,7 @@ swap=8GB            # swap size (0 disables)
     4. Click 'Connect' on the top right
     5. Click 'Start Programming'
     ```
-5. To push your changes, please review [Git Workflow](#git-workflow).
+5. To push your changes, please review [Git Workflow](#git-workflow) and [Example Workflow](#example-workflow).
 6. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
     ```
     # example target; adjust your target cfg (f4x, f7x, etc.)
