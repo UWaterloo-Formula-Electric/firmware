@@ -183,6 +183,7 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
 # Git Workflow
 [Git Tutorial](https://www.freecodecamp.org/news/what-is-git-learn-git-version-control/)
 
+__Note__: On Windows system, if you are running git commands in the host (i.e., not the container), you will need to run `git status` inside the container to pull any git changes (e.g., making a commit, pushing, etc).
 
 # Everything below is deprecated!!!__
 
