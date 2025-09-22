@@ -71,7 +71,8 @@ swap=8GB            # swap size (0 disables)
   ```
   git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
   ```
-2. In Visual Studio Code, open the Dev Container. To do this: `Ctrl + Shift + P` or `Cmd + Shift + P` and type `Dev Containers: Open Folder in Container`
+2. In Visual Studio Code (VSC), open the firmware repository (click on `Open Folder` or `Ctrl + K` and `Ctrl + O`).
+3. In VSC, open the Dev Container. To do this: `Ctrl + Shift + P` or `Cmd + Shift + P` and type `Dev Containers: Open Folder in Container`
     - This builds the image once, installs the toolchain & Python deps, and opens a shell in the container. 
     - Note: First time building the container will take a long time (~5-8 minutes) but subsequent builds will be significantly faster (~15 seconds)
 3. Build the code by running the following command:
@@ -113,14 +114,14 @@ swap=8GB            # swap size (0 disables)
     2. flash {board}
     ```
 5. To push your changes, please review [Git Workflow](#git-workflow).
-5. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
+6. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
     ```
     # example target; adjust your target cfg (f4x, f7x, etc.)
     openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
     ```
     OpenOCD’s __GDB server = :3333__ (telnet = :4444). 
 
-6. __Optional__: Debug from the container
+7. __Optional__: Debug from the container
     - In the container, point GDB (or VS Code Cortex-Debug) at: `host.docker.internal:3333`. Docker Desktop resolves this hostname to the host; on Linux engines we inject an equivalent mapping. 
 
 ### __Optional:__ VS Code debug sample (`.vscode/launch.json`)
