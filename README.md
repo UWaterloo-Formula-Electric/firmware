@@ -7,9 +7,7 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 - [Notion Access](#notion)
 - [SSH Key](#ssh-key-set-up)
 - [Git Configuration](#git-configuration)
-- [Windows](#windows-setup)
-- [Mac OS](#mac-os-set-up)
-- [Linux](#linux-set-up)
+- [Development Setup](#dev-environment-macos--windowswsl2--linux)
 - [Other Resources](#other-resources)
 - [FAQ](#FAQ)
 
@@ -18,7 +16,7 @@ This is the firmware monorepo for the UW Formula Electric team. This repository 
 We use Notion for task management and documentation. Steps to get set up:
 
 1. Create a Notion account with your school email
-2. Fill out this [form](https://forms.gle/Mz7rk66djoDZY9Fv9) and we will invite you to the team's Notion workspace
+2. Go to UWFE's Discord and in the #firmware channel, ask to be invited to the Notion workspace and drop your school email.
 
 # SSH Key Set Up
 
@@ -29,23 +27,161 @@ SSH key is used for access credentials (think of it as your username and passwor
 
 Note: You can skip this step if you already have a SSH key configured on GitHub
 
+## Installing Git
+__For Windows only__: By default, Git is not installed on Windows machines. Download Git from [here](https://git-scm.com/downloads/win). When going through the installation, use default options.
+
 # Git Configuration
-Regardless of what operating system you use, please run the following commands in a terminal (remember to replace the arguments with your name + email). If you are using a Windows machine, you need to install [Git first](#windows-setup)
+Regardless of what operating system you use, please run the following commands in a terminal (remember to replace the arguments with your name + email). If you are using a Windows machine, you need to install [Git first](#installing-git)
 ```
 git config --global user.name "Your Name"
 git config --global user.email "your_email@example.com"
 git config --global push.autoSetupRemote true
+git config --global core.autocrlf false
 ```
+# Dev environment (macOS · Windows/WSL2 · Linux)
+We ship a Dev Container so everyone uses the same toolchain (ARM GCC, OpenOCD, Python deps) without installing things natively. The default workflow is:
+- Build & flash inside the container.
+- __Optional__: To debug, run OpenOCD on the host (USB stays on host), and let the container attach to it via host.docker.internal:3333 (OpenOCD’s default GDB port). 
 
-# Windows Setup
-## Installing Git and Cloning the Firmware Repository
-__For Windows only__: By default, Git is not installed on Windows machines. Download Git from [here](https://git-scm.com/downloads/win). When going through the installation, use default options.
+## Prerequisites
+- Docker Desktop (Mac/Win) or Docker Engine (Linux). Click on your operating system -> [Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-win-amd64) / [Mac with Apple Silicon](https://desktop.docker.com/mac/main/arm64/Docker.dmg?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-mac-arm64) / [Mac on x86](https://desktop.docker.com/mac/main/arm64/Docker.dmg?utm_source=docker&utm_medium=webreferral&utm_campaign=docs-driven-download-mac-arm64) / [Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+    - Docker Desktop exposes the special hostname host.docker.internal for reaching host services from containers. On plain Linux engines, we add an equivalent mapping automatically. 
+    - After installing, run __Docker Desktop__ to finish the setup process.
+- VS Code (VSC) + [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+    - To start the container environment in VSC, `Ctrl + Shift + P` or `Cmd + Shift + P` to open the command palette and type in `Open Folder in Container`
+- [Git](#installing-git)
+-  __Skip for now. For debugging only__: OpenOCD on the host (i.e., not in the container).
+    - macOS: brew install open-ocd
+    - Linux: your distro’s openocd package
+    - Windows: OpenOCD or STM32CubeProgrammer CLI (either is fine)
+- __IMPORTANT__: If you are using Windows, there are additional steps required. Please [read here](#windows-setup). Then reutrn to [Quick Start](#quick-start).
 
-Now, navigate to a directory where you want to clone the firmware repository (e.g., `/c/Users/Jacky/UWFE` is my setup on a Windows machine). Inside that directory, right-click and `Open Git Bash Here`. A Git terminal should be opened. Then, run the following command:
+Tuning WSL2 (Windows): if builds feel RAM-starved, adjust `%UserProfile%\.wslconfig` and wsl --shutdown. (Optional.). You will need to create `.wslconfig` if it doesn't exist. See an example of `.wslconfig` below:
 ```
-git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
+[wsl2]
+memory=4GB          # RAM for the WSL2 VM
+processors=6        # logical CPUs for the VM
+swap=8GB            # swap size (0 disables)
 ```
-Now, you have cloned the firmware locally to your computer.
+## Quick start
+
+1. Clone the repo
+- Windows/macOS/Linux: anywhere is fine so pick your preference.
+  In a terminal, navigate to a directory where you want to clone the firmware repository (e.g., `/c/Users/Jacky/UWFE` is my setup on a Windows machine, `/Users/jacky/UWFE/` is my setup on a Macbook). Then, run the following command:
+  ```
+  git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
+  ```
+2. In Visual Studio Code, open the Dev Container. To do this: `Ctrl + Shift + P` or `Cmd + Shift + P` and type `Dev Containers: Open Folder in Container`
+    - This builds the image once, installs the toolchain & Python deps, and opens a shell in the container. 
+    - Note: First time building the container will take a long time (~5-8 minutes) but subsequent builds will be significantly faster (~15 seconds)
+3. Build the code by running the following command:
+    ```
+    # Format
+    make {board}
+
+    # Example: build the binary for VCU
+    make vcu
+
+    # Example: build the binary for all the boards
+    make all
+
+    # Example: Erase the binary/build directory (recommended after modifying code)
+    make clean
+    ```
+4. To flash a board: 
+    ```
+    # Command format
+    flash {board}
+
+    # Example: Flashing the BMU
+    flash bmu
+    ```
+5. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
+    ```
+    # example target; adjust your target cfg (f4x, f7x, etc.)
+    openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
+    ```
+    OpenOCD’s __GDB server = :3333__ (telnet = :4444). 
+
+6. __Optional__: Debug from the container
+    - In the container, point GDB (or VS Code Cortex-Debug) at: `host.docker.internal:3333`. Docker Desktop resolves this hostname to the host; on Linux engines we inject an equivalent mapping. 
+
+### __Optional:__ VS Code debug sample (`.vscode/launch.json`)
+```
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to OpenOCD@host",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "external",
+      "gdbTarget": "host.docker.internal:3333",
+      "executable": "${workspaceFolder}/build/firmware.elf"
+    }
+  ]
+}
+```
+### __Optional:__ USB inside the container (Linux / Windows-WSL)
+If you prefer to run OpenOCD in the container:
+- Linux: add a device map when starting the container:
+--device=/dev/bus/usb:/dev/bus/usb (we keep this out of the shared config so macOS still works).
+
+- Windows-WSL: first attach your ST-LINK to WSL with usbipd:
+```
+usbipd wsl list
+usbipd wsl attach --busid <BUSID>
+```
+While attached to WSL, the device is not available to Windows; detach to return it. 
+
+Then, inside the container:
+```
+openocd -f interface/stlink.cfg -f target/stm32f4x.cfg
+# and debug with servertype:"openocd" in Cortex-Debug
+```
+## Notes & troubleshooting
+
+- “How does the container reach my host?”
+Use host.docker.internal. On Docker Desktop this is built-in; on Linux engines we map it to the host gateway so it works the same. (OpenOCD listens on :3333 by default.) 
+
+- ST-LINK not detected (WSL path): confirm the device is attached to WSL via usbipd wsl list / attach, then check lsusb in WSL before opening the container. 
+Microsoft Learn
+
+- Git “safe.directory” warning: our container sets a system-wide trust for /workspaces/* on first run. If you still see it, run:
+git config --global --add safe.directory $(pwd)
+
+### Useful WSL Commands to Know (Windows only)
+The following commands only work inside WSL.
+- `exit`  -> to quit WSL environment
+
+### Useful Container Commands to Know
+The following commands are expected to be used in VSC, command pallete (*Ctrl + Shift + P*).
+- `Dev Containers: Reopen Folder Locally` -> to quit the container
+
+## Windows Setup
+### Prerequisites
+- Open Powershell and run `wsl --install --distribution Ubuntu-24.04`
+- In Powershell, run `winget install usbipd`. This is used to pass the ST-Link to WSL
+
+
+1. Launch Docker Desktop and do the following steps:
+    - Go to `Settings -> General` and ensure "Use the WSL 2 based engine" is ticked
+    - Go to `Settings -> Resources -> WSL Integration` and ensure "Enable integration with my default WSL distro" is ticked
+2. Verify you can launch WSL and run Docker inside it
+    - Open a terminal and run `wsl`
+    - `docker --version` -> should return a version (e.g., `Docker version 26.1.1, build 4cf5afa`)
+    - `docker run hello-world` -> if you see `Hello from Docker!`, everything is good so far!
+3. __IMPORTANT NOTE__: if you want to flash a board, you need to connect the ST-Link to your computer -> attach it to WSL -> then build the container.
+    - To attach the ST-Link to WSL:
+    ```
+    usbipd list 
+    usbipd attach --wsl --busid <BUSID>
+    ```
+4. Now, follow the instructions in __[Quick Start](#quick-start)__
+
+
+
+# Everything below is deprecated!!!__
 
 ## Docker Container Setup for Windows Users
 ### Overview
@@ -78,13 +214,7 @@ Previously, the team used Vagrant to setup a Ubuntu virtual machine to do develo
     usbipd attach --wsl --busid <BUSID>
     ```
 
-### Useful WSL Commands to Know
-The following commands only work inside WSL.
-- `exit`  -> to quit WSL environment
 
-### Useful Container Commands to Know
-The following commands are expected to be used in VSC, command pallete (*Ctrl + Shift + P*).
-- `Dev Containers: Reopen Folder Locally` -> to quit the container
 
 # Mac OS Set Up
 
@@ -183,8 +313,6 @@ arm-none-eabi-gcc --version
 
 (will be updated over time, feel free to open a PR)
 
-# Deprecated Section
-__Everything below is deprecated!!!__
 # Vagrant Environment Set Up for Windows Users
 
 ### Overview
