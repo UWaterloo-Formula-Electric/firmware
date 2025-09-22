@@ -50,7 +50,7 @@ We ship a Dev Container so everyone uses the same toolchain (ARM GCC, OpenOCD, P
 - VS Code (VSC) + [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
     - To start the container environment in VSC, `Ctrl + Shift + P` or `Cmd + Shift + P` to open the command palette and type in `Open Folder in Container`
 - [Git](#installing-git)
--  __Skip for now. For debugging only__: OpenOCD on the host (i.e., not in the container).
+-  OpenOCD on the host (i.e., not in the container).
     - macOS: brew install open-ocd
     - Linux: your distro’s openocd package
     - Windows: OpenOCD or STM32CubeProgrammer CLI (either is fine)
@@ -88,13 +88,32 @@ swap=8GB            # swap size (0 disables)
     # Example: Erase the binary/build directory (recommended after modifying code)
     make clean
     ```
-4. To flash a board: 
+4. To flash a board, you will need a ST-Link connected to your computer + the board you're flashing: 
     ```
     # Command format
     flash {board}
 
     # Example: Flashing the BMU
     flash bmu
+
+    # Example for Macbook:
+    1. Open a terminal and navigate to your firmware directory (not using the container here)
+    2. flash {board}
+
+    # Example for Windows:
+    1. In VSC, run `Dev Containers: Reopen Folder Locally` to quit the container
+    2. Run the following commands in a terminal:
+      usbipd list 
+      usbipd attach --wsl --busid <BUSID>
+      # <BUDID> should correspond to the ST-Link's BUSID
+    3. Create the following file '.devcontainer/devcontainer.local.json' in the firmware folder and add the line below:
+      { "runArgs": ["--device=/dev/bus/usb:/dev/bus/usb"] }
+    4. Launch the container
+    5. flash {board}
+
+    # Example for Linux:
+    1. Open a terminal and navigate to the firmware directory.
+    2. flash {board}
     ```
 5. To push your changes, please review [Git Workflow](#git-workflow).
 5. __Optional__: To debug the target, start OpenOCD on the host (USB connected to host)
@@ -172,7 +191,7 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
     - Open a terminal and run `wsl`
     - `docker --version` -> should return a version (e.g., `Docker version 26.1.1, build 4cf5afa`)
     - `docker run hello-world` -> if you see `Hello from Docker!`, everything is good so far!
-3. __IMPORTANT NOTE__: if you want to flash a board, you need to connect the ST-Link to your computer -> attach it to WSL -> then build the container.
+3. __IMPORTANT NOTE__: if you want to flash a board inside your container, you need to connect the ST-Link to your computer -> attach it to WSL -> then build the container.
     - To attach the ST-Link to WSL:
     ```
     usbipd list 

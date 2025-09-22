@@ -1,9 +1,9 @@
 CUSTOM_COMMANDS = all clean autogen init lint load connect gdb test
-BOARDS = bmu pdu dcu vcu wsb wsbfl wsbfr wsbrr wsbrl beaglebone
+BOARDS = bmu pdu vcu wsb wsbfl wsbfr wsbrr wsbrl
 
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
-all: bmu dcu pdu vcu wsb
+all: bmu pdu vcu wsb
  
 beaglebone:;
 	make -C beaglebone/os/
@@ -11,7 +11,7 @@ beaglebone:;
 dashboard:;
 	make -C beaglebone/app/wfe/dashboard/
 
-include cellTester/board.mk
+# include cellTester/board.mk
 include bmu/board.mk
 # include dcu/board.mk
 include pdu/board.mk
