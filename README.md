@@ -65,8 +65,8 @@ swap=8GB            # swap size (0 disables)
 ```
 ## Quick start
 
-1. Clone the repo
-- Windows/macOS/Linux: anywhere is fine so pick your preference.
+1. Clone the repo to your local machine.
+- Windows/macOS/Linux: anywhere on your machine is fine so pick your preference.
   In a terminal, navigate to a directory where you want to clone the firmware repository (e.g., `/c/Users/Jacky/UWFE` is my setup on a Windows machine, `/Users/jacky/UWFE/` is my setup on a Macbook). Then, run the following command:
   ```
   git clone git@github.com:UWaterloo-Formula-Electric/firmware.git
@@ -185,7 +185,7 @@ The following commands are expected to be used in VSC, command pallete (*Ctrl + 
 
 __Note__: On Windows system, if you are running git commands in the host (i.e., not the container), you will need to run `git status` inside the container to pull any git changes (e.g., making a commit, pushing, etc).
 
-# Everything below is deprecated!!!__
+# __Everything below is deprecated!!!__
 
 ## Docker Container Setup for Windows Users
 ### Overview
