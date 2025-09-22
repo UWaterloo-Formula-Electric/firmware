@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": "..",
     "args": {
-      // Pin your exact ARM toolchain here (matches Dockerfile ARG)
+      // Must match the version in the Dockerfile
       "ARM_GCC_VERSION": "14.2.rel1"
     }
   },
@@ -14,8 +14,12 @@
     "--privileged",
     "--cap-add=SYS_PTRACE",
     "--security-opt", "seccomp=unconfined",
-    "--device=/dev/bus/usb:/dev/bus/usb"
+    "--add-host", "host.docker.internal:host-gateway"
   ],
+
+  // Run as the normal 'vscode' user; align its UID with the bind-mounted workspace.
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
 
   // Handy features/utilities
   "features": {
@@ -29,9 +33,11 @@
     "vscode": {
       "extensions": [
         "ms-vscode.cpptools",
+        "marus25.cortex-debug",
         "ms-vscode.makefile-tools",
         "ms-vscode.cmake-tools",
-        "ms-python.python"
+        "ms-python.python",
+        "mcu-debug.debug-tracker-vscode"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/opt/venv/bin/python",
