@@ -2,7 +2,9 @@ name: Prebuild devcontainer
 
 on:
   push:
-    branches: [ 2025_prebuilt_container, 2025_test_prebuilt] # Change to main later, please work
+    branches: #[ 2025_prebuilt_container, 2025_test_prebuilt] # Change to main later, please work
+      - 2025_prebuilt_container
+      - 2025_test_prebuilt
     paths:
       - ".devcontainer/**"
       - "common/requirements.txt"
