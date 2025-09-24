@@ -3,7 +3,7 @@ name: Lint Code
 on:
   pull_request:
     branches:
-      - ""
+      - '*'
 
 jobs:
   lint:
@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        component: ["common", "BMU", "PDU", "DCU", "VCU", "WSB"]
+        component: ["common", "BMU", "PDU", "VCU", "WSB"]
 
     steps:
       - name: Checkout code
