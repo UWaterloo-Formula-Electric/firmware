@@ -25,7 +25,7 @@ jobs:
       - name: Pre-build & push
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/UWaterloo-Formula-Electric/uwfe-dev
-          cacheFrom: ghcr.io/UWaterloo-Formula-Electric/uwfe-dev:stable
+          imageName: ghcr.io/uwaterloo-formula-electric/uwfe-dev
+          cacheFrom: ghcr.io/uwaterloo-formula-electric/uwfe-dev:stable
           push: always
           platform: linux/amd64,linux/arm64
