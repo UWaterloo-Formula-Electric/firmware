@@ -10,6 +10,8 @@ on:
       - "common/requirements.txt"
       - ".github/workflows/devcontainer-prebuild.yml"
   workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'   # optional weekly refresh
 
 permissions:
   contents: read
@@ -22,8 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set lower-case owner (needed for GHCR image names)
-        run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+      - name: Lower-case owner & image name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+          echo "IMAGE=ghcr.io/${OWNER_LC}/uwfe-dev" >> $GITHUB_ENV
         env:
           OWNER: ${{ github.repository_owner }}
 
@@ -42,12 +46,19 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Compute tags (latest + sha)
+        run: echo "IMAGE_TAGS=latest,${GITHUB_SHA}" >> $GITHUB_ENV
 
-      - name: Pre-build and push devcontainer image
-        uses: devcontainers/ci@v0.3
+      - name: Build & push base image (Dockerfile)
+        uses: docker/build-push-action@v6
         with:
-          imageName: ghcr.io/uwaterloo-formula-electric/uwfe-dev
-          imageTag: latest,stable,${{ github.sha }}
-          cacheFrom: ghcr.io/uwaterloo-formula-electric/uwfe-dev
-          push: always
-          platform: linux/amd64,linux/arm64
+          context: .
+          file: .devcontainer/Dockerfile         # <- adjust if your Dockerfile lives elsewhere
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=registry,ref=${{ env.IMAGE }}:latest
+          cache-to: type=registry,ref=${{ env.IMAGE }}:cache,mode=max

@@ -23,31 +23,31 @@
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
 
-  // Handy features/utilities
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false,
-      "username": "vscode"
-    },
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
+  // // Handy features/utilities
+  // "features": {
+  //   "ghcr.io/devcontainers/features/common-utils:2": {
+  //     "installZsh": false,
+  //     "username": "vscode"
+  //   },
+  //   "ghcr.io/devcontainers/features/git:1": {}
+  // },
 
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-vscode.cpptools",
-        "marus25.cortex-debug",
-        "ms-vscode.makefile-tools",
-        "ms-vscode.cmake-tools",
-        "ms-python.python",
-        "mcu-debug.debug-tracker-vscode"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "/opt/venv/bin/python",
-        "python.terminal.activateEnvironment": true
-      }
-    }
-  },
+  // "customizations": {
+  //   "vscode": {
+  //     "extensions": [
+  //       "ms-vscode.cpptools",
+  //       "marus25.cortex-debug",
+  //       "ms-vscode.makefile-tools",
+  //       "ms-vscode.cmake-tools",
+  //       "ms-python.python",
+  //       "mcu-debug.debug-tracker-vscode"
+  //     ],
+  //     "settings": {
+  //       "python.defaultInterpreterPath": "/opt/venv/bin/python",
+  //       "python.terminal.activateEnvironment": true
+  //     }
+  //   }
+  // },
 
   // Build/test right after first open
   "postCreateCommand": "arm-none-eabi-gcc --version && openocd --version || true"
