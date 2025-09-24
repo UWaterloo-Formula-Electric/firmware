@@ -1,6 +1,15 @@
 {
   "name": "UWFE Dev",
-  "image": "ghcr.io/uwaterloo-formula-electric/uwfe-dev:stable",   // <-- use the prebuilt image
+  // "image": "ghcr.io/uwaterloo-formula-electric/uwfe-dev",   // <-- use the prebuilt image
+  // Comment build out after first successful build
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      // Must match the version in the Dockerfile
+      "ARM_GCC_VERSION": "14.2.rel1"
+    }
+  },
   "runArgs": [
     "--cap-add=SYS_PTRACE",
     "--security-opt", "seccomp=unconfined",
