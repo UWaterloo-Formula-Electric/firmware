@@ -1,0 +1,29 @@
+name: Prebuild devcontainer
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - ".devcontainer/**"
+      - "common/requirements.txt"
+      - ".github/workflows/devcontainer-prebuild.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # allow pushing to GHCR
+
+jobs:
+  prebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build the devcontainer and push to GHCR as multi-arch (amd64 + arm64)
+      - name: Pre-build & push
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/UWaterloo-Formula-Electric/uwfe-dev
+          cacheFrom: ghcr.io/UWaterloo-Formula-Electric/uwfe-dev:stable
+          push: always
+          platform: linux/amd64,linux/arm64

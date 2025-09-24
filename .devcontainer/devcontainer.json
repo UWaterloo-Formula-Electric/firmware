@@ -1,51 +1,13 @@
 {
   "name": "UWFE Dev",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "..",
-    "args": {
-      // Must match the version in the Dockerfile
-      "ARM_GCC_VERSION": "14.2.rel1"
-    }
-  },
-
-  // Let the container see USB + allow debugging (ptrace)
+  "image": "ghcr.io/UWaterloo-Formula-Electric/uwfe-dev:stable",   // <-- use the prebuilt image
   "runArgs": [
-    "--privileged",
     "--cap-add=SYS_PTRACE",
     "--security-opt", "seccomp=unconfined",
     "--add-host", "host.docker.internal:host-gateway"
   ],
-
-  // Run as the normal 'vscode' user; align its UID with the bind-mounted workspace.
   "remoteUser": "vscode",
   "updateRemoteUserUID": true,
 
-  // Handy features/utilities
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false
-    },
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
-
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-vscode.cpptools",
-        "marus25.cortex-debug",
-        "ms-vscode.makefile-tools",
-        "ms-vscode.cmake-tools",
-        "ms-python.python",
-        "mcu-debug.debug-tracker-vscode"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "/opt/venv/bin/python",
-        "python.terminal.activateEnvironment": true
-      }
-    }
-  },
-
-  // Build/test right after first open
-  "postCreateCommand": "arm-none-eabi-gcc --version && openocd --version || true"
+  "postCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}"
 }

@@ -1,0 +1,8 @@
+**/build
+**/Bin
+**/Gen
+**/out
+**/.cache
+*.log
+.git/
+.vscode/
