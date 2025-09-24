@@ -46,10 +46,8 @@ jobs:
       - name: Pre-build and push devcontainer image
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ${{ env.IMAGE }}
+          imageName: ghcr.io/uwaterloo-formula-electric/uwfe-dev
+          imageTag: latest,stable,${{ github.sha }}
+          cacheFrom: ghcr.io/uwaterloo-formula-electric/uwfe-dev
           push: always
-          # First push: DO NOT reference tags that don't exist yet.
-          # Uncomment cacheFrom after first successful push.
-          # cacheFrom: ${{ env.IMAGE }}
-          # Multi-arch:
           platform: linux/amd64,linux/arm64

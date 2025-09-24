@@ -1,13 +1,15 @@
 {
   "name": "UWFE Dev",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "..",
-    "args": {
-      // Must match the version in the Dockerfile
-      "ARM_GCC_VERSION": "14.2.rel1"
-    }
-  },
+  // "build": {
+  //   "dockerfile": "Dockerfile",
+  //   "context": "..",
+  //   "args": {
+  //     // Must match the version in the Dockerfile
+  //     "ARM_GCC_VERSION": "14.2.rel1"
+  //   }
+  // },
+  // Pull the prebuilt image (multi-arch manifest) from GHCR
+  "image": "ghcr.io/uwaterloo-formula-electric/uwfe-dev:latest",
 
   // Let the container see USB + allow debugging (ptrace)
   "runArgs": [
@@ -24,7 +26,8 @@
   // Handy features/utilities
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false
+      "installZsh": false,
+      "username": "vscode"
     },
     "ghcr.io/devcontainers/features/git:1": {}
   },
