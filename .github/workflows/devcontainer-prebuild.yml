@@ -46,7 +46,6 @@ jobs:
       - name: Pre-build and push devcontainer image
         uses: devcontainers/ci@v0.3
         with:
-          subFolder: .devcontainer
           imageName: ${{ env.IMAGE }}
           push: always
           # First push: DO NOT reference tags that don't exist yet.
