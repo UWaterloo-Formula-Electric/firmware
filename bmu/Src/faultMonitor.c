@@ -18,6 +18,7 @@
 #include "debug.h"
 #include "task.h"
 #include "watchdog.h"
+#include "bmu_dtc.h"
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
@@ -329,6 +330,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getBOTS_Status() == false && sentEvent > BOTS_FAILED) {
             ERROR_PRINT("Fault Monitor: BOTS tripped!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(1);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = BOTS_FAILED;
             continue;
@@ -336,6 +338,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getEbox_Il_Status() == false && sentEvent > EBOX_FAILED) {
             ERROR_PRINT("Fault Monitor: EBOX connector disconnected!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(2);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = EBOX_FAILED;
             continue;
@@ -343,6 +346,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getBSPD_Status() == false && sentEvent > BSPD_FAILED) {
             ERROR_PRINT("Fault Monitor: BSPD tripped!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(3);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = BSPD_FAILED;
             continue;
@@ -350,6 +354,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getHVD_Status() == false && sentEvent > HVD_FAILED) {
             ERROR_PRINT("Fault Monitor: HVD removed!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(4);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = HVD_FAILED;
             continue;
@@ -376,6 +381,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getTSMS_Status() == false && sentEvent > TSMS_FAILED) {
             ERROR_PRINT("Fault Monitor: TSMS removed!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(5);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = TSMS_FAILED;
             continue;
@@ -383,6 +389,7 @@ void faultMonitorTask(void *pvParameters) {
 
         if (getHwCheck_Status() == false && sentEvent > HW_CHECK_FAILED) {
             ERROR_PRINT("Fault Monitor: HW check failed!\n");
+            sendDTC_FATAL_BMU_ACTUAL_HV_FAULT(6);
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = HW_CHECK_FAILED;
             continue;
