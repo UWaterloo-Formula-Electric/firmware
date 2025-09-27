@@ -1,8 +1,0 @@
-- [X] Set the right ARM toolchain version in `Dockerfile` and `devcontainer.json`. `devcontainer.json` should inherit the value/arg from Dockerfile
-- [X] Update instructions in `README.md`
-- [ ] Describe developer workflow when using the container. Git operations should be done locally (not in the container)
-- [ ] Create a short video to illustrate setup process
-- [X] Test the new instructions for Macbook
-- [ ] Add `.pre-commit-config.yaml` to prevent bad commits
-- [ ] Modify Github Actions or CI to mirror dev container
-- [ ] Figure out how to pass ST-Link to the container in each operating system
