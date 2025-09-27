@@ -109,6 +109,12 @@ swap=8GB            # swap size (0 disables)
         5. Click 'Start Programming'
 6. Commit & push → open PR → CI (build + lint) runs.
 
+### There's a new stable container image. How do I update my local image to use the new image?
+Run the command below in a terminal on your host machine.
+```
+docker pull ghcr.io/uwaterloo-formula-electric/uwfe-dev:stable
+```
+
 ### When do I rebuild the devcontainer image locally?
 Almost never. CI publishes updated images when `.devcontainer/` or dependencies change. VS Code will prompt to rebuild if the devcontainer config changes. Accept the prompt; otherwise continue.
 

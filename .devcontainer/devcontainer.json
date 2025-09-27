@@ -9,7 +9,7 @@
   //   }
   // },
   // Pull the prebuilt image (multi-arch manifest) from GHCR
-  "image": "ghcr.io/uwaterloo-formula-electric/uwfe-dev:latest",
+  "image": "ghcr.io/uwaterloo-formula-electric/uwfe-dev:latest", // Change to stable once in main
 
   // Let the container see USB + allow debugging (ptrace)
   "runArgs": [
