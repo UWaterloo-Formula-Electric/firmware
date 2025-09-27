@@ -5,6 +5,7 @@ on:
     branches: #[ 2025_prebuilt_container, 2025_test_prebuilt] # Change to main later
       - 2025_prebuilt_container
       - 2025_test_prebuilt
+      - main
     paths:
       - ".devcontainer/**"
       - "common/requirements.txt"
