@@ -38,7 +38,7 @@
 #define TORQUE_MODE_SPEED_REQUEST       0x0
 #define INVERTER_PARAM_WRITE            0x1
 #define INVERTER_PARAM_READ             0x0
-#define USE_INV_LIMITS                  (true)
+#define USE_INV_LIMITS                  (false) //Setting this to false to see if the car jittering will be fixed
 #define INV_TORQUE_REGEN_LIMIT_ENABLED_VALUE  0x0
 
 
@@ -47,7 +47,7 @@
 #define W_TO_KW (1.0f/1000.0f)
 //comment out to remove 80kw power limit
 
-#define ENABLE_POWER_LIMIT
+// #define ENABLE_POWER_LIMIT
 #define INV_POWER_LIMIT 62000.0 //80kw
 
 
