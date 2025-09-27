@@ -240,7 +240,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
             requestTorque = requestTorque;
             maxTorqueDemand = maxMotoringTorque();
             break;
-        case REGEN:
+        case REGEN: // not used at the moment
             requestTorque = -requestTorque;
             maxTorqueDemand = maxRegenTorque();
             break;
