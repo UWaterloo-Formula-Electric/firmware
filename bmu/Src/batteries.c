@@ -420,6 +420,7 @@ void imdTask(void *pvParamaters)
             }
             else {
                 DEBUG_PRINT("else!!\r\n");
+                sendDTC_CRITICAL_BMU_IMD_UNKNOWN_FAULT();
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
             }
             
@@ -597,6 +598,7 @@ bool boundedContinue()
 {
     if ((++errorCounter) > MAX_ERROR_COUNT) {
         ERROR_PRINT("Battery Error occured!\n");
+        sendDTC_CRITICAL_BMU_BOUNDED_CONTINUE_FAULT();
         sendDTC_FATAL_BMU_ERROR();
         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
         return false;

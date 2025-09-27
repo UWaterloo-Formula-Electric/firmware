@@ -310,6 +310,7 @@ uint32_t handleFault(uint32_t event)
         case STATE_HV_Enable:
             {
                 DEBUG_PRINT("hvEnabledHVFault, discharging\n");      //hvEnabledHVFault, starting discharge
+                sendDTC_CRITICAL_BMU_HV_FAULT();
                 xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
                 return STATE_Failure_Fatal;
             }
