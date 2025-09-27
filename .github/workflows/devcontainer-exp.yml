@@ -2,10 +2,12 @@ name: Devcontainer Experimental
 
 on:
   push:
-    branches-ignore: [ main ]           # any branch except main
+    branches:
+      - 'exp_cont/**'              # only branches under exp_cont/
     paths:
       - '.devcontainer/**'
       - 'Dockerfile'
+      - 'common/requirements.txt'
       - '.github/workflows/**'
   pull_request:
     branches: [ main ]
