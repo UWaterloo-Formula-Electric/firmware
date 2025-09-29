@@ -14,6 +14,7 @@ bak/
 *.elf
 *.map
 *.DS_Store
+*.tar
 tags
 info.dox
 *_unittest
