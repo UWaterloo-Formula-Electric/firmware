@@ -4,7 +4,7 @@ BOARDS = bmu pdu vcu wsb wsbfl wsbfr wsbrr wsbrl
 .PHONY: $(CUSTOM_COMMANDS) $(BOARDS) 
 
 all: bmu pdu vcu wsb
- 
+
 beaglebone:;
 	make -C beaglebone/os/
 
