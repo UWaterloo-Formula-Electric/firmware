@@ -110,7 +110,7 @@ swap=8GB            # swap size (0 disables)
 6. Commit & push → open PR → CI (build + lint) runs.
 
 ### There's a new stable container image. How do I update my local image to use the new image?
-Run the command below in a terminal on your host machine.
+In VSC, `Ctrl + Shift + P` and run `Rebuild Container`. Alternatively, run the command below in a terminal on your host machine.
 ```
 docker pull ghcr.io/uwaterloo-formula-electric/uwfe-dev:stable
 ```
