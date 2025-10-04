@@ -25,7 +25,7 @@ void coolingOff(void) {
     PUMP_1_DISABLE;
     PUMP_2_DISABLE;
     RADIATOR_DISABLE;
-    ACC_FANS_DISABLE;
+    // ACC_FANS_DISABLE;
 }
 
 void coolingOn(void) {
@@ -34,7 +34,7 @@ void coolingOn(void) {
     PUMP_2_EN;
     RADIATOR_EN;
     vTaskDelay(pdMS_TO_TICKS(3));   // Lessen in-rush current by introducing a delay
-    ACC_FANS_EN;
+    // ACC_FANS_EN;
 }
 
 bool inverterOverheated(void)

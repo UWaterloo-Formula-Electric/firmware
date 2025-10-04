@@ -187,6 +187,7 @@ HAL_StatusTypeDef turnBoardsOn()
     WSB_EN;
     BMU_EN;
     TRANSPONDER_EN;   // TODO: might be for the transponder (needs to be specced)
+    ACC_FANS_EN;
 
     StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
@@ -207,6 +208,7 @@ HAL_StatusTypeDef turnBoardsOff()
     BMU_DISABLE;
     WSB_DISABLE;
     TCU_DISABLE;
+    ACC_FANS_DISABLE;
 
     StatusPowerCDU = StatusPowerCDU_CHANNEL_OFF;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_OFF;

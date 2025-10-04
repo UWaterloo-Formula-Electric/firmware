@@ -39,7 +39,7 @@ uint32_t calculateFanPeriod()
     return FAN_PERIOD_COUNT;
   }
 
-  return FAN_PERIOD_COUNT - map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
+  return map_range_float(TempCellMax, FAN_OFF_TEMP, FAN_PEAK_TEMP,
                       FAN_PERIOD_COUNT*FAN_ON_DUTY_PERCENT,
                       FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT);
 }
