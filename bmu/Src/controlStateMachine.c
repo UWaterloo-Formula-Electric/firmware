@@ -213,7 +213,8 @@ uint32_t runSelftTests(uint32_t event)
     return STATE_Wait_System_Up;
 }
 
-uint32_t controlDoNothing(uint32_t event)
+uint32_t controlDoNothing(uint32_t event) //Basically ensures that nothing happens, 
+//which is used in a fatal failure state so nothing turns on again
 {
     return fsmGetState(&fsmHandle);
 }
@@ -231,11 +232,11 @@ uint32_t startPrecharge(uint32_t event)
 {
     DEBUG_PRINT("starting precharge\n");
 
-    if (gChargeMode) {
+    if (gChargeMode) {//Charger needs less current due to small capacitors
         xTaskNotify(PCDCHandle, (1<<PRECHARGE_NOTIFICATION_CHARGER), eSetBits);
     } else {
         xTaskNotify(PCDCHandle, (1<<PRECHARGE_NOTIFICATION_MOTOR_CONTROLLERS), eSetBits);
-    }
+    }//Motor Controllers need much higher current due to big capacitors
 
     return STATE_Precharge;
 }

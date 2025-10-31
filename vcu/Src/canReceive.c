@@ -69,26 +69,6 @@ uint8_t getInverterVSMState()
 extern osThreadId driveByWireHandle;
 
 
-// TODO: remove. This is happening locally now
-// void CAN_Msg_VCU_buttonEvents_Callback()
-// {
-//     DEBUG_PRINT_ISR("Received button event\n");
-//     if (ButtonEMEnabled) {
-//         fsmSendEventISR(&VCUFsmHandle, EV_EM_Toggle);
-//     }
-//     else if(ButtonEnduranceToggleEnabled) 
-//     {
-// 		toggle_endurance_mode();
-// 	}
-// 	else if(ButtonEnduranceLapEnabled)
-// 	{
-// 		trigger_lap();
-// 	}
-// 	else if(ButtonTCEnabled)
-// 	{
-// 		toggle_TC();
-// 	}
-// }
 
 void CAN_Msg_PDU_ChannelStatus_Callback()
 {

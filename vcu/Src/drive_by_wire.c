@@ -316,7 +316,7 @@ uint32_t EM_Fault(uint32_t event)
             {
                 if (currentState == STATE_HV_Enable) {
                     DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
-                } else {
+                } else { //doesn't matter if it's STATE_HV_Disable or STATE_EM_Enable, code works either way
                     //disable TC
                     disableRegen();
                     disable_TC();
@@ -335,7 +335,7 @@ uint32_t EM_Fault(uint32_t event)
                 newState = STATE_HV_Disable;
             }
             break;
-        case EV_EM_Toggle:
+        case EV_EM_Toggle: //this event only needs to disable in EM_Fault, in EM_Enable it will enable
             {
                 DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
                 //disable TC
@@ -445,7 +445,7 @@ HAL_StatusTypeDef MotorStart()
     DEBUG_PRINT("Starting motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
                               pdMS_TO_TICKS(MOTOR_START_TASK_WATCHDOG_TIMEOUT_MS));
-
+    //turn up the  watchdog timeout to allow for the motor controllers to start up
     rc = turnOnMotorController();
     if (rc != HAL_OK) {
         return rc;
@@ -470,7 +470,7 @@ HAL_StatusTypeDef MotorStop()
 {
     DEBUG_PRINT("Stopping motors\n");
     watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID, pdMS_TO_TICKS(2*MOTOR_STOP_TASK_WATCHDOG_TIMEOUT_MS));
-
+    //allows more time for the motor controllers to shut down
     if (sendDisableMC() != HAL_OK) {
         ERROR_PRINT("Failed to shutdown motor controllers\n");
         return HAL_ERROR;
@@ -582,6 +582,16 @@ static uint32_t sendEmToggle(uint32_t event)
         // Go to EM
         // TODO: double check this logic. Might be wrong cause this event causes a change in the state
         fsmSendEvent(&VCUFsmHandle, EV_EM_Toggle, portMAX_DELAY);
+
+        /* TODO: Potential fix for above TODO, pls look this over.
+        if (current_state == STATE_HV_Enable) {
+            // Motors are OFF, turn them ON
+            return EM_Enable(event);
+        } 
+        else if (current_state == STATE_EM_Enable) {
+            // Motors are ON, turn them OFF
+            return EM_Fault(event);
+        }*/
     }
     return current_state;
 }
