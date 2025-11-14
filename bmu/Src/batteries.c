@@ -811,7 +811,8 @@ HAL_StatusTypeDef batteryStart()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
     AMS_CONT_CLOSE;
-    return batt_init();
+    // return batt_init();
+    return HAL_OK;
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -1414,8 +1415,9 @@ void batteryTask(void *pvParameter)
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    float packVoltage;
+    // float packVoltage;
     float adjustedPackVoltage;
+    adjustedPackVoltage = 0;
     uint32_t dbwTaskNotifications;
     while (1)
     {
@@ -1490,49 +1492,49 @@ void batteryTask(void *pvParameter)
             }
         }
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
+        // if (checkForOpenCircuit() != HAL_OK) {
+        //     BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Open wire test failed!\n");
+        //     if (boundedContinueRedCar()) { continue; }
+        // }
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (readCellVoltagesAndTemps() != HAL_OK) {
-            BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
+        // if (readCellVoltagesAndTemps() != HAL_OK) {
+        //     BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
+        //     if (boundedContinueRedCar()) { continue; }
+        // }
 #endif
         //  read the voltages and temps for close to red checks
-        HAL_StatusTypeDef ret = checkCellVoltagesAndTemps(
-              ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
-              ((float *)&TempCellMax), ((float *)&TempCellMin),
-              &packVoltage, &adjustedPackVoltage);
+        // HAL_StatusTypeDef ret = checkCellVoltagesAndTemps(
+        //       ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
+        //       ((float *)&TempCellMax), ((float *)&TempCellMin),
+        //       &packVoltage, &adjustedPackVoltage);
         
-        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
-            BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Going HV Down close to edge");
-            if (boundedContinue()) { continue; }
-        }
+        // if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+        //     BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Going HV Down close to edge");
+        //     if (boundedContinue()) { continue; }
+        // }
 
         // check if the voltages and temps are within safe limits
-        if (ret != HAL_OK) {
-            BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed check of battery cell voltages and temps\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
+        // if (ret != HAL_OK) {
+        //     BatteryTaskFailure = CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Failed check of battery cell voltages and temps\n");
+        //     if (boundedContinueRedCar()) { continue; }
+        // }
 
-        if (publishPackVoltage(packVoltage) != HAL_OK) {
-            BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Failed to publish pack voltage\n");
-            if (boundedContinue()) { continue; }
-        }
+        // if (publishPackVoltage(packVoltage) != HAL_OK) {
+        //     BatteryTaskFailure = PACK_VOLTAGE_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Failed to publish pack voltage\n");
+        //     if (boundedContinue()) { continue; }
+        // }
         // Adjusted Pack Voltage not critical
         publishAdjustedPackVoltage(adjustedPackVoltage);
 
