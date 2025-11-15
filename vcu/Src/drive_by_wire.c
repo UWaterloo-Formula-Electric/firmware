@@ -38,7 +38,15 @@ FSM_Handle_Struct VCUFsmHandle;
 
 uint32_t runSelfTests(uint32_t event);
 uint32_t EM_Enable(uint32_t event);
-uint32_t EM_Fault(uint32_t event);
+uint32_t BPS_Failure_Shutdown(uint32_t event);
+uint32_t BPFault_Shutdown(uint32_t event);
+uint32_t Throttle_Shutdown(uint32_t event);
+uint32_t DisablingHV(uint32_t event);
+uint32_t DisablingMotors(uint32_t event);
+uint32_t DisableRedundancy(uint32_t event);
+uint32_t ToggleMotorsOff(uint32_t event);
+uint32_t Generic_EM_Fault(uint32_t event);
+uint32_t shutDownMotors(VCU_States_t state);
 uint32_t EM_Update_Throttle(uint32_t event);
 static uint32_t DefaultTransition(uint32_t event);
 
@@ -83,17 +91,17 @@ static bool isPendingHvResponse = false;
 // TODO: clean up this state machine
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelfTests },
-    { STATE_HV_Disable, EV_Bps_Fail, &EM_Fault },
-    { STATE_HV_Disable, EV_Hv_Disable, &EM_Fault },
-    { STATE_HV_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
-    { STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault },
+    { STATE_HV_Disable, EV_Bps_Fail, &BPS_Failure_Shutdown },
+    { STATE_HV_Disable, EV_Hv_Disable, &DisablingHV },
+    { STATE_HV_Disable, EV_Brake_Pressure_Fault, &BPFault_Shutdown },
+    { STATE_HV_Disable, EV_Throttle_Failure, &Throttle_Shutdown },
     { STATE_HV_Enable, EV_EM_Toggle, &EM_Enable },
-    { STATE_HV_Enable, EV_Hv_Disable, & EM_Fault},
-    { STATE_EM_Enable, EV_Bps_Fail, &EM_Fault },
-    { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
-    { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
-    { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
-    { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
+    { STATE_HV_Enable, EV_Hv_Disable, & DisablingHV},
+    { STATE_EM_Enable, EV_Bps_Fail, &BPS_Failure_Shutdown },
+    { STATE_EM_Enable, EV_Hv_Disable, & DisablingHV},
+    { STATE_EM_Enable, EV_Brake_Pressure_Fault, & BPFault_Shutdown },
+    { STATE_EM_Enable, EV_Throttle_Failure, &Throttle_Shutdown },
+    { STATE_EM_Enable, EV_EM_Toggle, &ToggleMotorsOff },
     { STATE_Failure_Fatal, EV_ANY, &fatalTransition },
     { STATE_ANY, EV_CAN_Receive_HV, &processHvState},       // From DCU. Check HV toggle response from the BMU
     // { STATE_ANY, EV_CAN_Receive_EM, &processEmState},       // From DCU. Happens locally now so remove it
@@ -102,7 +110,7 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC},        // From DCU
     // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU
     { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleRegenMode},     // From DCU
-    { STATE_ANY, EV_Fatal, &EM_Fault },
+    { STATE_ANY, EV_Fatal, &Generic_EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
@@ -194,7 +202,7 @@ uint32_t runSelfTests(uint32_t event)
     if (brakeAndThrottleStart() != HAL_OK)
     {
         sendDTC_WARNING_Throttle_Failure(3);
-        return EM_Fault(EV_Throttle_Failure);
+        return Throttle_Shutdown(EV_Throttle_Failure);
     }
 
     return STATE_HV_Disable;
@@ -275,101 +283,101 @@ uint32_t EM_Enable(uint32_t event)
 
     return state;
 }
-
-uint32_t EM_Fault(uint32_t event)
-{
-    int newState = STATE_Failure_Fatal;
+uint32_t BPS_Failure_Shutdown(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_BPS_Failure();
     int currentState = fsmGetState(&VCUFsmHandle);
-    
+    sendDTC_CRITICAL_BPS_FAIL();
+    DEBUG_PRINT("Bps failed, trans to fatal\n");
+    if (currentState == STATE_EM_Enable) {
+        VCU_States_t state = shutDownMotors(STATE_Failure_Fatal);
+        return state;
+    }
+    return STATE_Failure_Fatal;
+}
+uint32_t BPFault_Shutdown(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_BP_Fault();
+    int currentState = fsmGetState(&VCUFsmHandle);
+    sendDTC_CRITICAL_Brake_Pressure_FAIL();
+    DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
+    if (currentState == STATE_EM_Enable) {
+        VCU_States_t state = shutDownMotors(STATE_Failure_Fatal);
+        return state;
+    }
+    return STATE_Failure_Fatal;
+}
+uint32_t Throttle_Shutdown(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_Throttle_Failure();
+    int currentState = fsmGetState(&VCUFsmHandle);
+    DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
+    sendDTC_FATAL_VCU_F7_EV_FATAL();
+    if (currentState == STATE_EM_Enable) {
+        VCU_States_t state = shutDownMotors(STATE_Failure_Fatal);
+        return state;
+    }
+    return STATE_Failure_Fatal;
+}
+uint32_t DisablingHV(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_Disabling_HV();
+    int currentState = fsmGetState(&VCUFsmHandle);
+    if (currentState == STATE_EM_Enable) {
+        VCU_States_t state = shutDownMotors(STATE_HV_Disable);
+        return state;
+    }
+    DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
+    return STATE_HV_Disable;
+}
+uint32_t DisablingMotors(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_Disabling_Motors();
+    disableRegen();
+    disable_TC();
+    DEBUG_PRINT("HV Disable event, transitioning EMs to disabled.\n");
+    VCU_States_t state = shutDownMotors(STATE_HV_Disable);
+    return state;
+}
+uint32_t DisableRedundancy(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_HV_Disable_Twice();
+    DEBUG_PRINT("Called HV disabled while already disabled..?\n");
+    return STATE_HV_Disable;
+}
+uint32_t ToggleMotorsOff(uint32_t event){
+    EMFaultEvent = event;
+    sendCAN_VCU_Toggle_EM_Off();
+    DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
+    //disable TC
+    disableRegen();
+    disable_TC();
+    VCU_States_t state = shutDownMotors(STATE_HV_Disable);
+    return state;
+}
+uint32_t Generic_EM_Fault(uint32_t event){
     EMFaultEvent = event;
     sendCAN_VCU_EM_Fault();
+    int currentState = fsmGetState(&VCUFsmHandle);
+    if (currentState == STATE_EM_Enable) {
+        VCU_States_t state = shutDownMotors(STATE_Failure_Fatal);
+        return state;
+    }
+    DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
+    sendDTC_FATAL_VCU_F7_EV_FATAL();
+    return STATE_Failure_Fatal;
+}
 
-    if (fsmGetState(&VCUFsmHandle) == STATE_Failure_Fatal) {
-        DEBUG_PRINT("EM Fault, already in fatal failure state\n");
+
+uint32_t shutDownMotors(VCU_States_t state){
+    if (MotorStop() != HAL_OK) {
+        ERROR_PRINT("Failed to stop motors\n");
         return STATE_Failure_Fatal;
     }
 
-
-    switch (event) {
-        case EV_Bps_Fail:
-            {
-                sendDTC_CRITICAL_BPS_FAIL();
-                DEBUG_PRINT("Bps failed, trans to fatal\n");
-                newState = STATE_Failure_Fatal;
-            }
-            break;
-        case EV_Brake_Pressure_Fault:
-            {
-                sendDTC_CRITICAL_Brake_Pressure_FAIL();
-                DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
-                newState = STATE_Failure_Fatal;
-            }
-            break;
-        case EV_Throttle_Failure:
-            {
-                DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
-                newState = STATE_Failure_Fatal;
-                sendDTC_FATAL_VCU_F7_EV_FATAL();
-            }
-            break;
-        case EV_Hv_Disable:
-            {
-                if (currentState == STATE_HV_Enable) {
-                    DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
-                } else {
-                    //disable TC
-                    disableRegen();
-                    disable_TC();
-                    DEBUG_PRINT("HV Disable, trans to EM Disabled\n");
-
-                    // TODO: decide whether the MC should be on/off when the CBRB is pressed.
-                    //       might be good for logging if we keep it on 
-                    // Turn off MC when CBRB pressed while in EM
-                    // if (MotorStop() != HAL_OK) {
-                    //    ERROR_PRINT("Failed to stop motors\n");
-                    // }
-
-                    EM_State = EM_State_Off;
-                    sendCAN_VCU_EM_State();
-                }
-                newState = STATE_HV_Disable;
-            }
-            break;
-        case EV_EM_Toggle:
-            {
-                DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
-                //disable TC
-                disableRegen();
-                disable_TC();
-                newState = STATE_HV_Enable;
-            }
-            break;
-        case EV_Fatal:
-            {
-                DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
-                sendDTC_FATAL_VCU_F7_EV_FATAL();
-                newState = STATE_Failure_Fatal;
-            }
-            break;
-        default:
-            {
-                sendDTC_FATAL_VCU_F7_EM_ENABLED_ERROR();
-                DEBUG_PRINT("EM Enabled, unknown event %lu\n", event);
-            }
-            break;
-    }
-
-    if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable) {
-        if (MotorStop() != HAL_OK) {
-            ERROR_PRINT("Failed to stop motors\n");
-            newState = STATE_Failure_Fatal;
-        }
-
-        EM_State = EM_State_Off;
-        sendCAN_VCU_EM_State();
-    }
-
-    return newState;
+    EM_State = EM_State_Off;
+    sendCAN_VCU_EM_State();
+    return state;
 }
 
 static uint32_t DefaultTransition(uint32_t event)

@@ -48,6 +48,27 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
+BO_ 2287668226 VCU_Toggle_EM_Off: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287733762 VCU_HV_Disable_Twice: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287602690 VCU_Disabling_Motors: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287537154 VCU_Disabling_HV: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287406082 VCU_Throttle_Failure: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287340546 VCU_BP_Fault: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2287275010 VCU_BPS_Failure: 8 VCU_F7
+ SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
 BO_ 2365566721 MC_Diag_Data: 8 INV
  SG_ INV_Diag_SubIndex M : 8|8@1+ (1,0) [0|5] "" Vector__XXX
  SG_ INV_Diag_Record : 0|8@1+ (1,0) [0|160] "" Vector__XXX
