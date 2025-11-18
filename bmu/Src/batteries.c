@@ -103,7 +103,7 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 /*
  * HV Measure task Defines and Variables
  */
-#define HV_MEASURE_TASK_PERIOD_MS 1
+#define HV_MEASURE_TASK_PERIOD_MS 10 // TODO: revert back to 1 ms
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
 
@@ -548,12 +548,25 @@ void HVMeasureTask(void *pvParamaters)
 
         // Periodically print out IVTS readings to UART (100 ms interval)
         // Conditional printing during fuse test
-        if (ivts_fuse_test_active) {
-            ivts_fuse_print_counter++;
+        // if (ivts_fuse_test_active) {
+        //     ivts_fuse_print_counter++;
+        //     if (xTaskGetTickCount() >= ivts_fuse_test_end_tick) {
+        //         IVTS_StopFuseTest();
+        //     } else if (ivts_fuse_print_counter >= IVTS_FUSE_PRINT_DIVIDER) { // print every 10 ms
+        //         ivts_fuse_print_counter = 0;
+        //         // Latest current value (IBus already fetched earlier)
+        //         float IBus;
+        //         getIBus(&IBus);
+        //         DEBUG_PRINT("%lu,%0.3f\r\n", xTaskGetTickCount(), IBus);
+        //     }
+        // }
+
+          if (ivts_fuse_test_active) {
+            // ivts_fuse_print_counter++;
             if (xTaskGetTickCount() >= ivts_fuse_test_end_tick) {
                 IVTS_StopFuseTest();
-            } else if (ivts_fuse_print_counter >= IVTS_FUSE_PRINT_DIVIDER) {
-                ivts_fuse_print_counter = 0;
+            } else { // print every 10 ms
+                // ivts_fuse_print_counter = 0;
                 // Latest current value (IBus already fetched earlier)
                 float IBus;
                 getIBus(&IBus);
