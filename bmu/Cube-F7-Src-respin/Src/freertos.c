@@ -224,12 +224,12 @@ void MX_FREERTOS_Init(void) {
   controlTaskNameHandle = osThreadCreate(osThread(controlTaskName), NULL);
 
   /* definition and creation of PCDC */
-  osThreadDef(PCDC, pcdcTask, osPriorityAboveNormal, 0, 1000);
-  PCDCHandle = osThreadCreate(osThread(PCDC), NULL);
+  // osThreadDef(PCDC, pcdcTask, osPriorityAboveNormal, 0, 1000);
+  // PCDCHandle = osThreadCreate(osThread(PCDC), NULL);
 
   /* definition and creation of BatteryTask */
-  osThreadDef(BatteryTask, batteryTask, osPriorityRealtime, 0, 1000);
-  BatteryTaskHandle = osThreadCreate(osThread(BatteryTask), NULL);
+  // osThreadDef(BatteryTask, batteryTask, osPriorityRealtime, 0, 1000);
+  // BatteryTaskHandle = osThreadCreate(osThread(BatteryTask), NULL);
 
   /* definition and creation of sensorTaskName */
   osThreadDef(sensorTaskName, sensorTask, osPriorityNormal, 0, 1000);
@@ -244,8 +244,8 @@ void MX_FREERTOS_Init(void) {
   HVMeasureHandle = osThreadCreate(osThread(HVMeasure), NULL);
 
   /* definition and creation of IMD */
-  osThreadDef(IMD, imdTask, osPriorityHigh, 0, 500);
-  IMDHandle = osThreadCreate(osThread(IMD), NULL);
+  // osThreadDef(IMD, imdTask, osPriorityHigh, 0, 500);
+  // IMDHandle = osThreadCreate(osThread(IMD), NULL);
 
   /* definition and creation of FaultMonitor */
   osThreadDef(FaultMonitor, faultMonitorTask, osPriorityHigh, 0, 1000);
@@ -260,12 +260,12 @@ void MX_FREERTOS_Init(void) {
   canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
 
   /* definition and creation of fan */
-  osThreadDef(fan, fanTask, osPriorityAboveNormal, 0, 1000);
-  fanHandle = osThreadCreate(osThread(fan), NULL);
+  // osThreadDef(fan, fanTask, osPriorityAboveNormal, 0, 1000);
+  // fanHandle = osThreadCreate(osThread(fan), NULL);
 
   /* definition and creation of stateOfCharge */
-  osThreadDef(stateOfCharge, socTask, osPriorityNormal, 0, 500);
-  stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
+  // osThreadDef(stateOfCharge, socTask, osPriorityNormal, 0, 500);
+  // stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
 
   /* definition and creation of contCurrentSens */
   osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 1000);
