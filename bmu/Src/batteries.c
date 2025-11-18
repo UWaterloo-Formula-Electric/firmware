@@ -565,7 +565,7 @@ void HVMeasureTask(void *pvParamaters)
             // ivts_fuse_print_counter++;
             if (xTaskGetTickCount() >= ivts_fuse_test_end_tick) {
                 IVTS_StopFuseTest();
-            } else { // print every 10 ms
+            } else {
                 // ivts_fuse_print_counter = 0;
                 // Latest current value (IBus already fetched earlier)
                 float IBus;
