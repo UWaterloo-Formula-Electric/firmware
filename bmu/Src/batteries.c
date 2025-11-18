@@ -327,7 +327,155 @@ uint32_t cliGetStateBusHVSendPeriod()
     return StateBusHVSendPeriod;
 }
 
+/*********** CELL FUSE TESTING ***********/
+// Ring buffer size for logging
+#define IVTS_LOG_SIZE          4096
 
+typedef struct {
+    uint32_t timestamp_ms;  // HAL_GetTick()
+    float  current_A;    // decoded from IVT-S (1 mA/LSB)
+} IVTS_Sample_t;
+
+// static IVTS_Sample_t ivts_log[IVTS_LOG_SIZE];
+// static volatile uint16_t ivts_log_head = 0;
+// static volatile uint16_t ivts_log_count = 0;
+
+/* Helper functions for IVTS (shunt) */
+static void IVTS_SetMode_Stop(void)
+{
+    IVT_MsgID_TX = 0x34;  // Byte0 per DBC
+    IVT_cmdByte1 = 0x00;  // SET_MODE
+    IVT_cmdByte2 = 0x00;  // Actual mode = STOP (configuration must be done in STOP mode)
+    IVT_cmdByte3 = 0x00;  // Startup mode = STOP (optional)
+    IVT_cmdByte4 = 0x00;  // access level: user
+    IVT_cmdByte5 = 0x00;  // access level 2nd byte
+    IVT_cmdByte6 = 0x00;  // reserved
+    IVT_cmdByte7 = 0x00;  // reserved
+
+    sendCAN_IVT_Cmd();
+
+    vTaskDelay(pdMS_TO_TICKS(5));  // allow time for response (simplified)
+}
+
+static void IVTS_Config_Current_1ms(void)
+{
+    // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
+    IVT_MsgID_TX = 0x20;                                    // Configure Result_I
+    IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
+    IVT_cmdByte2 = 0x00;                                    // interval high byte
+    IVT_cmdByte3 = 0x01;                                    // interval low byte -> 1 ms
+    IVT_cmdByte4 = 0x00;
+    IVT_cmdByte5 = 0x00;
+    IVT_cmdByte6 = 0x00;
+    IVT_cmdByte7 = 0x00;
+
+    sendCAN_IVT_Cmd();
+    vTaskDelay(pdMS_TO_TICKS(5));
+}
+
+// static void IVTS_Config_voltage_1ms(void)
+// {
+//     // Configure U1 voltage at 1 ms
+//     IVT_MsgID_TX = 0x21;                                    // Configure Result_U1
+//     IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
+//     IVT_cmdByte2 = 0x00;                                    // interval high byte
+//     IVT_cmdByte3 = 0x01;                                    // interval low byte -> 1 ms
+//     IVT_cmdByte4 = 0x00;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
+
+//     sendCAN_IVT_Cmd();
+//     vTaskDelay(pdMS_TO_TICKS(5));
+// }
+
+static void IVTS_Store_Config(void)
+{
+    // Store configuration into NVM
+    IVT_MsgID_TX = 0x32;  // STORE
+    IVT_cmdByte1 = 0x00;
+    IVT_cmdByte2 = 0x00;
+    IVT_cmdByte3 = 0x00;
+    IVT_cmdByte4 = 0x00;
+    IVT_cmdByte5 = 0x00;
+    IVT_cmdByte6 = 0x00;
+    IVT_cmdByte7 = 0x00;
+
+    sendCAN_IVT_Cmd();
+    // Datasheet says storing may take up to ~1s -> wait a bit
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
+static void IVTS_SetMode_Run(void)
+{
+    // Enter RUN mode
+    IVT_MsgID_TX = 0x34;  // SET_MODE
+    IVT_cmdByte1 = 0x01;  // Actual mode = RUN
+    IVT_cmdByte2 = 0x01;  // Startup mode = RUN (boot in RUN next time)
+    IVT_cmdByte3 = 0x00;  // access/user
+    IVT_cmdByte4 = 0x00;
+    IVT_cmdByte5 = 0x00;
+    IVT_cmdByte6 = 0x00;
+    IVT_cmdByte7 = 0x00;
+
+    sendCAN_IVT_Cmd();
+    vTaskDelay(pdMS_TO_TICKS(5));
+}
+
+void IVTS_Init_1kHz_Current(void)
+{
+    // Wait for IVT-S power-up (datasheet: ~350–400 ms)
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    IVTS_SetMode_Stop();
+    IVTS_Config_Current_1ms();
+    IVTS_Store_Config();
+    IVTS_SetMode_Run();
+
+    // From now on, IVT-S should be sending ID 0x521 every 1 ms
+}
+
+// static void IVTS_DumpLog(void)
+// {
+//     uint16_t count = ivts_log_count;
+//     uint16_t head  = ivts_log_head;
+
+//     // We’ll read from the oldest entry
+//     uint16_t start = (head + IVTS_LOG_SIZE - count) % IVTS_LOG_SIZE;
+
+//     for (uint16_t i = 0; i < count; i++) {
+//         uint16_t idx = (start + i) % IVTS_LOG_SIZE;
+//         uint32_t t   = ivts_log[idx].timestamp_ms;
+//         float  I   = ivts_log[idx].current_A;
+
+//         DEBUG_PRINT("%lu, %f\r\n", (unsigned long)t, (double)I);
+//     }
+// }
+
+// Fuse test state
+static volatile bool ivts_fuse_test_active = false;
+static volatile uint32_t ivts_fuse_test_end_tick = 0;
+#define IVTS_FUSE_PRINT_DIVIDER 10  // print every 10 samples (~10 ms at 1 ms task)
+static uint32_t ivts_fuse_print_counter = 0;
+
+void IVTS_StartFuseTest(uint32_t duration_seconds)
+{
+    if (duration_seconds == 0) duration_seconds = 1;
+    ivts_fuse_test_end_tick = xTaskGetTickCount() + pdMS_TO_TICKS(duration_seconds * 1000u);
+    ivts_fuse_test_active = true;
+    ivts_fuse_print_counter = 0;
+    DEBUG_PRINT("IVT fuse test started (%lu s)\r\n", (unsigned long)duration_seconds);
+
+    vTaskDelay(pdMS_TO_TICKS(100));  // brief delay to ensure previous prints complete
+    CONT_POS_CLOSE;
+}
+
+void IVTS_StopFuseTest(void)
+{
+    CONT_POS_OPEN;
+    ivts_fuse_test_active = false;
+    DEBUG_PRINT("IVT fuse test stopped\r\n");
+}
 /**
  * Measures the voltage and current on the HV Bus as well as the HV battery
  * pack voltage.
@@ -346,31 +494,72 @@ void HVMeasureTask(void *pvParamaters)
         Error_Handler();
     }
 
-    uint32_t lastStateBusHVSend = 0;
+    // uint32_t lastStateBusHVSend = 0;
 
     float VBus;
     float VBatt;
     float IBus;
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    while (1) {
 
+    uint8_t ivt_initialized = false;
+
+    // Technically only need to be run once as the config is stored in NVM (non-volatile memory)
+    if (!ivt_initialized)
+    {
+        // Wait for IVT-S power-up (datasheet: ~350–400 ms)
+        vTaskDelay(pdMS_TO_TICKS(500));
+
+        // Note: we don't check for successful response here for simplicity
+        IVTS_Init_1kHz_Current();
+    }
+
+    while (1) {
+        /* Using HVMeasureTask to perform cell fuse reading */
+
+        // The following values are all from the IVTS shunt
         getIBus(&IBus);
         getVBus(&VBus);
         getVBatt(&VBatt);
 
-        if (xTaskGetTickCount() - lastStateBusHVSend
-            > pdMS_TO_TICKS(StateBusHVSendPeriod))
-        {
-            CurrentBusHV = IBus;
-            VoltageBusHV = VBus;
-            sendCAN_BMU_stateBusHV();
-            vTaskDelay(2); // Added to prevent CAN mailbox full
-            getAdjustedPackVoltage((float*)&AMS_PackVoltage);
-            sendCAN_BMU_AmsVBatt();
-            lastStateBusHVSend = xTaskGetTickCount();
-        }
-        integrate_bus_current(IBus, (float)HV_MEASURE_TASK_PERIOD_MS);
+        // if (xTaskGetTickCount() - lastStateBusHVSend
+        //     > pdMS_TO_TICKS(StateBusHVSendPeriod))
+        // {
+        //     CurrentBusHV = IBus;
+        //     VoltageBusHV = VBus;
+        //     sendCAN_BMU_stateBusHV();
+        //     vTaskDelay(2); // Added to prevent CAN mailbox full
+        //     getAdjustedPackVoltage((float*)&AMS_PackVoltage);
+        //     sendCAN_BMU_AmsVBatt();
+        //     lastStateBusHVSend = xTaskGetTickCount();
+        // }
+        // integrate_bus_current(IBus, (float)HV_MEASURE_TASK_PERIOD_MS);
     
+        // uint32_t now = xTaskGetTickCount();
+
+        // Store into ring buffer (non-blocking)
+        // uint16_t idx = ivts_log_head;
+        // ivts_log[idx].timestamp_ms = now;
+        // ivts_log[idx].current_A = IBus;
+
+        // ivts_log_head = (idx + 1) % IVTS_LOG_SIZE;
+        // if (ivts_log_count < IVTS_LOG_SIZE) {
+        //     ivts_log_count++;
+        // }
+
+        // Periodically print out IVTS readings to UART (100 ms interval)
+        // Conditional printing during fuse test
+        if (ivts_fuse_test_active) {
+            ivts_fuse_print_counter++;
+            if (xTaskGetTickCount() >= ivts_fuse_test_end_tick) {
+                IVTS_StopFuseTest();
+            } else if (ivts_fuse_print_counter >= IVTS_FUSE_PRINT_DIVIDER) {
+                ivts_fuse_print_counter = 0;
+                // Latest current value (IBus already fetched earlier)
+                float IBus;
+                getIBus(&IBus);
+                DEBUG_PRINT("%lu,%0.3f\r\n", xTaskGetTickCount(), IBus);
+            }
+        }
         watchdogTaskCheckIn(HV_MEASURE_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, HV_MEASURE_TASK_PERIOD_MS);
     }
@@ -1568,7 +1757,13 @@ void batteryTask(void *pvParameter)
         ERROR_COUNTER_SUCCESS();
         /*!!! Change the check in in bounded continue as well if you change
          * this */
+
+        /* Code for Cell fuse testing */
+
+
+        
         watchdogTaskCheckIn(BATTERY_TASK_ID);
+        // Task is running every 3 ms
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
     }
 }

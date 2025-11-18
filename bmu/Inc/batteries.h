@@ -161,4 +161,7 @@ HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
 HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
+
+void IVTS_StartFuseTest(uint32_t duration_seconds);
+void IVTS_StopFuseTest(void);
 #endif /* end of include guard: BATTERIES_H */

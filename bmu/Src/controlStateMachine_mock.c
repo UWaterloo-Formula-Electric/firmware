@@ -986,7 +986,45 @@ static const CLI_Command_Definition_t setCellIRCommandDefinition =
     1 /* Number of parameters */
 };
 
+/* Cell fuse testing */
+extern void IVTS_StartFuseTest(uint32_t duration_seconds);
+extern void IVTS_StopFuseTest(void);
 
+BaseType_t startFuseTestCLI(char *writeBuffer, size_t writeBufferLength,
+                                   const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *secParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    uint32_t seconds = 0;
+    if (secParam) { sscanf(secParam, "%lu", &seconds); }
+    COMMAND_OUTPUT("Started fuse test for %lu s\r\n", (unsigned long)seconds);
+
+    IVTS_StartFuseTest(seconds);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t startFuseTestCommandDefinition = {
+    "startFuseTest",
+    "startFuseTest <seconds>:\r\n Start IVT fuse test logging for <seconds>\r\n",
+    startFuseTestCLI,
+    1
+};
+
+BaseType_t stopFuseTestCLI(char *writeBuffer, size_t writeBufferLength,
+                                  const char *commandString)
+{
+    CONT_POS_OPEN;
+    COMMAND_OUTPUT("Stopped fuse test\r\n");
+
+    IVTS_StopFuseTest();
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t stopFuseTestCommandDefinition = {
+    "stopFuseTest",
+    "stopFuseTest:\r\n Stop IVT fuse test logging\r\n",
+    stopFuseTestCLI,
+    0
+};
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -1124,6 +1162,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
 
+    if (FreeRTOS_CLIRegisterCommand(&startFuseTestCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopFuseTestCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
