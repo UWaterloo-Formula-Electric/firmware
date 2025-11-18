@@ -997,7 +997,7 @@ BaseType_t startFuseTestCLI(char *writeBuffer, size_t writeBufferLength,
     const char *secParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     uint32_t seconds = 0;
     if (secParam) { sscanf(secParam, "%lu", &seconds); }
-    COMMAND_OUTPUT("Started fuse test for %lu s\r\n", (unsigned long)seconds);
+    // COMMAND_OUTPUT("Started fuse test for %lu s\r\n", (unsigned long)seconds);
 
     IVTS_StartFuseTest(seconds);
 

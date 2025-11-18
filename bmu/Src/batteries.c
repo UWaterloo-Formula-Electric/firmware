@@ -428,9 +428,13 @@ void IVTS_Init_1kHz_Current(void)
     vTaskDelay(pdMS_TO_TICKS(500));
 
     IVTS_SetMode_Stop();
+    DEBUG_PRINT("Putting IVTS to STOP mode\r\n");
     IVTS_Config_Current_1ms();
+    DEBUG_PRINT("Configuring 1ms current reading\r\n");
     IVTS_Store_Config();
+    DEBUG_PRINT("Storing config\r\n");
     IVTS_SetMode_Run();
+    DEBUG_PRINT("Putting IVTS to RUN mode\r\n");
 
     // From now on, IVT-S should be sending ID 0x521 every 1 ms
 }
@@ -466,13 +470,16 @@ void IVTS_StartFuseTest(uint32_t duration_seconds)
     ivts_fuse_print_counter = 0;
     DEBUG_PRINT("IVT fuse test started (%lu s)\r\n", (unsigned long)duration_seconds);
 
-    vTaskDelay(pdMS_TO_TICKS(100));  // brief delay to ensure previous prints complete
+    vTaskDelay(pdMS_TO_TICKS(1000));  // brief delay to ensure previous prints complete
+    DEBUG_PRINT("------ CLOSING CONTACTOR! -------\r\n");
     CONT_POS_CLOSE;
 }
 
 void IVTS_StopFuseTest(void)
 {
+    DEBUG_PRINT("------ OPENING CONTACTOR! -------\r\n");
     CONT_POS_OPEN;
+    vTaskDelay(pdMS_TO_TICKS(1000)); // keep printing for another second
     ivts_fuse_test_active = false;
     DEBUG_PRINT("IVT fuse test stopped\r\n");
 }
@@ -561,9 +568,9 @@ void HVMeasureTask(void *pvParamaters)
         //     }
         // }
 
-          if (ivts_fuse_test_active) {
+        if (ivts_fuse_test_active) {
             // ivts_fuse_print_counter++;
-            if (xTaskGetTickCount() >= ivts_fuse_test_end_tick) {
+            if (xTaskGetTickCount() >= (ivts_fuse_test_end_tick + 1000)) {
                 IVTS_StopFuseTest();
             } else {
                 // ivts_fuse_print_counter = 0;
