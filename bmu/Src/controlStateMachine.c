@@ -38,7 +38,11 @@ uint32_t dischargeFinished(uint32_t event);
 uint32_t prechargeFinished(uint32_t event);
 uint32_t controlDoNothing(uint32_t event);
 uint32_t DefaultTransition(uint32_t event);
-uint32_t handleFault(uint32_t event);
+uint32_t handleFault_HVDisabled(uint32_t event);
+uint32_t handleFault_HVEnabled(uint32_t event);
+uint32_t handleFault_Precharge(uint32_t event);
+uint32_t handleFault_Discharge(uint32_t event);
+uint32_t handleFault_General(uint32_t event);
 uint32_t stopPrecharge(uint32_t event);
 uint32_t enterChargeMode(uint32_t event);
 uint32_t startCharge(uint32_t event);
@@ -94,9 +98,32 @@ Transition_t transitions[] = {
     // Already in failure, do nothing
     // Takes priority over rest of events
     { STATE_Failure_Fatal, EV_ANY, &controlDoNothing },
-    { STATE_ANY, EV_HV_Fault, &handleFault},
-    { STATE_ANY, EV_PrechargeDischarge_Fail, &handleFault },
-    { STATE_ANY, EV_Charge_Error, &handleFault },
+    
+    // Fault handling - HV Disabled state
+    { STATE_HV_Disable, EV_HV_Fault, &handleFault_HVDisabled },
+    { STATE_HV_Disable, EV_PrechargeDischarge_Fail, &handleFault_HVDisabled },
+    { STATE_HV_Disable, EV_Charge_Error, &handleFault_HVDisabled },
+    
+    // Fault handling - HV Enabled state
+    { STATE_HV_Enable, EV_HV_Fault, &handleFault_HVEnabled },
+    { STATE_HV_Enable, EV_PrechargeDischarge_Fail, &handleFault_HVEnabled },
+    { STATE_HV_Enable, EV_Charge_Error, &handleFault_HVEnabled },
+    
+    // Fault handling - Precharge state
+    { STATE_Precharge, EV_HV_Fault, &handleFault_Precharge },
+    { STATE_Precharge, EV_PrechargeDischarge_Fail, &handleFault_Precharge },
+    { STATE_Precharge, EV_Charge_Error, &handleFault_Precharge },
+    
+    // Fault handling - Discharge state
+    { STATE_Discharge, EV_HV_Fault, &handleFault_Discharge },
+    { STATE_Discharge, EV_PrechargeDischarge_Fail, &handleFault_Discharge },
+    { STATE_Discharge, EV_Charge_Error, &handleFault_Discharge },
+    
+    // Fault handling - General catch-all for other states
+    { STATE_ANY, EV_HV_Fault, &handleFault_General },
+    { STATE_ANY, EV_PrechargeDischarge_Fail, &handleFault_General },
+    { STATE_ANY, EV_Charge_Error, &handleFault_General },
+    
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
 
@@ -289,57 +316,152 @@ void sendStopPrecharge()
     xTaskNotify(PCDCHandle, (1<<STOP_NOTIFICATION), eSetBits);
 }
 
-uint32_t handleFault(uint32_t event)
+uint32_t handleFault_HVDisabled(uint32_t event)
 {
     sendDTC_FATAL_BMU_ERROR();
-    ERROR_PRINT("SM received fault\n");      //State machine received fault
+    DEBUG_PRINT("HVdown flt, do nothing\n");     //HV disabled fault, do nothing
 
-    uint32_t currentState = fsmGetState(&fsmHandle);
+    // TODO: Add event-specific CAN message based on event type
+    // EV_HV_Fault, EV_PrechargeDischarge_Fail, or EV_Charge_Error
 
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 
     DC_DC_OFF;
 
-    switch (currentState) {
-        case STATE_HV_Disable:
-            {
-                DEBUG_PRINT("HVdown flt, do nothing\n");     //HV disabled fault, do nothing
-            }
-            break;
-        case STATE_HV_Enable:
-            {
-                DEBUG_PRINT("hvEnabledHVFault, discharging\n");      //hvEnabledHVFault, starting discharge
-                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
-                return STATE_Failure_Fatal;
-            }
-            break;
-        case STATE_Precharge:
-            {
-                DEBUG_PRINT("hvEnabledHVFault during precharge\n");
-                // Only send stop if the precharge hasn't already failed
-                // Otherwise it's been stopped already
-                if (event != EV_PrechargeDischarge_Fail) {
-                    sendStopPrecharge();
-                }
-            }
-            break;
-        case STATE_Discharge:
-            {
-                DEBUG_PRINT("Flt, cont discharge\n");      //Fault during discharge. Attempting to continue discharge
-            }
-            break;
-        default:
-            {
-                ERROR_PRINT("Oth State HV flt discharging\n");      //HV Fault during other state. Starting discharge
-                xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
-            }
-            break;
-    }
     Error_Handler();
     return STATE_Failure_Fatal;
 }
 
+uint32_t handleFault_HVEnabled(uint32_t event)
+{
+    sendDTC_FATAL_BMU_ERROR();
+    DEBUG_PRINT("hvEnabledHVFault, discharging\n");      //hvEnabledHVFault, starting discharge
+
+    // TODO: Add event-specific CAN message based on event type
+    // EV_HV_Fault, EV_PrechargeDischarge_Fail, or EV_Charge_Error
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
+
+    xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+
+    Error_Handler();
+    return STATE_Failure_Fatal;
+}
+
+uint32_t handleFault_Precharge(uint32_t event)
+{
+    sendDTC_FATAL_BMU_ERROR();
+    DEBUG_PRINT("Fault during precharge\n");
+
+    // TODO: Add event-specific CAN message based on event type
+    // EV_HV_Fault, EV_PrechargeDischarge_Fail, or EV_Charge_Error
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
+
+    // Only send stop if the precharge hasn't already failed
+    // Otherwise it's been stopped already
+    if (event != EV_PrechargeDischarge_Fail) {
+        sendStopPrecharge();
+    }
+
+    Error_Handler();
+    return STATE_Failure_Fatal;
+}
+
+uint32_t handleFault_Discharge(uint32_t event)
+{
+    sendDTC_FATAL_BMU_ERROR();
+    DEBUG_PRINT("Flt, cont discharge\n");      //Fault during discharge. Attempting to continue discharge
+
+    // TODO: Add event-specific CAN message based on event type
+    // EV_HV_Fault, EV_PrechargeDischarge_Fail, or EV_Charge_Error
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
+
+    // Continue discharge - don't interrupt it
+    Error_Handler();
+    return STATE_Failure_Fatal;
+}
+
+uint32_t handleFault_General(uint32_t event)
+{
+    sendDTC_FATAL_BMU_ERROR();
+    ERROR_PRINT("Oth State HV flt discharging\n");      //HV Fault during other state. Starting discharge
+
+    // TODO: Add event-specific CAN message based on event type
+    // EV_HV_Fault, EV_PrechargeDischarge_Fail, or EV_Charge_Error
+
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+
+    DC_DC_OFF;
+
+    xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+
+    Error_Handler();
+    return STATE_Failure_Fatal;
+}
+
+// uint32_t handleFault(uint32_t event)
+// {
+//     sendDTC_FATAL_BMU_ERROR();
+//     ERROR_PRINT("SM received fault\n");      //State machine received fault
+
+//     uint32_t currentState = fsmGetState(&fsmHandle);
+
+//     HV_Power_State = HV_Power_State_Off;
+//     sendCAN_BMU_HV_Power_State();
+
+//     DC_DC_OFF;
+
+//     switch (currentState) {
+//         case STATE_HV_Disable:
+//             {
+//                 DEBUG_PRINT("HVdown flt, do nothing\n");     //HV disabled fault, do nothing
+//             }
+//             break;
+//         case STATE_HV_Enable:
+//             {
+//                 DEBUG_PRINT("hvEnabledHVFault, discharging\n");      //hvEnabledHVFault, starting discharge
+//                 xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+//                 return STATE_Failure_Fatal;
+//             }
+//             break;
+//         case STATE_Precharge:
+//             {
+//                 DEBUG_PRINT("hvEnabledHVFault during precharge\n");
+//                 // Only send stop if the precharge hasn't already failed
+//                 // Otherwise it's been stopped already
+//                 if (event != EV_PrechargeDischarge_Fail) {
+//                     sendStopPrecharge();
+//                 }
+//             }
+//             break;
+//         case STATE_Discharge:
+//             {
+//                 DEBUG_PRINT("Flt, cont discharge\n");      //Fault during discharge. Attempting to continue discharge
+//             }
+//             break;
+//         default:
+//             {
+//                 ERROR_PRINT("Oth State HV flt discharging\n");      //HV Fault during other state. Starting discharge
+//                 xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+//             }
+//             break;
+//     }
+//     Error_Handler();
+//     return STATE_Failure_Fatal;
+// }
 uint32_t stopPrecharge(uint32_t event)
 {
     DEBUG_PRINT("Stopping precharge\n");
