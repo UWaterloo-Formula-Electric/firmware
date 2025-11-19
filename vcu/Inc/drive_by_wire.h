@@ -36,7 +36,6 @@ char VCU_States_String[][20]={
 typedef enum VCU_Events_t {
     EV_Init = 0,
     EV_EM_Toggle,
-    EV_Bps_Fail,
     EV_Hv_Disable,
     EV_BTN_HV_Toggle,       // From the DCU
     EV_BTN_EM_Toggle,       // From the DCU

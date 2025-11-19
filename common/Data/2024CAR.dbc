@@ -48,26 +48,8 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
 
-BO_ 2287668226 VCU_Toggle_EM_Off: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287733762 VCU_HV_Disable_Twice: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287602690 VCU_Disabling_Motors: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287537154 VCU_Disabling_HV: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287406082 VCU_Throttle_Failure: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287340546 VCU_BP_Fault: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
-
-BO_ 2287275010 VCU_BPS_Failure: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+BO_ 1 New_Message_119: 8 Vector__XXX
+ SG_ New_Signal_890 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2365566721 MC_Diag_Data: 8 INV
  SG_ INV_Diag_SubIndex M : 8|8@1+ (1,0) [0|5] "" Vector__XXX
@@ -239,7 +221,9 @@ BO_ 2147483648 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ VoltageLimitHighInverterLeft : 0|12@1+ (1,0) [0|4095] "V" Vector__XXX
 
 BO_ 2287209474 VCU_EM_Fault: 8 VCU_F7
- SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] ""  VCU_BeagleBone
+ SG_ EMFaultReturnedState : 23|8@0+ (1,0) [0|255] ""  VCU_BeagleBone
+ SG_ EMFaultInitialState : 15|8@0+ (1,0) [0|255] ""  VCU_BeagleBone
+ SG_ EMFaultEvent : 7|8@0+ (1,0) [0|255] ""  VCU_BeagleBone
 
 BO_ 2284981250 VCU_ADCReadings: 8 VCU_F7
  SG_ ThrottleBPercent : 56|8@1+ (0.5,0) [0|127.5] "" Vector__XXX
