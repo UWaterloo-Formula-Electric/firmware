@@ -154,13 +154,13 @@ BO_ 1313 IVT_Result_I: 6 IVT
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1297 IVT_Response: 8 IVT
- SG_ IVT_respByte7 : 56|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte6 : 48|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte5 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte4 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte3 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte2 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ IVT_respByte1 : 8|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ IVT_respByte7 : 56|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte6 : 48|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte5 : 40|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte4 : 32|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte3 : 24|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte2 : 16|8@1+ (1,0) [0|0] "" BMU
+ SG_ IVT_respByte1 : 8|8@1+ (1,0) [0|0] "" BMU
  SG_ IVT_MsgID_RX : 0|8@1+ (1,0) [0|255] ""  BMU
 
 BO_ 1041 IVT_Cmd: 8 BMU
