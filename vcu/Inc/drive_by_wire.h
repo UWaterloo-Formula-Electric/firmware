@@ -37,11 +37,11 @@ typedef enum VCU_Events_t {
     EV_Init = 0,
     EV_EM_Toggle,
     EV_Hv_Disable,
-    EV_BTN_HV_Toggle,       // From the DCU
-    EV_BTN_EM_Toggle,       // From the DCU
-    EV_BTN_TC_Toggle,       // From the DCU
-    EV_CAN_Receive_HV,      // From the DCU
-    EV_BTN_Endurance_Mode_Toggle,   // From the DCU
+    EV_BTN_HV_Toggle,       
+    EV_BTN_EM_Toggle,       
+    EV_BTN_TC_Toggle,       
+    EV_CAN_Receive_HV,          
+    EV_BTN_Endurance_Mode_Toggle,  
     EV_Brake_Pressure_Fault,
     EV_Throttle_Failure,
     EV_Fatal,

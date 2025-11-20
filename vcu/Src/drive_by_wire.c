@@ -44,23 +44,18 @@ uint32_t DisablingHV(uint32_t event);
 uint32_t DisableRedundancy(uint32_t event);
 uint32_t ToggleMotorsOff(uint32_t event);
 uint32_t Generic_EM_Fault(uint32_t event);
-uint32_t shutDownMotors(VCU_States_t state);
+uint32_t shutDownMotors(uint32_t state);
 uint32_t EM_Update_Throttle(uint32_t event);
 static uint32_t DefaultTransition(uint32_t event);
-
 void throttleTimerCallback(TimerHandle_t timer);
 HAL_StatusTypeDef MotorStart();
 HAL_StatusTypeDef MotorStop();
 
 extern osThreadId throttlePollingHandle;
 
-/* From the DCU */
 #define BUZZER_LENGTH_MS 2000
-#define DEBOUNCE_WAIT_MS 50
-#define EM_BUTTON_RATE_LIMIT_MS 1000  // prevents multiple button presses within this duration
 
 
-// TODO: can definitely be optimized later
 static uint32_t sendHvToggle(uint32_t event);
 static uint32_t sendEmToggle(uint32_t event);
 static uint32_t processHvState(uint32_t event);
@@ -81,7 +76,6 @@ static bool sentFatalDTC = false;
 static bool buzzerTimerStarted = false;
 static bool isPendingHvResponse = false;
 
-// TODO: clean up this state machine
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelfTests },
     { STATE_HV_Disable, EV_Hv_Disable, &DisableRedundancy },
@@ -90,11 +84,16 @@ Transition_t transitions[] = {
     { STATE_HV_Enable, EV_EM_Toggle, &EM_Enable },
     { STATE_HV_Enable, EV_Hv_Disable, &DisablingHV},
     { STATE_EM_Enable, EV_Hv_Disable, &DisablingHV},
-    { STATE_EM_Enable, EV_Brake_Pressure_Fault, & BPFault_Shutdown },
+    { STATE_EM_Enable, EV_Brake_Pressure_Fault, &BPFault_Shutdown },
     { STATE_EM_Enable, EV_Throttle_Failure, &Throttle_Shutdown },
     { STATE_EM_Enable, EV_EM_Toggle, &ToggleMotorsOff },
     { STATE_Failure_Fatal, EV_ANY, &fatalTransition },
-    // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU, not in use currently     // From DCU
+    { STATE_ANY, EV_CAN_Receive_HV, &processHvState},    //Check HV toggle response from the BMU
+    { STATE_ANY, EV_BTN_HV_Toggle, &sendHvToggle},          
+    { STATE_ANY, EV_BTN_EM_Toggle, &sendEmToggle},          
+    { STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC},        
+    // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},  //not in use currently
+    { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleRegenMode},     
     { STATE_ANY, EV_Fatal, &Generic_EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };
@@ -255,36 +254,45 @@ uint32_t EM_Enable(uint32_t event)
     return state;
 }
 uint32_t BPFault_Shutdown(uint32_t event){
-    EMFaultEvent = event;
-    sendCAN_VCU_EM_Fault();
+    uint32_t state;
     uint32_t currentState = fsmGetState(&VCUFsmHandle);
+    EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_Failure_Fatal;
+    sendCAN_VCU_EM_Fault();
     sendDTC_CRITICAL_Brake_Pressure_FAIL();
     DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
     if (currentState == STATE_EM_Enable) {
-        uint32_t state = shutDownMotors(STATE_Failure_Fatal);
+        state = shutDownMotors(STATE_Failure_Fatal);
         return state;
     }
     return STATE_Failure_Fatal;
 }
 uint32_t Throttle_Shutdown(uint32_t event){
-    EMFaultEvent = event;
-    sendCAN_VCU_EM_Fault();
+    uint32_t state;
     uint32_t currentState = fsmGetState(&VCUFsmHandle);
+    EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_Failure_Fatal;
+    sendCAN_VCU_EM_Fault();
     DEBUG_PRINT("Throttle read failure, trans to fatal failure\n");
     if (currentState == STATE_EM_Enable) {
         sendDTC_WARNING_Throttle_Failure(1);
-        uint32_t state = shutDownMotors(STATE_Failure_Fatal);
+        state = shutDownMotors(STATE_Failure_Fatal);
         return state;
     }
     sendDTC_WARNING_Throttle_Failure(2);
     return STATE_Failure_Fatal;
 }
 uint32_t DisablingHV(uint32_t event){
-    EMFaultEvent = event;
-    sendCAN_VCU_EM_Fault();
+    uint32_t state;
     uint32_t currentState = fsmGetState(&VCUFsmHandle);
+    EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_HV_Disable;
+    sendCAN_VCU_EM_Fault();
     if (currentState == STATE_EM_Enable) {
-        uint32_t state = shutDownMotors(STATE_HV_Disable);
+        state = shutDownMotors(STATE_HV_Disable);
         return state;
     }
     DEBUG_PRINT("HV Disable, staying in EM Disabled state\n");
@@ -292,23 +300,31 @@ uint32_t DisablingHV(uint32_t event){
 }
 uint32_t DisableRedundancy(uint32_t event){
     EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_HV_Disable;
     sendCAN_VCU_EM_Fault();
     DEBUG_PRINT("Called HV disabled while already disabled..?\n");
     return STATE_HV_Disable;
 }
 uint32_t ToggleMotorsOff(uint32_t event){
+    uint32_t state;
     EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_HV_Enable;
     sendCAN_VCU_EM_Fault();
     DEBUG_PRINT("EM Toggle, trans to EM Disabled\n");
-    uint32_t state = shutDownMotors(STATE_HV_Disable);
+    state = shutDownMotors(STATE_HV_Enable);
     return state;
 }
 uint32_t Generic_EM_Fault(uint32_t event){
-    EMFaultEvent = event;
-    sendCAN_VCU_EM_Fault();
+    uint32_t state;
     uint32_t currentState = fsmGetState(&VCUFsmHandle);
+    EMFaultEvent = event;
+    EMFaultInitialState = currentState;
+    EMFaultReturnedState = STATE_Failure_Fatal;
+    sendCAN_VCU_EM_Fault();
     if (currentState == STATE_EM_Enable) {
-        uint32_t state = shutDownMotors(STATE_Failure_Fatal);
+        state = shutDownMotors(STATE_Failure_Fatal);
         return state;
     }
     DEBUG_PRINT("Received fatal event, trans to fatal failure\n");
@@ -324,7 +340,6 @@ uint32_t shutDownMotors(uint32_t state){
         ERROR_PRINT("Failed to stop motors\n");
         return STATE_Failure_Fatal;
     }
-
     EM_State = EM_State_Off;
     sendCAN_VCU_EM_State();
     return state;
@@ -491,7 +506,6 @@ void setPendingHvResponse(void)
 {
     isPendingHvResponse = true;
 }
-// TODO: probably can be removed
 bool pendingHvResponse(void)
 {
     return isPendingHvResponse == true;
@@ -504,20 +518,6 @@ void receivedHvResponse(void)
 
 static uint32_t sendEmToggle(uint32_t event)
 {
-    // TODO: double check if we still need this extra debouncing logic
-    static TickType_t lastToggleTime = 0U;
-
-    /*
-    temporary check to prevent button from double clicking
-    remove after 2024 michigan (the issue is probably the button itself??)
-    */
-    if (xTaskGetTickCount() - lastToggleTime < pdMS_TO_TICKS(EM_BUTTON_RATE_LIMIT_MS))
-    {
-        DEBUG_PRINT("Ignoring EM Toggle button event\n");
-        return fsmGetState(&VCUFsmHandle);
-    } else {
-        lastToggleTime = xTaskGetTickCount();
-    }
 
     const VCU_States_t current_state = fsmGetState(&VCUFsmHandle);
 
