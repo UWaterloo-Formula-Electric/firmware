@@ -15,6 +15,8 @@ typedef enum ltc_command_t {
 	ADOW_UP,
 	ADOW_DOWN,
 	ADSTAT,
+	ADAX2,
+	ADSV
 } ltc_command_t;
 
 typedef enum voltage_operation_t {
