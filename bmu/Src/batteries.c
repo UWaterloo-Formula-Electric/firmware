@@ -340,18 +340,18 @@ typedef struct {
 // static volatile uint16_t ivts_log_head = 0;
 // static volatile uint16_t ivts_log_count = 0;
 
-static void IVTS_Print_Response(void);
+static void IVTS_Print_Response(void)
 {
-    DEBUG_PRINT("------ RESPONSE -------\r\n");
-    DEBUG_PRINT("%u ", IVT_MsgID_RX);
-    DEBUG_PRINT("%u ", IVT_respByte1);
-    DEBUG_PRINT("%u ", IVT_respByte2);
-    DEBUG_PRINT("%u ", IVT_respByte3);
-    DEBUG_PRINT("%u ", IVT_respByte4);
-    DEBUG_PRINT("%u ", IVT_respByte5);
-    DEBUG_PRINT("%u ", IVT_respByte6);
-    DEBUG_PRINT("%u ", IVT_respByte7);
-    DEBUG_PRINT("\r\n------ END OF RESPONSE -------\r\n");
+    // DEBUG_PRINT("------ RESPONSE -------\r\n");
+    // DEBUG_PRINT("%u ", IVT_MsgID_RX);
+    // DEBUG_PRINT("%u ", IVT_respByte1);
+    // DEBUG_PRINT("%u ", IVT_respByte2);
+    // DEBUG_PRINT("%u ", IVT_respByte3);
+    // DEBUG_PRINT("%u ", IVT_respByte4);
+    // DEBUG_PRINT("%u ", IVT_respByte5);
+    // DEBUG_PRINT("%u ", IVT_respByte6);
+    // DEBUG_PRINT("%u ", IVT_respByte7);
+    // DEBUG_PRINT("\r\n------ END OF RESPONSE -------\r\n");
 }
 
 /* Helper functions for IVTS (shunt) */

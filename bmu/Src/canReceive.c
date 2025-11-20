@@ -94,6 +94,17 @@ void CAN_Msg_IVT_Result_I_Callback()
     publishBusCurrent(&Ibus);
 }
 
+void CAN_Msg_IVT_Response_Callback()
+{
+    // Handle IVT response message
+    DEBUG_PRINT_ISR("IVT Response: ID=%u B1=%u B2=%u B3=%u B4=%u B5=%u B6=%u B7=%u\r\n",
+        (uint8_t)IVT_MsgID_RX,  (uint8_t)IVT_respByte1,  (uint8_t)IVT_respByte2, (uint8_t)IVT_respByte3,
+        (uint8_t)IVT_respByte4, (uint8_t)IVT_respByte5, (uint8_t)IVT_respByte6, (uint8_t)IVT_respByte7);
+    
+    // Optional: Set a flag or send to a queue for processing in task context
+    // if you need to do more complex processing of the response
+}
+
 void CAN_Msg_IMD_Info_General_Callback()
 {
     static ImdData_s ImdData = {};
