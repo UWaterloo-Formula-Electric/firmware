@@ -299,6 +299,7 @@ uint32_t DisablingHV(uint32_t event){
     return STATE_HV_Disable;
 }
 uint32_t DisableRedundancy(uint32_t event){
+    uint32_t currentState = fsmGetState(&VCUFsmHandle);
     EMFaultEvent = event;
     EMFaultInitialState = currentState;
     EMFaultReturnedState = STATE_HV_Disable;
@@ -308,6 +309,7 @@ uint32_t DisableRedundancy(uint32_t event){
 }
 uint32_t ToggleMotorsOff(uint32_t event){
     uint32_t state;
+    uint32_t currentState = fsmGetState(&VCUFsmHandle);
     EMFaultEvent = event;
     EMFaultInitialState = currentState;
     EMFaultReturnedState = STATE_HV_Enable;
