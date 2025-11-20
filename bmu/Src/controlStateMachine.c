@@ -87,9 +87,9 @@ Transition_t transitions[] = {
 
 	// Cockpit BRB pressed/unpressed
 	{ STATE_ANY, EV_Cockpit_BRB_Pressed, &cockpitBRBPressed },
-	{ STATE_Failure_CBRB_Disabled, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased},
-	{ STATE_Failure_CBRB_Enabled, EV_Cockpit_BRB_Unpressed, &startPrecharge},
-    { STATE_Failure_CBRB_Enabled, EV_Discharge_Finished, &dischargeFinished },
+	{ STATE_Failure_CBRB_Disabled, EV_Cockpit_BRB_Unpressed, &cockpitBRBReleased}, //Cockpit button was pressed during HV Disable, now released
+	{ STATE_Failure_CBRB_Enabled, EV_Cockpit_BRB_Unpressed, &startPrecharge}, //Cockpit button was pressed during HV state, released and allowed to charge
+    { STATE_Failure_CBRB_Enabled, EV_Discharge_Finished, &dischargeFinished }, //Cockpit button was pressed but now discharge is done.
 
     // Already in failure, do nothing
     // Takes priority over rest of events
