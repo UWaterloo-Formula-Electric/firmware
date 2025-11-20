@@ -45,14 +45,18 @@
 // Ex. if 6812 is selected: then ltc6812.c is used
 #define LTC_CHIP_6812 1
 #define LTC_CHIP_6804 2
+#define ADBMS_CHIP_6830B 3
 
-#define LTC_CHIP LTC_CHIP_6804
+#define LTC_CHIP ADBMS_CHIP_6830B
 
 #if LTC_CHIP == LTC_CHIP_6804
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #define CONVERSION_TIME_7kHz_US (2480)
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
+#elif LTC_CHIP == ADBMS_CHIP_6830B
+#define NUM_LTC_CHIPS_PER_BOARD 2
+#define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
 #endif
@@ -80,16 +84,25 @@
 #error "DBC file has less temp cells defined then they are in the system"
 #endif
 
-#define LTC_T_WAKE_MAX_US  300          // TYP=100us. Regulator Start-Up Time aka time to get VREG Generated from Drive Pin. This happens during transition from SLEEP to STANDBY states in core LTC state machine
-#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
-                                        /* When isoSPI port A receives a WAKEUP signal, the isoSPI enters the READY state. This transition happens quickly (within t_READY) if the Core is in the STANDBY state because the DRIVE and VREG pins are already biased up. If the Core is in the SLEEP state when the isoSPI receives a WAKEUP signal, then it transitions to the READY state within t_WAKE. */
+/* When isoSPI port A receives a WAKEUP signal, the isoSPI enters the READY state. This transition happens quickly (within t_READY) if the Core is in the STANDBY state because the DRIVE and VREG pins are already biased up. If the Core is in the SLEEP state when the isoSPI receives a WAKEUP signal, then it transitions to the READY state within t_WAKE. */
 
 #if LTC_CHIP == LTC_CHIP_6804
 // We set this to 3 as the last 3 cell connections are actually CELL7 which is on the 2nd chip
 // If this changes in the future VOLTAGE_BLOCKS_PER_CHIP should be 4
 #define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board
+#define LTC_T_WAKE_MAX_US  300          // TYP=100us. Regulator Start-Up Time aka time to get VREG Generated from Drive Pin. This happens during transition from SLEEP to STANDBY states in core LTC state machine
+#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
+
 #elif LTC_CHIP == LTC_CHIP_6812
 #define VOLTAGE_BLOCKS_PER_CHIP    5   // Number of voltage blocks per AMS board
+#define LTC_T_WAKE_MAX_US  300          // TYP=100us. Regulator Start-Up Time aka time to get VREG Generated from Drive Pin. This happens during transition from SLEEP to STANDBY states in core LTC state machine
+#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
+
+#elif LTC_CHIP == ADBMS_CHIP_6830B
+#define VOLTAGE_BLOCKS_PER_CHIP    4   // Number of voltage blocks per AMS board //TODO CHANGE
+#define LTC_T_WAKE_MAX_US  500          // TYP=200us
+#define LTC_T_READY_US 10               // If the core state machine is in standby wait this amount of time, if core state machine is in sleep then wait for T_WAKE. 
+
 #endif
 
 /** @} */
