@@ -340,6 +340,20 @@ typedef struct {
 // static volatile uint16_t ivts_log_head = 0;
 // static volatile uint16_t ivts_log_count = 0;
 
+static void IVTS_Print_Response(void);
+{
+    DEBUG_PRINT("------ RESPONSE -------\r\n");
+    DEBUG_PRINT("%u ", IVT_MsgID_RX);
+    DEBUG_PRINT("%u ", IVT_respByte1);
+    DEBUG_PRINT("%u ", IVT_respByte2);
+    DEBUG_PRINT("%u ", IVT_respByte3);
+    DEBUG_PRINT("%u ", IVT_respByte4);
+    DEBUG_PRINT("%u ", IVT_respByte5);
+    DEBUG_PRINT("%u ", IVT_respByte6);
+    DEBUG_PRINT("%u ", IVT_respByte7);
+    DEBUG_PRINT("\r\n------ END OF RESPONSE -------\r\n");
+}
+
 /* Helper functions for IVTS (shunt) */
 static void IVTS_SetMode_Stop(void)
 {
@@ -355,6 +369,7 @@ static void IVTS_SetMode_Stop(void)
     sendCAN_IVT_Cmd();
 
     vTaskDelay(pdMS_TO_TICKS(5));  // allow time for response (simplified)
+    IVTS_Print_Response();
 }
 
 static void IVTS_Config_Current_1ms(void)
@@ -371,6 +386,7 @@ static void IVTS_Config_Current_1ms(void)
 
     sendCAN_IVT_Cmd();
     vTaskDelay(pdMS_TO_TICKS(5));
+    IVTS_Print_Response();
 }
 
 // static void IVTS_Config_voltage_1ms(void)
@@ -404,6 +420,7 @@ static void IVTS_Store_Config(void)
     sendCAN_IVT_Cmd();
     // Datasheet says storing may take up to ~1s -> wait a bit
     vTaskDelay(pdMS_TO_TICKS(1000));
+    IVTS_Print_Response();
 }
 
 static void IVTS_SetMode_Run(void)
@@ -420,6 +437,7 @@ static void IVTS_SetMode_Run(void)
 
     sendCAN_IVT_Cmd();
     vTaskDelay(pdMS_TO_TICKS(5));
+    IVTS_Print_Response();
 }
 
 void IVTS_Init_1kHz_Current(void)
