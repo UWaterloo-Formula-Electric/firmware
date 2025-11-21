@@ -103,7 +103,7 @@ float voltageToSOCLookup[NUM_SOC_LOOKUP_VALS] = {
 /*
  * HV Measure task Defines and Variables
  */
-#define HV_MEASURE_TASK_PERIOD_MS 10 // TODO: revert back to 1 ms
+#define HV_MEASURE_TASK_PERIOD_MS 1 // TODO: revert back to 1 ms
 #define STATE_BUS_HV_CAN_SEND_PERIOD_MS 100
 static uint32_t StateBusHVSendPeriod = STATE_BUS_HV_CAN_SEND_PERIOD_MS;
 
@@ -340,60 +340,94 @@ typedef struct {
 // static volatile uint16_t ivts_log_head = 0;
 // static volatile uint16_t ivts_log_count = 0;
 
-static void IVTS_Print_Response(void)
-{
-    // DEBUG_PRINT("------ RESPONSE -------\r\n");
-    // DEBUG_PRINT("%u ", IVT_MsgID_RX);
-    // DEBUG_PRINT("%u ", IVT_respByte1);
-    // DEBUG_PRINT("%u ", IVT_respByte2);
-    // DEBUG_PRINT("%u ", IVT_respByte3);
-    // DEBUG_PRINT("%u ", IVT_respByte4);
-    // DEBUG_PRINT("%u ", IVT_respByte5);
-    // DEBUG_PRINT("%u ", IVT_respByte6);
-    // DEBUG_PRINT("%u ", IVT_respByte7);
-    // DEBUG_PRINT("\r\n------ END OF RESPONSE -------\r\n");
-}
+// static void IVTS_Print_Response(void)
+// {
+//     // DEBUG_PRINT("------ RESPONSE -------\r\n");
+//     // DEBUG_PRINT("%u ", IVT_MsgID_RX);
+//     // DEBUG_PRINT("%u ", IVT_respByte1);
+//     // DEBUG_PRINT("%u ", IVT_respByte2);
+//     // DEBUG_PRINT("%u ", IVT_respByte3);
+//     // DEBUG_PRINT("%u ", IVT_respByte4);
+//     // DEBUG_PRINT("%u ", IVT_respByte5);
+//     // DEBUG_PRINT("%u ", IVT_respByte6);
+//     // DEBUG_PRINT("%u ", IVT_respByte7);
+//     // DEBUG_PRINT("\r\n------ END OF RESPONSE -------\r\n");
+// }
+
+// static void IVTS_GET_CAN_ID(void)
+// {
+//     // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
+//     IVT_MsgID_TX = 0x34;                                    // Configure Result_I
+//     IVT_cmdByte1 = 0x00;                // cyclic mode, flags = 0
+//     IVT_cmdByte2 = 0x00;                                    // interval high byte
+//     IVT_cmdByte3 = 0x00;                                    // interval low byte -> 1 ms
+//     IVT_cmdByte4 = 0x00;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
+
+//     sendCAN_IVT_Cmd();
+//     vTaskDelay(pdMS_TO_TICKS(5));
+//     IVTS_Print_Response();
+// }
+
+// static void IVTS_GET_MODE(void)
+// {
+//     // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
+//     IVT_MsgID_TX = 0x74;                                    // Configure Result_I
+//     IVT_cmdByte1 = 0x00;                // cyclic mode, flags = 0
+//     IVT_cmdByte2 = 0x00;                                    // interval high byte
+//     IVT_cmdByte3 = 0x00;                                    // interval low byte -> 1 ms
+//     IVT_cmdByte4 = 0x00;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
+
+//     sendCAN_IVT_Cmd();
+//     vTaskDelay(pdMS_TO_TICKS(5));
+//     IVTS_Print_Response();
+// }
+
+// static void IVTS_GET_CONFIG(void)
+// {
+//     // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
+//     IVT_MsgID_TX = 0xA0;                                    // Configure Result_I
+//     IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
+//     IVT_cmdByte2 = 0x00;                                    // interval high byte
+//     IVT_cmdByte3 = 0x00;                                    // interval low byte -> 1 ms
+//     IVT_cmdByte4 = 0x01;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
+
+//     sendCAN_IVT_Cmd();
+//     vTaskDelay(pdMS_TO_TICKS(5));
+//     IVTS_Print_Response();
+// }
 
 /* Helper functions for IVTS (shunt) */
-static void IVTS_SetMode_Stop(void)
-{
-    IVT_MsgID_TX = 0x34;  // Byte0 per DBC
-    IVT_cmdByte1 = 0x00;  // SET_MODE
-    IVT_cmdByte2 = 0x00;  // Actual mode = STOP (configuration must be done in STOP mode)
-    IVT_cmdByte3 = 0x00;  // Startup mode = STOP (optional)
-    IVT_cmdByte4 = 0x00;  // access level: user
-    IVT_cmdByte5 = 0x00;  // access level 2nd byte
-    IVT_cmdByte6 = 0x00;  // reserved
-    IVT_cmdByte7 = 0x00;  // reserved
-
-    sendCAN_IVT_Cmd();
-
-    vTaskDelay(pdMS_TO_TICKS(5));  // allow time for response (simplified)
-    IVTS_Print_Response();
-}
-
-static void IVTS_Config_Current_1ms(void)
-{
-    // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
-    IVT_MsgID_TX = 0x20;                                    // Configure Result_I
-    IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
-    IVT_cmdByte2 = 0x00;                                    // interval high byte
-    IVT_cmdByte3 = 0x01;                                    // interval low byte -> 1 ms
-    IVT_cmdByte4 = 0x00;
-    IVT_cmdByte5 = 0x00;
-    IVT_cmdByte6 = 0x00;
-    IVT_cmdByte7 = 0x00;
-
-    sendCAN_IVT_Cmd();
-    vTaskDelay(pdMS_TO_TICKS(5));
-    IVTS_Print_Response();
-}
-
-// static void IVTS_Config_voltage_1ms(void)
+// static void IVTS_SetMode_Stop(void)
 // {
-//     // Configure U1 voltage at 1 ms
-//     IVT_MsgID_TX = 0x21;                                    // Configure Result_U1
-//     IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
+//     IVT_MsgID_TX = 0x34;  // Byte0 per DBC
+//     IVT_cmdByte1 = 0x01;  // SET_MODE
+//     IVT_cmdByte2 = 0x00;  // Actual mode = STOP (configuration must be done in STOP mode)
+//     IVT_cmdByte3 = 0x00;  // Startup mode = STOP (optional)
+//     IVT_cmdByte4 = 0x00;  // access level: user
+//     IVT_cmdByte5 = 0x00;  // access level 2nd byte
+//     IVT_cmdByte6 = 0x00;  // reserved
+//     IVT_cmdByte7 = 0x00;  // reserved
+
+//     sendCAN_IVT_Cmd();
+
+//     vTaskDelay(pdMS_TO_TICKS(5));  // allow time for response (simplified)
+//     IVTS_Print_Response();
+// }
+
+// static void IVTS_Config_Current_1ms(void)
+// {
+//     // DBC-framed: Byte0 = IVT_MsgID_TX, Byte1..7 = IVT_cmdByte1..7
+//     IVT_MsgID_TX = 0x20;                                    // Configure Result_I
+//     IVT_cmdByte1 = (0b0010) | (0b0100 << 4);                // cyclic mode, flags = 0
 //     IVT_cmdByte2 = 0x00;                                    // interval high byte
 //     IVT_cmdByte3 = 0x01;                                    // interval low byte -> 1 ms
 //     IVT_cmdByte4 = 0x00;
@@ -403,59 +437,77 @@ static void IVTS_Config_Current_1ms(void)
 
 //     sendCAN_IVT_Cmd();
 //     vTaskDelay(pdMS_TO_TICKS(5));
+//     IVTS_Print_Response();
 // }
 
-static void IVTS_Store_Config(void)
-{
-    // Store configuration into NVM
-    IVT_MsgID_TX = 0x32;  // STORE
-    IVT_cmdByte1 = 0x00;
-    IVT_cmdByte2 = 0x00;
-    IVT_cmdByte3 = 0x00;
-    IVT_cmdByte4 = 0x00;
-    IVT_cmdByte5 = 0x00;
-    IVT_cmdByte6 = 0x00;
-    IVT_cmdByte7 = 0x00;
+// // static void IVTS_Config_voltage_1ms(void)
+// // {
+// //     // Configure U1 voltage at 1 ms
+// //     IVT_MsgID_TX = 0x21;                                    // Configure Result_U1
+// //     IVT_cmdByte1 = (0b0010) | (0b0000 << 4);                // cyclic mode, flags = 0
+// //     IVT_cmdByte2 = 0x00;                                    // interval high byte
+// //     IVT_cmdByte3 = 0x01;                                    // interval low byte -> 1 ms
+// //     IVT_cmdByte4 = 0x00;
+// //     IVT_cmdByte5 = 0x00;
+// //     IVT_cmdByte6 = 0x00;
+// //     IVT_cmdByte7 = 0x00;
 
-    sendCAN_IVT_Cmd();
-    // Datasheet says storing may take up to ~1s -> wait a bit
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    IVTS_Print_Response();
-}
+// //     sendCAN_IVT_Cmd();
+// //     vTaskDelay(pdMS_TO_TICKS(5));
+// // }
 
-static void IVTS_SetMode_Run(void)
-{
-    // Enter RUN mode
-    IVT_MsgID_TX = 0x34;  // SET_MODE
-    IVT_cmdByte1 = 0x01;  // Actual mode = RUN
-    IVT_cmdByte2 = 0x01;  // Startup mode = RUN (boot in RUN next time)
-    IVT_cmdByte3 = 0x00;  // access/user
-    IVT_cmdByte4 = 0x00;
-    IVT_cmdByte5 = 0x00;
-    IVT_cmdByte6 = 0x00;
-    IVT_cmdByte7 = 0x00;
+// static void IVTS_Store_Config(void)
+// {
+//     // Store configuration into NVM
+//     IVT_MsgID_TX = 0x32;  // STORE
+//     IVT_cmdByte1 = 0x00;
+//     IVT_cmdByte2 = 0x00;
+//     IVT_cmdByte3 = 0x00;
+//     IVT_cmdByte4 = 0x00;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
 
-    sendCAN_IVT_Cmd();
-    vTaskDelay(pdMS_TO_TICKS(5));
-    IVTS_Print_Response();
-}
+//     sendCAN_IVT_Cmd();
+//     // Datasheet says storing may take up to ~1s -> wait a bit
+//     vTaskDelay(pdMS_TO_TICKS(1000));
+//     IVTS_Print_Response();
+// }
 
-void IVTS_Init_1kHz_Current(void)
-{
-    // Wait for IVT-S power-up (datasheet: ~350–400 ms)
-    vTaskDelay(pdMS_TO_TICKS(500));
+// static void IVTS_SetMode_Run(void)
+// {
+//     // Enter RUN mode
+//     IVT_MsgID_TX = 0x34;  // SET_MODE
+//     IVT_cmdByte1 = 0x01;  // Actual mode = RUN
+//     IVT_cmdByte2 = 0x01;  // Startup mode = RUN (boot in RUN next time)
+//     IVT_cmdByte3 = 0x00;  // access/user
+//     IVT_cmdByte4 = 0x00;
+//     IVT_cmdByte5 = 0x00;
+//     IVT_cmdByte6 = 0x00;
+//     IVT_cmdByte7 = 0x00;
 
-    IVTS_SetMode_Stop();
-    DEBUG_PRINT("Putting IVTS to STOP mode\r\n");
-    IVTS_Config_Current_1ms();
-    DEBUG_PRINT("Configuring 1ms current reading\r\n");
-    IVTS_Store_Config();
-    DEBUG_PRINT("Storing config\r\n");
-    IVTS_SetMode_Run();
-    DEBUG_PRINT("Putting IVTS to RUN mode\r\n");
+//     sendCAN_IVT_Cmd();
+//     vTaskDelay(pdMS_TO_TICKS(5));
+//     IVTS_Print_Response();
+// }
 
-    // From now on, IVT-S should be sending ID 0x521 every 1 ms
-}
+// void IVTS_Init_1kHz_Current(void)
+// {
+//     // Wait for IVT-S power-up (datasheet: ~350–400 ms)
+//     vTaskDelay(pdMS_TO_TICKS(500));
+
+//     // IVTS_SetMode_Stop();
+//     // DEBUG_PRINT("Putting IVTS to STOP mode\r\n");
+//     // IVTS_Config_Current_1ms();
+//     // DEBUG_PRINT("Configuring 1ms current reading\r\n");
+//     // IVTS_Store_Config();
+//     // DEBUG_PRINT("Storing config\r\n");
+//     // IVTS_SetMode_Run();
+//     // DEBUG_PRINT("Putting IVTS to RUN mode\r\n");
+
+
+//     // From now on, IVT-S should be sending ID 0x521 every 1 ms
+// }
 
 // static void IVTS_DumpLog(void)
 // {
@@ -535,7 +587,7 @@ void HVMeasureTask(void *pvParamaters)
         vTaskDelay(pdMS_TO_TICKS(500));
 
         // Note: we don't check for successful response here for simplicity
-        IVTS_Init_1kHz_Current();
+        // IVTS_Init_1kHz_Current();
     }
 
     while (1) {
