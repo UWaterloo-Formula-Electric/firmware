@@ -170,7 +170,11 @@ HAL_StatusTypeDef F7_sendCanMessageBase(CAN_HandleTypeDef *hcan, int id,
 #ifdef CHARGER_CAN_HANDLE
 HAL_StatusTypeDef F7_sendCanMessageCharger(int id, int length, uint8_t *data)
 {
-    return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data);
+    if (id>2047) {
+        return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data, true);
+    } else {
+        return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data, false);
+    }
 }
 #endif
 
