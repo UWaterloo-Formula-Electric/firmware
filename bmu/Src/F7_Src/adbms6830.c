@@ -600,7 +600,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 	for (int block = 0; block < 4; block++)
     {
-        uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
+        uint8_t adc_vals[NUM_BOARDS * AUX_BLOCK_SIZE] = {0};
 
 		if (batt_spi_wakeup(false /* not sleeping*/)) {
             return HAL_ERROR;
@@ -619,7 +619,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
             for (int board = 0; board < NUM_BOARDS; board++)
             {
                 const size_t data_idx =
-                    board * VOLTAGE_BLOCK_SIZE + (thermistor * CELL_VOLTAGE_SIZE_BYTES);
+                    board * AUX_BLOCK_SIZE + (thermistor * CELL_VOLTAGE_SIZE_BYTES);
 					
 				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
                 uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
