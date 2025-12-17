@@ -470,9 +470,12 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
     for (int block = 0; block < 6; block++)
     {
-        uint8_t adc_vals[NUM_BOARDS * 6] = {0};
+		#define BYTE_CHUNK_BOARD_SIZE 6 // 6 bytes per board
+		#define BYTE_CHUNK_CELL_SIZE 2 // 2 bytes per cell
 
-        if (batt_spi_wakeup(true)) {
+        uint8_t adc_vals[NUM_BOARDS * BYTE_CHUNK_BOARD_SIZE] = {0};
+
+		if (batt_spi_wakeup(false /* not sleeping*/)) {
             return HAL_ERROR;
 		}
 
@@ -483,16 +486,17 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
         // Each block contains 3 cell readings
         for (int cell = 0; cell < 3; cell++) {
-            // Skip unused positions:
-            // The ADBMS6830 has 18 register slots but only 16 valid cell pins.
-            if (cell_index >= 16)
+			// Only populate the cells that are wired on this board.
+			// (ADBMS6830 has up to 16 cell inputs; we may use fewer.)
+			if (cell_index >= CELLS_PER_BOARD)
                 break;
 
             for (int board = 0; board < NUM_BOARDS; board++)
             {
                 const size_t data_idx =
-                    board * 6 + (cell * 2);   // 2 bytes per cell
-
+                    board * BYTE_CHUNK_BOARD_SIZE + (cell * BYTE_CHUNK_CELL_SIZE);
+					
+				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
                 uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
                                 adc_vals[data_idx];
 
@@ -501,9 +505,14 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
                 float voltage = (adc * 0.000150f) + 1.5f;
 
                 const size_t global_cell =
-                    board * 16 + cell_index;
+					board * CELLS_PER_BOARD + cell_index;
 
                 cell_voltage_array[global_cell] = voltage;
+
+				if(voltage_operation == OPEN_WIRE)
+				{
+					open_wire_failure[global_cell].num_times_consec = 0;
+				}
             }
 
             cell_index++;

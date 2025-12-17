@@ -24,7 +24,7 @@
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             10
+#define CELLS_PER_BOARD             16
 /// Number of thermistors attached to first AMS in each segment
 #define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
