@@ -470,16 +470,13 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
     for (int block = 0; block < 6; block++)
     {
-		#define BYTE_CHUNK_BOARD_SIZE 6 // 6 bytes per board
-		#define BYTE_CHUNK_CELL_SIZE 2 // 2 bytes per cell
-
-        uint8_t adc_vals[NUM_BOARDS * BYTE_CHUNK_BOARD_SIZE] = {0};
+        uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
 
 		if (batt_spi_wakeup(false /* not sleeping*/)) {
             return HAL_ERROR;
 		}
 
-        if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, 6) != HAL_OK) {
+        if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
             DEBUG_PRINT("ADBMS6830 voltage read failed (block %u)\r\n", block);
             return HAL_ERROR;
         }
@@ -494,7 +491,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
             for (int board = 0; board < NUM_BOARDS; board++)
             {
                 const size_t data_idx =
-                    board * BYTE_CHUNK_BOARD_SIZE + (cell * BYTE_CHUNK_CELL_SIZE);
+                    board * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
 					
 				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
                 uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
@@ -590,7 +587,84 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
 }
 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
-	return HAL_OK;	
+	// adc values for one AUX block from all boards
+	uint8_t adc_vals[NUM_BOARDS * AUX_BLOCK_SIZE] = {0};
+    uint8_t cell_index = 0;
+
+	const uint8_t rd_cmds[6][2] = {
+        { RDAUXA_BYTE0, RDAUXA_BYTE1 },
+        { RDAUXB_BYTE0, RDAUXB_BYTE1 },
+        { RDAUXC_BYTE0, RDAUXC_BYTE1 },
+        { RDAUXD_BYTE0, RDAUXD_BYTE1 },
+    };
+
+	for (int block = 0; block < 4; block++)
+    {
+        uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
+
+		if (batt_spi_wakeup(false /* not sleeping*/)) {
+            return HAL_ERROR;
+		}
+
+        if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
+            DEBUG_PRINT("ADBMS6830 GPIO (thermistor) read failed (block %u)\r\n", block);
+            return HAL_ERROR;
+        }
+
+		// Each block contains 3 cell readings
+        for (int thermistor = 0; thermistor < 3; thermistor++) {
+			if (cell_index >= TEMP_CHANNELS_PER_BOARD)
+                break;
+
+            for (int board = 0; board < NUM_BOARDS; board++)
+            {
+                const size_t data_idx =
+                    board * VOLTAGE_BLOCK_SIZE + (thermistor * CELL_VOLTAGE_SIZE_BYTES);
+					
+				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
+                uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
+                                adc_vals[data_idx];
+
+                // Convert to volts
+                // From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
+                float voltage = (adc * 0.000150f) + 1.5f;
+
+                const size_t global_cell =
+					board * TEMP_CHANNELS_PER_BOARD + cell_index;
+
+                cell_temp_array[global_cell] = voltage;
+            }
+
+            cell_index++;
+        }
+    }
+
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		if (channel == 6 && (board % 2) == 1) {
+			continue;
+		}
+
+		// Map (board, channel) into the packed cell_temp_array indexing.
+		size_t cellIdx = (board * 13 + (board + 1) / 2) + channel;
+		if (channel >= 9) {
+			if ((board % 2) == 0) {
+				cellIdx = cellIdx - 2;
+			} else {
+				cellIdx = cellIdx - 3;
+			}
+		}
+
+		const size_t boardStartIdx = board * AUX_BLOCK_SIZE;
+		uint16_t adcCounts = ((uint16_t)adc_vals[boardStartIdx + TEMP_ADC_IDX_HIGH] << 8) |
+		                    adc_vals[boardStartIdx + TEMP_ADC_IDX_LOW];
+
+		// Convert ADC code to volts.
+		// Keep the conversion consistent with the ADBMS6830 cell conversion used elsewhere in this driver.
+		float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
+		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+	}
+
+	return HAL_OK;
 }
 
 void batt_set_balancing_cell (int board, int chip, int cell) {

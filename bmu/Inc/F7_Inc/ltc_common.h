@@ -6,7 +6,7 @@
 #include "ltc_chip.h"
 
 // The following defines are always fixed due to AMS architecture, DO NOT CHANGE
-#define TEMP_CHANNELS_PER_BOARD     16
+#define TEMP_CHANNELS_PER_BOARD     10
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 #define TEMP_MEASURE_DELAY_US 405 // Time for measurements to finsh
