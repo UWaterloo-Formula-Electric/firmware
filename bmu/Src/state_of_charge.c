@@ -4,13 +4,30 @@
 #include "batteries.h"
 #include "debug.h"
 #include "watchdog.h"
+#include <math.h>
+
+/*
+Harry Lu - State of charge estimation WIP
+So far:
+- implemented a basic coulomb counting method (same as before - will add additional prediction method once tractive locks in)
+- I know the code / logic for that existed in this file before but I rewrote for redundancy /c alrity - will clean up file once done
+- added Kalman gain with 3 sigma points 
+- added some structs needed
+
+TO DO:
+- clean up code
+- figure out how to predict voltage (ECM???? tractive lock in)
+- integrate with the task and rtos and stuff
+- somethign something lookup table
+
+also idk whats happening but im getting some include errors - will look into later
+*/
 
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
 #define CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF 4.0f
 #define CELL_LOW_VOLTAGE_LOOKUP_CUTOFF 3.28f
-
 
 #define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF (CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will be using the integration method exclusively
 #define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF (CELL_LOW_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will start weighing the lookup table method
@@ -26,6 +43,21 @@ static float capacity_startup = 1.0f;
 
 // Units A-s
 static volatile float IBus_integrated = 0.0f;
+
+// my variables
+typedef struct {
+	float x; // current soc estimate
+	float P; // variance
+	float Q; // process noise
+	float R; // measurement noise
+} UKF_State;
+static UKF_State ukf;
+// add some code to initialize UKF struct in the task init
+
+typedef struct {
+	float sigma_points[3];
+} UKF_SigmaPoints;
+static UKF_SigmaPoints sigmaPoints;
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
@@ -87,6 +119,48 @@ static float compute_current_soc(void)
 	soc = soc > 1.0f ? 1.0f : soc;
 	soc = soc < 0.0f ? 0.0f : soc;
 	return soc;
+}
+
+float predict_voltage(float soc) { return 0.0f; } // figure this out - ecm?
+
+void ukf_soc(float voltage, float current, float dt)
+{
+	// Subtract current*time from old SOC to estimate current SOC (just coulomb counting - same as old method)
+	float soc = ukf.x;
+	float dSOC = current * dt / TOTAL_CAPACITY;
+	soc -= dSOC;
+	ukf.P += ukf.Q;
+	soc = soc > 1.0f ? 1.0f : soc;
+	soc = soc < 0.0f ? 0.0f : soc;
+
+	// Predict voltages at sigma points
+	float spread = sqrtf(ukf.P);
+	sigmaPoints.sigma_points[0] = predict_voltage(soc);
+	sigmaPoints.sigma_points[1] = predict_voltage(soc + spread);
+	sigmaPoints.sigma_points[2] = predict_voltage(soc - spread);
+	float v_sigma_mean = (sigmaPoints.sigma_points[0] + sigmaPoints.sigma_points[1] + sigmaPoints.sigma_points[2]) / 3.0f;
+
+	// Kalman gain
+	float S = ((sigmaPoints.sigma_points[0]-v_sigma_mean)*(sigmaPoints.sigma_points[0]-v_sigma_mean) +
+			  (sigmaPoints.sigma_points[1]-v_sigma_mean)*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
+			  (sigmaPoints.sigma_points[2]-v_sigma_mean)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f +
+			  ukf.R; // looks complicated but it's just variance
+
+	// somethign potentially weird right now where it's predicting the voltage at the current soc instead of using the real SOC? verify this is correct later
+	// ok it's probably correct but i'll keep a comment here to remind me to verify again later
+
+	float C =  (spread*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
+			   (-spread)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f;
+
+	S = (S != 0.0f) ? S : 1.0f; // prevent div by 0 (shouldnt happen but you never know)
+	float K = C / S;
+
+	soc = soc + K * (voltage - v_sigma_mean); // update SOC prediction with magic
+	soc = soc > 1.0f ? 1.0f : soc;
+	soc = soc < 0.0f ? 0.0f : soc;
+
+	ukf.x = soc;
+	ukf.P = ukf.P - K * S * K;
 }
 
 void socTask(void *pvParamaters)
