@@ -46,10 +46,10 @@ static volatile float IBus_integrated = 0.0f;
 
 // my variables
 typedef struct {
-	float x; // current soc estimate
-	float P; // variance
-	float Q; // process noise
-	float R; // measurement noise
+	float pred; // current soc estimate
+	float variance;
+	float process_noise;
+	float measurement_noise;
 } UKF_State;
 static UKF_State ukf;
 // add some code to initialize UKF struct in the task init
@@ -126,41 +126,40 @@ float predict_voltage(float soc) { return 0.0f; } // figure this out - ecm?
 void ukf_soc(float voltage, float current, float dt)
 {
 	// Subtract current*time from old SOC to estimate current SOC (just coulomb counting - same as old method)
-	float soc = ukf.x;
+	float soc = ukf.pred;
 	float dSOC = current * dt / TOTAL_CAPACITY;
 	soc -= dSOC;
-	ukf.P += ukf.Q;
+	ukf.variance += ukf.process_noise;
 	soc = soc > 1.0f ? 1.0f : soc;
 	soc = soc < 0.0f ? 0.0f : soc;
 
 	// Predict voltages at sigma points
-	float spread = sqrtf(ukf.P);
+	float spread = sqrtf(ukf.variance);
 	sigmaPoints.sigma_points[0] = predict_voltage(soc);
 	sigmaPoints.sigma_points[1] = predict_voltage(soc + spread);
 	sigmaPoints.sigma_points[2] = predict_voltage(soc - spread);
 	float v_sigma_mean = (sigmaPoints.sigma_points[0] + sigmaPoints.sigma_points[1] + sigmaPoints.sigma_points[2]) / 3.0f;
 
 	// Kalman gain
-	float S = ((sigmaPoints.sigma_points[0]-v_sigma_mean)*(sigmaPoints.sigma_points[0]-v_sigma_mean) +
+	float innov_covariance = ((sigmaPoints.sigma_points[0]-v_sigma_mean)*(sigmaPoints.sigma_points[0]-v_sigma_mean) +
 			  (sigmaPoints.sigma_points[1]-v_sigma_mean)*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
 			  (sigmaPoints.sigma_points[2]-v_sigma_mean)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f +
-			  ukf.R; // looks complicated but it's just variance
+			  ukf.measurement_noise; // looks complicated but it's just variance
 
 	// somethign potentially weird right now where it's predicting the voltage at the current soc instead of using the real SOC? verify this is correct later
 	// ok it's probably correct but i'll keep a comment here to remind me to verify again later
 
-	float C =  (spread*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
+	float cross_covariance =  (spread*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
 			   (-spread)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f;
 
-	S = (S != 0.0f) ? S : 1.0f; // prevent div by 0 (shouldnt happen but you never know)
-	float K = C / S;
-
-	soc = soc + K * (voltage - v_sigma_mean); // update SOC prediction with magic
+	innov_covariance = (innov_covariance != 0.0f) ? innov_covariance : 1.0f; // prevent div by 0 (shouldnt happen but you never know)
+	float kalman_gain = cross_covariance / innov_covariance;
+	soc = soc + kalman_gain * (voltage - v_sigma_mean); // update SOC prediction with magic
 	soc = soc > 1.0f ? 1.0f : soc;
 	soc = soc < 0.0f ? 0.0f : soc;
 
-	ukf.x = soc;
-	ukf.P = ukf.P - K * S * K;
+	ukf.pred = soc;
+	ukf.variance = ukf.variance - kalman_gain * innov_covariance * kalman_gain;
 }
 
 void socTask(void *pvParamaters)
