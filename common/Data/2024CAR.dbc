@@ -922,6 +922,7 @@ BO_ 2214662151 VCU_buttonEvents: 8 VCU_F7
  SG_ ButtonTCEnabled : 2|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
  SG_ ButtonHVEnabled : 1|1@1+ (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonEMEnabled : 0|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
+ SG_ ButtonCoolerEnabled : 7|1@1+ (1,0) [0|0] "bool" VCU_BeagleBone
 
 BO_ 2550141444 ChargeCart_VERSION: 8 ChargeCart
  SG_ ChargeCart_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
@@ -1295,6 +1296,7 @@ CM_ SG_ 2365566977 INV_Fast_Torque_Command "The commanded torque";
 CM_ SG_ 2365566977 INV_Fast_Torque_Feedback "The estimated torque";
 CM_ SG_ 2365566977 INV_Fast_Motor_Speed "Motor speed";
 CM_ SG_ 2365566977 INV_Fast_DC_Bus_Voltage "DC Bus Voltage";
+BA_DEF_ BO_  "VFrameFormat" ENUM  "StandardCAN","ExtendedCAN","reserved","J1939PG";
 BA_DEF_ BO_  "GenMsgCycleTime" INT 0 100000;
 BA_DEF_ SG_  "GenSigStartValue" FLOAT 0 100000000000;
 BA_DEF_  "BusType" STRING ;
@@ -1350,4 +1352,5 @@ VAL_ 2365565441 INV_Inverter_Discharge_State 0 "Disabled" 1 "Enabled" 2 "Speed C
 VAL_ 2365565441 INV_Limit_Stall_Burst_Model 0 "Not Limiting" 1 "Limiting" ;
 VAL_ 2365565441 INV_Burst_Model_Mode 0 "Stall" 1 "High Speed" ;
 SIG_VALTYPE_ 2214593034 RLSpeedRPM : 1;
+
 

@@ -28,6 +28,7 @@ uint32_t criticalFailureWarning(uint32_t event);
 uint32_t MainDefaultTransition(uint32_t event);
 uint32_t mainDoNothing(uint32_t event);
 uint32_t cycleMC(uint32_t event);
+uint32_t toggleCoolingManual(uint32_t event);
 void hvCriticalDelayCallback(TimerHandle_t timer);
 HAL_StatusTypeDef startControl();
 
@@ -37,12 +38,14 @@ Transition_t mainTransitions[] = {
     { STATE_Motors_On, EV_EM_Disable, &motorsOff },
     { STATE_Boards_On, EV_EM_Disable, &mainDoNothing },
     { STATE_Motors_On, EV_EM_Enable, &mainDoNothing },
+    //check what needs to be added here
     { STATE_Boards_On,  EV_HV_CriticalFailure, &criticalFailureWarning },
     { STATE_Motors_On, EV_HV_CriticalFailure, &criticalFailureWarning },
     { STATE_Warning_Critical, EV_CriticalDelayElapsed, &criticalFailure },
     { STATE_Critical_Failure, EV_ANY, &mainDoNothing },
     { STATE_ANY, EV_Cycle_MC, &cycleMC },
     { STATE_Warning_Critical, EV_ANY, &mainDoNothing },
+    { STATE_ANY, EV_Cooler_Toggle, &toggleCoolingManual},
     { STATE_ANY, EV_ANY, &MainDefaultTransition}
 };
 
@@ -317,4 +320,19 @@ void hvCriticalDelayCallback(TimerHandle_t timer)
         ERROR_PRINT("Failed to process critical delay elapsed event\n");
         criticalFailure(EV_CriticalDelayElapsed);
     }
+}
+
+uint32_t toggleCoolingManual(uint32_t event){
+    static bool manualOveride = false; 
+    manualOveride = !manualOveride;
+
+    DEBUG_PRINT("MANUAL COOLING: %s\n", manualOveride ? "ON":"OFF");
+
+    if (manualOveride){
+        coolingOn();
+    }else{
+        coolingOff();
+    }
+
+    return fsmGetState(&mainFsmHandle);
 }
