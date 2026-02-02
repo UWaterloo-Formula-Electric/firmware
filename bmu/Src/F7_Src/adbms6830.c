@@ -279,16 +279,18 @@
 // ADCV, ADSV, ADAX, ADAX2
 
 // Use normal MD (7kHz), Discharge not permission, all channels
+// Might have to change these values later based on desired configuration
 #define ADCV_BYTE0 0x03
 #define ADCV_BYTE1 0x73
 
-#define ADSV_BYTE0 0x03
-#define ADSV_BYTE1 0x73
+#define ADSV_BYTE0 0x01
+#define ADSV_BYTE1 0x78
 
-#define ADAX_BYTE0 0x03
-#define ADAX_BYTE1 0x73
+// Read from GPIO 5 (MUX output)
+#define ADAX_BYTE0 0x04
+#define ADAX_BYTE1 0x15
 
-#define ADAX2_BYTE0 0x03
+#define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x73
 
 // Table 55 Configuration Register Group A
@@ -521,11 +523,9 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 
 void batt_set_temp_config(size_t channel) {
 	const uint8_t gpioPins = channel;
-	for (int board = 0; board < NUM_BOARDS; board++)
-    {
+	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
-			m_batt_configA[board][chip][3] = gpioPins & 0xFF;
-			m_batt_configA[board][chip][4] = (gpioPins >> 8) & 0x03;
+			m_batt_configA[board][chip][3] = gpioPins & 0x0F;
 		}
 	}
 }
@@ -589,80 +589,26 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
 	// adc values for one AUX block from all boards
 	uint8_t adc_vals[NUM_BOARDS * AUX_BLOCK_SIZE] = {0};
-    uint8_t cell_index = 0;
 
-	const uint8_t rd_cmds[6][2] = {
-        { RDAUXA_BYTE0, RDAUXA_BYTE1 },
-        { RDAUXB_BYTE0, RDAUXB_BYTE1 },
-        { RDAUXC_BYTE0, RDAUXC_BYTE1 },
-        { RDAUXD_BYTE0, RDAUXD_BYTE1 },
-    };
-
-	for (int block = 0; block < 4; block++)
-    {
-        uint8_t adc_vals[NUM_BOARDS * AUX_BLOCK_SIZE] = {0};
-
-		if (batt_spi_wakeup(false /* not sleeping*/)) {
-            return HAL_ERROR;
-		}
-
-        if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
-            DEBUG_PRINT("ADBMS6830 GPIO (thermistor) read failed (block %u)\r\n", block);
-            return HAL_ERROR;
-        }
-
-		// Each block contains 3 cell readings
-        for (int thermistor = 0; thermistor < 3; thermistor++) {
-			if (cell_index >= TEMP_CHANNELS_PER_BOARD)
-                break;
-
-            for (int board = 0; board < NUM_BOARDS; board++)
-            {
-                const size_t data_idx =
-                    board * AUX_BLOCK_SIZE + (thermistor * CELL_VOLTAGE_SIZE_BYTES);
-					
-				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
-                uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
-                                adc_vals[data_idx];
-
-                // Convert to volts
-                // From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
-                float voltage = (adc * 0.000150f) + 1.5f;
-
-                const size_t global_cell =
-					board * TEMP_CHANNELS_PER_BOARD + cell_index;
-
-                cell_temp_array[global_cell] = voltage;
-            }
-
-            cell_index++;
-        }
+	if (batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
+        DEBUG_PRINT("ADBMS6830 GPIO (thermistor) read failed for channel %zu\r\n", channel);
+        return HAL_ERROR;
     }
 
-	for (int board = 0; board < NUM_BOARDS; board++) {
-		if (channel == 6 && (board % 2) == 1) {
-			continue;
-		}
+	// Process the readings for each board
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        size_t tempIdx = board * SEGMENT_THERMISTORS_AMS1 + channel;
 
-		// Map (board, channel) into the packed cell_temp_array indexing.
-		size_t cellIdx = (board * 13 + (board + 1) / 2) + channel;
-		if (channel >= 9) {
-			if ((board % 2) == 0) {
-				cellIdx = cellIdx - 2;
-			} else {
-				cellIdx = cellIdx - 3;
-			}
-		}
+        // GPIO 5 is in AUXB register (bytes 2-3)
+        const size_t boardStartIdx = board * AUX_BLOCK_SIZE;
+        uint16_t adcCounts = ((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
+                            adc_vals[boardStartIdx + 2];
 
-		const size_t boardStartIdx = board * AUX_BLOCK_SIZE;
-		uint16_t adcCounts = ((uint16_t)adc_vals[boardStartIdx + TEMP_ADC_IDX_HIGH] << 8) |
-		                    adc_vals[boardStartIdx + TEMP_ADC_IDX_LOW];
-
-		// Convert ADC code to volts.
-		// Keep the conversion consistent with the ADBMS6830 cell conversion used elsewhere in this driver.
-		float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
-		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-	}
+        // Convert ADC code to volts
+        // From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
+        float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
+        cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+    }
 
 	return HAL_OK;
 }
