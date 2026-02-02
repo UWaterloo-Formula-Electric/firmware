@@ -21,6 +21,7 @@
 #include "bsp.h"
 #include "stm32f7xx_hal_tim.h"
 #include "wheelConstants.h"
+#include "mathUtils.h"
 
 /*
 The motor controllers will return a 16 bit unsigned integer that needs to be converted to an integer value with the middle being at 32768. Negative numbers mean the wheels are spinning backwards, Positive values indicate forward spin
@@ -32,6 +33,7 @@ We want to do (((int32_t)rpm) - 32768)  where the driver will do  (int32_t)((uin
 #define TRACTION_CONTROL_TASK_ID 3
 #define TRACTION_CONTROL_TASK_PERIOD_MS 35
 #define TRACTION_CONTROL_TASK_PERIOD_S (((float)TRACTION_CONTROL_TASK_PERIOD_MS)/1000.0f)
+#define RPM_TO_RADS_S (2*M_PI/60)
 
 #define TC_kP_DEFAULT (10.0f)
 #define TC_kI_DEFAULT (0.0f)
@@ -95,13 +97,13 @@ static float get_FL_speed()
 static float get_RR_speed()
 {
 	//Value comes from MC
-	return INV_Motor_Speed * GEAR_RATIO; // in rpm
+	return INV_Motor_Speed * GEAR_RATIO * RPM_TO_RADS_S; // in rpm
 }
 
 static float get_RL_speed()
 {
 	//Value comes from MC
-	return INV_Motor_Speed * GEAR_RATIO; // in rpm
+	return INV_Motor_Speed * GEAR_RATIO * RPM_TO_RADS_S; // in rpm
 }
 
 static void publish_can_data(WheelSpeed_S* wheel_data, TCData_S* tc_data)
@@ -193,6 +195,7 @@ static float tc_compute_limit(WheelSpeed_S* wheel_data, TCData_S* tc_data)
 	if(fabs(wheel_data->RL) < INTEGRAL_RESET_SPEED && fabs(wheel_data->RR) < INTEGRAL_RESET_SPEED)
 	{
 		tc_data->cum_error = 0.0f;
+		tc_data->last_error = 0.0f;
 	}
 	tc_data->torque_adjustment = compute_gains(tc_data);
 
