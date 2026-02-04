@@ -14,23 +14,22 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v1
-
-      - name: Install dependencies
-        run: pip install -r common/requirements.txt
-
-      - name: Add safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        uses: actions/checkout@v4
 
       - name: Build all firmware code
-        run: make all
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            addis0n/arm-none-eabi-gcc-plus-python:wfe2022 \
+            bash -c "pip install -r common/requirements.txt && \
+                     git config --global --add safe.directory /workspace && \
+                     make all"
 
-      # Upload binaries as artifacts so they're available to the release job
+      # Upload binaries as artifacts (now runs on host with modern glibc)
       - name: Upload build artifacts
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
