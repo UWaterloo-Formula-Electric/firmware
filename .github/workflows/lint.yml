@@ -23,5 +23,6 @@ jobs:
             -v "${{ github.workspace }}":/workspace \
             -w /workspace \
             addis0n/arm-none-eabi-gcc-plus-python:wfe2022 \
-            bash -c "cppcheck --version && \
-                     cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all -I ${{ matrix.component }}/Inc ${{ matrix.component }}/Src"
+            bash -c "COMPONENT_LOWER=\$(echo '${{ matrix.component }}' | tr '[:upper:]' '[:lower:]') && \
+                     cppcheck --version && \
+                     cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all -I \${COMPONENT_LOWER}/Inc \${COMPONENT_LOWER}/Src"
