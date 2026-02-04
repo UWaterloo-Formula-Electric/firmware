@@ -3,7 +3,8 @@ name: Build Firmware
 on:
   push:
     branches:
-      - "**"  # All branches
+      - main
+      - develop
   pull_request:
     branches:
       - "**"
@@ -31,7 +32,7 @@ jobs:
 
       # Upload binaries as artifacts (now runs on host with modern glibc)
       - name: Upload build artifacts
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
         uses: actions/upload-artifact@v4
         with:
           name: firmware-binaries
@@ -47,7 +48,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     
     steps:
       - name: Download build artifacts
@@ -56,7 +57,7 @@ jobs:
           name: firmware-binaries
           path: Bin
 
-      # Determine tag based on branch (stable for main, latest for develop, branch name for others)
+      # Determine tag based on branch (stable for main, latest for develop)
       - name: Set release tag
         id: set_tag
         run: |
@@ -64,10 +65,6 @@ jobs:
             echo "tag=stable" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
             echo "tag=latest" >> $GITHUB_OUTPUT
-          else
-            # Use branch name as tag, sanitize it (replace / with -)
-            BRANCH_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')
-            echo "tag=$BRANCH_TAG" >> $GITHUB_OUTPUT
           fi
 
       # Upload binaries to GitHub Release (runs on host with modern glibc)
