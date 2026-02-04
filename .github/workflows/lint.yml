@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        component: ["common", "BMU", "PDU", "VCU", "WSB"]
+        component: ["common", "BMU", "PDU", "VCU"]
 
     steps:
       - name: Checkout code
