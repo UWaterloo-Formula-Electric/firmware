@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v1  # Updated from v1
+        uses: actions/checkout@v1
 
       - name: Install dependencies
         run: pip install -r common/requirements.txt
@@ -29,6 +29,33 @@ jobs:
 
       - name: Build all firmware code
         run: make all
+
+      # Upload binaries as artifacts so they're available to the release job
+      - name: Upload build artifacts
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware-binaries
+          path: |
+            Bin/bmu/Release/bmu.bin
+            Bin/bmu/Release/bmu.elf
+            Bin/pdu/Release/pdu.bin
+            Bin/pdu/Release/pdu.elf
+            Bin/vcu/Release/vcu.bin
+            Bin/vcu/Release/vcu.elf
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: firmware-binaries
+          path: Bin
 
       # Determine tag based on branch (stable for main, latest for develop, branch name for others)
       - name: Set release tag
@@ -44,9 +71,8 @@ jobs:
             echo "tag=$BRANCH_TAG" >> $GITHUB_OUTPUT
           fi
 
-      # Upload binaries on all pushes (not PRs)
+      # Upload binaries to GitHub Release (runs on host with modern glibc)
       - name: Upload binaries to GitHub Release
-        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.set_tag.outputs.tag }}
@@ -71,6 +97,5 @@ jobs:
             Bin/vcu/Release/vcu.elf
           draft: false
           prerelease: false
-          make_latest: ${{ github.ref == 'refs/heads/develop' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
