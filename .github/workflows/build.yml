@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated from v1
+        uses: actions/checkout@v1  # Updated from v1
 
       - name: Install dependencies
         run: pip install -r common/requirements.txt
@@ -58,7 +58,6 @@ jobs:
             - BMU (Battery Management Unit)
             - PDU (Power Distribution Unit)
             - VCU (Vehicle Control Unit)
-            - WSB (Wheel Speed Board)
             
             **Commit:** ${{ github.sha }}
             **Branch:** ${{ github.ref_name }}
@@ -70,8 +69,6 @@ jobs:
             Bin/pdu/Release/pdu.elf
             Bin/vcu/Release/vcu.bin
             Bin/vcu/Release/vcu.elf
-            Bin/wsb/Release/wsb.bin
-            Bin/wsb/Release/wsb.elf
           draft: false
           prerelease: false
           make_latest: ${{ github.ref == 'refs/heads/develop' }}
