@@ -33,7 +33,7 @@ jobs:
       # Upload binaries as artifacts so they're available to the release job
       - name: Upload build artifacts
         if: github.event_name == 'push'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firmware-binaries
           path: |
