@@ -3,8 +3,7 @@ name: Build Firmware
 on:
   push:
     branches:
-      - main
-      - develop
+      - "**"  # All branches
   pull_request:
     branches:
       - "**"
