@@ -40,8 +40,8 @@ jobs:
             Bin/bmu/Release/bmu.elf
             Bin/pdu/Release/pdu.bin
             Bin/pdu/Release/pdu.elf
-            Bin/vcu/Release/vcu.bin
-            Bin/vcu/Release/vcu.elf
+            Bin/vcu/Release/vcu_f7.bin
+            Bin/vcu/Release/vcu_f7.elf
           retention-days: 1
 
   release:
