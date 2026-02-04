@@ -44,7 +44,6 @@ jobs:
             Bin/vcu_F7/Release/vcu_F7.bin
             Bin/vcu_F7/Release/vcu_F7.elf
           retention-days: 1
-
   release:
     needs: build
     runs-on: ubuntu-latest
