@@ -63,32 +63,33 @@ def generateDependencyFile(depFile, dbFile, headerFile, nodeName, boardType, Scr
         fWrite('	{dir}/generateCANHeadder.py {target} {boardType}'.format(target=nodeName, boardType=boardType, dir=ScriptsDir), depFileHandle)
 
 def getGitCommit():
-    label = '0df2a9a'
-    gitClean = '0'
+    short_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+    short_hash = str(short_hash, "utf-8").strip()
+    return short_hash
 
-    try:
-        if call(["git", "branch"], stderr=STDOUT, stdout=open(os.devnull, 'w')) != 0:
-            label = subprocess.check_output(["git", "describe" ,"--tags", "--always"]).strip()
-    except Exception:
-        pass
-
-    gitCommit = label
-
-    return gitCommit
 
 def writeHeaderFileIncludeGuardAndIncludes(boardType, headerFileHandle, nodeName, isChargerDBC=False):
     templateData = {}
+
+    # Add support for STM32F4 chip
+    if boardType == 'F7':
+        boardTypeInclude = "stm32f7xx_hal.h"
+    elif boardType == 'F4':
+        boardTypeInclude = "stm32f4xx_hal.h"
+    else:
+        boardTypeInclude = "stm32f0xx_hal.h"
+
     if isChargerDBC:
         includeDefineName = '__{nodeName}_charger_can_H'.format(nodeName=nodeName)
     else:
         includeDefineName = '__{nodeName}_can_H'.format(nodeName=nodeName)
     templateData = {
         "includeDefineName": includeDefineName,
-        "boardTypeInclude": "stm32f7xx_hal.h" if boardType == 'F7' else "stm32f0xx_hal.h",
+        "boardTypeInclude": boardTypeInclude,
         "heartbeatInclude": "#include \"canHeartbeat.h\"" if not isChargerDBC else '',
     }
-    templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN",templateData)
-    fWrite(templateOutput,headerFileHandle)
+    templateOutput = canTemplater.load("INCLUDE_HEADERS_BEGIN", templateData)
+    fWrite(templateOutput, headerFileHandle)
 
 
 def writeEndIncludeGuard(sourceFileHandle, headerFileHandle):
@@ -101,12 +102,12 @@ def getNodeAddressAndMessageGroupsAndWriteToHeaderFile(db, nodeName, headerFileH
     for node in db.nodes:
         if node.name == nodeName:
             nodeAddress = node.comment.split("_")[0]
-            fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle);
+            fWrite('#define CAN_NODE_ADDRESS ' + nodeAddress, headerFileHandle)
             for messageGroup in node.comment.split("_")[1].split(","):
                 if messageGroup != "":
-                    fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle);
+                    fWrite('#define CAN_NODE_MESSAGE_GROUP_'+messageGroup, headerFileHandle)
                     messageGroups.append(messageGroup)
-    fWrite('', headerFileHandle);
+    fWrite('', headerFileHandle)
 
     return messageGroups
 
@@ -163,7 +164,7 @@ def parseCanDB(db, nodeName):
             multiplexedRxMessages, multiplexedTxMessages, dtcRxMessages, dtcTxMessages, proCanRxMessages, proCanTxMessages, heartbeatRxMessages)
 
 def getStrippedSignalName(signalName):
-    strippedSignalName = re.sub('\d+$', '', signalName)
+    strippedSignalName = re.sub(r'\d+$', '', signalName)
     return strippedSignalName
 
 def writeStructForMsg(msg, structName, fileHandle):
@@ -187,7 +188,7 @@ def writeStructForMsg(msg, structName, fileHandle):
                 if signal.start != currentPos:
                     fWrite('    uint64_t FILLER_{num} : {fillerSize};'.format(num=str(currentPos), fillerSize=str(signal.start - currentPos)), fileHandle)
                 if signal.multiplexer_signal != None:
-                    signalName = re.sub('\d+$', '', signalName) + str(multiplexedSignalCount)
+                    signalName = re.sub(r'\d+$', '', signalName) + str(multiplexedSignalCount)
                     multiplexedSignalCount += 1
                 if signal.is_signed:
                     fWrite('    int64_t {signalName} : {size};'.format(signalName=signalName, size=signal.length), fileHandle)
@@ -655,7 +656,8 @@ def writeParseCanRxMessageFunction(nodeName, normalRxMessages, dtcRxMessages, mu
 
     return msgCallbackPrototypes
 
-def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False):
+
+def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFilters', isChargerDBC=False, isWSB=False):
     templateHolder = ""
     i = 2 # Start at 2 to accomodate inverter group
     for messageGroup in messageGroups:
@@ -671,8 +673,12 @@ def writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileH
         "functionName": functionName,
         "extraMessageTemplate": templateHolder,
     }
-    fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER",finalTemplateData), headerFileHandle)
-    fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE",finalTemplateData), sourceFileHandle)
+    fWrite(canTemplater.load("SETUP_CAN_FILTERS_HEADER", finalTemplateData), headerFileHandle)
+    if isWSB:
+        fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE_WSB", finalTemplateData), sourceFileHandle)
+    else:
+        fWrite(canTemplater.load("SETUP_CAN_FILTERS_SOURCE", finalTemplateData), sourceFileHandle)
+
 
 def writeInitFunction(sourceFileHandle, headerFileHandle):
     prototype = 'int init_can_driver()'
@@ -741,7 +747,7 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
     if isChargerDBC:
         writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, functionName='configCANFiltersCharger', isChargerDBC=True)
     else:
-        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle)
+        writeSetupCanFilters(boardType, messageGroups, sourceFileHandle, headerFileHandle, isWSB="wsb" in nodeName.lower())
 
     if not isChargerDBC:
         writeInitFunction(sourceFileHandle, headerFileHandle)
@@ -756,15 +762,15 @@ def generateCANHeaderFromDB(dbFile, headerFileName, sourceFileName, nodeName, bo
 def main(argv):
     if argv and len(argv) == 2:
         nodeName = argv[0]
-        boardType = argv[1] # F0 or F7
+        boardType = argv[1]  # F0 or F7 or F4
     else:
         print('Error: no target specified or no boardtype specified')
         sys.exit(1)
 
     print('Generating CAN source and header files for Board: {nodeName}, Type: {boardType}'.format(nodeName=nodeName, boardType=boardType))
 
-    if not (boardType == 'F0' or boardType == 'F7'):
-        print("ERROR: Specifiy either F0 or F7 for boardtype")
+    if not (boardType == 'F0' or boardType == 'F7' or boardType == 'F4'):
+        print("ERROR: Specifiy either F0 or F7 or F4 for boardtype")
         sys.exit(1)
 
     commonDir = 'common'

@@ -8,6 +8,8 @@ typedef enum BoardTypes_t {
     INVALID_BOARD_TYPE,
     NUCLEO_F7,
     F7,
+    NUCLEO_F4,
+    F4,
     NUCLEO_F0,
     F0
 } BoardTypes_t;
@@ -20,14 +22,22 @@ extern const BoardTypes_t boardType;
 #define IS_BOARD_F7_FAMILY \
     (BOARD_TYPE_F7 || BOARD_TYPE_NUCLEO_F7)
 
+#define IS_BOARD_F4_FAMILY \
+    (BOARD_TYPE_F4 || BOARD_TYPE_NUCLEO_F4)
+
 #define IS_BOARD_F0 \
     (BOARD_TYPE_F0)
 #define IS_BOARD_F7 \
     (BOARD_TYPE_F7)
+#define IS_BOARD_F4 \
+    (BOARD_TYPE_F4)
 #define IS_BOARD_NUCLEO_F0 \
     (BOARD_TYPE_NUCLEO_F0)
 #define IS_BOARD_NUCLEO_F7 \
     (BOARD_TYPE_NUCLEO_F7)
+#define IS_BOARD_NUCLEO_F4 \
+    (BOARD_TYPE_NUCLEO_F4)
+
 
 // CAN IDs of the Boards
 #define ID_BMU            1

@@ -57,7 +57,7 @@ void heartbeatReceived(BoardIDs board)
 }
 
 bool heartbeatEnabled = true;
-bool DCU_heartbeatEnabled = true;
+bool DCU_heartbeatEnabled = false;
 bool PDU_heartbeatEnabled = true;
 bool BMU_heartbeatEnabled = true;
 bool VCU_F7_heartbeatEnabled = true;

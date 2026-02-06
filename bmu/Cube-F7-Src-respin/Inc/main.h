@@ -85,20 +85,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define HW_CHECK_SENSE_Pin GPIO_PIN_2
+#define HW_CHECK_SENSE_GPIO_Port GPIOE
+#define BOTS_SENSE_Pin GPIO_PIN_3
+#define BOTS_SENSE_GPIO_Port GPIOE
+#define AMS_SENSE_Pin GPIO_PIN_4
+#define AMS_SENSE_GPIO_Port GPIOE
+#define THERMISTOR_Pin GPIO_PIN_0
+#define THERMISTOR_GPIO_Port GPIOC
 #define CONT_NEG_SENSE_Pin GPIO_PIN_0
 #define CONT_NEG_SENSE_GPIO_Port GPIOA
 #define CONT_POS_SENSE_Pin GPIO_PIN_1
 #define CONT_POS_SENSE_GPIO_Port GPIOA
-#define HV_ADC_SPI_NSS_Pin GPIO_PIN_4
-#define HV_ADC_SPI_NSS_GPIO_Port GPIOA
-#define HV_ADC_SPI_SCLK_Pin GPIO_PIN_5
-#define HV_ADC_SPI_SCLK_GPIO_Port GPIOA
-#define HV_ADC_SPI_MISO_Pin GPIO_PIN_6
-#define HV_ADC_SPI_MISO_GPIO_Port GPIOA
-#define HV_ADC_MOSI_Pin GPIO_PIN_7
-#define HV_ADC_MOSI_GPIO_Port GPIOA
-#define HV_ADC_DREADY_L_Pin GPIO_PIN_4
-#define HV_ADC_DREADY_L_GPIO_Port GPIOC
 #define HALL_EFFECT_SENSE_Pin GPIO_PIN_5
 #define HALL_EFFECT_SENSE_GPIO_Port GPIOC
 #define BRAKE_SENSE_ANALOG_Pin GPIO_PIN_0
@@ -123,42 +121,44 @@ void Error_Handler(void);
 #define ISO_SPI_MISO_GPIO_Port GPIOE
 #define ISO_SPI_MOSI_Pin GPIO_PIN_14
 #define ISO_SPI_MOSI_GPIO_Port GPIOE
-#define IL_SENSE_Pin GPIO_PIN_15
-#define IL_SENSE_GPIO_Port GPIOE
+#define IL_EBOX_SENSE_Pin GPIO_PIN_15
+#define IL_EBOX_SENSE_GPIO_Port GPIOE
 #define BSPD_SENSE_Pin GPIO_PIN_11
 #define BSPD_SENSE_GPIO_Port GPIOB
-#define HVIL_SENSE_Pin GPIO_PIN_12
-#define HVIL_SENSE_GPIO_Port GPIOB
-#define HVIL_EN_Pin GPIO_PIN_13
-#define HVIL_EN_GPIO_Port GPIOB
-#define FAN_Pin GPIO_PIN_14
-#define FAN_GPIO_Port GPIOB
+#define FAN_PWM_1_Pin GPIO_PIN_14
+#define FAN_PWM_1_GPIO_Port GPIOB
+#define FAN_PWM_2_Pin GPIO_PIN_15
+#define FAN_PWM_2_GPIO_Port GPIOB
 #define HVD_SENSE_Pin GPIO_PIN_8
 #define HVD_SENSE_GPIO_Port GPIOD
-#define TACH_5_Pin GPIO_PIN_12
-#define TACH_5_GPIO_Port GPIOD
-#define TACH_4_Pin GPIO_PIN_13
-#define TACH_4_GPIO_Port GPIOD
+#define TSSI_GREEN_EN_Pin GPIO_PIN_9
+#define TSSI_GREEN_EN_GPIO_Port GPIOD
+#define TSSI_RED_EN_Pin GPIO_PIN_10
+#define TSSI_RED_EN_GPIO_Port GPIOD
+#define TACH_1_Pin GPIO_PIN_12
+#define TACH_1_GPIO_Port GPIOD
+#define TACH_2_Pin GPIO_PIN_13
+#define TACH_2_GPIO_Port GPIOD
 #define TACH_3_Pin GPIO_PIN_14
 #define TACH_3_GPIO_Port GPIOD
-#define TACH_2_Pin GPIO_PIN_15
-#define TACH_2_GPIO_Port GPIOD
-#define TACH_1_Pin GPIO_PIN_6
-#define TACH_1_GPIO_Port GPIOC
-#define IMD_STATUS_Pin GPIO_PIN_7
-#define IMD_STATUS_GPIO_Port GPIOC
+#define TACH_4_Pin GPIO_PIN_15
+#define TACH_4_GPIO_Port GPIOD
 #define IMD_SENSE_Pin GPIO_PIN_8
 #define IMD_SENSE_GPIO_Port GPIOC
-#define HW_CHECK_Pin GPIO_PIN_15
-#define HW_CHECK_GPIO_Port GPIOA
+#define TACH_5_Pin GPIO_PIN_8
+#define TACH_5_GPIO_Port GPIOA
+#define TACH_6_Pin GPIO_PIN_9
+#define TACH_6_GPIO_Port GPIOA
+#define TACH_7_Pin GPIO_PIN_10
+#define TACH_7_GPIO_Port GPIOA
+#define HW_CHECK_PWM_Pin GPIO_PIN_15
+#define HW_CHECK_PWM_GPIO_Port GPIOA
 #define COCKPIT_BRB_SENSE_Pin GPIO_PIN_0
 #define COCKPIT_BRB_SENSE_GPIO_Port GPIOD
 #define CONT_PRE_Pin GPIO_PIN_1
 #define CONT_PRE_GPIO_Port GPIOD
 #define AMS_CONT_Pin GPIO_PIN_2
 #define AMS_CONT_GPIO_Port GPIOD
-#define CONT_CHARGE_Pin GPIO_PIN_3
-#define CONT_CHARGE_GPIO_Port GPIOD
 #define CONT_POS_Pin GPIO_PIN_4
 #define CONT_POS_GPIO_Port GPIOD
 #define CONT_DC_DC_Pin GPIO_PIN_5
@@ -167,6 +167,7 @@ void Error_Handler(void);
 #define CONT_NEG_GPIO_Port GPIOD
 #define TSMS_SENSE_Pin GPIO_PIN_7
 #define TSMS_SENSE_GPIO_Port GPIOD
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -176,5 +177,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -1,0 +1,11 @@
+# Normalize to LF in the repo AND check out LF on every OS
+* text=auto eol=lf
+
+# Be explicit about binaries (never touch their bytes)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf  binary
+*.exe  binary
+*.zip  binary

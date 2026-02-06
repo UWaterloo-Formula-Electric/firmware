@@ -7,6 +7,8 @@
 bool getHvEnableState();
 bool getMotorControllersStatus();
 bool isLockoutDisabled();
+bool getHVState();
+bool getEMState();
 uint8_t getInverterVSMState();
 
 volatile uint8_t inverterVSMState;

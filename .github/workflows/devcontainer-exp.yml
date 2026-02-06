@@ -1,0 +1,60 @@
+name: Devcontainer Experimental
+
+on:
+  push:
+    branches:
+      - 'exp_cont/**'              # only branches under exp_cont/
+    paths:
+      - '.devcontainer/**'
+      - 'Dockerfile'
+      - 'common/requirements.txt'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.devcontainer/**'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  exp-build:
+    runs-on: ubuntu-latest
+    env:
+      OWNER: ${{ github.repository_owner }}
+      # branch name for push; PR head branch for pull_request
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      SHORTSHA: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lower-case owner and image name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+          echo "IMAGE=ghcr.io/${OWNER_LC}/uwfe-dev" >> $GITHUB_ENV
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prebuild & push experimental (multi-arch)
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ${{ env.IMAGE }}
+          imageTag: |
+            exp-${{ env.BRANCH }}
+            exp-${{ env.BRANCH }}-${{ env.SHORTSHA }}
+          cacheFrom: ${{ env.IMAGE }}
+          push: always
+          platform: linux/amd64,linux/arm64

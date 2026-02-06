@@ -27,24 +27,27 @@
 #include "spi.h"
 #include "adc.h"
 
-#define CONT_POS_CLOSE	  HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_SET)
-#define CONT_POS_OPEN	  HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_RESET)
-#define CONT_NEG_CLOSE	  HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_SET)
-#define CONT_NEG_OPEN	  HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_RESET)
-#define PCDC_PC			  HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_SET)
-#define PCDC_DC			  HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_RESET)
-#define CONT_CHARGE_CLOSE HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_SET)
-#define CONT_CHARGE_OPEN  HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_RESET)
-#define AMS_CONT_CLOSE    HAL_GPIO_WritePin(AMS_CONT_GPIO_Port,AMS_CONT_Pin,GPIO_PIN_SET)
-#define AMS_CONT_OPEN     HAL_GPIO_WritePin(AMS_CONT_GPIO_Port,AMS_CONT_Pin,GPIO_PIN_RESET)
-#define DC_DC_ON          HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_SET);
-#define DC_DC_OFF         HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_RESET);
+#define CONT_POS_CLOSE	    HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_SET)
+#define CONT_POS_OPEN	    HAL_GPIO_WritePin(CONT_POS_GPIO_Port,CONT_POS_Pin,GPIO_PIN_RESET)
+#define CONT_NEG_CLOSE	    HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_SET)
+#define CONT_NEG_OPEN	    HAL_GPIO_WritePin(CONT_NEG_GPIO_Port,CONT_NEG_Pin,GPIO_PIN_RESET)
+#define PCDC_PC			    HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_SET)
+#define PCDC_DC			    HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_RESET)
+#define CONT_CHARGE_CLOSE   HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_SET)
+#define CONT_CHARGE_OPEN    HAL_GPIO_WritePin(CONT_PRE_GPIO_Port,CONT_PRE_Pin,GPIO_PIN_RESET)
+#define AMS_CONT_CLOSE      HAL_GPIO_WritePin(AMS_CONT_GPIO_Port,AMS_CONT_Pin,GPIO_PIN_SET)
+#define AMS_CONT_OPEN       HAL_GPIO_WritePin(AMS_CONT_GPIO_Port,AMS_CONT_Pin,GPIO_PIN_RESET)
+#define DC_DC_ON            HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_SET);
+#define DC_DC_OFF           HAL_GPIO_WritePin(CONT_DC_DC_GPIO_Port,CONT_DC_DC_Pin,GPIO_PIN_RESET);
+#define TSSI_GREEN_ON       HAL_GPIO_WritePin(TSSI_GREEN_EN_GPIO_Port, TSSI_GREEN_EN_Pin, GPIO_PIN_SET)
+#define TSSI_GREEN_OFF      HAL_GPIO_WritePin(TSSI_GREEN_EN_GPIO_Port, TSSI_GREEN_EN_Pin, GPIO_PIN_RESET)
+#define TSSI_RED_ON         HAL_TIM_Base_Start_IT(&TSSI_TIMER_HANDLE);
+#define TSSI_RED_OFF        HAL_TIM_Base_Stop_IT(&TSSI_TIMER_HANDLE);
 #define DEBUG_UART_HANDLE huart2
 #define CAN_HANDLE hcan3
 #define CHARGER_CAN_HANDLE hcan1
 #define STATS_TIM_HANDLE htim4
 #define ISO_SPI_HANDLE hspi4
-#define HV_ADC_SPI_HANDLE hspi1
 #define IMD_TIM_HANDLE htim3
 #define IMD_TIM_INSTANCE TIM3
 #define BRAKE_ADC_HANDLE hadc2
@@ -58,7 +61,21 @@
 #define DELAY_TIMER_INSTANCE TIM9
 #define FAN_HANDLE htim12
 #define HW_CHECK_HANDLE htim2
+#define CONT_SENSE_ADC_HANDLE hadc1
+#define CONT_SENSE_TIM htim7
+#define TSSI_TIMER_HANDLE htim8
 
+typedef enum taskId_e{
+    FSM_TASK_ID = 1,                // 1
+    BATTERY_TASK_ID,                // 2
+    BSPD_SENSE_TASK_ID,             // 3
+    HV_MEASURE_TASK_ID,             // 4
+    IMD_TASK_ID,                    // 5
+    FAULT_TASK_ID,                  // 6
+    SOC_TASK_ID,                    // 7
+    CAN_CELL_SEND_TASK_ID,          // 8
+    CONT_CURRENT_SENSE_TASK_ID,     // 9
+}taskId_e;
 
 #elif IS_BOARD_NUCLEO_F7
 #include "stm32f7xx_hal.h"

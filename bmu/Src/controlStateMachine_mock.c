@@ -342,7 +342,7 @@ static const CLI_Command_Definition_t hvFaultCommandDefinition =
     0 /* Number of parameters */
 };
 
-BaseType_t fakeHV_ToggleDCU(char *writeBuffer, size_t writeBufferLength,
+BaseType_t fakeHV_Toggle(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
@@ -352,7 +352,7 @@ static const CLI_Command_Definition_t hvToggleCommandDefinition =
 {
     "hvToggle",
     "hvToggle:\r\n Send hv toggle event\r\n",
-    fakeHV_ToggleDCU,
+    fakeHV_Toggle,
     0 /* Number of parameters */
 };
 
@@ -603,24 +603,6 @@ static const CLI_Command_Definition_t setStateBusHVSendPeriodCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t IMDStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-#if IS_BOARD_F7
-    COMMAND_OUTPUT("IMD Status %d\n", get_imd_status());
-#else
-    COMMAND_OUTPUT("IMD Disabled (batt monitoring hardware disabled)\n");
-#endif
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t IMDStatusCommandDefinition =
-{
-    "imdStatus",
-    "imdStatus:\r\n  get the imd status\r\n",
-    IMDStatusCommand,
-    0 /* Number of parameters */
-};
-
 BaseType_t sendChargerCLICommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -748,34 +730,6 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
     1 /* Number of parameters */
 };
 
-BaseType_t hvilStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("HVIL State %s\n", getHVIL_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t hvilStatusCommandDefinition =
-{
-    "hvilStatus",
-    "hvilStatus:\r\n get HVIL status\r\n",
-    hvilStatusCommand,
-    0 /* Number of parameters */
-};
-
-BaseType_t ilStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("IL State %s\n", getIL_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t ilStatusCommandDefinition =
-{
-    "ilStatus",
-    "ilStatus:\r\n get IL status\r\n",
-    ilStatusCommand,
-    0 /* Number of parameters */
-};
-
 BaseType_t bspdStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -815,20 +769,6 @@ static const CLI_Command_Definition_t hvdStatusCommandDefinition =
     "hvdStatus",
     "hvdStatus:\r\n get hvd status\r\n",
     hvdStatusCommand,
-    0 /* Number of parameters */
-};
-
-BaseType_t ilBRBStatusCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    COMMAND_OUTPUT("brb IL State %s\n", getIL_BRB_Status()?"OK":"Fault");
-    return pdFALSE;
-}
-static const CLI_Command_Definition_t ilBRBStatusCommandDefinition =
-{
-    "ilBRBStatus",
-    "ilBRBStatus:\r\n get the status of the IL in to the BMU from the BRBs\r\n",
-    ilBRBStatusCommand,
     0 /* Number of parameters */
 };
 
@@ -943,7 +883,7 @@ static const CLI_Command_Definition_t setUnderVoltageLimitCommandDefinition =
 BaseType_t cbrbStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_IL_Status()?"OK":"Fault");
+    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_Status()?"OK":"Fault");
     return pdFALSE;
 }
 
@@ -1117,9 +1057,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&IMDStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&sendChargerCLICommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1138,12 +1075,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&hitlPrechargeModeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&hvilStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&ilStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&bspdStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1151,9 +1082,6 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&hvdStatusCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&ilBRBStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&sendCellCommandDefinition) != pdPASS) {

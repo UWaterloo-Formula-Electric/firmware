@@ -14,7 +14,9 @@ if getpass.getuser() == 'vagrant':
 else:
     home_dir = Path(__file__).resolve().parents[4]
 db = cantools.db.load_file(home_dir / 'firmware/common/Data/2024CAR.dbc')
+
 can_bus = can.interface.Bus(channel=CANBUS, bustype='socketcan')
+
 
 sigs = [
     cantools.db.can.signal.Signal('DTC_CODE', 0, 8),

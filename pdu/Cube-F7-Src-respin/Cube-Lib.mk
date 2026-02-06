@@ -37,45 +37,52 @@ LIB_BUILD_DIR = build
 ######################################
 # C sources
 LIB_C_SOURCES =  \
+Src/stm32f7xx_hal_timebase_tim.c \
 Src/main.c \
+Src/gpio.c \
 Src/freertos.c \
+Src/adc.c \
+Src/can.c \
+Src/dma.c \
+Src/iwdg.c \
+Src/tim.c \
+Src/usart.c \
 Src/stm32f7xx_it.c \
 Src/stm32f7xx_hal_msp.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
 Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_exti.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_iwdg.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.c \
 Src/system_stm32f7xx.c \
 Middlewares/Third_Party/FreeRTOS/Source/croutine.c \
 Middlewares/Third_Party/FreeRTOS/Source/event_groups.c \
 Middlewares/Third_Party/FreeRTOS/Source/list.c \
 Middlewares/Third_Party/FreeRTOS/Source/queue.c \
+Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c \
 Middlewares/Third_Party/FreeRTOS/Source/tasks.c \
 Middlewares/Third_Party/FreeRTOS/Source/timers.c \
 Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c \
 Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/port.c \
-Src/gpio.c \
-Src/adc.c \
-Src/can.c \
-Src/tim.c \
-Src/usart.c \
-Src/dma.c \
-Src/iwdg.c
+Src/i2c.c 
 
 LIB_C_SOURCES := $(addprefix $(THIS_MAKEFILE_PATH), $(LIB_C_SOURCES))
 

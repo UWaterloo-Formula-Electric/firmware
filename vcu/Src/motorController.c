@@ -1,4 +1,16 @@
+/**
+ *******************************************************************************
+ * @file    motorController.c
+ * @author	Unknown
+ * @date    Dec 2024
+ * @brief   Motor controller initialization, torque command, and write + read
+ *          commands
+ *
+ ******************************************************************************
+ */
+
 #include "motorController.h"
+#include "brakeAndThrottle.h"
 #include "bsp.h"
 #include "vcu_F7_can.h"
 #include "debug.h"
@@ -8,15 +20,14 @@
 #include "drive_by_wire.h"
 #include "vcu_F7_dtc.h"
 #include "mathUtils.h"
+#include "wheelConstants.h"
 
 // MC Questions:
 // Do we need to wait to close contactors until MCs are ready?
 // How to read IDs for msgs on datasheet?
 
-//comment out to remove 80kw power limit
-#define ENABLE_POWER_LIMIT
-#define INV_POWER_LIMIT 70000.0 //80kw
-#define RPM_TO_RAD (2.0*3.14159/60.0)
+#define USE_BRAKE_ANGLE_FOR_REGEN
+
 
 MotorControllerSettings mcSettings = {0};
 
@@ -25,6 +36,8 @@ HAL_StatusTypeDef initMotorControllerSettings()
     mcSettings.InverterMode = 0;
     mcSettings.DriveTorqueLimit = MAX_TORQUE_DEMAND_DEFAULT_NM; 
     mcSettings.MaxTorqueDemand = MAX_MOTOR_TORQUE_NM;
+    mcSettings.BrakeRegenTorqueDemand = MAX_REGEN_TORQUE_DEMAND_DEFAULT_NM;
+    mcSettings.MaxRegenTorqueDemand = MAX_REGEN_TORQUE_NM;
     mcSettings.DirectionCommand = INVERTER_DIRECTION_FORWARD;
 
     // TODO - legacy settings - do we still need?
@@ -49,6 +62,12 @@ HAL_StatusTypeDef setForwardSpeedLimit(float limit)
 HAL_StatusTypeDef setTorqueLimit(float limit)
 {
     mcSettings.DriveTorqueLimit = limit;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef setRegenTorqueLimit(float limit)
+{
+    mcSettings.MaxRegenTorqueDemand = limit;
     return HAL_OK;
 }
 
@@ -114,7 +133,7 @@ HAL_StatusTypeDef mcInit() {
     // This isn't really used, but may have future use?
     initMotorControllerSettings();
 
-    requestTorqueFromMC(0);
+    requestTorqueFromMC(0, MOTORING);
 
     return HAL_OK;
 }
@@ -142,32 +161,106 @@ HAL_StatusTypeDef sendLockoutReleaseToMC() {
     return sendDisableMC();
 }
 
-
-HAL_StatusTypeDef requestTorqueFromMC(float throttle_percent) {
-
-    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE)
-    {
-        throttle_percent = 0.0f;
-    }
-    // Per Cascadia Motion docs, torque requests are sent in Nm * 10
+float maxMotoringTorque(){
     float maxTorqueDemand = min(mcSettings.MaxTorqueDemand, mcSettings.DriveTorqueLimit);
     #ifdef ENABLE_POWER_LIMIT
-    maxTorqueDemand = min(maxTorqueDemand, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD)); // P=Tω 
+    maxTorqueDemand = min(maxTorqueDemand, max(0, INV_POWER_LIMIT/(INV_Motor_Speed*RPM_TO_RAD))); // P=Tω 
     #endif
+    return maxTorqueDemand;
+}
 
-    INV_Tractive_Power_kW = (INV_DC_Bus_Voltage*INV_DC_Bus_Current)*W_TO_KW; //V and I values are sent as V*10 and A*10
-    sendCAN_VCU_INV_Power();
+float maxRegenTorque(){
+    float maxRegenTorqueDemand = min(mcSettings.MaxRegenTorqueDemand, mcSettings.BrakeRegenTorqueDemand);
+    return maxRegenTorqueDemand;
+}
+
+/**
+ * @brief Maps the positive throttle percent to a motoring torque demand
+ */
+float mapThrottleToTorque(float throttle_percent) {
+    if (throttle_percent < MIN_THROTTLE_PERCENT_FOR_TORQUE) {
+        throttle_percent = 0;
+    }
+   
+    float maxTorqueDemand = maxMotoringTorque();
 
     float scaledTorque = map_range_float(throttle_percent, MIN_THROTTLE_PERCENT_FOR_TORQUE, 100, 0, maxTorqueDemand);
-    uint16_t requestTorque = scaledTorque; 
+    return scaledTorque; 
+}
 
-    VCU_INV_Torque_Command = requestTorque*10;
+/**
+ * @brief Maps the positive brake percent to a regen torque demand
+ * @returns the regen torque in Nm (this is a positive value), see requestTorqueFromMC for details
+ */
+float mapBrakeToRegenTorque(float brake_percent) {
+    float maxRegenTorqueDemand = maxRegenTorque();
+    
+    // if we have low brake pressure, work of off the brake angle as it gets very jittery otherwise
+    // if (rearBrakePres < MIN_REGEN_REAR_BRAKE_PRESSURE) {
+#ifdef USE_BRAKE_ANGLE_FOR_REGEN
+    if (brake_percent < MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE) {
+        brake_percent = 0;
+    }
+    float scaledTorque = map_range_float(brake_percent, MIN_BRAKE_PERCENT_FOR_REGEN_TORQUE, MAX_BRAKE_PERCENT_FOR_REGEN_TORQUE, 0, maxRegenTorqueDemand);
+    return scaledTorque;
+#else
+    float rearBrakePres = RearBrakePressure;
+    float frontBrakePres = FrontBrakePressure;
+    // }
+    // (rear + psi_reqd) / (rear + psi_reqd + front) = pct
+    // (rear + psi_reqd)  = pct * (rear + psi_reqd + front)
+    // (1-pct)*(rear + psi_reqd) = pct * front
+    // rear + psi_reqd = (pct * front) / (1-pct)
+    // psi_reqd = (pct * front) / (1-pct) - rear
+    float psi_reqd = DESIRED_REAR_BRAKE_BIAS_PCT * frontBrakePres / (1 - DESIRED_REAR_BRAKE_BIAS_PCT) - rearBrakePres;
+    // from jeremy: Brake torque per wheel [Nm} = Pressure in circuit [Pa] * 4.489x10^-5 [m^3]
+    float Pa_reqd = psi_reqd * PSI_2_PA; // psi to Pa
+    float torque_reqd = Pa_reqd * 4.489e-5f; // m^3 to Nm
+    // DEBUG_PRINT("T: %.3f, P: %.0f, F: %.0f, R: %.0f, psi_reqd: %.0f\n", torque_reqd, Pa_reqd, frontBrakePres, rearBrakePres, psi_reqd);
+    
+    torque_reqd = clip(torque_reqd, 0, maxRegenTorqueDemand);
+    return torque_reqd;
+#endif
+}
+
+/**
+ * @brief Requests positive or negative torque from the motor controller
+ * @param requestTorque The requested torque in Nm (this must be positive)
+ * @param commandMode The command mode (MOTORING or REGEN)
+ */
+HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t commandMode) {
+    if (requestTorque < 0) {
+        ERROR_PRINT("Requested torque must be positive, to command regen torque set commandMode to REGEN\n");
+        return HAL_ERROR;
+    }
+
+    float maxTorqueDemand = 0.1; // Cannot be 0 as this would default to the values in the CM200DZ eeprom. see page 89 of https://www.cascadiamotion.com/uploads/5/1/3/0/51309945/0a-0163-02_sw_user_manual.pdf
+    switch (commandMode) {
+        case MOTORING:
+            requestTorque = requestTorque;
+            maxTorqueDemand = maxMotoringTorque();
+            break;
+        case REGEN:
+            requestTorque = -requestTorque;
+            maxTorqueDemand = maxRegenTorque();
+            break;
+        default:
+            ERROR_PRINT("Invalid command mode\n");
+            return HAL_ERROR;
+    }
+
+    INV_Tractive_Power_kW = INV_DC_Bus_Voltage*INV_DC_Bus_Current*W_TO_KW; //V and I values are sent as V*10 and A*10
+    sendCAN_VCU_INV_Power();
+
+    VCU_INV_Torque_Command = requestTorque;
     VCU_INV_Speed_Command = TORQUE_MODE_SPEED_REQUEST;
     VCU_INV_Direction_Command = INVERTER_DIRECTION_FORWARD;
     VCU_INV_Inverter_Enable = INVERTER_ON;
     VCU_INV_Inverter_Discharge = INVERTER_DISCHARGE_DISABLE;
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
-    VCU_INV_Torque_Limit_Command = maxTorqueDemand;
+
+    // if torque limit is set to 0 then we use the default limits from the CM200DZ eeprom
+    VCU_INV_Torque_Limit_Command = USE_INV_LIMITS ? INV_TORQUE_REGEN_LIMIT_ENABLED_VALUE: maxTorqueDemand;
 
     if (sendCAN_MC_Command_Message() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");

@@ -104,6 +104,7 @@ __weak void userInit() {}
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   checkForWDReset();
   /* USER CODE END 1 */
@@ -130,7 +131,6 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_CAN3_Init();
-  MX_SPI1_Init();
   MX_SPI4_Init();
   MX_TIM3_Init();
   MX_TIM5_Init();
@@ -140,21 +140,25 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM9_Init();
   MX_CAN1_Init();
-  MX_TIM8_Init();
   MX_TIM12_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
+  MX_TIM7_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
   handleWatchdogReset();
   /* USER CODE END 2 */
 
-  /* Call init function for freertos objects (in freertos.c) */
+  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
+
   /* Start scheduler */
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -174,12 +178,12 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -197,12 +201,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Activate the Over-Drive mode
   */
   if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -216,16 +222,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2;
-  PeriphClkInitStruct.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+  if (htim->Instance == TSSI_TIMER_HANDLE.Instance) {
+    HAL_GPIO_TogglePin(TSSI_RED_EN_GPIO_Port, TSSI_RED_EN_Pin);
+  }
+}
 /* USER CODE END 4 */
 
 /**
@@ -256,5 +260,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

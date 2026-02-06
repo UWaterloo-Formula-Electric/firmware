@@ -3,7 +3,7 @@ BOARD_NAME = bmu
 BOARD_NAME_UPPER = BMU
 BOARD_ARCHITECTURE = F7
 
-COMMON_LIB_SRC := userCan.c debug.c state_machine.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c canHeartbeat.c generalErrorHandler.c canReceiveCommon.c ade7913_common.c
+COMMON_LIB_SRC := userCan.c debug.c state_machine.c FreeRTOS_CLI.c freertos_openocd_hack.c watchdog.c canHeartbeat.c generalErrorHandler.c canReceiveCommon.c mathUtils.c newlibHack.c
 COMMON_F7_LIB_SRC := userCanF7.c
 
 F7_INC_DIR := $(BOARD_NAME)/Inc/F7_Inc

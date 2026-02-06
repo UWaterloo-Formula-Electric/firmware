@@ -12,7 +12,7 @@ void mainTaskFunction(void const * argument)
     printf("Starting up!!\n");
     while (1) {
         /*printf("Hello\n");*/
-        HAL_GPIO_TogglePin(DEBUG_LED_PORT, DEBUG_LED_PIN);
+        HAL_GPIO_TogglePin(DEBUG_BLUE_LED_PORT, DEBUG_BLUE_LED_PIN);
 
         vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }

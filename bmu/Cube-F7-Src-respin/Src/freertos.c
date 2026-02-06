@@ -93,6 +93,8 @@ osThreadId canSendCellsHandle;
 osThreadId canSendTaskHandle;
 osThreadId fanHandle;
 osThreadId stateOfChargeHandle;
+osThreadId contCurrentSensHandle;
+osThreadId FaultMonSendNamHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -113,7 +115,9 @@ extern void faultMonitorTask(void const * argument);
 extern void canSendCellTask(void const * argument);
 extern void canTask(void const * argument);
 extern void fanTask(void const * argument);
-void socTask(void const * argument);
+extern void socTask(void const * argument);
+extern void contCurrentSenseTask(void const * argument);
+extern void faultMonitorSendStatusTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -263,6 +267,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(stateOfCharge, socTask, osPriorityNormal, 0, 500);
   stateOfChargeHandle = osThreadCreate(osThread(stateOfCharge), NULL);
 
+  /* definition and creation of contCurrentSens */
+  osThreadDef(contCurrentSens, contCurrentSenseTask, osPriorityNormal, 0, 1000);
+  contCurrentSensHandle = osThreadCreate(osThread(contCurrentSens), NULL);
+
+  /* definition and creation of FaultMonSendNam */
+  osThreadDef(FaultMonSendNam, faultMonitorSendStatusTask, osPriorityAboveNormal, 0, 2000);
+  FaultMonSendNamHandle = osThreadCreate(osThread(FaultMonSendNam), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -287,27 +299,8 @@ __weak void mainTaskFunction(void const * argument)
   /* USER CODE END mainTaskFunction */
 }
 
-/* USER CODE BEGIN Header_socTask */
-/**
-* @brief Function implementing the stateOfCharge thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_socTask */
-void socTask(void const * argument)
-{
-  /* USER CODE BEGIN socTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END socTask */
-}
-
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
      
 /* USER CODE END Application */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

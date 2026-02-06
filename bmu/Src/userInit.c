@@ -40,6 +40,12 @@ static HAL_StatusTypeDef init_HW_check_timer(void)
 	return HAL_OK;
 }
 
+void initTSSI()
+{
+    TSSI_GREEN_ON;
+    TSSI_RED_OFF;
+}
+
 
 // This is declared with weak linkage in all Cube main.c files, and called
 // before freeRTOS initializes and starts up
@@ -74,14 +80,12 @@ void userInit()
     if (initPackVoltageQueues() != HAL_OK) {
         Error_Handler();
     }
-#if IS_BOARD_F7
-    if (init_imd_measurement() != HAL_OK) {
-        Error_Handler();
-    }
-#endif
+    
 	if (init_HW_check_timer() != HAL_OK) {
 		Error_Handler();
 	}
+
+    initTSSI();
 
     printf("Finished user init\n");
 }
