@@ -288,7 +288,7 @@
 
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x04
-#define ADAX_BYTE1 0x15
+#define ADAX_BYTE1 0x95
 
 #define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x73
