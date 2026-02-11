@@ -162,7 +162,7 @@ Future todo: could add a reading of VREF2 to get a better estimate of thermistor
 */
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15};
+    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 	static uint8_t curr_channel_read_index = 0;
 	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
 	{
@@ -229,10 +229,19 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
             return HAL_ERROR;
         }
 
+        #if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
         if (batt_broadcast_command(pullup ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
             return HAL_ERROR;
         }
-
+        #elif LTC_CHIP == ADBMS_CHIP_6830B
+        if (batt_broadcast_command(pullup ? ADAX_UP : ADAX_DOWN) != HAL_OK) {
+            return HAL_ERROR;
+        }
+        if(batt_broadcast_command(ADCV) != HAL_OK) {
+        	return HAL_ERROR;
+        }
+        #endif
+        
         vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
         delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
     }

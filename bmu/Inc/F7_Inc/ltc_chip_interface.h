@@ -15,6 +15,8 @@ typedef enum ltc_command_t {
 	ADOW_UP,
 	ADOW_DOWN,
 	ADSTAT,
+	ADAX_UP,
+	ADAX_DOWN,
 	ADAX2,
 	ADSV
 } ltc_command_t;

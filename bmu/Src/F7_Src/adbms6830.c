@@ -281,14 +281,14 @@
 // Use normal MD (7kHz), Discharge not permission, all channels
 // Might have to change these values later based on desired configuration
 #define ADCV_BYTE0 0x03
-#define ADCV_BYTE1 0x73
+#define ADCV_BYTE1 0x63
 
 #define ADSV_BYTE0 0x01
-#define ADSV_BYTE1 0x78
+#define ADSV_BYTE1 0x63
 
 // Read from GPIO 5 (MUX output)
-#define ADAX_BYTE0 0x04
-#define ADAX_BYTE1 0x95
+#define ADAX_BYTE0 0x05
+#define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<8))
 
 #define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x73
@@ -548,10 +548,16 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 			command_byte_high = ADSV_BYTE1;
 			break;
 		}
-		case(ADAX):
+		case(ADAX_DOWN):
 		{
 			command_byte_low = ADAX_BYTE0;
-			command_byte_high = ADAX_BYTE1;
+			command_byte_high = ADAX_BYTE1(0);
+			break;
+		}
+		case(ADAX_UP):
+		{
+			command_byte_low = ADAX_BYTE0;
+			command_byte_high = ADAX_BYTE1(1);
 			break;
 		}
 		case(ADAX2):
