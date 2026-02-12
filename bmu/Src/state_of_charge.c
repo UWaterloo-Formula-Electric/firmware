@@ -41,9 +41,6 @@ static const float TOTAL_CAPACITY = 128050.0f;
 
 static float capacity_startup = 1.0f;
 
-// Units A-s
-static volatile float IBus_integrated = 0.0f;
-
 // my variables
 typedef struct {
 	float pred; // current soc estimate
@@ -61,65 +58,6 @@ static UKF_SigmaPoints sigmaPoints;
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
-
-// In amp seconds
-void integrate_bus_current(float IBus, float period_ms)
-{
-	IBus_integrated += IBus * (period_ms/1000.0);
-}
-
-
-static float compute_voltage_soc(void)
-{
-	float soc = 0.0f;
-	float segment_voltage = 0.0f;
-	const float * soc_lut;
-	float lut_min = 0.0f;
-	float lut_step = 0.0f;
-	float lut_len = 0.0f;
-	
-	if(getSegmentVoltage(&segment_voltage) != HAL_OK)
-	{
-		ERROR_PRINT("Failed to read segment voltage, returning 0V");
-		return 0.0f;
-	}
-//	DEBUG_PRINT("Segment Voltage: %f\n", segment_voltage);
-
-	if(segment_voltage >= SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF)
-	{
-		soc_lut = highVoltageSocLut;
-		lut_min =  HV_SOC_LUT_MIN;
-		lut_step = HV_SOC_LUT_STEP;
-		lut_len = HV_SOC_LUT_LEN;
-	}
-	else if(segment_voltage >= SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF)
-	{
-		soc_lut = midVoltageSocLut;
-		lut_min =  MID_SOC_LUT_MIN;
-		lut_step = MID_SOC_LUT_STEP;
-		lut_len = MID_SOC_LUT_LEN;
-	}
-	else
-	{
-		soc_lut = lowVoltageSocLut;
-		lut_min =  LV_SOC_LUT_MIN;
-		lut_step = LV_SOC_LUT_STEP;
-		lut_len = LV_SOC_LUT_LEN;	
-	}
-	soc = interpolateLut(segment_voltage, lut_min, lut_step, lut_len, soc_lut);
-	soc = soc > 1.0f ? 1.0f : soc;
-	soc = soc < 0.0f ? 0.0f : soc;
-	return soc;
-}
-
-static float compute_current_soc(void)
-{
-	float capacity = capacity_startup - IBus_integrated;
-	float soc = capacity/TOTAL_CAPACITY;
-	soc = soc > 1.0f ? 1.0f : soc;
-	soc = soc < 0.0f ? 0.0f : soc;
-	return soc;
-}
 
 float predict_voltage(float soc) { return 0.0f; } // figure this out - ecm?
 
@@ -162,6 +100,12 @@ void ukf_soc(float voltage, float current, float dt)
 	ukf.variance = ukf.variance - kalman_gain * innov_covariance * kalman_gain;
 }
 
+
+// The SOC task still needs a lot of rewriting
+// needs: 
+// parameter initialization
+// initial state thing
+// cleaning up and other stuff
 void socTask(void *pvParamaters)
 {
 	// Wait until segment voltage is set
