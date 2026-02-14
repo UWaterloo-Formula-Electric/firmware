@@ -46,7 +46,7 @@ HAL_StatusTypeDef F7_canStart(CAN_HandleTypeDef *hcan)
 
     if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
     {
-        ERROR_PRINT("Error starting to listen for CAN msgs from FIFO0\n");
+        ERROR_PRINT("Error starting to listen for CAN msgs from FIFO1\n");
         return HAL_ERROR;
     }
 
@@ -73,19 +73,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         Props to Joseph Borromeo for squashing this 5 year old bug
     */
     if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
-#ifdef CHARGER_CAN_HANDLE
-        if (hcan == &CHARGER_CAN_HANDLE) {
-            if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
-                /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
-            }
-        } else {
-#endif
-            if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) { 
-                /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
-            }
-#ifdef CHARGER_CAN_HANDLE
-        }
-#endif
+        #ifdef CHARGER_CAN_HANDLE
+                if (hcan == &CHARGER_CAN_HANDLE) {
+                    if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
+                        /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
+                    }
+                } else {
+        #endif
+                    if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) { 
+                        /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
+                    }
+        #ifdef CHARGER_CAN_HANDLE
+                }
+        #endif
     }
     /* the IVT-S (shunt) module uses CAN standard IDs*/
     else if (RxHeader.IDE == CAN_ID_STD) {
@@ -124,55 +124,8 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
 }
 
-/*
- *void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
- *{
- *    if (hcan->pRxMsg->DLC != CAN_MESSAGE_DLC_INVALID) {
- *        hcan->pRxMsg->DLC = CAN_MESSAGE_DLC_INVALID;
- *
- *        HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
- *        if (canState == HAL_CAN_STATE_BUSY_RX0 ||
- *            canState == HAL_CAN_STATE_BUSY_TX_RX0 ||
- *            canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
- *            canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
- *        {
- *            ERROR_PRINT("DLC indicates rx on fifo0, but RX0 is busy. This shouldn't happen\n");
- *            Error_Handler();
- *        }
- *
- *        if (parseCANData(hcan->pRxMsg->ExtId, hcan->pRxMsg->Data))
- *        {
- *            // TODO: Probably shouldn't call this from an interrupt
- *            Error_Handler();
- *        }
- *
- *        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO0) != HAL_OK) {
- *            // TODO: Probably shouldn't call this from an interrupt
- *            Error_Handler();
- *        }
- *    } else {
- *        hcan->pRx1Msg->DLC = CAN_MESSAGE_DLC_INVALID;
- *
- *        HAL_CAN_StateTypeDef canState = HAL_CAN_GetState(hcan);
- *        if (canState == HAL_CAN_STATE_BUSY_RX1 ||
- *            canState == HAL_CAN_STATE_BUSY_TX_RX1 ||
- *            canState == HAL_CAN_STATE_BUSY_RX0_RX1 ||
- *            canState == HAL_CAN_STATE_BUSY_TX_RX0_RX1)
- *        {
- *            ERROR_PRINT("DLC indicates rx on fifo1, but RX1 is busy. This shouldn't happen\n");
- *            Error_Handler();
- *        }
- *
- *        if (HAL_CAN_Receive_IT(hcan, CAN_FIFO1) != HAL_OK) {
- *            // TODO: Probably shouldn't call this from an interrupt
- *            Error_Handler();
- *        }
- *    }
- *}
- */
-
 HAL_StatusTypeDef F7_sendCanMessageBase(CAN_HandleTypeDef *hcan, int id,
-                                        int length, uint8_t *data)
+                                        int length, uint8_t *data, bool isExtended)
 {
     HAL_StatusTypeDef     rc = HAL_ERROR;
     CAN_TxHeaderTypeDef   TxHeader = {0};
@@ -188,9 +141,13 @@ HAL_StatusTypeDef F7_sendCanMessageBase(CAN_HandleTypeDef *hcan, int id,
     /*}*/
     /*printf("\n");*/
 
-    TxHeader.ExtId = id;
+    if (isExtended) {
+        TxHeader.ExtId = id;
+    } else {
+        TxHeader.StdId = id;
+    }
     TxHeader.RTR = CAN_RTR_DATA;
-    TxHeader.IDE = CAN_ID_EXT;
+    TxHeader.IDE = isExtended ? CAN_ID_EXT : CAN_ID_STD;
     TxHeader.DLC = length;
     TxHeader.TransmitGlobalTime = DISABLE;
 
@@ -213,13 +170,21 @@ HAL_StatusTypeDef F7_sendCanMessageBase(CAN_HandleTypeDef *hcan, int id,
 #ifdef CHARGER_CAN_HANDLE
 HAL_StatusTypeDef F7_sendCanMessageCharger(int id, int length, uint8_t *data)
 {
-    return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data);
+    if (id>2047) {
+        return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data, true);
+    } else {
+        return F7_sendCanMessageBase(&CHARGER_CAN_HANDLE, id, length, data, false);
+    }
 }
 #endif
 
 HAL_StatusTypeDef F7_sendCanMessage(int id, int length, uint8_t *data)
 {
-    return F7_sendCanMessageBase(&CAN_HANDLE, id, length, data);
+    if (id>2047) {
+        return F7_sendCanMessageBase(&CAN_HANDLE, id, length, data, true);
+    } else {
+        return F7_sendCanMessageBase(&CAN_HANDLE, id, length, data, false);
+    }
 }
 
 uint32_t error = HAL_CAN_ERROR_NONE;
