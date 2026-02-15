@@ -34,6 +34,9 @@ NS_ :
 BS_:
 
 BU_: IMD IVT VCU_BeagleBone DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart INV
+VAL_TABLE_ VCU_States_Returned 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Disable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
+VAL_TABLE_ VCU_Events 12 "EV_ANY" 11 "EV_Inverter_Fault" 10 "EV_Fatal" 9 "EV_Throttle_Failure" 8 "EV_Brake_Pressure_Fault" 7 "EV_BTN_Endurance_Mode_Toggle" 6 "EV_CAN_Receive_HV" 5 "EV_BTN_TC_Toggle" 4 "EV_BTN_EM_Toggle" 3 "EV_BTN_HV_Toggle" 2 "EV_Hv_Disable" 1 "EV_EM_Toggle" 0 "EV_Init" ;
+VAL_TABLE_ VCU_States_Initial 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Disable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
 VAL_TABLE_ BMU_Interlock_State 512 "FSM_STATE_FAILED" 256 "HW_CHECK_FAILED" 128 "TSMS_FAILED" 64 "CBRB_FAILED" 32 "IMD_FAILED" 16 "AMS_FAILED" 8 "HVD_FAILED" 4 "BSPD_FAILED" 2 "EBOX_FAILED" 1 "BOTS_FAILED" 0 "No Fault" ;
 VAL_TABLE_ BMS_State 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_TABLE_ Contactor 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
@@ -47,6 +50,9 @@ BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ FuseBlownMCRight : 0|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ChannelCurrentMCRight : 0|16@1+ (0.01,0) [0|0] "Amps" Vector__XXX
  SG_ ChannelCurrentAUX : 0|16@1+ (0.01,0) [0|0] "" Vector__XXX
+
+BO_ 1 New_Message_119: 8 Vector__XXX
+ SG_ New_Signal_890 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
 
 BO_ 2365566721 MC_Diag_Data: 8 INV
  SG_ INV_Diag_SubIndex M : 8|8@1+ (1,0) [0|5] "" Vector__XXX
@@ -218,6 +224,8 @@ BO_ 2147483648 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ VoltageLimitHighInverterLeft : 0|12@1+ (1,0) [0|4095] "V" Vector__XXX
 
 BO_ 2287209474 VCU_EM_Fault: 8 VCU_F7
+ SG_ EMFaultReturnedState : 16|8@1+ (1,0) [0|255] ""  VCU_BeagleBone
+ SG_ EMFaultInitialState : 8|8@1+ (1,0) [0|255] ""  VCU_BeagleBone
  SG_ EMFaultEvent : 0|8@1+ (1,0) [0|255] ""  VCU_BeagleBone
 
 BO_ 2284981250 VCU_ADCReadings: 8 VCU_F7
@@ -1320,6 +1328,9 @@ BA_ "GenMsgCycleTime" BO_ 2365562881 100;
 BA_ "GenMsgCycleTime" BO_ 2365566977 3;
 VAL_ 2147483648 StateContactorPositive 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
 VAL_ 2147483648 StateContactorNegative 0 "INVALID" 1 "CONTACTOR_OPEN" 2 "CONTACTOR_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 4 "CONTACTOR_FAULT_CLOSED" ;
+VAL_ 2287209474 EMFaultReturnedState 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
+VAL_ 2287209474 EMFaultInitialState 5 "STATE_ANY" 4 "STATE_Failure_Fatal" 3 "STATE_EM_Enable" 2 "STATE_HV_Enable" 1 "STATE_HV_Disable" 0 "STATE_Self_Check" ;
+VAL_ 2287209474 EMFaultEvent 12 "EV_ANY" 11 "EV_Inverter_Fault" 10 "EV_Fatal" 9 "EV_Throttle_Failure" 8 "EV_Brake_Pressure_Fault" 7 "EV_BTN_Endurance_Mode_Toggle" 6 "EV_CAN_Receive_HV" 5 "EV_BTN_TC_Toggle" 4 "EV_BTN_EM_Toggle" 3 "EV_BTN_HV_Toggle" 2 "EV_Hv_Disable" 1 "EV_EM_Toggle" 0 "EV_Init" ;
 VAL_ 2297236481 BMU_checkFailed 512 "FSM_STATE_FAILED" 256 "HW_CHECK_FAILED" 128 "TSMS_FAILED" 64 "CBRB_FAILED" 32 "IMD_FAILED" 16 "AMS_FAILED" 8 "HVD_FAILED" 4 "BSPD_FAILED" 2 "EBOX_FAILED" 1 "BOTS_FAILED" 0 "No Fault" ;
 VAL_ 2226717697 ChargeEN_State 0 "Off" 1 "On" ;
 VAL_ 2214987522 EM_State 0 "Off" 1 "On" ;
