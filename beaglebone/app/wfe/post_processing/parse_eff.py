@@ -35,18 +35,39 @@ def filter(src_file, signals_l, regex_l):
 def graph(data, args):
     import matplotlib.pyplot as plt
     data_dict = {}
+    last_data = [0, 0, 0, 0]
+    data_dict["Efficiency"] = []
+    data_dict["MechPower"] = []
+    data_dict["ElecPower"] = []
     for row in data:
         sig_name = row[1].strip()
         timestamp = float(int(row[0],16))/1000
-#        data = 0.02010*float(row[2])
         data = float(row[2])
-        if sig_name in data_dict:
-            data_dict[sig_name].append((timestamp, data))
-        else:
-            data_dict[sig_name] = [(timestamp, data)]
+        alpha = 0.7
+        
+        if sig_name == "INV_Motor_Speed":
+            last_data[0] = data*0.10472 * (1-alpha) + last_data[0] * alpha
+        if sig_name == "INV_Torque_Feedback":
+            last_data[1] = -data * (1-alpha) + last_data[1] * alpha
+        if sig_name == "INV_DC_Bus_Current":
+            last_data[2] = data * (1-alpha) + last_data[2] * alpha
+        if sig_name == "INV_DC_Bus_Voltage":
+            last_data[3] = data * (1-alpha) + last_data[3] * alpha
+#        data = 0.02010*float(row[2])
+        mech_power = last_data[0] * last_data[1]
+        elec_power = last_data[2] * last_data[3]
+        if elec_power > 0.5:
+            eff = mech_power/elec_power
+            data_dict["Efficiency"].append((timestamp, eff))
+        data_dict["MechPower"].append((timestamp, mech_power))
+        data_dict["ElecPower"].append((timestamp, elec_power))
     fig, ax = plt.subplots()
-    for signal in data_dict:
-        ax.plot(*zip(*data_dict[signal]), label=signal, marker='.')
+    
+
+    signal = "Efficiency"
+    #ax.plot(*zip(*data_dict[signal]), label=signal, marker='.')
+    ax.plot(*zip(*data_dict["MechPower"]), label=signal, marker='.')
+    ax.plot(*zip(*data_dict["ElecPower"]), label=signal, marker='.')
     if args.ymax is not None:
         plt.ylim(top=args.ymax)
     if args.ymin is not None:
@@ -67,6 +88,7 @@ def main():
     parser_g.add_argument('-ymax', type=float)
     parser_g.add_argument('-ymin', type=float)
     args = parser.parse_args()
+    args.add = ["INV_Motor_Speed", "INV_Torque_Feedback", "INV_DC_Bus_Current", "INV_DC_Bus_Voltage"]
     if args.subparser == "filter":
         if len(args.add) == 0 and len(args.regex) == 0:
             logging.error("No CAN signals provided")
