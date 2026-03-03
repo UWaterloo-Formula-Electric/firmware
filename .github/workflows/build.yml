@@ -3,27 +3,93 @@ name: Build Firmware
 on:
   push:
     branches:
-      - main
-      - develop
+      - "**"  # All branches
   pull_request:
     branches:
       - "**"
 
+permissions:
+  contents: write  # Required for creating releases
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v1
-
-      - name: Install dependencies
-        run: pip install -r common/requirements.txt
-
-      - name: Add safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        uses: actions/checkout@v4
 
       - name: Build all firmware code
-        run: make all
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            addis0n/arm-none-eabi-gcc-plus-python:wfe2022 \
+            bash -c "pip install -r common/requirements.txt && \
+                     git config --global --add safe.directory /workspace && \
+                     make all"
+
+      # Upload binaries as artifacts (now runs on host with modern glibc)
+      - name: Upload build artifacts
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-binaries
+          path: |
+            Bin/bmu/Release/bmu.bin
+            Bin/bmu/Release/bmu.elf
+            Bin/pdu/Release/pdu.bin
+            Bin/pdu/Release/pdu.elf
+            Bin/vcu_F7/Release/vcu_F7.bin
+            Bin/vcu_F7/Release/vcu_F7.elf
+          retention-days: 1
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-binaries
+          path: Bin
+
+      # Determine tag based on branch (stable for main, latest for develop)
+      - name: Set release tag
+        id: set_tag
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "tag=stable" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+      # Upload binaries to GitHub Release (runs on host with modern glibc)
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.set_tag.outputs.tag }}
+          name: Firmware Release - ${{ steps.set_tag.outputs.tag }}
+          body: |
+            Firmware binaries built from commit ${{ github.sha }}
+            
+            **Boards:**
+            - BMU (Battery Management Unit)
+            - PDU (Power Distribution Unit)
+            - VCU (Vehicle Control Unit)
+            
+            **Commit:** ${{ github.sha }}
+            **Branch:** ${{ github.ref_name }}
+            **Date:** ${{ github.event.head_commit.timestamp }}
+          files: |
+            Bin/bmu/Release/bmu.bin
+            Bin/bmu/Release/bmu.elf
+            Bin/pdu/Release/pdu.bin
+            Bin/pdu/Release/pdu.elf
+            Bin/vcu_F7/Release/vcu_F7.bin
+            Bin/vcu_F7/Release/vcu_F7.elf
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
