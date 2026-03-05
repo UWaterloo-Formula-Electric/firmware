@@ -15,9 +15,9 @@ So far:
 - added some structs needed
 
 TO DO:
-- clean up code
-- figure out how to predict voltage (ECM???? tractive lock in)
+- figure out how to predict voltage
 - somethign something lookup table
+- verify system works with things like current information from a different file
 */
 
 #define SOC_TASK_PERIOD 200 
@@ -45,6 +45,8 @@ static UKF_State ukf;
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
+void ukf_soc(float voltage, float current, float dt);
+void socTask(void *pvParamaters);
 
 float predict_voltage(float soc) { return 0.0f; } // figure this out - ecm?
 
