@@ -42,11 +42,6 @@ typedef struct {
 } UKF_State;
 static UKF_State ukf;
 
-typedef struct {
-	float sigma_points[3];
-} UKF_SigmaPoints;
-static UKF_SigmaPoints sigmaPoints;
-
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
@@ -60,26 +55,25 @@ void ukf_soc(float voltage, float current, float dt)
 	float dSOC = current * dt / TOTAL_CAPACITY;
 	soc -= dSOC;
 	ukf.variance += ukf.process_noise;
-	soc = soc > 1.0f ? 1.0f : soc;
-	soc = soc < 0.0f ? 0.0f : soc;
 
 	// Predict voltages at sigma points
 	float spread = sqrtf(ukf.variance);
-	sigmaPoints.sigma_points[0] = predict_voltage(soc);
-	sigmaPoints.sigma_points[1] = predict_voltage(soc + spread);
-	sigmaPoints.sigma_points[2] = predict_voltage(soc - spread);
-	float v_sigma_mean = (sigmaPoints.sigma_points[0] + sigmaPoints.sigma_points[1] + sigmaPoints.sigma_points[2]) / 3.0f;
+	float sigma_points[3];
+	sigma_points[0] = predict_voltage(soc);
+	sigma_points[1] = predict_voltage(soc + spread);
+	sigma_points[2] = predict_voltage(soc - spread);
+	float v_sigma_mean = 0.5f * (sigma_points[1] + sigma_points[2]);
 
 	// Kalman gain
-	float innov_covariance = ((sigmaPoints.sigma_points[0]-v_sigma_mean)*(sigmaPoints.sigma_points[0]-v_sigma_mean) +
-			  (sigmaPoints.sigma_points[1]-v_sigma_mean)*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
-			  (sigmaPoints.sigma_points[2]-v_sigma_mean)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f +
-			  ukf.measurement_noise; // looks complicated but it's just variance
+	float innov_covariance = 2.0f * ((sigma_points[0]-v_sigma_mean)*(sigma_points[0]-v_sigma_mean)) +
+			  0.5f * ((sigma_points[1]-v_sigma_mean)*(sigma_points[1]-v_sigma_mean)) +
+			  0.5f * ((sigma_points[2]-v_sigma_mean)*(sigma_points[2]-v_sigma_mean)) +
+			  ukf.measurement_noise; // weighted variance of sigma points
 
-	float cross_covariance =  (spread*(sigmaPoints.sigma_points[1]-v_sigma_mean) +
-			   (-spread)*(sigmaPoints.sigma_points[2]-v_sigma_mean))/3.0f;
+	float cross_covariance =  0.5f * (spread*(sigma_points[1]-v_sigma_mean) +
+			   (-spread)*(sigma_points[2]-v_sigma_mean));
 
-	innov_covariance = (innov_covariance != 0.0f) ? innov_covariance : 1.0f; // prevent div by 0 (shouldnt happen but you never know)
+	if (innov_covariance < 1e-6f) innov_covariance = 1e-6f; // prevent divide by 0 which hopefully shouldnt happen anyway
 	float kalman_gain = cross_covariance / innov_covariance;
 	soc = soc + kalman_gain * (voltage - v_sigma_mean); // update SOC prediction with magic - keep in mind that this value is in percent of total capacity
 	soc = soc > 1.0f ? 1.0f : soc;
@@ -109,15 +103,19 @@ void socTask(void *pvParamaters)
 	}
 
 	while(1) {
-		float voltage, current;
-		getSegmentVoltage(&voltage);
-		current = //some current function - look into
+		float voltage, current = 0.0f;
+		if (getSegmentVoltage(&voltage) != HAL_OK) {
+			continue;
+		}
+		if (getIBus(&current) != HAL_OK) {
+			continue;
+		}
 
 		ukf_soc(voltage, current, SOC_TASK_PERIOD / 1000.0f);
 		//DEBUG_PRINT("SOC: %f, v_soc: %f, i_soc: %f \n", soc, v_soc, i_soc);
 		StateBatteryChargeHV = ukf.pred * 100.0f;
 		watchdogTaskCheckIn(SOC_TASK_ID);
-		vTaskDelay(SOC_TASK_PERIOD);
+		vTaskDelay(pdMS_TO_TICKS(SOC_TASK_PERIOD));
 	}
 }
 
@@ -125,11 +123,7 @@ void socTask(void *pvParamaters)
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[])
 {
 	size_t lowIndex = (value - lut_min)/lut_step;
-    if (lowIndex < 0)
-    {
-        return lut[0];
-    }
-    else if (lowIndex >= lutLen-1) //Can not interpolate with last value in LUT
+    if (lowIndex >= lutLen-1) //Can not interpolate with last value in LUT
     {
         return lut[lutLen-1];
     }
