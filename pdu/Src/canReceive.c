@@ -20,10 +20,9 @@ void CAN_Msg_VCU_EM_Power_State_Request_Callback() {
 }
 
 void CAN_Msg_VCU_buttonEvents_Callback(){
-    if(ButtonCoolerEnabled){
+    if(Cooling){
         DEBUG_PRINT_ISR("Cooler Button has been pressed \n");
         fsmSendEventISR(&mainFsmHandle, EV_Cooler_Toggle);
-        ButtonCoolerEnabled = 0;
     }
 }
 

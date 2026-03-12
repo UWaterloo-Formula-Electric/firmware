@@ -102,7 +102,7 @@ Transition_t transitions[] = {
     {STATE_ANY, EV_BTN_HV_Toggle, &sendHvToggle},   // From DCU
     {STATE_ANY, EV_BTN_EM_Toggle, &sendEmToggle},   // From DCU
     {STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC}, // From DCU
-    {STATE_EM_Enable, EV_BTN_CO_Toggle, &sendCoolerToggle},
+    {STATE_ANY, EV_BTN_CO_Toggle, &sendCoolerToggle},
     // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU
     {STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleRegenMode}, // From DCU
     {STATE_ANY, EV_Fatal, &EM_Fault},
@@ -702,7 +702,7 @@ static uint32_t sendCoolerToggle(uint32_t event){
         ERROR_PRINT("Failed to send Cooler Toggle Button event! \n");
         Error_Handler();
     }
-    return STATE_EM_Enable;
+    return fsmGetState(&VCUFsmHandle);
 }
 
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -809,7 +809,7 @@ static int sendCoolerToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
-    ButtonCoolerEnabled = 0;
+    Cooling = 1;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_VCU_buttonEvents();
