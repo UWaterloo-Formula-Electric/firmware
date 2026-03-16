@@ -595,6 +595,7 @@ static int sendHVToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -607,6 +608,7 @@ static int sendEMToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -619,6 +621,7 @@ static int sendEnduranceToggleMsg(void)
     ButtonEnduranceToggleEnabled = 1;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -631,6 +634,7 @@ static int sendEnduranceLapMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 1;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -643,6 +647,7 @@ static int sendTCToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 1;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -667,6 +672,7 @@ static int sendScrNavRightEnabled(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 1;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_DCU_buttonEvents();
@@ -679,6 +685,7 @@ static int sendScrNavLeftEnabled(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 1;
     return sendCAN_DCU_buttonEvents();

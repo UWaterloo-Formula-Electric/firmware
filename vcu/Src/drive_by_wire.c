@@ -696,7 +696,8 @@ static uint32_t toggleTC(uint32_t event)
     return STATE_EM_Enable;
 }
 
-static uint32_t sendCoolerToggle(uint32_t event){
+static uint32_t sendCoolerToggle(uint32_t event)
+{
     DEBUG_PRINT("Sending Cooler Toggle CAN message \n");
     if (sendCoolerToggleMsg() != HAL_OK){
         ERROR_PRINT("Failed to send Cooler Toggle Button event! \n");
@@ -761,6 +762,7 @@ static int sendHVToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_VCU_buttonEvents();
@@ -773,6 +775,7 @@ static int sendEMToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_VCU_buttonEvents();
@@ -785,6 +788,7 @@ static int sendEnduranceToggleMsg(void)
     ButtonEnduranceToggleEnabled = 1;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 0;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_VCU_buttonEvents();
@@ -797,6 +801,7 @@ static int sendTCToggleMsg(void)
     ButtonEnduranceToggleEnabled = 0;
     ButtonEnduranceLapEnabled = 0;
     ButtonTCEnabled = 1;
+    Cooling = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
     return sendCAN_VCU_buttonEvents();
