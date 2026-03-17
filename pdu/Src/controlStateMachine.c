@@ -12,6 +12,8 @@
 #include "loadSensor.h"
 #include "bsp.h"
 #include "watchdog.h"
+#include "cooling.h"
+
 
 #define HV_CRITICAL_MAIN_DELAY_TIME_MS 1000
 #define LV_SHUTDOWN_DELAY_TIME_MS 1000
