@@ -123,6 +123,8 @@ typedef enum DischargeTimerLength {
 } DischargeTimerLength;
 
 /* Public Functions */
+HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array);
+HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array);
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
 
 
