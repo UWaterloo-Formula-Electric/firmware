@@ -26,9 +26,9 @@
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             14
 /// Number of thermistors attached to first AMS in each segment
-#define SEGMENT_THERMISTORS_AMS1    13
+#define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
-#define SEGMENT_THERMISTORS_AMS2    13
+#define SEGMENT_THERMISTORS_AMS2    14
 // Number of thermistors per segment
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
 
@@ -36,9 +36,10 @@
 #error "Number of AMS boards defined is odd, it must be even"
 #endif
 
-#if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
-#error "Number of thermistors defined must be 14 and 13 for AMS boards 1 and 2 of each segment respectively. Hard-coded values in batt_read_cell_temps and batt_read_thermistors will be affected"
-#endif
+// Old error used for ltc6804.c
+// #if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
+// #error "Number of thermistors defined must be 14 and 13 for AMS boards 1 and 2 of each segment respectively. Hard-coded values in batt_read_cell_temps and batt_read_thermistors will be affected"
+// #endif
 
 // This specifies which chip architecture we are using
 // 6812/6804

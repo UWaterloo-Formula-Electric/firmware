@@ -280,11 +280,11 @@
 
 // Use normal MD (7kHz), Discharge not permission, all channels
 // Might have to change these values later based on desired configuration
-#define ADCV_BYTE0 0x03
+#define ADCV_BYTE0 0x02
 #define ADCV_BYTE1 0x63
 
 #define ADSV_BYTE0 0x01
-#define ADSV_BYTE1 0x63
+#define ADSV_BYTE1 0x6B
 
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x05
