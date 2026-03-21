@@ -986,6 +986,60 @@ static const CLI_Command_Definition_t setCellIRCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    float cell_voltages[NUM_VOLTAGE_CELLS];
+    
+    if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
+        COMMAND_OUTPUT("Error reading cell voltages\n");
+        return pdFALSE;
+    }
+    
+    COMMAND_OUTPUT("Cell Voltages:\n");
+    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
+        int board = i / CELLS_PER_BOARD;
+        int cell = i % CELLS_PER_BOARD;
+        COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[i]);
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getCellVoltagesCommandDefinition =
+{
+    "getCellVoltages",
+    "getCellVoltages:\r\n \r\n",
+    getCellVoltages,
+    0 /* Number of parameters */
+};
+
+BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    float cell_temps[NUM_TEMP_CELLS];
+    
+    if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+        COMMAND_OUTPUT("Error reading cell temperatures\n");
+        return pdFALSE;
+    }
+    
+    COMMAND_OUTPUT("Cell Temperatures:\n");
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        int board = i / SEGMENT_THERMISTORS_AMS1;
+        int channel = i % SEGMENT_THERMISTORS_AMS1;
+        COMMAND_OUTPUT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getCellTempsCommandDefinition =
+{
+    "getCellTemps",
+    "getCellTemps:\r\n Print all cell temperatures\r\n",
+    getCellTemps,
+    0 /* Number of parameters */
+};
+
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -1123,7 +1177,12 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&setCellIRCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
