@@ -19,7 +19,7 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_SEGMENTS 5
+#define NUM_SEGMENTS 1
 #define NUM_BOARDS_PER_SEGMENT      2
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
@@ -56,7 +56,7 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 2
+#define NUM_LTC_CHIPS_PER_BOARD 1    // Only Chip1 is powered; Chip0 (termination) is unpowered
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
@@ -64,6 +64,9 @@
 
 // Number of Voltage Cells per LTC6812/6804/6811 chip
 #define CELLS_PER_CHIP (CELLS_PER_BOARD / NUM_LTC_CHIPS_PER_BOARD) 
+
+// For testing with only Chip1 powered (Chip0 is unpowered termination)
+// Buffer sizes and all communication automatically adjust to single-chip operation
 
 // Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2

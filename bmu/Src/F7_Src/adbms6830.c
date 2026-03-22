@@ -11,6 +11,11 @@
 
 #if LTC_CHIP == ADBMS_CHIP_6830B
 
+// NOTE: Single Chip Configuration for Testing
+// Only Chip1 is powered in this test setup. Chip0 (physically present for termination)
+// is unpowered and therefore excluded from communication by setting NUM_LTC_CHIPS_PER_BOARD = 1.
+// All buffer sizes and communication loops are automatically sized for single-chip operation.
+
 // Table 50 Configuration Register Group A
 #define WRCFGA_BYTE0  0x00
 #define WRCFGA_BYTE1  0x01
