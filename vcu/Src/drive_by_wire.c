@@ -88,7 +88,8 @@ Transition_t transitions[] = {
     {STATE_HV_Disable, EV_Bps_Fail, &EM_Fault},
     {STATE_HV_Disable, EV_Hv_Disable, &EM_Fault},
     {STATE_HV_Disable, EV_Brake_Pressure_Fault, &EM_Fault},
-    {STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault},
+    {STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault},\
+    {STATE_HV_Disable, EV_BTN_CO_Toggle, &sendCoolerToggle},
     {STATE_HV_Enable, EV_EM_Toggle, &EM_Enable},
     {STATE_HV_Enable, EV_Hv_Disable, &EM_Fault},
     {STATE_EM_Enable, EV_Bps_Fail, &EM_Fault},
@@ -102,7 +103,6 @@ Transition_t transitions[] = {
     {STATE_ANY, EV_BTN_HV_Toggle, &sendHvToggle},   // From DCU
     {STATE_ANY, EV_BTN_EM_Toggle, &sendEmToggle},   // From DCU
     {STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC}, // From DCU
-    {STATE_ANY, EV_BTN_CO_Toggle, &sendCoolerToggle},
     // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU
     {STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleRegenMode}, // From DCU
     {STATE_ANY, EV_Fatal, &EM_Fault},
