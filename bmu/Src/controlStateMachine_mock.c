@@ -25,6 +25,8 @@
 #include "batteries.h"
 #include "faultMonitor.h"
 #include "ltc_chip.h"
+#include "ltc_common.h"
+#include "ltc_chip_interface.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -990,6 +992,11 @@ BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     float cell_voltages[NUM_VOLTAGE_CELLS];
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
     
     if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
         COMMAND_OUTPUT("Error reading cell voltages\n");
@@ -1017,6 +1024,11 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     float cell_temps[NUM_TEMP_CELLS];
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
     
     if (batt_read_cell_temps(cell_temps) != HAL_OK) {
         COMMAND_OUTPUT("Error reading cell temperatures\n");
@@ -1037,6 +1049,52 @@ static const CLI_Command_Definition_t getCellTempsCommandDefinition =
     "getCellTemps",
     "getCellTemps:\r\n Print all cell temperatures\r\n",
     getCellTemps,
+    0 /* Number of parameters */
+};
+
+BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+    static uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    
+    // Read config from AMS boards
+    HAL_StatusTypeDef status = batt_read_config(configA, configB);
+    
+    if (status != HAL_OK) {
+        COMMAND_OUTPUT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
+    }
+
+    COMMAND_OUTPUT("AMS Configuration Tables:\n");
+    COMMAND_OUTPUT("========================\n\n");
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        COMMAND_OUTPUT("Board %d:\n", board);
+        COMMAND_OUTPUT("  Config A: ");
+        for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+            COMMAND_OUTPUT("%02X ", configA[board][0][i]);
+        }
+        COMMAND_OUTPUT("\n");
+        COMMAND_OUTPUT("  Config B: ");
+        for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+            COMMAND_OUTPUT("%02X ", configB[board][0][i]);
+        }
+        COMMAND_OUTPUT("\n\n");
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t readAmsConfigCommandDefinition =
+{
+    "readAmsConfig",
+    "readAmsConfig:\r\n Read and display AMS config tables A and B\r\n",
+    readAmsConfigCommand,
     0 /* Number of parameters */
 };
 
@@ -1181,6 +1239,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

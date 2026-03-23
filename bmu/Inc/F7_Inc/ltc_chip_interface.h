@@ -42,6 +42,7 @@ void batt_set_balancing_cell (int board, int chip, int cell);
 void batt_unset_balancing_cell (int board, int chip, int cell);
 bool batt_get_balancing_cell_state(int board, int chip, int cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
+HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 
 
 extern open_wire_failure_t open_wire_failure[NUM_BOARDS*CELLS_PER_BOARD];
