@@ -45,6 +45,7 @@ Lint/
 *.ctu-info
 *.py[cod]
 venv/
+.venv/
 dist/
 build/
 *.egg-info
