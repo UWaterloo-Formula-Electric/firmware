@@ -47,9 +47,11 @@ void endurance_mode_EM_callback(void)
 	static bool has_set_initial_soc = false;
 	if(!has_set_initial_soc)
 	{	
+		if (StateBatteryChargeHV > 0.0f) {			
 		initial_soc = StateBatteryChargeHV/100.0f;
 		has_set_initial_soc = true;
 	}
+}
 }
 
 void set_lap_limit(uint32_t laps)
@@ -86,9 +88,13 @@ static HAL_StatusTypeDef compute_discharge_limit(float * current_limit)
 	static float last_output_current = DISCHARGE_CURRENT_MAX_A;
 	static float error_accum = 0.0f;
 
+	if(num_laps >= num_laps_to_complete) {
+    	*current_limit = DISCHARGE_CURRENT_MIN_A;
+    return HAL_OK;
+}
 	float soc = StateBatteryChargeHV/100.0f;
 	// Amount of SoC we should be at to end with 5%
-	float expected_soc = (float)(num_laps_to_complete - num_laps)/(float)num_laps_to_complete*initial_soc; 
+	float expected_soc = 0.05f + (float)(num_laps_to_complete - num_laps)/(float)num_laps_to_complete*(initial_soc - 0.05f); 
 	float error = expected_soc - soc;
 	
 	// We want to prevent integral windup when in saturation region
@@ -118,7 +124,7 @@ void enduranceModeTask(void *pvParameters)
 	while(1)
 	{
 		uint32_t wait_flag = ulTaskNotifyTake( pdTRUE, pdMS_TO_TICKS(ENDURANCE_MODE_TASK_PERIOD/2));
-		if(wait_flag & (1U << ENDURANCE_MODE_FLAG_BIT))
+		if(wait_flag > 0)
 		{
 			float current_limit = 0.0f;
 			// We are in endurance mode
@@ -142,7 +148,6 @@ void enduranceModeTask(void *pvParameters)
 			// The flag was never actually set, we just hit the timeout	
 		}
 		watchdogTaskCheckIn(ENDURANCE_MODE_TASK_ID);
-		vTaskDelay(ENDURANCE_MODE_TASK_PERIOD);
 	}
 
 }
