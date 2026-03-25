@@ -23,7 +23,7 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
 
     for (int board = NUM_BOARDS - 1; board >= 0; --board)
     {
-        batt_gen_pec((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
+        batt_gen_pec_data((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
         memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);
         txBufferIndex += writeDataSize;
         memcpy(&txBuffer[txBufferIndex], data_PEC, PEC_SIZE);
@@ -90,6 +90,52 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
     pecAddr[1] = pec & 0xff;
 }
 
+/*
+ * Generates a 10-bit PEC for the message defined for data.
+ * Uses CRC with polynomial:
+ *   x10 + x7 + x3 + x2 + x + 1
+ *
+ * NOTE: Only used for the ADBMS6830, which requires a different PEC for the data
+ */
+void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) {
+    unsigned char in0, in1, in2, in3, in7;
+    int i, n;
+
+    // Initial value for Data PEC is 0x0010 (10-bit)
+    unsigned short pec = 0x0010; 
+
+    for (n = 0; n < num_bytes; n++) {
+        uint8_t data = arrdata[n];
+        for (i = 0; i < 8; i++, data = data << 1) {
+            unsigned char din = (data >> 7) & 0x01;
+            
+            // Logic derived from polynomial: x10 + x7 + x3 + x2 + x + 1
+            // Feedback bit is (din XOR pec[9])
+            unsigned char fb = din ^ ((pec >> 9) & 0x01);
+
+            in0 = fb;
+            in1 = fb ^ ((pec >> 0) & 0x01);
+            in2 = fb ^ ((pec >> 1) & 0x01);
+            in3 = fb ^ ((pec >> 2) & 0x01);
+            in7 = fb ^ ((pec >> 6) & 0x01);
+
+            // Shift and update bits
+            pec = (pec << 1) & 0x3FF; // Keep it 10-bit
+            
+            // Assign specific bits based on polynomial taps
+            if (in0) pec |= (1 << 0); else pec &= ~(1 << 0);
+            if (in1) pec |= (1 << 1); else pec &= ~(1 << 1);
+            if (in2) pec |= (1 << 2); else pec &= ~(1 << 2);
+            if (in3) pec |= (1 << 3); else pec &= ~(1 << 3);
+            if (in7) pec |= (1 << 7); else pec &= ~(1 << 7);
+        }
+    }
+
+    // Format for Write: [0, 0, 0, 0, 0, 0, PEC9, PEC8] [PEC7...PEC0]
+    // If using for Read, the 0s below should be replaced with the Command Counter bits
+    pecAddr[0] = (pec >> 8) & 0x03; 
+    pecAddr[1] = pec & 0xFF;
+}
 
 /*
  * Check the PEC on received data
@@ -100,6 +146,26 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
 {
     uint8_t pec[2];
     batt_gen_pec(rxBuffer, dataSize, pec);
+    uint32_t pec_index = dataSize;
+    
+    if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
+    {
+        return HAL_OK;
+    } else {
+        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        return HAL_ERROR;
+    }
+}
+
+/*
+ * Check the PEC on received data
+ * @param rxBuffer: buffer holding the read data and PEC
+ * @param dataSize: length of the data the PEC is calculated on
+ */
+HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
+{
+    uint8_t pec[2];
+    batt_gen_pec_data(rxBuffer, dataSize, pec);
     uint32_t pec_index = dataSize;
     
     if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
