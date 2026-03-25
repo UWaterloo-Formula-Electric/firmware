@@ -1098,6 +1098,46 @@ static const CLI_Command_Definition_t readAmsConfigCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t calcDataPecCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint8_t data[6];
+    uint8_t pec[2];
+    
+    // Parse the 6 parameters
+    for (int i = 0; i < 6; i++) {
+        const char * param = FreeRTOS_CLIGetParameter(commandString, i + 1, &paramLen);
+        if (param == NULL) {
+            COMMAND_OUTPUT("Error: Must provide exactly 6 hex bytes\n");
+            return pdFALSE;
+        }
+        unsigned int val;
+        // Parse hex directly (e.g. 01 00 00 FF 03 00 or 0x01 ... )
+        if (sscanf(param, "%x", &val) != 1) {
+            COMMAND_OUTPUT("Error: Failed to parse byte %d\n", i);
+            return pdFALSE;
+        }
+        data[i] = (uint8_t)val;
+    }
+
+    // Run the Data PEC generator
+    batt_gen_pec_data(data, 6, pec);
+
+    COMMAND_OUTPUT("Data: %02X %02X %02X %02X %02X %02X\n", 
+            data[0], data[1], data[2], data[3], data[4], data[5]);
+    COMMAND_OUTPUT("Calculated Data PEC (10-bit): %02X %02X\n", pec[0], pec[1]);
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t calcDataPecCommandDefinition =
+{
+    "calcDataPec",
+    "calcDataPec <b0> <b1> <b2> <b3> <b4> <b5>:\r\n Calculates 10-bit Data PEC for 6 hex bytes\r\n",
+    calcDataPecCommand,
+    6 /* Number of parameters */
+};
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -1242,6 +1282,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
