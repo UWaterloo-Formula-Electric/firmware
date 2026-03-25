@@ -301,6 +301,7 @@
 #define REFON(en)      ((en) << 7)
 #define COMM_BK(en)    ((en) << 3)
 #define MUTE_ST(en)    ((en) << 4)
+#define CTH(en)    ((en) << 0)
 
 // Table 56 Configuration Register Group B
 #define DTMEN(en)    ((en) << 7)
@@ -320,7 +321,7 @@ void batt_init_chip_configs() {
 		for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
-            m_batt_configA[board][chip][0] = (REFON(1));
+            m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
             
             // Table 103 Configuration Register B Bit
@@ -387,7 +388,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	for (int board = 0; board < NUM_BOARDS; ++board)
 	{
 		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
-		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
+		if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
 			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
 			PEC_count++;
