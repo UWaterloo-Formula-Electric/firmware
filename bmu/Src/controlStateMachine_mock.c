@@ -1122,7 +1122,7 @@ BaseType_t calcDataPecCommand(char *writeBuffer, size_t writeBufferLength,
     }
 
     // Run the Data PEC generator
-    batt_gen_pec_data(data, 6, pec);
+    batt_gen_pec_data(data, 6, pec, 0);
 
     COMMAND_OUTPUT("Data: %02X %02X %02X %02X %02X %02X\n", 
             data[0], data[1], data[2], data[3], data[4], data[5]);
