@@ -23,7 +23,7 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
 
     for (int board = NUM_BOARDS - 1; board >= 0; --board)
     {
-        batt_gen_pec_data((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
+        batt_gen_pec_data((uint8_t*) &(writeData[board]), writeDataSize, data_PEC, 0);
         memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);
         txBufferIndex += writeDataSize;
         memcpy(&txBuffer[txBufferIndex], data_PEC, PEC_SIZE);
@@ -97,7 +97,7 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
  *
  * NOTE: Only used for the ADBMS6830, which requires a different PEC for the data
  */
-void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) {
+void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr, uint8_t cmd_counter) {
     unsigned char in0, in1, in2, in3, in7;
     int i, n;
 
@@ -131,9 +131,30 @@ void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecA
         }
     }
 
-    // Format for Write: [0, 0, 0, 0, 0, 0, PEC9, PEC8] [PEC7...PEC0]
-    // If using for Read, the 0s below should be replaced with the Command Counter bits
-    pecAddr[0] = (pec >> 8) & 0x03; 
+    // Process the 6-bit Command Counter or padding 0s
+    for (i = 0; i < 6; i++) {
+        unsigned char din = (cmd_counter >> (5 - i)) & 0x01;
+        unsigned char fb = din ^ ((pec >> 9) & 0x01);
+
+        in0 = fb;
+        in1 = fb ^ ((pec >> 0) & 0x01);
+        in2 = fb ^ ((pec >> 1) & 0x01);
+        in3 = fb ^ ((pec >> 2) & 0x01);
+        in7 = fb ^ ((pec >> 6) & 0x01);
+
+        pec = (pec << 1) & 0x3FF;
+        
+        if (in0) pec |= (1 << 0); else pec &= ~(1 << 0);
+        if (in1) pec |= (1 << 1); else pec &= ~(1 << 1);
+        if (in2) pec |= (1 << 2); else pec &= ~(1 << 2);
+        if (in3) pec |= (1 << 3); else pec &= ~(1 << 3);
+        if (in7) pec |= (1 << 7); else pec &= ~(1 << 7);
+    }
+
+    // Format for Output: [PEC0] [PEC1]
+    // PEC0 bits 7-2 are Cmd Counter, bits 1-0 are PEC[9:8]
+    // PEC1 bits 7-0 are PEC[7:0]
+    pecAddr[0] = ((cmd_counter & 0x3F) << 2) | ((pec >> 8) & 0x03); 
     pecAddr[1] = pec & 0xFF;
 }
 
@@ -152,7 +173,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u\r\n, receiving has gone wrong", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }
@@ -165,14 +186,17 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
 HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
 {
     uint8_t pec[2];
-    batt_gen_pec_data(rxBuffer, dataSize, pec);
+
+    uint8_t cmd_counter = (rxBuffer[dataSize] >> 2) & 0x3F;
+    batt_gen_pec_data(rxBuffer, dataSize, pec, cmd_counter);
+
     uint32_t pec_index = dataSize;
     
     if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u\r\n, receiving has gone wrong", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }

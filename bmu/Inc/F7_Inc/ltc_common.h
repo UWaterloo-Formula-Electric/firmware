@@ -80,7 +80,7 @@
 HAL_StatusTypeDef batt_format_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer);
 HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t cmdByteHigh, uint8_t *txBuffer, uint8_t writeData[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t writeDataSize);
 void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr);
-void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr);
+void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr, uint8_t cmd_counter);
 HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len);
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer, unsigned int len);
 void fillDummyBytes(uint8_t * buf, uint32_t length);
