@@ -19,8 +19,8 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_SEGMENTS 1
-#define NUM_BOARDS_PER_SEGMENT      2
+#define NUM_SEGMENTS 1 // FIX THIS ON AMS (5)
+#define NUM_BOARDS_PER_SEGMENT      1 // FIX THIS ON AMS
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
@@ -32,9 +32,9 @@
 // Number of thermistors per segment
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
 
-#if NUM_BOARDS%2 == 1
-#error "Number of AMS boards defined is odd, it must be even"
-#endif
+// #if NUM_BOARDS%2 == 1
+// #error "Number of AMS boards defined is odd, it must be even"
+// #endif
 
 // Old error used for ltc6804.c
 // #if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
@@ -56,7 +56,7 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 1    // Only Chip1 is powered; Chip0 (termination) is unpowered
+#define NUM_LTC_CHIPS_PER_BOARD 1 // FIX THIS ON AMS (2)
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
