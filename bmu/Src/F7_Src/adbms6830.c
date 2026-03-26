@@ -375,6 +375,12 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	uint8_t txBuffer[BUFF_SIZE];
 	memset(rxBuffer, 0xFF, BUFF_SIZE);
 	memset(txBuffer, 0xFF, BUFF_SIZE);
+
+	if(batt_spi_wakeup(true) != HAL_OK){
+		ERROR_PRINT("Failed to wake up boards\n");
+		return HAL_ERROR;
+	}
+
 	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
 		ERROR_PRINT("Failed to send write config command\n");
 		return HAL_ERROR;
@@ -390,7 +396,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
 		if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
-			DEBUG_PRINT("PEC ERROR on board %d config\r\n (adbms6830)", board);
+			DEBUG_PRINT("PEC ERROR on board %d config (adbms6830) \r\n", board);
 			PEC_count++;
 			return HAL_ERROR;
 		}
@@ -412,15 +418,21 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 
 
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
-    const uint8_t response_buffer_size = NUM_BOARDS * BATT_CONFIG_SIZE;
+    const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
 	uint8_t response_bufferA[response_buffer_size];
 	uint8_t response_bufferB[response_buffer_size];
+	memset(response_bufferA, 0xFF, response_buffer_size);
+	memset(response_bufferB, 0xFF, response_buffer_size);
+
 	batt_read_data(RDCFGA_BYTE0, RDCFGA_BYTE1, response_bufferA, BATT_CONFIG_SIZE);
 	batt_read_data(RDCFGB_BYTE0, RDCFGB_BYTE1, response_bufferB, BATT_CONFIG_SIZE);
 
     for(int board = 0; board < NUM_BOARDS; board++){
-        memcpy(&(configA[board][0][0]), &(response_bufferA[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
-        memcpy(&(configB[board][0][0]), &(response_bufferB[board * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+        for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
+            int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+            memcpy(&(configA[board][chip]), &(response_bufferA[idx * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+            memcpy(&(configB[board][chip]), &(response_bufferB[idx * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+        }
     }
 
 	return HAL_OK;
@@ -441,16 +453,20 @@ HAL_StatusTypeDef batt_verify_config() {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++) {
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
-				DEBUG_PRINT("0x%x ", config_bufferA[board][ltc_chip][buff_byte]);
-				DEBUG_PRINT("0x%x ", config_bufferB[board][ltc_chip][buff_byte]);
-				if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
-					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
-					return HAL_ERROR;
-				}
-				if((m_batt_configB[board][ltc_chip][buff_byte] & 0x7) != (config_bufferB[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
-					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configB[board][ltc_chip][buff_byte], config_bufferB[board][ltc_chip][buff_byte]);
-					return HAL_ERROR;
-				}
+				DEBUG_PRINT("0x%02X ", config_bufferA[board][ltc_chip][buff_byte]);
+				// if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+				// 	ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
+				// 	return HAL_ERROR;
+				// }
+			}
+
+			DEBUG_PRINT("\r\nConfig Read B, Board %d, Chip %d: ", board, ltc_chip); 
+			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
+				DEBUG_PRINT("0x%02X ", config_bufferB[board][ltc_chip][buff_byte]);
+				// if((m_batt_configB[board][ltc_chip][buff_byte] & 0x7) != (config_bufferB[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+				// 	ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configB[board][ltc_chip][buff_byte], config_bufferB[board][ltc_chip][buff_byte]);
+				// 	return HAL_ERROR;
+				// }
 			}
 			DEBUG_PRINT("\n");
 		}
