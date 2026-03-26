@@ -152,7 +152,7 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        DEBUG_PRINT("%u != %u. %u != %u\r\n, receiving has gone wrong", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }
@@ -172,7 +172,7 @@ HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        DEBUG_PRINT("%u != %u. %u != %u\r\n, receiving has gone wrong", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }

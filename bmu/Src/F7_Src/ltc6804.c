@@ -166,7 +166,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
 		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
-			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
+			DEBUG_PRINT("PEC ERROR on board %d config\r\n (ltc6804)", board);
 			PEC_count++;
 			return HAL_ERROR;
 		}
