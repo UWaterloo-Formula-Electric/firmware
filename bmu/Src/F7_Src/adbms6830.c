@@ -322,7 +322,7 @@ void batt_init_chip_configs() {
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
             m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
-            m_batt_configA[board][chip][3] = 0x0F;
+            m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
             
             // Table 103 Configuration Register B Bit
