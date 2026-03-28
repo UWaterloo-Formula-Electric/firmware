@@ -44,7 +44,7 @@
 #define T_WAKE_MS            1        // The LTC wakes in 300 us, but since systick is 1 KHz just round up to 1 ms
 #define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
 #define T_IDLE_US            4400 // Time for ISOSPI bus to go to idle state (min 4.4ms, typ 5.5 ms)
-#define T_REFUP_MS           5 // Takes 4.4 ms for reference to power up
+#define T_REFUP_MS           3.5 // Takes 4.4 ms for reference to power up
 
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
@@ -69,11 +69,11 @@
 
 
 /** Voltage constants in 100uV steps **/
-#define VUV 0x658 // based on: (VUV + 1) * 16 * 100uV and target VUV of 2.6V
-#define VOV 0x8CA // based on: (VOV) * 16 * 100uV and target VOV of 3.6V
+#define VUV 0x1CA // based on: (VUV * 16 * 150uV) + 1.5V and target VUV of 2.6V
+#define VOV 0x36B // based on: (VOV * 16 * 150uV) + 1.5V and target VOV of 3.6V
 
 
-#define VOLTAGE_REGISTER_COUNTS_PER_VOLT 10000 // 1 LSB is 100uV
+#define VOLTAGE_REGISTER_COUNTS_PER_VOLT 15000 // 1 LSB is 150uV
 
 #define VOLTAGES_PER_BLOCK          3   // Number of voltage reading per block
 
