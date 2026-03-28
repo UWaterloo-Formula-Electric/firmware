@@ -281,17 +281,17 @@
 // Use normal MD (7kHz), Discharge not permission, all channels
 // Might have to change these values later based on desired configuration
 #define ADCV_BYTE0 0x02
-#define ADCV_BYTE1 0x63
+#define ADCV_BYTE1 0xE0
 
 #define ADSV_BYTE0 0x01
-#define ADSV_BYTE1 0x6B
+#define ADSV_BYTE1 0xE8
 
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x05
 #define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<7))
 
 #define ADAX2_BYTE0 0x04
-#define ADAX2_BYTE1 0x73
+#define ADAX2_BYTE1 0x00
 
 // Table 55 Configuration Register Group A
 #ifdef REFON
@@ -322,38 +322,43 @@ void batt_init_chip_configs() {
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
             m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
+            m_batt_configA[board][chip][3] = 0x0F;
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
             
             // Table 103 Configuration Register B Bit
             // Configuration Register B (UV/OV thresholds)
-            // m_batt_configB[board][chip][0] = 0x00;  // VUV LSBs
-            // m_batt_configB[board][chip][1] = 0x08;  // VUV[11:8], VOV[3:0]
-            // m_batt_configB[board][chip][2] = 0x07;  // VOV[11:4]
+            m_batt_configB[board][chip][0] = VUV & 0xFF;  // VUV[7:0]
+            m_batt_configB[board][chip][1] = ((VOV << 4) & 0xF0) | ((VUV >> 8) & 0x0F);  // VOV[3:0], VUV[11:8]
+            m_batt_configB[board][chip][2] = (VOV >> 4) & 0xFF;  // VOV[11:4]
 		}
 	}
 }
 
 HAL_StatusTypeDef format_and_send_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
-	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_BOARDS);
+	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
 	uint8_t txBuffer[BUFF_SIZE];
+
+	// Send Config A
 	if (batt_format_write_config_command(WRCFGA_BYTE0, WRCFGA_BYTE1, txBuffer, configA, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write configA command\n");
 		return HAL_ERROR;
 	}
+	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
+	{
+		ERROR_PRINT("Failed to transmit configA to AMS boards\n");
+		return HAL_ERROR;
+	}
+
+	// Send Config B
 	if (batt_format_write_config_command(WRCFGB_BYTE0, WRCFGB_BYTE1, txBuffer, configB, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write configB command\n");
 		return HAL_ERROR;
 	}
-
-	// Send command + data
-	for (uint8_t board = 0; board < NUM_BOARDS; ++board)
+	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
 	{
-		if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK)
-		{
-			ERROR_PRINT("Failed to transmit config to AMS board %u\n", board);
-			return HAL_ERROR;
-		}
+		ERROR_PRINT("Failed to transmit configB to AMS boards\n");
+		return HAL_ERROR;
 	}
 
 	return HAL_OK;
@@ -369,7 +374,7 @@ static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
 
 static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
-	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_BOARDS);
+	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
 	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
 	uint8_t rxBuffer[BUFF_SIZE];
 	uint8_t txBuffer[BUFF_SIZE];
@@ -391,27 +396,27 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		return HAL_ERROR;
 	}
 	
-	for (int board = 0; board < NUM_BOARDS; ++board)
-	{
-		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
-		if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
-		{
-			DEBUG_PRINT("PEC ERROR on board %d config (adbms6830) \r\n", board);
-			PEC_count++;
-			return HAL_ERROR;
+	for (int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; ++i)
+        {
+			const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
+			if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
+			{
+				DEBUG_PRINT("PEC ERROR on board/chip %d config (adbms6830) \r\n", i);
+				PEC_count++;
+				return HAL_ERROR;
+			}
+        }
+
+
+        if(xTaskGetTickCount() - last_PEC_tick > 10000)
+        {
+			PEC_count = 0;
+			last_PEC_tick = xTaskGetTickCount();
+        }
+
+        for(int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; i++) {
+			memcpy(&(data_buffer[i*response_size]), &(rxBuffer[DATA_START_IDX + (i * (response_size + PEC_SIZE))]), response_size);
 		}
-	}
-
-
-	if(xTaskGetTickCount() - last_PEC_tick > 10000)
-	{
-		PEC_count = 0;
-		last_PEC_tick = xTaskGetTickCount();
-	}
-
-	for(int board = 0; board < NUM_BOARDS; board++) {
-		memcpy(&(data_buffer[board*response_size]), &(rxBuffer[DATA_START_IDX + (board * (response_size + PEC_SIZE))]), response_size);
-	}
 	
 	return HAL_OK;
 }
@@ -424,9 +429,14 @@ HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER
 	memset(response_bufferA, 0xFF, response_buffer_size);
 	memset(response_bufferB, 0xFF, response_buffer_size);
 
-	batt_read_data(RDCFGA_BYTE0, RDCFGA_BYTE1, response_bufferA, BATT_CONFIG_SIZE);
-	batt_read_data(RDCFGB_BYTE0, RDCFGB_BYTE1, response_bufferB, BATT_CONFIG_SIZE);
-
+	if (batt_read_data(RDCFGA_BYTE0, RDCFGA_BYTE1, response_bufferA, BATT_CONFIG_SIZE) != HAL_OK){
+		ERROR_PRINT("Failed to read configA");
+		return HAL_ERROR;
+	} 
+	if (batt_read_data(RDCFGB_BYTE0, RDCFGB_BYTE1, response_bufferB, BATT_CONFIG_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read configB");
+		return HAL_ERROR;
+	}
     for(int board = 0; board < NUM_BOARDS; board++){
         for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
             int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
@@ -454,19 +464,19 @@ HAL_StatusTypeDef batt_verify_config() {
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%02X ", config_bufferA[board][ltc_chip][buff_byte]);
-				// if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
-				// 	ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
-				// 	return HAL_ERROR;
-				// }
+				if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
+					return HAL_ERROR;
+				}
 			}
 
 			DEBUG_PRINT("\r\nConfig Read B, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%02X ", config_bufferB[board][ltc_chip][buff_byte]);
-				// if((m_batt_configB[board][ltc_chip][buff_byte] & 0x7) != (config_bufferB[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
-				// 	ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configB[board][ltc_chip][buff_byte], config_bufferB[board][ltc_chip][buff_byte]);
-				// 	return HAL_ERROR;
-				// }
+				if((m_batt_configB[board][ltc_chip][buff_byte] & 0x7) != (config_bufferB[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configB[board][ltc_chip][buff_byte], config_bufferB[board][ltc_chip][buff_byte]);
+					return HAL_ERROR;
+				}
 			}
 			DEBUG_PRINT("\n");
 		}
@@ -513,8 +523,8 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
                     board * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
 					
 				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
-                uint16_t adc = ((uint16_t)adc_vals[data_idx + 1] << 8) |
-                                adc_vals[data_idx];
+                int16_t adc = (int16_t)(((uint16_t)adc_vals[data_idx + 1] << 8) |
+                                adc_vals[data_idx]);
 
                 // Convert to volts
                 // From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
@@ -542,6 +552,7 @@ void batt_set_temp_config(size_t channel) {
 	const uint8_t gpioPins = channel;
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
 			m_batt_configA[board][chip][3] = gpioPins & 0x0F;
 		}
 	}
@@ -624,8 +635,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
         // GPIO 5 is in AUXB register (bytes 2-3)
         const size_t boardStartIdx = board * AUX_BLOCK_SIZE;
-        uint16_t adcCounts = ((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
-                            adc_vals[boardStartIdx + 2];
+        int16_t adcCounts = (int16_t)(((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
+                            adc_vals[boardStartIdx + 2]);
 
         // Convert ADC code to volts
         // From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
