@@ -98,6 +98,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
     }
 
 	batt_set_temp_config(channel);
+
     if (batt_write_config() != HAL_OK)
     {
         ERROR_PRINT("Failed to setup mux for temp reading\n");
@@ -111,7 +112,15 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
         return HAL_ERROR;
     }
 
-	batt_broadcast_command(ADAX);
+    #if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
+    if (batt_broadcast_command(ADAX) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    #elif LTC_CHIP == ADBMS_CHIP_6830B
+    if (batt_broadcast_command(ADAX_DOWN) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    #endif
     delay_us(TEMP_MEASURE_DELAY_US);
 
     if (batt_spi_wakeup(false /* not sleeping*/))
