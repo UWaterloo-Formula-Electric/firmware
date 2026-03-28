@@ -1074,8 +1074,7 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
         DEBUG_PRINT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
     }
 
-    vTaskDelay(pdMS_TO_TICKS(100)); // Add a small delay to ensure all output is printed before the next prompt
-    return pdTRUE;
+    return pdFALSE;
 }
 
 static const CLI_Command_Definition_t getCellTempsCommandDefinition =
