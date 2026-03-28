@@ -44,7 +44,7 @@
 #define T_WAKE_MS            1        // The LTC wakes in 300 us, but since systick is 1 KHz just round up to 1 ms
 #define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
 #define T_IDLE_US            4400 // Time for ISOSPI bus to go to idle state (min 4.4ms, typ 5.5 ms)
-#define T_REFUP_MS           3.5 // Takes 4.4 ms for reference to power up
+#define T_REFUP_MS           4.4 // Takes 4.4 ms for reference to power up
 
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
@@ -54,6 +54,7 @@
 #define REFON(en) ((en) << 2)
 
 
+#if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
 // These GPIO pins are on Register B
 #define GPIO9_POS 3
 #define GPIO8_POS 2
@@ -67,6 +68,21 @@
 #define GPIO2_POS 4
 #define GPIO1_POS 3
 
+#elif LTC_CHIP == ADBMS_CHIP_6830B
+// These GPIO pins are on Register B
+#define GPIO10_POS 1
+#define GPIO9_POS 0
+
+//These GPIO pins are on Register A
+#define GPIO8_POS 7
+#define GPIO7_POS 6
+#define GPIO6_POS 5
+#define GPIO5_POS 4
+#define GPIO4_POS 3
+#define GPIO3_POS 2
+#define GPIO2_POS 1
+#define GPIO1_POS 0
+#endif
 
 /** Voltage constants in 100uV steps **/
 #define VUV 0x1CA // based on: (VUV * 16 * 150uV) + 1.5V and target VUV of 2.6V
