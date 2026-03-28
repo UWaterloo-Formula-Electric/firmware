@@ -991,25 +991,57 @@ static const CLI_Command_Definition_t setCellIRCommandDefinition =
 BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    float cell_voltages[NUM_VOLTAGE_CELLS];
+    // Make these static so their state persists across command calls
+    static int cellIdx = -1;
+    static float cell_voltages[NUM_VOLTAGE_CELLS];
 
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+    // First time the command is hit
+    if (cellIdx == -1) {
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return HAL_ERROR;
+        }
+
+        // If the board was asleep, configuration is lost AND the reference is off.
+        batt_write_config();
+
+        // The first read broadcasts ADCV. Because the reference was off, the chip
+        // takes t_REFUP (4.4ms) + t_CONV (2.5ms) = 6.9ms to finish. However, 
+        // batt_read_cell_voltages only waits 2.5ms! This dummy read will likely 
+        // return 0x8000 for the first registers, but importantly it forces the 
+        // reference to power up.
+        batt_read_cell_voltages(cell_voltages);
+        
+        // Wait an extra 5ms to ensure the delayed conversion from the first read 
+        // finishes completely and doesn't interfere.
+        vTaskDelay(pdMS_TO_TICKS(5));
+
+        // Now the reference is fully powered up. This second read will complete 
+        // within the normal 2.5ms and return valid measurements.
+        if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell voltages\n");
+            return pdFALSE;
+        }
+        
+        COMMAND_OUTPUT("Cell Voltages:\n");
+        cellIdx = 0;
+        return pdTRUE; // Tell FreeRTOS CLI to call this function again
     }
+
+    // Subsequent calls: output one cell at a time
+    int board = cellIdx / CELLS_PER_BOARD;
+    int cell = cellIdx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[cellIdx]);
     
-    if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
-        COMMAND_OUTPUT("Error reading cell voltages\n");
+    cellIdx++;
+
+    // If we have printed all cells, return pdFALSE to stop
+    if (cellIdx >= NUM_VOLTAGE_CELLS) {
+        cellIdx = -1; // Reset for the next time the user runs the command
         return pdFALSE;
     }
-    
-    COMMAND_OUTPUT("Cell Voltages:\n");
-    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
-        int board = i / CELLS_PER_BOARD;
-        int cell = i % CELLS_PER_BOARD;
-        COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[i]);
-    }
-    return pdFALSE;
+
+    return pdTRUE; // More cells to print, call this function again
 }
 
 static const CLI_Command_Definition_t getCellVoltagesCommandDefinition =
@@ -1029,19 +1061,21 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
-    
+
     if (batt_read_cell_temps(cell_temps) != HAL_OK) {
         COMMAND_OUTPUT("Error reading cell temperatures\n");
         return pdFALSE;
     }
     
-    COMMAND_OUTPUT("Cell Temperatures:\n");
-    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+    DEBUG_PRINT("Cell Temperatures:\n");
+    for (int i = 0; i < NUM_TEMP_CELLS || i < 14; i++) {
         int board = i / SEGMENT_THERMISTORS_AMS1;
         int channel = i % SEGMENT_THERMISTORS_AMS1;
-        COMMAND_OUTPUT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
+        DEBUG_PRINT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
     }
-    return pdFALSE;
+
+    vTaskDelay(pdMS_TO_TICKS(100)); // Add a small delay to ensure all output is printed before the next prompt
+    return pdTRUE;
 }
 
 static const CLI_Command_Definition_t getCellTempsCommandDefinition =
@@ -1067,24 +1101,27 @@ BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
     HAL_StatusTypeDef status = batt_read_config(configA, configB);
     
     if (status != HAL_OK) {
-        COMMAND_OUTPUT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
+        ERROR_PRINT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
     }
 
-    COMMAND_OUTPUT("AMS Configuration Tables:\n");
-    COMMAND_OUTPUT("========================\n\n");
+    DEBUG_PRINT("AMS Configuration Tables:\n");
+    DEBUG_PRINT("========================\n\n");
 
     for (int board = 0; board < NUM_BOARDS; board++) {
-        COMMAND_OUTPUT("Board %d:\n", board);
-        COMMAND_OUTPUT("  Config A: ");
-        for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
-            COMMAND_OUTPUT("%02X ", configA[board][0][i]);
+        for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+            DEBUG_PRINT("Board %d:\n", board);
+            DEBUG_PRINT("Chip %d:\n", chip);
+            DEBUG_PRINT("  Config A: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configA[board][chip][i]);
+            }
+            DEBUG_PRINT("\n");
+            DEBUG_PRINT("  Config B: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configB[board][chip][i]);
+            }
+            DEBUG_PRINT("\n\n");
         }
-        COMMAND_OUTPUT("\n");
-        COMMAND_OUTPUT("  Config B: ");
-        for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
-            COMMAND_OUTPUT("%02X ", configB[board][0][i]);
-        }
-        COMMAND_OUTPUT("\n\n");
     }
 
     return pdFALSE;
@@ -1095,6 +1132,68 @@ static const CLI_Command_Definition_t readAmsConfigCommandDefinition =
     "readAmsConfig",
     "readAmsConfig:\r\n Read and display AMS config tables A and B\r\n",
     readAmsConfigCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+    static uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    batt_init_chip_configs();
+    
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("Warning: Error writing AMS config tables.\n");
+    }
+
+    long_delay_us(2480);
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    
+    // Read config from AMS boards
+    HAL_StatusTypeDef status = batt_read_config(configA, configB);
+    
+    if (status != HAL_OK) {
+        DEBUG_PRINT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
+    }
+
+    DEBUG_PRINT("AMS (verify) Configuration Tables:\n");
+    DEBUG_PRINT("========================\n\n");
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+
+            DEBUG_PRINT("Board %d:\n", board);
+            DEBUG_PRINT("Chip %d:\n", chip);
+            DEBUG_PRINT("  Config A: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configA[board][chip][i]);
+            }
+            DEBUG_PRINT("\n");
+            DEBUG_PRINT("  Config B: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configB[board][chip][i]);
+            }
+            DEBUG_PRINT("\n\n");
+        }
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t verifyAmsConfigCommandDefinition =
+{
+    "verifyAmsConfig",
+    "verifyAmsConfig:\r\n Verify AMS config tables A and B\r\n",
+    verifyAmsConfigCommand,
     0 /* Number of parameters */
 };
 
@@ -1282,6 +1381,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&verifyAmsConfigCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
