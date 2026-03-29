@@ -78,7 +78,7 @@
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
-#define NUM_TEMP_CELLS              (NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
+#define NUM_TEMP_CELLS              14 //(NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
 #error "DBC file has less voltage cells defined then they are in the system"
