@@ -1145,7 +1145,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         for (int i = 0; i < NUM_TEMP_CELLS; i++) {
             avgTemp += TempChannel[i];
         }
-        avgTemp /= 28; //NUM_TEMP_CELLS;  // FIX THIS ON AMS
+        avgTemp /= NUM_TEMP_CELLS;
         DEBUG_PRINT("Pack Voltage: %f\n", AMS_PackVoltage);
         DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
         DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
