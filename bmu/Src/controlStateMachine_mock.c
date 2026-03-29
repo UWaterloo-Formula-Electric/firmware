@@ -1055,7 +1055,8 @@ static const CLI_Command_Definition_t getCellVoltagesCommandDefinition =
 BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    float cell_temps[NUM_TEMP_CELLS];
+    // Make these static so their state persists across command calls
+    static float cell_temps[NUM_TEMP_CELLS];
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
@@ -1066,9 +1067,16 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Error reading cell temperatures\n");
         return pdFALSE;
     }
-    
+    vTaskDelay(pdMS_TO_TICKS(50));
+
     DEBUG_PRINT("Cell Temperatures:\n");
-    for (int i = 0; i < NUM_TEMP_CELLS || i < 14; i++) {
+    for(int i =0; i<NUM_TEMP_CELLS; i++){
+        if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell temperatures\n");
+            return pdFALSE;
+        }
+    }
+    for(int i =0; i<NUM_TEMP_CELLS; i++){
         int board = i / SEGMENT_THERMISTORS_AMS1;
         int channel = i % SEGMENT_THERMISTORS_AMS1;
         DEBUG_PRINT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
