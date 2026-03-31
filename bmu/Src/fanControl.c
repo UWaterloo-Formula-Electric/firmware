@@ -26,6 +26,13 @@
 #define FAN_PERIOD_COUNT 400
 #define FAN_TASK_PERIOD_MS 1000
 
+//introducing the manualOveride feature
+static bool manualFanOverride = false;
+
+void setManualFanOverride(bool overide){
+  manualFanOverride = overide;
+}
+
 uint32_t calculateFanPeriod()
 {
   // PWM Output is inverted from what we generate from PROC
@@ -60,6 +67,10 @@ HAL_StatusTypeDef fanInit()
 HAL_StatusTypeDef setFan()
 {
   uint32_t duty = calculateFanPeriod();
+
+  if(manualFanOverride){
+    duty = 0; //Overide. Fans go FULL BLAST (inverted PWM)
+  }
 
   __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
   
