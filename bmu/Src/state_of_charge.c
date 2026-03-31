@@ -8,16 +8,9 @@
 
 /*
 Harry Lu - State of charge estimation WIP
-So far:
-- implemented a basic coulomb counting method (same as before - will add additional prediction method once tractive locks in)
-- I know the code / logic for that existed in this file before but I rewrote for redundancy /c alrity - will clean up file once done
-- added Kalman gain with 3 sigma points 
-- added some structs needed
+add comments here
+needs predict voltage function which will probably be lut or something
 
-TO DO:
-- clean up code
-- figure out how to predict voltage (ECM???? tractive lock in)
-- somethign something lookup table
 */
 
 #define SOC_TASK_PERIOD 200 
@@ -46,7 +39,7 @@ static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
 
-float predict_voltage(float soc) { return 0.0f; } // figure this out - ecm?
+float predict_voltage(float soc) { return 0.0f; } // figure this out?
 
 void ukf_soc(float voltage, float current, float dt)
 {
@@ -104,16 +97,12 @@ void socTask(void *pvParamaters)
 
 	while(1) {
 		float voltage, current = 0.0f;
-		if (getSegmentVoltage(&voltage) != HAL_OK) {
-			continue;
-		}
-		if (getIBus(&current) != HAL_OK) {
-			continue;
+		if (getSegmentVoltage(&voltage) == HAL_OK && getIBus(&current) == HAL_OK) {
+			ukf_soc(voltage, current, SOC_TASK_PERIOD / 1000.0f);
+			StateBatteryChargeHV = ukf.pred * 100.0f;
 		}
 
-		ukf_soc(voltage, current, SOC_TASK_PERIOD / 1000.0f);
 		//DEBUG_PRINT("SOC: %f, v_soc: %f, i_soc: %f \n", soc, v_soc, i_soc);
-		StateBatteryChargeHV = ukf.pred * 100.0f;
 		watchdogTaskCheckIn(SOC_TASK_ID);
 		vTaskDelay(pdMS_TO_TICKS(SOC_TASK_PERIOD));
 	}
