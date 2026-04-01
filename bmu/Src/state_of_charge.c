@@ -6,13 +6,6 @@
 #include "watchdog.h"
 #include <math.h>
 
-/*
-Harry Lu - State of charge estimation WIP
-add comments here
-needs predict voltage function which will probably be lut or something
-
-*/
-
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
