@@ -915,6 +915,7 @@ BO_ 2550137362 TempCoolantLeft: 8 WSBRL
  SG_ TempInletRadMotorLeft : 0|10@1- (0.25,90) [-38|217.75] "C"  VCU_BeagleBone,VCU_F7
 
 BO_ 2214662151 VCU_buttonEvents: 8 VCU_F7
+ SG_ Cooling : 7|1@1+ (1,0) [0|0] "bool"  BMU,PDU
  SG_ ButtonScreenNavLeftEnabled : 6|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
  SG_ ButtonScreenNavRightEnabled : 5|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
  SG_ ButtonEnduranceToggleEnabled : 4|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
@@ -922,6 +923,7 @@ BO_ 2214662151 VCU_buttonEvents: 8 VCU_F7
  SG_ ButtonTCEnabled : 2|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
  SG_ ButtonHVEnabled : 1|1@1+ (1,0) [0|0] "bool"  BMU,VCU_BeagleBone
  SG_ ButtonEMEnabled : 0|1@1+ (1,0) [0|0] "bool"  VCU_BeagleBone
+
 
 BO_ 2550141444 ChargeCart_VERSION: 8 ChargeCart
  SG_ ChargeCart_Version_DB : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
