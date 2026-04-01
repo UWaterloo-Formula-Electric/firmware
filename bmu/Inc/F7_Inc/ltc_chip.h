@@ -24,11 +24,11 @@
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             14
+#define CELLS_PER_BOARD             30
 /// Number of thermistors attached to first AMS in each segment
-#define SEGMENT_THERMISTORS_AMS1    14
+#define SEGMENT_THERMISTORS_AMS1    15
 /// Number of thermistors attached to second AMS in each segment
-#define SEGMENT_THERMISTORS_AMS2    14
+#define SEGMENT_THERMISTORS_AMS2    15
 // Number of thermistors per segment
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
 
@@ -56,7 +56,7 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 1 // FIX THIS ON AMS (2)
+#define NUM_LTC_CHIPS_PER_BOARD 2 // FIX THIS ON AMS (2)
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
@@ -79,6 +79,7 @@
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
 #define NUM_TEMP_CELLS              14 //(NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
+#define NUM_DEVICES                 (NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD)
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
 #error "DBC file has less voltage cells defined then they are in the system"

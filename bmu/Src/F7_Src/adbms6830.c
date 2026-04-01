@@ -486,22 +486,24 @@ HAL_StatusTypeDef batt_verify_config() {
 
 
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation) {
-    uint8_t cell_index = 0;
+    static uint32_t readback_call_count = 0;
+    readback_call_count++;
 
-    const uint8_t rd_cmds[6][2] = {
+    const uint8_t rd_cmds[5][2] = {
         { RDCVA_BYTE0, RDCVA_BYTE1 },
         { RDCVB_BYTE0, RDCVB_BYTE1 },
         { RDCVC_BYTE0, RDCVC_BYTE1 },
         { RDCVD_BYTE0, RDCVD_BYTE1 },
         { RDCVE_BYTE0, RDCVE_BYTE1 },
-        { RDCVF_BYTE0, RDCVF_BYTE1 },
     };
 
-    for (int block = 0; block < 6; block++)
+    for (int block = 0; block < 5; block++)
     {
-        uint8_t adc_vals[NUM_BOARDS * VOLTAGE_BLOCK_SIZE] = {0};
+        uint8_t adc_vals[NUM_DEVICES * VOLTAGE_BLOCK_SIZE] = {0};
+        DEBUG_PRINT("Read voltage block=%d cmd=[0x%02X 0x%02X]\n", block, rd_cmds[block][0], rd_cmds[block][1]);
 
 		if (batt_spi_wakeup(false /* not sleeping*/)) {
+            ERROR_PRINT("Failed wakeup before voltage block read, block=%d\n", block);
             return HAL_ERROR;
 		}
 
@@ -514,36 +516,56 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
         for (int cell = 0; cell < 3; cell++) {
 			// Only populate the cells that are wired on this board.
 			// (ADBMS6830 has up to 16 cell inputs; we may use fewer.)
-			if (cell_index >= CELLS_PER_BOARD)
-                break;
-
             for (int board = 0; board < NUM_BOARDS; board++)
             {
-                const size_t data_idx =
-                    board * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
+				for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+
+					const size_t cell_in_chip = block * 3 + cell;
+              
+					// Skip if this chip doesn't have this many cells wired
+					if (cell_in_chip >= CELLS_PER_CHIP) {
+                        if (board == 0 && chip == 0) {
+                            DEBUG_PRINT("Skipping unwired cell slot block=%d cell=%d cell_in_chip=%u >= CELLS_PER_CHIP=%u\n",
+                                        block, cell, (unsigned int)cell_in_chip, (unsigned int)CELLS_PER_CHIP);
+                        }
+						continue;
+					}
+	  
+					const size_t device_idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+					const size_t data_idx = device_idx * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
 					
-				// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
-                int16_t adc = (int16_t)(((uint16_t)adc_vals[data_idx + 1] << 8) |
-                                adc_vals[data_idx]);
+					// adc_vals[data_idx] as LSB and adc_vals[data_idx+1] as MSB
+					int16_t adc = (int16_t)(((uint16_t)adc_vals[data_idx + 1] << 8) |
+									adc_vals[data_idx]);
 
-                // Convert to volts
-                // From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
-                float voltage = (adc * 0.000150f) + 1.5f;
+					// Convert to volts
+					// From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
+					float voltage = (adc * 0.000150f) + 1.5f;
 
-                const size_t global_cell =
-					board * CELLS_PER_BOARD + cell_index;
+					const size_t local_cell = chip * CELLS_PER_CHIP + cell_in_chip;
+					const size_t global_cell = board * CELLS_PER_BOARD + local_cell;
 
-                cell_voltage_array[global_cell] = voltage;
+					cell_voltage_array[global_cell] = voltage;
+                    if (block > 0) {
+                        DEBUG_PRINT("Map b=%d c=%d blk=%d cell=%d dev=%u data_idx=%u local=%u global=%u adc=%d volt=%f\n",
+                                    board, chip, block, cell,
+                                    (unsigned int)device_idx,
+                                    (unsigned int)data_idx,
+                                    (unsigned int)local_cell,
+                                    (unsigned int)global_cell,
+                                    (int)adc,
+                                    voltage);
+                    }
 
-				if(voltage_operation == OPEN_WIRE)
-				{
-					open_wire_failure[global_cell].num_times_consec = 0;
+					if(voltage_operation == OPEN_WIRE)
+					{
+						open_wire_failure[global_cell].num_times_consec = 0;
+					}
 				}
-            }
 
-            cell_index++;
-        }
-    }
+			}
+		}
+	}
 
     return HAL_OK;
 }
