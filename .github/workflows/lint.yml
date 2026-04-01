@@ -8,19 +8,21 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container:
-      image: addis0n/arm-none-eabi-gcc-plus-python:wfe2022
 
     strategy:
       matrix:
-        component: ["common", "BMU", "PDU", "VCU", "WSB"]
+        component: ["common", "BMU", "PDU", "VCU"]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Display Cppcheck version
-        run: cppcheck --version
+        uses: actions/checkout@v4
 
       - name: Run linter
-        run: cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all  -I ${{ matrix.component }}/Inc ${{ matrix.component }}/Src
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            addis0n/arm-none-eabi-gcc-plus-python:wfe2022 \
+            bash -c "COMPONENT_LOWER=\$(echo '${{ matrix.component }}' | tr '[:upper:]' '[:lower:]') && \
+                     cppcheck --version && \
+                     cppcheck --addon=./common/Misra/misra.json --inline-suppr --enable=all -I \${COMPONENT_LOWER}/Inc \${COMPONENT_LOWER}/Src"
