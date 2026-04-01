@@ -25,6 +25,7 @@ needs predict voltage function which will probably be lut or something
 
 // Units A-s 152.44898 per cell
 static const float TOTAL_CAPACITY = 128050.0f;
+static SemaphoreHandle_t IBus_mutex;
 
 // my variables
 typedef struct {
@@ -35,20 +36,22 @@ typedef struct {
 } UKF_State;
 static UKF_State ukf;
 
+volatile float IBus_integrated = 0.0f;
+
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
-void ukf_soc(float voltage, float current, float dt);
+void ukf_soc(float voltage, float current_integrated);
 void socTask(void *pvParamaters);
+HAL_StatusTypeDef consume_integrated_current(float *current);
 
-float predict_voltage(float soc) { return 0.0f; } // figure this out?
+float predict_voltage(float soc) { return 0.0f; } // figure this out - likelt soc->ocv lut or something?
 
-void ukf_soc(float voltage, float current, float dt)
+void ukf_soc(float voltage, float current_integrated)
 {
 	// Subtract current*time from old SOC to estimate current SOC (coulomb counting - same as old method)
 	float soc = ukf.pred;
-	float dSOC = current * dt / TOTAL_CAPACITY;
-	soc -= dSOC;
+	soc -= current_integrated / TOTAL_CAPACITY;
 	ukf.variance += ukf.process_noise;
 
 	// Predict voltages at sigma points
@@ -98,10 +101,12 @@ void socTask(void *pvParamaters)
 	}
 
 	while(1) {
-		float voltage, current = 0.0f;
-		if (getSegmentVoltage(&voltage) == HAL_OK && getIBus(&current) == HAL_OK) {
-			ukf_soc(voltage, current, SOC_TASK_PERIOD / 1000.0f);
-			StateBatteryChargeHV = ukf.pred * 100.0f;
+		float voltage = 0.0f, current_integrated = 0.0f;
+		if (getSegmentVoltage(&voltage) == HAL_OK) {
+			if (consume_integrated_current(&current_integrated) == HAL_OK) {
+				ukf_soc(voltage, current_integrated);
+				StateBatteryChargeHV = ukf.pred * 100.0f;
+			}
 		}
 
 		//DEBUG_PRINT("SOC: %f, v_soc: %f, i_soc: %f \n", soc, v_soc, i_soc);
@@ -173,4 +178,37 @@ static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage)
 	HAL_StatusTypeDef ret = getAdjustedPackVoltage(&temp);
 	*segmentVoltage = (temp / (float)NUM_SEGMENTS);
 	return ret;
+}
+
+void integrate_bus_current(float IBus, float period_ms)
+{
+	if (xSemaphoreTake(IBus_mutex, 0) == pdTRUE) {
+        IBus_integrated += IBus * (period_ms / 1000.0f);
+        xSemaphoreGive(IBus_mutex);
+    }
+}
+
+HAL_StatusTypeDef consume_integrated_current(float *current)
+{
+	float temp = 0.0f;
+	if (xSemaphoreTake(IBus_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+		temp = IBus_integrated;
+		IBus_integrated = 0.0f;
+		xSemaphoreGive(IBus_mutex);
+		*current = temp;
+		return HAL_OK;
+	} else{
+		ERROR_PRINT("Failed to take IBus mutex to consume integrated current\n");
+		return HAL_ERROR;
+	}
+}
+
+HAL_StatusTypeDef initSOC(void)
+{
+    IBus_mutex = xSemaphoreCreateMutex();
+    if (IBus_mutex == NULL) {
+        ERROR_PRINT("Failed to create IBus mutex\n");
+        return HAL_ERROR;
+    }
+    return HAL_OK;
 }
