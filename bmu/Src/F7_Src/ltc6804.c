@@ -90,12 +90,12 @@
 
 
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
-static uint8_t thermistor_failure[NUM_BOARDS/2][THERMISTORS_PER_SEGMENT];
+static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs()
 {
-	memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT*sizeof(uint8_t));
+	memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
@@ -129,7 +129,10 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 
 HAL_StatusTypeDef batt_write_config()
 {
-	format_and_send_config(m_batt_config);
+	if (format_and_send_config(m_batt_config)!= HAL_OK){
+		ERROR_PRINT("Failed to write config\n");
+		return HAL_ERROR;
+	}
     return HAL_OK;
 }
 

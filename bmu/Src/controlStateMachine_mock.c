@@ -1070,16 +1070,17 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
     vTaskDelay(pdMS_TO_TICKS(50));
 
     DEBUG_PRINT("Cell Temperatures:\n");
-    for(int i =0; i<NUM_TEMP_CELLS; i++){
+    for(int i =0; i<1; i++){
         if (batt_read_cell_temps(cell_temps) != HAL_OK) {
             COMMAND_OUTPUT("Error reading cell temperatures\n");
             return pdFALSE;
         }
     }
     for(int i =0; i<NUM_TEMP_CELLS; i++){
-        int board = i / SEGMENT_THERMISTORS_AMS1;
+        int board = i / THERMISTORS_PER_SEGMENT;
+        int chip = i / SEGMENT_THERMISTORS_AMS1;
         int channel = i % SEGMENT_THERMISTORS_AMS1;
-        DEBUG_PRINT("Board %d, Channel %d: %f degC\n", board, channel, cell_temps[i]);
+        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
     }
 
     return pdFALSE;

@@ -26,11 +26,11 @@
 /// Number of valid cells per board, starting from the most negative terminal
 #define CELLS_PER_BOARD             30
 /// Number of thermistors attached to first AMS in each segment
-#define SEGMENT_THERMISTORS_AMS1    15
+#define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
-#define SEGMENT_THERMISTORS_AMS2    15
+#define SEGMENT_THERMISTORS_AMS2    14
 // Number of thermistors per segment
-#define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2)
+#define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1)
 
 // #if NUM_BOARDS%2 == 1
 // #error "Number of AMS boards defined is odd, it must be even"
@@ -70,7 +70,7 @@
 
 // Average 4 readings for both pullup and pulldown in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2
-#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 1
+#define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 14
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
@@ -78,8 +78,15 @@
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
-#define NUM_TEMP_CELLS              14 //(NUM_BOARDS/2*(THERMISTORS_PER_SEGMENT))
+/* Temp channels: each segment has THERMISTORS_PER_SEGMENT probes across the AMS layout,
+ * times NUM_LTC_CHIPS_PER_BOARD ADBMS devices on that segment's SPI chain.
+ * (Older code used NUM_BOARDS/2, which was only correct when NUM_BOARDS == 2 * NUM_SEGMENTS.) */
+#define NUM_TEMP_CELLS              (NUM_SEGMENTS * THERMISTORS_PER_SEGMENT*NUM_LTC_CHIPS_PER_BOARD)
 #define NUM_DEVICES                 (NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD)
+
+#if NUM_TEMP_CELLS == 0
+#error "NUM_TEMP_CELLS is 0: check NUM_SEGMENTS, THERMISTORS_PER_SEGMENT, NUM_LTC_CHIPS_PER_BOARD"
+#endif
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
 #error "DBC file has less voltage cells defined then they are in the system"

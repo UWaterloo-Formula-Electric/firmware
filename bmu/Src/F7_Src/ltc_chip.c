@@ -106,6 +106,22 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
     }
 
     delay_us(MUX_MEASURE_DELAY_US);
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    // {
+    //     uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+    //     if (batt_read_rdstate(state_e) == HAL_OK) {
+    //         for (int b = 0; b < NUM_BOARDS; b++) {
+    //             for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+    //                 uint8_t ster4 = state_e[b][c][RDSTATE_STER4_IDX];
+    //                 DEBUG_PRINT("RDSTATE after mux ch%u: board=%d chip=%d STER4=0x%02X GPI1-5=%u\r\n",
+    //                             (unsigned)channel, b, c, ster4,
+    //                             (unsigned)rdstate_gpi1_to_gpi5(ster4));
+    //             }
+    //         }
+    //     }
+    // }
+#endif
     
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
@@ -173,16 +189,18 @@ HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
     uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 	static uint8_t curr_channel_read_index = 0;
-	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
-	{
-		if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
-		{
-			return HAL_ERROR;
-		}
-        curr_channel_read_index = (curr_channel_read_index + 1) % 14;
-    }
+	 for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
+	 {
+	 	if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
+	 	{
+	 		return HAL_ERROR;
+	 	}
+         curr_channel_read_index = (curr_channel_read_index + 1) % 14;
+     }
 
-    return HAL_OK;
+     return HAL_OK;
+
+
 }
 
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array){

@@ -293,6 +293,7 @@
 #define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x00
 
+
 // Table 55 Configuration Register Group A
 #ifdef REFON
 #undef REFON // Remove previous definition
@@ -308,13 +309,16 @@
 #define DTRNG(en)    ((en) << 6)
 
 
+
+
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
-static uint8_t thermistor_failure[NUM_BOARDS/2][THERMISTORS_PER_SEGMENT];
+static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
+
 void batt_init_chip_configs() {
-    memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT*sizeof(uint8_t));
+    memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 
 	for(int board = 0; board < NUM_BOARDS; board++) {
@@ -360,7 +364,6 @@ HAL_StatusTypeDef format_and_send_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHI
 		ERROR_PRINT("Failed to transmit configB to AMS boards\n");
 		return HAL_ERROR;
 	}
-
 	return HAL_OK;
 }
 
@@ -445,6 +448,24 @@ HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER
         }
     }
 
+	return HAL_OK;
+}
+
+/* GPI1..GPI5: rdstate_gpi1_to_gpi5(state_e[b][c][RDSTATE_STER4_IDX]). Run ADSTAT first if snapshots are stale (datasheet). */
+HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
+	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+	memset(response_buffer, 0xFF, response_buffer_size);
+	if (batt_read_data(RDSTATE_BYTE0, RDSTATE_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read RDSTATE (status group E)\n");
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(state_e[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
+		}
+	}
 	return HAL_OK;
 }
 
@@ -546,16 +567,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					const size_t global_cell = board * CELLS_PER_BOARD + local_cell;
 
 					cell_voltage_array[global_cell] = voltage;
-                    if (block > 0) {
-                        DEBUG_PRINT("Map b=%d c=%d blk=%d cell=%d dev=%u data_idx=%u local=%u global=%u adc=%d volt=%f\n",
-                                    board, chip, block, cell,
-                                    (unsigned int)device_idx,
-                                    (unsigned int)data_idx,
-                                    (unsigned int)local_cell,
-                                    (unsigned int)global_cell,
-                                    (int)adc,
-                                    voltage);
-                    }
 
 					if(voltage_operation == OPEN_WIRE)
 					{
@@ -575,7 +586,8 @@ void batt_set_temp_config(size_t channel) {
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			m_batt_configA[board][chip][3] = gpioPins & 0x0F;
+			DEBUG_PRINT("gpioPins & 0x0F = %d\n", gpioPins & 0x0F);
+			m_batt_configA[board][chip][3] = gpioPins& 0x0F;
 		}
 	}
 }
@@ -644,7 +656,7 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
 	// adc values for one AUX block from all boards
-	uint8_t adc_vals[NUM_BOARDS * AUX_BLOCK_SIZE] = {0};
+	uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD] = {0};
 
 	if (batt_read_data(RDAUXB_BYTE0, RDAUXB_BYTE1, adc_vals, AUX_BLOCK_SIZE) != HAL_OK) {
         DEBUG_PRINT("ADBMS6830 GPIO (thermistor) read failed for channel %zu\r\n", channel);
@@ -653,19 +665,21 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 	// Process the readings for each board
     for (int board = 0; board < NUM_BOARDS; board++) {
-        size_t tempIdx = board * SEGMENT_THERMISTORS_AMS1 + channel;
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			size_t tempIdx = board * SEGMENT_THERMISTORS_AMS1 + chip * SEGMENT_THERMISTORS_AMS1 + channel;
 
-        // GPIO 5 is in AUXB register (bytes 2-3)
-        const size_t boardStartIdx = board * AUX_BLOCK_SIZE;
-        int16_t adcCounts = (int16_t)(((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
-                            adc_vals[boardStartIdx + 2]);
+			// GPIO 5 is in AUXB register (bytes 2-3)
+			const size_t boardStartIdx = (board * NUM_LTC_CHIPS_PER_BOARD + chip) * AUX_BLOCK_SIZE;
+			int16_t adcCounts = (int16_t)(((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
+								adc_vals[boardStartIdx + 2]);
 
-        // Convert ADC code to volts
-        // From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
-        float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
-        cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-    }
-
+			// Convert ADC code to volts
+			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
+			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
+			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+    
+		}
+	}
 	return HAL_OK;
 }
 

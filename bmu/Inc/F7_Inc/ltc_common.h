@@ -82,6 +82,11 @@
 #define GPIO3_POS 2
 #define GPIO2_POS 1
 #define GPIO1_POS 0
+
+/* Table 93 RDSTATE group E, STER4: GPI[8:1]; bits 0..4 = GPI1..GPI5 (after GPIO/mux set via WRCFGA) */
+#define RDSTATE_STER4_IDX           4u
+#define RDSTATE_GPI1_TO_GPI5_MASK   0x1Fu
+#define rdstate_gpi1_to_gpi5(ster4) ((uint8_t)((ster4) & RDSTATE_GPI1_TO_GPI5_MASK))
 #endif
 
 /** Voltage constants in 100uV steps **/
