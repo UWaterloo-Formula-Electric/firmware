@@ -87,6 +87,12 @@
 #define RDSTATE_STER4_IDX           4u
 #define RDSTATE_GPI1_TO_GPI5_MASK   0x1Fu
 #define rdstate_gpi1_to_gpi5(ster4) ((uint8_t)((ster4) & RDSTATE_GPI1_TO_GPI5_MASK))
+
+/* RDSTATC group C: thermal shutdown flag in STER5 (byte 5), bit 2 */
+#define RDSTATC_STER5_IDX            5u
+#define RDSTATC_THERMAL_SHUTDOWN_BIT 2u
+#define rdstatc_thermal_shutdown(statc_row) \
+(GETBIT((statc_row)[RDSTATC_STER5_IDX], RDSTATC_THERMAL_SHUTDOWN_BIT))
 #endif
 
 /** Voltage constants in 100uV steps **/

@@ -41,9 +41,14 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array);
 void batt_set_balancing_cell (int board, int chip, int cell);
 void batt_unset_balancing_cell (int board, int chip, int cell);
 bool batt_get_balancing_cell_state(int board, int chip, int cell);
+/* Clear all DCC bits, then enable DCC on global cells 0..max_global_cell (inclusive); WRCFG (no readback). */
+HAL_StatusTypeDef batt_discharge_cells_write(int max_global_cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 #if LTC_CHIP == ADBMS_CHIP_6830B
+int batt_dcc_status_from_cfg_b_readback(int global_cell,
+	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
+HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 #endif
 

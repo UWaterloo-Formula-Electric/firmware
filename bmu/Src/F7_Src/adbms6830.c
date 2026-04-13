@@ -367,9 +367,8 @@ HAL_StatusTypeDef format_and_send_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHI
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_write_config() {
-	format_and_send_config(m_batt_configA, m_batt_configB);
-    return HAL_OK;
+HAL_StatusTypeDef batt_write_config(void) {
+	return format_and_send_config(m_batt_configA, m_batt_configB);
 }
 
 
@@ -448,6 +447,41 @@ HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER
         }
     }
 
+	return HAL_OK;
+}
+
+/* cfg_b from batt_read_config(); 1 = DCC on for that global cell per batt_set_balancing_cell bit layout. */
+int batt_dcc_status_from_cfg_b_readback(int global_cell,
+	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
+	if (global_cell < 0 || global_cell >= NUM_VOLTAGE_CELLS) {
+		ERROR_PRINT("Global cell index out of range: %d\n", global_cell);
+		return 0;
+	}
+	int board = global_cell / CELLS_PER_BOARD;
+	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+	int ams_idx = global_cell % CELLS_PER_CHIP;
+	const uint8_t *b = cfg_b[board][chip];
+	if (ams_idx < 8) {
+		return (int)((b[4] >> (ams_idx)) & 1u);
+	}
+	return (int)((b[5] >> (ams_idx-8)) & 1u);
+}
+
+/* Run ADSTAT first if status snapshots may be stale (datasheet). */
+HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
+	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+	memset(response_buffer, 0xFF, response_buffer_size);
+	if (batt_read_data(RDSTATC_BYTE0, RDSTATC_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read RDSTATC (status group C)\n");
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(statc[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
+		}
+	}
 	return HAL_OK;
 }
 
@@ -693,14 +727,14 @@ void batt_set_balancing_cell (int board, int chip, int cell) {
 
 void batt_unset_balancing_cell (int board, int chip, int cell) {
     if (cell < 8) { // 8 bits per byte in the register
-        CLEARBIT(m_batt_configB[board][chip][4], cell);
+        CLEARBIT(m_batt_configB[board][chip][4], cell-1);
     } else {
-        CLEARBIT(m_batt_configB[board][chip][5], cell - 8);
+        CLEARBIT(m_batt_configB[board][chip][5], cell - 9);
 	}
 }
 
 bool batt_get_balancing_cell_state(int board, int chip, int cell) {
-    if (cell < 8) { // 8 bits per byte in the register
+    if (cell < 8) {
         return GETBIT(m_batt_configB[board][chip][4], cell);
     } else {
         return GETBIT(m_batt_configB[board][chip][5], cell - 8);
@@ -745,6 +779,35 @@ HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length) {
     }
 
     return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_discharge_cells_write(int max_global_cell) {
+	if (max_global_cell < 0 || max_global_cell >= NUM_VOLTAGE_CELLS) {
+		ERROR_PRINT("max global cell out of range: %d\n", max_global_cell);
+		return HAL_ERROR;
+	}
+
+	for (int b = 0; b < NUM_BOARDS; b++) {
+		for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+			m_batt_configB[b][c][4] = 0;
+			m_batt_configB[b][c][5] = 0;
+		}
+	}
+
+	for (int g = 0; g <= max_global_cell; g++) {
+		int board = g / CELLS_PER_BOARD;
+		int chip = (g % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+		int ams_cell = g % CELLS_PER_CHIP;
+		batt_set_balancing_cell(board, chip, ams_cell);
+	}
+	DEBUG_PRINT("DCC on global cells 0..%d\n", max_global_cell);
+
+	if (batt_write_config() != HAL_OK) {
+		ERROR_PRINT("batt_discharge_cells_write: WRCFG failed\n");
+		return HAL_ERROR;
+	}
+
+	return HAL_OK;
 }
 
 #endif

@@ -1094,6 +1094,133 @@ static const CLI_Command_Definition_t getCellTempsCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    int req_cell;
+    sscanf(cellIdxString, "%d", &req_cell);
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_discharge_cells_write(req_cell) != HAL_OK) {
+        ERROR_PRINT("Failed to write discharge DCC\n");
+        return HAL_ERROR;
+    }
+    vTaskDelay(pdMS_TO_TICKS(50));
+    COMMAND_OUTPUT("Wrote DCC global0..%d (use getDischargeDcc)\r\n", req_cell);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t dischargeCellsCommandDefinition =
+{
+    "dischargeCells",
+    "dischargeCells <n>:\r\n Clear all DCC, then on for cells 0..n (WRCFG)\r\n",
+    dischargeCellsCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static int get_dcc_cli_idx = -1;
+    static uint8_t get_dcc_status[NUM_VOLTAGE_CELLS];
+
+    (void)commandString;
+    (void)writeBufferLength;
+
+    if (get_dcc_cli_idx == -1) {
+        uint8_t all_cfg_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+        uint8_t all_cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return HAL_ERROR;
+        }
+        if (batt_read_config(all_cfg_a, all_cfg_b) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading AMS config\r\n");
+            return pdFALSE;
+        }
+        for (int g = 0; g < NUM_VOLTAGE_CELLS; g++) {
+            get_dcc_status[g] = (uint8_t)batt_dcc_status_from_cfg_b_readback(g, all_cfg_b);
+        }
+        COMMAND_OUTPUT("DCC status (from RDCFGB read):\n");
+        get_dcc_cli_idx = 0;
+        return pdTRUE;
+    }
+
+    int board = get_dcc_cli_idx / CELLS_PER_BOARD;
+    int cell = get_dcc_cli_idx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: %u\n", board, cell, (unsigned)get_dcc_status[get_dcc_cli_idx]);
+    get_dcc_cli_idx++;
+    if (get_dcc_cli_idx >= NUM_VOLTAGE_CELLS) {
+        get_dcc_cli_idx = -1;
+        return pdFALSE;
+    }
+    return pdTRUE;
+}
+
+static const CLI_Command_Definition_t getDischargeDccCommandDefinition =
+{
+    "getDischargeDcc",
+    "getDischargeDcc:\r\n Read DCC bits from AMS (paged output)\r\n",
+    getDischargeDccCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t getThermalShutdownCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static int thermal_cli_idx = -1;
+    static uint8_t thermal_sd[NUM_DEVICES];
+
+    (void)commandString;
+    (void)writeBufferLength;
+
+    if (thermal_cli_idx == -1) {
+        uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return HAL_ERROR;
+        }
+        if (batt_read_rdstatc(statc) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading RDSTATC\r\n");
+            return pdFALSE;
+        }
+        for (int b = 0; b < NUM_BOARDS; b++) {
+            for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+                int i = b * NUM_LTC_CHIPS_PER_BOARD + c;
+                thermal_sd[i] = (uint8_t)rdstatc_thermal_shutdown(statc[b][c]);
+            }
+        }
+        COMMAND_OUTPUT("RDSTATC thermal SD (byte5 bit2, 1=active):\n");
+        thermal_cli_idx = 0;
+        return pdTRUE;
+    }
+
+    int board = thermal_cli_idx / NUM_LTC_CHIPS_PER_BOARD;
+    int chip = thermal_cli_idx % NUM_LTC_CHIPS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d Chip %d: %u\n", board, chip, (unsigned)thermal_sd[thermal_cli_idx]);
+    thermal_cli_idx++;
+    if (thermal_cli_idx >= NUM_DEVICES) {
+        thermal_cli_idx = -1;
+        return pdFALSE;
+    }
+    return pdTRUE;
+}
+
+static const CLI_Command_Definition_t getThermalShutdownCommandDefinition =
+{
+    "getThermalShutdown",
+    "getThermalShutdown:\r\n RDSTATC thermal shutdown per device (paged)\r\n",
+    getThermalShutdownCommand,
+    0 /* Number of parameters */
+};
+
 BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1388,7 +1515,13 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
+    if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getDischargeDccCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getThermalShutdownCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
