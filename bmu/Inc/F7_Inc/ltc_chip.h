@@ -24,7 +24,7 @@
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             30
+#define CELLS_PER_BOARD             10
 /// Number of thermistors attached to first AMS in each segment
 #define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
@@ -56,7 +56,7 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 2 // FIX THIS ON AMS (2)
+#define NUM_LTC_CHIPS_PER_BOARD 1 // FIX THIS ON AMS (2)
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
@@ -68,7 +68,7 @@
 // For testing with only Chip1 powered (Chip0 is unpowered termination)
 // Buffer sizes and all communication automatically adjust to single-chip operation
 
-// Average 4 readings for both pullup and pulldown in open wire test
+// Average 4 readings for both adcv and adsv in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2
 #define NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE 14
 
@@ -135,6 +135,7 @@ typedef enum DischargeTimerLength {
 
 /* Public Functions */
 HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array);
+HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array);
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array);
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array);
 
@@ -146,6 +147,7 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells();
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
+HAL_StatusTypeDef batt_start_ADSV_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
 
 HAL_StatusTypeDef batt_init();

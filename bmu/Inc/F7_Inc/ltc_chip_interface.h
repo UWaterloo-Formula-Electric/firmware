@@ -46,6 +46,15 @@ HAL_StatusTypeDef batt_discharge_cells_write(int max_global_cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 #if LTC_CHIP == ADBMS_CHIP_6830B
+HAL_StatusTypeDef batt_read_config_ADSV(
+	uint8_t adsv_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_c[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_d[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
+/* After ADSV conversion: read RDSVA..F into cell_voltage_array (same global indexing as batt_readBackCellVoltage). */
+HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array);
 int batt_dcc_status_from_cfg_b_readback(int global_cell,
 	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);

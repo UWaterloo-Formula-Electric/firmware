@@ -1377,12 +1377,14 @@ bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
  */
 void batteryTask(void *pvParameter)
 {
+    DEBUG_PRINT("Starting battery task\n");
     if (initVoltageAndTempArrays() != HAL_OK)
     {
        Error_Handler();
     }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
+    DEBUG_PRINT("Starting battery init\n");
     HAL_StatusTypeDef ret = HAL_ERROR;
     for(int num_tries = 0; num_tries < START_NUM_TRIES; num_tries++)
     {
@@ -1512,12 +1514,12 @@ void batteryTask(void *pvParameter)
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage, &adjustedPackVoltage);
         
-        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
-            BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Going HV Down close to edge");
-            if (boundedContinue()) { continue; }
-        }
+        // if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+        //     BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Going HV Down close to edge");
+        //     if (boundedContinue()) { continue; }
+        // }
 
         // check if the voltages and temps are within safe limits
         if (ret != HAL_OK) {

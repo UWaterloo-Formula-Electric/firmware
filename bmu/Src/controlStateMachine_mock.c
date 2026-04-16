@@ -358,6 +358,79 @@ static const CLI_Command_Definition_t hvToggleCommandDefinition =
     0 /* Number of parameters */
 };
 
+/* Names must stay in sync with BMU_Events_t in bmu/Inc/controlStateMachine.h (BMU FSM, not PDU). */
+static const char *const bmu_event_names[] = {
+    "EV_Init",
+    "EV_HV_Toggle",
+    "EV_Precharge_Finished",
+    "EV_Discharge_Finished",
+    "EV_PrechargeDischarge_Fail",
+    "EV_HV_Fault",
+    "EV_IMD_Ready",
+    "EV_FaultMonitorReady",
+    "EV_Enter_Charge_Mode",
+    "EV_Charge_Start",
+    "EV_Notification_Done",
+    "EV_Charge_Error",
+    "EV_Notification_Stop",
+    "EV_Cockpit_BRB_Pressed",
+    "EV_Cockpit_BRB_Unpressed",
+    "EV_Balance_Start",
+    "EV_Balance_Stop",
+    "EV_ANY",
+};
+
+BaseType_t mockFsmEvent(char *writeBuffer, size_t writeBufferLength,
+                        const char *commandString)
+{
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+    BaseType_t paramLen;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    if (param == NULL) {
+        COMMAND_OUTPUT("mockFsmEvent: need <id> or list (BMU fsmHandle; see BMU_Events_t)\r\n");
+        return pdFALSE;
+    }
+
+    if (paramLen == 4 && strncmp(param, "list", 4) == 0) {
+        COMMAND_OUTPUT("BMU_Events_t (bmu/Inc/controlStateMachine.h):\r\n");
+        for (uint32_t i = 0; i <= (uint32_t)EV_ANY; i++) {
+            COMMAND_OUTPUT("  %2u  %s\r\n", (unsigned)i, bmu_event_names[i]);
+        }
+        return pdFALSE;
+    }
+
+    unsigned long id_ul;
+    if (sscanf(param, "%lu", &id_ul) != 1) {
+        COMMAND_OUTPUT("mockFsmEvent: invalid id (use decimal or \"list\")\r\n");
+        return pdFALSE;
+    }
+
+    if (id_ul > (unsigned long)EV_ANY) {
+        COMMAND_OUTPUT("mockFsmEvent: id must be 0..%u\r\n", (unsigned)EV_ANY);
+        return pdFALSE;
+    }
+
+    const uint32_t id = (uint32_t)id_ul;
+    if (fsmSendEvent(&fsmHandle, id, portMAX_DELAY) != HAL_OK) {
+        COMMAND_OUTPUT("mockFsmEvent: fsmSendEvent failed for %s (%lu)\r\n",
+                     bmu_event_names[id], id_ul);
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("mockFsmEvent: sent %s (%lu)\r\n", bmu_event_names[id], id_ul);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t mockFsmEventCommandDefinition =
+{
+    "mockFsmEvent",
+    "mockFsmEvent <id>|list:\r\n Post BMU FSM event by id (BMU_Events_t). Use \"list\" for ids.\r\n",
+    mockFsmEvent,
+    1 /* Number of parameters */
+};
+
 BaseType_t fakeEnter_Charge_Mode(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1094,6 +1167,56 @@ static const CLI_Command_Definition_t getCellTempsCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t getCellVoltagesADSV(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    /* Same state machine as getCellVoltages: static 1D array, one line per CLI callback. */
+    static int cellIdx = -1;
+    static float cell_voltages[NUM_VOLTAGE_CELLS];
+
+    if (cellIdx == -1) {
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return HAL_ERROR;
+        }
+
+        batt_write_config();
+
+        /* Dummy ADSV capture (reference / pipeline warmup), same idea as dummy ADCV in getCellVoltages. */
+        batt_read_cell_voltages_ADSV(cell_voltages);
+        vTaskDelay(pdMS_TO_TICKS(5));
+
+        if (batt_read_cell_voltages_ADSV(cell_voltages) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell voltages (ADSV)\n");
+            return pdFALSE;
+        }
+
+        COMMAND_OUTPUT("Cell Voltages (ADSV):\n");
+        cellIdx = 0;
+        return pdTRUE;
+    }
+
+    int board = cellIdx / CELLS_PER_BOARD;
+    int cell = cellIdx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[cellIdx]);
+
+    cellIdx++;
+
+    if (cellIdx >= NUM_VOLTAGE_CELLS) {
+        cellIdx = -1;
+        return pdFALSE;
+    }
+
+    return pdTRUE;
+}
+static const CLI_Command_Definition_t getCellVoltagesADSVCommandDefinition =
+{
+    "getCellVoltagesADSV",
+    "getCellVoltagesADSV:\r\n Print all cell voltages\r\n",
+    getCellVoltagesADSV,
+    0 /* Number of parameters */
+};
+
 BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1401,6 +1524,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&hvToggleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&mockFsmEventCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1513,6 +1639,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesADSVCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {

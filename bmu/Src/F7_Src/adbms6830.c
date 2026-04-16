@@ -281,10 +281,10 @@
 // Use normal MD (7kHz), Discharge not permission, all channels
 // Might have to change these values later based on desired configuration
 #define ADCV_BYTE0 0x02
-#define ADCV_BYTE1 0xE0
+#define ADCV_BYTE1 0x60
 
 #define ADSV_BYTE0 0x01
-#define ADSV_BYTE1 0xE8
+#define ADSV_BYTE1 0x6B
 
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x05
@@ -315,7 +315,6 @@ open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
 static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
-
 
 void batt_init_chip_configs() {
     memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
@@ -423,6 +422,46 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	return HAL_OK;
 }
 
+/* Read ADSV snapshot groups RDSVA..RDSVF (6 bytes each: three 16-bit values, LSB first per pair). */
+HAL_StatusTypeDef batt_read_config_ADSV(
+	uint8_t adsv_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_c[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_d[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
+{
+	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+
+	struct {
+		uint8_t (*out)[NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+		uint8_t cmd0;
+		uint8_t cmd1;
+	} steps[] = {
+		{ adsv_a, RDSVA_BYTE0, RDSVA_BYTE1 },
+		{ adsv_b, RDSVB_BYTE0, RDSVB_BYTE1 },
+		{ adsv_c, RDSVC_BYTE0, RDSVC_BYTE1 },
+		{ adsv_d, RDSVD_BYTE0, RDSVD_BYTE1 },
+		{ adsv_e, RDSVE_BYTE0, RDSVE_BYTE1 },
+		{ adsv_f, RDSVF_BYTE0, RDSVF_BYTE1 },
+	};
+
+	for (unsigned int s = 0; s < (sizeof(steps) / sizeof(steps[0])); s++) {
+		memset(response_buffer, 0xFF, response_buffer_size);
+		if (batt_read_data(steps[s].cmd0, steps[s].cmd1, response_buffer, BATT_CONFIG_SIZE) != HAL_OK) {
+			ERROR_PRINT("Failed to read ADSV group %u (RDSV)\n", s);
+			return HAL_ERROR;
+		}
+		for (int board = 0; board < NUM_BOARDS; board++) {
+			for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+				int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+				memcpy(steps[s].out[board][chip], &response_buffer[idx * BATT_CONFIG_SIZE], BATT_CONFIG_SIZE);
+			}
+		}
+	}
+	return HAL_OK;
+}
 
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
     const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
@@ -555,8 +594,7 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
     for (int block = 0; block < 5; block++)
     {
         uint8_t adc_vals[NUM_DEVICES * VOLTAGE_BLOCK_SIZE] = {0};
-        DEBUG_PRINT("Read voltage block=%d cmd=[0x%02X 0x%02X]\n", block, rd_cmds[block][0], rd_cmds[block][1]);
-
+        
 		if (batt_spi_wakeup(false /* not sleeping*/)) {
             ERROR_PRINT("Failed wakeup before voltage block read, block=%d\n", block);
             return HAL_ERROR;
@@ -579,10 +617,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
               
 					// Skip if this chip doesn't have this many cells wired
 					if (cell_in_chip >= CELLS_PER_CHIP) {
-                        if (board == 0 && chip == 0) {
-                            DEBUG_PRINT("Skipping unwired cell slot block=%d cell=%d cell_in_chip=%u >= CELLS_PER_CHIP=%u\n",
-                                        block, cell, (unsigned int)cell_in_chip, (unsigned int)CELLS_PER_CHIP);
-                        }
 						continue;
 					}
 	  
@@ -620,7 +654,6 @@ void batt_set_temp_config(size_t channel) {
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			DEBUG_PRINT("gpioPins & 0x0F = %d\n", gpioPins & 0x0F);
 			m_batt_configA[board][chip][3] = gpioPins& 0x0F;
 		}
 	}
@@ -642,6 +675,7 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 		{
 			command_byte_low = ADSV_BYTE0;
 			command_byte_high = ADSV_BYTE1;
+			
 			break;
 		}
 		case(ADAX_DOWN):
@@ -684,6 +718,38 @@ HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command) {
 	if(batt_send_command(curr_command, true, 0, 0) != HAL_OK){
 		ERROR_PRINT("Failed to send command: %d", curr_command);
 		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
+/* RDSVA..F after ADSV: 6 bytes/group, three 16-bit cell codes (LSB first per word). */
+HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array)
+{
+	uint8_t adsv_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+	uint8_t adsv_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+	uint8_t adsv_c[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+	uint8_t adsv_d[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+	uint8_t adsv_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+
+	if (batt_read_config_ADSV(adsv_a, adsv_b, adsv_c, adsv_d, adsv_e, adsv_f) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	const uint8_t (*grp[6])[NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {
+		adsv_a, adsv_b, adsv_c, adsv_d, adsv_e, adsv_f
+	};
+
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			for (size_t c = 0; c < CELLS_PER_CHIP; c++) {
+				const uint8_t *b = grp[c / 3u][board][chip];
+				size_t off = (c % 3u) * 2u;
+				int16_t adc = (int16_t)(((uint16_t)b[off + 1] << 8) | b[off]);
+				cell_voltage_array[(size_t)board * CELLS_PER_BOARD + (size_t)chip * CELLS_PER_CHIP + c] =
+					(adc * 0.000150f) + 1.5f;
+			}
+		}
 	}
 	return HAL_OK;
 }
