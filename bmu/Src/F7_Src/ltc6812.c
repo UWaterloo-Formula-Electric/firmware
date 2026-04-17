@@ -399,7 +399,7 @@ void batt_set_temp_config(size_t channel) {
 }
 
 
-void batt_set_balancing_cell (int board, int chip, int cell) {
+void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
     if (cell < 8) { // 8 bits per byte in the register
         SETBIT(m_batt_config_a[board][chip][4], cell);
     } else if (cell < 12) { // This register byte only contains 4 bits
@@ -413,7 +413,7 @@ void batt_set_balancing_cell (int board, int chip, int cell) {
 }
 
 
-void batt_unset_balancing_cell (int board, int chip, int cell)
+void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm)
 {
     if (cell < 8) { // 8 bits per byte in the register
         CLEARBIT(m_batt_config_a[board][chip][4], cell);

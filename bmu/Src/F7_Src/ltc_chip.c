@@ -17,7 +17,7 @@ HAL_StatusTypeDef batt_init()
 {
 
     batt_init_chip_configs();
-
+    batt_init_chip_configs_pwm();
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
@@ -425,10 +425,12 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
         return HAL_ERROR;
     }
 
-    int boardIdx = cell / CELLS_PER_BOARD;
-    int bmuCellIdx = (cell % CELLS_PER_BOARD);
+    // int boardIdx = cell / CELLS_PER_BOARD;
+    // int bmuCellIdx = (cell % CELLS_PER_BOARD);
 
-    batt_set_balancing_cell(boardIdx, 0, bmuCellIdx);
+    if (batt_discharge_cell(cell) != HAL_OK) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
@@ -440,10 +442,10 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
         return HAL_ERROR;
     }
 
-    int boardIdx = cell / CELLS_PER_BOARD;
-    int bmuCellIdx = cell % CELLS_PER_BOARD;
+    // int boardIdx = cell / CELLS_PER_BOARD;
+    // int bmuCellIdx = cell % CELLS_PER_BOARD;
 
-    batt_unset_balancing_cell(boardIdx, 0, bmuCellIdx);
+    batt_stop_discharge_cell(cell);
 
     return HAL_OK;
 }
@@ -463,12 +465,12 @@ bool batt_is_cell_balancing(int cell)
     return batt_get_balancing_cell_state(boardIdx, chipIdx, amsCellIdx);
 }
 
-HAL_StatusTypeDef batt_unset_balancing_all_cells()
+HAL_StatusTypeDef batt_unset_balancing_all_cells(uint8_t pwm)
 {
     for (int board = 0; board < NUM_BOARDS; board++) {
     	for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			for (int cell = 0; cell < CELLS_PER_CHIP; cell++) {
-				batt_unset_balancing_cell(board, chip, cell);
+				batt_unset_balancing_cell(board, chip, cell, pwm);
 			}
 		}
     }
@@ -494,7 +496,7 @@ HAL_StatusTypeDef balanceTest()
     }
 
     batt_init_chip_configs();
-
+    batt_init_chip_configs_pwm();
     if (batt_balance_cell(0) != HAL_OK) {
         return HAL_ERROR;
     }
@@ -507,7 +509,7 @@ HAL_StatusTypeDef balanceTest()
     }
 
     vTaskDelay(40000);
-    if (batt_unset_balancing_all_cells() != HAL_OK) {
+    if (batt_unset_balancing_all_cells(15) != HAL_OK) {
         return HAL_ERROR;
     }
 

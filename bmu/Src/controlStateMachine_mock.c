@@ -1229,19 +1229,19 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
-    if (batt_discharge_cells_write(req_cell) != HAL_OK) {
+    if (batt_discharge_cell(req_cell) != HAL_OK) {
         ERROR_PRINT("Failed to write discharge DCC\n");
         return HAL_ERROR;
     }
     vTaskDelay(pdMS_TO_TICKS(50));
-    COMMAND_OUTPUT("Wrote DCC global0..%d (use getDischargeDcc)\r\n", req_cell);
+    COMMAND_OUTPUT("Wrote PWM discharge global0..%d (use getDischargeDcc for RDPWM)\r\n", req_cell);
     return pdFALSE;
 }
 
 static const CLI_Command_Definition_t dischargeCellsCommandDefinition =
 {
     "dischargeCells",
-    "dischargeCells <n>:\r\n Clear all DCC, then on for cells 0..n (WRCFG)\r\n",
+    "dischargeCells <n>:\r\n Clear PWM discharge, enable 0..n (WRPWM + WRCFG)\r\n",
     dischargeCellsCommand,
     1 /* Number of parameters */
 };
@@ -1250,34 +1250,39 @@ BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     static int get_dcc_cli_idx = -1;
-    static uint8_t get_dcc_status[NUM_VOLTAGE_CELLS];
+    static uint8_t get_pwm_duty[NUM_VOLTAGE_CELLS];
 
     (void)commandString;
     (void)writeBufferLength;
 
     if (get_dcc_cli_idx == -1) {
-        uint8_t all_cfg_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
-        uint8_t all_cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+#if LTC_CHIP == ADBMS_CHIP_6830B
+        uint8_t all_pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+        uint8_t all_pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
 
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
             return HAL_ERROR;
         }
-        if (batt_read_config(all_cfg_a, all_cfg_b) != HAL_OK) {
-            COMMAND_OUTPUT("Error reading AMS config\r\n");
+        if (batt_read_pwm(all_pwma, all_pwmb) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading AMS RDPWM\r\n");
             return pdFALSE;
         }
         for (int g = 0; g < NUM_VOLTAGE_CELLS; g++) {
-            get_dcc_status[g] = (uint8_t)batt_dcc_status_from_cfg_b_readback(g, all_cfg_b);
+            get_pwm_duty[g] = (uint8_t)batt_pwm_duty_from_pwm_readback(g, all_pwma, all_pwmb);
         }
-        COMMAND_OUTPUT("DCC status (from RDCFGB read):\n");
+        COMMAND_OUTPUT("PWM duty 0..15 per cell (RDPWMA/RDPWMB readback):\r\n");
+#else
+        COMMAND_OUTPUT("getDischargeDcc uses RDPWM readback (ADBMS6830 only)\r\n");
+        return pdFALSE;
+#endif
         get_dcc_cli_idx = 0;
         return pdTRUE;
     }
 
     int board = get_dcc_cli_idx / CELLS_PER_BOARD;
     int cell = get_dcc_cli_idx % CELLS_PER_BOARD;
-    COMMAND_OUTPUT("Board %d, Cell %d: %u\n", board, cell, (unsigned)get_dcc_status[get_dcc_cli_idx]);
+    COMMAND_OUTPUT("Board %d, Cell %d: PWM %u\r\n", board, cell, (unsigned)get_pwm_duty[get_dcc_cli_idx]);
     get_dcc_cli_idx++;
     if (get_dcc_cli_idx >= NUM_VOLTAGE_CELLS) {
         get_dcc_cli_idx = -1;
@@ -1289,7 +1294,7 @@ BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t getDischargeDccCommandDefinition =
 {
     "getDischargeDcc",
-    "getDischargeDcc:\r\n Read DCC bits from AMS (paged output)\r\n",
+    "getDischargeDcc:\r\n Per-cell PWM duty (0-15) from RDPWMA/B (6830); paged output\r\n",
     getDischargeDccCommand,
     0 /* Number of parameters */
 };
@@ -1404,6 +1409,7 @@ BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
         return HAL_ERROR;
     }
     batt_init_chip_configs();
+    batt_init_chip_configs_pwm();
     
     if (batt_write_config() != HAL_OK) {
         ERROR_PRINT("Warning: Error writing AMS config tables.\n");

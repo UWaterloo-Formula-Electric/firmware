@@ -32,17 +32,19 @@ typedef struct open_wire_failure_t {
 } open_wire_failure_t;
 
 void batt_init_chip_configs(void);
+void batt_init_chip_configs_pwm(void);
 HAL_StatusTypeDef batt_write_config(void);
+HAL_StatusTypeDef batt_write_config_pwm(void);
 HAL_StatusTypeDef batt_verify_config(void);
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation);
 void batt_set_temp_config(size_t channel);
 HAL_StatusTypeDef batt_broadcast_command(ltc_command_t curr_command); 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array);
-void batt_set_balancing_cell (int board, int chip, int cell);
-void batt_unset_balancing_cell (int board, int chip, int cell);
+void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm);
+void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm);
 bool batt_get_balancing_cell_state(int board, int chip, int cell);
 /* Clear all DCC bits, then enable DCC on global cells 0..max_global_cell (inclusive); WRCFG (no readback). */
-HAL_StatusTypeDef batt_discharge_cells_write(int max_global_cell);
+HAL_StatusTypeDef batt_discharge_cell(int global_cell);
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length);
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 #if LTC_CHIP == ADBMS_CHIP_6830B
@@ -57,6 +59,12 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array);
 int batt_dcc_status_from_cfg_b_readback(int global_cell,
 	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
+/* RDPWMA/RDPWMB readback: 4-bit PWM duty per cell (same nibble layout as WRPWM / batt_set_balancing_cell). */
+HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
+int batt_pwm_duty_from_pwm_readback(int global_cell,
+	const uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	const uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 #endif

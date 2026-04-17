@@ -439,7 +439,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 
 
-void batt_set_balancing_cell (int board, int chip, int cell)
+void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm)
 {
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
@@ -454,7 +454,7 @@ void batt_set_balancing_cell (int board, int chip, int cell)
 }
 
 
-void batt_unset_balancing_cell (int board, int chip, int cell)
+void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm)
 {
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{

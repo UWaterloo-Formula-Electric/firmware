@@ -315,6 +315,8 @@ open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
 static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+static uint8_t m_batt_configA_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+static uint8_t m_batt_configB_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs() {
     memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
@@ -333,6 +335,17 @@ void batt_init_chip_configs() {
             m_batt_configB[board][chip][0] = VUV & 0xFF;  // VUV[7:0]
             m_batt_configB[board][chip][1] = ((VOV << 4) & 0xF0) | ((VUV >> 8) & 0x0F);  // VOV[3:0], VUV[11:8]
             m_batt_configB[board][chip][2] = (VOV >> 4) & 0xFF;  // VOV[11:4]
+		}
+	}
+}
+void batt_init_chip_configs_pwm() {
+    memset(m_batt_configA_pwm, 0, NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE * sizeof(uint8_t));
+    memset(m_batt_configB_pwm, 0, NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE * sizeof(uint8_t));
+
+	for(int board = 0; board < NUM_BOARDS; board++) {
+		for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
+			memset(m_batt_configA_pwm[board][chip], 0, BATT_CONFIG_SIZE);
+			memset(m_batt_configB_pwm[board][chip], 0, BATT_CONFIG_SIZE);
 		}
 	}
 }
@@ -366,10 +379,38 @@ HAL_StatusTypeDef format_and_send_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHI
 	return HAL_OK;
 }
 
+HAL_StatusTypeDef format_and_send_config_pwm(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
+	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
+	uint8_t txBuffer[BUFF_SIZE];
+
+	// Send Config A
+	if (batt_format_write_config_command(WRPWMA_BYTE0, WRPWMA_BYTE1, txBuffer, configA, BATT_CONFIG_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to send write configA command\n");
+		return HAL_ERROR;
+	}
+	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to transmit configA to AMS boards\n");
+		return HAL_ERROR;
+	}
+
+	// Send Config B
+	if (batt_format_write_config_command(WRPWMB_BYTE0, WRPWMB_BYTE1, txBuffer, configB, BATT_CONFIG_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to send write configB command\n");
+		return HAL_ERROR;
+	}
+	if (batt_spi_tx(txBuffer, BUFF_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to transmit configB to AMS boards\n");
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
 HAL_StatusTypeDef batt_write_config(void) {
 	return format_and_send_config(m_batt_configA, m_batt_configB);
 }
-
+HAL_StatusTypeDef batt_write_config_pwm(void) {
+	return format_and_send_config_pwm(m_batt_configA_pwm, m_batt_configB_pwm);
+}
 
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
@@ -489,21 +530,60 @@ HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER
 	return HAL_OK;
 }
 
-/* cfg_b from batt_read_config(); 1 = DCC on for that global cell per batt_set_balancing_cell bit layout. */
-int batt_dcc_status_from_cfg_b_readback(int global_cell,
-	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
+HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
+{
+	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
+	uint8_t response_bufferA[response_buffer_size];
+	uint8_t response_bufferB[response_buffer_size];
+	memset(response_bufferA, 0xFF, response_buffer_size);
+	memset(response_bufferB, 0xFF, response_buffer_size);
+
+	if (batt_read_data(RDPWMA_BYTE0, RDPWMA_BYTE1, response_bufferA, BATT_CONFIG_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read RDPWMA");
+		return HAL_ERROR;
+	}
+	if (batt_read_data(RDPWMB_BYTE0, RDPWMB_BYTE1, response_bufferB, BATT_CONFIG_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read RDPWMB");
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(&(pwma[board][chip]), &(response_bufferA[idx * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+			memcpy(&(pwmb[board][chip]), &(response_bufferB[idx * BATT_CONFIG_SIZE]), BATT_CONFIG_SIZE);
+		}
+	}
+	return HAL_OK;
+}
+
+/* Nibble layout matches batt_set_balancing_cell (cells 0..12 in PWMA, 13+ in PWMB). */
+int batt_pwm_duty_from_pwm_readback(int global_cell,
+	const uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
+	const uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
+{
 	if (global_cell < 0 || global_cell >= NUM_VOLTAGE_CELLS) {
 		ERROR_PRINT("Global cell index out of range: %d\n", global_cell);
 		return 0;
 	}
 	int board = global_cell / CELLS_PER_BOARD;
 	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-	int ams_idx = global_cell % CELLS_PER_CHIP;
-	const uint8_t *b = cfg_b[board][chip];
-	if (ams_idx < 8) {
-		return (int)((b[4] >> (ams_idx)) & 1u);
+	int cell = global_cell % CELLS_PER_CHIP;
+
+	if (cell <= 12) {
+		int block = cell / 2;
+		uint8_t b = pwma[board][chip][block];
+		if (cell % 2 == 1) {
+			return (int)(b & 0x0Fu);
+		}
+		return (int)((b >> 4) & 0x0Fu);
 	}
-	return (int)((b[5] >> (ams_idx-8)) & 1u);
+	int block = (cell - 12) / 2;
+	uint8_t b = pwmb[board][chip][block];
+	if (cell % 2 == 1) {
+		return (int)(b & 0x0Fu);
+	}
+	return (int)((b >> 4) & 0x0Fu);
 }
 
 /* Run ADSTAT first if status snapshots may be stale (datasheet). */
@@ -783,19 +863,40 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 	return HAL_OK;
 }
 
-void batt_set_balancing_cell (int board, int chip, int cell) {
-    if (cell < 8) { // 8 bits per byte in the register
-        SETBIT(m_batt_configB[board][chip][4], cell);
-    } else {
-		SETBIT(m_batt_configB[board][chip][5], cell - 8);
+void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
+	if (cell<=12) {
+		int block = cell/2;
+		if (cell%2 == 1) {
+			m_batt_configA_pwm[board][chip][block] |= pwm;
+		} else {
+			m_batt_configA_pwm[board][chip][block] |= (pwm << 4);
+		}
+	}
+	else {
+		int block = (cell-12)/2;
+		if (cell%2 == 1) {
+			m_batt_configB_pwm[board][chip][block] |= pwm;
+		} else {
+			m_batt_configB_pwm[board][chip][block] |= (pwm << 4);
+		}
 	}
 }
 
-void batt_unset_balancing_cell (int board, int chip, int cell) {
-    if (cell < 8) { // 8 bits per byte in the register
-        CLEARBIT(m_batt_configB[board][chip][4], cell-1);
+void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
+    if (cell <=12) { // 8 bits per byte in the register
+		int block = cell/2;
+		if (cell%2 == 1) {
+			m_batt_configA_pwm[board][chip][block] &= ~pwm;
+		} else {
+			m_batt_configA_pwm[board][chip][block] &= ~(pwm << 4);
+		}
     } else {
-        CLEARBIT(m_batt_configB[board][chip][5], cell - 9);
+		int block = (cell-12)/2;
+		if (cell%2 == 1) {
+			m_batt_configB_pwm[board][chip][block] &= ~pwm;
+		} else {
+			m_batt_configB_pwm[board][chip][block] &= ~(pwm << 4);
+		}
 	}
 }
 
@@ -847,32 +948,43 @@ HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length) {
     return HAL_OK;
 }
 
-HAL_StatusTypeDef batt_discharge_cells_write(int max_global_cell) {
-	if (max_global_cell < 0 || max_global_cell >= NUM_VOLTAGE_CELLS) {
-		ERROR_PRINT("max global cell out of range: %d\n", max_global_cell);
+HAL_StatusTypeDef batt_discharge_cell(int global_cell) {
+	if (global_cell < 0 || global_cell >= NUM_VOLTAGE_CELLS) {
+		ERROR_PRINT("global cell out of range: %d\n", global_cell);
 		return HAL_ERROR;
 	}
 
-	for (int b = 0; b < NUM_BOARDS; b++) {
-		for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
-			m_batt_configB[b][c][4] = 0;
-			m_batt_configB[b][c][5] = 0;
-		}
-	}
 
-	for (int g = 0; g <= max_global_cell; g++) {
-		int board = g / CELLS_PER_BOARD;
-		int chip = (g % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-		int ams_cell = g % CELLS_PER_CHIP;
-		batt_set_balancing_cell(board, chip, ams_cell);
-	}
-	DEBUG_PRINT("DCC on global cells 0..%d\n", max_global_cell);
+	int board = global_cell / CELLS_PER_BOARD;
+	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+	int ams_cell = global_cell % CELLS_PER_BOARD % CELLS_PER_CHIP;
+	batt_set_balancing_cell(board, chip, ams_cell, 15);
+	DEBUG_PRINT("DCC on global cell %d\n", global_cell);
 
-	if (batt_write_config() != HAL_OK) {
-		ERROR_PRINT("batt_discharge_cells_write: WRCFG failed\n");
+	if (batt_write_config_pwm() != HAL_OK) {
+		ERROR_PRINT("batt_discharge_cells_write: WRPWM A/B failed\n");
 		return HAL_ERROR;
 	}
+	// if (batt_config_discharge_timer(DT_30_SEC) != HAL_OK) {
+	// 	ERROR_PRINT("batt_discharge_cells_write: DTCFG A/B failed\n");
+	// 	return HAL_ERROR;
+	// }
+	// if (batt_write_config() != HAL_OK) {
+	// 	ERROR_PRINT("batt_discharge_cells_write: WRCFG A/B failed\n");
+	// 	return HAL_ERROR;
+	// }
+	return HAL_OK;
+}
 
+HAL_StatusTypeDef batt_stop_discharge_cell(int global_cell) {
+	int board = global_cell / CELLS_PER_BOARD;
+	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+	int ams_cell = global_cell % CELLS_PER_CHIP;
+	batt_unset_balancing_cell(board, chip, ams_cell, 15);
+	if (batt_write_config_pwm() != HAL_OK) {
+		ERROR_PRINT("batt_stop_discharge_cell: WRPWM A/B failed\n");
+		return HAL_ERROR;
+	}
 	return HAL_OK;
 }
 

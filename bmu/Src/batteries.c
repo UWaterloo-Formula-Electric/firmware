@@ -986,7 +986,7 @@ HAL_StatusTypeDef stopCharging()
 HAL_StatusTypeDef stopBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    batt_unset_balancing_all_cells();
+    batt_unset_balancing_all_cells(15);
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)

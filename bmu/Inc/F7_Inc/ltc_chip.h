@@ -143,13 +143,13 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
 HAL_StatusTypeDef batt_balance_cell(int cell);
 HAL_StatusTypeDef batt_stop_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
-HAL_StatusTypeDef batt_unset_balancing_all_cells();
+HAL_StatusTypeDef batt_unset_balancing_all_cells(uint8_t pwm);
 HAL_StatusTypeDef batt_write_balancing_config();
 HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
-
+HAL_StatusTypeDef batt_stop_discharge_cell(int global_cell);
 HAL_StatusTypeDef batt_init();
 HAL_StatusTypeDef balanceTest();
 
