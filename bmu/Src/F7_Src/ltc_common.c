@@ -292,14 +292,15 @@ int batt_spi_wakeup(bool sleeping)
 // input voltage is in Volts, precision is in increments of 100uV
 // output temp is in degrees C
 float batt_convert_voltage_to_temp(float voltage) {
-    // for NTCLP100. Raw data will be uploaded to OpenProject under firmware.
-    const float p1 = 5.1416;
-    const float p2 = -47.6355;
-    const float p3 = 182.1670;
-    const float p4 = -361.8757;
-    const float p5 = 389.5266;
-    const float p6 = -182.8840;
-    const float p7 = 24.5223;
+    // for NTCAFLEX15103HH. https://www.vishay.com/docs/29132/ntcaflex05.pdf.
+
+    const float p1 = 0.0;
+    const float p2 = 0.0;
+    const float p3 = 0.0;
+    const float p4 = 0.081333;
+    const float p5 = 4.3158;
+    const float p6 = 0.0;
+    const float p7 = 0.0;
 
     float x = voltage;
 

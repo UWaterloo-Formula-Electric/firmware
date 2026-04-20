@@ -1072,7 +1072,7 @@ BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
     if (cellIdx == -1) {
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
 
         // If the board was asleep, configuration is lost AND the reference is off.
@@ -1133,7 +1133,7 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
 
     if (batt_read_cell_temps(cell_temps) != HAL_OK) {
@@ -1153,7 +1153,7 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
         int board = i / THERMISTORS_PER_SEGMENT;
         int chip = i / SEGMENT_THERMISTORS_AMS1;
         int channel = i % SEGMENT_THERMISTORS_AMS1;
-        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
+        COMMAND_OUTPUT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
     }
 
     return pdFALSE;
@@ -1177,7 +1177,7 @@ BaseType_t getCellVoltagesADSV(char *writeBuffer, size_t writeBufferLength,
     if (cellIdx == -1) {
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
 
         batt_write_config();
@@ -1227,11 +1227,11 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     if (batt_discharge_cell(req_cell) != HAL_OK) {
         ERROR_PRINT("Failed to write discharge DCC\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     vTaskDelay(pdMS_TO_TICKS(50));
     COMMAND_OUTPUT("Wrote PWM discharge global0..%d (use getDischargeDcc for RDPWM)\r\n", req_cell);
@@ -1262,7 +1262,7 @@ BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
 
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
         if (batt_read_pwm(all_pwma, all_pwmb) != HAL_OK) {
             COMMAND_OUTPUT("Error reading AMS RDPWM\r\n");
@@ -1313,7 +1313,7 @@ BaseType_t getThermalShutdownCommand(char *writeBuffer, size_t writeBufferLength
 
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
         if (batt_read_rdstatc(statc) != HAL_OK) {
             COMMAND_OUTPUT("Error reading RDSTATC\r\n");
@@ -1357,7 +1357,7 @@ BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     
     // Read config from AMS boards
@@ -1406,7 +1406,7 @@ BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     batt_init_chip_configs();
     batt_init_chip_configs_pwm();
@@ -1419,7 +1419,7 @@ BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     
     // Read config from AMS boards
@@ -1645,6 +1645,7 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        DEBUG_PRINT("getCellTempsCommandDefinition failed\n");
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesADSVCommandDefinition) != pdPASS) {
