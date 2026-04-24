@@ -287,7 +287,7 @@
 #define ADSV_BYTE1 0x6B
 
 // Read from GPIO 5 (MUX output)
-#define ADAX_BYTE0 0x05
+#define ADAX_BYTE0 0x04
 #define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<7))
 
 #define ADAX2_BYTE0 0x04
@@ -638,7 +638,11 @@ HAL_StatusTypeDef batt_verify_config() {
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%02X ", config_bufferA[board][ltc_chip][buff_byte]);
-				if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+				/* Byte 3: full compare — includes GPIO nibble and pulldown (see batt_init_chip_configs, batt_set_temp_config). Other bytes: low 3 bits (REFON/CTH fields where applicable). */
+				const bool config_a_byte_ok = (buff_byte == 3)
+					? (m_batt_configA[board][ltc_chip][3] == config_bufferA[board][ltc_chip][3])
+					: ((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) == (config_bufferA[board][ltc_chip][buff_byte] & 0x7));
+				if (!config_a_byte_ok) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
@@ -734,7 +738,7 @@ void batt_set_temp_config(size_t channel) {
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			m_batt_configA[board][chip][3] = gpioPins& 0x0F;
+			m_batt_configA[board][chip][3] = (gpioPins & 0x0F) | 0x10;
 		}
 	}
 }
@@ -850,13 +854,15 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 			// GPIO 5 is in AUXB register (bytes 2-3)
 			const size_t boardStartIdx = (board * NUM_LTC_CHIPS_PER_BOARD + chip) * AUX_BLOCK_SIZE;
-			int16_t adcCounts = (int16_t)(((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
-								adc_vals[boardStartIdx + 2]);
+			int16_t adcCounts = (int16_t)((((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
+								adc_vals[boardStartIdx + 2]));
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
-			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
-			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			// DEBUG_PRINT("Cell: %d, ADC Counts: %d\n", tempIdx, adcCounts);
+			float voltageThermistor = ((adcCounts* 0.000150f) + 1.5+0.06f);
+			//cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			cell_temp_array[tempIdx] = voltageThermistor;
     
 		}
 	}
