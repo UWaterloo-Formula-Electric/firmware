@@ -115,7 +115,11 @@ void fillDummyBytes(uint8_t * buf, uint32_t length);
 HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize);
 HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize);
 int batt_spi_wakeup(bool sleeping);
-float batt_convert_voltage_to_temp(float voltage); 
+float batt_convert_voltage_to_temp(float voltage);
+/** When global mock is on, all channels get this °C in @ref batt_thermistor_adc_to_temp; else polynomial from @a voltageThermistor. */
+float batt_thermistor_adc_to_temp(int tempIdx, float voltageThermistor);
+void batt_set_mock_all_thermistors(float temp_C);
+void batt_clear_mock_all_thermistors(void);
 void long_delay_us(uint32_t time_us);
 void delay_us(const uint16_t time_us);
 

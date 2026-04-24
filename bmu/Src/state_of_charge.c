@@ -4,6 +4,7 @@
 #include "batteries.h"
 #include "debug.h"
 #include "watchdog.h"
+#include "bmu_can.h"
 #include <math.h>
 
 #define SOC_TASK_PERIOD 200 
@@ -36,9 +37,26 @@ static float interpolateLut(float value, float lut_min, float lut_step, uint8_t 
 static float compute_voltage_soc(void);
 void ukf_soc(float voltage, float current_integrated);
 void socTask(void *pvParamaters);
+static float get_avg_temp(void);
 HAL_StatusTypeDef consume_integrated_current(float *current);
 
-float predict_voltage(float soc) { return 0.0f; } // figure this out - likelt soc->ocv lut or something?
+float predict_voltage(float soc, float avg_temp) { 
+	float a, b, c= 0.0;
+	float e_1 = 0.0;	
+	float e_2 = 1.79934150401594E-08; 
+	float e_3 = 4.58923785657171E-07; 
+	float f_1 = 0.00134767502485959; 
+	float f_2 = 6.98299616089146E-06; 
+	float f_3 = 0.0; 
+	float g_1 = 0.437589100503872; 
+	float g_2 = 0.32442342; 
+	float g_3 = 0.342424;
+	a = e_1 + f_1 * avg_temp + g_1 * avg_temp * avg_temp;
+	b = e_2 + f_2 * avg_temp + g_2 * avg_temp * avg_temp;
+	c = e_3 + f_3 * avg_temp + g_3 * avg_temp * avg_temp;
+	return a + b * soc + c * soc * soc;
+
+} // figure this out - likelt soc->ocv lut or something?
 
 void ukf_soc(float voltage, float current_integrated)
 {
@@ -46,13 +64,13 @@ void ukf_soc(float voltage, float current_integrated)
 	float soc = ukf.pred;
 	soc -= current_integrated / TOTAL_CAPACITY;
 	ukf.variance += ukf.process_noise;
-
+	float avg_temp = get_avg_temp();
 	// Predict voltages at sigma points
 	float spread = sqrtf(ukf.variance);
 	float sigma_points[3];
-	sigma_points[0] = predict_voltage(soc);
-	sigma_points[1] = predict_voltage(soc + spread);
-	sigma_points[2] = predict_voltage(soc - spread);
+	sigma_points[0] = predict_voltage(soc, avg_temp);
+	sigma_points[1] = predict_voltage(soc + spread, avg_temp);
+	sigma_points[2] = predict_voltage(soc - spread, avg_temp);
 	float v_sigma_mean = 0.5f * (sigma_points[1] + sigma_points[2]);
 
 	// Kalman gain
@@ -75,6 +93,15 @@ void ukf_soc(float voltage, float current_integrated)
 	ukf.variance = ukf.variance < 1e-6f ? 1e-6f : ukf.variance;
 }
 
+static float get_avg_temp(void)
+{
+	float avg_temp = 0.0f;
+	for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+		avg_temp += TempChannel[i];
+	}
+	avg_temp /= NUM_TEMP_CELLS;
+	return avg_temp;
+}
 
 void socTask(void *pvParamaters)
 {

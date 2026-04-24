@@ -309,6 +309,29 @@ float batt_convert_voltage_to_temp(float voltage) {
     return output;
 }
 
+static uint8_t s_mock_all_thermistors;
+static float s_mock_all_thermistors_C;
+
+float batt_thermistor_adc_to_temp(int tempIdx, float voltageThermistor)
+{
+    (void)tempIdx;
+    if (s_mock_all_thermistors) {
+        return s_mock_all_thermistors_C;
+    }
+    return batt_convert_voltage_to_temp(voltageThermistor);
+}
+
+void batt_set_mock_all_thermistors(float temp_C)
+{
+    s_mock_all_thermistors = 1u;
+    s_mock_all_thermistors_C = temp_C;
+}
+
+void batt_clear_mock_all_thermistors(void)
+{
+    s_mock_all_thermistors = 0u;
+}
+
 /* delay function for wakeup. Use for delays < 1ms to reduce tight polling time */
 void delay_us(uint16_t time_us)
 {
