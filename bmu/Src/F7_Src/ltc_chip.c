@@ -133,7 +133,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
         return HAL_ERROR;
     }
     #elif LTC_CHIP == ADBMS_CHIP_6830B
-    if (batt_broadcast_command(ADAX_DOWN) != HAL_OK) {
+    if (batt_broadcast_command(ADAX_UP) != HAL_OK) {
         return HAL_ERROR;
     }
     #endif
@@ -294,6 +294,9 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
             return HAL_ERROR;
         }
         #elif LTC_CHIP == ADBMS_CHIP_6830B
+        if (batt_broadcast_command(adcv ? ADAX_UP : ADAX_DOWN) != HAL_OK) {
+            return HAL_ERROR;
+        }
         if (batt_broadcast_command(adcv ? ADCV : ADSV) != HAL_OK) {
             return HAL_ERROR;
         }
@@ -373,7 +376,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 			{
 				float adcv= cell_voltages_adcv[cellIdx];
 				float adsv = cell_voltages_adsv[cellIdx];
-				if (float_abs(adsv/adcv) < (0.88) || float_abs(adsv/adcv) > (1.60))
+				if (float_abs(adsv/adcv) < (0.88) || float_abs(adsv/adcv) > (0.95))
 				{
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (0.88, 0.95))\n",
 								cellIdx, adcv, adsv,
@@ -442,9 +445,7 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
     // int boardIdx = cell / CELLS_PER_BOARD;
     // int bmuCellIdx = cell % CELLS_PER_BOARD;
 
-    if (batt_stop_discharge_cell(cell) != HAL_OK) {
-        return HAL_ERROR;
-    }
+    batt_stop_discharge_cell(cell);
 
     return HAL_OK;
 }

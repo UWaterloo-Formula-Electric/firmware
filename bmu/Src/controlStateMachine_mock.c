@@ -1153,9 +1153,8 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
         int board = i / THERMISTORS_PER_SEGMENT;
         int chip = i / SEGMENT_THERMISTORS_AMS1;
         int channel = i % SEGMENT_THERMISTORS_AMS1;
-        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f deg C\n", board, chip, channel, cell_temps[i]);
+        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
     }
-    DEBUG_PRINT("Cell Temperatures Done!\n");
 
     return pdFALSE;
 }
@@ -1462,63 +1461,6 @@ static const CLI_Command_Definition_t verifyAmsConfigCommandDefinition =
     0 /* Number of parameters */
 };
 
-/* WRCFGA for mux ch 0..14, RDCFGA readback each step; restores default config at end. */
-#define READ_AMS_GPIO_CH_LAST 14
-
-BaseType_t readAmsGpioCommand(char *writeBuffer, size_t writeBufferLength,
-                       const char *commandString)
-{
-    (void)writeBuffer;
-    (void)writeBufferLength;
-    (void)commandString;
-
-    static uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
-    static uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
-
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("readAmsGpio: SPI wake failed\n");
-        return pdFALSE;
-    }
-
-    for (unsigned ch = 0; ch <= READ_AMS_GPIO_CH_LAST; ch++) {
-        batt_set_temp_config(ch);
-        if (batt_write_config() != HAL_OK) {
-            ERROR_PRINT("readAmsGpio: WRCFGA/B failed at ch %u\n", ch);
-            break;
-        }
-        vTaskDelay(pdMS_TO_TICKS(2));
-        if (batt_read_config(configA, configB) != HAL_OK) {
-            ERROR_PRINT("readAmsGpio: RDCFGA/B read failed at ch %u\n", ch);
-            break;
-        }
-        DEBUG_PRINT("ch%2u RDCFGA", ch);
-        for (int board = 0; board < NUM_BOARDS; board++) {
-            for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
-                DEBUG_PRINT(" b%dc%d:", board, chip);
-                for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
-                    DEBUG_PRINT("%02X", (unsigned)configA[board][chip][i]);
-                }
-            }
-        }
-        DEBUG_PRINT("\r\n");
-    }
-
-    batt_init_chip_configs();
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("readAmsGpio: restore default config failed\n");
-    }
-
-    return pdFALSE;
-}
-
-static const CLI_Command_Definition_t readAmsGpioCommandDefinition =
-{
-    "readAmsGpio",
-    "readAmsGpio:\r\n WRCFGA for mux ch 0-14, print RDCFGA readback, restore default cfg\r\n",
-    readAmsGpioCommand,
-    0 /* Number of parameters */
-};
-
 BaseType_t calcDataPecCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1721,9 +1663,6 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&verifyAmsConfigCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
-    if (FreeRTOS_CLIRegisterCommand(&readAmsGpioCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
