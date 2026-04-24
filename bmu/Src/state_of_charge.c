@@ -70,28 +70,18 @@ float predict_voltage(float soc, float avg_temp) {
 	};
 
 	// Clamp soc between 0 and 1 just in case
-	if(soc > 1.0f) {
-		soc = 1.0f;
-	}
-	else if (soc < 0.0f) {
-		soc = 0.0f;
-	}
+	soc = soc > 1.0f ? 1.0f : soc;
+	soc = soc < 0.0f ? 0.0f : soc;
 
 	// Get the index and fraction of the soc% in the LUT
 	float soc_idx_f = soc * 20.0f;
 	uint8_t soc_idx = (uint8_t)(soc_idx_f);
+	soc_idx = soc_idx > 20 ? 20 : soc_idx;
 	
-	// Clamp index to 20 (so that soc_idx+1=21 max and we don't go out of bounds)
-	if (soc_idx >= 21) {
-		soc_idx = 20;
-	}
-
 	// Get the fraction for interpolation between the two closest SOC% in the LUT
 	float soc_frac = (soc_idx_f - (float)soc_idx);
 	// If soc is 100%, then we must set the fraction to 1 so that is uses the last row of the LUT
-	if(soc >= 1.0f) {
-		soc_frac = 1.0f;
-	}
+	soc_frac = soc >= 1.0f ? 1.0f : soc_frac;
 
 	// Get the temperature index and fraction for interpolation
 	uint8_t temp_idx = 0;
