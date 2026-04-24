@@ -41,22 +41,91 @@ static float get_avg_temp(void);
 HAL_StatusTypeDef consume_integrated_current(float *current);
 
 float predict_voltage(float soc, float avg_temp) { 
-	float a, b, c= 0.0;
-	float e_1 = 0.0;	
-	float e_2 = 1.79934150401594E-08; 
-	float e_3 = 4.58923785657171E-07; 
-	float f_1 = 0.00134767502485959; 
-	float f_2 = 6.98299616089146E-06; 
-	float f_3 = 0.0; 
-	float g_1 = 0.437589100503872; 
-	float g_2 = 0.32442342; 
-	float g_3 = 0.342424;
-	a = e_1 + f_1 * avg_temp + g_1 * avg_temp * avg_temp;
-	b = e_2 + f_2 * avg_temp + g_2 * avg_temp * avg_temp;
-	c = e_3 + f_3 * avg_temp + g_3 * avg_temp * avg_temp;
-	return a + b * soc + c * soc * soc;
+	// We have the LUT of the OCV, and use bilinear interpolation to calculate in-between points
 
-} // figure this out - likelt soc->ocv lut or something?
+	static const float TEMP_LUT[8] = {-20.0f, -10.0f, 0.0f, 10.0f, 25.0f, 35.0f, 45.0f, 55.0f};
+	static const float OCV_LUT[21][8] = {
+		// {-20C, -10C, 0C, 10C, 25C, 35C, 45C, 55C}
+		{3.2601, 3.1887, 3.1209, 3.0276, 2.8214, 2.7425, 2.7013, 2.6878},  // SOC=0%
+		{3.3473, 3.2859, 3.2302, 3.1756, 3.0720, 3.0507, 3.0393, 3.0368},  // SOC=5%
+		{3.4243, 3.3776, 3.3273, 3.2752, 3.2054, 3.1918, 3.1845, 3.1820},  // SOC=10%
+		{3.4933, 3.4502, 3.4141, 3.3718, 3.3089, 3.2926, 3.2837, 3.2797},  // SOC=15%
+		{3.5335, 3.5052, 3.4823, 3.4518, 3.4045, 3.3893, 3.3789, 3.3715},  // SOC=20%
+		{3.5812, 3.5457, 3.5245, 3.5082, 3.4808, 3.4689, 3.4596, 3.4525},  // SOC=25%
+		{3.6269, 3.6021, 3.5748, 3.5506, 3.5251, 3.5195, 3.5155, 3.5134},  // SOC=30%
+		{3.6699, 3.6540, 3.6315, 3.6062, 3.5783, 3.5691, 3.5636, 3.5597},  // SOC=35%
+		{3.7163, 3.6989, 3.6836, 3.6641, 3.6328, 3.6244, 3.6191, 3.6162},  // SOC=40%
+		{3.7619, 3.7459, 3.7314, 3.7165, 3.6948, 3.6837, 3.6772, 3.6742},  // SOC=45%
+		{3.8041, 3.7896, 3.7774, 3.7656, 3.7494, 3.7485, 3.7470, 3.7490},  // SOC=50%
+		{3.8410, 3.8305, 3.8203, 3.8103, 3.7975, 3.7980, 3.7974, 3.8002},  // SOC=55%
+		{3.8730, 3.8668, 3.8597, 3.8515, 3.8416, 3.8419, 3.8418, 3.8445},  // SOC=60%
+		{3.9094, 3.9064, 3.9023, 3.8955, 3.8855, 3.8811, 3.8798, 3.8813},  // SOC=65%
+		{3.9616, 3.9650, 3.9596, 3.9522, 3.9433, 3.9424, 3.9404, 3.9402},  // SOC=70%
+		{4.0148, 4.0257, 4.0186, 4.0097, 3.9981, 3.9978, 3.9955, 3.9963},  // SOC=75%
+		{4.0442, 4.0594, 4.0602, 4.0570, 4.0524, 4.0539, 4.0526, 4.0543},  // SOC=80%
+		{4.0590, 4.0707, 4.0726, 4.0734, 4.0745, 4.0760, 4.0763, 4.0774},  // SOC=85%
+		{4.0746, 4.0811, 4.0827, 4.0833, 4.0846, 4.0858, 4.0861, 4.0869},  // SOC=90%
+		{4.0903, 4.0972, 4.0992, 4.0993, 4.1015, 4.1020, 4.1016, 4.1022},  // SOC=95%
+		{4.1767, 4.1825, 4.1795, 4.1745, 4.1837, 4.1763, 4.1697, 4.1687},  // SOC=100%
+	};
+
+	// Clamp soc between 0 and 1 just in case
+	if(soc > 1.0f) {
+		soc = 1.0f;
+	}
+	else if (soc < 0.0f) {
+		soc = 0.0f;
+	}
+
+	// Get the index and fraction of the soc% in the LUT
+	float soc_idx_f = soc * 20.0f;
+	uint8_t soc_idx = (uint8_t)(soc_idx_f);
+	
+	// Clamp index to 20 (so that soc_idx+1=21 max and we don't go out of bounds)
+	if (soc_idx >= 21) {
+		soc_idx = 20;
+	}
+
+	// Get the fraction for interpolation between the two closest SOC% in the LUT
+	float soc_frac = (soc_idx_f - (float)soc_idx);
+	// If soc is 100%, then we must set the fraction to 1 so that is uses the last row of the LUT
+	if(soc >= 1.0f) {
+		soc_frac = 1.0f;
+	}
+
+	// Get the temperature index and fraction for interpolation
+	uint8_t temp_idx = 0;
+	float temp_frac = 0.0f;
+
+	if (avg_temp <= TEMP_LUT[0]) {
+		temp_idx = 0;
+		temp_frac = 0.0f;
+	} else if (avg_temp >= TEMP_LUT[7]) {
+		temp_idx = 6;
+		temp_frac = 1.0f;
+	} else {
+		// Loop through the TEMP_LUT
+		for (uint8_t i = 0; i < 7; i++) {
+			if (avg_temp >= TEMP_LUT[i] && avg_temp < TEMP_LUT[i+1]) {
+				temp_idx = i;
+				temp_frac = (avg_temp - TEMP_LUT[i]) / (TEMP_LUT[i+1] - TEMP_LUT[i]);
+				break;
+			}
+		}
+	}
+
+	// Bilinear Interpolation
+	float val00 = OCV_LUT[soc_idx][temp_idx];
+	float val10 = OCV_LUT[soc_idx+1][temp_idx];
+	float val01 = OCV_LUT[soc_idx][temp_idx+1];
+	float val11 = OCV_LUT[soc_idx+1][temp_idx+1];
+
+	// Interpolate SOC first, then temperature
+	float interp_soc_0 = val00 + soc_frac * (val10 - val00);
+	float interp_soc_1 = val01 + soc_frac * (val11 - val01);
+
+	return interp_soc_0 + temp_frac * (interp_soc_1 - interp_soc_0);
+}
 
 void ukf_soc(float voltage, float current_integrated)
 {
