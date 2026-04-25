@@ -94,13 +94,13 @@ bool is_brake_in_range(uint32_t brake) {
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return 100 - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
       0, 100);
 }
 
 float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return 100 - map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
       0, 100);
 }
 
