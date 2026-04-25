@@ -183,32 +183,23 @@ BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
             BMU_DISABLE;
             StatusPowerBMU = StatusPowerBMU_CHANNEL_OFF;
         }
-    } else if (STR_EQ(boardParam, "CDU", paramLen)) {
-        COMMAND_OUTPUT("Turning DCU %s\n", onOff?"on":"off");
+    } else if (STR_EQ(boardParam, "VCU", paramLen)) {
+        COMMAND_OUTPUT("Turning VCU %s\n", onOff?"on":"off");
         if (onOff) {
-            CDU_EN;
-            StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
+            VCU_EN;
+            StatusPowerVCU = StatusPowerVCU_CHANNEL_ON;
         } else {
-            CDU_DISABLE;
-            StatusPowerCDU = StatusPowerCDU_CHANNEL_OFF;
+            VCU_DISABLE;
+            StatusPowerVCU = StatusPowerVCU_CHANNEL_OFF;
         }
-    } else if (STR_EQ(boardParam, "TCU", paramLen)) {
-        COMMAND_OUTPUT("Turning TCU %s\n", onOff?"on":"off");
+    } else if (STR_EQ(boardParam, "MOTEC", paramLen)) {
+        COMMAND_OUTPUT("Turning MOTEC %s\n", onOff?"on":"off");
         if (onOff) {
-            TCU_EN;
-            StatusPowerTCU = StatusPowerTCU_CHANNEL_ON;
+            MOTEC_EN;
+            StatusPowerMotec = StatusPowerMotec_CHANNEL_ON;
         } else {
-            TCU_DISABLE;
-            StatusPowerTCU = StatusPowerTCU_CHANNEL_OFF;
-        }
-    } else if (STR_EQ(boardParam, "WSB", paramLen)) {
-        COMMAND_OUTPUT("Turning ALL WSB %s\n", onOff?"on":"off");
-        if (onOff) {
-            WSB_EN;
-            StatusPowerWSB = StatusPowerWSB_CHANNEL_ON;
-        } else {
-            WSB_DISABLE;
-            StatusPowerWSB = StatusPowerWSB_CHANNEL_OFF;
+            MOTEC_DISABLE;
+            StatusPowerMotec = StatusPowerMotec_CHANNEL_OFF;
         }
     } else if (STR_EQ(boardParam, "ALL", paramLen)) {
         COMMAND_OUTPUT("Turning ALL %s\n", onOff?"on":"off");
@@ -231,7 +222,7 @@ BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t boardEnableCommandDefinition =
 {
     "board",
-    "board <BMU|CDU|TCU|WSB|ALL> <on|off>:\r\n  Turn on/off board\r\n",
+    "board <BMU|VCU|MOTEC|ALL> <on|off>:\r\n  Turn on/off board\r\n",
     boardEnableCommand,
     2 /* Number of parameters */
 };
@@ -317,12 +308,12 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
 BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    RADIATOR_EN;
+    RADIATOR_1_EN;
     HAL_Delay(3000);
-    RADIATOR_DISABLE;
-    ACC_FANS_EN;
+    RADIATOR_1_DISABLE;
+    ACC_FANS_1_EN;
     HAL_Delay(3000);
-    ACC_FANS_DISABLE;
+    ACC_FANS_1_DISABLE;
     PUMP_1_EN; 
     HAL_Delay(3000);
     PUMP_1_DISABLE; 
@@ -339,15 +330,15 @@ BaseType_t testOutput(char *writeBuffer, size_t writeBufferLength,
     TRANSPONDER_EN;
     HAL_Delay(3000);
     TRANSPONDER_DISABLE;
-    AUX_2_EN;
+    RADIATOR_2_EN;
     HAL_Delay(3000);
-    AUX_2_DISABLE;
-    AUX_3_EN;
+    RADIATOR_2_DISABLE;
+    ACC_FANS_3_EN;
     HAL_Delay(3000);
-    AUX_3_DISABLE;
-    AUX_4_EN;
+    ACC_FANS_3_DISABLE;
+    LAP_BEACON_EN;
     HAL_Delay(3000);
-    AUX_4_DISABLE;
+    LAP_BEACON_DISABLE;
 
     return pdFALSE;
 }
@@ -374,30 +365,48 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
     {
         case 0:
             DEBUG_PRINT("Turning all fans off!\r\n");
-            ACC_FANS_DISABLE;
-            RADIATOR_DISABLE;
+            ACC_FANS_1_DISABLE;
+            ACC_FANS_2_DISABLE;
+            ACC_FANS_3_DISABLE;
+            RADIATOR_1_DISABLE;
+            RADIATOR_2_DISABLE;
             acc_fan_command_override = 0;
-            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_OFF;
-            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_OFF; 
+            StatusPowerAccFan1 = StatusPowerAccFan1_CHANNEL_OFF;
+            StatusPowerAccFan2 = StatusPowerAccFan1_CHANNEL_OFF;
+            StatusPowerAccFan3 = StatusPowerAccFan1_CHANNEL_OFF;
+            StatusPowerRadiator1 = StatusPowerRadiator1_CHANNEL_OFF;
+            StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_OFF;
             break;
         case 1:
             DEBUG_PRINT("Turning radiator fan on!\r\n");
-            RADIATOR_EN;
-            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_ON;
+            RADIATOR_1_EN;
+            RADIATOR_2_EN;
+            StatusPowerRadiator1 = StatusPowerRadiator1_CHANNEL_ON;
+            StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_ON;
             break;
         case 2:
             DEBUG_PRINT("Turning accumulator fans on!\r\n");
             acc_fan_command_override = 1;
-            ACC_FANS_EN;
-            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_ON;
+            ACC_FANS_1_EN;
+            ACC_FANS_2_EN;
+            ACC_FANS_3_EN;
+            StatusPowerAccFan1 = StatusPowerAccFan1_CHANNEL_ON;
+            StatusPowerAccFan2 = StatusPowerAccFan2_CHANNEL_ON;
+            StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_ON;
             break;
         case 3:
             DEBUG_PRINT("Turning all fans on!\r\n");
             acc_fan_command_override = 1;
-            ACC_FANS_EN;
-            RADIATOR_EN;
-            StatusPowerAccFan = StatusPowerAccFan_CHANNEL_ON;
-            StatusPowerRadiator = StatusPowerRadiator_CHANNEL_ON;
+            ACC_FANS_1_EN;
+            ACC_FANS_2_EN;
+            ACC_FANS_3_EN;
+            RADIATOR_1_EN;
+            RADIATOR_2_EN;
+            StatusPowerAccFan1 = StatusPowerAccFan1_CHANNEL_ON;
+            StatusPowerAccFan2 = StatusPowerAccFan2_CHANNEL_ON;
+            StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_ON;
+            StatusPowerRadiator1 = StatusPowerRadiator1_CHANNEL_ON;
+            StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_ON;
             break;
         default:
             DEBUG_PRINT("Error: reached default case in controlFans!\r\n");
@@ -554,34 +563,34 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
         case 1:
             if (power) { 
                 TRANSPONDER_EN;
-                StatusPowerAux1 = StatusPowerAux1_CHANNEL_ON;  
+                StatusPowerTransponder = StatusPowerTransponder_CHANNEL_ON;  
             } else { 
                 TRANSPONDER_DISABLE;
-                StatusPowerAux1 = StatusPowerAux1_CHANNEL_OFF;  
+                StatusPowerTransponder = StatusPowerTransponder_CHANNEL_OFF;  
             }
         case 2:
             if (power) {
-                AUX_2_EN; 
-                StatusPowerAux2 = StatusPowerAux2_CHANNEL_ON;  
+                RADIATOR_2_EN; 
+                StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_ON;  
             } else {
-                AUX_2_DISABLE;
-                StatusPowerAux2 = StatusPowerAux2_CHANNEL_OFF;  
+                RADIATOR_2_DISABLE;
+                StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_OFF;  
             }
         case 3:
             if (power) {
-                AUX_3_EN; 
-                StatusPowerAux3 = StatusPowerAux3_CHANNEL_ON;  
+                ACC_FANS_3_EN; 
+                StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_ON;  
             } else {
-                AUX_3_DISABLE;
-                StatusPowerAux3 = StatusPowerAux3_CHANNEL_OFF;  
+                ACC_FANS_3_DISABLE;
+                StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_OFF;  
             }
         case 4:
             if (power) {
-                AUX_4_EN; 
-                StatusPowerAux4 = StatusPowerAux4_CHANNEL_ON;  
+                LAP_BEACON_EN; 
+                StatusPowerLapBeacon = StatusPowerLapBeacon_CHANNEL_ON;  
             } else {
-                AUX_4_DISABLE;
-                StatusPowerAux4 = StatusPowerAux4_CHANNEL_OFF;  
+                LAP_BEACON_DISABLE;
+                StatusPowerLapBeacon = StatusPowerLapBeacon_CHANNEL_OFF;  
             }
         default:
             DEBUG_PRINT("Error: reached default case in auxEnable!\r\n");

@@ -17,36 +17,36 @@
 typedef enum PDU_Channels_t {
     Pump_1_Channel,     // Channel 1
     Pump_2_Channel,     // Channel 2
-    CDU_Channel,        // Channel 3
+    VCU_Channel,        // Channel 3
     BMU_Channel,        // Channel 4
-    WSB_Channel,        // Channel 5
-    TCU_Channel,        // Channel 6
+    ACC_Fans_Channel_1, // Channel 5
+    Motec_Channel,      // Channel 6
     Brake_Light_Channel,// Channel 7
-    ACC_Fans_Channel,   // Channel 8
+    ACC_Fans_Channel_2, // Channel 8
     INV_Channel,        // Channel 9
-    Radiator_Channel,   // Channel 10
-    AUX_1_Channel,      // Channel 11
-    AUX_2_Channel,      // Channel 12
-    AUX_3_Channel,      // Channel 13
-    AUX_4_Channel,      // Channel 14
+    Radiator_Channel_1, // Channel 10
+    Transponder_Channel,// Channel 11
+    Radiator_Channel_2, // Channel 12
+    ACC_Fans_Channel_3, // Channel 13
+    Lap_Beacon_Channel, // Channel 14
     NUM_PDU_CHANNELS
 } PDU_Channels_t;
 
 typedef struct {
     float Pump_1_Channel_A;
     float Pump_2_Channel_A;
-    float CDU_Channel_A;
+    float VCU_Channel_A;
     float BMU_Channel_A;
-    float WSB_Channel_A;
-    float TCU_Channel_A;
+    float ACC_Fans_Channel_1_A;
+    float Motec_Channel_A;
     float Brake_Light_Channel_A;
-    float ACC_Fans_Channel_A;
+    float ACC_Fans_Channel_2_A;
     float INV_Channel_A;
-    float Radiator_Channel_A;
-    float AUX_1_Channel_A;
-    float AUX_2_Channel_A;
-    float AUX_3_Channel_A;
-    float AUX_4_Channel_A;
+    float Radiator_Channel_1_A;
+    float Transponder_Channel_A;
+    float Radiator_Channel_2_A;
+    float ACC_Fans_Channel_3_A;
+    float Lap_Beacon_Channel_A;
 } ChannelMeas_t;
 
 // This union allows us to print out the data easily
