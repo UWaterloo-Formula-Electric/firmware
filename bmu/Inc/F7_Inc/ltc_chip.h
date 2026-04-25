@@ -24,7 +24,7 @@
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
-#define CELLS_PER_BOARD             10
+#define CELLS_PER_BOARD             28
 /// Number of thermistors attached to first AMS in each segment
 #define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
@@ -56,7 +56,7 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 1 // FIX THIS ON AMS (2)
+#define NUM_LTC_CHIPS_PER_BOARD 2// FIX THIS ON AMS (2)
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"

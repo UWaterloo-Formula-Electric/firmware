@@ -25,7 +25,7 @@
 
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
-#define DEFAULT_LIMIT_OVERVOLTAGE 5.0F
+#define DEFAULT_LIMIT_OVERVOLTAGE 5.5F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
@@ -73,7 +73,7 @@
  * Threshold to begin balancing a cell when it's SoC is this percent higher
  * than the minimum cell SoC in the entire pack
  */
-#define BALANCE_MIN_SOC_DELTA (1.0F)
+#define BALANCE_MIN_SOC_DELTA (4.0F)
 
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (250)

@@ -287,7 +287,7 @@
 #define ADSV_BYTE1 0x6B
 
 // Read from GPIO 5 (MUX output)
-#define ADAX_BYTE0 0x05
+#define ADAX_BYTE0 0x04
 #define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<7))
 
 #define ADAX2_BYTE0 0x04
@@ -326,7 +326,7 @@ void batt_init_chip_configs() {
 		for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
-            m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
+            m_batt_configA[board][chip][0] = (REFON(0)) | (CTH(6));
             m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
             
@@ -384,6 +384,7 @@ HAL_StatusTypeDef format_and_send_config_pwm(uint8_t configA[NUM_BOARDS][NUM_LTC
 	uint8_t txBuffer[BUFF_SIZE];
 
 	// Send Config A
+	DEBUG_PRINT("Sending Config A: %02X %02X %02X %02X %02X %02X\n", configA[0][0][0], configA[0][0][1], configA[0][0][2], configA[0][0][3], configA[0][0][4], configA[0][0][5]);
 	if (batt_format_write_config_command(WRPWMA_BYTE0, WRPWMA_BYTE1, txBuffer, configA, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write configA command\n");
 		return HAL_ERROR;
@@ -730,11 +731,11 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 }
 
 void batt_set_temp_config(size_t channel) {
-	const uint8_t gpioPins = channel;
+	//const uint8_t gpioPins = channel;
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			m_batt_configA[board][chip][3] = gpioPins& 0x0F;
+			m_batt_configA[board][chip][3] = 0x1D;
 		}
 	}
 }
@@ -855,9 +856,9 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
-			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
-			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-    
+			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f + 0.06f;
+			//cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			cell_temp_array[tempIdx] = voltageThermistor;
 		}
 	}
 	return HAL_OK;
@@ -865,12 +866,13 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
 	if (cell<=12) {
-		int block = cell/2;
+		int block = (cell-1)/2;
 		if (cell%2 == 1) {
 			m_batt_configA_pwm[board][chip][block] |= pwm;
 		} else {
 			m_batt_configA_pwm[board][chip][block] |= (pwm << 4);
 		}
+		DEBUG_PRINT("Config A is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
 	}
 	else {
 		int block = (cell-12)/2;
@@ -879,6 +881,7 @@ void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
 		} else {
 			m_batt_configB_pwm[board][chip][block] |= (pwm << 4);
 		}
+		DEBUG_PRINT("Config B is now %02X %02X %02X %02X %02X %02X", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
 	}
 }
 
@@ -886,17 +889,19 @@ void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
     if (cell <=12) { // 8 bits per byte in the register
 		int block = cell/2;
 		if (cell%2 == 1) {
-			m_batt_configA_pwm[board][chip][block] &= ~pwm;
+			m_batt_configA_pwm[board][chip][block] &= 0xF0;
 		} else {
-			m_batt_configA_pwm[board][chip][block] &= ~(pwm << 4);
+			m_batt_configA_pwm[board][chip][block] &= 0x0F;
 		}
+		DEBUG_PRINT("Config is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
     } else {
 		int block = (cell-12)/2;
 		if (cell%2 == 1) {
-			m_batt_configB_pwm[board][chip][block] &= ~pwm;
+			m_batt_configB_pwm[board][chip][block] &= 0xF0;
 		} else {
-			m_batt_configB_pwm[board][chip][block] &= ~(pwm << 4);
+			m_batt_configB_pwm[board][chip][block] &= 0x0F;
 		}
+		DEBUG_PRINT("Config B is now %02X %02X %02X %02X %02X %02X", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
 	}
 }
 
@@ -961,10 +966,6 @@ HAL_StatusTypeDef batt_discharge_cell(int global_cell) {
 	batt_set_balancing_cell(board, chip, ams_cell, 15);
 	DEBUG_PRINT("DCC on global cell %d\n", global_cell);
 
-	if (batt_write_config_pwm() != HAL_OK) {
-		ERROR_PRINT("batt_discharge_cells_write: WRPWM A/B failed\n");
-		return HAL_ERROR;
-	}
 	// if (batt_config_discharge_timer(DT_30_SEC) != HAL_OK) {
 	// 	ERROR_PRINT("batt_discharge_cells_write: DTCFG A/B failed\n");
 	// 	return HAL_ERROR;
@@ -977,14 +978,11 @@ HAL_StatusTypeDef batt_discharge_cell(int global_cell) {
 }
 
 HAL_StatusTypeDef batt_stop_discharge_cell(int global_cell) {
+
 	int board = global_cell / CELLS_PER_BOARD;
 	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
 	int ams_cell = global_cell % CELLS_PER_CHIP;
 	batt_unset_balancing_cell(board, chip, ams_cell, 15);
-	if (batt_write_config_pwm() != HAL_OK) {
-		ERROR_PRINT("batt_stop_discharge_cell: WRPWM A/B failed\n");
-		return HAL_ERROR;
-	}
 	return HAL_OK;
 }
 
