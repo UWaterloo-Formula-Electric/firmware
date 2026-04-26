@@ -60,23 +60,40 @@ HAL_StatusTypeDef startADCConversions()
 #else
     for (int i=0; i < NUM_ADC_CHANNELS; i++) {
         if (i == BRAKE_PRES_INDEX) {
-            brakeThrottleSteeringADCVals[i] = 95 * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
+            brakeThrottleSteeringADCVals[i] = MOCK_BRAKE_PRESSURE_PERCENT * BRAKE_PRESSURE_DIVIDER / BRAKE_PRESSURE_MULTIPLIER;
         } else {
             brakeThrottleSteeringADCVals[i] = 0;
         }
 
-        brakeThrottleSteeringADCVals[THROTTLE_A_INDEX] = calculate_throttle_adc_from_percent1(0);
-        brakeThrottleSteeringADCVals[THROTTLE_B_INDEX] = calculate_throttle_adc_from_percent2(0);
+        brakeThrottleSteeringADCVals[THROTTLE_A_INDEX] = calculate_throttle_adc_from_percent1(PERCENT_MIN_INT);
+        brakeThrottleSteeringADCVals[THROTTLE_B_INDEX] = calculate_throttle_adc_from_percent2(PERCENT_MIN_INT);
     }
 #endif
 
     return HAL_OK;
 }
 
+static float getBrakePosFiltered()
+{
+    static float brakePosReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
+    static size_t brakePosIndex = 0;
+    brakePosReadings[brakePosIndex] = (float)brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
+    brakePosIndex = (brakePosIndex + 1) % NUM_MEDIAN_FILTER_SAMPLES;
+    return get_median(brakePosReadings, NUM_MEDIAN_FILTER_SAMPLES);
+}
+
+static float getBrakePresFiltered()
+{
+    static float brakePresReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
+    static size_t brakePresIndex = 0;
+    brakePresReadings[brakePresIndex] = (float)brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
+    brakePresIndex = (brakePresIndex + 1) % NUM_MEDIAN_FILTER_SAMPLES;
+    return get_median(brakePresReadings, NUM_MEDIAN_FILTER_SAMPLES);
+}
+
 float getBrakePositionPercent()
-{	
-    return map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
-                     BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
+{
+    return map_range_float(getBrakePosFiltered(), BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
@@ -94,24 +111,24 @@ bool is_brake_in_range(uint32_t brake) {
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return 100 - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
-      0, 100);
+    return PERCENT_MAX - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+      PERCENT_MIN, PERCENT_MAX);
 }
 
 float calculate_throttle_percent2(uint16_t tps_value)
 {
     return map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
-      0, 100);
+      PERCENT_MIN, PERCENT_MAX);
 }
 
 // These are for testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent)
 {
-  return map_range(percent, 0, 100, THROTT_A_LOW, THROTT_A_HIGH);
+  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_A_LOW, THROTT_A_HIGH);
 }
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
 {
-  return map_range(percent, 0, 100, THROTT_B_LOW, THROTT_B_HIGH);
+  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_B_LOW, THROTT_B_HIGH);
 }
 
 bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
@@ -189,7 +206,7 @@ bool getThrottlePositionPercent(float *throttleOut)
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
-        throttle = (throttle1_percent + throttle2_percent) / 2;
+        throttle = (throttle1_percent + throttle2_percent) / TPS_SENSOR_COUNT;
     }
 
     *throttleOut = throttle;
@@ -201,6 +218,29 @@ bool brakePlausibilityCheckFail()
     uint32_t brakePotVal = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
     if (!is_brake_in_range(brakePotVal)) {
         ERROR_PRINT("Brake pot out of range, motor disabled T.4.3.3: %lu [%lu, %lu]\n", brakePotVal, (uint32_t)BRAKE_POS_LOW, (uint32_t)BRAKE_POS_HIGH);
+        return true;
+    }
+    return false;
+}
+
+/*
+ * Cross-checks brake position % against brake pressure %.
+ * If the pedal says brakes are engaged but pressure isn't building,
+ * the hydraulic system is likely failed — sends EV_Brake_Pressure_Fault.
+ * Returns true if implausibility detected.
+ */
+static bool checkBrakeImplausibility()
+{
+    float posPercent  = getBrakePositionPercent();
+    if (posPercent < BRAKE_POS_IMPLAUSIBILITY_MIN_PERCENT) {
+        return false;
+    }
+    float presPercent = getBrakePressurePercent();
+    if (posPercent - presPercent > BRAKE_IMPLAUSIBILITY_DIFF_PERCENT) {
+        ERROR_PRINT("Brake implausibility: pos=%.1f%% pres=%.1f%%, diff=%.1f%% > %.1f%%\n",
+                    posPercent, presPercent,
+                    posPercent - presPercent, BRAKE_IMPLAUSIBILITY_DIFF_PERCENT);
+        fsmSendEventUrgent(&VCUFsmHandle, EV_Brake_Pressure_Fault, portMAX_DELAY);
         return true;
     }
     return false;
@@ -291,11 +331,23 @@ bool checkBPSState() {
   return true;
 }
 
+static float getBrakePressurePSI()
+{
+    float raw = getBrakePresFiltered();
+    float v = raw / ADC_MAX_VALUE * BRAKE_PRESSURE_ADC_REF_V * BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE;
+    return map_range_float(v,
+                           BRAKE_PRESSURE_SENSOR_MIN_V,
+                           BRAKE_PRESSURE_SENSOR_MAX_V,
+                           BRAKE_PRESSURE_SENSOR_MIN_PSI,
+                           BRAKE_PRESSURE_SENSOR_MAX_PSI);
+}
+
 int getBrakePressure() {
-  float raw =  brakeThrottleSteeringADCVals[BRAKE_PRES_INDEX];
-  float v = raw/4095.*3.3*3/2;
-  float psi = map_range_float(v, 0.5, 4.5, 0, 2500);
-  return (int)psi;
+    return (int)getBrakePressurePSI();
+}
+
+float getBrakePressurePercent() {
+    return map_range_float(getBrakePressurePSI(), PERCENT_MIN, BRAKE_PRESSURE_100_PERCENT_PSI, PERCENT_MIN, PERCENT_MAX);
 }
 
 // Full left turn angle: -100 degrees
@@ -320,7 +372,7 @@ HAL_StatusTypeDef pollThrottle(float *throttlePercentReading) {
     ThrottleStatus_t rc = getNewThrottle(throttlePercentReading);
 
     if (rc == THROTTLE_FAULT) {
-        sendDTC_WARNING_Throttle_Failure(0);
+        sendDTC_WARNING_Throttle_Failure(THROTTLE_FAILURE_DTC_DETAIL);
         DEBUG_PRINT("Throttle value out of range\n");
         return HAL_ERROR;
     }
@@ -357,7 +409,7 @@ void disableRegen() {
 void canPublishTask(void *pvParameters)
 {
     // Delay to allow first ADC readings to come in
-    vTaskDelay(500);
+    vTaskDelay(pdMS_TO_TICKS(VCU_DATA_STARTUP_DELAY_MS));
     while (1) {
         // Update value to be sent over can
         ThrottlePercent = throttlePercentReading;
@@ -382,7 +434,7 @@ void InvCommandTask(void)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    if (registerTaskToWatch(INV_COMMAND_TASK_ID, 2*pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS), false, NULL) != HAL_OK)
+    if (registerTaskToWatch(INV_COMMAND_TASK_ID, INV_COMMAND_WATCHDOG_PERIOD_MULTIPLIER * pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS), false, NULL) != HAL_OK)
     {
         ERROR_PRINT("ERROR: Failed to init inverter command task, suspending throttle polling task\n");
         Error_Handler();
@@ -403,6 +455,9 @@ void InvCommandTask(void)
                 ERROR_PRINT("ERROR: Failed to poll throttle\n");
                 fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
             }
+
+            // Check brake pos vs pressure: large discrepancy means hydraulic failure
+            checkBrakeImplausibility();
 
             // poll brake
             float brakePercent = getBrakePositionPercent();
