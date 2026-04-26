@@ -847,7 +847,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 	// Process the readings for each board
     for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
-			size_t tempIdx = board * SEGMENT_THERMISTORS_AMS1 + chip * SEGMENT_THERMISTORS_AMS1 + channel;
+			size_t tempIdx = board * (SEGMENT_THERMISTORS_AMS1 + SEGMENT_THERMISTORS_AMS2) + chip * SEGMENT_THERMISTORS_AMS1 + channel;
 
 			// GPIO 5 is in AUXB register (bytes 2-3)
 			const size_t boardStartIdx = (board * NUM_LTC_CHIPS_PER_BOARD + chip) * AUX_BLOCK_SIZE;
