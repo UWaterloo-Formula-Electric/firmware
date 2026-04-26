@@ -40,17 +40,17 @@ const uint8_t MUX_MAPPING[NUM_PDU_CHANNELS] = {7, 7, 5, 5, 6, 6, 3, 3, 0, 0, 1, 
 volatile uint32_t adcData[ADC_BUFFER_LENGTH];
 const char *channelNames[NUM_PDU_CHANNELS] = {  "Pump 1",
                                                 "Pump 2",
-                                                "VCU (CDU)",
-                                                "BMU + HVB",
+                                                "VCU",
+                                                "BMU",
                                                 "Acc. Fans (1/3)",
                                                 "Motec",
                                                 "Brake Light",
                                                 "Acc. Fans (2/3)",
                                                 "Inverter",
-                                                "Radiator Fan 1",
+                                                "Rad. Fans (1/2)",
                                                 "Transponder",
-                                                "Radiator Fan 2",
-                                                "Acc fan (3/3)",
+                                                "Rad. Fans (2/2)",
+                                                "Acc. Fans (3/3)",
                                                 "Lap Beacon"};
 
 /*********************************************************************************************************************/
