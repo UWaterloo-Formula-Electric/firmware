@@ -101,7 +101,7 @@ static float getBrakePotentiometerPercentFromRaw(float brakePos)
 
 float getBrakePotentiometerPercent()
 {
-    return getBrakePotentiometerPercentFromRaw(getBrakePosFiltered());
+    return PERCENT_MAX - getBrakePotentiometerPercentFromRaw(getBrakePosFiltered());
 }
 
 static bool brakePositionAndPressureAgree(float posPercent, float presPercent)
@@ -113,22 +113,21 @@ static bool brakePositionAndPressureAgree(float posPercent, float presPercent)
     return diff <= BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT;
 }
 
-// Brake position is inverter (pressing brake decreases Pot value).
 float getBrakePositionPercent()
 {
     __unused float posPercent = getBrakePotentiometerPercent();
     __unused float presPercent = getBrakePressurePercent();
 
 #if BRAKE_PERCENT_USE_PRESSURE
-    return PERCENT_MAX - presPercent;
+    return presPercent;
 #elif BRAKE_PERCENT_USE_POSITION
-    return PERCENT_MAX - posPercent;
+    return posPercent;
 #elif BRAKE_PERCENT_USE_COMBINED
     if (brakePositionAndPressureAgree(posPercent, presPercent)) {
-        return PERCENT_MAX - (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
+        return (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
     }
 
-    return PERCENT_MAX - max(posPercent, presPercent);
+    return max(posPercent, presPercent);
 #endif
 }
 
