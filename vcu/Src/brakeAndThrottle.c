@@ -118,11 +118,18 @@ float getBrakePositionPercent()
 {
     float posPercent = getBrakePotentiometerPercent();
     float presPercent = getBrakePressurePercent();
+
+#if BRAKE_PERCENT_USE_PRESSURE
+    return PERCENT_MAX - presPercent;
+#elif BRAKE_PERCENT_USE_POSITION
+    return PERCENT_MAX - posPercent;
+#elif BRAKE_PERCENT_USE_COMBINED
     if (brakePositionAndPressureAgree(posPercent, presPercent)) {
-        return 100 - (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
+        return PERCENT_MAX - (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
     }
 
-    return 100 - max(posPercent, presPercent);
+    return PERCENT_MAX - max(posPercent, presPercent);
+#endif
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
