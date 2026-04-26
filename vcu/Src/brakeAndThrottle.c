@@ -113,15 +113,16 @@ static bool brakePositionAndPressureAgree(float posPercent, float presPercent)
     return diff <= BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT;
 }
 
+// Brake position is inverter (pressing brake decreases Pot value).
 float getBrakePositionPercent()
 {
     float posPercent = getBrakePotentiometerPercent();
     float presPercent = getBrakePressurePercent();
     if (brakePositionAndPressureAgree(posPercent, presPercent)) {
-        return (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
+        return 100 - (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
     }
 
-    return max(posPercent, presPercent);
+    return 100 - max(posPercent, presPercent);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
