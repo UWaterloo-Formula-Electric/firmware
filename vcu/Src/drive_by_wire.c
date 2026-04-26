@@ -300,7 +300,7 @@ uint32_t EM_Fault(uint32_t event)
             break;
         case EV_Brake_Position_Fault:
             {
-                sendDTC_FATAL_VCU_F7_EV_FATAL();
+                sendDTC_CRITICAL_Brake_Position_FAIL();
                 DEBUG_PRINT("Brake position fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
