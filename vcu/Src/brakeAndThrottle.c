@@ -356,7 +356,7 @@ int getBrakePressure() {
 }
 
 float getBrakePressurePercent() {
-    return map_range_float(getBrakePressurePSI(), PERCENT_MIN, BRAKE_PRESSURE_100_PERCENT_PSI, PERCENT_MIN, PERCENT_MAX);
+    return map_range_float(getBrakePresFiltered(), BRAKE_PRES_LOW, BRAKE_PRES_HIGH, PERCENT_MIN, PERCENT_MAX);
 }
 
 // Full left turn angle: -100 degrees

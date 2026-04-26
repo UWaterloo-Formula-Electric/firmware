@@ -7,6 +7,7 @@
 
 #define ADC_RESOLUTION_BITS 12
 #define ADC_MAX_COUNT 4095
+#define ADC_MIN_VALUE 0.0f
 #define ADC_MAX_VALUE ((float)ADC_MAX_COUNT)
 #define ADC_12_BIT_2_12_BIT(x) ((x) >> (ADC_RESOLUTION_BITS - ADC_RESOLUTION_BITS))
 
@@ -22,8 +23,6 @@
 #define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 2
 
-// Brake pressure above which 100% braking force is assumed — tune experimentally
-#define BRAKE_PRESSURE_100_PERCENT_PSI 1000.0f
 #define BRAKE_PRESSURE_SENSOR_MIN_V 0.5f
 #define BRAKE_PRESSURE_SENSOR_MAX_V 4.5f
 #define BRAKE_PRESSURE_SENSOR_MIN_PSI 0.0f
@@ -45,6 +44,10 @@
 
 #define BRAKE_POS_LOW (165)
 #define BRAKE_POS_HIGH (235)
+
+
+#define BRAKE_PRES_LOW (420)
+#define BRAKE_PRES_HIGH (2592)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (ADC_MAX_COUNT)  // Pot value when the wheel is all the way to the right
