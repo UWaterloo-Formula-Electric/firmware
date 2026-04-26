@@ -731,11 +731,11 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 }
 
 void batt_set_temp_config(size_t channel) {
-	//const uint8_t gpioPins = channel;
+	const uint8_t gpioPins = channel;
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			m_batt_configA[board][chip][3] = 0x1D;
+			m_batt_configA[board][chip][3] = (gpioPins & 0x0F) | 0x10;
 		}
 	}
 }
@@ -857,8 +857,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
 			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f + 0.06f;
-			//cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-			cell_temp_array[tempIdx] = voltageThermistor;
+			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			//cell_temp_array[tempIdx] = voltageThermistor;
 		}
 	}
 	return HAL_OK;

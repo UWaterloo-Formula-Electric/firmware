@@ -302,7 +302,7 @@ float batt_convert_voltage_to_temp(float voltage) {
     const float p6 = 0.0;
     const float p7 = 0.0;
 
-    float x = voltage;
+    float x = voltage*4.64/3.0;
 
     float output = p1*pow(x,6) + p2*pow(x,5) + p3*pow(x,4) + p4*pow(x,3) + p5*pow(x,2)
         + p6*pow(x,1) + p7;
