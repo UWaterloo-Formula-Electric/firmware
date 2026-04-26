@@ -297,10 +297,10 @@ float batt_convert_voltage_to_temp(float voltage) {
     const float p1 = 0.0;
     const float p2 = 0.0;
     const float p3 = 0.0;
-    const float p4 = 0.081333;
-    const float p5 = 4.3158;
-    const float p6 = 0.0;
-    const float p7 = 0.0;
+    const float p4 = 0.0;
+    const float p5 = 1.943105255511;
+    const float p6 = 13.871206641654;
+    const float p7 = -16.994487328784;
 
     float x = voltage;
 
