@@ -27,8 +27,6 @@
 #define MOCK_ADC_READINGS
 #endif
 
-// #define DISABLE_THROTTLE_B_CHECKS
-
 /*********************************************************************************************************************/
 /*-------------------------------------------------Global variables--------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -102,10 +100,6 @@ bool is_throttle1_in_range(uint32_t throttle) {
 
 bool is_throttle2_in_range(uint32_t throttle) {
   return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW-MAX_THROTTLE_B_DEADZONE;
-}
-
-bool is_brake_in_range(uint32_t brake) {
-  return brake <= BRAKE_POS_HIGH + MAX_BRAKE_DEADZONE && brake >= BRAKE_POS_LOW - MAX_BRAKE_DEADZONE;
 }
 
 float calculate_throttle_percent1(uint16_t tps_value)
@@ -187,11 +181,7 @@ bool getThrottlePositionPercent(float *throttleOut)
         && is_throttle2_in_range(thB))
     {
         throttle1_percent = calculate_throttle_percent1(thA);
-#ifdef DISABLE_THROTTLE_B_CHECKS
-        throttle2_percent = throttle1_percent; // If throttle B checks are disabled, just use throttle A
-#else
         throttle2_percent = calculate_throttle_percent2(thB);
-#endif
     } else {
       ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)thA, (uint32_t)thB);
       return false;
@@ -213,25 +203,23 @@ bool getThrottlePositionPercent(float *throttleOut)
     return true;
 }
 
-bool brakePlausibilityCheckFail()
-{
-    uint32_t brakePotVal = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
-    if (!is_brake_in_range(brakePotVal)) {
-        ERROR_PRINT("Brake pot out of range, motor disabled T.4.3.3: %lu [%lu, %lu]\n", brakePotVal, (uint32_t)BRAKE_POS_LOW, (uint32_t)BRAKE_POS_HIGH);
-        return true;
-    }
-    return false;
-}
-
 /*
- * Cross-checks brake position % against brake pressure %.
+ * Checks brake position range, then cross-checks brake position % against brake pressure %.
  * If the pedal says brakes are engaged but pressure isn't building,
  * the hydraulic system is likely failed — sends EV_Brake_Pressure_Fault.
  * Returns true if implausibility detected.
  */
 static bool checkBrakeImplausibility()
 {
-    float posPercent  = getBrakePositionPercent();
+    float brakePos = getBrakePosFiltered();
+    if (brakePos < BRAKE_POS_LOW || brakePos > BRAKE_POS_HIGH) {
+        ERROR_PRINT("Brake position out of range: %.1f [%.1f, %.1f]\n",
+                    brakePos, (float)BRAKE_POS_LOW, (float)BRAKE_POS_HIGH);
+        fsmSendEventUrgent(&VCUFsmHandle, EV_Brake_Position_Fault, portMAX_DELAY);
+        return true;
+    }
+
+    float posPercent = map_range_float(brakePos, BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
     if (posPercent < BRAKE_POS_IMPLAUSIBILITY_MIN_PERCENT) {
         return false;
     }
@@ -266,11 +254,6 @@ ThrottleStatus_t getNewThrottle(float *throttleOut)
         (*throttleOut) = 0;
         return THROTTLE_DISABLED;
     }
-
-    // if (brakePlausibilityCheckFail()) {
-    //     (*throttleOut) = 0;
-    //     return THROTTLE_DISABLED;
-    // }
 
     // If we get here, all checks have passed, so can safely output throttle
     (*throttleOut) = throttle;
@@ -493,10 +476,6 @@ void InvCommandTask(void)
             
             throttlePercentReading = 0;
         }
-        // // just to print out what it is delete after testing
-        // float discard;
-        // getThrottlePositionPercent(&discard);
-        // // end
         watchdogTaskCheckIn(INV_COMMAND_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS));
     }
