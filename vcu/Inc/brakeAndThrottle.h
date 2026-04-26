@@ -15,6 +15,7 @@
 #define PERCENT_MIN_INT 0
 #define PERCENT_MAX_INT 100
 #define TPS_SENSOR_COUNT 2.0f
+#define BRAKE_SENSOR_COUNT 2.0f
 #define THROTTLE_FAILURE_DTC_DETAIL 0
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
@@ -30,10 +31,7 @@
 #define BRAKE_PRESSURE_ADC_REF_V 3.3f
 #define BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE 1.5f
 #define MOCK_BRAKE_PRESSURE_PERCENT 95
-// Minimum brake position % before the pos-vs-pressure cross-check is active
-#define BRAKE_POS_IMPLAUSIBILITY_MIN_PERCENT 20.0f
-// If brake position % exceeds brake pressure % by this much, flag an implausibility
-#define BRAKE_IMPLAUSIBILITY_DIFF_PERCENT 20.0f
+#define BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT 10.0f
 
 #define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25

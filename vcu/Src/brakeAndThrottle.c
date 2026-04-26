@@ -89,9 +89,39 @@ static float getBrakePresFiltered()
     return get_median(brakePresReadings, NUM_MEDIAN_FILTER_SAMPLES);
 }
 
+static bool isBrakePositionRawInRange(float brakePos)
+{
+    return brakePos >= BRAKE_POS_LOW && brakePos <= BRAKE_POS_HIGH;
+}
+
+static float getBrakePotentiometerPercentFromRaw(float brakePos)
+{
+    return map_range_float(brakePos, BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
+}
+
+static float getBrakePotentiometerPercent()
+{
+    return getBrakePotentiometerPercentFromRaw(getBrakePosFiltered());
+}
+
+static bool brakePositionAndPressureAgree(float posPercent, float presPercent)
+{
+    float diff = posPercent - presPercent;
+    if (diff < 0) {
+        diff = -diff;
+    }
+    return diff <= BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT;
+}
+
 float getBrakePositionPercent()
 {
-    return map_range_float(getBrakePosFiltered(), BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
+    float posPercent = getBrakePotentiometerPercent();
+    float presPercent = getBrakePressurePercent();
+    if (brakePositionAndPressureAgree(posPercent, presPercent)) {
+        return (posPercent + presPercent) / BRAKE_SENSOR_COUNT;
+    }
+
+    return max(posPercent, presPercent);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
@@ -212,22 +242,18 @@ bool getThrottlePositionPercent(float *throttleOut)
 static bool checkBrakeImplausibility()
 {
     float brakePos = getBrakePosFiltered();
-    if (brakePos < BRAKE_POS_LOW || brakePos > BRAKE_POS_HIGH) {
+    if (!isBrakePositionRawInRange(brakePos)) {
         ERROR_PRINT("Brake position out of range: %.1f [%.1f, %.1f]\n",
                     brakePos, (float)BRAKE_POS_LOW, (float)BRAKE_POS_HIGH);
         fsmSendEventUrgent(&VCUFsmHandle, EV_Brake_Position_Fault, portMAX_DELAY);
         return true;
     }
 
-    float posPercent = map_range_float(brakePos, BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
-    if (posPercent < BRAKE_POS_IMPLAUSIBILITY_MIN_PERCENT) {
-        return false;
-    }
+    float posPercent = getBrakePotentiometerPercentFromRaw(brakePos);
     float presPercent = getBrakePressurePercent();
-    if (posPercent - presPercent > BRAKE_IMPLAUSIBILITY_DIFF_PERCENT) {
-        ERROR_PRINT("Brake implausibility: pos=%.1f%% pres=%.1f%%, diff=%.1f%% > %.1f%%\n",
-                    posPercent, presPercent,
-                    posPercent - presPercent, BRAKE_IMPLAUSIBILITY_DIFF_PERCENT);
+    if (!brakePositionAndPressureAgree(posPercent, presPercent)) {
+        ERROR_PRINT("Brake implausibility: pos=%.1f%% pres=%.1f%%, tolerance=%.1f%%\n",
+                    posPercent, presPercent, BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT);
         fsmSendEventUrgent(&VCUFsmHandle, EV_Brake_Pressure_Fault, portMAX_DELAY);
         return true;
     }
