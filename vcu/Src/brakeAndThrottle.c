@@ -99,7 +99,7 @@ static float getBrakePotentiometerPercentFromRaw(float brakePos)
     return map_range_float(brakePos, BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
 }
 
-static float getBrakePotentiometerPercent()
+float getBrakePotentiometerPercent()
 {
     return getBrakePotentiometerPercentFromRaw(getBrakePosFiltered());
 }

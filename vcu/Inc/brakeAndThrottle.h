@@ -111,6 +111,7 @@ float getBrakePressurePercent();
 HAL_StatusTypeDef brakeAndThrottleStart();
 int getSteeringAngle();
 float getBrakePositionPercent();
+float getBrakePotentiometerPercent();
 
 float getThrottleAFiltered();
 float getThrottleBFiltered();
