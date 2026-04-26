@@ -116,8 +116,8 @@ static bool brakePositionAndPressureAgree(float posPercent, float presPercent)
 // Brake position is inverter (pressing brake decreases Pot value).
 float getBrakePositionPercent()
 {
-    float posPercent = getBrakePotentiometerPercent();
-    float presPercent = getBrakePressurePercent();
+    __unused float posPercent = getBrakePotentiometerPercent();
+    __unused float presPercent = getBrakePressurePercent();
 
 #if BRAKE_PERCENT_USE_PRESSURE
     return PERCENT_MAX - presPercent;
