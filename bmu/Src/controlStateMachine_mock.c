@@ -67,6 +67,16 @@ static const CLI_Command_Definition_t getBrakePressureCommandDefinition =
     0 /* Number of parameters */
 };
 
+static void warnImdErrorThresholdBelowRulesMinimum(char *writeBuffer, size_t writeBufferLength,
+                                                   uint32_t thresholdKohm)
+{
+    if (thresholdKohm < IMD_RULES_ERROR_THRESHOLD_MIN_KOHM) {
+        COMMAND_OUTPUT("WARNING: Rules specify 500 ohms/V; at %uV the minimum is %u kOhm\n",
+                       IMD_RULES_REFERENCE_PACK_VOLTAGE,
+                       IMD_RULES_ERROR_THRESHOLD_MIN_KOHM);
+    }
+}
+
 BaseType_t setImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -86,6 +96,8 @@ BaseType_t setImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
                        IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM);
         return pdFALSE;
     }
+
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
 
     if (imdSetIsolationThresholdError((uint16_t)thresholdKohm) != HAL_OK) {
         COMMAND_OUTPUT("Failed to send IMD error threshold request\n");
@@ -121,6 +133,7 @@ BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
     }
 
     COMMAND_OUTPUT("IMD error threshold: %u kOhm\n", thresholdKohm);
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
     return pdFALSE;
 }
 static const CLI_Command_Definition_t getImdErrorThresholdCommandDefinition =
