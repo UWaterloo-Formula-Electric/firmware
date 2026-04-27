@@ -27,10 +27,8 @@
 #include "ltc_chip.h"
 #include "ltc_common.h"
 #include "ltc_chip_interface.h"
-
-#if IS_BOARD_F7
 #include "imdDriver.h"
-#endif
+
 
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
@@ -66,6 +64,70 @@ static const CLI_Command_Definition_t getBrakePressureCommandDefinition =
     "getBrake",
     "getBrake:\r\n Get brake pressure\r\n",
     getBrakePressure,
+    0 /* Number of parameters */
+};
+
+BaseType_t setImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint32_t thresholdKohm;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (param == NULL || sscanf(param, "%lu", &thresholdKohm) != 1) {
+        COMMAND_OUTPUT("Usage: setImdErrorThreshold <kOhm>\n");
+        return pdFALSE;
+    }
+
+    if (thresholdKohm < IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM ||
+        thresholdKohm > IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM) {
+        COMMAND_OUTPUT("IMD error threshold must be %u-%u kOhm\n",
+                       IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM,
+                       IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM);
+        return pdFALSE;
+    }
+
+    if (imdSetIsolationThresholdError((uint16_t)thresholdKohm) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold request\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Requested IMD error threshold set to %lu kOhm\n", thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setImdErrorThresholdCommandDefinition =
+{
+    "setImdErrorThreshold",
+    "setImdErrorThreshold <kOhm>:\r\n Set IMD isolation error threshold\r\n",
+    setImdErrorThreshold,
+    1 /* Number of parameters */
+};
+
+BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint16_t thresholdKohm;
+
+    if (imdRequestIsolationThresholdError() != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold read request\n");
+        return pdFALSE;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(IMD_CLI_RESPONSE_WAIT_MS));
+
+    if (!imdGetIsolationThresholdError(&thresholdKohm)) {
+        COMMAND_OUTPUT("No valid IMD error threshold response received\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("IMD error threshold: %u kOhm\n", thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getImdErrorThresholdCommandDefinition =
+{
+    "getImdErrorThreshold",
+    "getImdErrorThreshold:\r\n Read IMD isolation error threshold\r\n",
+    getImdErrorThreshold,
     0 /* Number of parameters */
 };
 
@@ -1643,6 +1705,14 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+#if IS_BOARD_F7
+    if (FreeRTOS_CLIRegisterCommand(&setImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+#endif
     if (FreeRTOS_CLIRegisterCommand(&stopChargeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

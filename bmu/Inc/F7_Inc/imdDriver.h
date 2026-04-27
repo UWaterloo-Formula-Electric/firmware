@@ -34,8 +34,16 @@ typedef enum ImdFaults_e {
 #define ISOLATION_FAULT (1 << ISO_ALARM)
 #define ISOLATION_WARNING (1 << ISO_WARNING)
 
+#define IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM 30U
+#define IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM 2000U
+
+#define IMD_CLI_RESPONSE_WAIT_MS 150U
+
 void initImdMeasurements();
 void updateImdData(ImdData_s *ImdData);
 ImdData_s * getImdData();
+HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm);
+HAL_StatusTypeDef imdRequestIsolationThresholdError();
+bool imdGetIsolationThresholdError(uint16_t *thresholdKohm);
 
 #endif
