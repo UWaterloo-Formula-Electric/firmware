@@ -14,7 +14,12 @@
 #define LV_SOC_LUT_LEN 9U
 #define LV_SOC_LUT_STEP 1.f
 
+#define TEMP_LUT_LEN 8U
+#define OCV_LUT_SOC_POINTS 21U
+
 extern const float highVoltageSocLut[HV_SOC_LUT_LEN];
 extern const float midVoltageSocLut[MID_SOC_LUT_LEN];
 extern const float lowVoltageSocLut[LV_SOC_LUT_LEN];
+extern const float TEMP_LUT[TEMP_LUT_LEN];
+extern const float OCV_LUT[OCV_LUT_SOC_POINTS][TEMP_LUT_LEN];
 #endif
