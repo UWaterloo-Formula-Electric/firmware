@@ -1244,20 +1244,11 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
 
 #if IS_BOARD_F7
     /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
-    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
-        if (cell == req_cell) {
-            if (batt_discharge_cell(cell) != HAL_OK) {
-                ERROR_PRINT("batt_discharge_cell %d failed\r\n", cell);
-                return pdFALSE;
-            }
-        } else {
-            if (batt_stop_discharge_cell(cell) != HAL_OK) {
-                ERROR_PRINT("batt_stop_discharge_cell %d failed\r\n", cell);
-                return pdFALSE;
-            }
-        }
-    }
 
+    if (batt_balance_cell(req_cell) != HAL_OK) {
+        ERROR_PRINT("batt_discharge_cell %d failed\r\n", req_cell);
+        return pdFALSE;
+    }
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return pdFALSE;
@@ -1266,10 +1257,10 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
         return pdFALSE;
     }
-    COMMAND_OUTPUT("Sent config to AMS boards (WRPWM)\r\n");
+    DEBUG_PRINT("Sent config to AMS boards (WRPWM)\r\n");
 
     /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config — use DT_OFF for no auto timeout. */
-    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
+    if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
         ERROR_PRINT("batt_set_disharge_timer failed\n");
         return pdFALSE;
     }
@@ -1277,9 +1268,9 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
         return pdFALSE;
     }
-    COMMAND_OUTPUT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
+    DEBUG_PRINT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
 #else
-    COMMAND_OUTPUT("dischargeCells: IS_BOARD_F7 only\r\n");
+    DEBUG_PRINT("dischargeCells: IS_BOARD_F7 only\r\n");
 #endif
     return pdFALSE;
 }

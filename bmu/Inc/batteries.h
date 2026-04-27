@@ -73,7 +73,7 @@
  * Threshold to begin balancing a cell when it's SoC is this percent higher
  * than the minimum cell SoC in the entire pack
  */
-#define BALANCE_MIN_SOC_DELTA (4.0F)
+#define BALANCE_MIN_SOC_DELTA (1.0F)
 
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (250)
