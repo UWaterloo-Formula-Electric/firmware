@@ -17,8 +17,9 @@
 #define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF (CELL_LOW_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will start weighing the lookup table method
 
 
-// Units A-s 152.44898 per cell
-static const float TOTAL_CAPACITY = 128050.0f;
+// BAK INR2170-45D: 4.5 [A-h] -> 16200 [A-s]
+// 3 cells in parallel (140s3p)
+static const float TOTAL_CAPACITY = 48600.0f; // [A-s]
 static SemaphoreHandle_t IBus_mutex;
 
 // my variables
