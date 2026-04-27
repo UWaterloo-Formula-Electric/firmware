@@ -94,27 +94,33 @@ float predict_voltage(float soc, float avg_temp) {
 
 void ukf_soc(float voltage, float current_integrated)
 {
+	// Convert segment voltage to average cell voltage
+	voltage = voltage / (float)(CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT);
+
 	// Subtract current*time from old SOC to estimate current SOC (coulomb counting - same as old method)
 	float soc = ukf.pred;
 	soc -= current_integrated / TOTAL_CAPACITY;
 	ukf.variance += ukf.process_noise;
 	float avg_temp = get_avg_temp();
 	// Predict voltages at sigma points
-	float spread = sqrtf(ukf.variance);
+	float spread = sqrtf(3.0f * ukf.variance);
 	float sigma_points[3];
 	sigma_points[0] = predict_voltage(soc, avg_temp);
 	sigma_points[1] = predict_voltage(soc + spread, avg_temp);
 	sigma_points[2] = predict_voltage(soc - spread, avg_temp);
-	float v_sigma_mean = 0.5f * (sigma_points[1] + sigma_points[2]);
+	// Simpson's rule (UKF kappa=2) weights: 4/6, 1/6, 1/6
+	float v_sigma_mean = (4.0f/6.0f) * sigma_points[0] + 
+						 (1.0f/6.0f) * sigma_points[1] + 
+						 (1.0f/6.0f) * sigma_points[2];
 
 	// Kalman gain
-	float innov_covariance = 2.0f * ((sigma_points[0]-v_sigma_mean)*(sigma_points[0]-v_sigma_mean)) +
-			  0.5f * ((sigma_points[1]-v_sigma_mean)*(sigma_points[1]-v_sigma_mean)) +
-			  0.5f * ((sigma_points[2]-v_sigma_mean)*(sigma_points[2]-v_sigma_mean)) +
-			  ukf.measurement_noise; // weighted variance of sigma points
+	float innov_covariance = (4.0f/6.0f) * ((sigma_points[0]-v_sigma_mean)*(sigma_points[0]-v_sigma_mean)) +
+							 (1.0f/6.0f) * ((sigma_points[1]-v_sigma_mean)*(sigma_points[1]-v_sigma_mean)) +
+							 (1.0f/6.0f) * ((sigma_points[2]-v_sigma_mean)*(sigma_points[2]-v_sigma_mean)) +
+							 ukf.measurement_noise; // weighted variance of sigma points
 
-	float cross_covariance =  0.5f * (spread*(sigma_points[1]-v_sigma_mean) +
-			   (-spread)*(sigma_points[2]-v_sigma_mean));
+	float cross_covariance = (1.0f/6.0f) * spread * (sigma_points[1]-v_sigma_mean) +
+							 (1.0f/6.0f) * (-spread) * (sigma_points[2]-v_sigma_mean);
 
 	if (innov_covariance < 1e-6f) innov_covariance = 1e-6f; // prevent divide by 0 which hopefully shouldnt happen anyway
 	float kalman_gain = cross_covariance / innov_covariance;
