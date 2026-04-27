@@ -412,14 +412,14 @@ void imdTask(void *pvParamaters)
         }
         if(imdData->faults) {
             if(imdData->faults & ISOLATION_FAULT || imdData->faults & ISOLATION_WARNING ) {
-                DEBUG_PRINT("IMD faulted!!\r\n");
+                ERROR_PRINT("IMD isolation faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
                 sendDTC_FATAL_IMD_Failure(1);
                     TSSI_GREEN_OFF;
                     TSSI_RED_ON;
             }
             else {
-                DEBUG_PRINT("else!!\r\n");
+                ERROR_PRINT("IMD faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
             }
             
