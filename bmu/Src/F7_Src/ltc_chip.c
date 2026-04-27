@@ -133,7 +133,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
         return HAL_ERROR;
     }
     #elif LTC_CHIP == ADBMS_CHIP_6830B
-    if (batt_broadcast_command(ADAX_UP) != HAL_OK) {
+    if (batt_broadcast_command(ADAX_DOWN) != HAL_OK) {
         return HAL_ERROR;
     }
     #endif
@@ -376,7 +376,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 			{
 				float adcv= cell_voltages_adcv[cellIdx];
 				float adsv = cell_voltages_adsv[cellIdx];
-				if (float_abs(adsv/adcv) < (0.88) || float_abs(adsv/adcv) > (0.95))
+				if (float_abs(adsv/adcv) < (0.85) || float_abs(adsv/adcv) > (1.40))
 				{
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (0.88, 0.95))\n",
 								cellIdx, adcv, adsv,
@@ -419,7 +419,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 // Need to write config after
 HAL_StatusTypeDef batt_balance_cell(int cell)
 {
-    if (c_assert(cell < NUM_VOLTAGE_CELLS))
+    if (c_assert(cell <= NUM_VOLTAGE_CELLS))
     {
         DEBUG_PRINT("Tried to balance a cell out of range (needs to be < %u)\r\n", NUM_VOLTAGE_CELLS);
         return HAL_ERROR;
@@ -431,21 +431,23 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
     if (batt_discharge_cell(cell) != HAL_OK) {
         return HAL_ERROR;
     }
-
     return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_stop_balance_cell(int cell)
 {
-    if (c_assert(cell < NUM_VOLTAGE_CELLS))
+    if (c_assert(cell <= NUM_VOLTAGE_CELLS))
     {
         return HAL_ERROR;
     }
 
     // int boardIdx = cell / CELLS_PER_BOARD;
     // int bmuCellIdx = cell % CELLS_PER_BOARD;
+    DEBUG_PRINT("Stopping balance for cell %d\n", cell);
 
-    batt_stop_discharge_cell(cell);
+    if (batt_stop_discharge_cell(cell) != HAL_OK) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }

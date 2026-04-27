@@ -1174,12 +1174,12 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             if (boundedContinueRedCar()) { continue; }
         }
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
-#endif
+ #if IS_BOARD_F7 && defined(ENABLE_AMS)
+         if (checkForOpenCircuit() != HAL_OK) {
+             ERROR_PRINT("Open wire test failed!\n");
+             if (boundedContinueRedCar()) { continue; }
+         }
+ #endif
 
         if (resumeBalance() != HAL_OK) {
             ERROR_PRINT("Failed to resume balance!\n");
@@ -1222,23 +1222,31 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                     float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
-
+                    DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
                     if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #if IS_BOARD_F7
-                        batt_balance_cell(cell);
+                        batt_balance_cell(cell+1);
 #endif
                         balancingCells = true;
                     } else {
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
 #if IS_BOARD_F7
-                      batt_stop_balance_cell(cell);
+                      batt_stop_balance_cell(cell+1);
 #endif
                     }
                 }
-
-                DEBUG_PRINT("\n\n\n");
-
+                if (batt_spi_wakeup(true) != HAL_OK) {
+                    ERROR_PRINT("Failed to wake up boards\n");
+                    return HAL_ERROR;
+                }
+                if (batt_write_config_pwm() != HAL_OK) {
+                    ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+                    return HAL_ERROR;
+                }
+                DEBUG_PRINT("Sent config to AMS boards\n");
+                
+                
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
                 if (batt_write_config() != HAL_OK)
@@ -1491,14 +1499,14 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+ #if IS_BOARD_F7 && defined(ENABLE_AMS)
+         if (checkForOpenCircuit() != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
-#endif
+             ERROR_PRINT("Open wire test failed!\n");
+             if (boundedContinueRedCar()) { continue; }
+         }
+ #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {

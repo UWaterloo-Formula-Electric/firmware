@@ -1106,7 +1106,7 @@ BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
     if (cellIdx == -1) {
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
 
         // If the board was asleep, configuration is lost AND the reference is off.
@@ -1167,7 +1167,7 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
 
     if (batt_read_cell_temps(cell_temps) != HAL_OK) {
@@ -1211,7 +1211,7 @@ BaseType_t getCellVoltagesADSV(char *writeBuffer, size_t writeBufferLength,
     if (cellIdx == -1) {
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
 
         batt_write_config();
@@ -1251,33 +1251,122 @@ static const CLI_Command_Definition_t getCellVoltagesADSVCommandDefinition =
     0 /* Number of parameters */
 };
 
+/**
+ * @brief Manual PWM discharge for one global cell, same sequence as @ref handleCharge
+ *        balance path (batteries.c): per-cell state, WRPWM, then discharge timer + WRCFGA/B.
+ *        No RTOS delay/watchdog. Timer set to @ref DT_OFF so discharge runs until @ref stopDischargeCells.
+ */
 BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
     BaseType_t paramLen;
     const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     int req_cell;
-    sscanf(cellIdxString, "%d", &req_cell);
+    if (cellIdxString == NULL || sscanf(cellIdxString, "%d", &req_cell) != 1) {
+        COMMAND_OUTPUT("dischargeCells <globalCell 0..%d>: manual PWM on one cell; stop with stopDischargeCells\r\n",
+            NUM_VOLTAGE_CELLS - 1);
+        return pdFALSE;
+    }
+
+    if (req_cell < 0 || req_cell >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("global cell must be 0..%d\r\n", NUM_VOLTAGE_CELLS - 1);
+        return pdFALSE;
+    }
+
+#if IS_BOARD_F7
+    /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
+        if (cell == req_cell) {
+            if (batt_discharge_cell(cell) != HAL_OK) {
+                ERROR_PRINT("batt_discharge_cell %d failed\r\n", cell);
+                return pdFALSE;
+            }
+        } else {
+            if (batt_stop_discharge_cell(cell) != HAL_OK) {
+                ERROR_PRINT("batt_stop_discharge_cell %d failed\r\n", cell);
+                return pdFALSE;
+            }
+        }
+    }
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
-    if (batt_discharge_cell(req_cell) != HAL_OK) {
-        ERROR_PRINT("Failed to write discharge DCC\n");
-        return HAL_ERROR;
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return pdFALSE;
     }
-    vTaskDelay(pdMS_TO_TICKS(50));
-    COMMAND_OUTPUT("Wrote PWM discharge global0..%d (use getDischargeDcc for RDPWM)\r\n", req_cell);
+    COMMAND_OUTPUT("Sent config to AMS boards (WRPWM)\r\n");
+
+    /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config — use DT_OFF for no auto timeout. */
+    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
+        ERROR_PRINT("batt_set_disharge_timer failed\n");
+        return pdFALSE;
+    }
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+        return pdFALSE;
+    }
+    COMMAND_OUTPUT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
+#else
+    COMMAND_OUTPUT("dischargeCells: IS_BOARD_F7 only\r\n");
+#endif
     return pdFALSE;
 }
 
 static const CLI_Command_Definition_t dischargeCellsCommandDefinition =
 {
     "dischargeCells",
-    "dischargeCells <n>:\r\n Clear PWM discharge, enable 0..n (WRPWM + WRCFG)\r\n",
+    "dischargeCells <globalCell>:\r\n One cell PWM discharge (WRPWM + WRCFG, DT_OFF); use stopDischargeCells to end\r\n",
     dischargeCellsCommand,
     1 /* Number of parameters */
+};
+
+BaseType_t stopDischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    (void)commandString;
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+#if IS_BOARD_F7
+    if (batt_unset_balancing_all_cells(15) != HAL_OK) {
+        ERROR_PRINT("batt_unset_balancing_all_cells failed\n");
+        return pdFALSE;
+    }
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return pdFALSE;
+    }
+    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
+        ERROR_PRINT("batt_set_disharge_timer failed\n");
+        return pdFALSE;
+    }
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+        return pdFALSE;
+    }
+    COMMAND_OUTPUT("Stopped PWM discharge on all cells; WRCFG sent\r\n");
+#else
+    COMMAND_OUTPUT("stopDischargeCells: IS_BOARD_F7 only\r\n");
+#endif
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t stopDischargeCellsCommandDefinition =
+{
+    "stopDischargeCells",
+    "stopDischargeCells:\r\n Clear all PWM discharge bits (WRPWM + WRCFG, DT_OFF)\r\n",
+    stopDischargeCellsCommand,
+    0 /* Number of parameters */
 };
 
 BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
@@ -1296,7 +1385,7 @@ BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
 
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
         if (batt_read_pwm(all_pwma, all_pwmb) != HAL_OK) {
             COMMAND_OUTPUT("Error reading AMS RDPWM\r\n");
@@ -1347,7 +1436,7 @@ BaseType_t getThermalShutdownCommand(char *writeBuffer, size_t writeBufferLength
 
         if (batt_spi_wakeup(true) != HAL_OK) {
             ERROR_PRINT("Failed to wake up boards\n");
-            return HAL_ERROR;
+            return pdFALSE;
         }
         if (batt_read_rdstatc(statc) != HAL_OK) {
             COMMAND_OUTPUT("Error reading RDSTATC\r\n");
@@ -1391,7 +1480,7 @@ BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     
     // Read config from AMS boards
@@ -1440,7 +1529,7 @@ BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     batt_init_chip_configs();
     batt_init_chip_configs_pwm();
@@ -1453,7 +1542,7 @@ BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
 
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
-        return HAL_ERROR;
+        return pdFALSE;
     }
     
     // Read config from AMS boards
@@ -1682,12 +1771,16 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        DEBUG_PRINT("getCellTempsCommandDefinition failed\n");
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesADSVCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopDischargeCellsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getDischargeDccCommandDefinition) != pdPASS) {
