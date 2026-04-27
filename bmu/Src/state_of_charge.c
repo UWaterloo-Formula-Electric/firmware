@@ -50,7 +50,7 @@ float predict_voltage(float soc, float avg_temp) {
 	// Get the index and fraction of the soc% in the LUT
 	float soc_idx_f = soc * (float)(OCV_LUT_SOC_POINTS - 1);
 	uint8_t soc_idx = (uint8_t)(soc_idx_f);
-	soc_idx = soc_idx > OCV_LUT_SOC_POINTS - 1 ? OCV_LUT_SOC_POINTS - 1 : soc_idx;
+	soc_idx = soc_idx > OCV_LUT_SOC_POINTS - 2 ? OCV_LUT_SOC_POINTS - 2 : soc_idx;
 	
 	// Get the fraction for interpolation between the two closest SOC% in the LUT
 	float soc_frac = (soc_idx_f - (float)soc_idx);
