@@ -38,11 +38,6 @@ ImdData_s *pImdData;
 static void imdSetUnusedRequestBytes() {
     IMD_Request_Data1 = IMD_REQUEST_UNUSED_BYTE;
     IMD_Request_Data2 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data3 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data4 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data5 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data6 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data7 = IMD_REQUEST_UNUSED_BYTE;
 }
 
 static void imdPrepareRequest(uint8_t index) {
@@ -105,6 +100,8 @@ HAL_StatusTypeDef imdRequestIsolationThresholdError() {
 
 bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
     if (thresholdKohm == NULL || IMD_Response_Index != IMD_THRESHOLD_ERROR_GET_INDEX) {
+        uint8_t responseIndex = IMD_Response_Index;
+        ERROR_PRINT("Response Index is not as expected: 0x%x\r\n", responseIndex);
         return false;
     }
 

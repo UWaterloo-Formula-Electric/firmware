@@ -128,7 +128,7 @@ BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
     vTaskDelay(pdMS_TO_TICKS(IMD_CLI_RESPONSE_WAIT_MS));
 
     if (!imdGetIsolationThresholdError(&thresholdKohm)) {
-        COMMAND_OUTPUT("No valid IMD error threshold response received\n");
+        COMMAND_OUTPUT("No valid IMD error threshold response received: %d\n", thresholdKohm);
         return pdFALSE;
     }
 

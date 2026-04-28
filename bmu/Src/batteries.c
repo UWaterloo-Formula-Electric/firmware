@@ -54,7 +54,7 @@
 
 #define ENABLE_IMD
 #define ENABLE_HV_MEASURE
-#define ENABLE_AMS
+// #define ENABLE_AMS
 #define ENABLE_CHARGER
 #define ENABLE_BALANCE
 
@@ -406,6 +406,7 @@ void imdTask(void *pvParamaters)
    while (1) {
         imdData = getImdData();
         
+        // TODO: should probably check once device status and IMD faults has cleared
         while(!(imdData->deviceStatus)) {
             watchdogTaskCheckIn(IMD_TASK_ID);
             vTaskDelay(50);
