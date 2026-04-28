@@ -326,9 +326,10 @@ void batt_init_chip_configs() {
 		for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
-            m_batt_configA[board][chip][0] = (REFON(0)) | (CTH(6));
+            m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
             m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
+			DEBUG_PRINT("REF ON");
             
             // Table 103 Configuration Register B Bit
             // Configuration Register B (UV/OV thresholds)
@@ -731,11 +732,11 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 }
 
 void batt_set_temp_config(size_t channel) {
-	//const uint8_t gpioPins = channel;
+	const uint8_t gpioPins = channel;
 	for (int board = 0; board < NUM_BOARDS; board++) {
 		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
 			// Maximum of 13 thermisters (on the 2025 AMS), so only 4 bits needed 
-			m_batt_configA[board][chip][3] = 0x1D;
+			m_batt_configA[board][chip][3] = (gpioPins & 0x0F) | 0x10;
 		}
 	}
 }

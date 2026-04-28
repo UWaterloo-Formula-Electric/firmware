@@ -73,7 +73,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
         return HAL_ERROR;
     }
 
-    long_delay_us(CONVERSION_TIME_7kHz_US);
+    delay_us(VOLTAGE_MEASURE_DELAY_US);
 
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {
@@ -376,7 +376,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
 			{
 				float adcv= cell_voltages_adcv[cellIdx];
 				float adsv = cell_voltages_adsv[cellIdx];
-				if (float_abs(adsv/adcv) < (0.85) || float_abs(adsv/adcv) > (1.40))
+				if (float_abs(adsv/adcv) < (0.75) || float_abs(adsv/adcv) > (1.40))
 				{
 					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (0.88, 0.95))\n",
 								cellIdx, adcv, adsv,

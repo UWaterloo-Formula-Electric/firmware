@@ -10,9 +10,9 @@
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 #define TEMP_MEASURE_DELAY_US 1000 // Time for measurements to finsh
+#define VOLTAGE_MEASURE_DELAY_US 1000 // Time for measurements to finsh
+#define ADSV_MEASURE_DELAY_US 1000 // Time for measurements to finsh
 #define MUX_MEASURE_DELAY_US  1 // Time for Mux to switch
-#define ADSV_MEASURE_DELAY_US 8000 // Time for measurements to finsh
-
 
 #define PEC_INIT_VAL 0x0010
 
