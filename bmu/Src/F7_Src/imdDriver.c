@@ -20,10 +20,12 @@
 #include "state_machine.h"
 #include "controlStateMachine.h"
 #include "bmu_can.h"
+#include "userCan.h"
 
 #define IMD_SENSE_PIN_FAULT    GPIO_PIN_RESET
 #define IMD_SENSE_PIN_NO_FAULT GPIO_PIN_SET
 
+#define IMD_REQUEST_CAN_ID 0x18EFF401U
 #define IMD_REQUEST_UNUSED_BYTE 0xFFU
 #define IMD_WRITE_LOCK_INDEX 0x6BU
 #define IMD_WRITE_ENABLE_VALUE 0xFCU
@@ -35,19 +37,10 @@
 QueueHandle_t ImdDataHandle;
 ImdData_s *pImdData;
 
-static void imdSetUnusedRequestBytes() {
-    IMD_Request_Data1 = IMD_REQUEST_UNUSED_BYTE;
-    IMD_Request_Data2 = IMD_REQUEST_UNUSED_BYTE;
-}
-
-static void imdPrepareRequest(uint8_t index) {
-    IMD_Request_Index = index;
-    imdSetUnusedRequestBytes();
-}
-
-static HAL_StatusTypeDef imdSendRequest(uint8_t index) {
-    imdPrepareRequest(index);
-    return sendCAN_IMD_Request();
+// IMD J1939 requests use command-specific DLCs, so the generated fixed-DLC
+// sender cannot be used for every request type.
+static HAL_StatusTypeDef imdSendRequest(uint8_t *data, uint32_t length) {
+    return sendCanMessage(IMD_REQUEST_CAN_ID, length, data);
 }
 
 void initImdMeasurements() {
@@ -69,33 +62,42 @@ HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm) {
         return HAL_ERROR;
     }
 
-    imdPrepareRequest(IMD_WRITE_LOCK_INDEX);
-    IMD_Request_Data1 = IMD_WRITE_ENABLE_VALUE;
-    HAL_StatusTypeDef status = sendCAN_IMD_Request();
+    uint8_t unlockRequest[] = {
+        IMD_WRITE_LOCK_INDEX,
+        IMD_WRITE_ENABLE_VALUE,
+    };
+    HAL_StatusTypeDef status = imdSendRequest(unlockRequest, sizeof(unlockRequest));
     if (status != HAL_OK) {
         return status;
     }
 
     vTaskDelay(pdMS_TO_TICKS(IMD_REQUEST_SPACING_MS));
 
-    imdPrepareRequest(IMD_THRESHOLD_ERROR_SET_INDEX);
-    IMD_Request_Data1 = thresholdKohm & 0xFFU;
-    IMD_Request_Data2 = (thresholdKohm >> 8) & 0xFFU;
-    status = sendCAN_IMD_Request();
+    uint8_t setThresholdRequest[] = {
+        IMD_THRESHOLD_ERROR_SET_INDEX,
+        thresholdKohm & 0xFFU,
+        (thresholdKohm >> 8) & 0xFFU,
+    };
+    status = imdSendRequest(setThresholdRequest, sizeof(setThresholdRequest));
     if (status != HAL_OK) {
         return status;
     }
 
     vTaskDelay(pdMS_TO_TICKS(IMD_REQUEST_SPACING_MS));
 
-    imdPrepareRequest(IMD_WRITE_LOCK_INDEX);
-    IMD_Request_Data1 = IMD_WRITE_DISABLE_VALUE;
-    return sendCAN_IMD_Request();
+    uint8_t lockRequest[] = {
+        IMD_WRITE_LOCK_INDEX,
+        IMD_WRITE_DISABLE_VALUE,
+    };
+    return imdSendRequest(lockRequest, sizeof(lockRequest));
 }
 
 HAL_StatusTypeDef imdRequestIsolationThresholdError() {
     IMD_Response_Index = IMD_REQUEST_UNUSED_BYTE;
-    return imdSendRequest(IMD_THRESHOLD_ERROR_GET_INDEX);
+    uint8_t request[] = {
+        IMD_THRESHOLD_ERROR_GET_INDEX,
+    };
+    return imdSendRequest(request, sizeof(request));
 }
 
 bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
@@ -106,6 +108,7 @@ bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
     }
 
     *thresholdKohm = IMD_Response_Data1 | (IMD_Response_Data2 << 8);
+    ERROR_PRINT("Isolation threshold error: %d KOhm\r\n", *thresholdKohm);
     return *thresholdKohm >= IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM &&
            *thresholdKohm <= IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM;
 }
