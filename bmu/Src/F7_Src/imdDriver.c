@@ -108,7 +108,7 @@ bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
     }
 
     *thresholdKohm = IMD_Response_Data1 | (IMD_Response_Data2 << 8);
-    ERROR_PRINT("Isolation threshold error: %d KOhm\r\n", *thresholdKohm);
+    
     return *thresholdKohm >= IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM &&
            *thresholdKohm <= IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM;
 }
