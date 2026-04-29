@@ -472,8 +472,10 @@ void InvCommandTask(void)
                 fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
             }
 
+#if BRAKE_PERCENT_USE_COMBINED == 1
             // Check brake pos vs pressure: large discrepancy means hydraulic failure
             checkBrakeImplausibility();
+#endif
 
             // poll brake
             float brakePercent = getBrakePositionPercent();
