@@ -246,7 +246,7 @@ bool getThrottlePositionPercent(float *throttleOut)
  * the hydraulic system is likely failed — sends EV_Brake_Pressure_Fault.
  * Returns true if implausibility detected.
  */
-static bool checkBrakeImplausibility()
+__unused static bool checkBrakeImplausibility()
 {
     float brakePos = getBrakePosFiltered();
     if (!isBrakePositionRawInRange(brakePos)) {
