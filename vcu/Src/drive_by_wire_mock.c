@@ -170,7 +170,12 @@ BaseType_t getBrake(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     float brake = getBrakePositionPercent();
-    COMMAND_OUTPUT("Brake %f\n", brake);
+    float brakePressure = getBrakePressurePercent();
+    float brakePosition = getBrakePotentiometerPercent();
+    COMMAND_OUTPUT("Brake %f (pressure: %f, position: %f)\n",
+                   brake,
+                   brakePressure,
+                   brakePosition);
 
     /*COMMAND_OUTPUT("Vals: %lu, %lu, %lu, %lu, %lu\n", brakeThrottleSteeringADCVals[0],*/
                    /*brakeThrottleSteeringADCVals[1], brakeThrottleSteeringADCVals[2],*/
