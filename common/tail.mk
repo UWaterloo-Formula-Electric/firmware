@@ -134,13 +134,21 @@ LINKER_FLAGS += -z muldefs
 ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 
 NOTES ?= "N/A"
+WARNINGS_AS_ERRORS ?= 1
+ifneq ($(findstring w,$(firstword $(MAKEFLAGS))),)
+override WARNINGS_AS_ERRORS := 0
+endif
 # Compiler Flags
 COMPILER_FLAGS = $(LIB_CFLAGS)
-COMPILER_FLAGS += $(DEFINE_FLAGS) -Werror -Wno-format-truncation
+COMPILER_FLAGS += $(DEFINE_FLAGS) -Wno-format-truncation
+ifeq ($(WARNINGS_AS_ERRORS), 1)
+COMPILER_FLAGS += -Werror
+endif
 COMPILER_FLAGS += -D CUR_DATE=$(CURRENT_DATE)
 COMPILER_FLAGS += -D CUR_TOP_BRANCH=$(CURRENT_TOP_BRANCH)
 COMPILER_FLAGS += -D CUR_HASH=$(CURRENT_HASH)
 COMPILER_FLAGS += -D RELEASE_NOTES=\"$(NOTES)\"
+COMPILER_FLAGS += -Wno-unused-variable
 ifeq ($(DEBUG), 1)
 COMPILER_FLAGS += -g -Og
 else
