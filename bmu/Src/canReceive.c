@@ -106,3 +106,9 @@ void CAN_Msg_IMD_Info_General_Callback()
     ImdData.deviceStatus = IMD_Device_activity;
     updateImdData(&ImdData);
 }
+
+void CAN_Msg_IMD_Response_Callback()
+{
+    uint8_t responseIndex = IMD_Response_Index;
+    DEBUG_PRINT_ISR("Received IMD Response with index: 0x%x\n", responseIndex);
+}
