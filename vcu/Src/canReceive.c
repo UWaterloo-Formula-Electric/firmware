@@ -192,6 +192,12 @@ void CAN_Msg_MC_Internal_States_Callback() // 100 hz
 
 void CAN_Msg_MC_Read_Write_Param_Response_Callback()
 {
+    DEBUG_PRINT_ISR("INV param response: addr=%llu (0x%04llX), data=%lld (0x%04llX), write_ok=%llu\r\n",
+                    INV_Parameter_Response_Addr,
+                    INV_Parameter_Response_Addr,
+                    INV_Parameter_Response_Data,
+                    (uint64_t)(INV_Parameter_Response_Data & 0xFFFF),
+                    INV_Parameter_Response_Write_OK);
     sendLockoutReleaseToMC();
 }
 

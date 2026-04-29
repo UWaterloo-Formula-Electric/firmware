@@ -108,7 +108,7 @@ void coolingTask(void *pvParameters) {
             if (motorOverheated())
             {
                 DEBUG_PRINT("Motor Overheated!\r\n");
-                sendDTC_FATAL_PDU_Motor_Overheat();
+                // sendDTC_FATAL_PDU_Motor_Overheat();
             }
         }
         else 

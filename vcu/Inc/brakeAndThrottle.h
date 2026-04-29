@@ -45,9 +45,9 @@
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
 #define THROTT_A_LOW (355)
-#define THROTT_B_LOW (2115)
+#define THROTT_B_LOW (1979)
 
-#define THROTT_A_HIGH (2010)
+#define THROTT_A_HIGH (2146)
 #define THROTT_B_HIGH (3765)
 
 #define BRAKE_POS_LOW (165)

@@ -423,6 +423,82 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t invParamReadCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *addressString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    int address;
+    sscanf(addressString, "%i", &address);
+
+    if (address < 0 || address > 0xFFFF) {
+        COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
+        return pdFALSE;
+    }
+
+    if (mcReadParamCommand((uint16_t)address, 0) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send inverter parameter read\r\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Sent inverter parameter read: addr=%u (0x%04X)\r\n",
+                   (unsigned int)address,
+                   (unsigned int)address);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t invParamReadCommandDefinition =
+{
+    "invParamRead",
+    "invParamRead <addr>:\r\n  Read CM200DZ parameter addr. addr may be decimal or hex.\r\n",
+    invParamReadCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t invParamWriteCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *addressString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    const char *dataString = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+
+    int address;
+    int data;
+    sscanf(addressString, "%i", &address);
+    sscanf(dataString, "%i", &data);
+
+    if (address < 0 || address > 0xFFFF) {
+        COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
+        return pdFALSE;
+    }
+
+    if (data < 0 || data > 0xFFFF) {
+        COMMAND_OUTPUT("Invalid inverter parameter data\r\n");
+        return pdFALSE;
+    }
+
+    if (mcWriteParamCommand((uint16_t)address, (uint16_t)data) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send inverter parameter write\r\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Sent inverter parameter write: addr=%u (0x%04X), data=%u (0x%04X)\r\n",
+                   (unsigned int)address,
+                   (unsigned int)address,
+                   (unsigned int)data,
+                   (unsigned int)data);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t invParamWriteCommandDefinition =
+{
+    "invParamWrite",
+    "invParamWrite <addr> <data>:\r\n  Write CM200DZ parameter addr. Values may be decimal or hex.\r\n",
+    invParamWriteCommand,
+    2 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -471,6 +547,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&mcInitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&invParamReadCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&invParamWriteCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getBrakeCommandDefinition) != pdPASS) {
