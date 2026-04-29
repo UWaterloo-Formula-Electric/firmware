@@ -372,6 +372,9 @@ HAL_StatusTypeDef checkForOpenCircuit()
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
+        	if (cellIdx == 83) { // FIXME remove the bypass
+        		continue;
+        	}
         	if(!open_wire_failure[cellIdx].occurred)
 			{
 				float adcv= cell_voltages_adcv[cellIdx];

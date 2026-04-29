@@ -19,7 +19,7 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_SEGMENTS 1 // FIX THIS ON AMS (5)
+#define NUM_SEGMENTS 5 // FIX THIS ON AMS (5)
 #define NUM_BOARDS_PER_SEGMENT      1 // FIX THIS ON AMS
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
