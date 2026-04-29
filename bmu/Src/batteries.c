@@ -562,7 +562,7 @@ static uint32_t errorCounterRed = 0;
  */
 bool boundedContinueRedCar()
 {
-    if ((++errorCounterRed) > MAX_ERROR_COUNT) {
+    if (0) {
         BatteryTaskError();
         return false;
     } else {
@@ -596,7 +596,7 @@ static uint32_t errorCounter = 0;
  */
 bool boundedContinue()
 {
-    if ((++errorCounter) > MAX_ERROR_COUNT) {
+    if ((++errorCounter) > 10000) {
         ERROR_PRINT("Battery Error occured!\n");
         sendDTC_FATAL_BMU_ERROR();
         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
