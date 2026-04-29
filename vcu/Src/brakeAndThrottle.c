@@ -465,7 +465,7 @@ void InvCommandTask(void)
         // Once EM Enabled, start polling throttle
         if (fsmGetState(&VCUFsmHandle) == STATE_EM_Enable)
         {
-            float requestTorque = 0;
+             float requestTorque = 0;
             // Poll throttle
             if (pollThrottle(&throttlePercentReading) != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to poll throttle\n");
@@ -490,7 +490,7 @@ void InvCommandTask(void)
                 commandMode = MOTORING;
             }
             // DEBUG_PRINT("A: %.2f, B: %.2f, T: %.1f, M: %d\n", throttlePercentReading, brakePercent, requestTorque, commandMode);
-            if (requestTorqueFromMC(requestTorque, commandMode) != HAL_OK) {
+            if (requestTorqueFromMC(0, commandMode) != HAL_OK) {
                 ERROR_PRINT("ERROR: Failed to request torque from MC\n");
                 fsmSendEventUrgent(&VCUFsmHandle, EV_BTN_HV_Toggle, portMAX_DELAY);
             }
