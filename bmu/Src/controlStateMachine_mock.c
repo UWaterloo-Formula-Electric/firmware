@@ -282,6 +282,17 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(voltageParam, "%f", &VoltageCell[cellIdx]);
     COMMAND_OUTPUT("VoltageCell[%d] = %fV\n", cellIdx, VoltageCell[cellIdx]);
+    if( VoltageCell[cellIdx] > 4.2 || VoltageCell[cellIdx] < 2.5 ) 
+    { 
+        // TODO: as of 29-04-2026, the pack suffered a lot of EMI issues and would fault right away at EM since
+        // We couldn't talk to pack. We by passed this (increased redcar error counter), but it should be fixed
+        // Revert once it is fixed.
+        TSSI_GREEN_OFF;
+        TSSI_RED_ON; 
+        AMS_CONT_OPEN;
+        sendDTC_FATAL_AMS_Failure();
+        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setCellVoltageCommandDefinition =

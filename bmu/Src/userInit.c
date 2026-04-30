@@ -42,8 +42,7 @@ static HAL_StatusTypeDef init_HW_check_timer(void)
 
 void initTSSI()
 {
-    // TSSI_GREEN_ON;
-    TSSI_GREEN_OFF;
+    TSSI_GREEN_ON;
     TSSI_RED_OFF;
 }
 

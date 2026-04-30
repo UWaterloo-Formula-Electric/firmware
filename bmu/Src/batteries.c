@@ -529,7 +529,6 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
-    sendDTC_FATAL_AMS_Failure();
 #if IS_BOARD_F7
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
@@ -548,42 +547,7 @@ void BatteryTaskError()
 
 
 /// Maximum number of errors battery task can encounter before reporting error
-#define MAX_ERROR_COUNT 5
-
-static uint32_t errorCounterRed = 0;
-
-/**
- * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
- * immediately fatal. This causes the task to retry its readings/whatever else
- * failed MAX_ERROR_COUNT times, then fail and send error event.
- * TODO: ensure this is max 500 ms to meet rules for cell reading times
- *
- * @return true if errorCounterRed is below or equal to max error count, false otherwise
- */
-bool boundedContinueRedCar()
-{
-    if (0) {
-        BatteryTaskError();
-        return false;
-    } else {
-        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
-        watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-        return true;
-    }
-}
-
-/**
- * @brief Call on a succesful run through main loop.
- * Decrements error counter on succesful run through main loop
- */
-void ERROR_COUNTER_RED_SUCCESS()
-{
-  if (errorCounterRed > 0)
-  {
-    errorCounterRed--;
-  }
-}
+#define MAX_ERROR_COUNT 100000
 
 static uint32_t errorCounter = 0;
 
@@ -596,7 +560,7 @@ static uint32_t errorCounter = 0;
  */
 bool boundedContinue()
 {
-    if ((++errorCounter) > 10000) {
+    if ((++errorCounter) > MAX_ERROR_COUNT) {
         ERROR_PRINT("Battery Error occured!\n");
         sendDTC_FATAL_BMU_ERROR();
         fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
@@ -621,6 +585,44 @@ void ERROR_COUNTER_SUCCESS()
     errorCounter--;
   }
 }
+
+
+static uint32_t errorCounterRed = 0;
+
+/**
+ * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
+ * TODO: ensure this is max 500 ms to meet rules for cell reading times
+ *
+ * @return true if errorCounterRed is below or equal to max error count, false otherwise
+ */
+bool boundedContinueRedCar()
+{
+    // return boundedContinue();
+    if ( errorCounterRed >= MAX_ERROR_COUNT) {
+        BatteryTaskError();
+        return false;
+    } else {
+        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        return true;
+    }
+}
+
+/**
+ * @brief Call on a succesful run through main loop.
+ * Decrements error counter on succesful run through main loop
+ */
+void ERROR_COUNTER_RED_SUCCESS()
+{
+  if (errorCounterRed > 0)
+  {
+    errorCounterRed--;
+  }
+}
+
 
 /**
  * Alpha value for cell voltage filter
