@@ -20,6 +20,8 @@
 #include "vcu_F7_can.h"
 #include "vcu_F7_dtc.h"
 
+#include <inttypes.h>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
@@ -92,6 +94,7 @@ extern osThreadId driveByWireHandle;
 
 void CAN_Msg_PDU_ChannelStatus_Callback()
 {
+    DEBUG_PRINT_ISR("Received pdu channel status %" PRIu64 "\n", (uint64_t)StatusPowerInverter);
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     
     if (!motorControllersStatus && StatusPowerInverter == StatusPowerInverter_CHANNEL_ON) {
@@ -185,6 +188,10 @@ void CAN_Msg_TractionControlConfig_Callback()
 
 void CAN_Msg_MC_Internal_States_Callback() // 100 hz
 {
+    DEBUG_PRINT_ISR("Received mc internal states: inverter lockout disabled=%u, inverter state=%" PRIu64 ", inverter vsm state=%" PRIu64 "\n",
+                    INV_Inverter_Enable_Lockout == 0,
+                    (uint64_t)INV_Inverter_State,
+                    (uint64_t)INV_VSM_State);
     inverterLockoutDisabled = INV_Inverter_Enable_Lockout == 0;
     inverterInternalState = INV_Inverter_State;
     inverterVSMState = INV_VSM_State;
