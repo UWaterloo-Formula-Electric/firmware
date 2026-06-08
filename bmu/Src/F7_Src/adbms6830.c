@@ -329,7 +329,6 @@ void batt_init_chip_configs() {
             m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
             m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
-			DEBUG_PRINT("REF ON");
             
             // Table 103 Configuration Register B Bit
             // Configuration Register B (UV/OV thresholds)
@@ -894,7 +893,7 @@ void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 		} else {
 			m_batt_configA_pwm[board][chip][block] &= 0x0F;
 		}
-		DEBUG_PRINT("Config is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
+		DEBUG_PRINT("Balancing: Config A is now %02X %02X %02X %02X %02X %02X\n", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
     } else {
 		int block = (cell-12)/2;
 		if (cell%2 == 1) {
@@ -902,7 +901,7 @@ void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 		} else {
 			m_batt_configB_pwm[board][chip][block] &= 0x0F;
 		}
-		DEBUG_PRINT("Config B is now %02X %02X %02X %02X %02X %02X", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
+		DEBUG_PRINT("Balancing: Config B is now %02X %02X %02X %02X %02X %02X\n", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
 	}
 }
 

@@ -58,9 +58,12 @@ void heartbeatReceived(BoardIDs board)
 
 bool heartbeatEnabled = true;
 bool DCU_heartbeatEnabled = false;
-bool PDU_heartbeatEnabled = true;
+// PDU and VCU_F7 heartbeat checks disabled: a missed PDU/VCU heartbeat must not
+// throw a fault or bring down HV. Can be re-enabled at runtime via the
+// "heartbeatForBoard <PDU|VCU_F7> on" CLI command.
+bool PDU_heartbeatEnabled = false;
 bool BMU_heartbeatEnabled = true;
-bool VCU_F7_heartbeatEnabled = true;
+bool VCU_F7_heartbeatEnabled = false;
 
 void disableHeartbeat()
 {

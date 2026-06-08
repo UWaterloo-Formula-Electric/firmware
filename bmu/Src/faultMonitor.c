@@ -106,11 +106,12 @@ void faultMonitorSendStatusTask(void *pvParameters) {
             continue;
         }
 
-        if (getBSPD_Status() == false) {
-            // DEBUG_PRINT("FIM: BSPD\n");
-            BMU_checkFailed = BSPD_FAILED;
-            continue;
-        }
+        // BSPD (IL C) check disabled: BSPD is no longer a requirement for readiness
+        // if (getBSPD_Status() == false) {
+        //     // DEBUG_PRINT("FIM: BSPD\n");
+        //     BMU_checkFailed = BSPD_FAILED;
+        //     continue;
+        // }
 
         if (getHVD_Status() == false) {
             // DEBUG_PRINT("FIM: HVD\n");
@@ -132,11 +133,12 @@ void faultMonitorSendStatusTask(void *pvParameters) {
         //     continue;
         // }
 
-        if (getCBRB_Status() == false) {
-            // DEBUG_PRINT("FIM: CBRB\n");
-            BMU_checkFailed = CBRB_FAILED;
-            continue;
-        }
+        // CBRB (IL G) check disabled: Cockpit BRB is fully disconnected
+        // if (getCBRB_Status() == false) {
+        //     // DEBUG_PRINT("FIM: CBRB\n");
+        //     BMU_checkFailed = CBRB_FAILED;
+        //     continue;
+        // }
 
         if (getTSMS_Status() == false) {
             // DEBUG_PRINT("FIM: TSMS\n");
@@ -187,21 +189,21 @@ void faultMonitorTask(void *pvParameters) {
 
     DEBUG_PRINT("Fault Monitor: EBOX connections OK.\n");
 
-    /* BSPD Status */
-    if (getBSPD_Status() == false) {
-        DEBUG_PRINT("Fault Monitor: BSPD is down!\r\n");
-        DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\r\n");
-        DEBUG_PRINT("Fault Monitor: This is IL_C in the 2025 BMU schematic.\r\n");
-        DEBUG_PRINT("Fault Monitor: -- help --\r\n");
-        DEBUG_PRINT("Fault Monitor: Make sure reset buttons are pressed\r\n");
-    }
+    /* BSPD Status (IL C) — check bypassed, not a requirement for readiness */
+    // if (getBSPD_Status() == false) {
+    //     DEBUG_PRINT("Fault Monitor: BSPD is down!\r\n");
+    //     DEBUG_PRINT("Fault Monitor: Waiting for BSPD OK.\r\n");
+    //     DEBUG_PRINT("Fault Monitor: This is IL_C in the 2025 BMU schematic.\r\n");
+    //     DEBUG_PRINT("Fault Monitor: -- help --\r\n");
+    //     DEBUG_PRINT("Fault Monitor: Make sure reset buttons are pressed\r\n");
+    // }
 
-    while (getBSPD_Status() == false) {
-        vTaskDelay(10);
-    }
+    // while (getBSPD_Status() == false) {
+    //     vTaskDelay(10);
+    // }
 
 
-    DEBUG_PRINT("Fault Monitor: BSPD OK.\n");
+    DEBUG_PRINT("Fault Monitor: BSPD BYPASSED.\n");
 
     /* HVD Status */
     if (getHVD_Status() == false) {
@@ -257,20 +259,23 @@ void faultMonitorTask(void *pvParameters) {
     // There is no sense at output of IMD, only checks if IMD has faulted
     // if IMD has not faulted but reset button was not pressed this can return false
     // even if CBRB is not pressed in
-    if (getCBRB_Status() == false) {
-        DEBUG_PRINT("Fault Monitor: CBRB is down!\r\n");
-        DEBUG_PRINT("Fault Monitor: This is IL G in 2025 BMU schematic.\r\n");
-        DEBUG_PRINT("Fault Monitor: Things to check:\n");
-        DEBUG_PRINT("Fault Monitor: * CBRB is not pressed in\r\n");
-        DEBUG_PRINT("Fault Monitor: * IMD reset button was pressed\r\n");
-    }
+    // CBRB (IL G) is no longer an IL requirement for system up: the system-up
+    // gate below is bypassed so a down CBRB won't block readiness. The runtime
+    // monitoring loop still reacts to the Cockpit BRB being pressed.
+    // if (getCBRB_Status() == false) {
+    //     DEBUG_PRINT("Fault Monitor: CBRB is down!\r\n");
+    //     DEBUG_PRINT("Fault Monitor: This is IL G in 2025 BMU schematic.\r\n");
+    //     DEBUG_PRINT("Fault Monitor: Things to check:\n");
+    //     DEBUG_PRINT("Fault Monitor: * CBRB is not pressed in\r\n");
+    //     DEBUG_PRINT("Fault Monitor: * IMD reset button was pressed\r\n");
+    // }
 
-    while (getCBRB_Status() == false) {
-        vTaskDelay(10);
-    }
+    // while (getCBRB_Status() == false) {
+    //     vTaskDelay(10);
+    // }
 
 
-    DEBUG_PRINT("Fault Monitor: CBRB OK.\n");
+    DEBUG_PRINT("Fault Monitor: CBRB BYPASSED (not required for system up).\n");
 
     if (getTSMS_Status() == false) {
         DEBUG_PRINT("Fault Monitor: TSMS is down!\r\n");
@@ -320,7 +325,8 @@ void faultMonitorTask(void *pvParameters) {
         Error_Handler();
     }
 
-    bool last_cbrb_ok = false;
+    // CBRB (IL G) fully disconnected: runtime monitoring disabled, so last_cbrb_ok is unused
+    // bool last_cbrb_ok = false;
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     uint16_t sentEvent = 0xffff;
@@ -342,12 +348,13 @@ void faultMonitorTask(void *pvParameters) {
             continue;
         }
 
-        if (getBSPD_Status() == false && sentEvent > BSPD_FAILED) {
-            ERROR_PRINT("Fault Monitor: BSPD tripped!\n");
-            fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
-            sentEvent = BSPD_FAILED;
-            continue;
-        }
+        // BSPD (IL C) trip monitoring disabled
+        // if (getBSPD_Status() == false && sentEvent > BSPD_FAILED) {
+        //     ERROR_PRINT("Fault Monitor: BSPD tripped!\n");
+        //     fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
+        //     sentEvent = BSPD_FAILED;
+        //     continue;
+        // }
 
         if (getHVD_Status() == false && sentEvent > HVD_FAILED) {
             ERROR_PRINT("Fault Monitor: HVD removed!\n");
@@ -359,21 +366,22 @@ void faultMonitorTask(void *pvParameters) {
         // AMS and IMD monitored by battery task and IMD
         // task respectively, so won't monitor here
 
-        bool cbrb_ok = getCBRB_Status();
-        if (!cbrb_ok && sentEvent > CBRB_FAILED) {
-            if (!last_cbrb_ok) {
-                ERROR_PRINT("Fault Monitor: Cockpit BRB pressed!\n");
-                fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
-                sentEvent = CBRB_FAILED;
-            }
-            last_cbrb_ok = true;
-            continue;
-        } else if (cbrb_ok && last_cbrb_ok) {
-            DEBUG_PRINT("Fault Monitor: Cockpit BRB released!\n");
-            fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
-            last_cbrb_ok = false;
-            sentEvent = 0xffff;
-        }
+        // CBRB (IL G) runtime monitoring disabled: Cockpit BRB is fully disconnected
+        // bool cbrb_ok = getCBRB_Status();
+        // if (!cbrb_ok && sentEvent > CBRB_FAILED) {
+        //     if (!last_cbrb_ok) {
+        //         ERROR_PRINT("Fault Monitor: Cockpit BRB pressed!\n");
+        //         fsmSendEventUrgent(&fsmHandle, EV_Cockpit_BRB_Pressed, portMAX_DELAY);
+        //         sentEvent = CBRB_FAILED;
+        //     }
+        //     last_cbrb_ok = true;
+        //     continue;
+        // } else if (cbrb_ok && last_cbrb_ok) {
+        //     DEBUG_PRINT("Fault Monitor: Cockpit BRB released!\n");
+        //     fsmSendEvent(&fsmHandle, EV_Cockpit_BRB_Unpressed, portMAX_DELAY);
+        //     last_cbrb_ok = false;
+        //     sentEvent = 0xffff;
+        // }
 
         if (getTSMS_Status() == false && sentEvent > TSMS_FAILED) {
             ERROR_PRINT("Fault Monitor: TSMS removed!\n");

@@ -217,7 +217,7 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
 
     int priority = (id & 0x1C000000) >> 26;
     xQueueHandle sendQueueHandle;
-
+    
     CAN_Message msg;
 
     msg.id = id;
@@ -250,7 +250,8 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data)
     if (xQueueSend(sendQueueHandle, &msg, pdMS_TO_TICKS(CAN_SEND_TIMEOUT_MS))
         != pdTRUE)
     {
-        ERROR_PRINT("Failed to send can msg to queue\n");
+        ERROR_PRINT("Failed to send can msg to queue: priority %d, id 0x%08lX, len %lu\n",
+                    priority, msg.id, msg.len);
         return HAL_ERROR;
     }
 
@@ -328,7 +329,7 @@ void canTask(void *pvParameters)
         /*DEBUG_PRINT("Got a CAN message\n");*/
 
         if (HAL_CAN_GetTxMailboxesFreeLevel(&CAN_HANDLE) == 0) {
-            // DEBUG_PRINT("All mailboxes full, waiting\n");
+            DEBUG_PRINT("userCan.c: All mailboxes full, waiting\n");
             // Give semaphore again, since we haven't sent this message
             if (xSemaphoreGive(CAN_Msg_Semaphore) != pdTRUE)
             {

@@ -17,6 +17,7 @@
 #include "cmsis_os.h"
 #include "prechargeDischarge.h"
 #include "bmu_can.h"
+#include "bmu_dtc.h"
 #include "controlStateMachine.h"
 #include "testData.h"
 #include "filters.h"
