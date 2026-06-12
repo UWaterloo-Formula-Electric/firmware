@@ -28,6 +28,7 @@
 #include "ltc_common.h"
 #include "ltc_chip_interface.h"
 #include "imdDriver.h"
+#include "bmu_dtc.h"
 
 
 extern bool HITL_Precharge_Mode;
