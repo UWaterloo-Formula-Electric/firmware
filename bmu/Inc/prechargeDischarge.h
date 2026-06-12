@@ -27,6 +27,10 @@ typedef enum PCDC_Notifications_t {
  * Precharge constants
  */
 
+#define PRECHARGE_MIN_CELL_VOLTAGE_VOLTS (2.5F)
+#define PRECHARGE_MAX_CELL_VOLTAGE_VOLTS (4.2F)
+
+
 #define PRECHARGE_RESISTOR_OHMS (1020)
 
 // Timeouts
