@@ -20,7 +20,12 @@
 #define CHARGER_COMM_START_TIMEOUT_MS 3000
 #define CHARGER_COMM_START_SEND_PERIOD_MS 100
 
+#define CHARGER_STATUS_TIMEOUT_MS 4000
+
 ChargerStatus mStatus = {0};
+
+static volatile uint32_t mLastStatusTick = 0;
+static volatile bool mStatusReceived = false;
 
 HAL_StatusTypeDef chargerInit()
 {
@@ -74,6 +79,8 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
 
 void CAN_Msg_ChargeStatus_Callback()
 {
+   mLastStatusTick = xTaskGetTickCountFromISR();
+   mStatusReceived = true;
 
    uint16_t current = (OutputCurrentHigh<<8) | (OutputCurrentLow & 0xFF);
    uint16_t voltage = (OutputVoltageHigh<<8) | (OutputVoltageLow & 0xFF);
@@ -114,9 +121,18 @@ HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut)
       return HAL_ERROR;
    }
 
-   if (mStatus.OverallState != CHARGER_OK)
+   bool stale = !mStatusReceived ||
+                (xTaskGetTickCount() - mLastStatusTick)
+                    > pdMS_TO_TICKS(CHARGER_STATUS_TIMEOUT_MS);
+
+   if (stale || mStatus.OverallState != CHARGER_OK)
    {
-      ERROR_PRINT("Charger State Fail\n");
+      if (stale) {
+         ERROR_PRINT("No charger status frame in %d ms - charger silent?\n",
+                     CHARGER_STATUS_TIMEOUT_MS);
+      } else {
+         ERROR_PRINT("Charger State Fail\n");
+      }
       DEBUG_PRINT("Current %f\n", mStatus.current);
       DEBUG_PRINT("Voltage %f\n", mStatus.voltage);
       DEBUG_PRINT("HW Fail %u, OverTemp %u, InputVoltageStatus %u\n",
@@ -128,6 +144,10 @@ HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut)
    }
 
    memcpy(statusOut, &mStatus, sizeof(ChargerStatus));
+
+   if (stale) {
+      statusOut->OverallState = CHARGER_FAIL;
+   }
 
    return HAL_OK;
 }
