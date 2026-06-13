@@ -681,6 +681,19 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
  *
  * @return HAL_StatusTypeDef
  */
+
+static const uint16_t disabledTempChannels[] = {23, 28, 62, 64, 115};
+
+static bool isTempChannelDisabled(int channel)
+{
+   for (size_t k = 0; k < sizeof(disabledTempChannels)/sizeof(disabledTempChannels[0]); k++) {
+      if (disabledTempChannels[k] == channel) {
+         return true;
+      }
+   }
+   return false;
+}
+
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage)
 {
    HAL_StatusTypeDef rc = HAL_OK;
@@ -736,8 +749,14 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
+            // Skip known-bad (open/unpopulated) thermistor channels so they don't
+            // trip a false overtemp or skew the min/max temps.
+            if (isTempChannelDisabled(i)) {
+                continue;
+            }
+
             measure = TempChannel[i];
-                
+
             // Check it is within bounds
             if (measure > CELL_OVERTEMP) {
                 ERROR_PRINT("Temp Channel %d is overtemp at %f deg C\n", i, measure);
