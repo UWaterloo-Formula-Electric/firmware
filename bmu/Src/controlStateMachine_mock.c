@@ -23,6 +23,7 @@
 #include "filters.h"
 #include "sense.h"
 #include "chargerControl.h"
+#include "userCan.h"
 #include "batteries.h"
 #include "faultMonitor.h"
 #include "ltc_chip.h"
@@ -575,6 +576,47 @@ static const CLI_Command_Definition_t maxChargeCurrentCommandDefinition =
     "maxChargeCurrent <current>:\r\n  set the max current the charger will output\r\n",
     maxChargeCurrentCommand,
     1 /* Number of parameters */
+};
+
+BaseType_t chargerStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    // NOTE: COMMAND_OUTPUT can only be used once per command (it overwrites the
+    // CLI write buffer), so all the multi-line output goes through DEBUG_PRINT,
+    // matching getCellTemps and the other multi-line commands here.
+    uint32_t rawCount = getChargerRawRxCount();
+
+    DEBUG_PRINT("Charger CAN bus (hcan1):\n");
+    DEBUG_PRINT("  raw frames received: %lu\n", (unsigned long)rawCount);
+    if (rawCount > 0) {
+        DEBUG_PRINT("  last raw ext ID:     0x%lX\n", (unsigned long)getChargerRawLastId());
+    } else {
+        DEBUG_PRINT("  last raw ext ID:     (none seen)\n");
+    }
+
+    if (!chargerStatusEverReceived()) {
+        DEBUG_PRINT("  ChargeStatus frames: NONE parsed - charger silent or wrong ID\n");
+    } else {
+        ChargerStatus status;
+        checkChargerStatus(&status);
+        DEBUG_PRINT("  last ChargeStatus:   %lu ms ago\n", (unsigned long)chargerStatusAgeMs());
+        DEBUG_PRINT("  output: %f V, %f A\n", status.voltage, status.current);
+        DEBUG_PRINT("  HWFail %u OverTemp %u InputV %u Starting %u Comms %u\n",
+                       (uint16_t)status.HWFail, (uint16_t)status.OverTemp,
+                       (uint16_t)status.InputVoltageStatus,
+                       (uint16_t)status.StartingStatus,
+                       (uint16_t)status.CommunicationState);
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t chargerStatusCommandDefinition =
+{
+    "chargerStatus",
+    "chargerStatus:\r\n  print charger CAN RX diagnostics (raw frame count, last ID, parsed status)\r\n",
+    chargerStatusCommand,
+    0 /* Number of parameters */
 };
 
 BaseType_t startChargeCommand(char *writeBuffer, size_t writeBufferLength,
@@ -1745,6 +1787,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&maxChargeCurrentCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&chargerStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {

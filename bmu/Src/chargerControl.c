@@ -114,6 +114,19 @@ void CAN_Msg_ChargeStatus_Callback()
    /*DEBUG_PRINT_ISR("\n\n");*/
 }
 
+bool chargerStatusEverReceived(void)
+{
+   return mStatusReceived;
+}
+
+uint32_t chargerStatusAgeMs(void)
+{
+   if (!mStatusReceived) {
+      return UINT32_MAX;
+   }
+   return (xTaskGetTickCount() - mLastStatusTick) * portTICK_PERIOD_MS;
+}
+
 HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut)
 {
    if (statusOut == NULL) {

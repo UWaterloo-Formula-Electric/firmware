@@ -18,6 +18,18 @@
 
 #define DTC_SEND_FUNCTION CAT(CAT(sendCAN_,BOARD_NAME_UPPER),_DTC)
 
+#ifdef CHARGER_CAN_HANDLE
+// Raw diagnostics for the charger CAN bus: every frame that passes the hardware
+// acceptance filter on the charger handle is counted here, before any parsing.
+// Lets us tell "charger silent" (count stays 0) from "frames arriving but not
+// recognized as ChargeStatus" (count climbs but ChargeStatus never parses).
+static volatile uint32_t chargerRawRxCount = 0;
+static volatile uint32_t chargerRawLastId = 0;
+
+uint32_t getChargerRawRxCount(void) { return chargerRawRxCount; }
+uint32_t getChargerRawLastId(void)  { return chargerRawLastId; }
+#endif
+
 HAL_StatusTypeDef F7_canInit(CAN_HandleTypeDef *hcan)
 {
 #ifdef CHARGER_CAN_HANDLE
@@ -75,12 +87,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
 #ifdef CHARGER_CAN_HANDLE
         if (hcan == &CHARGER_CAN_HANDLE) {
+            chargerRawRxCount++;
+            chargerRawLastId = RxHeader.ExtId;
             if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
             }
         } else {
 #endif
-            if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) { 
+            if (parseCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse CAN message id 0x%lX", RxHeader.ExtId);*/
             }
 #ifdef CHARGER_CAN_HANDLE
@@ -110,6 +124,8 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
     if (RxHeader.IDE == CAN_ID_EXT){  // Only parse data if it is an extended CAN frame
 #ifdef CHARGER_CAN_HANDLE
         if (hcan == &CHARGER_CAN_HANDLE) {
+            chargerRawRxCount++;
+            chargerRawLastId = RxHeader.ExtId;
             if (parseChargerCANData(RxHeader.ExtId, RxData) != HAL_OK) {
                 /*ERROR_PRINT_ISR("Failed to parse charge CAN message id 0x%lX", RxHeader.ExtId);*/
             }
