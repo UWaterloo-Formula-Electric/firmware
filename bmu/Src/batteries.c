@@ -694,6 +694,59 @@ static bool isTempChannelDisabled(int channel)
    return false;
 }
 
+#define SPOOF_DISABLED_THERMS true
+#define CELL_DATA_DUMP_PERIOD_MS (3 * 60 * 1000)
+#define CELL_DUMP_PER_LINE 10
+
+static float averageValidTempChannel(void)
+{
+   float sum = 0.0f;
+   int count = 0;
+   for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+      if (isTempChannelDisabled(i)) {
+         continue;
+      }
+      sum += TempChannel[i];
+      count++;
+   }
+   return (count > 0) ? (sum / count) : 0.0f;
+}
+
+static float displayedTempChannel(int channel, float validAvg)
+{
+   if (SPOOF_DISABLED_THERMS && isTempChannelDisabled(channel)) {
+      return validAvg;
+   }
+   return TempChannel[channel];
+}
+
+static void printAllCellVoltagesAndTemps(void)
+{
+   float validAvg = averageValidTempChannel();
+   char line[PRINT_QUEUE_STRING_SIZE];
+
+   DEBUG_PRINT("===== Cell Voltages (V), %d cells =====\n", NUM_VOLTAGE_CELLS);
+   for (int base = 0; base < NUM_VOLTAGE_CELLS; base += CELL_DUMP_PER_LINE) {
+      int n = snprintf(line, sizeof(line), "[%3d] ", base);
+      for (int j = 0; j < CELL_DUMP_PER_LINE && (base + j) < NUM_VOLTAGE_CELLS; j++) {
+         n += snprintf(line + n, sizeof(line) - n, "%.3f ", VoltageCell[base + j]);
+      }
+      DEBUG_PRINT("%s\n", line);
+      watchdogTaskCheckIn(BATTERY_TASK_ID);
+   }
+
+   DEBUG_PRINT("===== Cell Temps (degC), %d channels =====\n", NUM_TEMP_CELLS);
+   for (int base = 0; base < NUM_TEMP_CELLS; base += CELL_DUMP_PER_LINE) {
+      int n = snprintf(line, sizeof(line), "[%3d] ", base);
+      for (int j = 0; j < CELL_DUMP_PER_LINE && (base + j) < NUM_TEMP_CELLS; j++) {
+         n += snprintf(line + n, sizeof(line) - n, "%.1f ", displayedTempChannel(base + j, validAvg));
+      }
+      DEBUG_PRINT("%s\n", line);
+      watchdogTaskCheckIn(BATTERY_TASK_ID);
+   }
+   DEBUG_PRINT("==========================================\n");
+}
+
 HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage)
 {
    HAL_StatusTypeDef rc = HAL_OK;
@@ -1144,6 +1197,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
     bool balancingCells = false; // Are we balancing any cell currently?
     uint32_t lastBalanceCheck = 0;
+    // Offset back by one full period so the first loop iteration dumps immediately.
+    uint32_t lastCellDumpTick = xTaskGetTickCount() - pdMS_TO_TICKS(CELL_DATA_DUMP_PERIOD_MS);
     bool waitingForBalanceDone = false; // Set to true when receive stop but still balancing
     uint32_t dbwTaskNotifications;
     float packVoltage;
@@ -1163,11 +1218,9 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
        /*
          * Print out the cell voltages and temperatures
          */
-        float avgTemp = 0;
-        for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-            avgTemp += TempChannel[i];
-        }
-        avgTemp /= NUM_TEMP_CELLS;
+        // Average over valid channels only, so disabled/open thermistors don't
+        // skew the figure (matches the spoofed per-channel values in the dump).
+        float avgTemp = averageValidTempChannel();
         DEBUG_PRINT("Pack Voltage: %f\n", AMS_PackVoltage);
         DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
         DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
@@ -1175,6 +1228,12 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         DEBUG_PRINT("Avg Cell Temp: %f\n", avgTemp);
         DEBUG_PRINT("Min Cell Temp: %f\n", TempCellMin);
         DEBUG_PRINT("__________________________________\n");
+
+        // Periodically dump the full per-cell voltage/temperature table.
+        if ((xTaskGetTickCount() - lastCellDumpTick) >= pdMS_TO_TICKS(CELL_DATA_DUMP_PERIOD_MS)) {
+            printAllCellVoltagesAndTemps();
+            lastCellDumpTick = xTaskGetTickCount();
+        }
         /*
          * Perform cell reading, need to pause any ongoing balance in order to
          * get good voltage readings
