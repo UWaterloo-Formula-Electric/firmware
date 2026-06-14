@@ -344,13 +344,15 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
         minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
         DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-        if (!HITL_Precharge_Mode) {
+        if (PRECHARGE_STEP_4_CURRENT_CHECK_ENABLED && !HITL_Precharge_Mode) {
             if (maxIBus < minPrechargeCurrent) {
             	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
                 return PCDC_ERROR;
             }
+        } else if (!PRECHARGE_STEP_4_CURRENT_CHECK_ENABLED && maxIBus < minPrechargeCurrent) {
+            DEBUG_PRINT("Step 4 current check disabled - ignoring low IBus (VBUS reached target)\n");
         }
     }
 
