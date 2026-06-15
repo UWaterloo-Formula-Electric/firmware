@@ -332,6 +332,40 @@ static const CLI_Command_Definition_t setChannelTempCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t mockThermistorRead(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float temp;
+
+    const char *p1 = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (p1 == NULL) {
+        COMMAND_OUTPUT("Usage: mockThermistor <degC>\r\n       mockThermistor clear\r\n");
+        return pdFALSE;
+    }
+
+    if (paramLen == 5 && strncmp(p1, "clear", 5) == 0) {
+        batt_clear_mock_all_thermistors();
+        COMMAND_OUTPUT("Cleared thermistor read mock (all channels use ADC conversion)\r\n");
+        return pdFALSE;
+    }
+
+    sscanf(p1, "%f", &temp);
+    batt_set_mock_all_thermistors(temp);
+    COMMAND_OUTPUT("mockThermistor: all %u channels -> %f degC on next batt_read_thermistors\r\n",
+                   (unsigned)NUM_TEMP_CELLS, temp);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t mockThermistorReadCommandDefinition =
+{
+    "mockThermistor",
+    "mockThermistor <degC>:\r\n All AMS thermistor reads use this temp\r\n mockThermistor clear:\r\n Use ADC conversion again\r\n",
+    mockThermistorRead,
+    1 /* Number of parameters */
+};
+
 BaseType_t printHVMeasurements(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1704,6 +1738,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setChannelTempCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&mockThermistorReadCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setCellVoltageCommandDefinition) != pdPASS) {
