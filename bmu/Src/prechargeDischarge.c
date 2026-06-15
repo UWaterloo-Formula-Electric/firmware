@@ -96,11 +96,11 @@ HAL_StatusTypeDef checkCellVoltages()
     for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
         measure_low = VoltageCell[i];
         measure_high = AdjustedVoltageCell[i];
-        if (measure_low > PRECHARGE_MAX_CELL_VOLTAGE_VOLTS) {
+        if (measure_low > DEFAULT_LIMIT_OVERVOLTAGE) {
             ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
             return HAL_ERROR;
         }
-        if (measure_high < PRECHARGE_MIN_CELL_VOLTAGE_VOLTS) {
+        if (measure_high < DEFAULT_LIMIT_UNDERVOLTAGE) {
             ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
             return HAL_ERROR;
         }
