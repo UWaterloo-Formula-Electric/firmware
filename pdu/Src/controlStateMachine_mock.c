@@ -372,8 +372,8 @@ BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
             RADIATOR_2_DISABLE;
             acc_fan_command_override = 0;
             StatusPowerAccFan1 = StatusPowerAccFan1_CHANNEL_OFF;
-            StatusPowerAccFan2 = StatusPowerAccFan1_CHANNEL_OFF;
-            StatusPowerAccFan3 = StatusPowerAccFan1_CHANNEL_OFF;
+            StatusPowerAccFan2 = StatusPowerAccFan2_CHANNEL_OFF;
+            StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_OFF;
             StatusPowerRadiator1 = StatusPowerRadiator1_CHANNEL_OFF;
             StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_OFF;
             break;
@@ -568,6 +568,7 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
                 TRANSPONDER_DISABLE;
                 StatusPowerTransponder = StatusPowerTransponder_CHANNEL_OFF;  
             }
+            break;
         case 2:
             if (power) {
                 RADIATOR_2_EN; 
@@ -576,6 +577,7 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
                 RADIATOR_2_DISABLE;
                 StatusPowerRadiator2 = StatusPowerRadiator2_CHANNEL_OFF;  
             }
+            break;
         case 3:
             if (power) {
                 ACC_FANS_3_EN; 
@@ -584,6 +586,7 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
                 ACC_FANS_3_DISABLE;
                 StatusPowerAccFan3 = StatusPowerAccFan3_CHANNEL_OFF;  
             }
+            break;
         case 4:
             if (power) {
                 LAP_BEACON_EN; 
@@ -592,6 +595,7 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
                 LAP_BEACON_DISABLE;
                 StatusPowerLapBeacon = StatusPowerLapBeacon_CHANNEL_OFF;  
             }
+            break;
         default:
             DEBUG_PRINT("Error: reached default case in auxEnable!\r\n");
             break;
