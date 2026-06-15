@@ -547,7 +547,7 @@ void BatteryTaskError()
 
 
 /// Maximum number of errors battery task can encounter before reporting error
-#define MAX_ERROR_COUNT 100000
+#define MAX_ERROR_COUNT 5
 
 static uint32_t errorCounter = 0;
 
@@ -600,7 +600,7 @@ static uint32_t errorCounterRed = 0;
 bool boundedContinueRedCar()
 {
     // return boundedContinue();
-    if ( errorCounterRed >= MAX_ERROR_COUNT) {
+    if ((++errorCounterRed) >= MAX_ERROR_COUNT) {
         BatteryTaskError();
         return false;
     } else {
@@ -993,7 +993,12 @@ HAL_StatusTypeDef stopBalance()
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
         return HAL_ERROR;
     }
 #endif
@@ -1046,8 +1051,13 @@ HAL_StatusTypeDef resumeBalance()
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return HAL_ERROR;
     }
 #endif
 
@@ -1073,8 +1083,13 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   else batt_stop_balance_cell(cell);
 #endif
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return HAL_ERROR;
     }
 #endif
     return HAL_OK;

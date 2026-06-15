@@ -857,9 +857,14 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
+<<<<<<< pcdc_cell_safety
+			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f + 0.06f;
+			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+=======
 			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
 			cell_temp_array[tempIdx] = batt_thermistor_adc_to_temp((int)tempIdx, voltageThermistor);
     
+>>>>>>> michigan_26
 		}
 	}
 	return HAL_OK;
@@ -876,7 +881,7 @@ void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
 		DEBUG_PRINT("Config A is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
 	}
 	else {
-		int block = (cell-12)/2;
+		int block = (cell-13)/2;
 		if (cell%2 == 1) {
 			m_batt_configB_pwm[board][chip][block] |= pwm;
 		} else {
@@ -888,7 +893,7 @@ void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
 
 void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
     if (cell <=12) { // 8 bits per byte in the register
-		int block = cell/2;
+		int block = (cell-1)/2;
 		if (cell%2 == 1) {
 			m_batt_configA_pwm[board][chip][block] &= 0xF0;
 		} else {
@@ -896,7 +901,7 @@ void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 		}
 		DEBUG_PRINT("Config is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
     } else {
-		int block = (cell-12)/2;
+		int block = (cell-13)/2;
 		if (cell%2 == 1) {
 			m_batt_configB_pwm[board][chip][block] &= 0xF0;
 		} else {
