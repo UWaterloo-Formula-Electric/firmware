@@ -454,7 +454,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 			uint16_t temp = ((uint16_t) (adc_vals[boardStartIdx + TEMP_ADC_IDX_HIGH] << 8
 										| adc_vals[boardStartIdx + TEMP_ADC_IDX_LOW]));
 			float voltageThermistor = ((float)temp) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-			cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+			cell_temp_array[cellIdx] = batt_thermistor_adc_to_temp((int)cellIdx, voltageThermistor);
 		}
     }
 

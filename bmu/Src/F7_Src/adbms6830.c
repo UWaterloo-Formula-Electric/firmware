@@ -857,9 +857,9 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
-			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f + 0.06f;
-			//cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
-			cell_temp_array[tempIdx] = voltageThermistor;
+			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
+			cell_temp_array[tempIdx] = batt_thermistor_adc_to_temp((int)tempIdx, voltageThermistor);
+    
 		}
 	}
 	return HAL_OK;
