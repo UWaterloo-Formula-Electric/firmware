@@ -124,13 +124,11 @@ void faultMonitorSendStatusTask(void *pvParameters) {
             continue;
         }
 
-        // DB TODO: the IMD sense for some reason is reading as reset, but when probing 
-        // it's high (no fault) and goes low on fault. it's not necessary to run, but we should check.
-        // if (getIMD_Status() == false) {
-        //     // DEBUG_PRINT("FIM: IMD\n");
-        //     BMU_checkFailed = IMD_FAILED;
-        //     continue;
-        // }
+        if (getIMD_Status() == false) {
+            // DEBUG_PRINT("FIM: IMD\n");
+            BMU_checkFailed = IMD_FAILED;
+            continue;
+        }
 
         if (getCBRB_Status() == false) {
             // DEBUG_PRINT("FIM: CBRB\n");
@@ -238,21 +236,19 @@ void faultMonitorTask(void *pvParameters) {
 
     DEBUG_PRINT("Fault Monitor: AMS OK.\n");
 
-    // if (getIMD_Status() == false) {
-    //     DEBUG_PRINT("Fault Monitor: IMD is down!\r\n");
-    //     DEBUG_PRINT("Fault Monitor: This is IL F in 2025 BMU schematic.\r\n");
-    //     DEBUG_PRINT("Fault Monitor: -- help --\r\n");
-    //     DEBUG_PRINT("Fault Monitor: IMD is returning a fault!.\r\n");
-    //     DEBUG_PRINT("Fault Monitor: Things to check:\n");
-    //     DEBUG_PRINT("Fault Monitor: * isolation \r\n");
-    //     DEBUG_PRINT("Fault Monitor: * all IMD connections are secure\r\n");
-    // }
+    if (getIMD_Status() == false) {
+        DEBUG_PRINT("Fault Monitor: IMD is down!\r\n");
+        DEBUG_PRINT("Fault Monitor: This is IL F in 2025 BMU schematic.\r\n");
+        DEBUG_PRINT("Fault Monitor: -- help --\r\n");
+        DEBUG_PRINT("Fault Monitor: IMD is returning a fault!.\r\n");
+        DEBUG_PRINT("Fault Monitor: Things to check:\n");
+        DEBUG_PRINT("Fault Monitor: * isolation \r\n");
+        DEBUG_PRINT("Fault Monitor: * all IMD connections are secure\r\n");
+    }
 
-    // while (getIMD_Status() == false) {
-    //     vTaskDelay(10);
-    // }
-
-    DEBUG_PRINT("Fault Monitor: IMD BYPASSEDK.\n");
+    while (getIMD_Status() == false) {
+        vTaskDelay(10);
+    }
 
     // There is no sense at output of IMD, only checks if IMD has faulted
     // if IMD has not faulted but reset button was not pressed this can return false

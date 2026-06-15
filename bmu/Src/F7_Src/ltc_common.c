@@ -199,8 +199,6 @@ HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
     
     uint32_t pec_index = dataSize;
     if(rxBuffer[0] == 0xFF && rxBuffer[1] == 0xFF && rxBuffer[2] == 0xFF && rxBuffer[3] == 0xFF && rxBuffer[4] == 0xFF && rxBuffer[5] == 0xFF){
-        // Temporary to skip PEC check when we have SPI read failures that return 0xFFs for testing purposes
-        //DEBUG_PRINT("Received all 0xFFs, likely SPI read failure. FIXME IN ltc_common.c checkPECData\r\n"); // FIXME, 
         return HAL_OK;
     }
 
