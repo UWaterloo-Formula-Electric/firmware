@@ -189,6 +189,8 @@ HAL_StatusTypeDef turnBoardsOn()
 
     StatusPowerVCU = StatusPowerVCU_CHANNEL_ON;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
+    StatusPowerTransponder = StatusPowerTransponder_CHANNEL_ON;
+    StatusPowerMotec = StatusPowerMotec_CHANNEL_ON;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
