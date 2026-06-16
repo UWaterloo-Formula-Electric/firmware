@@ -293,14 +293,14 @@ uint32_t EM_Fault(uint32_t event)
     switch (event) {
         case EV_Brake_Pressure_Fault:
             {
-                sendDTC_FATAL_Brake_Pressure_FAIL();
+                sendDTC_CRITICAL_Brake_Pressure_FAIL();
                 DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
         case EV_Brake_Position_Fault:
             {
-                sendDTC_CRITICAL_Brake_Position_FAIL();
+                sendDTC_CRITICAL_Brake_Pressure_FAIL();
                 DEBUG_PRINT("Brake position fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
