@@ -232,9 +232,21 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     } else if (cellIdx == -2) {
     	COMMAND_OUTPUT("*Note Temp is not related to a specific cell number\r\n\n");
+#ifdef THERMISTOR_BALANCE
+    	cellIdx = -7;
+#else
+    	cellIdx = -1;
+#endif
+    	return pdTRUE;
+	}
+#ifdef THERMISTOR_BALANCE
+	else if (cellIdx == -7) {
+    	COMMAND_OUTPUT("*Note THERMISTOR_BALANCE on\r\n\n");
     	cellIdx = -1;
     	return pdTRUE;
-	} else if (cellIdx == -1) {
+	}
+#endif
+	else if (cellIdx == -1) {
         COMMAND_OUTPUT("Index\tCell Voltage(V)\tTemp Channel(degC)\r\n");
         cellIdx = 0;
         return pdTRUE;

@@ -444,6 +444,48 @@ void imdTask(void *pvParamaters)
  */
 
 
+#ifdef THERMISTOR_BALANCE
+static inline bool thermistorReadingPlausible(float temp)
+{
+    return temp >= THERMISTOR_BALANCE_VALID_MIN_C
+        && temp <= THERMISTOR_BALANCE_VALID_MAX_C;
+}
+
+static void applyThermistorBalance(void)
+{
+    float goodSum = 0.0f;
+    uint32_t goodCount = 0;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (thermistorReadingPlausible(TempChannel[i])) {
+            goodSum += TempChannel[i];
+            goodCount++;
+        }
+    }
+
+    if (goodCount == 0) {
+        ERROR_PRINT("Thermistor balance: no plausible thermistors\n");
+        return;
+    }
+
+    float goodAverage = goodSum / goodCount;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (!thermistorReadingPlausible(TempChannel[i])) {
+            TempChannel[i] = goodAverage;
+        }
+    }
+
+    static uint32_t prevDeadCount = 0;
+    uint32_t deadCount = (uint32_t)NUM_TEMP_CELLS - goodCount;
+    if (deadCount != prevDeadCount) {
+        DEBUG_PRINT("Thermistor balance: %lu/%d channels balanced to %f degC\n",
+                    (unsigned long)deadCount, NUM_TEMP_CELLS, goodAverage);
+        prevDeadCount = deadCount;
+    }
+}
+#endif
+
 /**
  * @brief Reads the cell voltages and temperatures from the AMS boards. The
  * battery temperature and cell voltages are stored in the global arrays which
@@ -454,7 +496,13 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+   HAL_StatusTypeDef rc = batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+#ifdef THERMISTOR_BALANCE
+   if (rc == HAL_OK) {
+      applyThermistorBalance();
+   }
+#endif
+   return rc;
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
