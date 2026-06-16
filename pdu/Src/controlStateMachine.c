@@ -185,6 +185,7 @@ HAL_StatusTypeDef turnBoardsOn()
     VCU_EN;
     BMU_EN;
     TRANSPONDER_EN;   // TODO: might be for the transponder (needs to be specced)
+    MOTEC_EN;
 
     StatusPowerVCU = StatusPowerVCU_CHANNEL_ON;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
