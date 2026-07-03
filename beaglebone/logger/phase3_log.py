@@ -8,23 +8,25 @@ from datetime import datetime
 # Change to "can0" when running on the actual car.
 CHANNEL = "vcan0"
 INTERFACE = "socketcan"
-
-# Buffer size before flushing to disk
 BUFFER_SIZE = 100
-
-# Output directory
 LOG_DIR = "logs"
 
 
-def get_log_filename() -> str:
-    os.makedirs(LOG_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    return os.path.join(LOG_DIR, f"can_log_{timestamp}.csv")
+def get_log_filepath() -> str:
+    date_str = datetime.now().strftime("%Y_%m_%d")
+    session_dir = os.path.join(LOG_DIR, f"session_{date_str}")
+    os.makedirs(session_dir, exist_ok=True)
+
+    # Auto-increment session number
+    existing = [f for f in os.listdir(session_dir) if f.startswith("session") and f.endswith(".csv")]
+    session_num = len(existing) + 1
+
+    return os.path.join(session_dir, f"session{session_num}.csv")
 
 
 def main() -> None:
     bus = can.interface.Bus(channel=CHANNEL, interface=INTERFACE)
-    filename = get_log_filename()
+    filename = get_log_filepath()
 
     print(f"Listening on {CHANNEL}...")
     print(f"Logging to {filename}")
@@ -59,7 +61,6 @@ def main() -> None:
         except KeyboardInterrupt:
             print("\nStopped.")
         finally:
-            # Flush any remaining frames in buffer
             if buffer:
                 writer.writerows(buffer)
                 csvfile.flush()

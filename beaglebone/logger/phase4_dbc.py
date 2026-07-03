@@ -14,16 +14,22 @@ BUFFER_SIZE = 100
 LOG_DIR = "logs"
 
 
-def get_log_filename() -> str:
-    os.makedirs(LOG_DIR, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    return os.path.join(LOG_DIR, f"can_decoded_{timestamp}.csv")
+def get_log_filepath() -> str:
+    date_str = datetime.now().strftime("%Y_%m_%d")
+    session_dir = os.path.join(LOG_DIR, f"session_{date_str}")
+    os.makedirs(session_dir, exist_ok=True)
+
+    # Auto-increment session number
+    existing = [f for f in os.listdir(session_dir) if f.startswith("session") and f.endswith(".csv")]
+    session_num = len(existing) + 1
+
+    return os.path.join(session_dir, f"session{session_num}.csv")
 
 
 def main() -> None:
     db = cantools.database.load_file(DBC_FILE)
     bus = can.interface.Bus(channel=CHANNEL, interface=INTERFACE)
-    filename = get_log_filename()
+    filename = get_log_filepath()
 
     print(f"Loaded DBC: {DBC_FILE}")
     print(f"Listening on {CHANNEL}...")
@@ -32,11 +38,11 @@ def main() -> None:
 
     buffer = []
 
-    try:
-        with open(filename, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["timestamp", "id", "message_name", "signal_name", "value", "unit"])
+    with open(filename, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["timestamp", "id", "message_name", "signal_name", "value", "unit"])
 
+        try:
             while True:
                 msg = bus.recv()
 
@@ -60,7 +66,6 @@ def main() -> None:
                         print(f"{db_msg.name:<35} {signal_name:<40} {value} {unit}")
 
                 except KeyError:
-                    # Frame ID not in DBC - log raw and move on
                     row = [
                         f"{msg.timestamp:.6f}",
                         f"0x{msg.arbitration_id:08X}",
@@ -76,14 +81,15 @@ def main() -> None:
                     csvfile.flush()
                     buffer.clear()
 
-    except KeyboardInterrupt:
-        print("\nStopped.")
-    finally:
-        if buffer:
-            writer.writerows(buffer)
-            csvfile.flush()
-        bus.shutdown()
-        print(f"Log saved to {filename}")
+        except KeyboardInterrupt:
+            print("\nStopped.")
+        finally:
+            if buffer:
+                writer.writerows(buffer)
+                csvfile.flush()
+
+    bus.shutdown()
+    print(f"Log saved to {filename}")
 
 
 if __name__ == "__main__":
