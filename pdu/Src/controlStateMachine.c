@@ -182,16 +182,15 @@ HAL_StatusTypeDef turnBoardsOn()
 {
     DEBUG_PRINT("Turning boards on\n");
 
-    CDU_EN;
-    TCU_EN;
-    WSB_EN;
+    VCU_EN;
     BMU_EN;
     TRANSPONDER_EN;   // TODO: might be for the transponder (needs to be specced)
+    MOTEC_EN;
 
-    StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
+    StatusPowerVCU = StatusPowerVCU_CHANNEL_ON;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_ON;
-    StatusPowerWSB = StatusPowerWSB_CHANNEL_ON;
-    StatusPowerTCU = StatusPowerTCU_CHANNEL_ON;
+    StatusPowerTransponder = StatusPowerTransponder_CHANNEL_ON;
+    StatusPowerMotec = StatusPowerMotec_CHANNEL_ON;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
@@ -203,15 +202,11 @@ HAL_StatusTypeDef turnBoardsOn()
 HAL_StatusTypeDef turnBoardsOff()
 {
     DEBUG_PRINT("Turning boards off\n");
-    CDU_DISABLE;
+    VCU_DISABLE;
     BMU_DISABLE;
-    WSB_DISABLE;
-    TCU_DISABLE;
 
-    StatusPowerCDU = StatusPowerCDU_CHANNEL_OFF;
+    StatusPowerVCU = StatusPowerVCU_CHANNEL_OFF;
     StatusPowerBMU = StatusPowerBMU_CHANNEL_OFF;
-    StatusPowerWSB = StatusPowerWSB_CHANNEL_OFF;
-    StatusPowerTCU = StatusPowerTCU_CHANNEL_OFF;
 
     if (sendCAN_PDU_ChannelStatus() != HAL_OK) {
         ERROR_PRINT("Failed to send pdu channel status CAN message\n");
@@ -229,41 +224,41 @@ void toggleChannel(uint8_t channel, uint8_t On)
         case Pump_2_Channel: 
             if (On) { PUMP_2_EN; } else { PUMP_2_DISABLE; }
             break;
-        case CDU_Channel:
-            if (On) { CDU_EN; } else { CDU_DISABLE; }
+        case VCU_Channel:
+            if (On) { VCU_EN; } else { VCU_DISABLE; }
             break;
         case BMU_Channel:
             if (On) { BMU_EN; } else { BMU_DISABLE; }
             break;
-        case WSB_Channel:
-            if (On) { WSB_EN; } else { WSB_DISABLE; }
+        case ACC_Fans_Channel_1:
+            if (On) { ACC_FANS_1_EN; } else { ACC_FANS_1_DISABLE; }
             break;
-        case TCU_Channel:
-            if (On) { TCU_EN; } else { TCU_DISABLE; }
+        case Motec_Channel:
+            if (On) { MOTEC_EN; } else { MOTEC_DISABLE; }
             break;
         case Brake_Light_Channel:
             if (On) { BRAKE_LIGHT_ENABLE; } else { BRAKE_LIGHT_DISABLE; }
             break;
-        case ACC_Fans_Channel:
-            if (On) { ACC_FANS_EN; } else { ACC_FANS_DISABLE; }
+        case ACC_Fans_Channel_2:
+            if (On) { ACC_FANS_2_EN; } else { ACC_FANS_2_DISABLE; }
             break;
         case INV_Channel:
             if (On) { INVERTER_EN; } else { INVERTER_DISABLE; }
             break;
-        case Radiator_Channel:
-            if (On) { RADIATOR_EN; } else { RADIATOR_DISABLE; }
+        case Radiator_Channel_1:
+            if (On) { RADIATOR_1_EN; } else { RADIATOR_1_DISABLE; }
             break;
-        case AUX_1_Channel:
+        case Transponder_Channel:
             if (On) { TRANSPONDER_EN; } else { TRANSPONDER_DISABLE; }
             break;
-        case AUX_2_Channel:
-            if (On) { AUX_2_EN; } else { AUX_2_DISABLE; }
+        case Radiator_Channel_2:
+            if (On) { RADIATOR_2_EN; } else { RADIATOR_2_DISABLE; }
             break;
-        case AUX_3_Channel:
-            if (On) { AUX_3_EN; } else { AUX_3_DISABLE; }
+        case ACC_Fans_Channel_3:
+             if (On) { ACC_FANS_3_EN; } else { ACC_FANS_3_DISABLE; }
             break;
-        case AUX_4_Channel:
-            if (On) { AUX_4_EN; } else { AUX_4_DISABLE; }
+        case Lap_Beacon_Channel:
+            if (On) { LAP_BEACON_EN; } else { LAP_BEACON_DISABLE; }
             break;
         default:
             ERROR_PRINT("Error: Reached default case in toggleChannel\r\n");

@@ -27,10 +27,9 @@
 #include "ltc_chip.h"
 #include "ltc_common.h"
 #include "ltc_chip_interface.h"
-
-#if IS_BOARD_F7
 #include "imdDriver.h"
-#endif
+#include "bmu_dtc.h"
+
 
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
@@ -66,6 +65,83 @@ static const CLI_Command_Definition_t getBrakePressureCommandDefinition =
     "getBrake",
     "getBrake:\r\n Get brake pressure\r\n",
     getBrakePressure,
+    0 /* Number of parameters */
+};
+
+static void warnImdErrorThresholdBelowRulesMinimum(char *writeBuffer, size_t writeBufferLength,
+                                                   uint32_t thresholdKohm)
+{
+    if (thresholdKohm < IMD_RULES_ERROR_THRESHOLD_MIN_KOHM) {
+        COMMAND_OUTPUT("WARNING: Rules specify 500 ohms/V; at %uV the minimum is %u kOhm\n",
+                       IMD_RULES_REFERENCE_PACK_VOLTAGE,
+                       IMD_RULES_ERROR_THRESHOLD_MIN_KOHM);
+    }
+}
+
+BaseType_t setImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint32_t thresholdKohm;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (param == NULL || sscanf(param, "%lu", &thresholdKohm) != 1) {
+        COMMAND_OUTPUT("Usage: setImdErrorThreshold <kOhm>\n");
+        return pdFALSE;
+    }
+
+    if (thresholdKohm < IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM ||
+        thresholdKohm > IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM) {
+        COMMAND_OUTPUT("IMD error threshold must be %u-%u kOhm\n",
+                       IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM,
+                       IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM);
+        return pdFALSE;
+    }
+
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
+
+    if (imdSetIsolationThresholdError((uint16_t)thresholdKohm) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold request\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Requested IMD error threshold set to %lu kOhm\n", thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setImdErrorThresholdCommandDefinition =
+{
+    "setImdErrorThreshold",
+    "setImdErrorThreshold <kOhm>:\r\n Set IMD isolation error threshold\r\n",
+    setImdErrorThreshold,
+    1 /* Number of parameters */
+};
+
+BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint16_t thresholdKohm;
+
+    if (imdRequestIsolationThresholdError() != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold read request\n");
+        return pdFALSE;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(IMD_CLI_RESPONSE_WAIT_MS));
+
+    if (!imdGetIsolationThresholdError(&thresholdKohm)) {
+        COMMAND_OUTPUT("No valid IMD error threshold response received: %d\n", thresholdKohm);
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("IMD error threshold: %u kOhm\n", thresholdKohm);
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getImdErrorThresholdCommandDefinition =
+{
+    "getImdErrorThreshold",
+    "getImdErrorThreshold:\r\n Read IMD isolation error threshold\r\n",
+    getImdErrorThreshold,
     0 /* Number of parameters */
 };
 
@@ -156,9 +232,21 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     } else if (cellIdx == -2) {
     	COMMAND_OUTPUT("*Note Temp is not related to a specific cell number\r\n\n");
+#ifdef THERMISTOR_BALANCE
+    	cellIdx = -7;
+#else
+    	cellIdx = -1;
+#endif
+    	return pdTRUE;
+	}
+#ifdef THERMISTOR_BALANCE
+	else if (cellIdx == -7) {
+    	COMMAND_OUTPUT("*Note THERMISTOR_BALANCE on\r\n\n");
     	cellIdx = -1;
     	return pdTRUE;
-	} else if (cellIdx == -1) {
+	}
+#endif
+	else if (cellIdx == -1) {
         COMMAND_OUTPUT("Index\tCell Voltage(V)\tTemp Channel(degC)\r\n");
         cellIdx = 0;
         return pdTRUE;
@@ -207,6 +295,17 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(voltageParam, "%f", &VoltageCell[cellIdx]);
     COMMAND_OUTPUT("VoltageCell[%d] = %fV\n", cellIdx, VoltageCell[cellIdx]);
+    if( VoltageCell[cellIdx] > 4.2 || VoltageCell[cellIdx] < 2.5 ) 
+    { 
+        // TODO: as of 29-04-2026, the pack suffered a lot of EMI issues and would fault right away at EM since
+        // We couldn't talk to pack. We by passed this (increased redcar error counter), but it should be fixed
+        // Revert once it is fixed.
+        TSSI_GREEN_OFF;
+        TSSI_RED_ON; 
+        AMS_CONT_OPEN;
+        sendDTC_FATAL_AMS_Failure();
+        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setCellVoltageCommandDefinition =
@@ -1278,20 +1377,11 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
 
 #if IS_BOARD_F7
     /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
-    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
-        if (cell == req_cell) {
-            if (batt_discharge_cell(cell) != HAL_OK) {
-                ERROR_PRINT("batt_discharge_cell %d failed\r\n", cell);
-                return pdFALSE;
-            }
-        } else {
-            if (batt_stop_discharge_cell(cell) != HAL_OK) {
-                ERROR_PRINT("batt_stop_discharge_cell %d failed\r\n", cell);
-                return pdFALSE;
-            }
-        }
-    }
 
+    if (batt_balance_cell(req_cell) != HAL_OK) {
+        ERROR_PRINT("batt_discharge_cell %d failed\r\n", req_cell);
+        return pdFALSE;
+    }
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return pdFALSE;
@@ -1300,10 +1390,10 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
         return pdFALSE;
     }
-    COMMAND_OUTPUT("Sent config to AMS boards (WRPWM)\r\n");
+    DEBUG_PRINT("Sent config to AMS boards (WRPWM)\r\n");
 
     /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config — use DT_OFF for no auto timeout. */
-    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
+    if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
         ERROR_PRINT("batt_set_disharge_timer failed\n");
         return pdFALSE;
     }
@@ -1311,9 +1401,9 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
         return pdFALSE;
     }
-    COMMAND_OUTPUT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
+    DEBUG_PRINT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
 #else
-    COMMAND_OUTPUT("dischargeCells: IS_BOARD_F7 only\r\n");
+    DEBUG_PRINT("dischargeCells: IS_BOARD_F7 only\r\n");
 #endif
     return pdFALSE;
 }
@@ -1689,6 +1779,14 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+#if IS_BOARD_F7
+    if (FreeRTOS_CLIRegisterCommand(&setImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+#endif
     if (FreeRTOS_CLIRegisterCommand(&stopChargeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }

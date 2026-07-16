@@ -83,15 +83,15 @@ static bool isPendingHvResponse = false;
 // TODO: clean up this state machine
 Transition_t transitions[] = {
     { STATE_Self_Check, EV_Init, &runSelfTests },
-    { STATE_HV_Disable, EV_Bps_Fail, &EM_Fault },
     { STATE_HV_Disable, EV_Hv_Disable, &EM_Fault },
     { STATE_HV_Disable, EV_Brake_Pressure_Fault, &EM_Fault },
+    { STATE_HV_Disable, EV_Brake_Position_Fault, &EM_Fault },
     { STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault },
     { STATE_HV_Enable, EV_EM_Toggle, &EM_Enable },
     { STATE_HV_Enable, EV_Hv_Disable, & EM_Fault},
-    { STATE_EM_Enable, EV_Bps_Fail, &EM_Fault },
     { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
+    { STATE_EM_Enable, EV_Brake_Position_Fault, &EM_Fault },
     { STATE_EM_Enable, EV_Throttle_Failure, &EM_Fault },
     { STATE_EM_Enable, EV_EM_Toggle, &EM_Fault },
     { STATE_Failure_Fatal, EV_ANY, &fatalTransition },
@@ -291,17 +291,17 @@ uint32_t EM_Fault(uint32_t event)
 
 
     switch (event) {
-        case EV_Bps_Fail:
+        case EV_Brake_Pressure_Fault:
             {
-                sendDTC_CRITICAL_BPS_FAIL();
-                DEBUG_PRINT("Bps failed, trans to fatal\n");
+                sendDTC_FATAL_Brake_Pressure_FAIL();
+                DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;
-        case EV_Brake_Pressure_Fault:
+        case EV_Brake_Position_Fault:
             {
-                sendDTC_CRITICAL_Brake_Pressure_FAIL();
-                DEBUG_PRINT("Brake pressure fault, trans to fatal failure\n");
+                sendDTC_FATAL_Brake_Position_FAIL();
+                DEBUG_PRINT("Brake position fault, trans to fatal failure\n");
                 newState = STATE_Failure_Fatal;
             }
             break;

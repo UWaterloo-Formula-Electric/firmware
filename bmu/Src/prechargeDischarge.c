@@ -23,6 +23,8 @@
 #include "bmu_can.h"
 #include "bmu_dtc.h"
 #include "batteries.h"
+#include "ltc_chip.h"
+#include "ltc_chip_interface.h"
 
 /** Define this to enable contactor control, otherwise PCDC will always
  *  return successful.
@@ -86,6 +88,26 @@ HAL_StatusTypeDef pcdcInit()
  *
  * @return HAL_StatusTypeDef
  */
+
+HAL_StatusTypeDef checkCellVoltages()
+{
+    float measure_low;
+    float measure_high;
+    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
+        measure_low = VoltageCell[i];
+        measure_high = AdjustedVoltageCell[i];
+        if (measure_low > DEFAULT_LIMIT_OVERVOLTAGE) {
+            ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+            return HAL_ERROR;
+        }
+        if (measure_high < DEFAULT_LIMIT_UNDERVOLTAGE) {
+            ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
+            return HAL_ERROR;
+        }
+    }
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 {
     if (getVBatt(VBatt) != HAL_OK) {
@@ -127,6 +149,11 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     DEBUG_PRINT("precharge type %d\n", prechargeType);
     if (prechargeType >= PC_NumTypes) {
         ERROR_PRINT("Invalid precharge type %d\n", prechargeType);
+        return PCDC_ERROR;
+    }
+
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
         return PCDC_ERROR;
     }
 
@@ -195,6 +222,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 1; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 2:
      * IShunt == 0
@@ -248,6 +279,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 2; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 3:
      * IShunt == 0
@@ -296,6 +331,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 3; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 4:
      * IShunt >= 1
@@ -349,13 +388,17 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
             	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-                // return PCDC_ERROR;
+                return PCDC_ERROR;
             }
         }
     }
 
     PrechargeState = 4; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 5:
      * IShunt has spike due to closing pos contactor
@@ -406,7 +449,7 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         if (!HITL_Precharge_Mode) {
             if (maxIBus < minIBusSpike) {
                 ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-                // return PCDC_ERROR;
+                return PCDC_ERROR;
             }
         }
     }
