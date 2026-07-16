@@ -72,6 +72,8 @@ HAL_StatusTypeDef mcInit();
 HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t commandMode);
 
 HAL_StatusTypeDef sendLockoutReleaseToMC();
+HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data);
+HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data);
 HAL_StatusTypeDef mcClearFaults();
 HAL_StatusTypeDef sendDisableMC();
 

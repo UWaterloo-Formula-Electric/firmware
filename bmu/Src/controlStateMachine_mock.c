@@ -25,10 +25,11 @@
 #include "batteries.h"
 #include "faultMonitor.h"
 #include "ltc_chip.h"
-
-#if IS_BOARD_F7
+#include "ltc_common.h"
+#include "ltc_chip_interface.h"
 #include "imdDriver.h"
-#endif
+#include "bmu_dtc.h"
+
 
 extern bool HITL_Precharge_Mode;
 extern float HITL_VPACK;
@@ -64,6 +65,83 @@ static const CLI_Command_Definition_t getBrakePressureCommandDefinition =
     "getBrake",
     "getBrake:\r\n Get brake pressure\r\n",
     getBrakePressure,
+    0 /* Number of parameters */
+};
+
+static void warnImdErrorThresholdBelowRulesMinimum(char *writeBuffer, size_t writeBufferLength,
+                                                   uint32_t thresholdKohm)
+{
+    if (thresholdKohm < IMD_RULES_ERROR_THRESHOLD_MIN_KOHM) {
+        COMMAND_OUTPUT("WARNING: Rules specify 500 ohms/V; at %uV the minimum is %u kOhm\n",
+                       IMD_RULES_REFERENCE_PACK_VOLTAGE,
+                       IMD_RULES_ERROR_THRESHOLD_MIN_KOHM);
+    }
+}
+
+BaseType_t setImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint32_t thresholdKohm;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (param == NULL || sscanf(param, "%lu", &thresholdKohm) != 1) {
+        COMMAND_OUTPUT("Usage: setImdErrorThreshold <kOhm>\n");
+        return pdFALSE;
+    }
+
+    if (thresholdKohm < IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM ||
+        thresholdKohm > IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM) {
+        COMMAND_OUTPUT("IMD error threshold must be %u-%u kOhm\n",
+                       IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM,
+                       IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM);
+        return pdFALSE;
+    }
+
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
+
+    if (imdSetIsolationThresholdError((uint16_t)thresholdKohm) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold request\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Requested IMD error threshold set to %lu kOhm\n", thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setImdErrorThresholdCommandDefinition =
+{
+    "setImdErrorThreshold",
+    "setImdErrorThreshold <kOhm>:\r\n Set IMD isolation error threshold\r\n",
+    setImdErrorThreshold,
+    1 /* Number of parameters */
+};
+
+BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint16_t thresholdKohm;
+
+    if (imdRequestIsolationThresholdError() != HAL_OK) {
+        COMMAND_OUTPUT("Failed to send IMD error threshold read request\n");
+        return pdFALSE;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(IMD_CLI_RESPONSE_WAIT_MS));
+
+    if (!imdGetIsolationThresholdError(&thresholdKohm)) {
+        COMMAND_OUTPUT("No valid IMD error threshold response received: %d\n", thresholdKohm);
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("IMD error threshold: %u kOhm\n", thresholdKohm);
+    warnImdErrorThresholdBelowRulesMinimum(writeBuffer, writeBufferLength, thresholdKohm);
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t getImdErrorThresholdCommandDefinition =
+{
+    "getImdErrorThreshold",
+    "getImdErrorThreshold:\r\n Read IMD isolation error threshold\r\n",
+    getImdErrorThreshold,
     0 /* Number of parameters */
 };
 
@@ -154,9 +232,21 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     } else if (cellIdx == -2) {
     	COMMAND_OUTPUT("*Note Temp is not related to a specific cell number\r\n\n");
+#ifdef THERMISTOR_BALANCE
+    	cellIdx = -7;
+#else
+    	cellIdx = -1;
+#endif
+    	return pdTRUE;
+	}
+#ifdef THERMISTOR_BALANCE
+	else if (cellIdx == -7) {
+    	COMMAND_OUTPUT("*Note THERMISTOR_BALANCE on\r\n\n");
     	cellIdx = -1;
     	return pdTRUE;
-	} else if (cellIdx == -1) {
+	}
+#endif
+	else if (cellIdx == -1) {
         COMMAND_OUTPUT("Index\tCell Voltage(V)\tTemp Channel(degC)\r\n");
         cellIdx = 0;
         return pdTRUE;
@@ -205,6 +295,17 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(voltageParam, "%f", &VoltageCell[cellIdx]);
     COMMAND_OUTPUT("VoltageCell[%d] = %fV\n", cellIdx, VoltageCell[cellIdx]);
+    if( VoltageCell[cellIdx] > 4.2 || VoltageCell[cellIdx] < 2.5 ) 
+    { 
+        // TODO: as of 29-04-2026, the pack suffered a lot of EMI issues and would fault right away at EM since
+        // We couldn't talk to pack. We by passed this (increased redcar error counter), but it should be fixed
+        // Revert once it is fixed.
+        TSSI_GREEN_OFF;
+        TSSI_RED_ON; 
+        AMS_CONT_OPEN;
+        sendDTC_FATAL_AMS_Failure();
+        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setCellVoltageCommandDefinition =
@@ -241,6 +342,40 @@ static const CLI_Command_Definition_t setChannelTempCommandDefinition =
     "tempChannel <idx> <temp>:\r\n Set a channels temperature\r\n",
     setChannelTemp,
     2 /* Number of parameters */
+};
+
+BaseType_t mockThermistorRead(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float temp;
+
+    const char *p1 = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (p1 == NULL) {
+        COMMAND_OUTPUT("Usage: mockThermistor <degC>\r\n       mockThermistor clear\r\n");
+        return pdFALSE;
+    }
+
+    if (paramLen == 5 && strncmp(p1, "clear", 5) == 0) {
+        batt_clear_mock_all_thermistors();
+        COMMAND_OUTPUT("Cleared thermistor read mock (all channels use ADC conversion)\r\n");
+        return pdFALSE;
+    }
+
+    sscanf(p1, "%f", &temp);
+    batt_set_mock_all_thermistors(temp);
+    COMMAND_OUTPUT("mockThermistor: all %u channels -> %f degC on next batt_read_thermistors\r\n",
+                   (unsigned)NUM_TEMP_CELLS, temp);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t mockThermistorReadCommandDefinition =
+{
+    "mockThermistor",
+    "mockThermistor <degC>:\r\n All AMS thermistor reads use this temp\r\n mockThermistor clear:\r\n Use ADC conversion again\r\n",
+    mockThermistorRead,
+    1 /* Number of parameters */
 };
 
 BaseType_t printHVMeasurements(char *writeBuffer, size_t writeBufferLength,
@@ -354,6 +489,79 @@ static const CLI_Command_Definition_t hvToggleCommandDefinition =
     "hvToggle:\r\n Send hv toggle event\r\n",
     fakeHV_Toggle,
     0 /* Number of parameters */
+};
+
+/* Names must stay in sync with BMU_Events_t in bmu/Inc/controlStateMachine.h (BMU FSM, not PDU). */
+static const char *const bmu_event_names[] = {
+    "EV_Init",
+    "EV_HV_Toggle",
+    "EV_Precharge_Finished",
+    "EV_Discharge_Finished",
+    "EV_PrechargeDischarge_Fail",
+    "EV_HV_Fault",
+    "EV_IMD_Ready",
+    "EV_FaultMonitorReady",
+    "EV_Enter_Charge_Mode",
+    "EV_Charge_Start",
+    "EV_Notification_Done",
+    "EV_Charge_Error",
+    "EV_Notification_Stop",
+    "EV_Cockpit_BRB_Pressed",
+    "EV_Cockpit_BRB_Unpressed",
+    "EV_Balance_Start",
+    "EV_Balance_Stop",
+    "EV_ANY",
+};
+
+BaseType_t mockFsmEvent(char *writeBuffer, size_t writeBufferLength,
+                        const char *commandString)
+{
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+    BaseType_t paramLen;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    if (param == NULL) {
+        COMMAND_OUTPUT("mockFsmEvent: need <id> or list (BMU fsmHandle; see BMU_Events_t)\r\n");
+        return pdFALSE;
+    }
+
+    if (paramLen == 4 && strncmp(param, "list", 4) == 0) {
+        COMMAND_OUTPUT("BMU_Events_t (bmu/Inc/controlStateMachine.h):\r\n");
+        for (uint32_t i = 0; i <= (uint32_t)EV_ANY; i++) {
+            COMMAND_OUTPUT("  %2u  %s\r\n", (unsigned)i, bmu_event_names[i]);
+        }
+        return pdFALSE;
+    }
+
+    unsigned long id_ul;
+    if (sscanf(param, "%lu", &id_ul) != 1) {
+        COMMAND_OUTPUT("mockFsmEvent: invalid id (use decimal or \"list\")\r\n");
+        return pdFALSE;
+    }
+
+    if (id_ul > (unsigned long)EV_ANY) {
+        COMMAND_OUTPUT("mockFsmEvent: id must be 0..%u\r\n", (unsigned)EV_ANY);
+        return pdFALSE;
+    }
+
+    const uint32_t id = (uint32_t)id_ul;
+    if (fsmSendEvent(&fsmHandle, id, portMAX_DELAY) != HAL_OK) {
+        COMMAND_OUTPUT("mockFsmEvent: fsmSendEvent failed for %s (%lu)\r\n",
+                     bmu_event_names[id], id_ul);
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("mockFsmEvent: sent %s (%lu)\r\n", bmu_event_names[id], id_ul);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t mockFsmEventCommandDefinition =
+{
+    "mockFsmEvent",
+    "mockFsmEvent <id>|list:\r\n Post BMU FSM event by id (BMU_Events_t). Use \"list\" for ids.\r\n",
+    mockFsmEvent,
+    1 /* Number of parameters */
 };
 
 BaseType_t fakeEnter_Charge_Mode(char *writeBuffer, size_t writeBufferLength,
@@ -986,6 +1194,526 @@ static const CLI_Command_Definition_t setCellIRCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    // Make these static so their state persists across command calls
+    static int cellIdx = -1;
+    static float cell_voltages[NUM_VOLTAGE_CELLS];
+
+    // First time the command is hit
+    if (cellIdx == -1) {
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return pdFALSE;
+        }
+
+        // If the board was asleep, configuration is lost AND the reference is off.
+        batt_write_config();
+
+        // The first read broadcasts ADCV. Because the reference was off, the chip
+        // takes t_REFUP (4.4ms) + t_CONV (2.5ms) = 6.9ms to finish. However, 
+        // batt_read_cell_voltages only waits 2.5ms! This dummy read will likely 
+        // return 0x8000 for the first registers, but importantly it forces the 
+        // reference to power up.
+        batt_read_cell_voltages(cell_voltages);
+        
+        // Wait an extra 5ms to ensure the delayed conversion from the first read 
+        // finishes completely and doesn't interfere.
+        vTaskDelay(pdMS_TO_TICKS(5));
+
+        // Now the reference is fully powered up. This second read will complete 
+        // within the normal 2.5ms and return valid measurements.
+        if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell voltages\n");
+            return pdFALSE;
+        }
+        
+        COMMAND_OUTPUT("Cell Voltages:\n");
+        cellIdx = 0;
+        return pdTRUE; // Tell FreeRTOS CLI to call this function again
+    }
+
+    // Subsequent calls: output one cell at a time
+    int board = cellIdx / CELLS_PER_BOARD;
+    int cell = cellIdx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[cellIdx]);
+    
+    cellIdx++;
+
+    // If we have printed all cells, return pdFALSE to stop
+    if (cellIdx >= NUM_VOLTAGE_CELLS) {
+        cellIdx = -1; // Reset for the next time the user runs the command
+        return pdFALSE;
+    }
+
+    return pdTRUE; // More cells to print, call this function again
+}
+
+static const CLI_Command_Definition_t getCellVoltagesCommandDefinition =
+{
+    "getCellVoltages",
+    "getCellVoltages:\r\n \r\n",
+    getCellVoltages,
+    0 /* Number of parameters */
+};
+
+BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    // Make these static so their state persists across command calls
+    static float cell_temps[NUM_TEMP_CELLS];
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+
+    if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+        COMMAND_OUTPUT("Error reading cell temperatures\n");
+        return pdFALSE;
+    }
+    vTaskDelay(pdMS_TO_TICKS(50));
+
+    DEBUG_PRINT("Cell Temperatures:\n");
+    for(int i =0; i<1; i++){
+        if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell temperatures\n");
+            return pdFALSE;
+        }
+    }
+    for(int i =0; i<NUM_TEMP_CELLS; i++){
+        int board = i / THERMISTORS_PER_SEGMENT;
+        int chip = i / SEGMENT_THERMISTORS_AMS1;
+        int channel = i % SEGMENT_THERMISTORS_AMS1;
+        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t getCellTempsCommandDefinition =
+{
+    "getCellTemps",
+    "getCellTemps:\r\n Print all cell temperatures\r\n",
+    getCellTemps,
+    0 /* Number of parameters */
+};
+
+BaseType_t getCellVoltagesADSV(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    /* Same state machine as getCellVoltages: static 1D array, one line per CLI callback. */
+    static int cellIdx = -1;
+    static float cell_voltages[NUM_VOLTAGE_CELLS];
+
+    if (cellIdx == -1) {
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return pdFALSE;
+        }
+
+        batt_write_config();
+
+        /* Dummy ADSV capture (reference / pipeline warmup), same idea as dummy ADCV in getCellVoltages. */
+        batt_read_cell_voltages_ADSV(cell_voltages);
+        vTaskDelay(pdMS_TO_TICKS(5));
+
+        if (batt_read_cell_voltages_ADSV(cell_voltages) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell voltages (ADSV)\n");
+            return pdFALSE;
+        }
+
+        COMMAND_OUTPUT("Cell Voltages (ADSV):\n");
+        cellIdx = 0;
+        return pdTRUE;
+    }
+
+    int board = cellIdx / CELLS_PER_BOARD;
+    int cell = cellIdx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: %f V\n", board, cell, cell_voltages[cellIdx]);
+
+    cellIdx++;
+
+    if (cellIdx >= NUM_VOLTAGE_CELLS) {
+        cellIdx = -1;
+        return pdFALSE;
+    }
+
+    return pdTRUE;
+}
+static const CLI_Command_Definition_t getCellVoltagesADSVCommandDefinition =
+{
+    "getCellVoltagesADSV",
+    "getCellVoltagesADSV:\r\n Print all cell voltages\r\n",
+    getCellVoltagesADSV,
+    0 /* Number of parameters */
+};
+
+/**
+ * @brief Manual PWM discharge for one global cell, same sequence as @ref handleCharge
+ *        balance path (batteries.c): per-cell state, WRPWM, then discharge timer + WRCFGA/B.
+ *        No RTOS delay/watchdog. Timer set to @ref DT_OFF so discharge runs until @ref stopDischargeCells.
+ */
+BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+    BaseType_t paramLen;
+    const char *cellIdxString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    int req_cell;
+    if (cellIdxString == NULL || sscanf(cellIdxString, "%d", &req_cell) != 1) {
+        COMMAND_OUTPUT("dischargeCells <globalCell 0..%d>: manual PWM on one cell; stop with stopDischargeCells\r\n",
+            NUM_VOLTAGE_CELLS - 1);
+        return pdFALSE;
+    }
+
+    if (req_cell < 0 || req_cell >= NUM_VOLTAGE_CELLS) {
+        COMMAND_OUTPUT("global cell must be 0..%d\r\n", NUM_VOLTAGE_CELLS - 1);
+        return pdFALSE;
+    }
+
+#if IS_BOARD_F7
+    /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
+
+    if (batt_balance_cell(req_cell) != HAL_OK) {
+        ERROR_PRINT("batt_discharge_cell %d failed\r\n", req_cell);
+        return pdFALSE;
+    }
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return pdFALSE;
+    }
+    DEBUG_PRINT("Sent config to AMS boards (WRPWM)\r\n");
+
+    /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config — use DT_OFF for no auto timeout. */
+    if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
+        ERROR_PRINT("batt_set_disharge_timer failed\n");
+        return pdFALSE;
+    }
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+        return pdFALSE;
+    }
+    DEBUG_PRINT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
+#else
+    DEBUG_PRINT("dischargeCells: IS_BOARD_F7 only\r\n");
+#endif
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t dischargeCellsCommandDefinition =
+{
+    "dischargeCells",
+    "dischargeCells <globalCell>:\r\n One cell PWM discharge (WRPWM + WRCFG, DT_OFF); use stopDischargeCells to end\r\n",
+    dischargeCellsCommand,
+    1 /* Number of parameters */
+};
+
+BaseType_t stopDischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    (void)commandString;
+    (void)writeBuffer;
+    (void)writeBufferLength;
+
+#if IS_BOARD_F7
+    if (batt_unset_balancing_all_cells(15) != HAL_OK) {
+        ERROR_PRINT("batt_unset_balancing_all_cells failed\n");
+        return pdFALSE;
+    }
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return pdFALSE;
+    }
+    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
+        ERROR_PRINT("batt_set_disharge_timer failed\n");
+        return pdFALSE;
+    }
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+        return pdFALSE;
+    }
+    COMMAND_OUTPUT("Stopped PWM discharge on all cells; WRCFG sent\r\n");
+#else
+    COMMAND_OUTPUT("stopDischargeCells: IS_BOARD_F7 only\r\n");
+#endif
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t stopDischargeCellsCommandDefinition =
+{
+    "stopDischargeCells",
+    "stopDischargeCells:\r\n Clear all PWM discharge bits (WRPWM + WRCFG, DT_OFF)\r\n",
+    stopDischargeCellsCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t getDischargeDccCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static int get_dcc_cli_idx = -1;
+    static uint8_t get_pwm_duty[NUM_VOLTAGE_CELLS];
+
+    (void)commandString;
+    (void)writeBufferLength;
+
+    if (get_dcc_cli_idx == -1) {
+#if LTC_CHIP == ADBMS_CHIP_6830B
+        uint8_t all_pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+        uint8_t all_pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return pdFALSE;
+        }
+        if (batt_read_pwm(all_pwma, all_pwmb) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading AMS RDPWM\r\n");
+            return pdFALSE;
+        }
+        for (int g = 0; g < NUM_VOLTAGE_CELLS; g++) {
+            get_pwm_duty[g] = (uint8_t)batt_pwm_duty_from_pwm_readback(g, all_pwma, all_pwmb);
+        }
+        COMMAND_OUTPUT("PWM duty 0..15 per cell (RDPWMA/RDPWMB readback):\r\n");
+#else
+        COMMAND_OUTPUT("getDischargeDcc uses RDPWM readback (ADBMS6830 only)\r\n");
+        return pdFALSE;
+#endif
+        get_dcc_cli_idx = 0;
+        return pdTRUE;
+    }
+
+    int board = get_dcc_cli_idx / CELLS_PER_BOARD;
+    int cell = get_dcc_cli_idx % CELLS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d, Cell %d: PWM %u\r\n", board, cell, (unsigned)get_pwm_duty[get_dcc_cli_idx]);
+    get_dcc_cli_idx++;
+    if (get_dcc_cli_idx >= NUM_VOLTAGE_CELLS) {
+        get_dcc_cli_idx = -1;
+        return pdFALSE;
+    }
+    return pdTRUE;
+}
+
+static const CLI_Command_Definition_t getDischargeDccCommandDefinition =
+{
+    "getDischargeDcc",
+    "getDischargeDcc:\r\n Per-cell PWM duty (0-15) from RDPWMA/B (6830); paged output\r\n",
+    getDischargeDccCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t getThermalShutdownCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static int thermal_cli_idx = -1;
+    static uint8_t thermal_sd[NUM_DEVICES];
+
+    (void)commandString;
+    (void)writeBufferLength;
+
+    if (thermal_cli_idx == -1) {
+        uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return pdFALSE;
+        }
+        if (batt_read_rdstatc(statc) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading RDSTATC\r\n");
+            return pdFALSE;
+        }
+        for (int b = 0; b < NUM_BOARDS; b++) {
+            for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+                int i = b * NUM_LTC_CHIPS_PER_BOARD + c;
+                thermal_sd[i] = (uint8_t)rdstatc_thermal_shutdown(statc[b][c]);
+            }
+        }
+        COMMAND_OUTPUT("RDSTATC thermal SD (byte5 bit2, 1=active):\n");
+        thermal_cli_idx = 0;
+        return pdTRUE;
+    }
+
+    int board = thermal_cli_idx / NUM_LTC_CHIPS_PER_BOARD;
+    int chip = thermal_cli_idx % NUM_LTC_CHIPS_PER_BOARD;
+    COMMAND_OUTPUT("Board %d Chip %d: %u\n", board, chip, (unsigned)thermal_sd[thermal_cli_idx]);
+    thermal_cli_idx++;
+    if (thermal_cli_idx >= NUM_DEVICES) {
+        thermal_cli_idx = -1;
+        return pdFALSE;
+    }
+    return pdTRUE;
+}
+
+static const CLI_Command_Definition_t getThermalShutdownCommandDefinition =
+{
+    "getThermalShutdown",
+    "getThermalShutdown:\r\n RDSTATC thermal shutdown per device (paged)\r\n",
+    getThermalShutdownCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t readAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+    static uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    
+    // Read config from AMS boards
+    HAL_StatusTypeDef status = batt_read_config(configA, configB);
+    
+    if (status != HAL_OK) {
+        ERROR_PRINT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
+    }
+
+    DEBUG_PRINT("AMS Configuration Tables:\n");
+    DEBUG_PRINT("========================\n\n");
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+            DEBUG_PRINT("Board %d:\n", board);
+            DEBUG_PRINT("Chip %d:\n", chip);
+            DEBUG_PRINT("  Config A: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configA[board][chip][i]);
+            }
+            DEBUG_PRINT("\n");
+            DEBUG_PRINT("  Config B: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configB[board][chip][i]);
+            }
+            DEBUG_PRINT("\n\n");
+        }
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t readAmsConfigCommandDefinition =
+{
+    "readAmsConfig",
+    "readAmsConfig:\r\n Read and display AMS config tables A and B\r\n",
+    readAmsConfigCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t verifyAmsConfigCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+    static uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    batt_init_chip_configs();
+    batt_init_chip_configs_pwm();
+    
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("Warning: Error writing AMS config tables.\n");
+    }
+
+    long_delay_us(2480);
+
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    
+    // Read config from AMS boards
+    HAL_StatusTypeDef status = batt_read_config(configA, configB);
+    
+    if (status != HAL_OK) {
+        DEBUG_PRINT("Warning: Error reading AMS config tables. Printing whatever data was retrieved.\n");
+    }
+
+    DEBUG_PRINT("AMS (verify) Configuration Tables:\n");
+    DEBUG_PRINT("========================\n\n");
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+
+            DEBUG_PRINT("Board %d:\n", board);
+            DEBUG_PRINT("Chip %d:\n", chip);
+            DEBUG_PRINT("  Config A: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configA[board][chip][i]);
+            }
+            DEBUG_PRINT("\n");
+            DEBUG_PRINT("  Config B: ");
+            for (int i = 0; i < BATT_CONFIG_SIZE; i++) {
+                DEBUG_PRINT("%02X ", configB[board][chip][i]);
+            }
+            DEBUG_PRINT("\n\n");
+        }
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t verifyAmsConfigCommandDefinition =
+{
+    "verifyAmsConfig",
+    "verifyAmsConfig:\r\n Verify AMS config tables A and B\r\n",
+    verifyAmsConfigCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t calcDataPecCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint8_t data[6];
+    uint8_t pec[2];
+    
+    // Parse the 6 parameters
+    for (int i = 0; i < 6; i++) {
+        const char * param = FreeRTOS_CLIGetParameter(commandString, i + 1, &paramLen);
+        if (param == NULL) {
+            COMMAND_OUTPUT("Error: Must provide exactly 6 hex bytes\n");
+            return pdFALSE;
+        }
+        unsigned int val;
+        // Parse hex directly (e.g. 01 00 00 FF 03 00 or 0x01 ... )
+        if (sscanf(param, "%x", &val) != 1) {
+            COMMAND_OUTPUT("Error: Failed to parse byte %d\n", i);
+            return pdFALSE;
+        }
+        data[i] = (uint8_t)val;
+    }
+
+    // Run the Data PEC generator
+    batt_gen_pec_data(data, 6, pec, 0);
+
+    COMMAND_OUTPUT("Data: %02X %02X %02X %02X %02X %02X\n", 
+            data[0], data[1], data[2], data[3], data[4], data[5]);
+    COMMAND_OUTPUT("Calculated Data PEC (10-bit): %02X %02X\n", pec[0], pec[1]);
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t calcDataPecCommandDefinition =
+{
+    "calcDataPec",
+    "calcDataPec <b0> <b1> <b2> <b3> <b4> <b5>:\r\n Calculates 10-bit Data PEC for 6 hex bytes\r\n",
+    calcDataPecCommand,
+    6 /* Number of parameters */
+};
 
 
 HAL_StatusTypeDef stateMachineMockInit()
@@ -1015,10 +1743,16 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&hvToggleCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&mockFsmEventCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setChannelTempCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&mockThermistorReadCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setCellVoltageCommandDefinition) != pdPASS) {
@@ -1045,6 +1779,14 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+#if IS_BOARD_F7
+    if (FreeRTOS_CLIRegisterCommand(&setImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getImdErrorThresholdCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+#endif
     if (FreeRTOS_CLIRegisterCommand(&stopChargeCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1123,7 +1865,37 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&setCellIRCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getCellTempsCommandDefinition) != pdPASS) {
+        DEBUG_PRINT("getCellTempsCommandDefinition failed\n");
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesADSVCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&stopDischargeCellsCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getDischargeDccCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getThermalShutdownCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&readAmsConfigCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&verifyAmsConfigCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }

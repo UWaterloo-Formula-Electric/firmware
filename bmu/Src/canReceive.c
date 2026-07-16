@@ -88,9 +88,11 @@ void CAN_Msg_IVT_Result_U2_Callback()
     publishBattVoltage(&Vbatt);
 }
 
+// As of 2026-04-29, it was discovered that the IVT shunt is reverse,
+// So IVT_I is negative when running the car (or precharge)
 void CAN_Msg_IVT_Result_I_Callback()
 {
-    Ibus = IVT_I;
+    Ibus = -1 * IVT_I;
     publishBusCurrent(&Ibus);
 }
 
@@ -103,4 +105,10 @@ void CAN_Msg_IMD_Info_General_Callback()
     ImdData.faults = IMD_Faults;
     ImdData.deviceStatus = IMD_Device_activity;
     updateImdData(&ImdData);
+}
+
+void CAN_Msg_IMD_Response_Callback()
+{
+    uint8_t responseIndex = IMD_Response_Index;
+    DEBUG_PRINT_ISR("Received IMD Response with index: 0x%x\n", responseIndex);
 }

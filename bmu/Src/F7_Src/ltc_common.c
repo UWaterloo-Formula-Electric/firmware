@@ -23,14 +23,21 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
 
     for (int board = NUM_BOARDS - 1; board >= 0; --board)
     {
-        batt_gen_pec((uint8_t*) &(writeData[board]), writeDataSize, data_PEC);
-        memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board]), writeDataSize);
-        txBufferIndex += writeDataSize;
-        memcpy(&txBuffer[txBufferIndex], data_PEC, PEC_SIZE);
-        txBufferIndex += PEC_SIZE;
+        for (int chip = NUM_LTC_CHIPS_PER_BOARD - 1; chip >= 0; --chip)
+        {
+            #if LTC_CHIP == ADBMS_CHIP_6830B
+                batt_gen_pec_data((uint8_t*) &(writeData[board][chip]), writeDataSize, data_PEC, 0);
+            #else
+                batt_gen_pec((uint8_t*) &(writeData[board][chip]), writeDataSize, data_PEC);
+            #endif
+            memcpy(&txBuffer[txBufferIndex], (uint8_t*) &(writeData[board][chip]), writeDataSize);
+            txBufferIndex += writeDataSize;
+            memcpy(&txBuffer[txBufferIndex], data_PEC, PEC_SIZE);
+            txBufferIndex += PEC_SIZE;
+        }
     }
     return HAL_OK;
-}
+}   
 
 /*
  * Generates a 15bit PEC for the message defined for data.
@@ -90,6 +97,73 @@ void batt_gen_pec(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr) 
     pecAddr[1] = pec & 0xff;
 }
 
+/*
+ * Generates a 10-bit PEC for the message defined for data.
+ * Uses CRC with polynomial:
+ *   x10 + x7 + x3 + x2 + x + 1
+ *
+ * NOTE: Only used for the ADBMS6830, which requires a different PEC for the data
+ */
+void batt_gen_pec_data(uint8_t * arrdata, unsigned int num_bytes, uint8_t * pecAddr, uint8_t cmd_counter) {
+    unsigned char in0, in1, in2, in3, in7;
+    int i, n;
+
+    // Initial value for Data PEC is 0x0010 (10-bit)
+    unsigned short pec = 0x0010; 
+
+    for (n = 0; n < num_bytes; n++) {
+        uint8_t data = arrdata[n];
+        for (i = 0; i < 8; i++, data = data << 1) {
+            unsigned char din = (data >> 7) & 0x01;
+            
+            // Logic derived from polynomial: x10 + x7 + x3 + x2 + x + 1
+            // Feedback bit is (din XOR pec[9])
+            unsigned char fb = din ^ ((pec >> 9) & 0x01);
+
+            in0 = fb;
+            in1 = fb ^ ((pec >> 0) & 0x01);
+            in2 = fb ^ ((pec >> 1) & 0x01);
+            in3 = fb ^ ((pec >> 2) & 0x01);
+            in7 = fb ^ ((pec >> 6) & 0x01);
+
+            // Shift and update bits
+            pec = (pec << 1) & 0x3FF; // Keep it 10-bit
+            
+            // Assign specific bits based on polynomial taps
+            if (in0) pec |= (1 << 0); else pec &= ~(1 << 0);
+            if (in1) pec |= (1 << 1); else pec &= ~(1 << 1);
+            if (in2) pec |= (1 << 2); else pec &= ~(1 << 2);
+            if (in3) pec |= (1 << 3); else pec &= ~(1 << 3);
+            if (in7) pec |= (1 << 7); else pec &= ~(1 << 7);
+        }
+    }
+
+    // Process the 6-bit Command Counter or padding 0s
+    for (i = 0; i < 6; i++) {
+        unsigned char din = (cmd_counter >> (5 - i)) & 0x01;
+        unsigned char fb = din ^ ((pec >> 9) & 0x01);
+
+        in0 = fb;
+        in1 = fb ^ ((pec >> 0) & 0x01);
+        in2 = fb ^ ((pec >> 1) & 0x01);
+        in3 = fb ^ ((pec >> 2) & 0x01);
+        in7 = fb ^ ((pec >> 6) & 0x01);
+
+        pec = (pec << 1) & 0x3FF;
+        
+        if (in0) pec |= (1 << 0); else pec &= ~(1 << 0);
+        if (in1) pec |= (1 << 1); else pec &= ~(1 << 1);
+        if (in2) pec |= (1 << 2); else pec &= ~(1 << 2);
+        if (in3) pec |= (1 << 3); else pec &= ~(1 << 3);
+        if (in7) pec |= (1 << 7); else pec &= ~(1 << 7);
+    }
+
+    // Format for Output: [PEC0] [PEC1]
+    // PEC0 bits 7-2 are Cmd Counter, bits 1-0 are PEC[9:8]
+    // PEC1 bits 7-0 are PEC[7:0]
+    pecAddr[0] = ((cmd_counter & 0x3F) << 2) | ((pec >> 8) & 0x03); 
+    pecAddr[1] = pec & 0xFF;
+}
 
 /*
  * Check the PEC on received data
@@ -107,6 +181,32 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
         return HAL_OK;
     } else {
         DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        return HAL_ERROR;
+    }
+}
+
+/*
+ * Check the PEC on received data
+ * @param rxBuffer: buffer holding the read data and PEC
+ * @param dataSize: length of the data the PEC is calculated on
+ */
+HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
+{
+    uint8_t pec[2];
+    
+    uint8_t cmd_counter = (rxBuffer[dataSize] >> 2) & 0x3F;
+    batt_gen_pec_data(rxBuffer, dataSize, pec, cmd_counter);
+    
+    uint32_t pec_index = dataSize;
+    if(rxBuffer[0] == 0xFF && rxBuffer[1] == 0xFF && rxBuffer[2] == 0xFF && rxBuffer[3] == 0xFF && rxBuffer[4] == 0xFF && rxBuffer[5] == 0xFF){
+        return HAL_OK;
+    }
+
+    if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
+    {
+        return HAL_OK;
+    } else {
+        DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
         return HAL_ERROR;
     }
 }
@@ -190,21 +290,45 @@ int batt_spi_wakeup(bool sleeping)
 // input voltage is in Volts, precision is in increments of 100uV
 // output temp is in degrees C
 float batt_convert_voltage_to_temp(float voltage) {
-    // for NTCLP100. Raw data will be uploaded to OpenProject under firmware.
-    const float p1 = 5.1416;
-    const float p2 = -47.6355;
-    const float p3 = 182.1670;
-    const float p4 = -361.8757;
-    const float p5 = 389.5266;
-    const float p6 = -182.8840;
-    const float p7 = 24.5223;
+    // for NTCAFLEX15103HH. https://www.vishay.com/docs/29132/ntcaflex05.pdf.
 
-    float x = voltage;
+    const float p1 = 0.0;
+    const float p2 = 0.0;
+    const float p3 = 0.0;
+    const float p4 = 0.0;
+    const float p5 = 1.943105255511;
+    const float p6 = 13.871206641654;
+    const float p7 = -16.994487328784;
+
+    float x = voltage*4.64/3.0;
 
     float output = p1*pow(x,6) + p2*pow(x,5) + p3*pow(x,4) + p4*pow(x,3) + p5*pow(x,2)
         + p6*pow(x,1) + p7;
 
     return output;
+}
+
+static uint8_t s_mock_all_thermistors;
+static float s_mock_all_thermistors_C;
+
+float batt_thermistor_adc_to_temp(int tempIdx, float voltageThermistor)
+{
+    (void)tempIdx;
+    if (s_mock_all_thermistors) {
+        return s_mock_all_thermistors_C;
+    }
+    return batt_convert_voltage_to_temp(voltageThermistor);
+}
+
+void batt_set_mock_all_thermistors(float temp_C)
+{
+    s_mock_all_thermistors = 1u;
+    s_mock_all_thermistors_C = temp_C;
+}
+
+void batt_clear_mock_all_thermistors(void)
+{
+    s_mock_all_thermistors = 0u;
 }
 
 /* delay function for wakeup. Use for delays < 1ms to reduce tight polling time */

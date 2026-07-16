@@ -24,17 +24,24 @@ void coolingOff(void) {
     DEBUG_PRINT("Turning cooling off\n");
     PUMP_1_DISABLE;
     PUMP_2_DISABLE;
-    RADIATOR_DISABLE;
-    ACC_FANS_DISABLE;
+    RADIATOR_1_DISABLE;
+    RADIATOR_2_DISABLE;
+    ACC_FANS_1_DISABLE;
+    ACC_FANS_2_DISABLE;
+    ACC_FANS_3_DISABLE;
 }
 
 void coolingOn(void) {
     DEBUG_PRINT("Turning cooling on\n");
     PUMP_1_EN;
     PUMP_2_EN;
-    RADIATOR_EN;
-    vTaskDelay(pdMS_TO_TICKS(3));   // Lessen in-rush current by introducing a delay
-    ACC_FANS_EN;
+    vTaskDelay(pdMS_TO_TICKS(10)); // Lessen in-rush current by introducing a delay
+    RADIATOR_1_EN;
+    RADIATOR_2_EN;
+    vTaskDelay(pdMS_TO_TICKS(10));
+    ACC_FANS_1_EN;
+    ACC_FANS_2_EN;
+    ACC_FANS_3_EN;
 }
 
 bool inverterOverheated(void)
@@ -108,7 +115,7 @@ void coolingTask(void *pvParameters) {
             if (motorOverheated())
             {
                 DEBUG_PRINT("Motor Overheated!\r\n");
-                sendDTC_FATAL_PDU_Motor_Overheat();
+                // sendDTC_FATAL_PDU_Motor_Overheat();
             }
         }
         else 

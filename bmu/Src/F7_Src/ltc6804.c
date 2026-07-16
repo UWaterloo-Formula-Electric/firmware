@@ -90,12 +90,12 @@
 
 
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
-static uint8_t thermistor_failure[NUM_BOARDS/2][THERMISTORS_PER_SEGMENT];
+static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_config[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
 void batt_init_chip_configs()
 {
-	memset(thermistor_failure, 0, NUM_BOARDS/2*THERMISTORS_PER_SEGMENT*sizeof(uint8_t));
+	memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 	for(int board = 0; board < NUM_BOARDS; board++) {
 		for(int ltc_chip = 0; ltc_chip < NUM_LTC_CHIPS_PER_BOARD; ltc_chip++){
@@ -129,7 +129,10 @@ HAL_StatusTypeDef format_and_send_config(uint8_t config[NUM_BOARDS][NUM_LTC_CHIP
 
 HAL_StatusTypeDef batt_write_config()
 {
-	format_and_send_config(m_batt_config);
+	if (format_and_send_config(m_batt_config)!= HAL_OK){
+		ERROR_PRINT("Failed to write config\n");
+		return HAL_ERROR;
+	}
     return HAL_OK;
 }
 
@@ -166,7 +169,7 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 		const uint16_t startOfData = DATA_START_IDX + (board * (response_size + PEC_SIZE));
 		if (checkPEC(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 		{
-			DEBUG_PRINT("PEC ERROR on board %d config\r\n", board);
+			DEBUG_PRINT("PEC ERROR on board %d config (ltc6804)\r\n", board);
 			PEC_count++;
 			return HAL_ERROR;
 		}
@@ -429,14 +432,14 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 		uint16_t adcCounts = ((uint16_t) (adc_vals[TEMP_ADC_IDX_HIGH + (board * AUX_BLOCK_SIZE)] << 8
 									| adc_vals[TEMP_ADC_IDX_LOW + (board * AUX_BLOCK_SIZE)]));
 		float voltageThermistor = ((float)adcCounts) / VOLTAGE_REGISTER_COUNTS_PER_VOLT;
-		cell_temp_array[cellIdx] = batt_convert_voltage_to_temp(voltageThermistor);
+		cell_temp_array[cellIdx] = batt_thermistor_adc_to_temp((int)cellIdx, voltageThermistor);
 	}
 	return HAL_OK;
 }
 
 
 
-void batt_set_balancing_cell (int board, int chip, int cell)
+void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm)
 {
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{
@@ -451,7 +454,7 @@ void batt_set_balancing_cell (int board, int chip, int cell)
 }
 
 
-void batt_unset_balancing_cell (int board, int chip, int cell)
+void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm)
 {
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{

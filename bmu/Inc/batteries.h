@@ -29,7 +29,7 @@
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
-#define LIMIT_LOWVOLTAGE 3.0F
+#define LIMIT_LOWVOLTAGE 2.5F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
 #define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
@@ -58,7 +58,11 @@
 /** Similar to @ref CELL_OVERTEMP, minimum temp before sending critical DTC */
 #define CELL_UNDERTEMP 0
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
-#define CELL_UNDERTEMP_WARNING 5
+#define CELL_UNDERTEMP_WARNING 0.5
+
+#define THERMISTOR_BALANCE
+#define THERMISTOR_BALANCE_VALID_MIN_C (-5.0F)
+#define THERMISTOR_BALANCE_VALID_MAX_C (80.0F)
 
 /** @} Cell Characteristics */
 

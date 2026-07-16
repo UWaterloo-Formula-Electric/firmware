@@ -406,20 +406,21 @@ void imdTask(void *pvParamaters)
    while (1) {
         imdData = getImdData();
         
+        // TODO: should probably check once device status and IMD faults has cleared
         while(!(imdData->deviceStatus)) {
             watchdogTaskCheckIn(IMD_TASK_ID);
             vTaskDelay(50);
         }
         if(imdData->faults) {
             if(imdData->faults & ISOLATION_FAULT || imdData->faults & ISOLATION_WARNING ) {
-                DEBUG_PRINT("IMD faulted!!\r\n");
+                ERROR_PRINT("IMD isolation faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
                 sendDTC_FATAL_IMD_Failure(1);
                     TSSI_GREEN_OFF;
                     TSSI_RED_ON;
             }
             else {
-                DEBUG_PRINT("else!!\r\n");
+                ERROR_PRINT("IMD faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
             }
             
@@ -443,6 +444,48 @@ void imdTask(void *pvParamaters)
  */
 
 
+#ifdef THERMISTOR_BALANCE
+static inline bool thermistorReadingPlausible(float temp)
+{
+    return temp >= THERMISTOR_BALANCE_VALID_MIN_C
+        && temp <= THERMISTOR_BALANCE_VALID_MAX_C;
+}
+
+static void applyThermistorBalance(void)
+{
+    float goodSum = 0.0f;
+    uint32_t goodCount = 0;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (thermistorReadingPlausible(TempChannel[i])) {
+            goodSum += TempChannel[i];
+            goodCount++;
+        }
+    }
+
+    if (goodCount == 0) {
+        ERROR_PRINT("Thermistor balance: no plausible thermistors\n");
+        return;
+    }
+
+    float goodAverage = goodSum / goodCount;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (!thermistorReadingPlausible(TempChannel[i])) {
+            TempChannel[i] = goodAverage;
+        }
+    }
+
+    static uint32_t prevDeadCount = 0;
+    uint32_t deadCount = (uint32_t)NUM_TEMP_CELLS - goodCount;
+    if (deadCount != prevDeadCount) {
+        DEBUG_PRINT("Thermistor balance: %lu/%d channels balanced to %f degC\n",
+                    (unsigned long)deadCount, NUM_TEMP_CELLS, goodAverage);
+        prevDeadCount = deadCount;
+    }
+}
+#endif
+
 /**
  * @brief Reads the cell voltages and temperatures from the AMS boards. The
  * battery temperature and cell voltages are stored in the global arrays which
@@ -453,7 +496,13 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+   HAL_StatusTypeDef rc = batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+#ifdef THERMISTOR_BALANCE
+   if (rc == HAL_OK) {
+      applyThermistorBalance();
+   }
+#endif
+   return rc;
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -528,7 +577,6 @@ void BatteryTaskError()
 {
     // Suspend task for now
     ERROR_PRINT("Battery Error occured!\n");
-    sendDTC_FATAL_AMS_Failure();
 #if IS_BOARD_F7
     // Open AMS contactor. TODO: Maybe remove since we are getting rid of AMS
     // contactor
@@ -548,41 +596,6 @@ void BatteryTaskError()
 
 /// Maximum number of errors battery task can encounter before reporting error
 #define MAX_ERROR_COUNT 5
-
-static uint32_t errorCounterRed = 0;
-
-/**
- * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
- * immediately fatal. This causes the task to retry its readings/whatever else
- * failed MAX_ERROR_COUNT times, then fail and send error event.
- * TODO: ensure this is max 500 ms to meet rules for cell reading times
- *
- * @return true if errorCounterRed is below or equal to max error count, false otherwise
- */
-bool boundedContinueRedCar()
-{
-    if ((++errorCounterRed) > MAX_ERROR_COUNT) {
-        BatteryTaskError();
-        return false;
-    } else {
-        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
-        watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-        return true;
-    }
-}
-
-/**
- * @brief Call on a succesful run through main loop.
- * Decrements error counter on succesful run through main loop
- */
-void ERROR_COUNTER_RED_SUCCESS()
-{
-  if (errorCounterRed > 0)
-  {
-    errorCounterRed--;
-  }
-}
 
 static uint32_t errorCounter = 0;
 
@@ -620,6 +633,44 @@ void ERROR_COUNTER_SUCCESS()
     errorCounter--;
   }
 }
+
+
+static uint32_t errorCounterRed = 0;
+
+/**
+ * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
+ * TODO: ensure this is max 500 ms to meet rules for cell reading times
+ *
+ * @return true if errorCounterRed is below or equal to max error count, false otherwise
+ */
+bool boundedContinueRedCar()
+{
+    // return boundedContinue();
+    if ((++errorCounterRed) >= MAX_ERROR_COUNT) {
+        BatteryTaskError();
+        return false;
+    } else {
+        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        return true;
+    }
+}
+
+/**
+ * @brief Call on a succesful run through main loop.
+ * Decrements error counter on succesful run through main loop
+ */
+void ERROR_COUNTER_RED_SUCCESS()
+{
+  if (errorCounterRed > 0)
+  {
+    errorCounterRed--;
+  }
+}
+
 
 /**
  * Alpha value for cell voltage filter
@@ -986,11 +1037,16 @@ HAL_StatusTypeDef stopCharging()
 HAL_StatusTypeDef stopBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    batt_unset_balancing_all_cells();
+    batt_unset_balancing_all_cells(15);
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
         return HAL_ERROR;
     }
 #endif
@@ -1043,8 +1099,13 @@ HAL_StatusTypeDef resumeBalance()
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return HAL_ERROR;
     }
 #endif
 
@@ -1070,8 +1131,13 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   else batt_stop_balance_cell(cell);
 #endif
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return HAL_ERROR;
     }
 #endif
     return HAL_OK;
@@ -1174,12 +1240,12 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             if (boundedContinueRedCar()) { continue; }
         }
 
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
-#endif
+  #if IS_BOARD_F7 && defined(ENABLE_AMS)
+          if (checkForOpenCircuit() != HAL_OK) {
+              ERROR_PRINT("Open wire test failed!\n");
+              if (boundedContinueRedCar()) { continue; }
+          }
+  #endif
 
         if (resumeBalance() != HAL_OK) {
             ERROR_PRINT("Failed to resume balance!\n");
@@ -1222,23 +1288,31 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                     float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
                     /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
-
+                    DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
                     if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #if IS_BOARD_F7
-                        batt_balance_cell(cell);
+                        batt_balance_cell(cell+1);
 #endif
                         balancingCells = true;
                     } else {
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
 #if IS_BOARD_F7
-                      batt_stop_balance_cell(cell);
+                      batt_stop_balance_cell(cell+1);
 #endif
                     }
                 }
-
-                DEBUG_PRINT("\n\n\n");
-
+                if (batt_spi_wakeup(true) != HAL_OK) {
+                    ERROR_PRINT("Failed to wake up boards\n");
+                    return HAL_ERROR;
+                }
+                if (batt_write_config_pwm() != HAL_OK) {
+                    ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+                    return HAL_ERROR;
+                }
+                DEBUG_PRINT("Sent config to AMS boards\n");
+                
+                
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
                 if (batt_write_config() != HAL_OK)
@@ -1377,12 +1451,14 @@ bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
  */
 void batteryTask(void *pvParameter)
 {
+    DEBUG_PRINT("Starting battery task\n");
     if (initVoltageAndTempArrays() != HAL_OK)
     {
        Error_Handler();
     }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
+    DEBUG_PRINT("Starting battery init\n");
     HAL_StatusTypeDef ret = HAL_ERROR;
     for(int num_tries = 0; num_tries < START_NUM_TRIES; num_tries++)
     {
@@ -1489,14 +1565,14 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+ #if IS_BOARD_F7 && defined(ENABLE_AMS)
+          if (checkForOpenCircuit() != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
-        }
-#endif
+             ERROR_PRINT("Open wire test failed!\n");
+             if (boundedContinueRedCar()) { continue; }
+         }
+ #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         if (readCellVoltagesAndTemps() != HAL_OK) {
@@ -1512,12 +1588,12 @@ void batteryTask(void *pvParameter)
               ((float *)&TempCellMax), ((float *)&TempCellMin),
               &packVoltage, &adjustedPackVoltage);
         
-        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
-            BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
-            sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Going HV Down close to edge");
-            if (boundedContinue()) { continue; }
-        }
+        // if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+        //     BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
+        //     sendCAN_BMU_BatteryChecks();
+        //     ERROR_PRINT("Going HV Down close to edge");
+        //     if (boundedContinue()) { continue; }
+        // }
 
         // check if the voltages and temps are within safe limits
         if (ret != HAL_OK) {
