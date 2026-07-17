@@ -74,7 +74,7 @@ uint32_t cycleMC(uint32_t event)
     if (current_state == STATE_Motors_On) {
         INVERTER_DISABLE;
         vTaskDelay(pdMS_TO_TICKS(50));
-        INVERTER_EN;
+        Request_Channel_Precharge(INV_Channel, 100);
         resetting = 0U;
         return STATE_Motors_On;
     }
@@ -185,7 +185,7 @@ HAL_StatusTypeDef turnBoardsOn()
     CDU_EN;
     TCU_EN;
     WSB_EN;
-    BMU_EN;
+    requestChannelPrecharge(BMU_Channel, 100); 
     TRANSPONDER_EN;   // TODO: might be for the transponder (needs to be specced)
 
     StatusPowerCDU = StatusPowerCDU_CHANNEL_ON;
@@ -199,6 +199,8 @@ HAL_StatusTypeDef turnBoardsOn()
 
     return HAL_OK;
 }
+
+
 
 HAL_StatusTypeDef turnBoardsOff()
 {
@@ -248,7 +250,7 @@ void toggleChannel(uint8_t channel, uint8_t On)
             if (On) { ACC_FANS_EN; } else { ACC_FANS_DISABLE; }
             break;
         case INV_Channel:
-            if (On) { INVERTER_EN; } else { INVERTER_DISABLE; }
+            if (On) { requestChannelPrecharge(INV_Channel, 100); } else { INVERTER_DISABLE; }
             break;
         case Radiator_Channel:
             if (On) { RADIATOR_EN; } else { RADIATOR_DISABLE; }
@@ -275,7 +277,7 @@ uint32_t motorsOn(uint32_t event)
 {
     DEBUG_PRINT("Turning motors on\n");
     if (fsmGetState(&mainFsmHandle) == STATE_Boards_On) {
-        INVERTER_EN;
+        Request_Channel_Precharge(INV_Channel, 100);
     }
 
     StatusPowerInverter = StatusPowerInverter_CHANNEL_ON;
@@ -316,5 +318,17 @@ void hvCriticalDelayCallback(TimerHandle_t timer)
     if (fsmSendEventUrgent(&mainFsmHandle, EV_CriticalDelayElapsed, 10 /* timeout */) != HAL_OK) {
         ERROR_PRINT("Failed to process critical delay elapsed event\n");
         criticalFailure(EV_CriticalDelayElapsed);
+    }
+}
+
+void requestChannelPrecharge(uint8_t channel, uint16_t duration_ms)
+{
+    PrechargeRequest_t req = {
+        .channel = channel,
+        .duration_ms = duration_ms
+    };
+
+    if (xQueueSend(prechargeQueue, &req, 0) != pdTRUE) {
+        ERROR_PRINT("Failed to send precharge request to queue\n");
     }
 }

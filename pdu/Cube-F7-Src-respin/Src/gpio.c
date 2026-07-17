@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -59,11 +59,11 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, AUX_3_PWR_Pin|AUX_2_PWR_Pin|AUX_1_PWR_Pin|RAD_EN_Pin
-                          |INV_EN_Pin|ACC_FANS_EN_Pin|BRAKE_LIGHT_EN_Pin|TCU_EN_Pin
-                          |LED_R_Pin|LED_Y_Pin|LED_B_Pin, GPIO_PIN_RESET);
+                          |ACC_FANS_EN_Pin|BRAKE_LIGHT_EN_Pin|LED_R_Pin|LED_Y_Pin
+                          |LED_B_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, WSB_EN_Pin|BMU_EN_Pin|CDU_EN_Pin|PUMP_2_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, WSB_EN_Pin|PUMP_2_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, PUMP_1_EN_Pin|CHARGE_EN_Pin, GPIO_PIN_RESET);
@@ -84,17 +84,17 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin PDPin PDPin PDPin
-                           PDPin PDPin PDPin */
+                           PDPin */
   GPIO_InitStruct.Pin = AUX_3_PWR_Pin|AUX_2_PWR_Pin|AUX_1_PWR_Pin|RAD_EN_Pin
-                          |INV_EN_Pin|ACC_FANS_EN_Pin|BRAKE_LIGHT_EN_Pin|TCU_EN_Pin
-                          |LED_R_Pin|LED_Y_Pin|LED_B_Pin;
+                          |ACC_FANS_EN_Pin|BRAKE_LIGHT_EN_Pin|LED_R_Pin|LED_Y_Pin
+                          |LED_B_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = WSB_EN_Pin|BMU_EN_Pin|CDU_EN_Pin|PUMP_2_EN_Pin;
+  /*Configure GPIO pins : PCPin PCPin */
+  GPIO_InitStruct.Pin = WSB_EN_Pin|PUMP_2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
