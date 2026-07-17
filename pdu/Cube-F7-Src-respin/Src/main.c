@@ -144,6 +144,8 @@ int main(void)
   userInit();
   printWDResetState();
   handleWatchdogReset();
+  QueueHandle_t prechargeQueue = xQueueCreate(5, sizeof(PrechargeRequest_t));
+  xTaskCreate(prechargeTask, "Precharge", 256, NULL, 2, NULL);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

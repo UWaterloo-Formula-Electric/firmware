@@ -1,9 +1,5 @@
 #include "precharge.h"
 
-void prechargeTask(void *pvParameters);
-void Setup_PWM_Pin(uint8_t channel);
-void Update_PWM_Duty_Cycle(uint8_t channel, uint8_t duty);
-void Set_Pin_To_Standard_GPIO_High(uint8_t channel);
 
 
 void prechargeTask(void *pvParameters) {
@@ -15,11 +11,11 @@ void prechargeTask(void *pvParameters) {
             // Process the precharge request
             Setup_PWM_Pin(req.channel);
 
-            float current_duty = 5.0;
-            float step = 95/req.duration_ms; 
-            while(current_duty < 100.0) {
+            float current_duty = 0.05;
+            float step = 0.95/req.duration_ms; 
+            while(current_duty < 1.0) {
                 current_duty += step;
-                if (current_duty > 100.0f) {  current_duty = 100.0f;}
+                if (current_duty > 1.0f) {  current_duty = 1.0f;}
                 Update_PWM_Duty_Cycle(req.channel, (uint8_t)current_duty);
                 vTaskDelay(pdMS_TO_TICKS(1)); // Delay for 1 millisecond
             }
@@ -36,7 +32,7 @@ static PrechargeHardware_t get_hardware_config(uint8_t channel) {
     PrechargeHardware_t config = {0};
     
     switch(channel) {
-        case PRECHARGE_CHAN_1: // Logical Channel 1 (PC8 -> TIM3_CH3)
+        case BMU_Channel: // Logical Channel 1 (PC8 -> TIM3_CH3)
             config.gpio_port          = GPIOC;
             config.gpio_pin           = GPIO_PIN_8;
             config.tim_handle         = &htim3;
@@ -44,7 +40,7 @@ static PrechargeHardware_t get_hardware_config(uint8_t channel) {
             config.alternate_function = GPIO_AF2_TIM3;
             break;
 
-        case PRECHARGE_CHAN_2: // Logical Channel 2 (PC7 -> TIM3_CH2)
+        case CDU_Channel: // Logical Channel 2 (PC7 -> TIM3_CH2)
             config.gpio_port          = GPIOC;
             config.gpio_pin           = GPIO_PIN_7;
             config.tim_handle         = &htim3;
@@ -52,7 +48,7 @@ static PrechargeHardware_t get_hardware_config(uint8_t channel) {
             config.alternate_function = GPIO_AF2_TIM3;
             break;
 
-        case PRECHARGE_CHAN_3: // Logical Channel 3 (PD15 -> TIM4_CH4)
+        case TCU_Channel: // Logical Channel 3 (PD15 -> TIM4_CH4)
             config.gpio_port          = GPIOD;
             config.gpio_pin           = GPIO_PIN_15;
             config.tim_handle         = &htim4;
@@ -60,7 +56,7 @@ static PrechargeHardware_t get_hardware_config(uint8_t channel) {
             config.alternate_function = GPIO_AF2_TIM4;
             break;
 
-        case PRECHARGE_CHAN_4: // Logical Channel 4 (PD12 -> TIM4_CH1)
+        case INV_Channel: // Logical Channel 4 (PD12 -> TIM4_CH1)
             config.gpio_port          = GPIOD;
             config.gpio_pin           = GPIO_PIN_12;
             config.tim_handle         = &htim4;
@@ -94,3 +90,26 @@ void Setup_PWM_Pin(uint8_t channel) {
     HAL_TIM_PWM_Start(hw.tim_handle, hw.tim_channel);
 }
 
+void Update_PWM_Duty_Cycle(uint8_t channel, uint8_t duty);
+{
+    
+    PrechargeHardware_t hw = get_hardware_config(channel);
+    if (hw.gpio_port == NULL) return;
+
+    // Calculate the compare value based on duty cycle percentage
+    uint32_t period = __HAL_TIM_GET_AUTORELOAD(hw.tim_handle);
+    uint32_t compare_value = (period + 1) * duty; // +1 because period is zero-based
+
+    // Update the compare register to change the duty cycle
+    __HAL_TIM_SET_COMPARE(hw.tim_handle, hw.tim_channel, compare_value);
+}
+
+void Set_Pin_To_Standard_GPIO_High(uint8_t channel){
+    PrechargeHardware_t hw = get_hardware_config(channel);
+    if (hw.gpio_port == NULL) return;
+
+    // Force compare register to exceed or equal the Auto-Reload Register (ARR)
+    // This forces the PWM output to stay constantly active (100% duty)
+    uint32_t period = __HAL_TIM_GET_AUTORELOAD(hw.tim_handle);
+    __HAL_TIM_SET_COMPARE(hw.tim_handle, hw.tim_channel, period);
+}
