@@ -139,10 +139,13 @@ int main(void)
   MX_I2C1_Init();
   MX_ADC3_Init();
   MX_TIM9_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
   handleWatchdogReset();
+  QueueHandle_t prechargeQueue = xQueueCreate(5, sizeof(PrechargeRequest_t));
+  xTaskCreate(prechargeTask, "Precharge", 256, NULL, 2, NULL);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
