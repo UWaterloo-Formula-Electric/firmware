@@ -39,6 +39,17 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle);
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
+Calibration_t calibration =
+{
+    .throttleALow = DEFAULT_THROTTLE_A_LOW,
+    .throttleAHigh = DEFAULT_THROTTLE_A_HIGH,
+
+    .throttleBLow = DEFAULT_THROTTLE_B_LOW,
+    .throttleBHigh = DEFAULT_THROTTLE_B_HIGH,
+
+    .brakePosLow = DEFAULT_BRAKE_POS_LOW,
+    .brakePosHigh = DEFAULT_BRAKE_POS_HIGH,
+};
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Helpers-------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -76,42 +87,42 @@ HAL_StatusTypeDef startADCConversions()
 float getBrakePositionPercent()
 {	
     return map_range(brakeThrottleSteeringADCVals[BRAKE_POS_INDEX],
-                     BRAKE_POS_LOW, BRAKE_POS_HIGH, 0, 100);
+                     calibration.brakePosLow, calibration.brakePosHigh, 0, 100);
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
-  return throttle <= THROTT_A_HIGH+MAX_THROTTLE_A_DEADZONE && throttle >= THROTT_A_LOW-MAX_THROTTLE_A_DEADZONE;
+  return throttle <= calibration.throttleAHigh+MAX_THROTTLE_A_DEADZONE && throttle >= calibration.throttleALow-MAX_THROTTLE_A_DEADZONE;
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
-  return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW-MAX_THROTTLE_B_DEADZONE;
+  return throttle <= calibration.throttleBHigh+MAX_THROTTLE_B_DEADZONE && throttle >= calibration.throttleBLow-MAX_THROTTLE_B_DEADZONE;
 }
 
 bool is_brake_in_range(uint32_t brake) {
-  return brake <= BRAKE_POS_HIGH + MAX_BRAKE_DEADZONE && brake >= BRAKE_POS_LOW - MAX_BRAKE_DEADZONE;
+  return brake <= calibration.brakePosHigh + MAX_BRAKE_DEADZONE && brake >= calibration.brakePosLow - MAX_BRAKE_DEADZONE;
 }
 
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return map_range_float((float)tps_value, calibration.throttleALow, calibration.throttleAHigh,
       0, 100);
 }
 
 float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return 100 - map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return 100 - map_range_float((float)tps_value, calibration.throttleBLow, calibration.throttleBHigh,
       0, 100);
 }
 
 // These are for testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent)
 {
-  return map_range(percent, 0, 100, THROTT_A_LOW, THROTT_A_HIGH);
+  return map_range(percent, 0, 100, calibration.throttleALow, calibration.throttleAHigh);
 }
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
 {
-  return map_range(percent, 0, 100, THROTT_B_LOW, THROTT_B_HIGH);
+  return map_range(percent, 0, 100, calibration.throttleBLow, calibration.throttleBHigh);
 }
 
 bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
@@ -200,7 +211,7 @@ bool brakePlausibilityCheckFail()
 {
     uint32_t brakePotVal = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
     if (!is_brake_in_range(brakePotVal)) {
-        ERROR_PRINT("Brake pot out of range, motor disabled T.4.3.3: %lu [%lu, %lu]\n", brakePotVal, (uint32_t)BRAKE_POS_LOW, (uint32_t)BRAKE_POS_HIGH);
+        ERROR_PRINT("Brake pot out of range, motor disabled T.4.3.3: %lu [%lu, %lu]\n", brakePotVal, (uint32_t)calibration.brakePosLow, (uint32_t)calibration.brakePosHigh);
         return true;
     }
     return false;
@@ -307,6 +318,12 @@ int getSteeringAngle() {
 
 HAL_StatusTypeDef brakeAndThrottleStart()
 {
+    if (loadCalibration() != HAL_OK)
+    {
+        setDefaultCalibration();
+        ERROR_PRINT("Using default calibration\n");
+    }
+
     if (startADCConversions() != HAL_OK)
     {
         ERROR_PRINT("Failed to start brake and throttle ADC conversions\n");
@@ -350,6 +367,107 @@ void disableRegen() {
     ENDURANCE_LED_OFF;
 }
 
+/* Calibration */
+void setDefaultCalibration(void)
+{
+    calibration.throttleALow = DEFAULT_THROTTLE_A_LOW;
+    calibration.throttleAHigh = DEFAULT_THROTTLE_A_HIGH;
+    calibration.throttleBLow = DEFAULT_THROTTLE_B_LOW;
+    calibration.throttleBHigh = DEFAULT_THROTTLE_B_HIGH;
+    calibration.brakePosLow = DEFAULT_BRAKE_POS_LOW;
+    calibration.brakePosHigh = DEFAULT_BRAKE_POS_HIGH;
+}
+
+HAL_StatusTypeDef eraseFlashSector(void)
+{
+    FLASH_EraseInitTypeDef FlashEraseDefinition;
+    uint32_t FlashEraseFault = 0;
+
+    HAL_FLASH_Unlock();
+
+    FlashEraseDefinition.TypeErase = FLASH_TYPEERASE_SECTORS;
+    FlashEraseDefinition.Banks = FLASH_BANK_1;
+    FlashEraseDefinition.NbSectors = 1;
+    FlashEraseDefinition.Sector = FLASH_SECTOR_11;
+    FlashEraseDefinition.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+
+    if(HAL_FLASHEx_Erase(&FlashEraseDefinition, &FlashEraseFault) != HAL_OK)
+    {
+        ERROR_PRINT("Flash Erase Failed\r\n");
+
+        HAL_FLASH_Lock();
+        return HAL_ERROR;
+    }
+
+    HAL_FLASH_Lock();
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef loadCalibration(void)
+{
+    uint64_t *data = (uint64_t *)&calibration;
+    uint32_t doubleWords = sizeof(Calibration_t)/sizeof(uint64_t);
+
+    if(*(uint64_t *)FLASH_CALIBRATION_ADDRESS == 0xFFFFFFFFFFFFFFFF)
+    {
+        ERROR_PRINT("No calibration found\r\n");
+
+        setDefaultCalibration();
+        return HAL_ERROR;
+    }
+
+    for(uint32_t i = 0; i < doubleWords; i++)
+    {
+        data[i] = *(uint64_t *)(FLASH_CALIBRATION_ADDRESS + (i * 8));
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef saveCalibration(void)
+{
+    HAL_StatusTypeDef status;
+
+    status = eraseFlashSector();
+
+    if(status != HAL_OK)
+    {
+        ERROR_PRINT("Could not erase calibration sector\r\n");
+        return HAL_ERROR;
+    }
+
+
+    HAL_FLASH_Unlock();
+
+
+    uint64_t *data = (uint64_t *)&calibration;
+    uint32_t doubleWords = sizeof(Calibration_t) / sizeof(uint64_t);
+
+
+    for(uint32_t i = 0; i < doubleWords; i++)
+    {
+        status = HAL_FLASH_Program(
+                    FLASH_TYPEPROGRAM_DOUBLEWORD,
+                    FLASH_CALIBRATION_ADDRESS + (i * 8),
+                    data[i]
+                 );
+
+
+        if(status != HAL_OK)
+        {
+            ERROR_PRINT("Flash write failed at doubleword %lu\r\n", i);
+
+            HAL_FLASH_Lock();
+            return HAL_ERROR;
+        }
+    }
+
+
+    HAL_FLASH_Lock();
+
+    return HAL_OK;
+}
 /*********************************************************************************************************************/
 /*----------------------------------------------------Tasks----------------------------------------------------------*/
 /*********************************************************************************************************************/
