@@ -63,3 +63,5 @@ beaglebone/os/Makefile
 
 # Cell Tester Log Files
 cellTester/CellData
+
+CLAUDE.md
