@@ -1,0 +1,72 @@
+DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
+1,CELL_VOLTAGE_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data voltage low
+2,CELL_VOLTAGE_LOW,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data voltage critically low
+3,CELL_VOLTAGE_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data voltage high
+4,CELL_VOLTAGE_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data voltage critically high
+5,CELL_TEMP_HIGH,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp high
+6,CELL_TEMP_HIGH,BMU,2,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically high
+7,CONTACTOR_OPEN_IMPENDING,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,BMS opening contactors
+8,CONTACTOR_WELDED_SHUT_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Positive contactor welded shut
+9,CONTACTOR_WELDED_SHUT_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Negative contactor welded shut
+10,CONTACTOR_COIL_FAILURE_POS,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Positive contactor coil failed open
+11,CONTACTOR_COIL_FAILURE_NEG,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Negative contactor coil failed open
+12,CONTACTOR_PRECHARGE_STUCK_ON,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Precharge relay stuck closed
+13,CONTACTOR_PRECHARGE_STUCK_OFF,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Precharge relay stuck open
+14,CONTACTOR_PRECHARGE_RESISTOR_SHORT,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Precharge resistor failed open
+15,CONTACTOR_PRECHARGE_RESISTOR_OPEN,BMU,1,"DCU,VCU_F7,VCU_BEAGLEBONE",NA,Precharge resistor failed short
+16,EM_ENABLE_FAILED,VCU_F7,4,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"VCU failed EM enable b/c: #data {0: ""bpsState false"", 1: ""low brake pressure"", 2: ""throttle non-zero"", 3: ""brake not pressed"", 4: ""not hv enabled"", 5: ""motors failed to start""}"
+17,EM_ENABLE_FAILED,VCU_F7,1,"DCU,BMU,VCU_BEAGLEBONE,PDU",Reason,"VCU failed EM enable b/c: #data {0: ""bpsState false"", 1: ""low brake pressure"", 2: ""throttle non-zero"", 3: ""brake not pressed"", 4: ""not hv enabled"", 5: ""motors failed to start""}"
+18,BOARDS_TURNING_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is turning off boards shortly"
+19,BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"Critical failure occurred, PDU is turning off the boards"
+20,LV_CUTTOFF_BOARDS_OFF,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"LV Cuttoff reached, PDU is turning off boards shortly"
+21,PDU_HV_Critical,PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,HV Critical failure has been detected by the PDU
+22,PDU_ERROR, PDU,1,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU: unknown error occured
+23,VCU_F7_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: unknown error occured
+24,BMU_ERROR,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,BMU: unknown error occured
+25,DCU_ERROR,DCU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,DCU: unknown error occured
+26,VCU_BEAGLEBONE_ERROR,VCU_BEAGLEBONE,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU-BB: unknown error occured
+27,BPS_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Bps sensor detected a failure
+28,Brake_Pressure_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake pressure sensor detected a failure
+29,DCU_CAN_Timeout,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,DCU CAN Timeout occured
+30,Throttle_Failure,VCU_F7,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",ThrottleFailure,Throttle implausibility occured
+31,PrechargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Precharge process failed during step #data
+32,DischargeFailed,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Step,Discharge process failed during step #data
+33,IMD_Failure,BMU,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE",Status,IMD detected a fault. Value is of enum IMDStatus in imdDriver.h
+34,WatchdogTaskMissedCheckIn,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",taskid,"Watchdog: taskid #data missed check in, resetting with watchdog"
+35,WatchdogReset,"BMU,PDU,VCU_F7,DCU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,Watchdog reset occurred
+36,DCU_MissedHeartbeat,"BMU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,DCU heartbeat timeout
+37,BMU_MissedHeartbeat,"DCU,PDU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,BMU heartbeat timeout
+38,PDU_MissedHeartbeat,"BMU,DCU,VCU_F7,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,PDU heartbeat timeout
+39,VCU_F7_MissedHeartbeat,"BMU,PDU,DCU,ChargeCart",1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart",NA,VCU heartbeat timeout
+40,BMU_Charger_ERROR,BMU,1,"DCU,PDU,VCU_F7,ChargeCart",NA,Charger reported an error while charging
+41,BMU_SystemNotReady,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Reason,"BMU waiting for system to come up, can't process request yet b/c: #data {1: ""IMD_FAIL"", 2: ""IL_HVIL_FAIL""}"
+42,PDU_EM_EN_BLOCKED_DCDC_OFF,PDU,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,PDU blocked EM enable request since DC-DC not on
+43,ChargeCart_ERROR,ChargeCart,1,BMU,NA,CC: unknown error occured
+44,WSBFL_ERROR,WSBFL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFL: unknown error occured
+45,WSBFR_ERROR,WSBFR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBFR: unknown error occured
+46,WSBRL_ERROR,WSBRL,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRL: unknown error occured
+47,WSBRR_ERROR,WSBRR,2,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,WSBRR: unknown error occured
+48,BMU_UNKOWN_EVENT_STATE_COMBO,BMU,4,"DCU,PDU,VCU_F7,ChargeCart",Event,BMU received event #data with no transition from current state
+49,BrakeWhileThrottleError_Disabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Max throttle while brake pressed reached, throttle disabled (EV.3.4 FSAE)"
+50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throt at rst point after BrakeWhileThrottle Error, Thrott Reengaged (EV.3.4 FSAE)"
+51,CELL_TEMP_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp low
+52,CELL_TEMP_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
+53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
+54,DCDC_Shutoff,PDU,4,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,DCDC shutoff
+55,LV_Battery_Low,PDU,4,"VCU_F7,VCU_BEAGLEBONE",NA,LV battery below 10V
+56,MOTOR_CONTROLLERS_FAULT_OFF,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",MotorLeft,"Motor controllers in fault off state"
+57,VCU_F7_EM_ENABLED_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Unknown EM Fault"
+58,VCU_F7_EV_FATAL,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"VCU: Got Fatal DTC"
+59,VCU_F7_NoTransition,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,VCU: No state machine transition found
+60,PDU_Inverter_Post_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has post faulted #data"
+61,PDU_Inverter_Run_Fault,PDU,4,"VCU_BEAGLEBONE",Fault,"Inverter has run faulted #data"
+62,MC_Temp_Reading_Lost,PDU,4,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,No longer reading motor temp
+63,VCU_F7_MC_DISABLE_ERROR,VCU_F7,1,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"MC disable request failed"
+64,VCU_SM_ERROR,VCU_F7,4,"PDU,VCU_BEAGLEBONE,BMU",code,VCU State Machine Fault #data
+65,VCU_NoTransition,VCU_F7,1,"PDU,VCU_BEAGLEBONE,BMU",NA,VCU: No state machine transition found
+66,PDU_Inverter_Overheat,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+67,PDU_Inverter_Derating_Power,PDU,4,VCU_BEAGLEBONE,NA,"INV: HotSpot > 45C, power derating in 30s"
+68,PDU_Motor_Overheat,PDU,1,VCU_BEAGLEBONE,NA,"INV: Motor Temp > 100C"
+69,PDU_Max_Current_Exceeded,PDU,3,VCU_BEAGLEBONE,NA,"LV Current > 30A"
+70,AMS_Failure,BMU,1,"PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"AMS failed"
+71, BMU_Close_To_Edge, BMU, 1, "PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"BMU close to edge, going hv down"
