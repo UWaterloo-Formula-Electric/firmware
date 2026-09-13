@@ -59,8 +59,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(MCU_EN_DC_GPIO_Port, MCU_EN_DC_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, TSSI_GREEN_EN_Pin|TSSI_RED_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin
-                          |CONT_POS_Pin|CONT_DC_DC_Pin|CONT_NEG_Pin, GPIO_PIN_RESET);
+                          |CONT_POS_Pin|CONT_NEG_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PEPin PEPin PEPin PEPin */
   GPIO_InitStruct.Pin = HW_CHECK_SENSE_Pin|BOTS_SENSE_Pin|AMS_SENSE_Pin|BUT3_Pin;
@@ -103,7 +106,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin PDPin PDPin */
   GPIO_InitStruct.Pin = TSSI_GREEN_EN_Pin|TSSI_RED_EN_Pin|CONT_PRE_Pin|AMS_CONT_Pin
-                          |CONT_POS_Pin|CONT_DC_DC_Pin|CONT_NEG_Pin;
+                          |CONT_POS_Pin|CONT_NEG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -115,7 +118,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(IMD_SENSE_GPIO_Port, &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = MCU_EN_DC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(MCU_EN_DC_GPIO_Port, &GPIO_InitStruct); 
 }
+
 
 /* USER CODE BEGIN 2 */
 
