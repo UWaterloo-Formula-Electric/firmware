@@ -367,7 +367,7 @@ void disableRegen() {
     ENDURANCE_LED_OFF;
 }
 
-/* Calibration */
+/* FLASH CALIBRATION */
 void setDefaultCalibration(void)
 {
     calibration.throttleALow = DEFAULT_THROTTLE_A_LOW;
@@ -406,10 +406,7 @@ HAL_StatusTypeDef eraseFlashSector(void)
 
 HAL_StatusTypeDef loadCalibration(void)
 {
-    uint64_t *data = (uint64_t *)&calibration;
-    uint32_t doubleWords = sizeof(Calibration_t)/sizeof(uint64_t);
-
-    if(*(uint64_t *)FLASH_CALIBRATION_ADDRESS == 0xFFFFFFFFFFFFFFFF)
+    if (*(uint64_t *)FLASH_CALIBRATION_ADDRESS == 0xFFFFFFFFFFFFFFFF)
     {
         ERROR_PRINT("No calibration found\r\n");
 
@@ -417,10 +414,11 @@ HAL_StatusTypeDef loadCalibration(void)
         return HAL_ERROR;
     }
 
-    for(uint32_t i = 0; i < doubleWords; i++)
-    {
-        data[i] = *(uint64_t *)(FLASH_CALIBRATION_ADDRESS + (i * 8));
-    }
+    memcpy(
+        &calibration,
+        (const void *)FLASH_CALIBRATION_ADDRESS,
+        sizeof(Calibration_t)
+    );
 
     return HAL_OK;
 }
@@ -431,38 +429,42 @@ HAL_StatusTypeDef saveCalibration(void)
 
     status = eraseFlashSector();
 
-    if(status != HAL_OK)
+    if (status != HAL_OK)
     {
         ERROR_PRINT("Could not erase calibration sector\r\n");
         return HAL_ERROR;
     }
 
+    uint8_t data[sizeof(Calibration_t)];
+
+    memcpy(data, &calibration, sizeof(Calibration_t));
 
     HAL_FLASH_Unlock();
 
-
-    uint64_t *data = (uint64_t *)&calibration;
-    uint32_t doubleWords = sizeof(Calibration_t) / sizeof(uint64_t);
-
-
-    for(uint32_t i = 0; i < doubleWords; i++)
+    for (uint32_t i = 0; i < sizeof(Calibration_t); i += sizeof(uint64_t))
     {
+        uint64_t doubleWord;
+
+        memcpy(
+            &doubleWord,
+            &data[i],
+            sizeof(uint64_t)
+        );
+
         status = HAL_FLASH_Program(
-                    FLASH_TYPEPROGRAM_DOUBLEWORD,
-                    FLASH_CALIBRATION_ADDRESS + (i * 8),
-                    data[i]
-                 );
+            FLASH_TYPEPROGRAM_DOUBLEWORD,
+            FLASH_CALIBRATION_ADDRESS + i,
+            doubleWord
+        );
 
-
-        if(status != HAL_OK)
+        if (status != HAL_OK)
         {
-            ERROR_PRINT("Flash write failed at doubleword %lu\r\n", i);
+            ERROR_PRINT("Flash write failed at doubleword %lu\r\n", i / sizeof(uint64_t));
 
             HAL_FLASH_Lock();
             return HAL_ERROR;
         }
     }
-
 
     HAL_FLASH_Lock();
 
