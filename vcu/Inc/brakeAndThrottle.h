@@ -15,6 +15,7 @@
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
+/*
 #define THROTT_A_LOW (1605)
 #define THROTT_B_LOW (1923)
 
@@ -23,6 +24,7 @@
 
 #define BRAKE_POS_LOW (1400)
 #define BRAKE_POS_HIGH (1668)
+*/
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (4095)  // Pot value when the wheel is all the way to the right
@@ -87,6 +89,39 @@ float getBrakePositionPercent();
 
 float getThrottleAFiltered();
 float getThrottleBFiltered();
+
+/* Calibration */
+
+/* TODO: Verify this is an unused Flash sector */
+#define FLASH_CALIBRATION_ADDRESS    0x081C0000U
+
+/* Default calibration values */
+#define DEFAULT_THROTTLE_A_LOW       1605U
+#define DEFAULT_THROTTLE_A_HIGH      1803U
+#define DEFAULT_THROTTLE_B_LOW       1923U
+#define DEFAULT_THROTTLE_B_HIGH      2134U
+#define DEFAULT_BRAKE_POS_LOW        1400U
+#define DEFAULT_BRAKE_POS_HIGH       1668U
+
+typedef struct
+{
+    uint32_t throttleALow;
+    uint32_t throttleAHigh;
+
+    uint32_t throttleBLow;
+    uint32_t throttleBHigh;
+
+    uint32_t brakePosLow;
+    uint32_t brakePosHigh;
+} Calibration_t;
+
+/* Global calibration currently being used */
+extern Calibration_t calibration;
+
+HAL_StatusTypeDef loadCalibration(void);
+HAL_StatusTypeDef saveCalibration(void);
+HAL_StatusTypeDef eraseFlashSector(void);
+void setDefaultCalibration(void);
 
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);

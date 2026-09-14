@@ -11,7 +11,6 @@
 #include "bsp.h"
 #include "motorController.h"
 #include "traction_control.h"
-#include "motorController.h"
 
 extern osThreadId driveByWireHandle;
 extern uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS];
@@ -418,6 +417,164 @@ static const CLI_Command_Definition_t mcInitCommandDefinition =
     0 /* Number of parameters */
 };
 
+/* Calibration Commands */
+BaseType_t calibrationShow(char *writeBuffer, size_t writeBufferLength,
+    const char *commandString)
+{
+    COMMAND_OUTPUT("Calibration Values:\n");
+    COMMAND_OUTPUT("Throttle A Low  : %lu\n", calibration.throttleALow);
+    COMMAND_OUTPUT("Throttle A High : %lu\n", calibration.throttleAHigh);
+    COMMAND_OUTPUT("Throttle B Low  : %lu\n", calibration.throttleBLow);
+    COMMAND_OUTPUT("Throttle B High : %lu\n", calibration.throttleBHigh);
+    COMMAND_OUTPUT("Brake Pos Low   : %lu\n", calibration.brakePosLow);
+    COMMAND_OUTPUT("Brake Pos High  : %lu\n", calibration.brakePosHigh);
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t calibrationShowCommandDefinition =
+{
+    "calShow",
+    "calShow:\r\n Display current calibration values\r\n",
+    calibrationShow,
+    0 /* Number of parameters */
+};
+
+BaseType_t calibrationSave(char *writeBuffer, size_t writeBufferLength,
+                    const char *commandString)
+{
+    if (saveCalibration() == HAL_OK)
+    {
+        COMMAND_OUTPUT("Calibration saved successfully\n");
+    }
+    else
+    {
+        COMMAND_OUTPUT("Failed to save calibration\n");
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t calibrationSaveCommandDefinition =
+{
+    "calSave",
+    "calSave:\r\n Save calibration values to flash\r\n",
+    calibrationSave,
+    0 /* Number of parameters */
+};
+
+BaseType_t calibrationLoad(char *writeBuffer, size_t writeBufferLength,
+    const char *commandString)
+{
+    if (loadCalibration() == HAL_OK)
+    {
+        COMMAND_OUTPUT("Calibration loaded successfully\n");
+    }
+    else
+    {
+        COMMAND_OUTPUT("Failed to load calibration\n");
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t calibrationLoadCommandDefinition =
+{
+    "calLoad",
+    "calLoad:\r\n Load calibration values from flash\r\n",
+    calibrationLoad,
+    0 /* Number of parameters */
+};
+
+BaseType_t calibrationDefault(char *writeBuffer, size_t writeBufferLength,
+    const char *commandString)
+{
+    setDefaultCalibration();
+
+    COMMAND_OUTPUT("Calibration reset to defaults\n");
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t calibrationDefaultCommandDefinition =
+{
+    "calDefault",
+    "calDefault:\r\n Reset calibration values to default\r\n",
+    calibrationDefault,
+    0 /* Number of parameters */
+};
+
+BaseType_t calibrationSet(char *writeBuffer, size_t writeBufferLength,
+    const char *commandString)
+{
+    BaseType_t paramLen;
+
+    const char *type = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    uint32_t low;
+    uint32_t high;
+
+
+    const char *lowParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    const char *highParam = FreeRTOS_CLIGetParameter(commandString, 3, &paramLen);
+
+
+    if(lowParam == NULL || highParam == NULL)
+    {
+        COMMAND_OUTPUT("Usage: calSet <throttleA|throttleB|brake> <low> <high>\n");
+        return pdFALSE;
+    }
+
+
+    sscanf(lowParam, "%lu", &low);
+    sscanf(highParam, "%lu", &high);
+
+
+    // Basic sanity check
+    if(low >= high)
+    {
+        COMMAND_OUTPUT("Invalid calibration range: low >= high\n");
+        return pdFALSE;
+    }
+
+
+    if(STR_EQ(type, "throttleA", paramLen))
+    {
+        calibration.throttleALow = low;
+        calibration.throttleAHigh = high;
+
+        COMMAND_OUTPUT("Throttle A calibration updated\n");
+    }
+
+    else if(STR_EQ(type, "throttleB", paramLen))
+    {
+        calibration.throttleBLow = low;
+        calibration.throttleBHigh = high;
+
+        COMMAND_OUTPUT("Throttle B calibration updated\n");
+    }
+
+    else if(STR_EQ(type, "brake", paramLen))
+    {
+        calibration.brakePosLow = low;
+        calibration.brakePosHigh = high;
+
+        COMMAND_OUTPUT("Brake calibration updated\n");
+    }
+
+    else
+    {
+        COMMAND_OUTPUT("Unknown calibration type\n");
+        return pdFALSE;
+    }
+
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t calibrationSetCommandDefinition =
+{
+    "calSet",
+    "calSet <throttleA|throttleB|brake> <low> <high>:\r\n Set calibration values\r\n",
+    calibrationSet,
+    3 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -474,7 +631,22 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&getSteeringCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&calibrationShowCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calibrationSaveCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calibrationLoadCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calibrationDefaultCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&calibrationSetCommandDefinition) != pdPASS)
+    {
+        return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
