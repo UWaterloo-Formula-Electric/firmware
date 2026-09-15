@@ -161,8 +161,8 @@ void Error_Handler(void);
 #define AMS_CONT_GPIO_Port GPIOD
 #define CONT_POS_Pin GPIO_PIN_4
 #define CONT_POS_GPIO_Port GPIOD
-#define CONT_DC_DC_Pin GPIO_PIN_5
-#define CONT_DC_DC_GPIO_Port GPIOD
+#define MCU_EN_DC_Pin GPIO_PIN_5
+#define MCU_EN_DC_GPIO_Port GPIOA
 #define CONT_NEG_Pin GPIO_PIN_6
 #define CONT_NEG_GPIO_Port GPIOD
 #define TSMS_SENSE_Pin GPIO_PIN_7
