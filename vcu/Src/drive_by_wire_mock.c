@@ -430,7 +430,10 @@ BaseType_t invParamReadCommand(char *writeBuffer, size_t writeBufferLength,
     const char *addressString = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
     int address;
-    sscanf(addressString, "%i", &address);
+    if (addressString == NULL || sscanf(addressString, "%i", &address) != 1) {
+        COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
+        return pdFALSE;
+    }
 
     if (address < 0 || address > 0xFFFF) {
         COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
@@ -465,8 +468,14 @@ BaseType_t invParamWriteCommand(char *writeBuffer, size_t writeBufferLength,
 
     int address;
     int data;
-    sscanf(addressString, "%i", &address);
-    sscanf(dataString, "%i", &data);
+    if (addressString == NULL || sscanf(addressString, "%i", &address) != 1) {
+        COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
+        return pdFALSE;
+    }
+    if (dataString == NULL || sscanf(dataString, "%i", &data) != 1) {
+        COMMAND_OUTPUT("Invalid inverter parameter data\r\n");
+        return pdFALSE;
+    }
 
     if (address < 0 || address > 0xFFFF) {
         COMMAND_OUTPUT("Invalid inverter parameter address\r\n");
