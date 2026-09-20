@@ -45,7 +45,7 @@
 #define T_WAKE_MS            1        // The LTC wakes in 300 us, but since systick is 1 KHz just round up to 1 ms
 #define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
 #define T_IDLE_US            4400 // Time for ISOSPI bus to go to idle state (min 4.4ms, typ 5.5 ms)
-#define T_REFUP_MS           4.4 // Takes 4.4 ms for reference to power up
+#define T_REFUP_MS           5 // Reference takes 4.4 ms to power up; vTaskDelay only takes whole 1 ms ticks, so round up
 
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
