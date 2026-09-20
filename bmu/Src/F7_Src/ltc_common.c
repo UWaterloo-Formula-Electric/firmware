@@ -37,7 +37,7 @@ HAL_StatusTypeDef batt_format_write_config_command(uint8_t cmdByteLow, uint8_t c
         }
     }
     return HAL_OK;
-}   
+}
 
 /*
  * Generates a 15bit PEC for the message defined for data.
@@ -180,7 +180,9 @@ HAL_StatusTypeDef checkPEC(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        if (PRINT_ALL_PEC_ERRORS) {
+            DEBUG_PRINT("%u != %u. %u != %u\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        }
         return HAL_ERROR;
     }
 }
@@ -198,15 +200,13 @@ HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
     batt_gen_pec_data(rxBuffer, dataSize, pec, cmd_counter);
     
     uint32_t pec_index = dataSize;
-    if(rxBuffer[0] == 0xFF && rxBuffer[1] == 0xFF && rxBuffer[2] == 0xFF && rxBuffer[3] == 0xFF && rxBuffer[4] == 0xFF && rxBuffer[5] == 0xFF){
-        return HAL_OK;
-    }
-
     if (pec[0] == rxBuffer[pec_index] && pec[1] == rxBuffer[pec_index + 1])
     {
         return HAL_OK;
     } else {
-        DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        if (PRINT_ALL_PEC_ERRORS) {
+            DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
+        }
         return HAL_ERROR;
     }
 }
