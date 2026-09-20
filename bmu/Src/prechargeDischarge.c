@@ -77,19 +77,11 @@ HAL_StatusTypeDef pcdcInit()
 
 
 /**
- * @brief Update HV Bus measurements
- *
- * @param[out] VBus pointer to float to store HV Bus voltage measurement in
- * volts
- * @param[out] VBatt pointer to float to store HV Battery voltage measurement in
- * volts
- * @param[out] IBus pointer to float to store HV Bus current measurement in
- * amps
+ * @brief Refuse to precharge if any cell is already outside the voltage limits
  *
  * @return HAL_StatusTypeDef
  */
-
-HAL_StatusTypeDef checkCellVoltages()
+static HAL_StatusTypeDef checkCellVoltages(void)
 {
     float measure_low;
     float measure_high;
@@ -107,6 +99,19 @@ HAL_StatusTypeDef checkCellVoltages()
     }
     return HAL_OK;
 }
+
+/**
+ * @brief Update HV Bus measurements
+ *
+ * @param[out] VBus pointer to float to store HV Bus voltage measurement in
+ * volts
+ * @param[out] VBatt pointer to float to store HV Battery voltage measurement in
+ * volts
+ * @param[out] IBus pointer to float to store HV Bus current measurement in
+ * amps
+ *
+ * @return HAL_StatusTypeDef
+ */
 
 HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 {

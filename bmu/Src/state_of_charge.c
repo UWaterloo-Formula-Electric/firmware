@@ -31,17 +31,17 @@ typedef struct {
 } UKF_State;
 static UKF_State ukf;
 
-volatile float IBus_integrated = 0.0f;
+static volatile float IBus_integrated = 0.0f;
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
-void ukf_soc(float voltage, float current_integrated);
+static void ukf_soc(float voltage, float current_integrated);
 void socTask(void *pvParamaters);
 static float get_avg_temp(void);
-HAL_StatusTypeDef consume_integrated_current(float *current);
+static HAL_StatusTypeDef consume_integrated_current(float *current);
 
-float predict_voltage(float soc, float avg_temp) { 
+static float predict_voltage(float soc, float avg_temp) {
 	// We have the LUT of the OCV, and use bilinear interpolation to calculate in-between points
 
 	// Clamp soc between 0 and 1 just in case
@@ -92,7 +92,7 @@ float predict_voltage(float soc, float avg_temp) {
 	return interp_soc_0 + temp_frac * (interp_soc_1 - interp_soc_0);
 }
 
-void ukf_soc(float voltage, float current_integrated)
+static void ukf_soc(float voltage, float current_integrated)
 {
 	// Convert segment voltage to average cell voltage
 	voltage = voltage / (float)(CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT);
@@ -178,6 +178,10 @@ void socTask(void *pvParamaters)
 
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[])
 {
+	if (value <= lut_min) // Below the table. Converting a negative float to size_t is undefined behaviour
+	{
+		return lut[0];
+	}
 	size_t lowIndex = (value - lut_min)/lut_step;
     if (lowIndex >= lutLen-1) //Can not interpolate with last value in LUT
     {
@@ -248,7 +252,7 @@ void integrate_bus_current(float IBus, float period_ms)
     }
 }
 
-HAL_StatusTypeDef consume_integrated_current(float *current)
+static HAL_StatusTypeDef consume_integrated_current(float *current)
 {
 	float temp = 0.0f;
 	if (xSemaphoreTake(IBus_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
