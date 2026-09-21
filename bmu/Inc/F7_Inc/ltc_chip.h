@@ -19,8 +19,8 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_SEGMENTS 5 // FIX THIS ON AMS (5)
-#define NUM_BOARDS_PER_SEGMENT      1 // FIX THIS ON AMS
+#define NUM_SEGMENTS 5
+#define NUM_BOARDS_PER_SEGMENT      1
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
 /// Number of valid cells per board, starting from the most negative terminal
@@ -32,18 +32,7 @@
 // Number of thermistors per segment
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1)
 
-// #if NUM_BOARDS%2 == 1
-// #error "Number of AMS boards defined is odd, it must be even"
-// #endif
-
-// Old error used for ltc6804.c
-// #if SEGMENT_THERMISTORS_AMS1 != 14 || SEGMENT_THERMISTORS_AMS2 != 13
-// #error "Number of thermistors defined must be 14 and 13 for AMS boards 1 and 2 of each segment respectively. Hard-coded values in batt_read_cell_temps and batt_read_thermistors will be affected"
-// #endif
-
 // This specifies which chip architecture we are using
-// 6812/6804
-// Ex. if 6812 is selected: then ltc6812.c is used
 #define LTC_CHIP_6812 1
 #define LTC_CHIP_6804 2
 #define ADBMS_CHIP_6830B 3
@@ -56,17 +45,14 @@
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
 #elif LTC_CHIP == ADBMS_CHIP_6830B
-#define NUM_LTC_CHIPS_PER_BOARD 2// FIX THIS ON AMS (2)
+#define NUM_LTC_CHIPS_PER_BOARD 2
 #define CONVERSION_TIME_7kHz_US (2480)
 #else
 #error "No LTC Chip specified, please specify one"
 #endif
 
-// Number of Voltage Cells per LTC6812/6804/6811 chip
+// Number of Voltage Cells per chip
 #define CELLS_PER_CHIP (CELLS_PER_BOARD / NUM_LTC_CHIPS_PER_BOARD) 
-
-// For testing with only Chip1 powered (Chip0 is unpowered termination)
-// Buffer sizes and all communication automatically adjust to single-chip operation
 
 // Average 4 readings for both adcv and adsv in open wire test
 #define NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS 2
@@ -74,7 +60,7 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (0)
+#define PRINT_ALL_PEC_ERRORS (1)
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
@@ -83,6 +69,12 @@
  * (Older code used NUM_BOARDS/2, which was only correct when NUM_BOARDS == 2 * NUM_SEGMENTS.) */
 #define NUM_TEMP_CELLS              (NUM_SEGMENTS * THERMISTORS_PER_SEGMENT*NUM_LTC_CHIPS_PER_BOARD)
 #define NUM_DEVICES                 (NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD)
+
+#define OPEN_WIRE_RATIO_MIN 0.75
+#define OPEN_WIRE_RATIO_MAX 1.40
+
+// PWM duty (0-15) written to the discharge registers while a cell is balancing
+#define BALANCE_PWM_DUTY_MAX (0x0F)
 
 #if NUM_TEMP_CELLS == 0
 #error "NUM_TEMP_CELLS is 0: check NUM_SEGMENTS, THERMISTORS_PER_SEGMENT, NUM_LTC_CHIPS_PER_BOARD"
@@ -149,7 +141,7 @@ HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
-HAL_StatusTypeDef batt_stop_discharge_cell(int global_cell);
+
 HAL_StatusTypeDef batt_init();
 HAL_StatusTypeDef balanceTest();
 

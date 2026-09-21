@@ -119,7 +119,7 @@ static const CLI_Command_Definition_t setImdErrorThresholdCommandDefinition =
 BaseType_t getImdErrorThreshold(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    uint16_t thresholdKohm;
+    uint16_t thresholdKohm = 0;
 
     if (imdRequestIsolationThresholdError() != HAL_OK) {
         COMMAND_OUTPUT("Failed to send IMD error threshold read request\n");
@@ -232,20 +232,9 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         return pdTRUE;
     } else if (cellIdx == -2) {
     	COMMAND_OUTPUT("*Note Temp is not related to a specific cell number\r\n\n");
-#ifdef THERMISTOR_BALANCE
-    	cellIdx = -7;
-#else
-    	cellIdx = -1;
-#endif
-    	return pdTRUE;
-	}
-#ifdef THERMISTOR_BALANCE
-	else if (cellIdx == -7) {
-    	COMMAND_OUTPUT("*Note THERMISTOR_BALANCE on\r\n\n");
     	cellIdx = -1;
     	return pdTRUE;
 	}
-#endif
 	else if (cellIdx == -1) {
         COMMAND_OUTPUT("Index\tCell Voltage(V)\tTemp Channel(degC)\r\n");
         cellIdx = 0;
@@ -297,9 +286,6 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
     COMMAND_OUTPUT("VoltageCell[%d] = %fV\n", cellIdx, VoltageCell[cellIdx]);
     if( VoltageCell[cellIdx] > 4.2 || VoltageCell[cellIdx] < 2.5 ) 
     { 
-        // TODO: as of 29-04-2026, the pack suffered a lot of EMI issues and would fault right away at EM since
-        // We couldn't talk to pack. We by passed this (increased redcar error counter), but it should be fixed
-        // Revert once it is fixed.
         TSSI_GREEN_OFF;
         TSSI_RED_ON; 
         AMS_CONT_OPEN;
@@ -1275,17 +1261,18 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
     }
     vTaskDelay(pdMS_TO_TICKS(50));
 
-    DEBUG_PRINT("Cell Temperatures:\n");
-    for(int i =0; i<1; i++){
-        if (batt_read_cell_temps(cell_temps) != HAL_OK) {
-            COMMAND_OUTPUT("Error reading cell temperatures\n");
-            return pdFALSE;
-        }
+    // Second read after the first pass has settled the mux and ADC
+    if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+        COMMAND_OUTPUT("Error reading cell temperatures\n");
+        return pdFALSE;
     }
+
+    DEBUG_PRINT("Cell Temperatures:\n");
     for(int i =0; i<NUM_TEMP_CELLS; i++){
-        int board = i / THERMISTORS_PER_SEGMENT;
-        int chip = i / SEGMENT_THERMISTORS_AMS1;
-        int channel = i % SEGMENT_THERMISTORS_AMS1;
+        // Same layout as batt_read_thermistors: [board][chip][channel]
+        int board = i / (THERMISTORS_PER_SEGMENT * NUM_LTC_CHIPS_PER_BOARD);
+        int chip = (i / THERMISTORS_PER_SEGMENT) % NUM_LTC_CHIPS_PER_BOARD;
+        int channel = i % THERMISTORS_PER_SEGMENT;
         DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
     }
 
@@ -1353,7 +1340,8 @@ static const CLI_Command_Definition_t getCellVoltagesADSVCommandDefinition =
 /**
  * @brief Manual PWM discharge for one global cell, same sequence as @ref handleCharge
  *        balance path (batteries.c): per-cell state, WRPWM, then discharge timer + WRCFGA/B.
- *        No RTOS delay/watchdog. Timer set to @ref DT_OFF so discharge runs until @ref stopDischargeCells.
+ *        No RTOS delay/watchdog. Discharge timer set to @ref DT_30_SEC so the chip stops on its own
+ *        if @ref stopDischargeCells is never sent.
  */
 BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -1379,7 +1367,7 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
     /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
 
     if (batt_balance_cell(req_cell) != HAL_OK) {
-        ERROR_PRINT("batt_discharge_cell %d failed\r\n", req_cell);
+        ERROR_PRINT("batt_balance_cell %d failed\r\n", req_cell);
         return pdFALSE;
     }
     if (batt_spi_wakeup(true) != HAL_OK) {
@@ -1392,7 +1380,7 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
     }
     DEBUG_PRINT("Sent config to AMS boards (WRPWM)\r\n");
 
-    /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config — use DT_OFF for no auto timeout. */
+    /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config. */
     if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
         ERROR_PRINT("batt_set_disharge_timer failed\n");
         return pdFALSE;
@@ -1401,7 +1389,7 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
         ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
         return pdFALSE;
     }
-    DEBUG_PRINT("PWM discharge on global cell %d (DT_OFF, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
+    DEBUG_PRINT("PWM discharge on global cell %d (DT_30_SEC, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
 #else
     DEBUG_PRINT("dischargeCells: IS_BOARD_F7 only\r\n");
 #endif
@@ -1411,7 +1399,7 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t dischargeCellsCommandDefinition =
 {
     "dischargeCells",
-    "dischargeCells <globalCell>:\r\n One cell PWM discharge (WRPWM + WRCFG, DT_OFF); use stopDischargeCells to end\r\n",
+    "dischargeCells <globalCell>:\r\n One cell PWM discharge (WRPWM + WRCFG, DT_30_SEC); use stopDischargeCells to end\r\n",
     dischargeCellsCommand,
     1 /* Number of parameters */
 };
@@ -1424,7 +1412,7 @@ BaseType_t stopDischargeCellsCommand(char *writeBuffer, size_t writeBufferLength
     (void)writeBufferLength;
 
 #if IS_BOARD_F7
-    if (batt_unset_balancing_all_cells(15) != HAL_OK) {
+    if (batt_unset_balancing_all_cells(BALANCE_PWM_DUTY_MAX) != HAL_OK) {
         ERROR_PRINT("batt_unset_balancing_all_cells failed\n");
         return pdFALSE;
     }

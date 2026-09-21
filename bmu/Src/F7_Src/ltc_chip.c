@@ -106,22 +106,6 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
     }
 
     delay_us(MUX_MEASURE_DELAY_US);
-
-#if LTC_CHIP == ADBMS_CHIP_6830B
-    // {
-    //     uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
-    //     if (batt_read_rdstate(state_e) == HAL_OK) {
-    //         for (int b = 0; b < NUM_BOARDS; b++) {
-    //             for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
-    //                 uint8_t ster4 = state_e[b][c][RDSTATE_STER4_IDX];
-    //                 DEBUG_PRINT("RDSTATE after mux ch%u: board=%d chip=%d STER4=0x%02X GPI1-5=%u\r\n",
-    //                             (unsigned)channel, b, c, ster4,
-    //                             (unsigned)rdstate_gpi1_to_gpi5(ster4));
-    //             }
-    //         }
-    //     }
-    // }
-#endif
     
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
@@ -188,19 +172,17 @@ Future todo: could add a reading of VREF2 to get a better estimate of thermistor
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
     uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-	static uint8_t curr_channel_read_index = 0;
-	 for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
-	 {
-	 	if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
-	 	{
-	 		return HAL_ERROR;
-	 	}
-         curr_channel_read_index = (curr_channel_read_index + 1) % 14;
-     }
+    static uint8_t curr_channel_read_index = 0;
+    for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
+    {
+        if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
+        {
+            return HAL_ERROR;
+        }
+        curr_channel_read_index = (curr_channel_read_index + 1) % 14;
+    }
 
-     return HAL_OK;
-
-
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
@@ -374,13 +356,13 @@ HAL_StatusTypeDef checkForOpenCircuit()
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
         	if(!open_wire_failure[cellIdx].occurred)
 			{
-				float adcv= cell_voltages_adcv[cellIdx];
+				float adcv = cell_voltages_adcv[cellIdx];
 				float adsv = cell_voltages_adsv[cellIdx];
-				if (float_abs(adsv/adcv) < (0.75) || float_abs(adsv/adcv) > (1.40))
+				if (float_abs(adsv/adcv) < (OPEN_WIRE_RATIO_MIN) || float_abs(adsv/adcv) > (OPEN_WIRE_RATIO_MAX))
 				{
-					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (0.88, 0.95))\n",
+					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (%f, %f))\n",
 								cellIdx, adcv, adsv,
-								float_abs(adsv/adcv));
+								float_abs(adsv/adcv), OPEN_WIRE_RATIO_MIN, OPEN_WIRE_RATIO_MAX);
 					ret = HAL_ERROR;
 				}
 				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_adsv[cellIdx] - 0) < 0.0002))
@@ -419,35 +401,33 @@ HAL_StatusTypeDef checkForOpenCircuit()
 // Need to write config after
 HAL_StatusTypeDef batt_balance_cell(int cell)
 {
-    if (c_assert(cell <= NUM_VOLTAGE_CELLS))
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
         DEBUG_PRINT("Tried to balance a cell out of range (needs to be < %u)\r\n", NUM_VOLTAGE_CELLS);
         return HAL_ERROR;
     }
 
-    // int boardIdx = cell / CELLS_PER_BOARD;
-    // int bmuCellIdx = (cell % CELLS_PER_BOARD);
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+    int amsCellIdx = cell % CELLS_PER_CHIP;
 
-    if (batt_discharge_cell(cell) != HAL_OK) {
-        return HAL_ERROR;
-    }
+    batt_set_balancing_cell(boardIdx, chipIdx, amsCellIdx, BALANCE_PWM_DUTY_MAX);
+
     return HAL_OK;
 }
 
 HAL_StatusTypeDef batt_stop_balance_cell(int cell)
 {
-    if (c_assert(cell <= NUM_VOLTAGE_CELLS))
+    if (c_assert(cell < NUM_VOLTAGE_CELLS))
     {
         return HAL_ERROR;
     }
 
-    // int boardIdx = cell / CELLS_PER_BOARD;
-    // int bmuCellIdx = cell % CELLS_PER_BOARD;
-    DEBUG_PRINT("Stopping balance for cell %d\n", cell);
+    int boardIdx = cell / CELLS_PER_BOARD;
+    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+    int amsCellIdx = cell % CELLS_PER_CHIP;
 
-    if (batt_stop_discharge_cell(cell) != HAL_OK) {
-        return HAL_ERROR;
-    }
+    batt_unset_balancing_cell(boardIdx, chipIdx, amsCellIdx, BALANCE_PWM_DUTY_MAX);
 
     return HAL_OK;
 }
@@ -511,7 +491,7 @@ HAL_StatusTypeDef balanceTest()
     }
 
     vTaskDelay(40000);
-    if (batt_unset_balancing_all_cells(15) != HAL_OK) {
+    if (batt_unset_balancing_all_cells(BALANCE_PWM_DUTY_MAX) != HAL_OK) {
         return HAL_ERROR;
     }
 

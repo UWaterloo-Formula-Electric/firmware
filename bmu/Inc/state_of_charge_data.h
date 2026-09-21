@@ -1,8 +1,7 @@
-#include "F7_Inc/ltc_chip.h"
-
 #ifndef STATE_OF_CHARGE_DATA_H
-
 #define STATE_OF_CHARGE_DATA_H
+
+#include "F7_Inc/ltc_chip.h"
 
 #define HV_SOC_LUT_MIN (4.0f * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT)
 #define HV_SOC_LUT_LEN 14U

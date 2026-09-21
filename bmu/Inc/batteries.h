@@ -58,11 +58,7 @@
 /** Similar to @ref CELL_OVERTEMP, minimum temp before sending critical DTC */
 #define CELL_UNDERTEMP 0
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
-#define CELL_UNDERTEMP_WARNING 0.5
-
-#define THERMISTOR_BALANCE
-#define THERMISTOR_BALANCE_VALID_MIN_C (-5.0F)
-#define THERMISTOR_BALANCE_VALID_MAX_C (80.0F)
+#define CELL_UNDERTEMP_WARNING 5
 
 /** @} Cell Characteristics */
 
