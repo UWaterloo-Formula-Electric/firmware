@@ -52,11 +52,14 @@
  * Defines to enable/disable different functionality for testing purposes
  */
 
-#define ENABLE_IMD
-#define ENABLE_HV_MEASURE
-#define ENABLE_AMS
-#define ENABLE_CHARGER
-#define ENABLE_BALANCE
+// #define ENABLE_IMD
+// #define ENABLE_HV_MEASURE
+// #define ENABLE_AMS
+// #define ENABLE_CHARGER
+// #define ENABLE_BALANCE
+// Seed the IVT queues with zeros so reads succeed with no IVT on the bus
+// (HV power supply testing). Real IVT messages overwrite these if present.
+#define FAKE_IVT_MEASUREMENTS
 
 
 extern osThreadId BatteryTaskHandle;
@@ -176,6 +179,13 @@ HAL_StatusTypeDef initBusVoltagesAndCurrentQueues()
       ERROR_PRINT("Failed to create bus voltages and current queues!\n");
       return HAL_ERROR;
    }
+
+#ifdef FAKE_IVT_MEASUREMENTS
+   float fakeMeasurement = 0.0f;
+   xQueueOverwrite(IBusQueue, &fakeMeasurement);
+   xQueueOverwrite(VBusQueue, &fakeMeasurement);
+   xQueueOverwrite(VBattQueue, &fakeMeasurement);
+#endif
 
    return HAL_OK;
 }
@@ -443,6 +453,50 @@ void imdTask(void *pvParamaters)
  * Battery cell Monitoring and Charging
  */
 
+
+// Only compiled when its single caller in readCellVoltagesAndTemps() is (AMS builds)
+#if defined(THERMISTOR_BALANCE) && IS_BOARD_F7 && defined(ENABLE_AMS)
+static inline bool thermistorReadingPlausible(float temp)
+{
+    return temp >= THERMISTOR_BALANCE_VALID_MIN_C
+        && temp <= THERMISTOR_BALANCE_VALID_MAX_C;
+}
+
+static void applyThermistorBalance(void)
+{
+    float goodSum = 0.0f;
+    uint32_t goodCount = 0;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (thermistorReadingPlausible(TempChannel[i])) {
+            goodSum += TempChannel[i];
+            goodCount++;
+        }
+    }
+
+    if (goodCount == 0) {
+        ERROR_PRINT("Thermistor balance: no plausible thermistors\n");
+        return;
+    }
+
+    float goodAverage = goodSum / goodCount;
+
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (!thermistorReadingPlausible(TempChannel[i])) {
+            TempChannel[i] = goodAverage;
+        }
+    }
+
+    static uint32_t prevDeadCount = 0;
+    uint32_t deadCount = (uint32_t)NUM_TEMP_CELLS - goodCount;
+    if (deadCount != prevDeadCount) {
+        DEBUG_PRINT("Thermistor balance: %lu/%d channels balanced to %f degC\n",
+                    (unsigned long)deadCount, NUM_TEMP_CELLS, goodAverage);
+        prevDeadCount = deadCount;
+    }
+}
+#endif
+
 /**
  * @brief Reads the cell voltages and temperatures from the AMS boards. The
  * battery temperature and cell voltages are stored in the global arrays which
@@ -470,7 +524,7 @@ HAL_StatusTypeDef readCellVoltagesAndTemps()
 void enterAdjustedCellVoltages(void)
 {
     static bool filter = false;
-    float bus_current_A;
+    float bus_current_A = 0.0f;
     getIBus(&bus_current_A);
     for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {

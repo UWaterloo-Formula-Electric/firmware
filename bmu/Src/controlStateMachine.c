@@ -59,6 +59,10 @@ Transition_t transitions[] = {
     { STATE_Wait_System_Up, EV_IMD_Ready, &systemUpCheck },
     { STATE_Wait_System_Up, EV_FaultMonitorReady, &systemUpCheck },
     { STATE_Wait_System_Up, EV_ANY, &systemNotReady },
+    // HV power supply testing: Wait_System_Up is skipped, so the ready events
+    // can arrive in any state. Ignore them instead of sending unknown event DTCs.
+    { STATE_ANY, EV_IMD_Ready, &controlDoNothing },
+    { STATE_ANY, EV_FaultMonitorReady, &controlDoNothing },
 
     //Balance
     { STATE_HV_Disable, EV_Balance_Start, &startBalance }, // A request was made via the CLI to start cell balancing
@@ -210,7 +214,10 @@ uint32_t runSelftTests(uint32_t event)
     // On startup, we aren't in charge mode until otherwise notified
     gChargeMode = false;
 
-    return STATE_Wait_System_Up;
+    // Disabled for HV power supply testing: go straight to HV Disable without
+    // waiting for the IMD and interlock loop to report ready
+    // return STATE_Wait_System_Up;
+    return STATE_HV_Disable;
 }
 
 uint32_t controlDoNothing(uint32_t event)

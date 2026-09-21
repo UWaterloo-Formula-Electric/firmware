@@ -31,6 +31,37 @@
 
 MotorControllerSettings mcSettings = {0};
 
+// Gates every CAN frame the VCU sends to the inverter. Set from the invCan mock
+// command so the bus can be silenced without stopping drive by wire.
+static volatile bool mcCanTxEnabled = true;
+
+void setMCCanTxEnabled(bool enabled)
+{
+    mcCanTxEnabled = enabled;
+}
+
+bool isMCCanTxEnabled(void)
+{
+    return mcCanTxEnabled;
+}
+
+// Report success while muted so callers don't raise DTCs for a send we skipped
+static HAL_StatusTypeDef sendMCCommandMessage(void)
+{
+    if (!mcCanTxEnabled) {
+        return HAL_OK;
+    }
+    return sendCAN_MC_Command_Message();
+}
+
+static HAL_StatusTypeDef sendMCParamCommand(void)
+{
+    if (!mcCanTxEnabled) {
+        return HAL_OK;
+    }
+    return sendCAN_MC_Read_Write_Param_Command();
+}
+
 HAL_StatusTypeDef initMotorControllerSettings()
 {
     mcSettings.InverterMode = 0;
@@ -82,7 +113,7 @@ HAL_StatusTypeDef mcReadParamCommand(uint16_t address, uint16_t data) {
     VCU_INV_Parameter_Address = address;
     VCU_INV_Parameter_Data = data; // Is this needed for reading? todo
 
-    if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
+    if (sendMCParamCommand() != HAL_OK) {
         ERROR_PRINT("Failed to send read param message to MC\n");
         return HAL_ERROR;
     }
@@ -94,7 +125,7 @@ HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data) {
     VCU_INV_Parameter_Address = address;
     VCU_INV_Parameter_Data = data;
 
-    if (sendCAN_MC_Read_Write_Param_Command() != HAL_OK) {
+    if (sendMCParamCommand() != HAL_OK) {
         ERROR_PRINT("Failed to send write param message to MC\n");
         return HAL_ERROR;
     }
@@ -144,7 +175,7 @@ HAL_StatusTypeDef sendDisableMC(void) {
     VCU_INV_Speed_Mode_Enable = SPEED_MODE_OVERRIDE_FALSE;
     VCU_INV_Torque_Limit_Command = TORQUE_LIMIT_OVERRIDE_FALSE;
 
-    if (sendCAN_MC_Command_Message() != HAL_OK) {
+    if (sendMCCommandMessage() != HAL_OK) {
         ERROR_PRINT("Failed to send disable message to MC\n");
         sendDTC_FATAL_VCU_F7_MC_DISABLE_ERROR();
         return HAL_ERROR;
@@ -262,7 +293,7 @@ HAL_StatusTypeDef requestTorqueFromMC(float requestTorque, InvCommandMode_t comm
     // if torque limit is set to 0 then we use the default limits from the CM200DZ eeprom
     VCU_INV_Torque_Limit_Command = USE_INV_LIMITS ? INV_TORQUE_REGEN_LIMIT_ENABLED_VALUE: maxTorqueDemand;
 
-    if (sendCAN_MC_Command_Message() != HAL_OK) {
+    if (sendMCCommandMessage() != HAL_OK) {
         ERROR_PRINT("Failed to send command message to MC\n");
         return HAL_ERROR;
     }

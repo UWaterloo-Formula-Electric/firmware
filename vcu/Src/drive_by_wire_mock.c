@@ -508,6 +508,35 @@ static const CLI_Command_Definition_t invParamWriteCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t invCanCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (STR_EQ(param, "enable", paramLen)) {
+        setMCCanTxEnabled(true);
+    } else if (STR_EQ(param, "disable", paramLen)) {
+        setMCCanTxEnabled(false);
+    } else if (!STR_EQ(param, "status", paramLen)) {
+        COMMAND_OUTPUT("Unknown parameter\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Inverter CAN commands %s\n",
+                   isMCCanTxEnabled() ? "enabled" : "disabled");
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t invCanCommandDefinition =
+{
+    "invCan",
+    "invCan <enable|disable|status>:\r\n  Enable or disable all CAN commands sent to the inverter\r\n",
+    invCanCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef stateMachineMockInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&throttleABCommandDefinition) != pdPASS) {
@@ -562,6 +591,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&invParamWriteCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&invCanCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getBrakeCommandDefinition) != pdPASS) {

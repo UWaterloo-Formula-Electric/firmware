@@ -54,10 +54,11 @@ bool inverterDeratingPower(void)
     return INV_Limit_Coolant_Derating;
 }
 
-bool motorOverheated(void)
-{
-    return INV_Motor_Temp > EMRAX_228_LC_MAX_TEMP_C - 20.0f;
-}
+// Motor thermistor is not connected, so INV_Motor_Temp is not valid
+// bool motorOverheated(void)
+// {
+//     return INV_Motor_Temp > EMRAX_228_LC_MAX_TEMP_C - 20.0f;
+// }
 
 void coolingTask(void *pvParameters) {
     if (registerTaskToWatch(COOLING_TASK_ID, 2*COOLING_TASK_PERIOD_MS, false, NULL) != HAL_OK)
@@ -115,7 +116,7 @@ void coolingTask(void *pvParameters) {
             if (motorOverheated())
             {
                 DEBUG_PRINT("Motor Overheated!\r\n");
-                sendDTC_FATAL_PDU_Motor_Overheat();
+                // sendDTC_FATAL_PDU_Motor_Overheat();
             }
         }
         else 

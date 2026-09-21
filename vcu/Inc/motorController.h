@@ -77,6 +77,9 @@ HAL_StatusTypeDef mcWriteParamCommand(uint16_t address, uint16_t data);
 HAL_StatusTypeDef mcClearFaults();
 HAL_StatusTypeDef sendDisableMC();
 
+void setMCCanTxEnabled(bool enabled);
+bool isMCCanTxEnabled(void);
+
 HAL_StatusTypeDef initMotorControllerSettings();
 HAL_StatusTypeDef setMotorControllerSettings(MotorControllerSettings settings);
 

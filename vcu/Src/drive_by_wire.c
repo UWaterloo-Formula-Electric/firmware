@@ -53,6 +53,11 @@ extern osThreadId throttlePollingHandle;
 #define DEBOUNCE_WAIT_MS 50
 #define EM_BUTTON_RATE_LIMIT_MS 1000  // prevents multiple button presses within this duration
 
+// HV power supply testing: press HV once automatically after boot, so the car
+// goes to HV without the button. The delay gives the BMU time to boot first.
+#define AUTO_HV_ON_STARTUP
+#define AUTO_HV_STARTUP_DELAY_MS 3000
+
 
 // TODO: can definitely be optimized later
 static uint32_t sendHvToggle(uint32_t event);
@@ -71,6 +76,10 @@ static int sendEnduranceToggleMsg(void);
 static int sendTCToggleMsg(void);
 
 static TimerHandle_t buzzerSoundTimer;
+#ifdef AUTO_HV_ON_STARTUP
+static TimerHandle_t autoHvTimer;
+static void autoHvTimerCallback(TimerHandle_t timer);
+#endif
 // static TimerHandle_t debounceTimer;
 static bool TC_on = false;
 static bool endurance_on = false;
@@ -145,6 +154,20 @@ HAL_StatusTypeDef driveByWireInit()
         Error_Handler();
     }
 
+#ifdef AUTO_HV_ON_STARTUP
+    autoHvTimer = xTimerCreate("AutoHvTimer",
+                               pdMS_TO_TICKS(AUTO_HV_STARTUP_DELAY_MS),
+                               pdFALSE /* Auto Reload */,
+                               0,
+                               autoHvTimerCallback);
+
+    if (autoHvTimer == NULL)
+    {
+        ERROR_PRINT("Failed to create auto HV timer!\n");
+        Error_Handler();
+    }
+#endif
+
     // debounceTimer = xTimerCreate("DebounceTimer",
     //                              pdMS_TO_TICKS(DEBOUNCE_WAIT_MS),
     //                              pdFALSE /* Auto Reload */,
@@ -196,6 +219,13 @@ uint32_t runSelfTests(uint32_t event)
         sendDTC_WARNING_Throttle_Failure(3);
         return EM_Fault(EV_Throttle_Failure);
     }
+
+#ifdef AUTO_HV_ON_STARTUP
+    if (xTimerStart(autoHvTimer, 0) != pdPASS)
+    {
+        ERROR_PRINT("Failed to start auto HV timer\n");
+    }
+#endif
 
     return STATE_HV_Disable;
 }
@@ -454,6 +484,13 @@ HAL_StatusTypeDef MotorStart()
     rc = mcInit();
     if (rc != HAL_OK) {
         ERROR_PRINT("Failed to start motor controllers\n");
+        // Power the inverter back off so the PDU returns to Boards On.
+        // Otherwise the PDU ignores the next EM request and every retry times out.
+        if (turnOffMotorControllers() != HAL_OK) {
+            ERROR_PRINT("Failed to turn off motor controllers after failed start\n");
+        }
+        watchdogTaskChangeTimeout(DRIVE_BY_WIRE_TASK_ID,
+                                  pdMS_TO_TICKS(DRIVE_BY_WIRE_WATCHDOG_TIMEOUT_MS));
         return rc;
     }
 
@@ -696,6 +733,17 @@ static void buzzerTimerCallback(TimerHandle_t timer)
     buzzerTimerStarted = false;
     BUZZER_DISABLE;
 }
+
+#ifdef AUTO_HV_ON_STARTUP
+static void autoHvTimerCallback(TimerHandle_t timer)
+{
+    // Only press HV from HV Disable, so a manual press or a fault since boot wins
+    if (fsmGetState(&VCUFsmHandle) == STATE_HV_Disable)
+    {
+        fsmSendEvent(&VCUFsmHandle, EV_BTN_HV_Toggle, 0);
+    }
+}
+#endif
 
 static int sendHVToggleMsg(void)
 {
