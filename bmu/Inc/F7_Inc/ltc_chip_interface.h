@@ -55,8 +55,6 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 /* After ADSV conversion: read RDSVA..F into cell_voltage_array (same global indexing as batt_readBackCellVoltage). */
 HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array);
-int batt_dcc_status_from_cfg_b_readback(int global_cell,
-	const uint8_t cfg_b[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 /* RDPWMA/RDPWMB readback: 4-bit PWM duty per cell (same nibble layout as WRPWM / batt_set_balancing_cell). */
 HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);

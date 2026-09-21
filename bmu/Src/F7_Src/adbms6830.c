@@ -318,6 +318,36 @@ static uint8_t m_batt_configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_S
 static uint8_t m_batt_configA_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configB_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 
+/* PWM register layout (Tables for WRPWMA/WRPWMB): PWMA holds PWM1..PWM12 and PWMB holds
+ * PWM13..PWM16, 4-bit per PWM cell with odd-numbered cell in the low nibble. */
+#define PWMB_FIRST_CELL  13
+#define PWM_DUTY_MASK    0x0Fu
+
+static HAL_StatusTypeDef pwm_field_locate(int cell, bool *inGroupB, int *byteIdx, uint8_t *shift)
+{
+	if (cell < 0 || cell >= (int)CELLS_PER_CHIP) {
+		ERROR_PRINT("PWM cell index out of range: %d\n", cell);
+		return HAL_ERROR;
+	}
+	const int pwmNum = cell + 1; // datasheet numbers cells 1..16
+	*inGroupB = pwmNum >= PWMB_FIRST_CELL; // In PWM Register Group B
+	const int firstCellInGroup = *inGroupB ? PWMB_FIRST_CELL : 1;
+	*byteIdx = (pwmNum - firstCellInGroup) / 2; // PWM Register Byte index
+	*shift = (pwmNum % 2 == 1) ? 0u : 4u; // Upper or lower nibble of register
+	return HAL_OK;
+}
+
+static uint8_t *pwm_config_byte(int board, int chip, int cell, uint8_t *shift)
+{
+	bool inGroupB;
+	int byteIdx;
+	if (pwm_field_locate(cell, &inGroupB, &byteIdx, shift) != HAL_OK) {
+		return NULL;
+	}
+	return inGroupB ? &m_batt_configB_pwm[board][chip][byteIdx]
+	                : &m_batt_configA_pwm[board][chip][byteIdx];
+}
+
 void batt_init_chip_configs() {
     memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
@@ -329,7 +359,6 @@ void batt_init_chip_configs() {
             m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
             m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
-			DEBUG_PRINT("REF ON");
             
             // Table 103 Configuration Register B Bit
             // Configuration Register B (UV/OV thresholds)
@@ -385,7 +414,6 @@ HAL_StatusTypeDef format_and_send_config_pwm(uint8_t configA[NUM_BOARDS][NUM_LTC
 	uint8_t txBuffer[BUFF_SIZE];
 
 	// Send Config A
-	DEBUG_PRINT("Sending Config A: %02X %02X %02X %02X %02X %02X\n", configA[0][0][0], configA[0][0][1], configA[0][0][2], configA[0][0][3], configA[0][0][4], configA[0][0][5]);
 	if (batt_format_write_config_command(WRPWMA_BYTE0, WRPWMA_BYTE1, txBuffer, configA, BATT_CONFIG_SIZE) != HAL_OK) {
 		ERROR_PRINT("Failed to send write configA command\n");
 		return HAL_ERROR;
@@ -445,7 +473,10 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 			const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
 			if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
 			{
-				DEBUG_PRINT("PEC ERROR on board/chip %d config (adbms6830) \r\n", i);
+				if(PRINT_ALL_PEC_ERRORS)
+				{
+					DEBUG_PRINT("PEC ERROR on board/chip %d config (adbms6830) \r\n", i);
+				}
 				PEC_count++;
 				return HAL_ERROR;
 			}
@@ -559,7 +590,6 @@ HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD
 	return HAL_OK;
 }
 
-/* Nibble layout matches batt_set_balancing_cell (cells 0..12 in PWMA, 13+ in PWMB). */
 int batt_pwm_duty_from_pwm_readback(int global_cell,
 	const uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	const uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
@@ -572,20 +602,14 @@ int batt_pwm_duty_from_pwm_readback(int global_cell,
 	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
 	int cell = global_cell % CELLS_PER_CHIP;
 
-	if (cell <= 12) {
-		int block = cell / 2;
-		uint8_t b = pwma[board][chip][block];
-		if (cell % 2 == 1) {
-			return (int)(b & 0x0Fu);
-		}
-		return (int)((b >> 4) & 0x0Fu);
+	bool inGroupB;
+	int byteIdx;
+	uint8_t shift;
+	if (pwm_field_locate(cell, &inGroupB, &byteIdx, &shift) != HAL_OK) {
+		return 0;
 	}
-	int block = (cell - 12) / 2;
-	uint8_t b = pwmb[board][chip][block];
-	if (cell % 2 == 1) {
-		return (int)(b & 0x0Fu);
-	}
-	return (int)((b >> 4) & 0x0Fu);
+	const uint8_t pwm_bit = inGroupB ? pwmb[board][chip][byteIdx] : pwma[board][chip][byteIdx];
+	return (int)((pwm_bit >> shift) & PWM_DUTY_MASK);
 }
 
 /* Run ADSTAT first if status snapshots may be stale (datasheet). */
@@ -857,60 +881,40 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
-			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f + 0.06f;
+			float voltageThermistor = (adcCounts * 0.000150f) + 1.5f;
 			cell_temp_array[tempIdx] = batt_convert_voltage_to_temp(voltageThermistor);
 		}
 	}
 	return HAL_OK;
 }
 
-void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
-	if (cell<=12) {
-		int block = (cell-1)/2;
-		if (cell%2 == 1) {
-			m_batt_configA_pwm[board][chip][block] |= pwm;
-		} else {
-			m_batt_configA_pwm[board][chip][block] |= (pwm << 4);
-		}
-		DEBUG_PRINT("Config A is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
+void batt_set_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
+	uint8_t shift;
+	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
+	if (reg == NULL) {
+		return;
 	}
-	else {
-		int block = (cell-13)/2;
-		if (cell%2 == 1) {
-			m_batt_configB_pwm[board][chip][block] |= pwm;
-		} else {
-			m_batt_configB_pwm[board][chip][block] |= (pwm << 4);
-		}
-		DEBUG_PRINT("Config B is now %02X %02X %02X %02X %02X %02X", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
-	}
+	*reg = (uint8_t)((*reg & ~(PWM_DUTY_MASK << shift)) | ((pwm & PWM_DUTY_MASK) << shift));
 }
 
 void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
-    if (cell <=12) { // 8 bits per byte in the register
-		int block = (cell-1)/2;
-		if (cell%2 == 1) {
-			m_batt_configA_pwm[board][chip][block] &= 0xF0;
-		} else {
-			m_batt_configA_pwm[board][chip][block] &= 0x0F;
-		}
-		DEBUG_PRINT("Config is now %02X %02X %02X %02X %02X %02X", m_batt_configA_pwm[board][chip][0], m_batt_configA_pwm[board][chip][1], m_batt_configA_pwm[board][chip][2], m_batt_configA_pwm[board][chip][3], m_batt_configA_pwm[board][chip][4], m_batt_configA_pwm[board][chip][5]);
-    } else {
-		int block = (cell-13)/2;
-		if (cell%2 == 1) {
-			m_batt_configB_pwm[board][chip][block] &= 0xF0;
-		} else {
-			m_batt_configB_pwm[board][chip][block] &= 0x0F;
-		}
-		DEBUG_PRINT("Config B is now %02X %02X %02X %02X %02X %02X", m_batt_configB_pwm[board][chip][0], m_batt_configB_pwm[board][chip][1], m_batt_configB_pwm[board][chip][2], m_batt_configB_pwm[board][chip][3], m_batt_configB_pwm[board][chip][4], m_batt_configB_pwm[board][chip][5]);
+	(void)pwm;
+	uint8_t shift;
+	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
+	if (reg == NULL) {
+		return;
 	}
+	*reg = (uint8_t)(*reg & ~(PWM_DUTY_MASK << shift));
 }
 
+/* Balancing on this chip is driven purely by the PWM duty registers, so a non-zero duty means the cell is balancing. */
 bool batt_get_balancing_cell_state(int board, int chip, int cell) {
-    if (cell < 8) {
-        return GETBIT(m_batt_configB[board][chip][4], cell);
-    } else {
-        return GETBIT(m_batt_configB[board][chip][5], cell - 8);
+	uint8_t shift;
+	const uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
+	if (reg == NULL) {
+		return false;
 	}
+	return ((*reg >> shift) & PWM_DUTY_MASK) != 0u;
 }
 
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length) {
@@ -951,39 +955,6 @@ HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length) {
     }
 
     return HAL_OK;
-}
-
-HAL_StatusTypeDef batt_discharge_cell(int global_cell) {
-	if (global_cell < 0 || global_cell >= NUM_VOLTAGE_CELLS) {
-		ERROR_PRINT("global cell out of range: %d\n", global_cell);
-		return HAL_ERROR;
-	}
-
-
-	int board = global_cell / CELLS_PER_BOARD;
-	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-	int ams_cell = global_cell % CELLS_PER_BOARD % CELLS_PER_CHIP;
-	batt_set_balancing_cell(board, chip, ams_cell, 15);
-	DEBUG_PRINT("DCC on global cell %d\n", global_cell);
-
-	// if (batt_config_discharge_timer(DT_30_SEC) != HAL_OK) {
-	// 	ERROR_PRINT("batt_discharge_cells_write: DTCFG A/B failed\n");
-	// 	return HAL_ERROR;
-	// }
-	// if (batt_write_config() != HAL_OK) {
-	// 	ERROR_PRINT("batt_discharge_cells_write: WRCFG A/B failed\n");
-	// 	return HAL_ERROR;
-	// }
-	return HAL_OK;
-}
-
-HAL_StatusTypeDef batt_stop_discharge_cell(int global_cell) {
-
-	int board = global_cell / CELLS_PER_BOARD;
-	int chip = (global_cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
-	int ams_cell = global_cell % CELLS_PER_CHIP;
-	batt_unset_balancing_cell(board, chip, ams_cell, 15);
-	return HAL_OK;
 }
 
 #endif
