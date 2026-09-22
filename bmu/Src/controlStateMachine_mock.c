@@ -1802,9 +1802,6 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&setDCDCCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
-    if (FreeRTOS_CLIRegisterCommand(&getDCDCCommandDefinition) != pdPASS) {
-        return HAL_ERROR;
-    }
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
