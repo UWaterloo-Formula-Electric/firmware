@@ -137,14 +137,9 @@ standard names. */
 /* USER CODE BEGIN Defines */
 /* Section where parameter definitions can be added (for instance, to override default ones in FreeRTOS.h) */
 
-/* Definitions needed when configGENERATE_RUN_TIME_STATS is on. Both are
- * implemented in common/Src/debug.c, guarded by #ifdef STATS_TIM_HANDLE, and
- * drive the timer that bsp.h points STATS_TIM_HANDLE at (TIM7). */
-extern void configureTimerForRunTimeStats(void);
-extern uint32_t getRunTimeCounterValue(void);
-
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS configureTimerForRunTimeStats
-#define portGET_RUN_TIME_COUNTER_VALUE getRunTimeCounterValue
+/* HIL's FreeRTOS settings live outside this file, which CubeMX rewrites on
+ * every code generation. Add settings there, not here. */
+#include "hilFreeRTOSConfig.h"
 /* USER CODE END Defines */
 
 #endif /* FREERTOS_CONFIG_H */

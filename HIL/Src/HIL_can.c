@@ -5,6 +5,8 @@ float DTC_Data = 0;
 float DTC_Severity = 0;
 float DTC_CODE = 0;
 
+volatile int64_t UartOverCanRX = 0;
+
 // HIL isn't an addressed node, so there's no per-node filter bank to set up
 // the way the vehicle boards do in their generated configCANFilters().
 // Accept every frame on the bus and let canReceive.c's HIL_CAN_Rx_Handler()
@@ -41,4 +43,11 @@ HAL_StatusTypeDef sendCAN_HIL_DTC(void)
     // HIL never raises DTCs - this only exists to satisfy
     // common/Src/userCan.c's sendDTCMessage()/DTC_SEND_FUNCTION() call.
     return HAL_OK;
+}
+
+int sendCAN_UartOverCanRx(void)
+{
+    // Unreachable - HIL never enables UART-over-CAN. Only exists to satisfy
+    // common/Src/debug.c's printTask().
+    return 0;
 }

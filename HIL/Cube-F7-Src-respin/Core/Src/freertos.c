@@ -48,13 +48,21 @@
 
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
+osThreadId printTaskNameHandle;
+osThreadId cliTaskNameHandle;
+osThreadId canSendTaskHandle;
+osThreadId mainTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const * argument);
+void defaultTaskFunction(void const * argument);
+extern void printTask(void const * argument);
+extern void cliTask(void const * argument);
+extern void canTask(void const * argument);
+extern void mainTaskFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -114,8 +122,24 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  osThreadDef(defaultTask, defaultTaskFunction, osPriorityNormal, 0, 256);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* definition and creation of printTaskName */
+  osThreadDef(printTaskName, printTask, osPriorityLow, 0, 1000);
+  printTaskNameHandle = osThreadCreate(osThread(printTaskName), NULL);
+
+  /* definition and creation of cliTaskName */
+  osThreadDef(cliTaskName, cliTask, osPriorityLow, 0, 1000);
+  cliTaskNameHandle = osThreadCreate(osThread(cliTaskName), NULL);
+
+  /* definition and creation of canSendTask */
+  osThreadDef(canSendTask, canTask, osPriorityRealtime, 0, 1000);
+  canSendTaskHandle = osThreadCreate(osThread(canSendTask), NULL);
+
+  /* definition and creation of mainTask */
+  osThreadDef(mainTask, mainTaskFunction, osPriorityNormal, 0, 1000);
+  mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -123,22 +147,22 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_defaultTaskFunction */
 /**
   * @brief  Function implementing the defaultTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_defaultTaskFunction */
+void defaultTaskFunction(void const * argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN defaultTaskFunction */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END defaultTaskFunction */
 }
 
 /* Private application code --------------------------------------------------*/

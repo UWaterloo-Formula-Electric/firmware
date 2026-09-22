@@ -30,6 +30,13 @@ extern float DTC_Data;
 extern float DTC_Severity;
 extern float DTC_CODE;
 
+// common/Src/debug.c's printTask() can tunnel the console over CAN. HIL is the
+// board you plug the serial cable into, so it never enables that - but the
+// symbols must exist for printTask() to compile. isUartOverCanEnabled stays 0
+// (nothing on HIL can set it), so the block that uses these is never entered.
+extern volatile int64_t UartOverCanRX;
+int sendCAN_UartOverCanRx(void);
+
 void configCANFilters(CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef init_can_driver(void);
 HAL_StatusTypeDef parseCANData(uint32_t id, uint8_t *data);

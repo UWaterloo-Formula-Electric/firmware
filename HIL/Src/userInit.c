@@ -15,6 +15,8 @@
 #include "debug.h"
 #include "userCan.h"
 #include "canInject.h"
+#include "hilCli.h"
+#include "pwmBus.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -43,6 +45,15 @@ void userInit()
     if (canInjectInit() != HAL_OK) {
         Error_Handler();
     }
+
+    if (pwmBusInit() != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (hilCliInit() != HAL_OK) {
+        Error_Handler();
+    }
+
 
     printf("Finished user init\n");
 }

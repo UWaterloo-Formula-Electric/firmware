@@ -28,8 +28,7 @@
 
 /* Peripheral handles ------------------------------------------------------ */
 
-// UART4 is the schematic's debug link but is pinned to floating PA0, see README
-#define DEBUG_UART_HANDLE huart3
+#define DEBUG_UART_HANDLE huart4
 #define CAN_HANDLE hcan3            // Primary bench bus
 #define CAN_1_HANDLE hcan1
 #define CAN_2_HANDLE hcan2
