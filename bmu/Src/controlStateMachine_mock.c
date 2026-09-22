@@ -756,6 +756,41 @@ static const CLI_Command_Definition_t setPCDCCommandDefinition =
     1 /* Number of parameters */
 };
 
+BaseType_t setDCDC(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    int dc_dc_State;
+    const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen); //returns a pointer to 1st arg in the cmd str
+
+    sscanf(idxParam, "%d", &dc_dc_State); //%d is a format specifier for int
+
+    switch (dc_dc_State)
+    {
+        case 0:
+            DC_DC_OFF;
+        break;
+
+        case 1:
+            DC_DC_ON;
+        break;
+
+        default:
+            COMMAND_OUTPUT("DCDC state must be between 0 and 1\n");
+            return pdFALSE;
+        break;
+    }
+
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t setDCDCCommandDefinition =
+{
+    "setDCDC",
+    "setDCDC <state>:\r\n sets the state of the DCDC enable pin (MCU_EN_DC), 1-> on , 0-> off\r\n",
+    setDCDC,
+    1 // Number of parameters that this function expects (1 in this case)
+};
+
 BaseType_t getStateBusHVSendPeriod(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1762,6 +1797,12 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&setPCDCCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&setDCDCCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getDCDCCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getBrakePressureCommandDefinition) != pdPASS) {
