@@ -339,8 +339,8 @@ static HAL_StatusTypeDef pwm_field_locate(int cell, bool *inGroupB, int *byteIdx
 
 static uint8_t *pwm_config_byte(int board, int chip, int cell, uint8_t *shift)
 {
-	bool inGroupB;
-	int byteIdx;
+	bool inGroupB = false;
+	int byteIdx = 0;
 	if (pwm_field_locate(cell, &inGroupB, &byteIdx, shift) != HAL_OK) {
 		return NULL;
 	}
@@ -889,7 +889,7 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 }
 
 void batt_set_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
-	uint8_t shift;
+	uint8_t shift = 0;
 	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return;
@@ -899,7 +899,7 @@ void batt_set_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 
 void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 	(void)pwm;
-	uint8_t shift;
+	uint8_t shift = 0;
 	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return;
@@ -909,7 +909,7 @@ void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 
 /* Balancing on this chip is driven purely by the PWM duty registers, so a non-zero duty means the cell is balancing. */
 bool batt_get_balancing_cell_state(int board, int chip, int cell) {
-	uint8_t shift;
+	uint8_t shift = 0;
 	const uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return false;
