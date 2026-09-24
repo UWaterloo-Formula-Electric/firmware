@@ -5,10 +5,16 @@
 #include "debug.h"
 #include "watchdog.h"
 #include "bmu_can.h"
-#include <math.h>
 
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
+#define SOC_TASK_PERIOD_S ((float)SOC_TASK_PERIOD / 1000.0f)
+
+/* PID stays enabled; gains are 0 until tuned (correction term is zero). */
+#define SOC_PID_KP 0.0f
+#define SOC_PID_KI 0.0f
+#define SOC_PID_KD 0.0f
+#define SOC_PID_INTEGRAL_MAX 0.05f
 
 #define CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF 4.0f
 #define CELL_LOW_VOLTAGE_LOOKUP_CUTOFF 3.28f
@@ -22,21 +28,16 @@
 static const float TOTAL_CAPACITY = 48600.0f; // [A-s]
 static SemaphoreHandle_t IBus_mutex;
 
-// my variables
-typedef struct {
-	float pred; // current soc estimate - stored as a value between 0 and 1
-	float variance;
-	float process_noise;
-	float measurement_noise;
-} UKF_State;
-static UKF_State ukf;
+static float soc_estimate = 0.0f; /* 0-1 */
+static float pid_integral = 0.0f;
+static float pid_last_error = 0.0f;
 
 static volatile float IBus_integrated = 0.0f;
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
 static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
-static void ukf_soc(float voltage, float current_integrated);
+static void update_soc(float voltage, float current_integrated);
 void socTask(void *pvParamaters);
 static float get_avg_temp(void);
 static HAL_StatusTypeDef consume_integrated_current(float *current);
@@ -92,45 +93,30 @@ static float predict_voltage(float soc, float avg_temp) {
 	return interp_soc_0 + temp_frac * (interp_soc_1 - interp_soc_0);
 }
 
-static void ukf_soc(float voltage, float current_integrated)
+static void update_soc(float voltage, float current_integrated)
 {
-	// Convert segment voltage to average cell voltage
 	voltage = voltage / (float)(CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT);
 
-	// Subtract current*time from old SOC to estimate current SOC (coulomb counting - same as old method)
-	float soc = ukf.pred;
+	float soc = soc_estimate;
 	soc -= current_integrated / TOTAL_CAPACITY;
-	ukf.variance += ukf.process_noise;
-	float avg_temp = get_avg_temp();
-	// Predict voltages at sigma points
-	float spread = sqrtf(3.0f * ukf.variance);
-	float sigma_points[3];
-	sigma_points[0] = predict_voltage(soc, avg_temp);
-	sigma_points[1] = predict_voltage(soc + spread, avg_temp);
-	sigma_points[2] = predict_voltage(soc - spread, avg_temp);
-	// Simpson's rule (UKF kappa=2) weights: 4/6, 1/6, 1/6
-	float v_sigma_mean = (4.0f/6.0f) * sigma_points[0] + 
-						 (1.0f/6.0f) * sigma_points[1] + 
-						 (1.0f/6.0f) * sigma_points[2];
 
-	// Kalman gain
-	float innov_covariance = (4.0f/6.0f) * ((sigma_points[0]-v_sigma_mean)*(sigma_points[0]-v_sigma_mean)) +
-							 (1.0f/6.0f) * ((sigma_points[1]-v_sigma_mean)*(sigma_points[1]-v_sigma_mean)) +
-							 (1.0f/6.0f) * ((sigma_points[2]-v_sigma_mean)*(sigma_points[2]-v_sigma_mean)) +
-							 ukf.measurement_noise; // weighted variance of sigma points
+	float v_pred = predict_voltage(soc, get_avg_temp());
+	float error = voltage - v_pred; /* +error: pack higher than OCV(soc) -> raise SOC */
 
-	float cross_covariance = (1.0f/6.0f) * spread * (sigma_points[1]-v_sigma_mean) +
-							 (1.0f/6.0f) * (-spread) * (sigma_points[2]-v_sigma_mean);
+	pid_integral += error * SOC_TASK_PERIOD_S;
+	if (pid_integral > SOC_PID_INTEGRAL_MAX) {
+		pid_integral = SOC_PID_INTEGRAL_MAX;
+	} else if (pid_integral < -SOC_PID_INTEGRAL_MAX) {
+		pid_integral = -SOC_PID_INTEGRAL_MAX;
+	}
 
-	if (innov_covariance < 1e-6f) innov_covariance = 1e-6f; // prevent divide by 0 which hopefully shouldnt happen anyway
-	float kalman_gain = cross_covariance / innov_covariance;
-	soc = soc + kalman_gain * (voltage - v_sigma_mean); // update SOC prediction with magic - keep in mind that this value is in percent of total capacity
+	float d_error = (error - pid_last_error) / SOC_TASK_PERIOD_S;
+	pid_last_error = error;
+
+	soc += (SOC_PID_KP * error) + (SOC_PID_KI * pid_integral) + (SOC_PID_KD * d_error);
 	soc = soc > 1.0f ? 1.0f : soc;
 	soc = soc < 0.0f ? 0.0f : soc;
-
-	ukf.pred = soc;
-	ukf.variance = ukf.variance - kalman_gain * innov_covariance * kalman_gain;
-	ukf.variance = ukf.variance < 1e-6f ? 1e-6f : ukf.variance;
+	soc_estimate = soc;
 }
 
 static float get_avg_temp(void)
@@ -147,12 +133,11 @@ void socTask(void *pvParamaters)
 {
 	// Wait until segment voltage is set
 	ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-	ukf.pred = compute_voltage_soc(); //initialize with LUT values
-	ukf.variance = 0.01f; //tune these values with data later
-	ukf.process_noise = 0.001f;
-	ukf.measurement_noise = 0.01f;
-	
-	DEBUG_PRINT("Initial SOC: %f %% \n", ukf.pred * 100.0f);
+	soc_estimate = compute_voltage_soc();
+	pid_integral = 0.0f;
+	pid_last_error = 0.0f;
+
+	DEBUG_PRINT("Initial SOC: %f %% \n", soc_estimate * 100.0f);
 
 	if (registerTaskToWatch(SOC_TASK_ID, 2*pdMS_TO_TICKS(SOC_TASK_PERIOD), false, NULL) != HAL_OK)
 	{
@@ -164,8 +149,8 @@ void socTask(void *pvParamaters)
 		float voltage = 0.0f, current_integrated = 0.0f;
 		if (getSegmentVoltage(&voltage) == HAL_OK) {
 			if (consume_integrated_current(&current_integrated) == HAL_OK) {
-				ukf_soc(voltage, current_integrated);
-				StateBatteryChargeHV = ukf.pred * 100.0f;
+				update_soc(voltage, current_integrated);
+				StateBatteryChargeHV = soc_estimate * 100.0f;
 			}
 		}
 
