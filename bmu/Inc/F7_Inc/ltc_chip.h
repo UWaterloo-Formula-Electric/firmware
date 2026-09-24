@@ -72,6 +72,8 @@
 
 #define OPEN_WIRE_RATIO_MIN 0.75
 #define OPEN_WIRE_RATIO_MAX 1.40
+// Set to 0 to run the open wire check on every cell, including ones in OPEN_WIRE_SKIP_CELLS
+#define OPEN_WIRE_SKIP_CELLS_ENABLED (1)
 
 // PWM duty (0-15) written to the discharge registers while a cell is balancing
 #define BALANCE_PWM_DUTY_MAX (0x0F)
