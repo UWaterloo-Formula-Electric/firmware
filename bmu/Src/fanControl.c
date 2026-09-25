@@ -69,7 +69,7 @@ HAL_StatusTypeDef setFan()
   uint32_t duty = calculateFanPeriod();
 
   if(manualFanOverride){
-    duty = 0; //Overide. Fans go FULL BLAST (inverted PWM)
+    duty = FAN_PERIOD_COUNT*FAN_MAX_DUTY_PERCENT; //Overide. Fans go FULL BLAST
   }
 
   __HAL_TIM_SET_COMPARE(&FAN_HANDLE, TIM_CHANNEL_1, duty);
