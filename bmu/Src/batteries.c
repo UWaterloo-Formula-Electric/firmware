@@ -67,9 +67,10 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 float adjustedCellIR = ADJUSTED_CELL_IR_DEFAULT;
 
 /**
- * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
+ * Charging voltage limit to be sent to charger. Charging is actually stopped based on cell SoC as specified by
+ * @ref CHARGE_STOP_SOC, or when any cell reaches @ref CHARGE_MAX_CELL_VOLTAGE
  */
-float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
+float maxChargeVoltage = CHARGE_MAX_CELL_VOLTAGE * NUM_VOLTAGE_CELLS;
 
 // Limits for Under/Over Voltage - Can be overwritten from the CLI
 volatile float limit_overvoltage = DEFAULT_LIMIT_OVERVOLTAGE;
@@ -1066,8 +1067,8 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
 
 /**
- * Set by the balanceNow CLI command. Balances right away, ignoring @ref BALANCE_START_VOLTAGE and
- * @ref BALANCE_WHILE_CHARGING_ENABLED, and clears itself once no cell needs balancing
+ * Set by the balanceNow CLI command. Only used in balancing sessions without the charger: balances
+ * right away and ends the session once no cell needs balancing
  */
 static volatile bool balanceNowRequested = false;
 
@@ -1280,13 +1281,13 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         /*
          * Check if we should balance any cells
-         * Only balance above a minimum voltage, unless balanceNow was requested
+         * Only balance above a minimum voltage
          */
-        // balanceNow was just requested, so skip the recheck wait and balance right away
-        bool forceBalanceCheck = balanceNowRequested && !balanceNowActive;
-        balanceNowActive = balanceNowRequested;
+        // balanceNow only applies without the charger. When just requested, skip the recheck wait
+        bool forceBalanceCheck = !using_charger && balanceNowRequested && !balanceNowActive;
+        balanceNowActive = !using_charger && balanceNowRequested;
 
-        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED && !balanceNowActive)
+        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED)
         {
             // Balancing while charging is disabled, make sure nothing is left balancing
             balancingCells = false;
@@ -1295,7 +1296,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 if (boundedContinue()) { continue; }
             }
         }
-        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger || balanceNowActive)
+        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
         {
             if (forceBalanceCheck || xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
@@ -1356,11 +1357,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 if (balanceNowActive && !balancingCells) {
                     DEBUG_PRINT("balanceNow: cells balanced, stopping\n");
                     balanceNowRequested = false;
-                    balanceNowActive = false;
-                    if (!using_charger) {
-                        stopBalance();
-                        return CHARGE_DONE;
-                    }
+                    stopBalance();
+                    return CHARGE_DONE;
                 }
             }
         } else {
@@ -1379,9 +1377,15 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          */
         bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED;
         float chargeStopCellVoltage = canBalanceAllCells ? VoltageCellMin : VoltageCellMax;
-        if (using_charger && getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
-            && (!balancingCells || !canBalanceAllCells)) {
+        bool reachedStopSOC = getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
+                              && (!balancingCells || !canBalanceAllCells);
+        // Hard cap on the highest cell, whatever the balancing mode
+        bool reachedMaxCellVoltage = VoltageCellMax >= CHARGE_MAX_CELL_VOLTAGE;
+        if (using_charger && (reachedStopSOC || reachedMaxCellVoltage)) {
             DEBUG_PRINT("Done charging\n");
+            if (reachedMaxCellVoltage) {
+                DEBUG_PRINT("Max cell %f V reached charge limit %f V\n", VoltageCellMax, CHARGE_MAX_CELL_VOLTAGE);
+            }
             // Partial balancing may still be running when we stop on the highest cell
             stopBalance();
             if (using_charger && stopCharging() != HAL_OK) {

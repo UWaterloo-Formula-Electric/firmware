@@ -84,6 +84,12 @@
 #define CHARGE_STOP_SOC (98.0)
 
 /**
+ * Hard cap on the highest cell while charging (V). Charging stops as soon as any cell reaches this,
+ * in every balancing mode. Also sets the pack voltage limit sent to the charger
+ */
+#define CHARGE_MAX_CELL_VOLTAGE (4.15F)
+
+/**
  * Set to 0 to charge without balancing. Cells in NO_DISCHARGE_CELLS (ltc_chip.c) are never balanced either
  * (partial balancing). If any cell can't be balanced, charging stops as soon as the highest cell reaches
  * @ref CHARGE_STOP_SOC, since nothing can bring it back down

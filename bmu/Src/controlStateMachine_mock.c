@@ -877,10 +877,14 @@ BaseType_t balanceNowCommand(char *writeBuffer, size_t writeBufferLength,
         if (state == STATE_HV_Disable) {
             setBalanceNow(true);
             fsmSendEventISR(&fsmHandle, EV_Balance_Start);
-        } else if (state == STATE_Charging || state == STATE_Balancing) {
+        } else if (state == STATE_Balancing) {
             setBalanceNow(true);
+        } else if (state == STATE_Charging) {
+            // Cell voltages read under charge current aren't good enough to balance on
+            COMMAND_OUTPUT("Can't balance now while charging, run stopCharge first\n");
+            return pdFALSE;
         } else {
-            COMMAND_OUTPUT("Can't balance now, BMU must be HV disabled, charging or balancing\n");
+            COMMAND_OUTPUT("Can't balance now, BMU must be HV disabled or balancing\n");
             return pdFALSE;
         }
         COMMAND_OUTPUT("Balancing now, stops once cells are balanced\n");
@@ -898,7 +902,7 @@ BaseType_t balanceNowCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t balanceNowCommandDefinition =
 {
     "balanceNow",
-    "balanceNow <on|off>:\r\n Balance right away, ignoring the min cell voltage and balance while charging settings. Stops once cells are balanced\r\n",
+    "balanceNow <on|off>:\r\n Balance right away without the charger, stops once cells are balanced. Not allowed while charging\r\n",
     balanceNowCommand,
     1 /* Number of parameters */
 };
