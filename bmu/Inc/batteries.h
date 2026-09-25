@@ -59,6 +59,8 @@
 #define CELL_UNDERTEMP 0
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
 #define CELL_UNDERTEMP_WARNING 5
+/** Set to 0 to use every thermistor, including ones in DEAD_THERMISTOR_CHANNELS */
+#define DEAD_THERMISTOR_SKIP_ENABLED (0)
 
 /** @} Cell Characteristics */
 
@@ -150,6 +152,7 @@ HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueues();
 float map_range_float(float in, float low, float high, float low_out, float high_out);
+float getAvgValidTemp(void);
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
 void setSendOnlyOneCell(int cellIdx);
 void clearSendOnlyOneCell();

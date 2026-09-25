@@ -135,12 +135,7 @@ static void ukf_soc(float voltage, float current_integrated)
 
 static float get_avg_temp(void)
 {
-	float avg_temp = 0.0f;
-	for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-		avg_temp += TempChannel[i];
-	}
-	avg_temp /= NUM_TEMP_CELLS;
-	return avg_temp;
+	return getAvgValidTemp();
 }
 
 void socTask(void *pvParamaters)

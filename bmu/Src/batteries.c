@@ -667,6 +667,40 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
     }
 }
 
+// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 92, 115};
+
+static bool isDeadThermistorChannel(int channel) {
+   if (!DEAD_THERMISTOR_SKIP_ENABLED) {
+      return false;
+   }
+   for (size_t i = 0; i < sizeof(DEAD_THERMISTOR_CHANNELS) / sizeof(DEAD_THERMISTOR_CHANNELS[0]); i++) {
+      if (DEAD_THERMISTOR_CHANNELS[i] == channel) {
+         return true;
+      }
+   }
+   return false;
+}
+
+/**
+ * @brief Average temp over all thermistor channels, excluding dead ones
+ *
+ * @return Average temp in deg C, or 0 if every channel is dead
+ */
+float getAvgValidTemp(void)
+{
+   float sum = 0.0f;
+   int count = 0;
+   for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+      if (isDeadThermistorChannel(i)) {
+         continue;
+      }
+      sum += TempChannel[i];
+      count++;
+   }
+   return (count > 0) ? (sum / count) : 0.0f;
+}
+
 /**
  * @brief Checks cell voltages and temperatures to ensure they are within safe
  * limits, as well as sending out warnings when the values get close to their
@@ -736,6 +770,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    {
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
+            // Dead thermistors would trip false temp faults and skew max/min temps
+            if (isDeadThermistorChannel(i)) {
+                continue;
+            }
+
             measure = TempChannel[i];
                 
             // Check it is within bounds
@@ -1159,11 +1198,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
        /*
          * Print out the cell voltages and temperatures
          */
-        float avgTemp = 0;
-        for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-            avgTemp += TempChannel[i];
-        }
-        avgTemp /= NUM_TEMP_CELLS;
+        float avgTemp = getAvgValidTemp();
         DEBUG_PRINT("Pack Voltage: %f\n", AMS_PackVoltage);
         DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
         DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
