@@ -313,7 +313,7 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
 // Cells with bleed resistors removed
 // S-ADC measures through the discharge path so the
 // ADCV/ADSV ratio check will not work on these cells
-static const uint8_t OPEN_WIRE_SKIP_CELLS[] = {24, 25, 38, 52, 97, 136, 137};
+static const uint8_t OPEN_WIRE_SKIP_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 136, 137};
 
 static bool isOpenWireSkipCell(uint8_t cellIdx) {
     if (!OPEN_WIRE_SKIP_CELLS_ENABLED) {
