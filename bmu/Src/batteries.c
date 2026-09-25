@@ -1066,6 +1066,17 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
 
 /**
+ * Set by the balanceNow CLI command. Balances right away, ignoring @ref BALANCE_START_VOLTAGE and
+ * @ref BALANCE_WHILE_CHARGING_ENABLED, and clears itself once no cell needs balancing
+ */
+static volatile bool balanceNowRequested = false;
+
+void setBalanceNow(bool enable)
+{
+    balanceNowRequested = enable;
+}
+
+/**
  * @brief Stops all cells balancing, but stores which cells were balancing to
  * allowing resuming of balance for cells that were balancing
  *
@@ -1195,6 +1206,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     bool balancingCells = false; // Are we balancing any cell currently?
     uint32_t lastBalanceCheck = 0;
     bool waitingForBalanceDone = false; // Set to true when receive stop but still balancing
+    bool balanceNowActive = false; // balanceNow override is being applied this loop
     uint32_t dbwTaskNotifications;
     float packVoltage;
     float adjustedPackVoltage;
@@ -1268,9 +1280,13 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         /*
          * Check if we should balance any cells
-         * Only balance above a minimum voltage
+         * Only balance above a minimum voltage, unless balanceNow was requested
          */
-        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED)
+        // balanceNow was just requested, so skip the recheck wait and balance right away
+        bool forceBalanceCheck = balanceNowRequested && !balanceNowActive;
+        balanceNowActive = balanceNowRequested;
+
+        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED && !balanceNowActive)
         {
             // Balancing while charging is disabled, make sure nothing is left balancing
             balancingCells = false;
@@ -1279,9 +1295,9 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 if (boundedContinue()) { continue; }
             }
         }
-        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger || balanceNowActive)
         {
-            if (xTaskGetTickCount() - lastBalanceCheck
+            if (forceBalanceCheck || xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
             {
                 balancingCells = false;
@@ -1334,6 +1350,18 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 DEBUG_PRINT("Sent config to AMS boards\n");
 
                 lastBalanceCheck = xTaskGetTickCount();
+
+                // balanceNow stops by itself once every cell that can be balanced is within
+                // BALANCE_MIN_SOC_DELTA of the lowest cell
+                if (balanceNowActive && !balancingCells) {
+                    DEBUG_PRINT("balanceNow: cells balanced, stopping\n");
+                    balanceNowRequested = false;
+                    balanceNowActive = false;
+                    if (!using_charger) {
+                        stopBalance();
+                        return CHARGE_DONE;
+                    }
+                }
             }
         } else {
             balancingCells = false;
@@ -1551,6 +1579,9 @@ void batteryTask(void *pvParameter)
                         ERROR_PRINT("Processing unknown notification in batteryTask\n");
                         chargeRc = CHARGE_ERROR;
                     }
+
+                    // balanceNow only lasts for one charge/balance session
+                    setBalanceNow(false);
 
                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
                                                             2*BATTERY_TASK_PERIOD_MS))

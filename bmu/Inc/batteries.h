@@ -157,6 +157,7 @@ HAL_StatusTypeDef getVBus(float *VBus);
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
+void setBalanceNow(bool enable);
 HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueues();
