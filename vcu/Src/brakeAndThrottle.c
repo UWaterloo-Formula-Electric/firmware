@@ -428,7 +428,8 @@ void canPublishTask(void *pvParameters)
     vTaskDelay(pdMS_TO_TICKS(VCU_DATA_STARTUP_DELAY_MS));
     while (1) {
         // Update value to be sent over can
-        ThrottlePercent = throttlePercentReading;
+        // Pedal deadzone can put this slightly below 0, and ThrottlePercent is unsigned
+        ThrottlePercent = clip(throttlePercentReading, PERCENT_MIN, PERCENT_MAX);
         FrontBrakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
@@ -508,8 +509,18 @@ void InvCommandTask(void)
             BrakeReading = brake;
             // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
             sendCAN_VCU_ADCReadings();
-            
-            throttlePercentReading = 0;
+
+            // Report pedal % for logging (MoTeC) only, no torque is commanded here.
+            // Same checks as getThrottlePositionPercent but silent, since printing
+            // every loop with a bad pedal can block past the watchdog period
+            float throttleA = calculate_throttle_percent1(thA);
+            float throttleB = calculate_throttle_percent2(thB);
+            if (is_throttle1_in_range(thA) && is_throttle2_in_range(thB)
+                && is_tps_within_tolerance(throttleA, throttleB)) {
+                throttlePercentReading = (throttleA + throttleB) / TPS_SENSOR_COUNT;
+            } else {
+                throttlePercentReading = 0;
+            }
         }
         watchdogTaskCheckIn(INV_COMMAND_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS));
