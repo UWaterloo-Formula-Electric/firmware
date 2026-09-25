@@ -1270,7 +1270,16 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * Check if we should balance any cells
          * Only balance above a minimum voltage
          */
-        if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED)
+        {
+            // Balancing while charging is disabled, make sure nothing is left balancing
+            balancingCells = false;
+            if (stopBalance() != HAL_OK) {
+                ERROR_PRINT("Failed to stop balance\n");
+                if (boundedContinue()) { continue; }
+            }
+        }
+        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
         {
             if (xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
@@ -1292,7 +1301,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if PRINT_PER_CELL_BALANCE_STATE
                     DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
 #endif
-                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
+                    // Cells without a discharge path can't be balanced, so they never count as balancing
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA && batt_cell_can_discharge(cell)) {
 #if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #endif
@@ -1336,9 +1346,16 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         /*
          * Check if we are done charging/balancing
+         * If any cell can't be balanced, nothing can bring it back down, so stop as soon as the
+         * highest cell is full instead of waiting for the lowest cell and for balancing to finish
          */
-        if (using_charger && getSOCFromVoltage(VoltageCellMin) >= CHARGE_STOP_SOC && !balancingCells) {
+        bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED;
+        float chargeStopCellVoltage = canBalanceAllCells ? VoltageCellMin : VoltageCellMax;
+        if (using_charger && getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
+            && (!balancingCells || !canBalanceAllCells)) {
             DEBUG_PRINT("Done charging\n");
+            // Partial balancing may still be running when we stop on the highest cell
+            stopBalance();
             if (using_charger && stopCharging() != HAL_OK) {
                 return CHARGE_ERROR;
             }

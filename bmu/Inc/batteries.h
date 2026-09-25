@@ -60,7 +60,7 @@
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
 #define CELL_UNDERTEMP_WARNING 5
 /** Set to 0 to use every thermistor, including ones in DEAD_THERMISTOR_CHANNELS */
-#define DEAD_THERMISTOR_SKIP_ENABLED (0)
+#define DEAD_THERMISTOR_SKIP_ENABLED (1)
 
 /** @} Cell Characteristics */
 
@@ -80,8 +80,15 @@
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (250)
 
-/// SoC to stop charging at (of the cell with lowest SoC)
+/// SoC to stop charging at. Uses the lowest cell when every cell can be balanced, otherwise the highest cell
 #define CHARGE_STOP_SOC (98.0)
+
+/**
+ * Set to 0 to charge without balancing. Cells in NO_DISCHARGE_CELLS (ltc_chip.c) are never balanced either
+ * (partial balancing). If any cell can't be balanced, charging stops as soon as the highest cell reaches
+ * @ref CHARGE_STOP_SOC, since nothing can bring it back down
+ */
+#define BALANCE_WHILE_CHARGING_ENABLED (1)
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
