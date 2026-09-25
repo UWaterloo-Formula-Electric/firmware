@@ -250,7 +250,6 @@ void faultMonitorTask(void *pvParameters) {
         vTaskDelay(10);
     }
 
-
     DEBUG_PRINT("Fault Monitor: IMD OK.\n");
 
     // There is no sense at output of IMD, only checks if IMD has faulted

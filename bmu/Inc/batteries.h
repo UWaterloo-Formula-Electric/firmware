@@ -29,7 +29,7 @@
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
-#define LIMIT_LOWVOLTAGE 3.0F
+#define LIMIT_LOWVOLTAGE 2.5F
 /// Minimum voltage of a cell, will send a critical DTC if it goes below
 #define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
@@ -59,6 +59,8 @@
 #define CELL_UNDERTEMP 0
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
 #define CELL_UNDERTEMP_WARNING 5
+/** Set to 0 to use every thermistor, including ones in DEAD_THERMISTOR_CHANNELS */
+#define DEAD_THERMISTOR_SKIP_ENABLED (0)
 
 /** @} Cell Characteristics */
 
@@ -97,6 +99,8 @@
  */
 #define BALANCE_RECHECK_PERIOD_MS (3000)
 #define START_NUM_TRIES (3)
+
+#define PRINT_PER_CELL_BALANCE_STATE (0)
 
 #define BATTERY_START_FAIL_BIT                      (1U << 0)
 #define OPEN_CIRCUIT_FAIL_BIT                       (1U << 1)
@@ -150,6 +154,7 @@ HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueues();
 float map_range_float(float in, float low, float high, float low_out, float high_out);
+float getAvgValidTemp(void);
 HAL_StatusTypeDef setMaxChargeCurrent(float maxCurrent);
 void setSendOnlyOneCell(int cellIdx);
 void clearSendOnlyOneCell();
@@ -161,4 +166,5 @@ HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
 HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
+bool isThermistorSweepComplete(void);
 #endif /* end of include guard: BATTERIES_H */

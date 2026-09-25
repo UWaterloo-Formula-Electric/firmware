@@ -27,7 +27,7 @@ typedef enum PCDC_Notifications_t {
  * Precharge constants
  */
 
-#define PRECHARGE_RESISTOR_OHMS (2000)
+#define PRECHARGE_RESISTOR_OHMS (1020)
 
 // Timeouts
 #define PRECHARGE_STEP_1_WAIT_TIME_MS 2000
@@ -67,5 +67,8 @@ typedef enum PCDC_Notifications_t {
 
 #define PRECHARGE_STEP_5_COMPLETE_PERCENT_VPACK (0.98F)
 #define PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED (0.8F)
+
+// Set to 0 to skip the IBus checks in precharge steps 4 and 5 (e.g. shunt not reading)
+#define PRECHARGE_CURRENT_CHECK_ENABLED (1)
 
 #endif /* end of include guard: PRECHARGEDISCHARGE_H */

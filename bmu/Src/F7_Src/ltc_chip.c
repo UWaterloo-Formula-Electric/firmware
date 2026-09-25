@@ -12,12 +12,13 @@
 #include "batteries.h"
 
 #define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
+#define OPEN_WIRE_MIN_DIVISOR_V (0.0002f)
 
 HAL_StatusTypeDef batt_init()
 {
 
     batt_init_chip_configs();
-
+    batt_init_chip_configs_pwm();
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
@@ -66,14 +67,16 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
         return HAL_ERROR;
     }
 
-    batt_broadcast_command(ADCV);
+    if (batt_broadcast_command(ADCV) != HAL_OK) {
+        return HAL_ERROR;
+    }
 
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
 
-    long_delay_us(CONVERSION_TIME_7kHz_US);
+    delay_us(VOLTAGE_MEASURE_DELAY_US);
 
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {
@@ -98,6 +101,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
     }
 
 	batt_set_temp_config(channel);
+
     if (batt_write_config() != HAL_OK)
     {
         ERROR_PRINT("Failed to setup mux for temp reading\n");
@@ -111,7 +115,15 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
         return HAL_ERROR;
     }
 
-	batt_broadcast_command(ADAX);
+    #if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
+    if (batt_broadcast_command(ADAX) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    #elif LTC_CHIP == ADBMS_CHIP_6830B
+    if (batt_broadcast_command(ADAX_DOWN) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    #endif
     delay_us(TEMP_MEASURE_DELAY_US);
 
     if (batt_spi_wakeup(false /* not sleeping*/))
@@ -162,21 +174,54 @@ Future todo: could add a reading of VREF2 to get a better estimate of thermistor
 */
 HAL_StatusTypeDef batt_read_cell_temps(float *cell_temp_array)
 {
-    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15};
-	static uint8_t curr_channel_read_index = 0;
-	for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
-	{
-		if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
-		{
-			return HAL_ERROR;
-		}
+    uint8_t channel_read_order[14] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    static uint8_t curr_channel_read_index = 0;
+    for (int i = 0; i < NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE; i++)
+    {
+        if (batt_read_cell_temps_single_channel(channel_read_order[curr_channel_read_index], cell_temp_array) != HAL_OK)
+        {
+            return HAL_ERROR;
+        }
         curr_channel_read_index = (curr_channel_read_index + 1) % 14;
     }
 
     return HAL_OK;
 }
 
+HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
+{
+#if LTC_CHIP != ADBMS_CHIP_6830B
+    (void)cell_voltage_array;
+    return HAL_ERROR;
+#else
+    /* Mirror batt_read_cell_voltages: wake → start conversion → wake → settle → read back. */
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    if (batt_broadcast_command(ADSV) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    if (batt_spi_wakeup(false /* not sleeping*/))
+    {
+        return HAL_ERROR;
+    }
+
+    delay_us(ADSV_MEASURE_DELAY_US);
+
+    if (batt_read_ADSV(cell_voltage_array) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+#endif
+}
+
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array){
+
     if (batt_read_cell_voltages(cell_voltage_array) != HAL_OK) {
         ERROR_PRINT("Failed to read cell voltages\n");
         return HAL_ERROR;
@@ -215,9 +260,9 @@ void divideCellVoltages(float *cell_voltages_average, unsigned int num_readings)
 // Arrays to use with open wire test
 float cell_voltages_single_reading[CELLS_PER_BOARD * NUM_BOARDS];
 
-// Perform open wire test cell voltage reading, either pullup or pulldown
-// Average num_readings voltages to account for noise
-HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullup,
+// Perform open wire test cell voltage reading, either adcv or adsv
+// Sums num_readings voltages into cell_voltages to account for noise; the caller divides.
+HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
                                                 unsigned int num_readings)
 {
     if (num_readings <= 0) {
@@ -229,53 +274,87 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool pullu
             return HAL_ERROR;
         }
 
-        if (batt_broadcast_command(pullup ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
+        #if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
+        if (batt_broadcast_command(adcv ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
             return HAL_ERROR;
         }
-
+        #elif LTC_CHIP == ADBMS_CHIP_6830B
+        if (batt_broadcast_command(adcv ? ADCV : ADSV) != HAL_OK) {
+            return HAL_ERROR;
+        }
+        #endif
+        
         vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
         delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+
+		if (batt_spi_wakeup(false /* not sleeping*/))
+		{
+			return HAL_ERROR;
+		}
+
+        #if LTC_CHIP == ADBMS_CHIP_6830B
+        if (!adcv) {
+            if (batt_read_ADSV(cell_voltages_single_reading) != HAL_OK) {
+                return HAL_ERROR;
+            }
+        } else
+        #endif
+        {
+            if (batt_readBackCellVoltage(cell_voltages_single_reading, OPEN_WIRE) != HAL_OK) {
+                return HAL_ERROR;
+            }
+        }
+
+		addCellVoltages(cell_voltages_single_reading, cell_voltages);
     }
 
-	if (batt_spi_wakeup(false /* not sleeping*/))
-	{
-		return HAL_ERROR;
-	}
-
-	if (batt_readBackCellVoltage(cell_voltages_single_reading, OPEN_WIRE) != HAL_OK)
-	{
-		return HAL_ERROR;
-	}
-
-	addCellVoltages(cell_voltages_single_reading, cell_voltages);
-
     return HAL_OK;
+}
+
+// Cells with bleed resistors removed
+// S-ADC measures through the discharge path so the
+// ADCV/ADSV ratio check will not work on these cells
+static const uint8_t OPEN_WIRE_SKIP_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 136, 137};
+
+static bool isOpenWireSkipCell(uint8_t cellIdx) {
+    if (!OPEN_WIRE_SKIP_CELLS_ENABLED) {
+        return false;
+    }
+    for (size_t i = 0; i < sizeof(OPEN_WIRE_SKIP_CELLS) / sizeof(OPEN_WIRE_SKIP_CELLS[0]); i++) {
+        if (OPEN_WIRE_SKIP_CELLS[i] == cellIdx) {
+            return true;
+        }
+    }
+    return false;
 }
 
 HAL_StatusTypeDef checkForOpenCircuit()
 {
     // Perform averaging of multiple voltage readings to account for potential
     // bad connections to AMS boards that causes noise
-    float cell_voltages_pullup[CELLS_PER_BOARD * NUM_BOARDS] = {0};
-    float cell_voltages_pulldown[CELLS_PER_BOARD * NUM_BOARDS] = {0};
+    float cell_voltages_adcv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
+    float cell_voltages_adsv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
 	
 	float last_IBus = 0.0f;
 	// If we can't get it from the IBus queue, skip the check
 	bool skip_IBus_check = (getIBus(&last_IBus) != HAL_OK);
 
-    if (performOpenCircuitTestReading(cell_voltages_pullup, true /* pullup */,
+    if (performOpenCircuitTestReading(cell_voltages_adcv, true /* adcv */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
         return HAL_ERROR;
     }
 
-    if (performOpenCircuitTestReading(cell_voltages_pulldown, false /* pulldown */,
+    if (performOpenCircuitTestReading(cell_voltages_adsv, false /* adsv */,
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
         return HAL_ERROR;
     }
+
+    divideCellVoltages(cell_voltages_adcv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
+    divideCellVoltages(cell_voltages_adsv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
 
     float curr_IBus = 0.0f;
 	skip_IBus_check |= (getIBus(&curr_IBus) != HAL_OK);
@@ -296,23 +375,31 @@ HAL_StatusTypeDef checkForOpenCircuit()
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
+        	if (isOpenWireSkipCell(cellIdx)) {
+        		continue;
+        	}
         	if(!open_wire_failure[cellIdx].occurred)
 			{
-				float pullup = cell_voltages_pullup[cellIdx];
-				float pulldown = cell_voltages_pulldown[cellIdx];
-				
-				if (float_abs(pullup - pulldown) > (0.4))
+				float adcv = cell_voltages_adcv[cellIdx];
+				float adsv = cell_voltages_adsv[cellIdx];
+				if (float_abs(adcv) < OPEN_WIRE_MIN_DIVISOR_V)
 				{
-					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f > 0.4)\n",
-								cellIdx, pullup, pulldown,
-								float_abs(pullup - pulldown));
+					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, PU magnitude below %f)\n",
+								cellIdx, adcv, adsv, OPEN_WIRE_MIN_DIVISOR_V);
 					ret = HAL_ERROR;
 				}
-				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_pulldown[cellIdx] - 0) < 0.0002))
+				else if (float_abs(adsv/adcv) < (OPEN_WIRE_RATIO_MIN) || float_abs(adsv/adcv) > (OPEN_WIRE_RATIO_MAX))
+				{
+					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (%f, %f))\n",
+								cellIdx, adcv, adsv,
+								float_abs(adsv/adcv), OPEN_WIRE_RATIO_MIN, OPEN_WIRE_RATIO_MAX);
+					ret = HAL_ERROR;
+				}
+				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_adsv[cellIdx] - 0) < 0.0002))
 				{	
 					ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
-								cellIdx, cell_voltages_pulldown[cellIdx],
-								float_abs(cell_voltages_pulldown[cellIdx] - 0));
+								cellIdx, cell_voltages_adsv[cellIdx],
+								float_abs(cell_voltages_adsv[cellIdx] - 0));
 					ret = HAL_ERROR;
 				}
 			}
@@ -325,10 +412,10 @@ HAL_StatusTypeDef checkForOpenCircuit()
 
 		// First cell in board
 		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
-        if (!open_wire_failure[first_cell_idx].occurred && (float_abs(cell_voltages_pullup[first_cell_idx] - 0) < 0.0002)) {
+        if (!open_wire_failure[first_cell_idx].occurred && (float_abs(cell_voltages_adcv[first_cell_idx] - 0) < 0.0002)) {
                 ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
-                            first_cell_idx, cell_voltages_pullup[first_cell_idx],
-                            float_abs(cell_voltages_pullup[first_cell_idx] - 0));
+                            first_cell_idx, cell_voltages_adcv[first_cell_idx],
+                            float_abs(cell_voltages_adcv[first_cell_idx] - 0));
                 ret = HAL_ERROR;
         }
 		else if(open_wire_failure[first_cell_idx].occurred) // PEC mismatch on this cell
@@ -351,9 +438,10 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int bmuCellIdx = (cell % CELLS_PER_BOARD);
+    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+    int amsCellIdx = cell % CELLS_PER_CHIP;
 
-    batt_set_balancing_cell(boardIdx, 0, bmuCellIdx);
+    batt_set_balancing_cell(boardIdx, chipIdx, amsCellIdx, BALANCE_PWM_DUTY_MAX);
 
     return HAL_OK;
 }
@@ -366,9 +454,10 @@ HAL_StatusTypeDef batt_stop_balance_cell(int cell)
     }
 
     int boardIdx = cell / CELLS_PER_BOARD;
-    int bmuCellIdx = cell % CELLS_PER_BOARD;
+    int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+    int amsCellIdx = cell % CELLS_PER_CHIP;
 
-    batt_unset_balancing_cell(boardIdx, 0, bmuCellIdx);
+    batt_unset_balancing_cell(boardIdx, chipIdx, amsCellIdx);
 
     return HAL_OK;
 }
@@ -388,7 +477,7 @@ bool batt_is_cell_balancing(int cell)
     return batt_get_balancing_cell_state(boardIdx, chipIdx, amsCellIdx);
 }
 
-HAL_StatusTypeDef batt_unset_balancing_all_cells()
+HAL_StatusTypeDef batt_unset_balancing_all_cells(void)
 {
     for (int board = 0; board < NUM_BOARDS; board++) {
     	for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
@@ -396,6 +485,21 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells()
 				batt_unset_balancing_cell(board, chip, cell);
 			}
 		}
+    }
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_write_balancing_config(void)
+{
+    if (batt_write_config_pwm() != HAL_OK) {
+        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+        return HAL_ERROR;
+    }
+
+    if (batt_write_config() != HAL_OK) {
+        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+        return HAL_ERROR;
     }
 
     return HAL_OK;
@@ -419,14 +523,14 @@ HAL_StatusTypeDef balanceTest()
     }
 
     batt_init_chip_configs();
-
+    batt_init_chip_configs_pwm();
     if (batt_balance_cell(0) != HAL_OK) {
         return HAL_ERROR;
     }
 
     batt_set_disharge_timer(DT_30_SEC);
 
-    if (batt_write_config() != HAL_OK)
+    if (batt_write_balancing_config() != HAL_OK)
     {
         return HAL_ERROR;
     }
@@ -440,7 +544,7 @@ HAL_StatusTypeDef balanceTest()
     {
         return HAL_ERROR;
     }
-    if (batt_write_config() != HAL_OK)
+    if (batt_write_balancing_config() != HAL_OK)
     {
         return HAL_ERROR;
     }

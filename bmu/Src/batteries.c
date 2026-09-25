@@ -83,6 +83,14 @@ volatile float limit_undervoltage = DEFAULT_LIMIT_UNDERVOLTAGE;
  */
 bool warningSentForChannelTemp[NUM_TEMP_CELLS];
 
+/// Set once every thermistor channel has been measured at least once
+static volatile bool thermistorSweepComplete = false;
+
+bool isThermistorSweepComplete(void)
+{
+    return thermistorSweepComplete;
+}
+
 #define NUM_SOC_LOOKUP_VALS 101
 
 /**
@@ -406,20 +414,21 @@ void imdTask(void *pvParamaters)
    while (1) {
         imdData = getImdData();
         
+        // TODO: should probably check once device status and IMD faults has cleared
         while(!(imdData->deviceStatus)) {
             watchdogTaskCheckIn(IMD_TASK_ID);
             vTaskDelay(50);
         }
         if(imdData->faults) {
             if(imdData->faults & ISOLATION_FAULT || imdData->faults & ISOLATION_WARNING ) {
-                DEBUG_PRINT("IMD faulted!!\r\n");
+                ERROR_PRINT("IMD isolation faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
                 sendDTC_FATAL_IMD_Failure(1);
                     TSSI_GREEN_OFF;
                     TSSI_RED_ON;
             }
             else {
-                DEBUG_PRINT("else!!\r\n");
+                ERROR_PRINT("IMD faulted!!: %d\r\n", imdData->faults);
                 fsmSendEventUrgentISR(&fsmHandle, EV_HV_Fault);
             }
             
@@ -442,7 +451,6 @@ void imdTask(void *pvParamaters)
  * Battery cell Monitoring and Charging
  */
 
-
 /**
  * @brief Reads the cell voltages and temperatures from the AMS boards. The
  * battery temperature and cell voltages are stored in the global arrays which
@@ -453,7 +461,8 @@ void imdTask(void *pvParamaters)
 HAL_StatusTypeDef readCellVoltagesAndTemps()
 {
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-   return batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+   HAL_StatusTypeDef rc = batt_read_cell_voltages_and_temps((float *)VoltageCell, (float *)TempChannel);
+   return rc;
 #elif IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
    // For nucleo, cell voltages and temps can be manually changed via CLI for
    // testing, so we don't do anything here
@@ -549,41 +558,6 @@ void BatteryTaskError()
 /// Maximum number of errors battery task can encounter before reporting error
 #define MAX_ERROR_COUNT 5
 
-static uint32_t errorCounterRed = 0;
-
-/**
- * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
- * immediately fatal. This causes the task to retry its readings/whatever else
- * failed MAX_ERROR_COUNT times, then fail and send error event.
- * TODO: ensure this is max 500 ms to meet rules for cell reading times
- *
- * @return true if errorCounterRed is below or equal to max error count, false otherwise
- */
-bool boundedContinueRedCar()
-{
-    if ((++errorCounterRed) > MAX_ERROR_COUNT) {
-        BatteryTaskError();
-        return false;
-    } else {
-        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
-        watchdogTaskCheckIn(BATTERY_TASK_ID);
-        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
-        return true;
-    }
-}
-
-/**
- * @brief Call on a succesful run through main loop.
- * Decrements error counter on succesful run through main loop
- */
-void ERROR_COUNTER_RED_SUCCESS()
-{
-  if (errorCounterRed > 0)
-  {
-    errorCounterRed--;
-  }
-}
-
 static uint32_t errorCounter = 0;
 
 /**
@@ -620,6 +594,43 @@ void ERROR_COUNTER_SUCCESS()
     errorCounter--;
   }
 }
+
+
+static uint32_t errorCounterRed = 0;
+
+/**
+ * @brief This is for RED CAR ONLY. Called by battery task if an error is encountered that is not
+ * immediately fatal. This causes the task to retry its readings/whatever else
+ * failed MAX_ERROR_COUNT times, then fail and send error event.
+ * TODO: ensure this is max 500 ms to meet rules for cell reading times
+ *
+ * @return true if errorCounterRed is below or equal to max error count, false otherwise
+ */
+bool boundedContinueRedCar()
+{
+    if ((++errorCounterRed) > MAX_ERROR_COUNT) {
+        BatteryTaskError();
+        return false;
+    } else {
+        DEBUG_PRINT("Error counter %d\n", (int)errorCounterRed);
+        watchdogTaskCheckIn(BATTERY_TASK_ID);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_TASK_PERIOD_MS));
+        return true;
+    }
+}
+
+/**
+ * @brief Call on a succesful run through main loop.
+ * Decrements error counter on succesful run through main loop
+ */
+void ERROR_COUNTER_RED_SUCCESS()
+{
+  if (errorCounterRed > 0)
+  {
+    errorCounterRed--;
+  }
+}
+
 
 /**
  * Alpha value for cell voltage filter
@@ -663,6 +674,49 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
                                 + (1-CELL_VOLTAGE_FILTER_ALPHA)*cellVoltagesFiltered[i];
     }
 }
+
+// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 92, 115};
+
+static bool isDeadThermistorChannel(int channel) {
+   if (!DEAD_THERMISTOR_SKIP_ENABLED) {
+      return false;
+   }
+   for (size_t i = 0; i < sizeof(DEAD_THERMISTOR_CHANNELS) / sizeof(DEAD_THERMISTOR_CHANNELS[0]); i++) {
+      if (DEAD_THERMISTOR_CHANNELS[i] == channel) {
+         return true;
+      }
+   }
+   return false;
+}
+
+/**
+ * @brief Average temp over all thermistor channels, excluding dead ones
+ *
+ * @return Average temp in deg C, or 0 if every channel is dead
+ */
+float getAvgValidTemp(void)
+{
+   float sum = 0.0f;
+   int count = 0;
+   for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+      if (isDeadThermistorChannel(i)) {
+         continue;
+      }
+      sum += TempChannel[i];
+      count++;
+   }
+   return (count > 0) ? (sum / count) : 0.0f;
+}
+
+// Battery task passes needed to read every thermistor mux channel once. Each pass reads the
+// same channels on every chip at once, so this does not scale with NUM_LTC_CHIPS_PER_BOARD.
+#define THERMISTOR_PASSES_PER_SWEEP ((THERMISTORS_PER_SEGMENT + NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE - 1) / NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+// The first sweep after power up reads an unsettled mux and ADC, so it is discarded and
+// temperature checks start once the second full sweep is in
+#define THERMISTOR_SWEEPS_BEFORE_CHECK (2)
+// Temps are read before this check in the same pass, so the counter lags the sweep count by one
+#define THERMISTOR_LAG_PASSES ((THERMISTOR_SWEEPS_BEFORE_CHECK * THERMISTOR_PASSES_PER_SWEEP) - 1)
 
 /**
  * @brief Checks cell voltages and temperatures to ensure they are within safe
@@ -729,10 +783,16 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
+   if(thermistor_lag_counter >= THERMISTOR_LAG_PASSES)
    {
+       thermistorSweepComplete = true;
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
+            // Dead thermistors would trip false temp faults and skew max/min temps
+            if (isDeadThermistorChannel(i)) {
+                continue;
+            }
+
             measure = TempChannel[i];
                 
             // Check it is within bounds
@@ -990,7 +1050,11 @@ HAL_StatusTypeDef stopBalance()
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_balancing_config() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
@@ -1043,8 +1107,12 @@ HAL_StatusTypeDef resumeBalance()
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_balancing_config() != HAL_OK) {
+        return HAL_ERROR;
     }
 #endif
 
@@ -1070,8 +1138,12 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   else batt_stop_balance_cell(cell);
 #endif
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("Failed to resume balance\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return HAL_ERROR;
+    }
+    if (batt_write_balancing_config() != HAL_OK) {
+        return HAL_ERROR;
     }
 #endif
     return HAL_OK;
@@ -1141,11 +1213,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
        /*
          * Print out the cell voltages and temperatures
          */
-        float avgTemp = 0;
-        for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-            avgTemp += TempChannel[i];
-        }
-        avgTemp /= NUM_TEMP_CELLS;
+        float avgTemp = getAvgValidTemp();
         DEBUG_PRINT("Pack Voltage: %f\n", AMS_PackVoltage);
         DEBUG_PRINT("Max Cell Voltage: %f\n", VoltageCellMax);
         DEBUG_PRINT("Min Cell Voltage: %f\n", VoltageCellMin);
@@ -1221,31 +1289,39 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
                     float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
-                    /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
-
+#if PRINT_PER_CELL_BALANCE_STATE
+                    DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
+#endif
                     if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
+#if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
+#endif
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
 #endif
                         balancingCells = true;
                     } else {
+#if PRINT_PER_CELL_BALANCE_STATE
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
+#endif
 #if IS_BOARD_F7
                       batt_stop_balance_cell(cell);
 #endif
                     }
                 }
-
-                DEBUG_PRINT("\n\n\n");
-
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
-                if (batt_write_config() != HAL_OK)
-                {
+#endif
+                if (batt_spi_wakeup(true) != HAL_OK) {
+                    ERROR_PRINT("Failed to wake up boards\n");
+                    stopBalance();
                     return CHARGE_ERROR;
                 }
-#endif
+                if (batt_write_balancing_config() != HAL_OK) {
+                    stopBalance();
+                    return CHARGE_ERROR;
+                }
+                DEBUG_PRINT("Sent config to AMS boards\n");
 
                 lastBalanceCheck = xTaskGetTickCount();
             }
@@ -1377,12 +1453,14 @@ bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
  */
 void batteryTask(void *pvParameter)
 {
+    DEBUG_PRINT("Starting battery task\n");
     if (initVoltageAndTempArrays() != HAL_OK)
     {
        Error_Handler();
     }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
+    DEBUG_PRINT("Starting battery init\n");
     HAL_StatusTypeDef ret = HAL_ERROR;
     for(int num_tries = 0; num_tries < START_NUM_TRIES; num_tries++)
     {

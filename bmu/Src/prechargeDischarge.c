@@ -23,6 +23,8 @@
 #include "bmu_can.h"
 #include "bmu_dtc.h"
 #include "batteries.h"
+#include "ltc_chip.h"
+#include "ltc_chip_interface.h"
 
 /** Define this to enable contactor control, otherwise PCDC will always
  *  return successful.
@@ -75,6 +77,30 @@ HAL_StatusTypeDef pcdcInit()
 
 
 /**
+ * @brief Refuse to precharge if any cell is already outside the voltage limits
+ *
+ * @return HAL_StatusTypeDef
+ */
+static HAL_StatusTypeDef checkCellVoltages(void)
+{
+    float rawVoltage;
+    float adjustedVoltage;
+    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
+        rawVoltage = VoltageCell[i];
+        adjustedVoltage = AdjustedVoltageCell[i];
+        if (rawVoltage > DEFAULT_LIMIT_OVERVOLTAGE) {
+            ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, rawVoltage);
+            return HAL_ERROR;
+        }
+        if (adjustedVoltage < DEFAULT_LIMIT_UNDERVOLTAGE) {
+            ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, adjustedVoltage);
+            return HAL_ERROR;
+        }
+    }
+    return HAL_OK;
+}
+
+/**
  * @brief Update HV Bus measurements
  *
  * @param[out] VBus pointer to float to store HV Bus voltage measurement in
@@ -86,6 +112,7 @@ HAL_StatusTypeDef pcdcInit()
  *
  * @return HAL_StatusTypeDef
  */
+
 HAL_StatusTypeDef updateMeasurements(float *VBus, float *VBatt, float *IBus)
 {
     if (getVBatt(VBatt) != HAL_OK) {
@@ -127,6 +154,11 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
     DEBUG_PRINT("precharge type %d\n", prechargeType);
     if (prechargeType >= PC_NumTypes) {
         ERROR_PRINT("Invalid precharge type %d\n", prechargeType);
+        return PCDC_ERROR;
+    }
+
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
         return PCDC_ERROR;
     }
 
@@ -195,6 +227,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 1; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 2:
      * IShunt == 0
@@ -248,6 +284,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 2; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 3:
      * IShunt == 0
@@ -296,6 +336,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
 
     PrechargeState = 3; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 4:
      * IShunt >= 1
@@ -344,18 +388,22 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         float minPrechargeCurrent = (packVoltage) / PRECHARGE_RESISTOR_OHMS;
         minPrechargeCurrent *= MIN_PRECHARGE_PERCENT_IDEAL_CURRENT;
         DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-        if (!HITL_Precharge_Mode) {
+        if (!HITL_Precharge_Mode && PRECHARGE_CURRENT_CHECK_ENABLED) {
             if (maxIBus < minPrechargeCurrent) {
             	ERROR_PRINT("Failed Step 4\n");
                 ERROR_PRINT("Didn't detect precharge current!\n");
                 ERROR_PRINT("Max IBus: %f, needed %f\n", maxIBus, minPrechargeCurrent);
-                // return PCDC_ERROR;
+                return PCDC_ERROR;
             }
         }
     }
 
     PrechargeState = 4; 
     sendCAN_PrechargeState();
+    if (checkCellVoltages() != HAL_OK) {
+        ERROR_PRINT("Cell voltages are out of bounds\n");
+        return PCDC_ERROR;
+    }
     /*
      * Step 5:
      * IShunt has spike due to closing pos contactor
@@ -403,10 +451,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         minIBusSpike *= PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED;
 
         DEBUG_PRINT("Info: Max IBus: %f, needed %f\n", maxIBus, minIBusSpike);
-        if (!HITL_Precharge_Mode) {
+        if (!HITL_Precharge_Mode && PRECHARGE_CURRENT_CHECK_ENABLED) {
             if (maxIBus < minIBusSpike) {
                 ERROR_PRINT("IBus %f, required spike %f\n", maxIBus, minIBusSpike);
-                // return PCDC_ERROR;
+                return PCDC_ERROR;
             }
         }
     }

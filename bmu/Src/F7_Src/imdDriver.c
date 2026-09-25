@@ -20,12 +20,43 @@
 #include "state_machine.h"
 #include "controlStateMachine.h"
 #include "bmu_can.h"
-
-#define IMD_SENSE_PIN_FAULT    GPIO_PIN_RESET
-#define IMD_SENSE_PIN_NO_FAULT GPIO_PIN_SET
+#include "userCan.h"
 
 QueueHandle_t ImdDataHandle;
 ImdData_s *pImdData;
+
+/* Last IMD_Response frame, captured as one unit by the CAN RX callback. Reading the
+ * generated IMD_Response_* signals directly is not safe: a response with a different index
+ * arriving between the index check and the data read yields a garbage threshold. */
+typedef struct ImdResponse {
+    uint8_t index;
+    uint8_t data1;
+    uint8_t data2;
+} ImdResponse_s;
+
+static volatile ImdResponse_s imdResponse = { IMD_REQUEST_UNUSED_BYTE, 0U, 0U };
+
+void imdStoreResponse(uint8_t index, uint8_t data1, uint8_t data2) {
+    imdResponse.index = index;
+    imdResponse.data1 = data1;
+    imdResponse.data2 = data2;
+}
+
+static ImdResponse_s imdTakeResponseSnapshot(void) {
+    ImdResponse_s snapshot;
+    taskENTER_CRITICAL();
+    snapshot.index = imdResponse.index;
+    snapshot.data1 = imdResponse.data1;
+    snapshot.data2 = imdResponse.data2;
+    taskEXIT_CRITICAL();
+    return snapshot;
+}
+
+// IMD J1939 requests use command-specific DLCs, so the generated fixed-DLC
+// sender cannot be used for every request type.
+static HAL_StatusTypeDef imdSendRequest(uint8_t *data, uint32_t length) {
+    return sendCanMessage(IMD_REQUEST_CAN_ID, length, data);
+}
 
 void initImdMeasurements() {
     memset(pImdData, 0, sizeof(ImdData_s));
@@ -38,4 +69,67 @@ ImdData_s * getImdData(){
 
 void updateImdData(ImdData_s *ImdData) {
     memcpy(pImdData, ImdData, sizeof(ImdData_s));
+}
+
+HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm) {
+    if (thresholdKohm < IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM ||
+        thresholdKohm > IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM) {
+        return HAL_ERROR;
+    }
+
+    uint8_t unlockRequest[] = {
+        IMD_WRITE_LOCK_INDEX,
+        IMD_WRITE_ENABLE_VALUE,
+    };
+    HAL_StatusTypeDef status = imdSendRequest(unlockRequest, sizeof(unlockRequest));
+    if (status != HAL_OK) {
+        return status;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(IMD_REQUEST_SPACING_MS));
+
+    uint8_t setThresholdRequest[] = {
+        IMD_THRESHOLD_ERROR_SET_INDEX,
+        thresholdKohm & 0xFFU,
+        (thresholdKohm >> 8) & 0xFFU,
+    };
+    status = imdSendRequest(setThresholdRequest, sizeof(setThresholdRequest));
+    if (status != HAL_OK) {
+        return status;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(IMD_REQUEST_SPACING_MS));
+
+    uint8_t lockRequest[] = {
+        IMD_WRITE_LOCK_INDEX,
+        IMD_WRITE_DISABLE_VALUE,
+    };
+    return imdSendRequest(lockRequest, sizeof(lockRequest));
+}
+
+HAL_StatusTypeDef imdRequestIsolationThresholdError() {
+    taskENTER_CRITICAL();
+    imdStoreResponse(IMD_REQUEST_UNUSED_BYTE, 0U, 0U);
+    taskEXIT_CRITICAL();
+    uint8_t request[] = {
+        IMD_THRESHOLD_ERROR_GET_INDEX,
+    };
+    return imdSendRequest(request, sizeof(request));
+}
+
+bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
+    if (thresholdKohm == NULL) {
+        return false;
+    }
+
+    const ImdResponse_s response = imdTakeResponseSnapshot();
+    if (response.index != IMD_THRESHOLD_ERROR_GET_INDEX) {
+        ERROR_PRINT("Response Index is not as expected: 0x%x\r\n", response.index);
+        return false;
+    }
+
+    *thresholdKohm = (uint16_t)(response.data1 | (response.data2 << 8));
+
+    return *thresholdKohm >= IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM &&
+           *thresholdKohm <= IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM;
 }

@@ -34,8 +34,30 @@ typedef enum ImdFaults_e {
 #define ISOLATION_FAULT (1 << ISO_ALARM)
 #define ISOLATION_WARNING (1 << ISO_WARNING)
 
+#define IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM 30U
+#define IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM 2000U
+
+#define IMD_CLI_RESPONSE_WAIT_MS 150U
+#define IMD_RULES_REFERENCE_PACK_VOLTAGE 600U
+#define IMD_RULES_ERROR_THRESHOLD_OHMS_PER_VOLT 500U
+#define IMD_RULES_ERROR_THRESHOLD_MIN_KOHM \
+    ((IMD_RULES_REFERENCE_PACK_VOLTAGE * IMD_RULES_ERROR_THRESHOLD_OHMS_PER_VOLT) / 1000U)
+
+#define IMD_REQUEST_CAN_ID 0x18EFF401U
+#define IMD_REQUEST_UNUSED_BYTE 0xFFU
+#define IMD_WRITE_LOCK_INDEX 0x6BU
+#define IMD_WRITE_ENABLE_VALUE 0xFCU
+#define IMD_WRITE_DISABLE_VALUE 0xFDU
+#define IMD_THRESHOLD_ERROR_GET_INDEX 0x46U
+#define IMD_THRESHOLD_ERROR_SET_INDEX 0x47U
+#define IMD_REQUEST_SPACING_MS 120U
+
 void initImdMeasurements();
 void updateImdData(ImdData_s *ImdData);
 ImdData_s * getImdData();
+HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm);
+HAL_StatusTypeDef imdRequestIsolationThresholdError();
+bool imdGetIsolationThresholdError(uint16_t *thresholdKohm);
+void imdStoreResponse(uint8_t index, uint8_t data1, uint8_t data2);
 
 #endif

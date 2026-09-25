@@ -40,18 +40,18 @@ const uint8_t MUX_MAPPING[NUM_PDU_CHANNELS] = {7, 7, 5, 5, 6, 6, 3, 3, 0, 0, 1, 
 volatile uint32_t adcData[ADC_BUFFER_LENGTH];
 const char *channelNames[NUM_PDU_CHANNELS] = {  "Pump 1",
                                                 "Pump 2",
-                                                "CDU",
+                                                "VCU",
                                                 "BMU",
-                                                "WSB",
-                                                "TCU",
+                                                "Acc. Fans (1/3)",
+                                                "Motec",
                                                 "Brake Light",
-                                                "Acc. Fans",
+                                                "Acc. Fans (2/3)",
                                                 "Inverter",
-                                                "Radiator",
-                                                "AUX1",
-                                                "AUX2",
-                                                "AUX3",
-                                                "AUX4"};
+                                                "Rad. Fans (1/2)",
+                                                "Transponder",
+                                                "Rad. Fans (2/2)",
+                                                "Acc. Fans (3/3)",
+                                                "Lap Beacon"};
 
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Helpers-------------------------------------------------------*/
@@ -115,20 +115,20 @@ void canPublishCurrents() {
     ChannelCurrentPump1 = channelCurrents.meas_s.Pump_1_Channel_A;
     ChannelCurrentPump2 = channelCurrents.meas_s.Pump_2_Channel_A;
 
-    ChannelCurrentCDU = channelCurrents.meas_s.CDU_Channel_A;
+    ChannelCurrentVCU = channelCurrents.meas_s.VCU_Channel_A;
     ChannelCurrentBMU = channelCurrents.meas_s.BMU_Channel_A;
-    ChannelCurrentWSB = channelCurrents.meas_s.WSB_Channel_A;
-    ChannelCurrentTCU = channelCurrents.meas_s.TCU_Channel_A;
+    ChannelCurrentAccFan1 = channelCurrents.meas_s.ACC_Fans_Channel_1_A;
+    ChannelCurrentMotec = channelCurrents.meas_s.Motec_Channel_A;
 
     ChannelCurrentBrakeLight = channelCurrents.meas_s.Brake_Light_Channel_A;
-    ChannelCurrentAccFan = channelCurrents.meas_s.ACC_Fans_Channel_A;
+    ChannelCurrentAccFan2 = channelCurrents.meas_s.ACC_Fans_Channel_2_A;
     ChannelCurrentInverter = channelCurrents.meas_s.INV_Channel_A;
-    ChannelCurrentRadiator = channelCurrents.meas_s.Radiator_Channel_A;
+    ChannelCurrentRadiator1 = channelCurrents.meas_s.Radiator_Channel_1_A;
 
-    ChannelCurrentAUX1 = channelCurrents.meas_s.AUX_1_Channel_A;
-    ChannelCurrentAUX2 = channelCurrents.meas_s.AUX_2_Channel_A;
-    ChannelCurrentAUX3 = channelCurrents.meas_s.AUX_3_Channel_A;
-    ChannelCurrentAUX4 = channelCurrents.meas_s.AUX_4_Channel_A;
+    ChannelCurrentTransponder = channelCurrents.meas_s.Transponder_Channel_A;
+    ChannelCurrentRadiator2 = channelCurrents.meas_s.Radiator_Channel_2_A;
+    ChannelCurrentAccFan3 = channelCurrents.meas_s.ACC_Fans_Channel_3_A;
+    ChannelCurrentLapBeacon = channelCurrents.meas_s.Lap_Beacon_Channel_A;
 
     // DEBUG_PRINT("\nPump 1: %.3fA\n", ChannelCurrentPump1);
     // DEBUG_PRINT("Pump 2: %.3fA\n", ChannelCurrentPump2);
@@ -148,16 +148,19 @@ void canPublishCurrents() {
 
 
 
-    if (sendCAN_PDU_Fan_and_Pump_Current() != HAL_OK) {     // 4 channels
-        ERROR_PRINT("Publish PDU_Fan_and_Pump_Current msg failed! \n");
+    if (sendCAN_PDU_Pump_Current() != HAL_OK) {     // 2 channels
+        ERROR_PRINT("Publish PDU_Pump_Current msg failed! \n");
     }
-    if (sendCAN_PDU_Current_Readings() != HAL_OK) {         // 2 channels
+    if (sendCAN_PDU_Fan_Current() != HAL_OK) {     // 3 channels
+        ERROR_PRINT("Publish PDU_Fan_Current msg failed! \n");
+    }
+    if (sendCAN_PDU_Radiator_Current() != HAL_OK) {     // 2 channels
+        ERROR_PRINT("Publish PDU_Radiator_Current msg failed! \n");
+    }
+    if (sendCAN_PDU_Current_Readings() != HAL_OK) {         // 4 channels
         ERROR_PRINT("Publish PDU_Current_Readings msg failed! \n");
     }
-    if (sendCAN_PDU_Current_AUX_Readings() != HAL_OK) {     // 4 channel
-        ERROR_PRINT("Publish PDU_Current_AUX_Readings msg failed! \n");
-    }
-    if (sendCAN_PDU_Board_Channels_Current() != HAL_OK) {   // 4 channels
+    if (sendCAN_PDU_Board_Channels_Current() != HAL_OK) {   // 3 channels
         ERROR_PRINT("Publish PDU_Board_Channels_Current msg failed! \n");
     }
 }

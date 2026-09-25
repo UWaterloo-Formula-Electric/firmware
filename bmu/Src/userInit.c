@@ -18,6 +18,7 @@
 #include "controlStateMachine_mock.h"
 #include "controlStateMachine.h"
 #include "batteries.h"
+#include "state_of_charge.h"
 
 #if IS_BOARD_F7
 #include "imdDriver.h"
@@ -84,6 +85,10 @@ void userInit()
 	if (init_HW_check_timer() != HAL_OK) {
 		Error_Handler();
 	}
+
+    if (initSOC() != HAL_OK) {
+        Error_Handler();
+    }
 
     initTSSI();
 
