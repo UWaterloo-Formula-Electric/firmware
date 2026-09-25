@@ -884,7 +884,8 @@ BaseType_t balanceNowCommand(char *writeBuffer, size_t writeBufferLength,
             COMMAND_OUTPUT("Can't balance now while charging, run stopCharge first\n");
             return pdFALSE;
         } else {
-            COMMAND_OUTPUT("Can't balance now, BMU must be HV disabled or balancing\n");
+            COMMAND_OUTPUT("Can't balance now in state %s, BMU must be HV disabled or balancing\n",
+                           state < STATE_ANY ? BMU_states_string[state] : "unknown");
             return pdFALSE;
         }
         COMMAND_OUTPUT("Balancing now, stops once cells are balanced\n");
