@@ -25,6 +25,33 @@
 QueueHandle_t ImdDataHandle;
 ImdData_s *pImdData;
 
+/* Last IMD_Response frame, captured as one unit by the CAN RX callback. Reading the
+ * generated IMD_Response_* signals directly is not safe: a response with a different index
+ * arriving between the index check and the data read yields a garbage threshold. */
+typedef struct ImdResponse {
+    uint8_t index;
+    uint8_t data1;
+    uint8_t data2;
+} ImdResponse_s;
+
+static volatile ImdResponse_s imdResponse = { IMD_REQUEST_UNUSED_BYTE, 0U, 0U };
+
+void imdStoreResponse(uint8_t index, uint8_t data1, uint8_t data2) {
+    imdResponse.index = index;
+    imdResponse.data1 = data1;
+    imdResponse.data2 = data2;
+}
+
+static ImdResponse_s imdTakeResponseSnapshot(void) {
+    ImdResponse_s snapshot;
+    taskENTER_CRITICAL();
+    snapshot.index = imdResponse.index;
+    snapshot.data1 = imdResponse.data1;
+    snapshot.data2 = imdResponse.data2;
+    taskEXIT_CRITICAL();
+    return snapshot;
+}
+
 // IMD J1939 requests use command-specific DLCs, so the generated fixed-DLC
 // sender cannot be used for every request type.
 static HAL_StatusTypeDef imdSendRequest(uint8_t *data, uint32_t length) {
@@ -81,7 +108,9 @@ HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm) {
 }
 
 HAL_StatusTypeDef imdRequestIsolationThresholdError() {
-    IMD_Response_Index = IMD_REQUEST_UNUSED_BYTE;
+    taskENTER_CRITICAL();
+    imdStoreResponse(IMD_REQUEST_UNUSED_BYTE, 0U, 0U);
+    taskEXIT_CRITICAL();
     uint8_t request[] = {
         IMD_THRESHOLD_ERROR_GET_INDEX,
     };
@@ -89,14 +118,18 @@ HAL_StatusTypeDef imdRequestIsolationThresholdError() {
 }
 
 bool imdGetIsolationThresholdError(uint16_t *thresholdKohm) {
-    if (thresholdKohm == NULL || IMD_Response_Index != IMD_THRESHOLD_ERROR_GET_INDEX) {
-        uint8_t responseIndex = IMD_Response_Index;
-        ERROR_PRINT("Response Index is not as expected: 0x%x\r\n", responseIndex);
+    if (thresholdKohm == NULL) {
         return false;
     }
 
-    *thresholdKohm = IMD_Response_Data1 | (IMD_Response_Data2 << 8);
-    
+    const ImdResponse_s response = imdTakeResponseSnapshot();
+    if (response.index != IMD_THRESHOLD_ERROR_GET_INDEX) {
+        ERROR_PRINT("Response Index is not as expected: 0x%x\r\n", response.index);
+        return false;
+    }
+
+    *thresholdKohm = (uint16_t)(response.data1 | (response.data2 << 8));
+
     return *thresholdKohm >= IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM &&
            *thresholdKohm <= IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM;
 }

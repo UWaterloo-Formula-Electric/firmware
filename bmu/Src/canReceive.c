@@ -110,5 +110,7 @@ void CAN_Msg_IMD_Info_General_Callback()
 void CAN_Msg_IMD_Response_Callback()
 {
     uint8_t responseIndex = IMD_Response_Index;
+    // Snapshot index and data together so a reader can't mix bytes from two responses
+    imdStoreResponse(responseIndex, IMD_Response_Data1, IMD_Response_Data2);
     DEBUG_PRINT_ISR("Received IMD Response with index: 0x%x\n", responseIndex);
 }

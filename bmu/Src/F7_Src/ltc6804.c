@@ -457,7 +457,7 @@ void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm)
 }
 
 
-void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm)
+void batt_unset_balancing_cell(int board, int chip, int cell)
 {
 	if(cell + 1 >= 6) // +1 because LTC cell numbering is not 0 indexed.
 	{

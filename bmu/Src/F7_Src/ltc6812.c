@@ -413,7 +413,7 @@ void batt_set_balancing_cell (int board, int chip, int cell, uint8_t pwm) {
 }
 
 
-void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm)
+void batt_unset_balancing_cell(int board, int chip, int cell)
 {
     if (cell < 8) { // 8 bits per byte in the register
         CLEARBIT(m_batt_config_a[board][chip][4], cell);

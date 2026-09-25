@@ -47,7 +47,7 @@ CURRENT_HASH = \"$(shell git rev-parse HEAD)\"
 
 
 COMMON_LIB_DATA_DIR = $(COMMON_LIB_DIR)/Data
-DTC_CSV_FILE = $(COMMON_LIB_DATA_DIR)/dtc.csv
+DTC_CSV_FILE = $(COMMON_LIB_DATA_DIR)/DTC.csv
 DBC_FILE = $(COMMON_LIB_DATA_DIR)/2024CAR.dbc
 
 COLORS_ENABLED ?= 1
@@ -135,9 +135,6 @@ ASSEMBLER_FLAGS = -x assembler-with-cpp $(LIB_ASFLAGS)
 
 NOTES ?= "N/A"
 WARNINGS_AS_ERRORS ?= 1
-ifneq ($(findstring w,$(firstword $(MAKEFLAGS))),)
-override WARNINGS_AS_ERRORS := 0
-endif
 # Compiler Flags
 COMPILER_FLAGS = $(LIB_CFLAGS)
 COMPILER_FLAGS += $(DEFINE_FLAGS) -Wno-format-truncation
@@ -283,7 +280,7 @@ $(GEN_INC_DIR)/$(BOARD_NAME)_charger_can.h: $(GEN_SRC_DIR)/$(BOARD_NAME)_charger
 
 $(GEN_SRC_DIR)/$(BOARD_NAME)_charger_can.c: $(GEN_SRC_DIR)/$(BOARD_NAME)_can.c
 
-$(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h: $(DTC_FILES_GEN_SCRIPT) $(DTC_FILE)
+$(GEN_INC_DIR)/$(BOARD_NAME)_dtc.h: $(DTC_FILES_GEN_SCRIPT) $(DTC_CSV_FILE)
 	@mkdir -p $(GEN_DIR)
 	@$(DTC_FILES_GEN_SCRIPT) $(CURR_BOARD)
 

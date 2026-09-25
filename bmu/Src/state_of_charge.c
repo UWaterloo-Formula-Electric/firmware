@@ -10,11 +10,8 @@
 #define SOC_TASK_PERIOD 200 
 #define SOC_TASK_ID 7
 
-#define CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF 4.0f
-#define CELL_LOW_VOLTAGE_LOOKUP_CUTOFF 3.28f
-
-#define SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF (CELL_HIGH_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will be using the integration method exclusively
-#define SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF (CELL_LOW_VOLTAGE_LOOKUP_CUTOFF * CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT) //When the segment reaches this threshold, the soc algorithm will start weighing the lookup table method
+// Bisection steps when seeding SOC from OCV_LUT
+#define SOC_SEED_BISECT_ITERATIONS 10
 
 
 // BAK INR2170-45D: 4.5 [A-h] -> 16200 [A-s]
@@ -34,7 +31,6 @@ static UKF_State ukf;
 static volatile float IBus_integrated = 0.0f;
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage);
-static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[]);
 static float compute_voltage_soc(void);
 static void ukf_soc(float voltage, float current_integrated);
 void socTask(void *pvParamaters);
@@ -142,18 +138,25 @@ void socTask(void *pvParamaters)
 {
 	// Wait until segment voltage is set
 	ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-	ukf.pred = compute_voltage_soc(); //initialize with LUT values
-	ukf.variance = 0.01f; //tune these values with data later
-	ukf.process_noise = 0.001f;
-	ukf.measurement_noise = 0.01f;
-	
-	DEBUG_PRINT("Initial SOC: %f %% \n", ukf.pred * 100.0f);
 
 	if (registerTaskToWatch(SOC_TASK_ID, 2*pdMS_TO_TICKS(SOC_TASK_PERIOD), false, NULL) != HAL_OK)
 	{
 		ERROR_PRINT("ERROR: Failed to init SOC task, suspending SOC task\n");
 		while(1);
 	}
+
+	// The seed and the filter both look up OCV by average cell temperature, so wait for good temps
+	while (!isThermistorSweepComplete()) {
+		watchdogTaskCheckIn(SOC_TASK_ID);
+		vTaskDelay(pdMS_TO_TICKS(SOC_TASK_PERIOD));
+	}
+
+	ukf.pred = compute_voltage_soc(); //initialize from the same OCV model the filter uses
+	ukf.variance = 0.01f; //tune these values with data later
+	ukf.process_noise = 0.001f;
+	ukf.measurement_noise = 0.01f;
+
+	DEBUG_PRINT("Initial SOC: %f %% \n", ukf.pred * 100.0f);
 
 	while(1) {
 		float voltage = 0.0f, current_integrated = 0.0f;
@@ -171,64 +174,46 @@ void socTask(void *pvParamaters)
 }
 
 
-static float interpolateLut(float value, float lut_min, float lut_step, uint8_t lutLen, const float lut[])
-{
-	if (value <= lut_min) // Below the table. Converting a negative float to size_t is undefined behaviour
-	{
-		return lut[0];
-	}
-	size_t lowIndex = (value - lut_min)/lut_step;
-    if (lowIndex >= lutLen-1) //Can not interpolate with last value in LUT
-    {
-        return lut[lutLen-1];
-    }
-	//	DEBUG_PRINT("lowIndex : %u\n", lowIndex);
-	float lowValue = lut_min + lowIndex*lut_step;
-    
-    return lut[lowIndex] + (value - lowValue)*(lut[lowIndex+1]-lut[lowIndex])/(lut_step);
-}
-
+// Invert predict_voltage to find the SOC whose OCV matches the measured cell voltage. Every
+// OCV_LUT column rises with SOC and the temperature blend has non-negative weights, so
+// predict_voltage is monotonic in SOC and bisection converges. Out of range voltages clamp to 0 or 1.
 static float compute_voltage_soc(void)
 {
-	float soc = 0.0f;
 	float segment_voltage = 0.0f;
-	const float * soc_lut;
-	float lut_min = 0.0f;
-	float lut_step = 0.0f;
-	float lut_len = 0.0f;
-	
+
 	if(getSegmentVoltage(&segment_voltage) != HAL_OK)
 	{
 		ERROR_PRINT("Failed to read segment voltage, returning 0V");
 		return 0.0f;
 	}
-//	DEBUG_PRINT("Segment Voltage: %f\n", segment_voltage);
 
-	if(segment_voltage >= SEGMENT_HIGH_VOLTAGE_LOOKUP_CUTOFF)
+	const float cell_voltage = segment_voltage / (float)(CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT);
+	const float avg_temp = get_avg_temp();
+
+	if (cell_voltage <= predict_voltage(0.0f, avg_temp))
 	{
-		soc_lut = highVoltageSocLut;
-		lut_min =  HV_SOC_LUT_MIN;
-		lut_step = HV_SOC_LUT_STEP;
-		lut_len = HV_SOC_LUT_LEN;
+		return 0.0f;
 	}
-	else if(segment_voltage >= SEGMENT_LOW_VOLTAGE_LOOKUP_CUTOFF)
+	if (cell_voltage >= predict_voltage(1.0f, avg_temp))
 	{
-		soc_lut = midVoltageSocLut;
-		lut_min =  MID_SOC_LUT_MIN;
-		lut_step = MID_SOC_LUT_STEP;
-		lut_len = MID_SOC_LUT_LEN;
+		return 1.0f;
 	}
-	else
+
+	float soc_low = 0.0f;
+	float soc_high = 1.0f;
+	for (int i = 0; i < SOC_SEED_BISECT_ITERATIONS; i++)
 	{
-		soc_lut = lowVoltageSocLut;
-		lut_min =  LV_SOC_LUT_MIN;
-		lut_step = LV_SOC_LUT_STEP;
-		lut_len = LV_SOC_LUT_LEN;	
+		const float soc_mid = 0.5f * (soc_low + soc_high);
+		if (predict_voltage(soc_mid, avg_temp) < cell_voltage)
+		{
+			soc_low = soc_mid;
+		}
+		else
+		{
+			soc_high = soc_mid;
+		}
 	}
-	soc = interpolateLut(segment_voltage, lut_min, lut_step, lut_len, soc_lut);
-	soc = soc > 1.0f ? 1.0f : soc;
-	soc = soc < 0.0f ? 0.0f : soc;
-	return soc;
+	return 0.5f * (soc_low + soc_high);
 }
 
 static HAL_StatusTypeDef getSegmentVoltage(float *segmentVoltage)

@@ -83,6 +83,14 @@ volatile float limit_undervoltage = DEFAULT_LIMIT_UNDERVOLTAGE;
  */
 bool warningSentForChannelTemp[NUM_TEMP_CELLS];
 
+/// Set once every thermistor channel has been measured at least once
+static volatile bool thermistorSweepComplete = false;
+
+bool isThermistorSweepComplete(void)
+{
+    return thermistorSweepComplete;
+}
+
 #define NUM_SOC_LOOKUP_VALS 101
 
 /**
@@ -701,6 +709,15 @@ float getAvgValidTemp(void)
    return (count > 0) ? (sum / count) : 0.0f;
 }
 
+// Battery task passes needed to read every thermistor mux channel once. Each pass reads the
+// same channels on every chip at once, so this does not scale with NUM_LTC_CHIPS_PER_BOARD.
+#define THERMISTOR_PASSES_PER_SWEEP ((THERMISTORS_PER_SEGMENT + NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE - 1) / NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
+// The first sweep after power up reads an unsettled mux and ADC, so it is discarded and
+// temperature checks start once the second full sweep is in
+#define THERMISTOR_SWEEPS_BEFORE_CHECK (2)
+// Temps are read before this check in the same pass, so the counter lags the sweep count by one
+#define THERMISTOR_LAG_PASSES ((THERMISTOR_SWEEPS_BEFORE_CHECK * THERMISTOR_PASSES_PER_SWEEP) - 1)
+
 /**
  * @brief Checks cell voltages and temperatures to ensure they are within safe
  * limits, as well as sending out warnings when the values get close to their
@@ -766,8 +783,9 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
-   if(thermistor_lag_counter >= (THERMISTORS_PER_SEGMENT + 1)/(2*NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE))
+   if(thermistor_lag_counter >= THERMISTOR_LAG_PASSES)
    {
+       thermistorSweepComplete = true;
        for (int i=0; i < NUM_TEMP_CELLS; i++)
        {
             // Dead thermistors would trip false temp faults and skew max/min temps
@@ -1028,7 +1046,7 @@ HAL_StatusTypeDef stopCharging()
 HAL_StatusTypeDef stopBalance()
 {
 #if IS_BOARD_F7 && defined(ENABLE_BALANCE)
-    batt_unset_balancing_all_cells(BALANCE_PWM_DUTY_MAX);
+    batt_unset_balancing_all_cells();
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
@@ -1036,8 +1054,7 @@ HAL_StatusTypeDef stopBalance()
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
-    if (batt_write_config_pwm() != HAL_OK) {
-        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+    if (batt_write_balancing_config() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
@@ -1094,8 +1111,7 @@ HAL_StatusTypeDef resumeBalance()
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
-    if (batt_write_config_pwm() != HAL_OK) {
-        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+    if (batt_write_balancing_config() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
@@ -1126,8 +1142,7 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
-    if (batt_write_config_pwm() != HAL_OK) {
-        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+    if (batt_write_balancing_config() != HAL_OK) {
         return HAL_ERROR;
     }
 #endif
@@ -1274,39 +1289,39 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 for (int cell=0; cell < NUM_VOLTAGE_CELLS; cell++) {
                     float cellSOC = getSOCFromVoltage(AdjustedVoltageCell[cell]);
                     watchdogTaskCheckIn(BATTERY_TASK_ID);
-                    /*DEBUG_PRINT("Cell %d SOC: %f\n", cell, cellSOC);*/
+#if PRINT_PER_CELL_BALANCE_STATE
                     DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
+#endif
                     if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
+#if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
+#endif
 #if IS_BOARD_F7
                         batt_balance_cell(cell);
 #endif
                         balancingCells = true;
                     } else {
+#if PRINT_PER_CELL_BALANCE_STATE
                       DEBUG_PRINT("Not balancing cell %d\n", cell);
+#endif
 #if IS_BOARD_F7
                       batt_stop_balance_cell(cell);
 #endif
                     }
                 }
+#if IS_BOARD_F7 && defined(ENABLE_AMS)
+                batt_set_disharge_timer(DT_30_SEC);
+#endif
                 if (batt_spi_wakeup(true) != HAL_OK) {
                     ERROR_PRINT("Failed to wake up boards\n");
+                    stopBalance();
                     return CHARGE_ERROR;
                 }
-                if (batt_write_config_pwm() != HAL_OK) {
-                    ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
+                if (batt_write_balancing_config() != HAL_OK) {
+                    stopBalance();
                     return CHARGE_ERROR;
                 }
                 DEBUG_PRINT("Sent config to AMS boards\n");
-                
-                
-#if IS_BOARD_F7 && defined(ENABLE_AMS)
-                batt_set_disharge_timer(DT_30_SEC);
-                if (batt_write_config() != HAL_OK)
-                {
-                    return CHARGE_ERROR;
-                }
-#endif
 
                 lastBalanceCheck = xTaskGetTickCount();
             }

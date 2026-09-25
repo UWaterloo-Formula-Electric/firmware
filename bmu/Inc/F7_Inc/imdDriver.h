@@ -58,5 +58,6 @@ ImdData_s * getImdData();
 HAL_StatusTypeDef imdSetIsolationThresholdError(uint16_t thresholdKohm);
 HAL_StatusTypeDef imdRequestIsolationThresholdError();
 bool imdGetIsolationThresholdError(uint16_t *thresholdKohm);
+void imdStoreResponse(uint8_t index, uint8_t data1, uint8_t data2);
 
 #endif

@@ -312,7 +312,6 @@
 
 
 open_wire_failure_t open_wire_failure[NUM_BOARDS * CELLS_PER_BOARD];
-static uint8_t thermistor_failure[NUM_SEGMENTS][THERMISTORS_PER_SEGMENT];
 static uint8_t m_batt_configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
 static uint8_t m_batt_configA_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
@@ -322,6 +321,13 @@ static uint8_t m_batt_configB_pwm[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONF
  * PWM13..PWM16, 4-bit per PWM cell with odd-numbered cell in the low nibble. */
 #define PWMB_FIRST_CELL  13
 #define PWM_DUTY_MASK    0x0Fu
+
+/* Discharge control bits in Configuration Register Group B: CFGB[4] holds DCC[8:1] and
+ * CFGB[5] holds DCC[16:9]. The PWM duty registers only modulate the discharge switch, they
+ * do not enable it, so a cell balances only when its DCC bit is set as well. */
+#define CFGB_DCC_LOW_BYTE   4
+#define CFGB_DCC_HIGH_BYTE  5
+#define DCC_BITS_PER_BYTE   8
 
 static HAL_StatusTypeDef pwm_field_locate(int cell, bool *inGroupB, int *byteIdx, uint8_t *shift)
 {
@@ -348,8 +354,22 @@ static uint8_t *pwm_config_byte(int board, int chip, int cell, uint8_t *shift)
 	                : &m_batt_configA_pwm[board][chip][byteIdx];
 }
 
+/* Locate a cell's DCC bit in CFGB. Cells are 0 based here, DCC is numbered from 1. */
+static uint8_t *dcc_config_byte(int board, int chip, int cell, uint8_t *bit)
+{
+	if (cell < 0 || cell >= (int)CELLS_PER_CHIP) {
+		ERROR_PRINT("DCC cell index out of range: %d\n", cell);
+		return NULL;
+	}
+	if (cell < DCC_BITS_PER_BYTE) {
+		*bit = (uint8_t)cell;
+		return &m_batt_configB[board][chip][CFGB_DCC_LOW_BYTE];
+	}
+	*bit = (uint8_t)(cell - DCC_BITS_PER_BYTE);
+	return &m_batt_configB[board][chip][CFGB_DCC_HIGH_BYTE];
+}
+
 void batt_init_chip_configs() {
-    memset(thermistor_failure, 0, NUM_SEGMENTS * THERMISTORS_PER_SEGMENT * sizeof(uint8_t));
 	memset(open_wire_failure, 0, NUM_BOARDS*CELLS_PER_BOARD*sizeof(open_wire_failure_t));
 
 	for(int board = 0; board < NUM_BOARDS; board++) {
@@ -505,7 +525,7 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 	uint8_t adsv_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
-	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
 	uint8_t response_buffer[response_buffer_size];
 
 	struct {
@@ -538,7 +558,7 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 }
 
 HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE], uint8_t configB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]) {
-    const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
+    const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
 	uint8_t response_bufferA[response_buffer_size];
 	uint8_t response_bufferB[response_buffer_size];
 	memset(response_bufferA, 0xFF, response_buffer_size);
@@ -566,7 +586,7 @@ HAL_StatusTypeDef batt_read_config(uint8_t configA[NUM_BOARDS][NUM_LTC_CHIPS_PER
 HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE])
 {
-	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * BATT_CONFIG_SIZE;
 	uint8_t response_bufferA[response_buffer_size];
 	uint8_t response_bufferB[response_buffer_size];
 	memset(response_bufferA, 0xFF, response_buffer_size);
@@ -614,7 +634,7 @@ int batt_pwm_duty_from_pwm_readback(int global_cell,
 
 /* Run ADSTAT first if status snapshots may be stale (datasheet). */
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
-	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
 	uint8_t response_buffer[response_buffer_size];
 	memset(response_buffer, 0xFF, response_buffer_size);
 	if (batt_read_data(RDSTATC_BYTE0, RDSTATC_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
@@ -632,7 +652,7 @@ HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_
 
 /* GPI1..GPI5: rdstate_gpi1_to_gpi5(state_e[b][c][RDSTATE_STER4_IDX]). Run ADSTAT first if snapshots are stale (datasheet). */
 HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
-	const uint8_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
 	uint8_t response_buffer[response_buffer_size];
 	memset(response_buffer, 0xFF, response_buffer_size);
 	if (batt_read_data(RDSTATE_BYTE0, RDSTATE_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
@@ -647,6 +667,9 @@ HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PE
 	}
 	return HAL_OK;
 }
+
+static const uint8_t CFGA_VERIFY_MASK[BATT_CONFIG_SIZE] = { REFON(1) | CTH(0x7), 0, 0, 0, 0, 0 };
+static const uint8_t CFGB_VERIFY_MASK[BATT_CONFIG_SIZE] = { 0xFF, 0xFF, 0xFF, 0, 0, 0 };
 
 HAL_StatusTypeDef batt_verify_config() {
     uint8_t config_bufferA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE] = {0};
@@ -664,7 +687,8 @@ HAL_StatusTypeDef batt_verify_config() {
 			DEBUG_PRINT("\r\nConfig Read A, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%02X ", config_bufferA[board][ltc_chip][buff_byte]);
-				if((m_batt_configA[board][ltc_chip][buff_byte] & 0x7) != (config_bufferA[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+				const uint8_t mask = CFGA_VERIFY_MASK[buff_byte];
+				if((m_batt_configA[board][ltc_chip][buff_byte] & mask) != (config_bufferA[board][ltc_chip][buff_byte] & mask)) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configA[board][ltc_chip][buff_byte], config_bufferA[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
@@ -673,7 +697,8 @@ HAL_StatusTypeDef batt_verify_config() {
 			DEBUG_PRINT("\r\nConfig Read B, Board %d, Chip %d: ", board, ltc_chip); 
 			for(int buff_byte = 0; buff_byte < BATT_CONFIG_SIZE; buff_byte++) {
 				DEBUG_PRINT("0x%02X ", config_bufferB[board][ltc_chip][buff_byte]);
-				if((m_batt_configB[board][ltc_chip][buff_byte] & 0x7) != (config_bufferB[board][ltc_chip][buff_byte] & 0x7)) { // Only care to check the REFON, ADC_OPT, SWTRD are set, not the GPIO pin states
+				const uint8_t mask = CFGB_VERIFY_MASK[buff_byte];
+				if((m_batt_configB[board][ltc_chip][buff_byte] & mask) != (config_bufferB[board][ltc_chip][buff_byte] & mask)) {
 					ERROR_PRINT("\n ERROR: board: %d, ltc_chip: %d, buff_byte %d, %u != %u  \n", board, ltc_chip, buff_byte, m_batt_configB[board][ltc_chip][buff_byte], config_bufferB[board][ltc_chip][buff_byte]);
 					return HAL_ERROR;
 				}
@@ -686,9 +711,6 @@ HAL_StatusTypeDef batt_verify_config() {
 
 
 HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_operation_t voltage_operation) {
-    static uint32_t readback_call_count = 0;
-    readback_call_count++;
-
     const uint8_t rd_cmds[5][2] = {
         { RDCVA_BYTE0, RDCVA_BYTE1 },
         { RDCVB_BYTE0, RDCVB_BYTE1 },
@@ -888,33 +910,52 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 	return HAL_OK;
 }
 
+/* Discharge needs both halves: the DCC bit in CFGB closes the discharge switch and the PWM
+ * duty modulates it. Setting duty alone leaves the switch open, so write both. The caller
+ * must follow up with batt_write_balancing_config() to push WRPWM and WRCFG to the chips. */
 void batt_set_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
 	uint8_t shift;
 	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return;
 	}
+	uint8_t bit = 0;
+	uint8_t *dcc = dcc_config_byte(board, chip, cell, &bit);
+	if (dcc == NULL) {
+		return;
+	}
 	*reg = (uint8_t)((*reg & ~(PWM_DUTY_MASK << shift)) | ((pwm & PWM_DUTY_MASK) << shift));
+	SETBIT(*dcc, bit);
 }
 
-void batt_unset_balancing_cell(int board, int chip, int cell, uint8_t pwm) {
-	(void)pwm;
+void batt_unset_balancing_cell(int board, int chip, int cell) {
 	uint8_t shift;
 	uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return;
 	}
+	uint8_t bit = 0;
+	uint8_t *dcc = dcc_config_byte(board, chip, cell, &bit);
+	if (dcc == NULL) {
+		return;
+	}
 	*reg = (uint8_t)(*reg & ~(PWM_DUTY_MASK << shift));
+	CLEARBIT(*dcc, bit);
 }
 
-/* Balancing on this chip is driven purely by the PWM duty registers, so a non-zero duty means the cell is balancing. */
+/* A cell only discharges when its discharge switch is enabled (DCC) and its duty is non-zero. */
 bool batt_get_balancing_cell_state(int board, int chip, int cell) {
 	uint8_t shift;
 	const uint8_t *reg = pwm_config_byte(board, chip, cell, &shift);
 	if (reg == NULL) {
 		return false;
 	}
-	return ((*reg >> shift) & PWM_DUTY_MASK) != 0u;
+	uint8_t bit = 0;
+	const uint8_t *dcc = dcc_config_byte(board, chip, cell, &bit);
+	if (dcc == NULL) {
+		return false;
+	}
+	return (((*reg >> shift) & PWM_DUTY_MASK) != 0u) && (GETBIT(*dcc, bit) != 0u);
 }
 
 HAL_StatusTypeDef batt_config_discharge_timer(DischargeTimerLength length) {

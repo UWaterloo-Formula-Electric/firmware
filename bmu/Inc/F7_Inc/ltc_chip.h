@@ -29,7 +29,7 @@
 #define SEGMENT_THERMISTORS_AMS1    14
 /// Number of thermistors attached to second AMS in each segment
 #define SEGMENT_THERMISTORS_AMS2    14
-// Number of thermistors per segment
+// Number of thermistors per chip
 #define THERMISTORS_PER_SEGMENT     (SEGMENT_THERMISTORS_AMS1)
 
 // This specifies which chip architecture we are using
@@ -44,6 +44,7 @@
 #define CONVERSION_TIME_7kHz_US (2480)
 #elif LTC_CHIP == LTC_CHIP_6812
 #define NUM_LTC_CHIPS_PER_BOARD 1
+#define CONVERSION_TIME_7kHz_US (2480)
 #elif LTC_CHIP == ADBMS_CHIP_6830B
 #define NUM_LTC_CHIPS_PER_BOARD 2
 #define CONVERSION_TIME_7kHz_US (2480)
@@ -60,7 +61,7 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (1)
+#define PRINT_ALL_PEC_ERRORS (0)
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
@@ -72,6 +73,7 @@
 
 #define OPEN_WIRE_RATIO_MIN 0.75
 #define OPEN_WIRE_RATIO_MAX 1.40
+
 // Set to 0 to run the open wire check on every cell, including ones in OPEN_WIRE_SKIP_CELLS
 #define OPEN_WIRE_SKIP_CELLS_ENABLED (0)
 
@@ -79,7 +81,16 @@
 #define BALANCE_PWM_DUTY_MAX (0x0F)
 
 #if NUM_TEMP_CELLS == 0
-#error "NUM_TEMP_CELLS is 0: check NUM_SEGMENTS, THERMISTORS_PER_SEGMENT, NUM_LTC_CHIPS_PER_BOARD"
+#error "NUM_TEMP_CELLS is 0: check NUM_BOARDS, SEGMENT_THERMISTORS_AMS1, SEGMENT_THERMISTORS_AMS2"
+#endif
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+#if SEGMENT_THERMISTORS_AMS1 != SEGMENT_THERMISTORS_AMS2
+#error "SEGMENT_THERMISTORS_AMS1 and SEGMENT_THERMISTORS_AMS2 must match: batt_read_thermistors strides by AMS1 on every chip"
+#endif
+#if NUM_LTC_CHIPS_PER_BOARD != 2
+#error "The ADBMS6830 thermistor layout assumes exactly two chips (AMS1, AMS2) per board"
+#endif
 #endif
 
 #if NUM_VOLTAGE_CELLS > VOLTAGECELL_COUNT
@@ -137,8 +148,9 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
 HAL_StatusTypeDef batt_balance_cell(int cell);
 HAL_StatusTypeDef batt_stop_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
-HAL_StatusTypeDef batt_unset_balancing_all_cells(uint8_t pwm);
-HAL_StatusTypeDef batt_write_balancing_config();
+HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
+/* Push the current balance state (PWM duty + CFGB discharge bits) out to the AMS boards */
+HAL_StatusTypeDef batt_write_balancing_config(void);
 HAL_StatusTypeDef checkForOpenCircuit();
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);

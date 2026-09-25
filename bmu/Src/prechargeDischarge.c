@@ -83,17 +83,17 @@ HAL_StatusTypeDef pcdcInit()
  */
 static HAL_StatusTypeDef checkCellVoltages(void)
 {
-    float measure_low;
-    float measure_high;
+    float rawVoltage;
+    float adjustedVoltage;
     for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
-        measure_low = VoltageCell[i];
-        measure_high = AdjustedVoltageCell[i];
-        if (measure_low > DEFAULT_LIMIT_OVERVOLTAGE) {
-            ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
+        rawVoltage = VoltageCell[i];
+        adjustedVoltage = AdjustedVoltageCell[i];
+        if (rawVoltage > DEFAULT_LIMIT_OVERVOLTAGE) {
+            ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, rawVoltage);
             return HAL_ERROR;
         }
-        if (measure_high < DEFAULT_LIMIT_UNDERVOLTAGE) {
-            ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
+        if (adjustedVoltage < DEFAULT_LIMIT_UNDERVOLTAGE) {
+            ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, adjustedVoltage);
             return HAL_ERROR;
         }
     }

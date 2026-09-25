@@ -284,14 +284,18 @@ BaseType_t setCellVoltage(char *writeBuffer, size_t writeBufferLength,
 
     sscanf(voltageParam, "%f", &VoltageCell[cellIdx]);
     COMMAND_OUTPUT("VoltageCell[%d] = %fV\n", cellIdx, VoltageCell[cellIdx]);
-    if( VoltageCell[cellIdx] > 4.2 || VoltageCell[cellIdx] < 2.5 ) 
+#if IS_BOARD_NUCLEO_F7 || !defined(ENABLE_AMS)
+    if( VoltageCell[cellIdx] > DEFAULT_LIMIT_OVERVOLTAGE || VoltageCell[cellIdx] < DEFAULT_LIMIT_UNDERVOLTAGE )
     { 
         TSSI_GREEN_OFF;
         TSSI_RED_ON; 
         AMS_CONT_OPEN;
         sendDTC_FATAL_AMS_Failure();
-        fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500));
+        if (fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, pdMS_TO_TICKS(500)) != HAL_OK) {
+            ERROR_PRINT("Failed to send EV_HV_Fault\n");
+        }
     }
+#endif
     return pdFALSE;
 }
 static const CLI_Command_Definition_t setCellVoltageCommandDefinition =
@@ -1197,19 +1201,18 @@ BaseType_t getCellVoltages(char *writeBuffer, size_t writeBufferLength,
         // If the board was asleep, configuration is lost AND the reference is off.
         batt_write_config();
 
-        // The first read broadcasts ADCV. Because the reference was off, the chip
-        // takes t_REFUP (4.4ms) + t_CONV (2.5ms) = 6.9ms to finish. However, 
-        // batt_read_cell_voltages only waits 2.5ms! This dummy read will likely 
-        // return 0x8000 for the first registers, but importantly it forces the 
-        // reference to power up.
+        // The first read broadcasts ADCV. Because the reference was off, the chip takes
+        // t_REFUP (4.4ms) + t_CONV to finish, but batt_read_cell_voltages only waits
+        // CELL_CONVERSION_DELAY_US. This dummy read will likely return 0x8000 for the
+        // first registers, but importantly it forces the reference to power up.
         batt_read_cell_voltages(cell_voltages);
         
         // Wait an extra 5ms to ensure the delayed conversion from the first read 
         // finishes completely and doesn't interfere.
         vTaskDelay(pdMS_TO_TICKS(5));
 
-        // Now the reference is fully powered up. This second read will complete 
-        // within the normal 2.5ms and return valid measurements.
+        // Now the reference is fully powered up. This second read will complete within
+        // the normal conversion time and return valid measurements.
         if (batt_read_cell_voltages(cell_voltages) != HAL_OK) {
             COMMAND_OUTPUT("Error reading cell voltages\n");
             return pdFALSE;
@@ -1248,35 +1251,48 @@ BaseType_t getCellTemps(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     // Make these static so their state persists across command calls
+    static int tempIdx = -1;
     static float cell_temps[NUM_TEMP_CELLS];
 
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("Failed to wake up boards\n");
+    // First time the command is hit
+    if (tempIdx == -1) {
+        if (batt_spi_wakeup(true) != HAL_OK) {
+            ERROR_PRINT("Failed to wake up boards\n");
+            return pdFALSE;
+        }
+
+        if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell temperatures\n");
+            return pdFALSE;
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));
+
+        // Second read after the first pass has settled the mux and ADC
+        if (batt_read_cell_temps(cell_temps) != HAL_OK) {
+            COMMAND_OUTPUT("Error reading cell temperatures\n");
+            return pdFALSE;
+        }
+
+        COMMAND_OUTPUT("Cell Temperatures:\n");
+        tempIdx = 0;
+        return pdTRUE; // Tell FreeRTOS CLI to call this function again
+    }
+
+    // Subsequent calls: output one channel at a time
+    // Same layout as batt_read_thermistors: [board][chip][channel]
+    int board = tempIdx / (THERMISTORS_PER_SEGMENT * NUM_LTC_CHIPS_PER_BOARD);
+    int chip = (tempIdx / THERMISTORS_PER_SEGMENT) % NUM_LTC_CHIPS_PER_BOARD;
+    int channel = tempIdx % THERMISTORS_PER_SEGMENT;
+    COMMAND_OUTPUT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[tempIdx]);
+
+    tempIdx++;
+
+    if (tempIdx >= NUM_TEMP_CELLS) {
+        tempIdx = -1; // Reset for the next time the user runs the command
         return pdFALSE;
     }
 
-    if (batt_read_cell_temps(cell_temps) != HAL_OK) {
-        COMMAND_OUTPUT("Error reading cell temperatures\n");
-        return pdFALSE;
-    }
-    vTaskDelay(pdMS_TO_TICKS(50));
-
-    // Second read after the first pass has settled the mux and ADC
-    if (batt_read_cell_temps(cell_temps) != HAL_OK) {
-        COMMAND_OUTPUT("Error reading cell temperatures\n");
-        return pdFALSE;
-    }
-
-    DEBUG_PRINT("Cell Temperatures:\n");
-    for(int i =0; i<NUM_TEMP_CELLS; i++){
-        // Same layout as batt_read_thermistors: [board][chip][channel]
-        int board = i / (THERMISTORS_PER_SEGMENT * NUM_LTC_CHIPS_PER_BOARD);
-        int chip = (i / THERMISTORS_PER_SEGMENT) % NUM_LTC_CHIPS_PER_BOARD;
-        int channel = i % THERMISTORS_PER_SEGMENT;
-        DEBUG_PRINT("Board %d, Chip %d, Channel %d: %f degC\n", board, chip, channel, cell_temps[i]);
-    }
-
-    return pdFALSE;
+    return pdTRUE; // More channels to print, call this function again
 }
 
 static const CLI_Command_Definition_t getCellTempsCommandDefinition =
@@ -1364,29 +1380,27 @@ BaseType_t dischargeCellsCommand(char *writeBuffer, size_t writeBufferLength,
     }
 
 #if IS_BOARD_F7
-    /* Like battery task balance loop: for each cell either enable or stop discharge (one cell on, rest off). */
+    /* Like the battery task balance loop: one cell on, every other cell off. Clear the whole
+     * pack first, otherwise cells enabled by earlier invocations keep discharging. */
+    if (batt_unset_balancing_all_cells() != HAL_OK) {
+        ERROR_PRINT("batt_unset_balancing_all_cells failed\n");
+        return pdFALSE;
+    }
 
     if (batt_balance_cell(req_cell) != HAL_OK) {
         ERROR_PRINT("batt_balance_cell %d failed\r\n", req_cell);
+        return pdFALSE;
+    }
+
+    if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
+        ERROR_PRINT("batt_set_disharge_timer failed\n");
         return pdFALSE;
     }
     if (batt_spi_wakeup(true) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return pdFALSE;
     }
-    if (batt_write_config_pwm() != HAL_OK) {
-        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
-        return pdFALSE;
-    }
-    DEBUG_PRINT("Sent config to AMS boards (WRPWM)\r\n");
-
-    /* Mirroring batteries.c: batt_set_disharge_timer + batt_write_config. */
-    if (batt_set_disharge_timer(DT_30_SEC) != HAL_OK) {
-        ERROR_PRINT("batt_set_disharge_timer failed\n");
-        return pdFALSE;
-    }
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+    if (batt_write_balancing_config() != HAL_OK) {
         return pdFALSE;
     }
     DEBUG_PRINT("PWM discharge on global cell %d (DT_30_SEC, use getDischargeDcc / stopDischargeCells)\r\n", req_cell);
@@ -1412,24 +1426,19 @@ BaseType_t stopDischargeCellsCommand(char *writeBuffer, size_t writeBufferLength
     (void)writeBufferLength;
 
 #if IS_BOARD_F7
-    if (batt_unset_balancing_all_cells(BALANCE_PWM_DUTY_MAX) != HAL_OK) {
+    if (batt_unset_balancing_all_cells() != HAL_OK) {
         ERROR_PRINT("batt_unset_balancing_all_cells failed\n");
-        return pdFALSE;
-    }
-    if (batt_spi_wakeup(true) != HAL_OK) {
-        ERROR_PRINT("Failed to wake up boards\n");
-        return pdFALSE;
-    }
-    if (batt_write_config_pwm() != HAL_OK) {
-        ERROR_PRINT("batt_write_config_pwm: WRPWM A/B failed\n");
         return pdFALSE;
     }
     if (batt_set_disharge_timer(DT_OFF) != HAL_OK) {
         ERROR_PRINT("batt_set_disharge_timer failed\n");
         return pdFALSE;
     }
-    if (batt_write_config() != HAL_OK) {
-        ERROR_PRINT("batt_write_config: WRCFGA/B failed\n");
+    if (batt_spi_wakeup(true) != HAL_OK) {
+        ERROR_PRINT("Failed to wake up boards\n");
+        return pdFALSE;
+    }
+    if (batt_write_balancing_config() != HAL_OK) {
         return pdFALSE;
     }
     COMMAND_OUTPUT("Stopped PWM discharge on all cells; WRCFG sent\r\n");

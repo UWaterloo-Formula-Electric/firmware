@@ -100,6 +100,8 @@
 #define BALANCE_RECHECK_PERIOD_MS (3000)
 #define START_NUM_TRIES (3)
 
+#define PRINT_PER_CELL_BALANCE_STATE (0)
+
 #define BATTERY_START_FAIL_BIT                      (1U << 0)
 #define OPEN_CIRCUIT_FAIL_BIT                       (1U << 1)
 #define READ_CELL_VOLTAGE_TEMPS_FAIL_BIT            (1U << 2)
@@ -164,4 +166,5 @@ HAL_StatusTypeDef publishBattVoltage(float *pVBatt);
 HAL_StatusTypeDef publishBusCurrent(float *pIBus);
 void cliSetStateBusHVSendPeriod(uint32_t period);
 uint32_t cliGetStateBusHVSendPeriod();
+bool isThermistorSweepComplete(void);
 #endif /* end of include guard: BATTERIES_H */
