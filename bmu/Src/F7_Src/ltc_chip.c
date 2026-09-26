@@ -314,7 +314,7 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
 // Cells with bleed resistors removed
 // S-ADC measures through the discharge path so the
 // ADCV/ADSV ratio check will not work on these cells, and they can't be balanced
-static const uint8_t NO_DISCHARGE_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 136, 137};
+static const uint8_t NO_DISCHARGE_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 114, 136, 137};
 
 bool batt_cell_can_discharge(int cell) {
     if (!NO_DISCHARGE_CELLS_ENABLED) {
