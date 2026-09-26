@@ -1172,8 +1172,9 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
 float getSOCFromVoltage(float cellVoltage)
 {
     // mV per step 11.88
-    float VoltsPerLookup = (limit_overvoltage - limit_undervoltage) / (NUM_SOC_LOOKUP_VALS-1);
-    float lookupIndex = (cellVoltage - limit_undervoltage) / VoltsPerLookup;
+    // Use the fixed SOC range, not the fault limits, so changing a limit doesn't rescale SOC
+    float VoltsPerLookup = (LIMIT_HIGHVOLTAGE - LIMIT_LOWVOLTAGE) / (NUM_SOC_LOOKUP_VALS-1);
+    float lookupIndex = (cellVoltage - LIMIT_LOWVOLTAGE) / VoltsPerLookup;
     if (lookupIndex < 0) { lookupIndex = 0;}
     if (lookupIndex > (NUM_SOC_LOOKUP_VALS-1)) { lookupIndex = (NUM_SOC_LOOKUP_VALS-1);}
     int lookupIndexInt = (int)lookupIndex;

@@ -30,10 +30,11 @@
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 2.5F
-/// Minimum voltage of a cell, will send a critical DTC if it goes below
-#define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
+/// Minimum voltage of a cell (IR compensated), will send a critical DTC and take HV down if it goes below.
+/// Precharge refuses to start below it, and HV is taken down "close to red" at 0.15 V above it
+#define DEFAULT_LIMIT_UNDERVOLTAGE 3.0F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
-#define LIMIT_LOWVOLTAGE_WARNING 2.8F
+#define LIMIT_LOWVOLTAGE_WARNING 3.3F
 /// Rate at which the low voltage threshold dynamically lowers vs current
 #define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 
