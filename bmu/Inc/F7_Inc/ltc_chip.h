@@ -61,7 +61,9 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (0)
+#define PRINT_ALL_PEC_ERRORS (1)
+// Extra attempts for an AMS read that fails its PEC before the read counts as failed
+#define AMS_READ_RETRIES (2)
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
