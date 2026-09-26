@@ -465,7 +465,8 @@ HAL_StatusTypeDef batt_write_config_pwm(void) {
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
 
-static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
+// attempt is 0 for the first try, 1..AMS_READ_RETRIES for retries (only used in the error prints)
+static HAL_StatusTypeDef batt_read_data_once(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size, int attempt){
 	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
 	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
 	uint8_t rxBuffer[BUFF_SIZE];
@@ -484,10 +485,14 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	}
 
 	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
-		ERROR_PRINT("Failed to send read data command\n");
+		if (attempt == 0) {
+			ERROR_PRINT("Failed to send read data command\n");
+		} else {
+			ERROR_PRINT("Failed to send read data command, retry %d of %d\n", attempt, AMS_READ_RETRIES);
+		}
 		return HAL_ERROR;
 	}
-	
+
 	for (int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; ++i)
         {
 			const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
@@ -495,7 +500,14 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 			{
 				if(PRINT_ALL_PEC_ERRORS)
 				{
-					DEBUG_PRINT("PEC ERROR on board/chip %d config (adbms6830) \r\n", i);
+					if (attempt == 0) {
+						DEBUG_PRINT("PEC ERROR on board %d chip %d (device %d), cmd 0x%02X%02X (adbms6830)\r\n",
+						            i / NUM_LTC_CHIPS_PER_BOARD, i % NUM_LTC_CHIPS_PER_BOARD, i, first_byte, second_byte);
+					} else {
+						DEBUG_PRINT("PEC ERROR on board %d chip %d (device %d), cmd 0x%02X%02X, retry %d of %d (adbms6830)\r\n",
+						            i / NUM_LTC_CHIPS_PER_BOARD, i % NUM_LTC_CHIPS_PER_BOARD, i, first_byte, second_byte,
+						            attempt, AMS_READ_RETRIES);
+					}
 				}
 				PEC_count++;
 				return HAL_ERROR;
@@ -512,8 +524,25 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
         for(int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; i++) {
 			memcpy(&(data_buffer[i*response_size]), &(rxBuffer[DATA_START_IDX + (i * (response_size + PEC_SIZE))]), response_size);
 		}
-	
+
 	return HAL_OK;
+}
+
+// Reads are non-destructive, so a read that fails its PEC (or SPI transfer) is simply retried. This rides
+// through an occasional corrupted frame from noise, while a chip that stays silent still fails every attempt
+static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
+	for (int attempt = 0; attempt <= AMS_READ_RETRIES; attempt++) {
+		if (batt_read_data_once(first_byte, second_byte, data_buffer, response_size, attempt) == HAL_OK) {
+			if (attempt > 0 && PRINT_ALL_PEC_ERRORS) {
+				DEBUG_PRINT("AMS read cmd 0x%02X%02X ok on retry %d of %d\r\n", first_byte, second_byte, attempt, AMS_READ_RETRIES);
+			}
+			return HAL_OK;
+		}
+	}
+	if (PRINT_ALL_PEC_ERRORS) {
+		DEBUG_PRINT("AMS read cmd 0x%02X%02X failed, all %d retries used\r\n", first_byte, second_byte, AMS_READ_RETRIES);
+	}
+	return HAL_ERROR;
 }
 
 /* Read ADSV snapshot groups RDSVA..RDSVF (6 bytes each: three 16-bit values, LSB first per pair). */

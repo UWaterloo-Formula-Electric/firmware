@@ -61,7 +61,9 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (0)
+#define PRINT_ALL_PEC_ERRORS (1)
+// Extra attempts for an AMS read that fails its PEC before the read counts as failed
+#define AMS_READ_RETRIES (2)
 
 // Public defines
 #define NUM_VOLTAGE_CELLS           (NUM_BOARDS*CELLS_PER_BOARD)
@@ -74,8 +76,13 @@
 #define OPEN_WIRE_RATIO_MIN 0.75
 #define OPEN_WIRE_RATIO_MAX 1.40
 
-// Set to 0 to run the open wire check on every cell, including ones in OPEN_WIRE_SKIP_CELLS
-#define OPEN_WIRE_SKIP_CELLS_ENABLED (0)
+// Cells in NO_DISCHARGE_CELLS (ltc_chip.c) have their bleed resistors removed: they're skipped in the
+// open wire check and never balanced. Set to 0 once every cell has its discharge path back (AMS respin)
+#define NO_DISCHARGE_CELLS_ENABLED (1)
+
+// Cells in DO_NOT_BALANCE_CELLS (ltc_chip.c) sit next to a high-resistance sense tap: draining them displaces
+// the tap and gives false readings. They're never balanced but keep every other check. Set to 0 once fixed
+#define DO_NOT_BALANCE_CELLS_ENABLED (1)
 
 // PWM duty (0-15) written to the discharge registers while a cell is balancing
 #define BALANCE_PWM_DUTY_MAX (0x0F)
@@ -148,6 +155,8 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
 HAL_StatusTypeDef batt_balance_cell(int cell);
 HAL_StatusTypeDef batt_stop_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
+bool batt_cell_can_discharge(int cell);
+bool batt_cell_can_balance(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
 /* Push the current balance state (PWM duty + CFGB discharge bits) out to the AMS boards */
 HAL_StatusTypeDef batt_write_balancing_config(void);

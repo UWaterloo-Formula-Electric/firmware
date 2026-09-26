@@ -313,19 +313,38 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
 
 // Cells with bleed resistors removed
 // S-ADC measures through the discharge path so the
-// ADCV/ADSV ratio check will not work on these cells
-static const uint8_t OPEN_WIRE_SKIP_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 136, 137};
+// ADCV/ADSV ratio check will not work on these cells, and they can't be balanced
+static const uint8_t NO_DISCHARGE_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 114, 136, 137};
 
-static bool isOpenWireSkipCell(uint8_t cellIdx) {
-    if (!OPEN_WIRE_SKIP_CELLS_ENABLED) {
-        return false;
+bool batt_cell_can_discharge(int cell) {
+    if (!NO_DISCHARGE_CELLS_ENABLED) {
+        return true;
     }
-    for (size_t i = 0; i < sizeof(OPEN_WIRE_SKIP_CELLS) / sizeof(OPEN_WIRE_SKIP_CELLS[0]); i++) {
-        if (OPEN_WIRE_SKIP_CELLS[i] == cellIdx) {
-            return true;
+    for (size_t i = 0; i < sizeof(NO_DISCHARGE_CELLS) / sizeof(NO_DISCHARGE_CELLS[0]); i++) {
+        if (NO_DISCHARGE_CELLS[i] == cell) {
+            return false;
         }
     }
-    return false;
+    return true;
+}
+
+// Cells on either side of a high-resistance sense tap (board 1 between cells 33/34, board 2 between
+// cells 76/77). Draining them displaces the tap for longer than the balance pause, so never balance them
+static const uint8_t DO_NOT_BALANCE_CELLS[] = {33, 34, 76, 77};
+
+bool batt_cell_can_balance(int cell) {
+    if (!batt_cell_can_discharge(cell)) {
+        return false;
+    }
+    if (!DO_NOT_BALANCE_CELLS_ENABLED) {
+        return true;
+    }
+    for (size_t i = 0; i < sizeof(DO_NOT_BALANCE_CELLS) / sizeof(DO_NOT_BALANCE_CELLS[0]); i++) {
+        if (DO_NOT_BALANCE_CELLS[i] == cell) {
+            return false;
+        }
+    }
+    return true;
 }
 
 HAL_StatusTypeDef checkForOpenCircuit()
@@ -375,7 +394,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
-        	if (isOpenWireSkipCell(cellIdx)) {
+        	if (!batt_cell_can_discharge(cellIdx)) {
         		continue;
         	}
         	if(!open_wire_failure[cellIdx].occurred)

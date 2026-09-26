@@ -866,6 +866,48 @@ static const CLI_Command_Definition_t stopBalanceCommandDefinition =
     0 /* Number of parameters */
 };
 
+BaseType_t balanceNowCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *onOffParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    uint32_t state = fsmGetState(&fsmHandle);
+
+    if (STR_EQ(onOffParam, "on", paramLen)) {
+        if (state == STATE_HV_Disable) {
+            setBalanceNow(true);
+            fsmSendEventISR(&fsmHandle, EV_Balance_Start);
+        } else if (state == STATE_Balancing) {
+            setBalanceNow(true);
+        } else if (state == STATE_Charging) {
+            // Cell voltages read under charge current aren't good enough to balance on
+            COMMAND_OUTPUT("Can't balance now while charging, run stopCharge first\n");
+            return pdFALSE;
+        } else {
+            COMMAND_OUTPUT("Can't balance now in state %s, BMU must be HV disabled or balancing\n",
+                           state < STATE_ANY ? BMU_states_string[state] : "unknown");
+            return pdFALSE;
+        }
+        COMMAND_OUTPUT("Balancing now, stops once cells are balanced\n");
+    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+        setBalanceNow(false);
+        if (state == STATE_Balancing) {
+            fsmSendEventISR(&fsmHandle, EV_Balance_Stop);
+        }
+        COMMAND_OUTPUT("Stopped balanceNow\n");
+    } else {
+        COMMAND_OUTPUT("Unknown parameter, use on or off\n");
+    }
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t balanceNowCommandDefinition =
+{
+    "balanceNow",
+    "balanceNow <on|off>:\r\n Balance right away without the charger, stops once cells are balanced. Not allowed while charging\r\n",
+    balanceNowCommand,
+    1 /* Number of parameters */
+};
+
 BaseType_t balanceCellCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -1806,6 +1848,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&stopBalanceCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&balanceNowCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&balanceCellCommandDefinition) != pdPASS) {

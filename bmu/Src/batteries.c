@@ -67,9 +67,10 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 float adjustedCellIR = ADJUSTED_CELL_IR_DEFAULT;
 
 /**
- * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
+ * Charging voltage limit to be sent to charger. Charging is actually stopped based on cell SoC as specified by
+ * @ref CHARGE_STOP_SOC, or when any cell reaches @ref CHARGE_MAX_CELL_VOLTAGE
  */
-float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
+float maxChargeVoltage = CHARGE_MAX_CELL_VOLTAGE * NUM_VOLTAGE_CELLS;
 
 // Limits for Under/Over Voltage - Can be overwritten from the CLI
 volatile float limit_overvoltage = DEFAULT_LIMIT_OVERVOLTAGE;
@@ -676,7 +677,7 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
 }
 
 // Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1
-static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 92, 115};
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 91, 92, 93, 94, 95, 96, 115};
 
 static bool isDeadThermistorChannel(int channel) {
    if (!DEAD_THERMISTOR_SKIP_ENABLED) {
@@ -1066,6 +1067,17 @@ HAL_StatusTypeDef stopBalance()
 bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
 
 /**
+ * Set by the balanceNow CLI command. Only used in balancing sessions without the charger: balances
+ * right away and ends the session once no cell needs balancing
+ */
+static volatile bool balanceNowRequested = false;
+
+void setBalanceNow(bool enable)
+{
+    balanceNowRequested = enable;
+}
+
+/**
  * @brief Stops all cells balancing, but stores which cells were balancing to
  * allowing resuming of balance for cells that were balancing
  *
@@ -1160,8 +1172,9 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
 float getSOCFromVoltage(float cellVoltage)
 {
     // mV per step 11.88
-    float VoltsPerLookup = (limit_overvoltage - limit_undervoltage) / (NUM_SOC_LOOKUP_VALS-1);
-    float lookupIndex = (cellVoltage - limit_undervoltage) / VoltsPerLookup;
+    // Use the fixed SOC range, not the fault limits, so changing a limit doesn't rescale SOC
+    float VoltsPerLookup = (LIMIT_HIGHVOLTAGE - LIMIT_LOWVOLTAGE) / (NUM_SOC_LOOKUP_VALS-1);
+    float lookupIndex = (cellVoltage - LIMIT_LOWVOLTAGE) / VoltsPerLookup;
     if (lookupIndex < 0) { lookupIndex = 0;}
     if (lookupIndex > (NUM_SOC_LOOKUP_VALS-1)) { lookupIndex = (NUM_SOC_LOOKUP_VALS-1);}
     int lookupIndexInt = (int)lookupIndex;
@@ -1195,6 +1208,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     bool balancingCells = false; // Are we balancing any cell currently?
     uint32_t lastBalanceCheck = 0;
     bool waitingForBalanceDone = false; // Set to true when receive stop but still balancing
+    bool balanceNowActive = false; // balanceNow override is being applied this loop
     uint32_t dbwTaskNotifications;
     float packVoltage;
     float adjustedPackVoltage;
@@ -1270,9 +1284,22 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * Check if we should balance any cells
          * Only balance above a minimum voltage
          */
-        if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        // balanceNow only applies without the charger. When just requested, skip the recheck wait
+        bool forceBalanceCheck = !using_charger && balanceNowRequested && !balanceNowActive;
+        balanceNowActive = !using_charger && balanceNowRequested;
+
+        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED)
         {
-            if (xTaskGetTickCount() - lastBalanceCheck
+            // Balancing while charging is disabled, make sure nothing is left balancing
+            balancingCells = false;
+            if (stopBalance() != HAL_OK) {
+                ERROR_PRINT("Failed to stop balance\n");
+                if (boundedContinue()) { continue; }
+            }
+        }
+        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        {
+            if (forceBalanceCheck || xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
             {
                 balancingCells = false;
@@ -1292,7 +1319,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if PRINT_PER_CELL_BALANCE_STATE
                     DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
 #endif
-                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
+                    // Cells without a discharge path, or next to a bad sense tap, are never balanced
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA && batt_cell_can_balance(cell)) {
 #if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #endif
@@ -1324,6 +1352,15 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 DEBUG_PRINT("Sent config to AMS boards\n");
 
                 lastBalanceCheck = xTaskGetTickCount();
+
+                // balanceNow stops by itself once every cell that can be balanced is within
+                // BALANCE_MIN_SOC_DELTA of the lowest cell
+                if (balanceNowActive && !balancingCells) {
+                    DEBUG_PRINT("balanceNow: cells balanced, stopping\n");
+                    balanceNowRequested = false;
+                    stopBalance();
+                    return CHARGE_DONE;
+                }
             }
         } else {
             balancingCells = false;
@@ -1336,9 +1373,23 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         /*
          * Check if we are done charging/balancing
+         * If any cell can't be balanced, nothing can bring it back down, so stop as soon as the
+         * highest cell is full instead of waiting for the lowest cell and for balancing to finish
          */
-        if (using_charger && getSOCFromVoltage(VoltageCellMin) >= CHARGE_STOP_SOC && !balancingCells) {
+        bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED
+                                  && !DO_NOT_BALANCE_CELLS_ENABLED;
+        float chargeStopCellVoltage = canBalanceAllCells ? VoltageCellMin : VoltageCellMax;
+        bool reachedStopSOC = getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
+                              && (!balancingCells || !canBalanceAllCells);
+        // Hard cap on the highest cell, whatever the balancing mode
+        bool reachedMaxCellVoltage = VoltageCellMax >= CHARGE_MAX_CELL_VOLTAGE;
+        if (using_charger && (reachedStopSOC || reachedMaxCellVoltage)) {
             DEBUG_PRINT("Done charging\n");
+            if (reachedMaxCellVoltage) {
+                DEBUG_PRINT("Max cell %f V reached charge limit %f V\n", VoltageCellMax, CHARGE_MAX_CELL_VOLTAGE);
+            }
+            // Partial balancing may still be running when we stop on the highest cell
+            stopBalance();
             if (using_charger && stopCharging() != HAL_OK) {
                 return CHARGE_ERROR;
             }
@@ -1534,6 +1585,9 @@ void batteryTask(void *pvParameter)
                         ERROR_PRINT("Processing unknown notification in batteryTask\n");
                         chargeRc = CHARGE_ERROR;
                     }
+
+                    // balanceNow only lasts for one charge/balance session
+                    setBalanceNow(false);
 
                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
                                                             2*BATTERY_TASK_PERIOD_MS))
