@@ -328,6 +328,25 @@ bool batt_cell_can_discharge(int cell) {
     return true;
 }
 
+// Cells on either side of a high-resistance sense tap (board 1 between cells 33/34, board 2 between
+// cells 76/77). Draining them displaces the tap for longer than the balance pause, so never balance them
+static const uint8_t DO_NOT_BALANCE_CELLS[] = {33, 34, 76, 77};
+
+bool batt_cell_can_balance(int cell) {
+    if (!batt_cell_can_discharge(cell)) {
+        return false;
+    }
+    if (!DO_NOT_BALANCE_CELLS_ENABLED) {
+        return true;
+    }
+    for (size_t i = 0; i < sizeof(DO_NOT_BALANCE_CELLS) / sizeof(DO_NOT_BALANCE_CELLS[0]); i++) {
+        if (DO_NOT_BALANCE_CELLS[i] == cell) {
+            return false;
+        }
+    }
+    return true;
+}
+
 HAL_StatusTypeDef checkForOpenCircuit()
 {
     // Perform averaging of multiple voltage readings to account for potential

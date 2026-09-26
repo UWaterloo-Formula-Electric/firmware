@@ -1318,8 +1318,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if PRINT_PER_CELL_BALANCE_STATE
                     DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
 #endif
-                    // Cells without a discharge path can't be balanced, so they never count as balancing
-                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA && batt_cell_can_discharge(cell)) {
+                    // Cells without a discharge path, or next to a bad sense tap, are never balanced
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA && batt_cell_can_balance(cell)) {
 #if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #endif
@@ -1375,7 +1375,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * If any cell can't be balanced, nothing can bring it back down, so stop as soon as the
          * highest cell is full instead of waiting for the lowest cell and for balancing to finish
          */
-        bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED;
+        bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED
+                                  && !DO_NOT_BALANCE_CELLS_ENABLED;
         float chargeStopCellVoltage = canBalanceAllCells ? VoltageCellMin : VoltageCellMax;
         bool reachedStopSOC = getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
                               && (!balancingCells || !canBalanceAllCells);

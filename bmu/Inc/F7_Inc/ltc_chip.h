@@ -78,6 +78,10 @@
 // open wire check and never balanced. Set to 0 once every cell has its discharge path back (AMS respin)
 #define NO_DISCHARGE_CELLS_ENABLED (1)
 
+// Cells in DO_NOT_BALANCE_CELLS (ltc_chip.c) sit next to a high-resistance sense tap: draining them displaces
+// the tap and gives false readings. They're never balanced but keep every other check. Set to 0 once fixed
+#define DO_NOT_BALANCE_CELLS_ENABLED (1)
+
 // PWM duty (0-15) written to the discharge registers while a cell is balancing
 #define BALANCE_PWM_DUTY_MAX (0x0F)
 
@@ -150,6 +154,7 @@ HAL_StatusTypeDef batt_balance_cell(int cell);
 HAL_StatusTypeDef batt_stop_balance_cell(int cell);
 bool batt_is_cell_balancing(int cell);
 bool batt_cell_can_discharge(int cell);
+bool batt_cell_can_balance(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
 /* Push the current balance state (PWM duty + CFGB discharge bits) out to the AMS boards */
 HAL_StatusTypeDef batt_write_balancing_config(void);
