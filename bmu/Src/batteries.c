@@ -632,6 +632,15 @@ void ERROR_COUNTER_RED_SUCCESS()
   }
 }
 
+/**
+ * @brief Current battery task error counters, for the status CLI command
+ */
+void getBatteryErrorCounts(uint32_t *errors, uint32_t *redErrors)
+{
+  *errors = errorCounter;
+  *redErrors = errorCounterRed;
+}
+
 
 /**
  * Alpha value for cell voltage filter
@@ -1486,7 +1495,8 @@ bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
         return true;
     }
 
-    if (minCell < DEFAULT_LIMIT_UNDERVOLTAGE + 0.15) {
+    // No margin on the low side: the undervoltage limit is the driving cutoff
+    if (minCell < DEFAULT_LIMIT_UNDERVOLTAGE) {
         DEBUG_PRINT("min cell");
         return true;
     }

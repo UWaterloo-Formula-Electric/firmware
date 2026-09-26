@@ -30,9 +30,11 @@
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 2.5F
-/// Minimum voltage of a cell (IR compensated), will send a critical DTC and take HV down if it goes below.
-/// Precharge refuses to start below it, and HV is taken down "close to red" at 0.15 V above it
-#define DEFAULT_LIMIT_UNDERVOLTAGE 3.0F
+/// Minimum voltage of a cell (IR compensated) while running/driving. Below it HV is taken down
+/// ("close to red") and a critical DTC is sent
+#define DEFAULT_LIMIT_UNDERVOLTAGE 2.9F
+/// Precharge (starting the car) is refused if any cell (IR compensated) is below this
+#define LIMIT_UNDERVOLTAGE_TO_START 3.0F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
 #define LIMIT_LOWVOLTAGE_WARNING 3.3F
 /// Rate at which the low voltage threshold dynamically lowers vs current
@@ -165,6 +167,7 @@ HAL_StatusTypeDef getVBus(float *VBus);
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
 void setBalanceNow(bool enable);
+void getBatteryErrorCounts(uint32_t *errors, uint32_t *redErrors);
 HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueues();

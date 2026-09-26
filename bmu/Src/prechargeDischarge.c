@@ -92,7 +92,7 @@ static HAL_StatusTypeDef checkCellVoltages(void)
             ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, rawVoltage);
             return HAL_ERROR;
         }
-        if (adjustedVoltage < DEFAULT_LIMIT_UNDERVOLTAGE) {
+        if (adjustedVoltage < LIMIT_UNDERVOLTAGE_TO_START) {
             ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, adjustedVoltage);
             return HAL_ERROR;
         }

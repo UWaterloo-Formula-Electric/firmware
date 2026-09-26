@@ -22,6 +22,8 @@
 #include "filters.h"
 #include "sense.h"
 #include "chargerControl.h"
+#include "userCan.h"
+#include "canHeartbeat.h"
 #include "batteries.h"
 #include "faultMonitor.h"
 #include "ltc_chip.h"
@@ -588,6 +590,90 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
     0 /* Number of parameters */
 };
 
+extern bool gChargeMode;
+
+#define OK_DOWN(ok) ((ok) ? "ok" : "DOWN")
+#define ON_OFF(on) ((on) ? "on" : "off")
+#if IS_BOARD_F7
+#define PIN_SET(port, pin) (HAL_GPIO_ReadPin((port), (pin)) == GPIO_PIN_SET)
+#endif
+
+// One line per call (the CLI output buffer only holds one line), so the output doesn't get dropped
+BaseType_t printStatus(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    static int line = 0;
+    BaseType_t more = pdTRUE;
+
+    switch (line) {
+        case 0: {
+            uint32_t state = fsmGetState(&fsmHandle);
+            COMMAND_OUTPUT("State: %s | charge mode %s\r\n",
+                           state < STATE_ANY ? BMU_states_string[state] : "unknown", ON_OFF(gChargeMode));
+            break;
+        }
+        case 1:
+            COMMAND_OUTPUT("IL: BOTS %s, EBOX %s, BSPD %s, HVD %s, AMS %s\r\n",
+                           OK_DOWN(getBOTS_Status()), OK_DOWN(getEbox_Il_Status()), OK_DOWN(getBSPD_Status()),
+                           OK_DOWN(getHVD_Status()), OK_DOWN(getAMS_Status()));
+            break;
+        case 2:
+            COMMAND_OUTPUT("IL: IMD %s, CBRB %s, TSMS %s, HW check %s\r\n",
+                           OK_DOWN(getIMD_Status()), OK_DOWN(getCBRB_Status()), OK_DOWN(getTSMS_Status()),
+                           OK_DOWN(getHwCheck_Status()));
+            break;
+        case 3:
+#if IS_BOARD_F7
+            COMMAND_OUTPUT("Commanded: POS %s, NEG %s, PRE %s, AMS relay %s, DCDC %s\r\n",
+                           PIN_SET(CONT_POS_GPIO_Port, CONT_POS_Pin) ? "closed" : "open",
+                           PIN_SET(CONT_NEG_GPIO_Port, CONT_NEG_Pin) ? "closed" : "open",
+                           PIN_SET(CONT_PRE_GPIO_Port, CONT_PRE_Pin) ? "closed" : "open",
+                           PIN_SET(AMS_CONT_GPIO_Port, AMS_CONT_Pin) ? "closed" : "open",
+                           ON_OFF(PIN_SET(CONT_DC_DC_GPIO_Port, CONT_DC_DC_Pin)));
+#else
+            COMMAND_OUTPUT("Contactors: F7 only\r\n");
+#endif
+            break;
+        case 4: {
+            float IBus = 0, VBus = 0, VBatt = 0, packVoltage = 0;
+            getIBus(&IBus);
+            getVBus(&VBus);
+            getVBatt(&VBatt);
+            getPackVoltage(&packVoltage);
+            COMMAND_OUTPUT("Pack %.1f V | VBATT %.1f V | VBUS %.1f V | IBUS %.3f A\r\n",
+                           packVoltage, VBatt, VBus, IBus);
+            break;
+        }
+        case 5:
+            COMMAND_OUTPUT("Cells %.3f to %.3f V | Temps %.1f to %.1f C\r\n",
+                           VoltageCellMin, VoltageCellMax, TempCellMin, TempCellMax);
+            break;
+        case 6: {
+            uint32_t errors = 0, redErrors = 0;
+            getBatteryErrorCounts(&errors, &redErrors);
+            COMMAND_OUTPUT("Battery task: fail bits 0x%lX | errors %lu | red errors %lu\r\n",
+                           (unsigned long)BatteryTaskFailure, (unsigned long)errors, (unsigned long)redErrors);
+            break;
+        }
+        default:
+            COMMAND_OUTPUT("Heartbeat checks %s | PDU %s, VCU %s, DCU %s\r\n",
+                           ON_OFF(heartbeatEnabled), ON_OFF(PDU_heartbeatEnabled),
+                           ON_OFF(VCU_F7_heartbeatEnabled), ON_OFF(DCU_heartbeatEnabled));
+            more = pdFALSE;
+            break;
+    }
+
+    line = more ? line + 1 : 0;
+    return more;
+}
+static const CLI_Command_Definition_t printStatusCommandDefinition =
+{
+    "status",
+    "status:\r\n  BMU state, shutdown loop, contactors, pack readings, error counters and heartbeat checks\r\n",
+    printStatus,
+    0 /* Number of parameters */
+};
+
 BaseType_t maxChargeCurrentCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -611,6 +697,47 @@ static const CLI_Command_Definition_t maxChargeCurrentCommandDefinition =
     "maxChargeCurrent <current>:\r\n  set the max current the charger will output\r\n",
     maxChargeCurrentCommand,
     1 /* Number of parameters */
+};
+
+BaseType_t chargerStatusCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    // NOTE: COMMAND_OUTPUT can only be used once per command (it overwrites the
+    // CLI write buffer), so all the multi-line output goes through DEBUG_PRINT,
+    // matching getCellTemps and the other multi-line commands here.
+    uint32_t rawCount = getChargerRawRxCount();
+
+    DEBUG_PRINT("Charger CAN bus (hcan1):\n");
+    DEBUG_PRINT("  raw frames received: %lu\n", (unsigned long)rawCount);
+    if (rawCount > 0) {
+        DEBUG_PRINT("  last raw ext ID:     0x%lX\n", (unsigned long)getChargerRawLastId());
+    } else {
+        DEBUG_PRINT("  last raw ext ID:     (none seen)\n");
+    }
+
+    if (!chargerStatusEverReceived()) {
+        DEBUG_PRINT("  ChargeStatus frames: NONE parsed - charger silent or wrong ID\n");
+    } else {
+        ChargerStatus status;
+        checkChargerStatus(&status);
+        DEBUG_PRINT("  last ChargeStatus:   %lu ms ago\n", (unsigned long)chargerStatusAgeMs());
+        DEBUG_PRINT("  output: %f V, %f A\n", status.voltage, status.current);
+        DEBUG_PRINT("  HWFail %u OverTemp %u InputV %u Starting %u Comms %u\n",
+                       (uint16_t)status.HWFail, (uint16_t)status.OverTemp,
+                       (uint16_t)status.InputVoltageStatus,
+                       (uint16_t)status.StartingStatus,
+                       (uint16_t)status.CommunicationState);
+    }
+
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t chargerStatusCommandDefinition =
+{
+    "chargerStatus",
+    "chargerStatus:\r\n  print charger CAN RX diagnostics (raw frame count, last ID, parsed status)\r\n",
+    chargerStatusCommand,
+    0 /* Number of parameters */
 };
 
 BaseType_t startChargeCommand(char *writeBuffer, size_t writeBufferLength,
@@ -1788,6 +1915,9 @@ HAL_StatusTypeDef stateMachineMockInit()
     if (FreeRTOS_CLIRegisterCommand(&printStateCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
+    if (FreeRTOS_CLIRegisterCommand(&printStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
     if (FreeRTOS_CLIRegisterCommand(&setChannelTempCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
@@ -1833,6 +1963,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&maxChargeCurrentCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&chargerStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&chargeCartHeartbeatMockCommandDefinition) != pdPASS) {
