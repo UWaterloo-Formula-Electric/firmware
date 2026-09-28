@@ -41,6 +41,7 @@
 #endif
 
 #define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
+#define TPS_IMPLAUSIBILITY_PERSIST_MS 50  // T.4.2.5 allows 100 ms, rest is margin for median filter delay
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
