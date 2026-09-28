@@ -346,13 +346,16 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle)
         // Both throttle and brake were pressed, check if still the case
         if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
             throttleAndBrakePressedError = false;
+            BrakeWhileThrottle = 0;
             sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
         } else {
-            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+            // DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
             return true;
         }
-    } else if (getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    } else if (getBrakePressurePercent() >= APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
         throttleAndBrakePressedError = true;
+        // Logged in VCU_Data so the latch can be lined up with pedals and inverter torque
+        BrakeWhileThrottle = 1;
         sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
         DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return true;

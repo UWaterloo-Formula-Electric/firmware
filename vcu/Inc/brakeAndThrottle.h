@@ -20,7 +20,7 @@
 #define THROTTLE_FAILURE_DTC_DETAIL 0
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
-#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
+#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40.0f  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 5
 
 #define BRAKE_PRESSURE_SENSOR_MIN_V 0.5f
