@@ -53,6 +53,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 
+// With the UART interrupt enabled, any receive error (framing, noise,
+// overrun) makes the HAL abort DMA reception, leaving the CLI deaf until
+// reset. Start receiving again.
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &DEBUG_UART_HANDLE) {
+        uartStartReceiving(huart);
+    }
+}
+
 #define INPUT_BUFFER_SIZE (100)
 #define OUTPUT_BUFFER_SIZE (configCOMMAND_INT_MAX_OUTPUT_SIZE)
 static char rxString[INPUT_BUFFER_SIZE];
