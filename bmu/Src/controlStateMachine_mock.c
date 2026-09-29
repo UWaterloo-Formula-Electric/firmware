@@ -593,6 +593,8 @@ static const CLI_Command_Definition_t printStateCommandDefinition =
 extern bool gChargeMode;
 
 #define OK_DOWN(ok) ((ok) ? "ok" : "DOWN")
+// For the car-only IL points, which aren't checked on the charge cart
+#define CAR_IL_OK_DOWN(ok) (CHARGE_CART_MODE ? "skipped" : OK_DOWN(ok))
 #define ON_OFF(on) ((on) ? "on" : "off")
 #if IS_BOARD_F7
 #define PIN_SET(port, pin) (HAL_GPIO_ReadPin((port), (pin)) == GPIO_PIN_SET)
@@ -614,12 +616,12 @@ BaseType_t printStatus(char *writeBuffer, size_t writeBufferLength,
         }
         case 1:
             COMMAND_OUTPUT("IL: BOTS %s, EBOX %s, BSPD %s, HVD %s, AMS %s\r\n",
-                           OK_DOWN(getBOTS_Status()), OK_DOWN(getEbox_Il_Status()), OK_DOWN(getBSPD_Status()),
-                           OK_DOWN(getHVD_Status()), OK_DOWN(getAMS_Status()));
+                           CAR_IL_OK_DOWN(getBOTS_Status()), OK_DOWN(getEbox_Il_Status()),
+                           CAR_IL_OK_DOWN(getBSPD_Status()), OK_DOWN(getHVD_Status()), OK_DOWN(getAMS_Status()));
             break;
         case 2:
             COMMAND_OUTPUT("IL: IMD %s, CBRB %s, TSMS %s, HW check %s\r\n",
-                           OK_DOWN(getIMD_Status()), OK_DOWN(getCBRB_Status()), OK_DOWN(getTSMS_Status()),
+                           OK_DOWN(getIMD_Status()), CAR_IL_OK_DOWN(getCBRB_Status()), CAR_IL_OK_DOWN(getTSMS_Status()),
                            OK_DOWN(getHwCheck_Status()));
             break;
         case 3:
@@ -1100,7 +1102,7 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
 BaseType_t bspdStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("BSPD State %s\n", getBSPD_Status()?"OK":"Fault");
+    COMMAND_OUTPUT("BSPD State %s\n", CHARGE_CART_MODE ? "skipped (CHARGE_CART_MODE)" : getBSPD_Status()?"OK":"Fault");
     return pdFALSE;
 }
 static const CLI_Command_Definition_t bspdStatusCommandDefinition =
@@ -1114,7 +1116,7 @@ static const CLI_Command_Definition_t bspdStatusCommandDefinition =
 BaseType_t tsmsStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("tsms State %s\n", getTSMS_Status()?"OK":"Fault");
+    COMMAND_OUTPUT("tsms State %s\n", CHARGE_CART_MODE ? "skipped (CHARGE_CART_MODE)" : getTSMS_Status()?"OK":"Fault");
     return pdFALSE;
 }
 static const CLI_Command_Definition_t tsmsStatusCommandDefinition =
@@ -1250,7 +1252,7 @@ static const CLI_Command_Definition_t setUnderVoltageLimitCommandDefinition =
 BaseType_t cbrbStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("cbrb State %s\n", getCBRB_Status()?"OK":"Fault");
+    COMMAND_OUTPUT("cbrb State %s\n", CHARGE_CART_MODE ? "skipped (CHARGE_CART_MODE)" : getCBRB_Status()?"OK":"Fault");
     return pdFALSE;
 }
 

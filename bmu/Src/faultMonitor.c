@@ -34,6 +34,9 @@ bool skip_il = false;
 
 // IL A
 bool getBOTS_Status() {
+    if (CHARGE_CART_MODE) {
+        return true;
+    }
     return (HAL_GPIO_ReadPin(BOTS_SENSE_GPIO_Port, BOTS_SENSE_Pin) == GPIO_PIN_SET);
 }
 
@@ -45,6 +48,9 @@ bool getEbox_Il_Status() {
 
 // IL C
 bool getBSPD_Status() {
+    if (CHARGE_CART_MODE) {
+        return true;
+    }
     return (HAL_GPIO_ReadPin(BSPD_SENSE_GPIO_Port, BSPD_SENSE_Pin) == GPIO_PIN_SET);
 }
 
@@ -66,11 +72,17 @@ bool getIMD_Status() {
 
 // IL G
 bool getCBRB_Status() {
+    if (CHARGE_CART_MODE) {
+        return true;
+    }
     return (HAL_GPIO_ReadPin(COCKPIT_BRB_SENSE_GPIO_Port, COCKPIT_BRB_SENSE_Pin) == GPIO_PIN_SET || skip_il);
 }
 
 // IL H
 bool getTSMS_Status() {
+    if (CHARGE_CART_MODE) {
+        return true;
+    }
     return (HAL_GPIO_ReadPin(TSMS_SENSE_GPIO_Port, TSMS_SENSE_Pin) == GPIO_PIN_SET || skip_il);
 }
 
@@ -158,6 +170,9 @@ void faultMonitorTask(void *pvParameters) {
 #ifdef ENABLE_IL_CHECKS
 
     DEBUG_PRINT("Fault Monitor: IL Started.\n");
+    if (CHARGE_CART_MODE) {
+        DEBUG_PRINT("Fault Monitor: CHARGE_CART_MODE is 1, not checking BOTS, BSPD, CBRB, TSMS\r\n");
+    }
 
     if (getBOTS_Status() == false) {
         DEBUG_PRINT("Fault Monitor: BOTS is down!\r\n");
