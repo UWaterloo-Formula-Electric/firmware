@@ -347,8 +347,10 @@ bool batt_cell_can_balance(int cell) {
     return true;
 }
 
-HAL_StatusTypeDef checkForOpenCircuit()
+HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed)
 {
+    *readFailed = false;
+
     // Perform averaging of multiple voltage readings to account for potential
     // bad connections to AMS boards that causes noise
     float cell_voltages_adcv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
@@ -362,6 +364,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
+        *readFailed = true;
         return HAL_ERROR;
     }
 
@@ -369,6 +372,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
+        *readFailed = true;
         return HAL_ERROR;
     }
 

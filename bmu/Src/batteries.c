@@ -1262,13 +1262,16 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // Couldn't reach the AMS boards, so drop HV without latching an AMS fault
+            if (boundedContinue()) { continue; }
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+        bool openWireReadFailed;
+        if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // Only a detected open wire is an AMS fault, a failed read just drops HV
+            if (openWireReadFailed ? boundedContinue() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1632,11 +1635,13 @@ void batteryTask(void *pvParameter)
             }
         }
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+        bool openWireReadFailed;
+        if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // Only a detected open wire is an AMS fault, a failed read just drops HV
+            if (openWireReadFailed ? boundedContinue() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1645,7 +1650,8 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // Couldn't reach the AMS boards, so drop HV without latching an AMS fault
+            if (boundedContinue()) { continue; }
         }
 #endif
         //  read the voltages and temps for close to red checks

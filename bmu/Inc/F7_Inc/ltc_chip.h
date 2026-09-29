@@ -160,7 +160,8 @@ bool batt_cell_can_balance(int cell);
 HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
 /* Push the current balance state (PWM duty + CFGB discharge bits) out to the AMS boards */
 HAL_StatusTypeDef batt_write_balancing_config(void);
-HAL_StatusTypeDef checkForOpenCircuit();
+/* Sets *readFailed if the AMS boards couldn't be read, as opposed to an open wire being detected */
+HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed);
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);
