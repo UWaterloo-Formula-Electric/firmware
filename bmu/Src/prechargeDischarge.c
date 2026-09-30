@@ -369,6 +369,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         }
         WAIT_FOR_NEXT_MEASURE_OR_STOP(PRECHARGE_STEP_4_CURRENT_MEASURE_PERIOD_MS,
                                       dbwTaskNotifications);
+        if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
+            DEBUG_PRINT("Precharge Stopped\n");
+            return PCDC_STOPPED;
+        }
         if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_4_TIMEOUT) {
             ERROR_PRINT("Precharge timed out\n");
             ERROR_PRINT("INFO: VBUS %f\n", VBus);
@@ -434,6 +438,10 @@ Precharge_Discharge_Return_t precharge(Precharge_Type_t prechargeType)
         }
         WAIT_FOR_NEXT_MEASURE_OR_STOP(PRECHARGE_STEP_5_CURRENT_MEASURE_PERIOD_MS,
                                       dbwTaskNotifications);
+        if (dbwTaskNotifications & (1<<STOP_NOTIFICATION)) {
+            DEBUG_PRINT("Precharge Stopped\n");
+            return PCDC_STOPPED;
+        }
         if (xTaskGetTickCount() - startTickCount > PRECHARGE_STEP_5_TIMEOUT) {
             ERROR_PRINT("Precharge timed out\n");
             ERROR_PRINT("INFO: VBUS %f\n", VBus);

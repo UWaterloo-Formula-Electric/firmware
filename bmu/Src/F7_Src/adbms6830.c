@@ -465,6 +465,44 @@ HAL_StatusTypeDef batt_write_config_pwm(void) {
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
 
+// Each chip's read failures print at most once per PEC_FAIL_PRINT_PERIOD_MS, with a count. A broken chain fails
+// every read, and a full print queue drops prints and stalls the battery task
+#define PEC_FAIL_PRINT_PERIOD_MS 1000
+static uint32_t chipFailsSincePrint[NUM_DEVICES] = {0};
+static TickType_t chipLastFailPrintTick[NUM_DEVICES] = {0};
+static bool chipFailPrinted[NUM_DEVICES] = {0};
+
+static void reportChipReadFail(int device, const uint8_t *chipData, unsigned int size,
+                               uint8_t first_byte, uint8_t second_byte)
+{
+	chipFailsSincePrint[device]++;
+	if (!PRINT_ALL_PEC_ERRORS) {
+		return;
+	}
+
+	const TickType_t now = xTaskGetTickCount();
+	if (chipFailPrinted[device] && now - chipLastFailPrintTick[device] < pdMS_TO_TICKS(PEC_FAIL_PRINT_PERIOD_MS)) {
+		return;
+	}
+
+	// All 0xFF means nothing came back from this chip, usually a break in the chain before it
+	bool noReply = true;
+	for (unsigned int b = 0; b < size; b++) {
+		if (chipData[b] != 0xFF) {
+			noReply = false;
+			break;
+		}
+	}
+
+	DEBUG_PRINT("AMS fail: board %d chip %d (dev %d) %s, cmd 0x%02X%02X, x%lu since last print\r\n",
+	            device / NUM_LTC_CHIPS_PER_BOARD, device % NUM_LTC_CHIPS_PER_BOARD, device,
+	            noReply ? "no reply" : "bad PEC", first_byte, second_byte,
+	            (unsigned long)chipFailsSincePrint[device]);
+	chipFailsSincePrint[device] = 0;
+	chipLastFailPrintTick[device] = now;
+	chipFailPrinted[device] = true;
+}
+
 // attempt is 0 for the first try, 1..AMS_READ_RETRIES for retries (only used in the error prints)
 static HAL_StatusTypeDef batt_read_data_once(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size, int attempt){
 	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
@@ -493,26 +531,21 @@ static HAL_StatusTypeDef batt_read_data_once(uint8_t first_byte, uint8_t second_
 		return HAL_ERROR;
 	}
 
-	for (int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; ++i)
-        {
-			const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
-			if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
-			{
-				if(PRINT_ALL_PEC_ERRORS)
-				{
-					if (attempt == 0) {
-						DEBUG_PRINT("PEC ERROR on board %d chip %d (device %d), cmd 0x%02X%02X (adbms6830)\r\n",
-						            i / NUM_LTC_CHIPS_PER_BOARD, i % NUM_LTC_CHIPS_PER_BOARD, i, first_byte, second_byte);
-					} else {
-						DEBUG_PRINT("PEC ERROR on board %d chip %d (device %d), cmd 0x%02X%02X, retry %d of %d (adbms6830)\r\n",
-						            i / NUM_LTC_CHIPS_PER_BOARD, i % NUM_LTC_CHIPS_PER_BOARD, i, first_byte, second_byte,
-						            attempt, AMS_READ_RETRIES);
-					}
-				}
-				PEC_count++;
-				return HAL_ERROR;
-			}
-        }
+	// Check every device instead of stopping at the first bad one, so every chip that fails gets named
+	bool pecFailed = false;
+	for (int i = 0; i < NUM_DEVICES; ++i)
+	{
+		const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
+		if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK) {
+			pecFailed = true;
+			reportChipReadFail(i, &(rxBuffer[startOfData]), response_size + PEC_SIZE, first_byte, second_byte);
+		}
+	}
+
+	if (pecFailed) {
+		PEC_count++;
+		return HAL_ERROR;
+	}
 
 
         if(xTaskGetTickCount() - last_PEC_tick > 10000)

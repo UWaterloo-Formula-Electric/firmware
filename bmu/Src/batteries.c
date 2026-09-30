@@ -685,8 +685,9 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
     }
 }
 
-// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1
-static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 91, 92, 93, 94, 95, 96, 115};
+// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1.
+// 0-based channel numbers, so battInfo's temp index minus 1
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 59, 90, 91, 92, 93, 94, 95, 96, 115};
 
 static bool isDeadThermistorChannel(int channel) {
    if (!DEAD_THERMISTOR_SKIP_ENABLED) {

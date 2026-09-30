@@ -16,6 +16,7 @@
 #include "task.h"
 #include "cmsis_os.h"
 #include "prechargeDischarge.h"
+#include "contactorControl.h"
 #include "bmu_can.h"
 #include "controlStateMachine.h"
 #include "testData.h"
@@ -796,11 +797,11 @@ BaseType_t setPosCont(char *writeBuffer, size_t writeBufferLength,
     switch (contState)
     {
         case 0:
-            CONT_POS_OPEN;
+            setPosContactor(CONTACTOR_OPEN);
         break;
 
         case 1:
-            CONT_POS_CLOSE;
+            setPosContactor(CONTACTOR_CLOSED);
         break;
 
         default:
@@ -831,11 +832,11 @@ BaseType_t setNegCont(char *writeBuffer, size_t writeBufferLength,
     switch (contState)
     {
         case 0:
-            CONT_NEG_OPEN;
+            setNegContactor(CONTACTOR_OPEN);
         break;
 
         case 1:
-            CONT_NEG_CLOSE;
+            setNegContactor(CONTACTOR_CLOSED);
         break;
 
         default:
@@ -866,11 +867,11 @@ BaseType_t setPCDC(char *writeBuffer, size_t writeBufferLength,
     switch (contState)
     {
         case 0:
-            PCDC_DC;
+            setPrechargeContactor(CONTACTOR_OPEN);
         break;
 
         case 1:
-            PCDC_PC;
+            setPrechargeContactor(CONTACTOR_CLOSED);
         break;
 
         default:

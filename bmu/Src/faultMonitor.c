@@ -21,6 +21,9 @@
 
 #define FAULT_MEASURE_TASK_PERIOD 100
 #define FAULT_TASK_ID 6
+// Consecutive low HW check samples (FAULT_MEASURE_TASK_PERIOD apart) before it counts as a fault. A single low
+// sample is usually a glitch when a contactor closes, and the loop hardware drops the contactors by itself anyway
+#define HW_CHECK_FAIL_SAMPLES 3
 
 #define ENABLE_IL_CHECKS
 #define IL_TEST
@@ -334,6 +337,7 @@ void faultMonitorTask(void *pvParameters) {
     }
 
     bool last_cbrb_ok = false;
+    int hwCheckLowSamples = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     uint16_t sentEvent = 0xffff;
@@ -395,7 +399,24 @@ void faultMonitorTask(void *pvParameters) {
             continue;
         }
 
-        if (getHwCheck_Status() == false && sentEvent > HW_CHECK_FAILED) {
+        if (getHwCheck_Status() == false) {
+            hwCheckLowSamples++;
+        } else {
+            if (hwCheckLowSamples > 0 && hwCheckLowSamples < HW_CHECK_FAIL_SAMPLES) {
+                ERROR_PRINT("Fault Monitor: HW check dipped low for %d sample(s), ignored\n", hwCheckLowSamples);
+            } else if (hwCheckLowSamples >= HW_CHECK_FAIL_SAMPLES && CHARGE_CART_MODE) {
+                ERROR_PRINT("Fault Monitor: HW check back after %d samples low\n", hwCheckLowSamples);
+            }
+            hwCheckLowSamples = 0;
+        }
+
+        if (CHARGE_CART_MODE) {
+            // The charge cart only reports HW check instead of faulting on it. The loop hardware still drops
+            // the contactors when their coil power goes
+            if (hwCheckLowSamples == HW_CHECK_FAIL_SAMPLES) {
+                ERROR_PRINT("Fault Monitor: HW check low (contactor coil power), not faulting in CHARGE_CART_MODE\n");
+            }
+        } else if (hwCheckLowSamples >= HW_CHECK_FAIL_SAMPLES && sentEvent > HW_CHECK_FAILED) {
             ERROR_PRINT("Fault Monitor: HW check failed!\n");
             fsmSendEventUrgent(&fsmHandle, EV_HV_Fault, portMAX_DELAY);
             sentEvent = HW_CHECK_FAILED;
