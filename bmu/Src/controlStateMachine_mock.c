@@ -204,11 +204,14 @@ static const CLI_Command_Definition_t testLowPassFilterCommandDefinition =
     0 /* Number of parameters */
 };
 
+#define BATT_INFO_CELLS_PER_SEGMENT (CELLS_PER_BOARD * NUM_BOARDS_PER_SEGMENT)
+
 BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
 
     static int cellIdx = -6;
+    static bool segmentHeaderPrinted = false;
 
     float IBus, VBus, VBatt, packVoltage;
 
@@ -243,6 +246,15 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
         cellIdx = 0;
         return pdTRUE;
     }
+    else if (cellIdx % BATT_INFO_CELLS_PER_SEGMENT == 0 && !segmentHeaderPrinted) {
+        // Separator at the start of each segment. Temp channels are split the same number per segment,
+        // so both columns line up with it
+        const int segment = cellIdx / BATT_INFO_CELLS_PER_SEGMENT;
+        COMMAND_OUTPUT("-- Segment %d (board %d): #%d-%d --\r\n", segment + 1, segment * NUM_BOARDS_PER_SEGMENT,
+                       cellIdx + 1, cellIdx + BATT_INFO_CELLS_PER_SEGMENT);
+        segmentHeaderPrinted = true;
+        return pdTRUE;
+    }
     // Note that the temperature channels are not correlated with the voltage cell
 	else if(cellIdx >= NUM_VOLTAGE_CELLS && cellIdx < NUM_TEMP_CELLS){
         COMMAND_OUTPUT("%d\t(N/A)\t%f\r\n", cellIdx+1, TempChannel[cellIdx]);
@@ -253,6 +265,7 @@ BaseType_t printBattInfo(char *writeBuffer, size_t writeBufferLength,
 		// Do nothing
 	}
 	++cellIdx;
+	segmentHeaderPrinted = false;
     if (cellIdx >= NUM_VOLTAGE_CELLS && cellIdx >= NUM_TEMP_CELLS) {
         cellIdx = -6;
         return pdFALSE;

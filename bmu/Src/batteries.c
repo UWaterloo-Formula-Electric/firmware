@@ -685,9 +685,20 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
     }
 }
 
-// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1.
+// Dead thermistors that report fake temps (about 88 C or -17 C), ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1.
 // 0-based channel numbers, so battInfo's temp index minus 1
-static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 59, 90, 91, 92, 93, 94, 95, 96, 115};
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {2, 3, 15, 17, 20, 23, 24, 28, 29, 49, 59, 90, 92, 93, 116, 124};
+
+// The voltage to temp conversion bottoms out at -17 C when the thermistor input is at 0 V (thermistor open or
+// shorted to ground), so a reading this low is never a real temperature. Those channels are skipped like dead ones
+#define THERMISTOR_INPUT_AT_0V_TEMP_C (-16.0F)
+
+/// Set once a warning was printed for a channel at 0 V that isn't in DEAD_THERMISTOR_CHANNELS
+static bool warnedThermistorAt0V[NUM_TEMP_CELLS];
+
+static bool isThermistorAt0V(int channel) {
+   return TempChannel[channel] <= THERMISTOR_INPUT_AT_0V_TEMP_C;
+}
 
 static bool isDeadThermistorChannel(int channel) {
    if (!DEAD_THERMISTOR_SKIP_ENABLED) {
@@ -702,7 +713,7 @@ static bool isDeadThermistorChannel(int channel) {
 }
 
 /**
- * @brief Average temp over all thermistor channels, excluding dead ones
+ * @brief Average temp over all thermistor channels, excluding dead ones and ones at 0 V
  *
  * @return Average temp in deg C, or 0 if every channel is dead
  */
@@ -711,7 +722,7 @@ float getAvgValidTemp(void)
    float sum = 0.0f;
    int count = 0;
    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-      if (isDeadThermistorChannel(i)) {
+      if (isDeadThermistorChannel(i) || isThermistorAt0V(i)) {
          continue;
       }
       sum += TempChannel[i];
@@ -803,6 +814,17 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             if (isDeadThermistorChannel(i)) {
                 continue;
             }
+
+            // A thermistor that newly reads 0 V: warn once and skip it, instead of counting -17 C as a real temp
+            if (isThermistorAt0V(i)) {
+                if (!warnedThermistorAt0V[i]) {
+                    ERROR_PRINT("WARN: Temp ch %d (battInfo #%d) reads %.1f C, input at 0 V, ignoring it\n",
+                                i, i + 1, TempChannel[i]);
+                    warnedThermistorAt0V[i] = true;
+                }
+                continue;
+            }
+            warnedThermistorAt0V[i] = false;
 
             measure = TempChannel[i];
                 
