@@ -1516,7 +1516,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
  * @return true if close to red zone, false otherwise
  */
 bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
-    if (maxCell > DEFAULT_LIMIT_OVERVOLTAGE - 0.1) {
+    if (maxCell > CLOSE_TO_RED_MAX_CELL_VOLTAGE) {
         DEBUG_PRINT("max cell");
         return true;
     }

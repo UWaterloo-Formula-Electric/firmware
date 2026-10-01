@@ -26,6 +26,9 @@
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
 #define DEFAULT_LIMIT_OVERVOLTAGE 4.2F
+/// HV is taken down ("close to red") when the highest cell is above this, outside of charging. Must stay above
+/// CHARGE_MAX_CELL_VOLTAGE, otherwise a fully charged pack faults the BMU
+#define CLOSE_TO_RED_MAX_CELL_VOLTAGE 4.18F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
@@ -93,11 +96,13 @@
 #define CHARGE_MAX_CELL_VOLTAGE (4.15F)
 
 /**
- * Set to 0 to charge without balancing. Cells in NO_DISCHARGE_CELLS (ltc_chip.c) are never balanced either
- * (partial balancing). If any cell can't be balanced, charging stops as soon as the highest cell reaches
- * @ref CHARGE_STOP_SOC, since nothing can bring it back down
+ * Set to 0 to charge without balancing (charging only happens on the charge cart). Charging then stops when the
+ * highest cell reads @ref CHARGE_MAX_CELL_VOLTAGE, which comes before @ref CHARGE_STOP_SOC on the highest cell.
+ * Cells in NO_DISCHARGE_CELLS (ltc_chip.c) are never balanced either (partial balancing). If any cell can't be
+ * balanced, charging stops as soon as the highest cell reaches @ref CHARGE_STOP_SOC, since nothing can bring it
+ * back down
  */
-#define BALANCE_WHILE_CHARGING_ENABLED (1)
+#define BALANCE_WHILE_CHARGING_ENABLED (0)
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
