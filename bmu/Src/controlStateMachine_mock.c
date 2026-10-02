@@ -731,6 +731,33 @@ BaseType_t chargerStatusCommand(char *writeBuffer, size_t writeBufferLength,
         DEBUG_PRINT("  last raw ext ID:     (none seen)\n");
     }
 
+    // The controller state tells "nothing on the bus" (no frames, error counters at 0) apart from wiring,
+    // termination or bitrate problems (receive errors, stuff/form/CRC errors) and nothing ACKing the BMU's frames
+    static const char *const LAST_ERROR_NAMES[] = {
+        "none", "stuff", "form", "no ACK", "bit recessive", "bit dominant", "CRC", "none (set by software)"
+    };
+    const uint32_t esr = CHARGER_CAN_HANDLE.Instance->ESR;
+    const unsigned long txErrors = (esr & CAN_ESR_TEC) >> CAN_ESR_TEC_Pos;
+    const unsigned long rxErrors = (esr & CAN_ESR_REC) >> CAN_ESR_REC_Pos;
+    const uint32_t lastError = (esr & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos;
+    const bool started = (HAL_CAN_GetState(&CHARGER_CAN_HANDLE) == HAL_CAN_STATE_LISTENING);
+    const char *busState = (esr & CAN_ESR_BOFF) ? "BUS-OFF" : ((esr & CAN_ESR_EPVF) ? "error passive" : "ok");
+
+    DEBUG_PRINT("  controller: %s, bus %s, TX errors %lu, RX errors %lu\n",
+                started ? "started" : "NOT started", busState, txErrors, rxErrors);
+    DEBUG_PRINT("  last bus error: %s\n", LAST_ERROR_NAMES[lastError]);
+    if (!started) {
+        DEBUG_PRINT("  -> charger CAN isn't started, run enterChargeMode\n");
+    } else if (esr & CAN_ESR_BOFF) {
+        DEBUG_PRINT("  -> bus-off lasts until reset: fix the wiring, then power cycle\n");
+    } else if (rxErrors > 0 || (lastError != 0 && lastError != 3 && lastError != 7)) {
+        DEBUG_PRINT("  -> bus errors: check CANH/CANL swap, termination (~60 ohm) and bitrate\n");
+    } else if (lastError == 3) {
+        DEBUG_PRINT("  -> nothing ACKs the BMU's frames: charger off or not on this bus\n");
+    } else if (rawCount == 0) {
+        DEBUG_PRINT("  -> no frames and no errors: charger not transmitting (power/enable) or not connected\n");
+    }
+
     if (!chargerStatusEverReceived()) {
         DEBUG_PRINT("  ChargeStatus frames: NONE parsed - charger silent or wrong ID\n");
     } else {
@@ -751,7 +778,7 @@ BaseType_t chargerStatusCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t chargerStatusCommandDefinition =
 {
     "chargerStatus",
-    "chargerStatus:\r\n  print charger CAN RX diagnostics (raw frame count, last ID, parsed status)\r\n",
+    "chargerStatus:\r\n  print charger CAN diagnostics (raw frame count, last ID, controller errors, parsed status)\r\n",
     chargerStatusCommand,
     0 /* Number of parameters */
 };
@@ -1538,6 +1565,80 @@ static const CLI_Command_Definition_t getCellVoltagesADSVCommandDefinition =
     0 /* Number of parameters */
 };
 
+/*
+ * Open wire check on every AMS chip that answers. Unlike the battery task's check it doesn't need every configured
+ * board to answer, so it works with one segment on the bench while NUM_SEGMENTS is 5. Prints which chips answered,
+ * then each open cell, then a summary
+ */
+BaseType_t getOpenCommand(char *writeBuffer, size_t writeBufferLength,
+                          const char *commandString)
+{
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    static int line = -1;
+    static bool deviceOk[NUM_DEVICES];
+    static float adcv[NUM_VOLTAGE_CELLS];
+    static float adsv[NUM_VOLTAGE_CELLS];
+    static uint8_t openCells[NUM_VOLTAGE_CELLS];
+    static int numOpen = 0;
+    static int numSkipped = 0;
+    static int numUnchecked = 0;
+
+    if (line == -1) {
+        if (batt_open_wire_scan(deviceOk, adcv, adsv) != HAL_OK) {
+            COMMAND_OUTPUT("getOpen: AMS read failed\r\n");
+            return pdFALSE;
+        }
+
+        numOpen = 0;
+        numSkipped = 0;
+        numUnchecked = 0;
+        for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
+            const int board = cell / CELLS_PER_BOARD;
+            const int chip = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
+            if (!deviceOk[board * NUM_LTC_CHIPS_PER_BOARD + chip]) {
+                numUnchecked++;
+            } else if (cell % CELLS_PER_BOARD != 0 && !batt_cell_can_discharge(cell)) {
+                numSkipped++;
+            } else if (batt_open_wire_reason(cell, adcv[cell], adsv[cell]) != NULL) {
+                openCells[numOpen++] = cell;
+            }
+        }
+        line = 0;
+    }
+
+    // One line per call: each board, then each open cell, then the summary
+    if (line < NUM_BOARDS) {
+        const int board = line;
+        COMMAND_OUTPUT("Board %d (segment %d): chip 0 %s, chip 1 %s\r\n", board, board / NUM_BOARDS_PER_SEGMENT + 1,
+                       deviceOk[board * NUM_LTC_CHIPS_PER_BOARD] ? "ok" : "NO REPLY",
+                       deviceOk[board * NUM_LTC_CHIPS_PER_BOARD + 1] ? "ok" : "NO REPLY");
+    } else if (line < NUM_BOARDS + numOpen) {
+        const int cell = openCells[line - NUM_BOARDS];
+        COMMAND_OUTPUT("Cell %d (battInfo #%d) OPEN, %s: PU %.4f V, PD %.4f V\r\n", cell, cell + 1,
+                       batt_open_wire_reason(cell, adcv[cell], adsv[cell]), adcv[cell], adsv[cell]);
+    } else {
+        COMMAND_OUTPUT("%d open, %d skipped (NO_DISCHARGE_CELLS), %d not checked (chip not answering)\r\n",
+                       numOpen, numSkipped, numUnchecked);
+        line = -1;
+        return pdFALSE;
+    }
+
+    line++;
+    return pdTRUE;
+#else
+    COMMAND_OUTPUT("getOpen only supports the ADBMS6830\r\n");
+    return pdFALSE;
+#endif
+}
+
+static const CLI_Command_Definition_t getOpenCommandDefinition =
+{
+    "getOpen",
+    "getOpen:\r\n Open wire check on every AMS chip that answers, works with fewer segments connected than NUM_SEGMENTS\r\n",
+    getOpenCommand,
+    0 /* Number of parameters */
+};
+
 /**
  * @brief Manual PWM discharge for one global cell, same sequence as @ref handleCharge
  *        balance path (batteries.c): per-cell state, WRPWM, then discharge timer + WRCFGA/B.
@@ -2064,6 +2165,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getCellVoltagesADSVCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&getOpenCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {

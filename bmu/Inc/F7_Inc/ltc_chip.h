@@ -162,6 +162,12 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
 HAL_StatusTypeDef batt_write_balancing_config(void);
 /* Sets *readFailed if the AMS boards couldn't be read, as opposed to an open wire being detected */
 HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed);
+/* Why one cell's averaged open wire readings look open, or NULL if they look fine (same checks as above) */
+const char *batt_open_wire_reason(int cell, float adcv, float adsv);
+#if LTC_CHIP == ADBMS_CHIP_6830B
+/* Open wire readings that work with fewer boards connected than configured. deviceOk[dev] is false if it didn't answer */
+HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, float *adsv);
+#endif
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
 HAL_StatusTypeDef batt_set_disharge_timer(DischargeTimerLength length);

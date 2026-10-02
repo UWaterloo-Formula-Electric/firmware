@@ -578,6 +578,40 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	return HAL_ERROR;
 }
 
+/*
+ * One read that doesn't need every device to answer: copies the data of each device that passes its PEC and marks
+ * it in deviceOk. Prints nothing, the caller reports which devices didn't answer
+ */
+static HAL_StatusTypeDef batt_read_data_partial(uint8_t first_byte, uint8_t second_byte, uint8_t *data_buffer,
+                                                unsigned int response_size, bool deviceOk[NUM_DEVICES])
+{
+	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_DEVICES);
+	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
+	uint8_t rxBuffer[BUFF_SIZE];
+	uint8_t txBuffer[BUFF_SIZE];
+	memset(rxBuffer, 0xFF, BUFF_SIZE);
+	memset(txBuffer, 0xFF, BUFF_SIZE);
+
+	if (batt_spi_wakeup(true) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	for (int i = 0; i < NUM_DEVICES; i++) {
+		const size_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
+		deviceOk[i] = (checkPECData(&(rxBuffer[startOfData]), response_size) == HAL_OK);
+		if (deviceOk[i]) {
+			memcpy(&(data_buffer[i * response_size]), &(rxBuffer[startOfData]), response_size);
+		}
+	}
+	return HAL_OK;
+}
+
 /* Read ADSV snapshot groups RDSVA..RDSVF (6 bytes each: three 16-bit values, LSB first per pair). */
 HAL_StatusTypeDef batt_read_config_ADSV(
 	uint8_t adsv_a[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
@@ -937,6 +971,71 @@ HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array)
 				size_t off = (c % 3u) * 2u;
 				int16_t adc = (int16_t)(((uint16_t)b[off + 1] << 8) | b[off]);
 				cell_voltage_array[(size_t)board * CELLS_PER_BOARD + (size_t)chip * CELLS_PER_CHIP + c] =
+					(adc * 0.000150f) + 1.5f;
+			}
+		}
+	}
+	return HAL_OK;
+}
+
+/*
+ * Read the cell results after ADCV (cAdc true, RDCVA..E) or ADSV (RDSVA..E) without needing every device to answer,
+ * for tools that have to work with fewer boards connected than configured. deviceOk[dev] ends up false for a device
+ * that failed its PEC on every attempt of any group, and that device's cells are left untouched
+ */
+HAL_StatusTypeDef batt_read_cell_results_partial(bool cAdc, float *cell_voltage_array, bool deviceOk[NUM_DEVICES])
+{
+	static const uint8_t rdcvCmds[5][2] = {
+		{ RDCVA_BYTE0, RDCVA_BYTE1 }, { RDCVB_BYTE0, RDCVB_BYTE1 }, { RDCVC_BYTE0, RDCVC_BYTE1 },
+		{ RDCVD_BYTE0, RDCVD_BYTE1 }, { RDCVE_BYTE0, RDCVE_BYTE1 },
+	};
+	static const uint8_t rdsvCmds[5][2] = {
+		{ RDSVA_BYTE0, RDSVA_BYTE1 }, { RDSVB_BYTE0, RDSVB_BYTE1 }, { RDSVC_BYTE0, RDSVC_BYTE1 },
+		{ RDSVD_BYTE0, RDSVD_BYTE1 }, { RDSVE_BYTE0, RDSVE_BYTE1 },
+	};
+	const uint8_t (*cmds)[2] = cAdc ? rdcvCmds : rdsvCmds;
+
+	for (int dev = 0; dev < NUM_DEVICES; dev++) {
+		deviceOk[dev] = true;
+	}
+
+	// Each group holds 3 cells per device
+	for (int group = 0; group * 3 < CELLS_PER_CHIP; group++) {
+		uint8_t data[NUM_DEVICES * VOLTAGE_BLOCK_SIZE];
+		bool groupOk[NUM_DEVICES] = {false};
+
+		// Retry while some device hasn't answered. A device keeps the data from the last attempt it answered
+		for (int attempt = 0; attempt <= AMS_READ_RETRIES; attempt++) {
+			bool attemptOk[NUM_DEVICES];
+			if (batt_read_data_partial(cmds[group][0], cmds[group][1], data, VOLTAGE_BLOCK_SIZE, attemptOk) != HAL_OK) {
+				return HAL_ERROR;
+			}
+			bool allOk = true;
+			for (int dev = 0; dev < NUM_DEVICES; dev++) {
+				groupOk[dev] = groupOk[dev] || attemptOk[dev];
+				allOk = allOk && groupOk[dev];
+			}
+			if (allOk) {
+				break;
+			}
+		}
+
+		for (int dev = 0; dev < NUM_DEVICES; dev++) {
+			if (!groupOk[dev]) {
+				deviceOk[dev] = false;
+				continue;
+			}
+			const int board = dev / NUM_LTC_CHIPS_PER_BOARD;
+			const int chip = dev % NUM_LTC_CHIPS_PER_BOARD;
+			for (int cell = 0; cell < 3; cell++) {
+				const int cellInChip = group * 3 + cell;
+				if (cellInChip >= CELLS_PER_CHIP) {
+					break;
+				}
+				const size_t dataIdx = dev * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
+				// LSB first. Cell voltage = ADC * 150 uV + 1.5 V (Table 104)
+				const int16_t adc = (int16_t)(((uint16_t)data[dataIdx + 1] << 8) | data[dataIdx]);
+				cell_voltage_array[board * CELLS_PER_BOARD + chip * CELLS_PER_CHIP + cellInChip] =
 					(adc * 0.000150f) + 1.5f;
 			}
 		}
