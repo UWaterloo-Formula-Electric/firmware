@@ -55,6 +55,8 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 /* After ADSV conversion: read RDSVA..F into cell_voltage_array (same global indexing as batt_readBackCellVoltage). */
 HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array);
+/* Cell results after ADCV (cAdc) or ADSV, keeping every device that answers. deviceOk[dev] is false for the rest */
+HAL_StatusTypeDef batt_read_cell_results_partial(bool cAdc, float *cell_voltage_array, bool deviceOk[NUM_DEVICES]);
 /* RDPWMA/RDPWMB readback: 4-bit PWM duty per cell (same nibble layout as WRPWM / batt_set_balancing_cell). */
 HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);

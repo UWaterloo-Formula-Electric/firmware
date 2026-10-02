@@ -204,9 +204,7 @@ HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        if (PRINT_ALL_PEC_ERRORS) {
-            DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
-        }
+        // The caller prints which device failed
         return HAL_ERROR;
     }
 }

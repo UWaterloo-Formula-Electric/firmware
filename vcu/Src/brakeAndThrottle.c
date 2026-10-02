@@ -37,6 +37,10 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle);
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
+// Throttle pots currently disagree, and when that started
+static bool tpsImplausible = false;
+static TickType_t tpsImplausibleStartTick = 0;
+
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Helpers-------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -194,14 +198,10 @@ float getThrottleBFiltered()
     return get_median(throttleBReadings, NUM_MEDIAN_FILTER_SAMPLES);
 }
 
-// Get the throttle position as a percent
-// @ret False if implausibility, true otherwise
-bool getThrottlePositionPercent(float *throttleOut)
+// Read both throttle pots as percents
+// @ret False if either pot is out of range, true otherwise
+static bool getThrottlePercents(float *throttle1_percent, float *throttle2_percent)
 {
-    float throttle1_percent, throttle2_percent;
-    float throttle;
-    (*throttleOut) = 0;
-
     float thA = getThrottleAFiltered();
     float thB = getThrottleBFiltered();
     float brake = brakeThrottleSteeringADCVals[BRAKE_POS_INDEX];
@@ -217,19 +217,32 @@ bool getThrottlePositionPercent(float *throttleOut)
     if (is_throttle1_in_range(thA)
         && is_throttle2_in_range(thB))
     {
-        throttle1_percent = calculate_throttle_percent1(thA);
-        throttle2_percent = calculate_throttle_percent2(thB);
+        (*throttle1_percent) = calculate_throttle_percent1(thA);
+        (*throttle2_percent) = calculate_throttle_percent2(thB);
     } else {
       ERROR_PRINT("Throttle pot out of range: (A: %lu, B: %lu)\n", (uint32_t)thA, (uint32_t)thB);
       return false;
     }
 
+    return true;
+}
+
+// Get the throttle position as a percent
+// @ret False if implausibility, true otherwise
+bool getThrottlePositionPercent(float *throttleOut)
+{
+    float throttle1_percent, throttle2_percent;
+    float throttle;
+    (*throttleOut) = 0;
+
+    if (!getThrottlePercents(&throttle1_percent, &throttle2_percent)) {
+        return false;
+    }
+
     // Check if two throttle pots agree
     if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
     {
-        (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
-        DEBUG_PRINT("Throttle A: %lu, Throttle B: %lu\n", (uint32_t)thA, (uint32_t)thB);
         return false;
     } else {
         /*DEBUG_PRINT("t1 %ld, t2 %ld\n", throttle1_percent, throttle2_percent);*/
@@ -275,12 +288,31 @@ __unused static bool checkBrakeImplausibility()
  */
 ThrottleStatus_t getNewThrottle(float *throttleOut)
 {
+    float throttle1_percent, throttle2_percent;
     float throttle = 0;
     (*throttleOut) = 0;
 
-    if (!getThrottlePositionPercent(&throttle)) {
+    if (!getThrottlePercents(&throttle1_percent, &throttle2_percent)) {
         DEBUG_PRINT("Throttle error\n");
         return THROTTLE_FAULT;
+    }
+
+    if (is_tps_within_tolerance(throttle1_percent, throttle2_percent)) {
+        tpsImplausible = false;
+        throttle = (throttle1_percent + throttle2_percent) / TPS_SENSOR_COUNT;
+    } else {
+        // T.4.2.5 only requires cutting power once the pots disagree for over 100 ms,
+        // so ride through brief mismatches on fast pedal moves using the lower pot
+        TickType_t now = xTaskGetTickCount();
+        if (!tpsImplausible) {
+            tpsImplausible = true;
+            tpsImplausibleStartTick = now;
+        } else if (now - tpsImplausibleStartTick >= pdMS_TO_TICKS(TPS_IMPLAUSIBILITY_PERSIST_MS)) {
+            ERROR_PRINT("implausible pedal for %d ms! difference: %f %%\r\n",
+                        TPS_IMPLAUSIBILITY_PERSIST_MS, throttle1_percent - throttle2_percent);
+            return THROTTLE_FAULT;
+        }
+        throttle = min(throttle1_percent, throttle2_percent);
     }
 
     if (appsBrakePedalPlausibilityCheckFail(throttle)) {
@@ -314,13 +346,16 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle)
         // Both throttle and brake were pressed, check if still the case
         if (throttle < TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT) {
             throttleAndBrakePressedError = false;
+            BrakeWhileThrottle = 0;
             sendDTC_WARNING_BrakeWhileThrottleError_Enabled();
         } else {
-            DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
+            // DEBUG_PRINT("Throttle disabled, brake was pressed and throttle still not zero\n");
             return true;
         }
-    } else if (getBrakePositionPercent() > APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
+    } else if (getBrakePressurePercent() >= APPS_BRAKE_PLAUSIBILITY_THRESHOLD && throttle > TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT) {
         throttleAndBrakePressedError = true;
+        // Logged in VCU_Data so the latch can be lined up with pedals and inverter torque
+        BrakeWhileThrottle = 1;
         sendDTC_WARNING_BrakeWhileThrottleError_Disabled();
         DEBUG_PRINT("Throttle disabled, brakePressed\n");
         return true;
@@ -428,7 +463,8 @@ void canPublishTask(void *pvParameters)
     vTaskDelay(pdMS_TO_TICKS(VCU_DATA_STARTUP_DELAY_MS));
     while (1) {
         // Update value to be sent over can
-        ThrottlePercent = throttlePercentReading;
+        // Pedal deadzone can put this slightly below 0, and ThrottlePercent is unsigned
+        ThrottlePercent = clip(throttlePercentReading, PERCENT_MIN, PERCENT_MAX);
         FrontBrakePressure = getBrakePressure();
         SteeringAngle = getSteeringAngle();
         BrakePercent = getBrakePositionPercent();
@@ -498,6 +534,9 @@ void InvCommandTask(void)
         else
         {
             // EM disabled
+            // Restart the implausibility timer so a stale start time can't fault on next enable
+            tpsImplausible = false;
+
             // still update throttle ADC moving filter
             float thA = getThrottleAFiltered();
             float thB = getThrottleBFiltered();
@@ -508,8 +547,18 @@ void InvCommandTask(void)
             BrakeReading = brake;
             // DEBUG_PRINT("ThA: %u, ThB: %u, Brake: %u\n", (uint16_t)ThrottleAReading >> 3, (uint16_t)ThrottleBReading >> 3, (uint16_t)BrakeReading >> 3);
             sendCAN_VCU_ADCReadings();
-            
-            throttlePercentReading = 0;
+
+            // Report pedal % for logging (MoTeC) only, no torque is commanded here.
+            // Same checks as getThrottlePositionPercent but silent, since printing
+            // every loop with a bad pedal can block past the watchdog period
+            float throttleA = calculate_throttle_percent1(thA);
+            float throttleB = calculate_throttle_percent2(thB);
+            if (is_throttle1_in_range(thA) && is_throttle2_in_range(thB)
+                && is_tps_within_tolerance(throttleA, throttleB)) {
+                throttlePercentReading = (throttleA + throttleB) / TPS_SENSOR_COUNT;
+            } else {
+                throttlePercentReading = 0;
+            }
         }
         watchdogTaskCheckIn(INV_COMMAND_TASK_ID);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(INV_COMMAND_TASK_PERIOD_MS));

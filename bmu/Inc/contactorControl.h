@@ -24,5 +24,6 @@ void setNegContactor(ContactorState_t state);
 void setPosContactor(ContactorState_t state);
 void setPrechargeContactor(ContactorState_t state);
 void openAllContactors();
+void latchContactorsOpen(void);
 
 #endif

@@ -64,6 +64,18 @@
 #define LAP_BEACON_EN HAL_GPIO_WritePin(AUX_4_PWR_GPIO_Port, AUX_4_PWR_Pin, GPIO_PIN_SET)
 #define LAP_BEACON_DISABLE HAL_GPIO_WritePin(AUX_4_PWR_GPIO_Port, AUX_4_PWR_Pin, GPIO_PIN_RESET)
 
+// Set to 0 to keep the accumulator fans off: automatic cooling, CLI and CAN channel commands can't turn them on.
+// Radiators and pumps are unaffected
+#define ACC_FANS_ALLOWED (0)
+#if !ACC_FANS_ALLOWED
+#undef ACC_FANS_1_EN
+#undef ACC_FANS_2_EN
+#undef ACC_FANS_3_EN
+#define ACC_FANS_1_EN ACC_FANS_1_DISABLE
+#define ACC_FANS_2_EN ACC_FANS_2_DISABLE
+#define ACC_FANS_3_EN ACC_FANS_3_DISABLE
+#endif
+
 // charge stat (2), temp alert, 
 /* See Table 2 in BQ24650RVAT's datasheet for logic */
 #define READ_CHARGE_STAT_1 (HAL_GPIO_ReadPin(CHG_STAT_1_GPIO_Port, CHG_STAT_1_Pin))
