@@ -385,7 +385,7 @@ BO_ 2282750722 VCU_Data: 6 VCU_F7
  SG_ BrakeWhileThrottle : 40|1@1+ (1,0) [0|1] ""  VCU_BeagleBone
  SG_ FrontBrakePressure : 16|16@1- (1,0) [0|0] "PSI"  VCU_BeagleBone
  SG_ SteeringAngle : 32|8@1- (1,0) [0|0] "degrees" Vector__XXX
- SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "percent"  PDU
+ SG_ BrakePercent : 8|8@1+ (1,0) [0|0] "percent"  PDU,BMU
  SG_ ThrottlePercent : 0|8@1+ (1,0) [0|0] "percent" Vector__XXX
 
 BO_ 2214987522 VCU_EM_State: 1 VCU_F7

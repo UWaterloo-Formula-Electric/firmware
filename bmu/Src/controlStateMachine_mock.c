@@ -609,6 +609,8 @@ extern bool gChargeMode;
 #define OK_DOWN(ok) ((ok) ? "ok" : "DOWN")
 // For the car-only IL points, which aren't checked on the charge cart
 #define CAR_IL_OK_DOWN(ok) (CHARGE_CART_MODE ? "skipped" : OK_DOWN(ok))
+// The firmware BSPD still runs on the charge cart
+#define BSPD_OK_DOWN(ok) (FIRMWARE_BSPD ? OK_DOWN(ok) : CAR_IL_OK_DOWN(ok))
 #define ON_OFF(on) ((on) ? "on" : "off")
 #if IS_BOARD_F7
 #define PIN_SET(port, pin) (HAL_GPIO_ReadPin((port), (pin)) == GPIO_PIN_SET)
@@ -631,7 +633,7 @@ BaseType_t printStatus(char *writeBuffer, size_t writeBufferLength,
         case 1:
             COMMAND_OUTPUT("IL: BOTS %s, EBOX %s, BSPD %s, HVD %s, AMS %s\r\n",
                            CAR_IL_OK_DOWN(getBOTS_Status()), OK_DOWN(getEbox_Il_Status()),
-                           CAR_IL_OK_DOWN(getBSPD_Status()), OK_DOWN(getHVD_Status()), OK_DOWN(getAMS_Status()));
+                           BSPD_OK_DOWN(getBSPD_Status()), OK_DOWN(getHVD_Status()), OK_DOWN(getAMS_Status()));
             break;
         case 2:
             COMMAND_OUTPUT("IL: IMD %s, CBRB %s, TSMS %s, HW check %s\r\n",
@@ -1143,7 +1145,13 @@ static const CLI_Command_Definition_t hitlPrechargeModeCommandDefinition =
 BaseType_t bspdStatusCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    COMMAND_OUTPUT("BSPD State %s\n", CHARGE_CART_MODE ? "skipped (CHARGE_CART_MODE)" : getBSPD_Status()?"OK":"Fault");
+    if (FIRMWARE_BSPD) {
+        COMMAND_OUTPUT("BSPD State %s | firmware BSPD %s, brake %d%%, trips at %d%%\n",
+                       getBSPD_Status() ? "OK" : "Fault", isFirmwareBSPDTripped() ? "TRIPPED" : "armed",
+                       (int)BrakePercent, FIRMWARE_BSPD_BRAKE_PERCENT);
+    } else {
+        COMMAND_OUTPUT("BSPD State %s\n", CHARGE_CART_MODE ? "skipped (CHARGE_CART_MODE)" : getBSPD_Status()?"OK":"Fault");
+    }
     return pdFALSE;
 }
 static const CLI_Command_Definition_t bspdStatusCommandDefinition =

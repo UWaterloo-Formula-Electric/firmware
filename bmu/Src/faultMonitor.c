@@ -24,6 +24,9 @@
 // Consecutive low HW check samples (FAULT_MEASURE_TASK_PERIOD apart) before it counts as a fault. A single low
 // sample is usually a glitch when a contactor closes, and the loop hardware drops the contactors by itself anyway
 #define HW_CHECK_FAIL_SAMPLES 3
+// Consecutive samples (FAULT_MEASURE_TASK_PERIOD apart) with the brake at or above FIRMWARE_BSPD_BRAKE_PERCENT before
+// the firmware BSPD trips. 500 ms, same delay the rules give the hardware BSPD
+#define FIRMWARE_BSPD_TRIP_SAMPLES 5
 
 #define ENABLE_IL_CHECKS
 #define IL_TEST
@@ -34,6 +37,32 @@
 
 // When charging, some IL checks should be ignored since we are not plugged into vehicle harness
 bool skip_il = false;
+
+// Firmware BSPD (see FIRMWARE_BSPD in bsp.h). Only faultMonitorSendStatusTask writes these
+static volatile bool firmwareBspdTripped = false;
+static int firmwareBspdBrakeSamples = 0;
+
+// Called every FAULT_MEASURE_TASK_PERIOD. Once tripped it stays tripped until the BMU resets
+static void updateFirmwareBSPD() {
+    if (!FIRMWARE_BSPD || firmwareBspdTripped) {
+        return;
+    }
+
+    if (BrakePercent >= FIRMWARE_BSPD_BRAKE_PERCENT) {
+        firmwareBspdBrakeSamples++;
+    } else {
+        firmwareBspdBrakeSamples = 0;
+    }
+
+    if (firmwareBspdBrakeSamples >= FIRMWARE_BSPD_TRIP_SAMPLES) {
+        ERROR_PRINT("Fault Monitor: Firmware BSPD tripped, brake at %d%%\n", (int)BrakePercent);
+        firmwareBspdTripped = true;
+    }
+}
+
+bool isFirmwareBSPDTripped() {
+    return firmwareBspdTripped;
+}
 
 // IL A
 bool getBOTS_Status() {
@@ -51,6 +80,9 @@ bool getEbox_Il_Status() {
 
 // IL C
 bool getBSPD_Status() {
+    if (firmwareBspdTripped) {
+        return false;
+    }
     if (CHARGE_CART_MODE) {
         return true;
     }
@@ -104,6 +136,8 @@ void faultMonitorSendStatusTask(void *pvParameters) {
         BMU_InterlockInitialized = isInitialized;
         sendCAN_BMU_Interlock_Loop_Status();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(FAULT_MEASURE_TASK_PERIOD));
+        // Runs here since this task runs from boot, so the firmware BSPD is live before the IL checks pass too
+        updateFirmwareBSPD();
         // DEBUG_PRINT("BOTS: %d, EBOX: %d, BSPD: %d, HVD: %d, AMS: %d, IMD: %d, CBRB: %d, TSMS: %d, HW_CHECK: %d\n",
         //             getBOTS_Status(), getEbox_Il_Status(), getBSPD_Status(), getHVD_Status(),
         //             getAMS_Status(), getIMD_Status(), getCBRB_Status(), getTSMS_Status(),
@@ -176,6 +210,10 @@ void faultMonitorTask(void *pvParameters) {
     if (CHARGE_CART_MODE) {
         DEBUG_PRINT("Fault Monitor: CHARGE_CART_MODE is 1, not checking BOTS, BSPD, CBRB, TSMS\r\n");
     }
+    if (FIRMWARE_BSPD) {
+        DEBUG_PRINT("Fault Monitor: FIRMWARE_BSPD is 1, BSPD trips at %d%% brake pressure\r\n",
+                    FIRMWARE_BSPD_BRAKE_PERCENT);
+    }
 
     if (getBOTS_Status() == false) {
         DEBUG_PRINT("Fault Monitor: BOTS is down!\r\n");
@@ -210,6 +248,9 @@ void faultMonitorTask(void *pvParameters) {
         DEBUG_PRINT("Fault Monitor: This is IL_C in the 2025 BMU schematic.\r\n");
         DEBUG_PRINT("Fault Monitor: -- help --\r\n");
         DEBUG_PRINT("Fault Monitor: Make sure reset buttons are pressed\r\n");
+        if (firmwareBspdTripped) {
+            DEBUG_PRINT("Fault Monitor: Firmware BSPD tripped, power cycle the BMU to reset it\r\n");
+        }
     }
 
     while (getBSPD_Status() == false) {

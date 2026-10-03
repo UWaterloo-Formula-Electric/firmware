@@ -33,6 +33,7 @@ typedef enum faultMonitorBits_e {
 bool getBOTS_Status();
 bool getEbox_Il_Status();
 bool getBSPD_Status();
+bool isFirmwareBSPDTripped();
 bool getHVD_Status();
 bool getAMS_Status();
 bool getIMD_Status();
