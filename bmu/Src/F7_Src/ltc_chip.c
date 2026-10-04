@@ -313,23 +313,44 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
 
 // Cells with bleed resistors removed
 // S-ADC measures through the discharge path so the
-// ADCV/ADSV ratio check will not work on these cells
-static const uint8_t OPEN_WIRE_SKIP_CELLS[] = {24, 25, 38, 52, 60, 68, 83, 97, 136, 137};
+// ADCV/ADSV ratio check will not work on these cells, and they can't be balanced
+static const uint8_t NO_DISCHARGE_CELLS[] = {1, 2, 16, 24, 25, 38, 52, 60, 68, 72, 83, 97, 114, 136, 137};
 
-static bool isOpenWireSkipCell(uint8_t cellIdx) {
-    if (!OPEN_WIRE_SKIP_CELLS_ENABLED) {
-        return false;
+bool batt_cell_can_discharge(int cell) {
+    if (!NO_DISCHARGE_CELLS_ENABLED) {
+        return true;
     }
-    for (size_t i = 0; i < sizeof(OPEN_WIRE_SKIP_CELLS) / sizeof(OPEN_WIRE_SKIP_CELLS[0]); i++) {
-        if (OPEN_WIRE_SKIP_CELLS[i] == cellIdx) {
-            return true;
+    for (size_t i = 0; i < sizeof(NO_DISCHARGE_CELLS) / sizeof(NO_DISCHARGE_CELLS[0]); i++) {
+        if (NO_DISCHARGE_CELLS[i] == cell) {
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
-HAL_StatusTypeDef checkForOpenCircuit()
+// Cells on either side of a high-resistance sense tap (board 1 between cells 33/34, board 2 between
+// cells 76/77). Draining them displaces the tap for longer than the balance pause, so never balance them
+static const uint8_t DO_NOT_BALANCE_CELLS[] = {33, 34, 76, 77};
+
+bool batt_cell_can_balance(int cell) {
+    if (!batt_cell_can_discharge(cell)) {
+        return false;
+    }
+    if (!DO_NOT_BALANCE_CELLS_ENABLED) {
+        return true;
+    }
+    for (size_t i = 0; i < sizeof(DO_NOT_BALANCE_CELLS) / sizeof(DO_NOT_BALANCE_CELLS[0]); i++) {
+        if (DO_NOT_BALANCE_CELLS[i] == cell) {
+            return false;
+        }
+    }
+    return true;
+}
+
+HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed)
 {
+    *readFailed = false;
+
     // Perform averaging of multiple voltage readings to account for potential
     // bad connections to AMS boards that causes noise
     float cell_voltages_adcv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
@@ -343,6 +364,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
+        *readFailed = true;
         return HAL_ERROR;
     }
 
@@ -350,6 +372,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
                                       NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
         != HAL_OK)
     {
+        *readFailed = true;
         return HAL_ERROR;
     }
 
@@ -375,7 +398,7 @@ HAL_StatusTypeDef checkForOpenCircuit()
         for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
         {
         	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
-        	if (isOpenWireSkipCell(cellIdx)) {
+        	if (!batt_cell_can_discharge(cellIdx)) {
         		continue;
         	}
         	if(!open_wire_failure[cellIdx].occurred)
@@ -422,11 +445,89 @@ HAL_StatusTypeDef checkForOpenCircuit()
 		{
 			open_wire_failure[first_cell_idx].occurred = false;
 		}
-	
+
     }
 
     return ret;
 }
+
+/*
+ * Same per cell criteria as checkForOpenCircuit, for one cell's averaged C-ADC (adcv, PU) and S-ADC (adsv, PD)
+ * readings. Returns NULL if the cell looks connected, otherwise why it looks open. Cells in NO_DISCHARGE_CELLS can't
+ * be judged by the PD/PU ratio, so only the first cell of a board gets checked if it's in that list
+ */
+const char *batt_open_wire_reason(int cell, float adcv, float adsv)
+{
+    const int cellInBoard = cell % CELLS_PER_BOARD;
+    if (cellInBoard == 0) {
+        return (float_abs(adcv) < 0.0002f) ? "PU at 0 V" : NULL;
+    }
+    if (!batt_cell_can_discharge(cell)) {
+        return NULL;
+    }
+    if (float_abs(adcv) < OPEN_WIRE_MIN_DIVISOR_V) {
+        return "PU at 0 V";
+    }
+    const float ratio = float_abs(adsv / adcv);
+    if (ratio < OPEN_WIRE_RATIO_MIN || ratio > OPEN_WIRE_RATIO_MAX) {
+        return "PD/PU ratio out of range";
+    }
+    if (cellInBoard == CELLS_PER_BOARD - 1 && float_abs(adsv) < 0.0002f) {
+        return "PD at 0 V";
+    }
+    return NULL;
+}
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+/*
+ * Open wire readings that don't need every configured board to answer, e.g. one segment on the bench with
+ * NUM_SEGMENTS 5. Averages the C-ADC (adcv, PU) and S-ADC (adsv, PD) readings like checkForOpenCircuit, and
+ * deviceOk[dev] is false for any device that didn't answer. Judge the readings with batt_open_wire_reason
+ */
+HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, float *adsv)
+{
+    // Own buffer, so this doesn't share cell_voltages_single_reading with the battery task
+    static float singleReading[NUM_VOLTAGE_CELLS];
+
+    memset(adcv, 0, sizeof(float) * NUM_VOLTAGE_CELLS);
+    memset(adsv, 0, sizeof(float) * NUM_VOLTAGE_CELLS);
+    for (int dev = 0; dev < NUM_DEVICES; dev++) {
+        deviceOk[dev] = true;
+    }
+
+    // The chips may have been asleep and lost their config and reference, e.g. once the battery task stops on a fault
+    if (batt_spi_wakeup(true) != HAL_OK || batt_write_config() != HAL_OK) {
+        return HAL_ERROR;
+    }
+    vTaskDelay(pdMS_TO_TICKS(5)); // Reference power up
+
+    for (int pass = 0; pass < 2; pass++) {
+        const bool cAdc = (pass == 0);
+        float *sum = cAdc ? adcv : adsv;
+        for (int reading = 0; reading < NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS; reading++) {
+            if (batt_spi_wakeup(false) != HAL_OK || batt_broadcast_command(cAdc ? ADCV : ADSV) != HAL_OK) {
+                return HAL_ERROR;
+            }
+            vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+            delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+
+            bool readOk[NUM_DEVICES];
+            memset(singleReading, 0, sizeof(singleReading));
+            if (batt_read_cell_results_partial(cAdc, singleReading, readOk) != HAL_OK) {
+                return HAL_ERROR;
+            }
+            for (int dev = 0; dev < NUM_DEVICES; dev++) {
+                deviceOk[dev] = deviceOk[dev] && readOk[dev];
+            }
+            addCellVoltages(singleReading, sum);
+        }
+    }
+
+    divideCellVoltages(adcv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
+    divideCellVoltages(adsv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
+    return HAL_OK;
+}
+#endif
 
 // Need to write config after
 HAL_StatusTypeDef batt_balance_cell(int cell)

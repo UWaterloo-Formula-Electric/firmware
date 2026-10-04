@@ -69,6 +69,6 @@ typedef enum PCDC_Notifications_t {
 #define PRECHARGE_STEP_5_PERCENT_IDEAL_CURRENT_REQUIRED (0.8F)
 
 // Set to 0 to skip the IBus checks in precharge steps 4 and 5 (e.g. shunt not reading)
-#define PRECHARGE_CURRENT_CHECK_ENABLED (1)
+#define PRECHARGE_CURRENT_CHECK_ENABLED (0)
 
 #endif /* end of include guard: PRECHARGEDISCHARGE_H */

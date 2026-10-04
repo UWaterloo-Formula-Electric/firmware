@@ -121,4 +121,23 @@ typedef enum taskId_e{
 
 #define CONSOLE_PRINT_ON
 
+/*
+ * Set to 1 when flashing the charge cart's BMU. Must be 0 on the car
+ * - The car-only IL points (BOTS, BSPD, CBRB, TSMS) always read OK. EBOX, HVD, AMS, IMD and HW check are
+ *   still checked, and the loop itself still has to be closed for the contactors to get power
+ * - Heartbeat checks are off from boot, since the PDU, VCU and DCU aren't there
+ * - HW check dropping at runtime is only logged, not a fault. Boot still waits for it
+ */
+#define CHARGE_CART_MODE (0)
+
+/*
+ * Set to 1 to trip the BSPD from firmware when the brake pressure (BrakePercent from the VCU) stays at or above
+ * FIRMWARE_BSPD_BRAKE_PERCENT for 500 ms. There's no current check, so any hard stop trips it. Keep it 0 for driving
+ * - Faults the same way as the hardware BSPD: the BMU faults, and BMU_checkFailed reports BSPD_FAILED to the MoTeC
+ * - Latches like the hardware BSPD. Power cycle the BMU to clear it
+ * - Still runs in CHARGE_CART_MODE, where the hardware BSPD isn't read
+ */
+#define FIRMWARE_BSPD (1)
+#define FIRMWARE_BSPD_BRAKE_PERCENT (65)
+
 #endif /* __BSP_H */

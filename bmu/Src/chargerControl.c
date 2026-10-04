@@ -22,6 +22,9 @@
 
 ChargerStatus mStatus = {0};
 
+static volatile uint32_t mLastStatusTick = 0;
+static volatile bool mStatusReceived = false;
+
 HAL_StatusTypeDef chargerInit()
 {
    if (canStart(&CHARGER_CAN_HANDLE) != HAL_OK) {
@@ -74,6 +77,8 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
 
 void CAN_Msg_ChargeStatus_Callback()
 {
+   mLastStatusTick = xTaskGetTickCountFromISR();
+   mStatusReceived = true;
 
    uint16_t current = (OutputCurrentHigh<<8) | (OutputCurrentLow & 0xFF);
    uint16_t voltage = (OutputVoltageHigh<<8) | (OutputVoltageLow & 0xFF);
@@ -105,6 +110,19 @@ void CAN_Msg_ChargeStatus_Callback()
    /*DEBUG_PRINT_ISR("StartingState %u, CommunicationState %u\n",*/
                    /*(uint16_t)StartingState, (uint16_t)CommunicationState);*/
    /*DEBUG_PRINT_ISR("\n\n");*/
+}
+
+bool chargerStatusEverReceived(void)
+{
+   return mStatusReceived;
+}
+
+uint32_t chargerStatusAgeMs(void)
+{
+   if (!mStatusReceived) {
+      return UINT32_MAX;
+   }
+   return (xTaskGetTickCount() - mLastStatusTick) * portTICK_PERIOD_MS;
 }
 
 HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut)
