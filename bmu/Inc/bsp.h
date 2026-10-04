@@ -130,4 +130,14 @@ typedef enum taskId_e{
  */
 #define CHARGE_CART_MODE (0)
 
+/*
+ * Set to 1 to trip the BSPD from firmware when the brake pressure (BrakePercent from the VCU) stays at or above
+ * FIRMWARE_BSPD_BRAKE_PERCENT for 500 ms. There's no current check, so any hard stop trips it. Keep it 0 for driving
+ * - Faults the same way as the hardware BSPD: the BMU faults, and BMU_checkFailed reports BSPD_FAILED to the MoTeC
+ * - Latches like the hardware BSPD. Power cycle the BMU to clear it
+ * - Still runs in CHARGE_CART_MODE, where the hardware BSPD isn't read
+ */
+#define FIRMWARE_BSPD (1)
+#define FIRMWARE_BSPD_BRAKE_PERCENT (65)
+
 #endif /* __BSP_H */
