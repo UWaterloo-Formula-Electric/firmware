@@ -19,7 +19,8 @@ int can_open (const char *ifname) {
         return -1;
     }
     struct ifreq ifr;
-    strcpy(ifr.ifr_name, ifname);
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
     if (ioctl(fd, SIOCGIFINDEX, &ifr) == -1) {
         perror("Failed to get CAN interface index");
         close(fd);
@@ -46,7 +47,7 @@ int can_close (int fd) {
     return 0;
 }
 
-int can_poll (int fd, can_frame_t *out, int max) {
+int can_read (int fd, can_frame_t *out, int max) {
     int count = 0;
     while (count < max) {
         struct can_frame kf;
