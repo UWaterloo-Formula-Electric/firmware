@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include "../inc/serial.h"
 
 int process_bytes (const uint8_t *buf, int len) {
@@ -32,6 +34,10 @@ int main (int argc, char *argv[]) {
             perror("Error reading from serial port\n");
             break;
         }
+        if (n == 0) {
+            usleep(1000); // lazy fix, add polling later
+            continue;
+        }
         while (n > 0) {
             if (accum_len + n > sizeof(accum)) {
                 perror("Accumulation buffer overflow, discarding bytes\n");
@@ -41,11 +47,12 @@ int main (int argc, char *argv[]) {
             memcpy(accum + accum_len, scratch, n);
             accum_len += n;
             char *result = memchr(accum, '\n', accum_len);
-            if (result != NULL) {
+            while (result != NULL) {
                 size_t line_len = result - (char *)accum + 1;
                 process_bytes(accum, line_len);
                 memmove(accum, accum + line_len, accum_len - line_len);
                 accum_len -= line_len;
+                result = memchr(accum, '\n', accum_len);
             }
         }
     }
