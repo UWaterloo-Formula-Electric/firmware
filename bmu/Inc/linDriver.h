@@ -81,6 +81,5 @@ void LIN_HAL_TIM_Callback(LIN_ScheduleManager_t *schedule_mgr);
 uint8_t LIN_calculate_checksum(LIN_Frame_t *frame);
 uint8_t LIN_calculate_PID(uint8_t frameID);
 void delay_us(TIM_HandleTypeDef *htim, uint8_t duration);
-void flush_rdx_buffer(UART_HandleTypeDef *huart);
 
 #endif /* end of include guard: LIN_DRIVER_H */

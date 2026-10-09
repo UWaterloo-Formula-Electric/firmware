@@ -59,9 +59,6 @@ HAL_StatusTypeDef LIN_wakeup_bus(GPIO_TypeDef *portType, uint16_t portNum, TIM_H
     HAL_GPIO_WritePin(portType, portNum, GPIO_PIN_RESET);
     delay_us(htim, TLIN1029Q1_LIN_BUS_WAKEUP_US);
 
-    HAL_GPIO_WritePin(portType, portNum, GPIO_PIN_SET);
-    delay_us(htim, TLIN1029Q1_CLEAR_US);
-
     return HAL_OK;
 }
 
@@ -84,7 +81,11 @@ HAL_StatusTypeDef LIN_transmit_frame(UART_HandleTypeDef *huart, const LIN_Frame_
 
     buffer[frame->data_length + 2] = frame->checksum;
 
-    return HAL_UART_Transmit(huart, buffer, tx_size, 100);
+    HAL_StatusTypeDef status = HAL_UART_Transmit(huart, buffer, tx_size, 100);
+
+    __HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
+
+    return status;
 }
 
 HAL_StatusTypeDef LIN_receive_frame(UART_HandleTypeDef *huart, LIN_Frame_t *frame) {
@@ -161,12 +162,29 @@ uint8_t LIN_calculate_checksum(LIN_Frame_t *frame) {
     
     for (uint8_t i = 0; i < frame->data_length; ++i) {
         sum += frame->data[i];
-        if (sum > 0xFFU) {
-            sum = (sum & 0xFFU) + 1U;
+        if (sum > 0xFF) {
+            sum = sum - 0xFF;
         }
     }
 
+    sum = 0xFF - sum;
+
     return (uint8_t)(~sum);
+}
+
+uint8_t LIN_calculate_PID(uint8_t frameID) {
+    uint8_t p0 = (frameID ^ (frameID >> 1) ^ (frameID >> 2) ^ (frameID >> 4)) & 1U;
+    uint8_t p1 = ~((frameID >> 1)^ (frameID >> 3) ^ (frameID >> 4) ^ (frameID >> 5) & 1U);
+
+    return (p1 << 7) | (p0 << 6) | frameID;
+}
+
+void delay_us(TIM_HandleTypeDef *htim, uint8_t duration) {
+    uint16_t start_time_us = __HAL_TIM_GET_COUNTER(htim);
+
+    while (__HAL_TIM_GET_COUNTER(htim) - start_time_us < duration) {
+
+    }
 }
 
 void LIN_HAL_TIM_Callback(LIN_ScheduleManager_t *schedule_mgr) {
