@@ -102,17 +102,15 @@ HAL_StatusTypeDef LIN_receive_frame(UART_HandleTypeDef *huart, LIN_Frame_t *fram
         return HAL_ERROR;
     }
 
-    flush_rdx_buffer(huart);
-
-    uint8_t rx_size = frame->data_length + 1;
-    uint8_t rx_buffer[LIN_MAX_DATA_SIZE + 1];
+    uint8_t rx_size = frame->data_length + 2;
+    uint8_t rx_buffer[LIN_MAX_DATA_SIZE + 2];
 
     if (HAL_UART_Receive(huart, rx_buffer, rx_size, HAL_MAX_DELAY) != HAL_OK) {
         return HAL_ERROR;
     }
 
-    memcpy(frame->data, rx_buffer, frame->data_length);
-    frame->checksum = rx_buffer[frame->data_length];
+    memcpy(frame->data, rx_buffer + 2, frame->data_length);
+    frame->checksum = rx_buffer[frame->data_length + 1];
 
     return LIN_validate_checksum(frame);
 }
@@ -153,7 +151,7 @@ HAL_StatusTypeDef LIN_execute_schedule(UART_HandleTypeDef *huart, LIN_ScheduleMa
     return LIN_transmit_frame(huart, &frame);
 }
 
-uint8_t LIN_calculate_checksum(LIN_Frame_t *frame) {
+uint8_t LIN_calculate_checksum(const LIN_Frame_t *frame) {
     uint16_t sum = 0;
 
     if (frame->pid != 0x3C && frame->pid != 0x3D) {
@@ -174,7 +172,7 @@ uint8_t LIN_calculate_checksum(LIN_Frame_t *frame) {
 
 uint8_t LIN_calculate_PID(uint8_t frameID) {
     uint8_t p0 = (frameID ^ (frameID >> 1) ^ (frameID >> 2) ^ (frameID >> 4)) & 1U;
-    uint8_t p1 = ~((frameID >> 1)^ (frameID >> 3) ^ (frameID >> 4) ^ (frameID >> 5) & 1U);
+    uint8_t p1 = ~(((frameID >> 1) ^ (frameID >> 3) ^ (frameID >> 4) ^ (frameID >> 5)) & 1U);
 
     return (p1 << 7) | (p0 << 6) | frameID;
 }

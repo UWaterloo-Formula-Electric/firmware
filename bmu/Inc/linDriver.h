@@ -78,7 +78,7 @@ HAL_StatusTypeDef LIN_validate_checksum(const LIN_Frame_t *frame);
 HAL_StatusTypeDef LIN_execute_schedule(UART_HandleTypeDef *huart, LIN_ScheduleManager_t *schedule_mgr);
 void LIN_HAL_TIM_Callback(LIN_ScheduleManager_t *schedule_mgr);
 
-uint8_t LIN_calculate_checksum(LIN_Frame_t *frame);
+uint8_t LIN_calculate_checksum(const LIN_Frame_t *frame);
 uint8_t LIN_calculate_PID(uint8_t frameID);
 void delay_us(TIM_HandleTypeDef *htim, uint8_t duration);
 
