@@ -29,12 +29,12 @@ int main (int argc, char *argv[]) {
         uint8_t scratch[256];
         int n = serial_read(fd, scratch, sizeof(scratch));
         if (n == -1) {
-            perror(stderr, "Error reading from serial port\n");
+            perror("Error reading from serial port\n");
             break;
         }
         while (n > 0) {
             if (accum_len + n > sizeof(accum)) {
-                perror(stderr, "Accumulation buffer overflow, discarding %zu bytes\n", accum_len);
+                perror("Accumulation buffer overflow, discarding bytes\n");
                 accum_len = 0;
                 continue;
             }
