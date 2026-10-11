@@ -180,7 +180,7 @@ uint8_t LIN_calculate_checksum(uint8_t pID, uint8_t *data, uint8_t data_length) 
     for (uint8_t i = 0; i < data_length; ++i) {
         sum += data[i];
         if (sum > 0xFF) {
-            sum = (sum & 0xFF) + (sum >> 8);
+            sum -= 0xFF;
         }
     }
 
@@ -201,7 +201,7 @@ uint16_t LIN_calculate_duration_ms(LIN_ScheduleSlot_t *slot) {
     return (t_header + t_response) / 1000;
 }
 
-void delay_us(TIM_HandleTypeDef *htim, uint8_t duration) {
+void delay_us(TIM_HandleTypeDef *htim, uint16_t duration) {
     uint16_t start_time_us = __HAL_TIM_GET_COUNTER(htim);
 
     while ((uint16_t)(__HAL_TIM_GET_COUNTER(htim) - start_time_us) < duration) {

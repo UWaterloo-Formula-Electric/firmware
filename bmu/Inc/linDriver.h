@@ -89,7 +89,7 @@ HAL_StatusTypeDef LIN_execute_schedule(
 uint8_t LIN_calculate_checksum(uint8_t pID, uint8_t *data, uint8_t data_length);
 uint8_t LIN_calculate_PID(uint8_t frameID);
 uint16_t LIN_calculate_duration_ms(LIN_ScheduleSlot_t *slot);
-void delay_us(TIM_HandleTypeDef *htim, uint8_t duration);
+void delay_us(TIM_HandleTypeDef *htim, uint16_t duration);
 void LIN_HAL_TIM_Callback(LIN_ScheduleManager_t *schedule_mgr);
 
 #endif /* end of include guard: LIN_DRIVER_H */
