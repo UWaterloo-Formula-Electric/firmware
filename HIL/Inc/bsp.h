@@ -63,12 +63,22 @@
 #define LDAC_4_LOW HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_RESET)
 #define LDAC_4_HIGH HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_SET)
 
+// PB12. Shares the pin with DEBUG_LED_PIN, so nothing should blink the debug LED
+#define GPIO3V_1_ENABLE HAL_GPIO_WritePin(GPIO3V_1_GPIO_Port, GPIO3V_1_Pin, GPIO_PIN_SET)
+#define GPIO3V_1_DISABLE HAL_GPIO_WritePin(GPIO3V_1_GPIO_Port, GPIO3V_1_Pin, GPIO_PIN_RESET)
+#define GPIO3V_1_IS_ENABLED (HAL_GPIO_ReadPin(GPIO3V_1_GPIO_Port, GPIO3V_1_Pin) == GPIO_PIN_SET)
+
 #define GPIO5V_WRITE(n, state) HAL_GPIO_WritePin(GPIO5V_##n##_GPIO_Port, GPIO5V_##n##_Pin, (state))
 #define GPIO5V_READ(n) HAL_GPIO_ReadPin(GPIO5V_##n##_GPIO_Port, GPIO5V_##n##_Pin)
 #define GPIO12V_WRITE(n, state) HAL_GPIO_WritePin(GPIO12V_##n##_GPIO_Port, GPIO12V_##n##_Pin, (state))
 #define GPIO12V_READ(n) HAL_GPIO_ReadPin(GPIO12V_##n##_GPIO_Port, GPIO12V_##n##_Pin)
 #define GPIO3V_WRITE(n, state) HAL_GPIO_WritePin(GPIO3V_##n##_GPIO_Port, GPIO3V_##n##_Pin, (state))
 #define GPIO3V_READ(n) HAL_GPIO_ReadPin(GPIO3V_##n##_GPIO_Port, GPIO3V_##n##_Pin)
+
+// Called by common/Src/generalErrorHandler.c after a fatal error, defined in
+// Src/canReceive.c. Declared here because the generated HIL_can.h only
+// declares it once HIL receives a DTC message.
+void DTC_Fatal_Callback(BoardIDs board);
 
 // TODO: PWM_1..PWM_7 (PG2-PG8) have no timer AF on this part, GPIO only
 

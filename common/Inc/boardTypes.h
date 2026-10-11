@@ -40,6 +40,9 @@ extern const BoardTypes_t boardType;
 
 
 // CAN IDs of the Boards
+// HIL is a bench-only board that isn't a node on the vehicle bus. It takes 0,
+// the only value left that fits the 4 bit ID field watchdog.c sends.
+#define ID_HIL            0
 #define ID_BMU            1
 #define ID_VCU_F7         2
 #define ID_PDU            3

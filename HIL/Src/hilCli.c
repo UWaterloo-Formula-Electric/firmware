@@ -6,7 +6,12 @@
   * write a single device register. These are deliberately device agnostic, so
   * a chip can be exercised before any driver exists for it. A driver for a
   * specific part should add its own higher level commands here, next to these.
-  * Also exposes direct duty cycle control for the PWM_8/9/10 bench channels.
+  * Also exposes init, duty cycle and stop control for the PWM_8/9/10 bench
+  * channels.
+  *
+  * Commands are registered with FreeRTOS_CLI by hilCliInit(), called from
+  * userInit(). common/Src/debug.c's cliTask then reads the debug UART and
+  * dispatches to them.
   *
   * The other boards keep their CLI in controlStateMachine_mock.c because it
   * hangs off their state machine mock. HIL has no state machine, hence the
@@ -21,6 +26,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOS_CLI.h"
+#include "bsp.h"
 #include "debug.h"
 #include "i2cBus.h"
 #include "pwmBus.h"
@@ -215,6 +221,34 @@ static const CLI_Command_Definition_t i2cWriteCommandDefinition =
     4 /* Number of parameters */
 };
 
+static BaseType_t pwmInitCommand(char *writeBuffer, size_t writeBufferLength,
+                                 const char *commandString)
+{
+    BaseType_t paramLen;
+    PwmChannel_t channel;
+
+    if (getPwmChannelFromParam(FreeRTOS_CLIGetParameter(commandString, 1, &paramLen), &channel) != HAL_OK) {
+        COMMAND_OUTPUT("Channel must be %d to %d\n", PWM_FIRST_CHANNEL, PWM_LAST_CHANNEL);
+        return pdFALSE;
+    }
+
+    if (pwmInitChannel(channel) != HAL_OK) {
+        COMMAND_OUTPUT("Failed to init PWM\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Started PWM_%u at 0%%\n", (unsigned int)channel + PWM_FIRST_CHANNEL);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t pwmInitCommandDefinition =
+{
+    "pwmInit",
+    "pwmInit <channel>:\r\n  (Re)start PWM_<channel> (8-10) at 0% duty cycle\r\n",
+    pwmInitCommand,
+    1 /* Number of parameters */
+};
+
 static BaseType_t pwmSetDutyCommand(char *writeBuffer, size_t writeBufferLength,
                                     const char *commandString)
 {
@@ -277,6 +311,36 @@ static const CLI_Command_Definition_t pwmStopCommandDefinition =
     1 /* Number of parameters */
 };
 
+static BaseType_t gpio3v1EnableCommand(char *writeBuffer, size_t writeBufferLength,
+                                       const char *commandString)
+{
+    BaseType_t paramLen;
+    unsigned int enable;
+    const char *param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    if (param == NULL || sscanf(param, "%u", &enable) != 1 || enable > 1) {
+        COMMAND_OUTPUT("Must be 0 (disable) or 1 (enable)\n");
+        return pdFALSE;
+    }
+
+    if (enable) {
+        GPIO3V_1_ENABLE;
+    } else {
+        GPIO3V_1_DISABLE;
+    }
+
+    COMMAND_OUTPUT("GPIO3V_1 (PB12) %s\n", GPIO3V_1_IS_ENABLED ? "enabled" : "disabled");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
+{
+    "gpio3v1Enable",
+    "gpio3v1Enable <0|1>:\r\n  Drive GPIO3V_1 (PB12) low/high\r\n",
+    gpio3v1EnableCommand,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef hilCliInit(void)
 {
     if (FreeRTOS_CLIRegisterCommand(&i2cScanCommandDefinition) != pdPASS) {
@@ -291,11 +355,19 @@ HAL_StatusTypeDef hilCliInit(void)
         return HAL_ERROR;
     }
 
+    if (FreeRTOS_CLIRegisterCommand(&pwmInitCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
     if (FreeRTOS_CLIRegisterCommand(&pwmSetDutyCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
     if (FreeRTOS_CLIRegisterCommand(&pwmStopCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&gpio3v1EnableCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 

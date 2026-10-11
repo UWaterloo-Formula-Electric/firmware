@@ -36,6 +36,7 @@ LIB_BUILD_DIR = build
 LIB_C_SOURCES =  \
 Core/Src/main.c \
 Core/Src/gpio.c \
+Core/Src/dma.c \
 Core/Src/freertos.c \
 Core/Src/can.c \
 Core/Src/dac.c \

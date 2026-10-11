@@ -35,25 +35,34 @@ static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timCha
 
 HAL_StatusTypeDef pwmBusInit(void)
 {
-    uint32_t timChannel;
-
     for (PwmChannel_t channel = 0; channel < NUM_PWM_CHANNELS; channel++) {
-        if (getPwmTimChannel(channel, &timChannel) != HAL_OK) {
-            ERROR_PRINT("Failed to init PWM channel %d, bad argument\n", channel);
-            return HAL_ERROR;
-        }
-
-        if (HAL_TIM_PWM_Start(&PWM_TIM_HANDLE, timChannel) != HAL_OK) {
-            ERROR_PRINT("Failed to start PWM channel %d\n", channel);
-            return HAL_ERROR;
-        }
-
-        if (pwmSetDutyCycle(channel, 0) != HAL_OK) {
+        if (pwmInitChannel(channel) != HAL_OK) {
             return HAL_ERROR;
         }
     }
 
     return HAL_OK;
+}
+
+HAL_StatusTypeDef pwmInitChannel(PwmChannel_t channel)
+{
+    uint32_t timChannel;
+
+    if (getPwmTimChannel(channel, &timChannel) != HAL_OK) {
+        ERROR_PRINT("Failed to init PWM channel %d, bad argument\n", channel);
+        return HAL_ERROR;
+    }
+
+    // Stop a running channel first so it always comes back from a known state
+    if (HAL_TIM_GetChannelState(&PWM_TIM_HANDLE, timChannel) == HAL_TIM_CHANNEL_STATE_BUSY) {
+        if (HAL_TIM_PWM_Stop(&PWM_TIM_HANDLE, timChannel) != HAL_OK) {
+            ERROR_PRINT("Failed to stop PWM channel %d\n", channel);
+            return HAL_ERROR;
+        }
+    }
+
+    // Channel is now stopped, so this also starts it
+    return pwmSetDutyCycle(channel, 0);
 }
 
 HAL_StatusTypeDef pwmSetDutyCycle(PwmChannel_t channel, float dutyPercent)
@@ -76,6 +85,16 @@ HAL_StatusTypeDef pwmSetDutyCycle(PwmChannel_t channel, float dutyPercent)
     compare = (uint32_t)(dutyPercent * currentArr / 100.0f);
 
     __HAL_TIM_SET_COMPARE(&PWM_TIM_HANDLE, timChannel, compare);
+
+    // Restart a channel that pwmStop() turned off. Compare is set first so it
+    // comes back at the new duty cycle rather than the old one. Skipped when
+    // already running, since HAL_TIM_PWM_Start() rejects a busy channel.
+    if (HAL_TIM_GetChannelState(&PWM_TIM_HANDLE, timChannel) == HAL_TIM_CHANNEL_STATE_READY) {
+        if (HAL_TIM_PWM_Start(&PWM_TIM_HANDLE, timChannel) != HAL_OK) {
+            ERROR_PRINT("Failed to start PWM channel %d\n", channel);
+            return HAL_ERROR;
+        }
+    }
 
     return HAL_OK;
 }

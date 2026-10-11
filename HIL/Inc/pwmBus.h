@@ -20,7 +20,10 @@ typedef enum {
 // Starts all channels at 0% duty cycle
 HAL_StatusTypeDef pwmBusInit(void);
 
-// dutyPercent must be 0-100
+// (Re)starts one channel at 0% duty cycle, stopping it first if it is running
+HAL_StatusTypeDef pwmInitChannel(PwmChannel_t channel);
+
+// dutyPercent must be 0-100. Restarts the channel if pwmStop() stopped it.
 HAL_StatusTypeDef pwmSetDutyCycle(PwmChannel_t channel, float dutyPercent);
 HAL_StatusTypeDef pwmStop(PwmChannel_t channel);
 

@@ -51,7 +51,7 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 50,BrakeWhileThrottleError_Enabled,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU,PDU",NA,"Throt at rst point after BrakeWhileThrottle Error, Thrott Reengaged (EV.3.4 FSAE)"
 51,CELL_TEMP_LOW,BMU,4,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp low
 52,CELL_TEMP_LOW,BMU,3,"DCU,VCU_F7,VCU_BEAGLEBONE",CellNumber,Cell #data temp critically low
-53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
+53,ERROR_HANDLER,"DCU,VCU_F7,BMU,PDU,WSB,HIL",4,VCU_BEAGLEBONE,file_spec,Error_Handler called on specifier
 54,DCDC_Shutoff,PDU,4,"PDU, DCU,VCU_F7,VCU_BEAGLEBONE,BMU,ChargeCart,WSBFL,WSBFR,WSBRL,WSBRR",NA,DCDC shutoff
 55,LV_Battery_Low,PDU,4,"VCU_F7,VCU_BEAGLEBONE",NA,LV battery below 10V
 56,MOTOR_CONTROLLERS_FAULT_OFF,VCU_F7,4,"DCU,VCU_F7,VCU_BEAGLEBONE,BMU",MotorLeft,"Motor controllers in fault off state"
@@ -71,3 +71,4 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 70,AMS_Failure,BMU,1,"PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"AMS failed"
 71, BMU_Close_To_Edge, BMU, 1, "PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"BMU close to edge, going hv down"
 72,Brake_Position_FAIL,VCU_F7,2,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake position sensor detected a failure
+73,HIL_ERROR,HIL,1,VCU_BEAGLEBONE,NA,HIL: unknown error occured

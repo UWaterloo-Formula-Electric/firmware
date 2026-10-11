@@ -59,7 +59,8 @@ void SystemClock_Config(void);
 static void MPU_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-// Overridden by Src/userInit.c, which also creates HIL's FreeRTOS tasks
+// Overridden by Src/userInit.c. HIL's FreeRTOS tasks are created by
+// MX_FREERTOS_Init() in freertos.c, from the CubeMX task table
 __weak void userInit() {}
 /* USER CODE END PFP */
 

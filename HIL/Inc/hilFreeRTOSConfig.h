@@ -26,6 +26,11 @@
 #define configUSE_STATS_FORMATTING_FUNCTIONS     1
 #endif
 
+// common/Src/userCan.c's canInit() creates a counting semaphore
+#ifndef configUSE_COUNTING_SEMAPHORES
+#define configUSE_COUNTING_SEMAPHORES            1
+#endif
+
 extern void configureTimerForRunTimeStats(void);
 extern uint32_t getRunTimeCounterValue(void);
 

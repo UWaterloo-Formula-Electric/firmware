@@ -2,8 +2,9 @@
   *****************************************************************************
   * @file    mainTaskEntry.c
   * @brief   Module containing main task, which is the default task for all
-  * boards. It starts the CAN bus, then blinks the debug LED to indicate the
-  * firmware is running.
+  * boards. It starts the CAN bus, then idles.
+  * @details Unlike the other boards this does not blink the debug LED, since
+  * DEBUG_LED_PIN is PB12 (GPIO3V_1), which is driven from the CLI instead.
   *****************************************************************************
   */
 
@@ -30,8 +31,6 @@ void mainTaskFunction(void const * argument)
     TickType_t xLastWakeTime = xTaskGetTickCount();
 
     while (1) {
-        HAL_GPIO_TogglePin(DEBUG_LED_PORT, DEBUG_LED_PIN);
-
         vTaskDelayUntil(&xLastWakeTime, MAIN_TASK_PERIOD);
     }
 }

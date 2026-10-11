@@ -6,9 +6,11 @@
  * definitions are just enough of a stand-in to satisfy the linker.
  *
  * If HIL later needs real heartbeat monitoring, add canHeartbeat.c to
- * COMMON_LIB_SRC in board.mk, delete this file, and add ID_HIL to
- * common/Inc/boardTypes.h first (canHeartbeat.c's checkAllHeartbeats() needs
- * a board ID and hand-written DTC macros to report a missing peer).
+ * COMMON_LIB_SRC in board.mk and delete this file. canHeartbeat.c's
+ * It also needs an HIL_Heartbeat message in 2024CAR.dbc for its
+ * sendCAN_HIL_Heartbeat(). If HIL is made a receiver of a *_Heartbeat
+ * message, the generated parseCANData() calls heartbeatReceived(), so an
+ * empty one would have to be added here.
  */
 #include "canHeartbeat.h"
 

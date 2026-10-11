@@ -33,7 +33,7 @@ NS_ :
 
 BS_:
 
-BU_: IMD IVT VCU_BeagleBone DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart INV
+BU_: IMD IVT VCU_BeagleBone DCU PDU BMU VCU_F7 WSBFL WSBFR WSBRL WSBRR ChargeCart INV HIL
 VAL_TABLE_ BMU_Interlock_State 512 "FSM_STATE_FAILED" 256 "HW_CHECK_FAILED" 128 "TSMS_FAILED" 64 "CBRB_FAILED" 32 "IMD_FAILED" 16 "AMS_FAILED" 8 "HVD_FAILED" 4 "BSPD_FAILED" 2 "EBOX_FAILED" 1 "BOTS_FAILED" 0 "No Fault" ;
 VAL_TABLE_ BMS_State 7 "Failure_Fatal" 6 "Charging" 5 "Discharge" 4 "Precharge" 3 "HV_Enable" 2 "HV_Disable" 1 "Wait_System_Up" 0 "Self_Check" ;
 VAL_TABLE_ Contactor 4 "CONTACTOR_FAULT_CLOSED" 3 "CONTACTOR_FAULT_OPEN" 2 "CONTACTOR_CLOSED" 1 "CONTACTOR_OPEN" 0 "INVALID" ;
@@ -351,24 +351,24 @@ BO_ 2298416383 StateMachineEventProcessed: 5 VCU_F7
  SG_ StateMachineBoardID : 0|8@1- (1,0) [0|0] ""  VCU_BeagleBone
 
 BO_ 2147548939 WSBRL_DTC: 6 WSBRL
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBFR,WSBFL,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBFR,WSBFL,HIL
 
 BO_ 2147548938 WSBRR_DTC: 6 WSBRR
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRL,WSBFR,WSBFL
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRL,WSBFR,WSBFL,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRL,WSBFR,WSBFL,HIL
 
 BO_ 2147548937 WSBFR_DTC: 6 WSBFR
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFL
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFL,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFL,HIL
 
 BO_ 2147548936 WSBFL_DTC: 6 WSBFL
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBFR,WSBRR,WSBRL
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBFR,WSBRR,WSBRL,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBFR,WSBRR,WSBRL,HIL
 
 BO_ 2226717697 BMU_ChargeEN_State: 8 BMU
  SG_ ChargeEN_State : 0|1@1+ (1,0) [0|0] ""  ChargeCart
@@ -413,29 +413,34 @@ BO_ 2214855426 VCU_EM_Power_State_Request: 1 VCU_F7
  SG_ EM_Power_State_Request : 0|1@1+ (1,0) [0|0] ""  PDU
 
 BO_ 2147548931 PDU_DTC: 6 PDU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_F7,VCU_BeagleBone,DCU,ChargeCart,BMU,HIL
 
 BO_ 2147548935 DCU_DTC: 6 DCU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,ChargeCart,BMU,HIL
 
 BO_ 2147548930 VCU_F7_DTC: 6 VCU_F7
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,PDU,DCU,ChargeCart,BMU,HIL
 
 BO_ 2147548929 BMU_DTC: 6 BMU
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,ChargeCart,HIL
 
 BO_ 2147548932 ChargeCart_DTC: 6 ChargeCart
- SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
- SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
- SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU,HIL
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU,HIL
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  WSBRR,WSBRL,WSBFR,WSBFL,VCU_BeagleBone,VCU_F7,PDU,DCU,BMU,HIL
+
+BO_ 2147548928 HIL_DTC: 6 HIL
+ SG_ DTC_Severity : 8|8@1- (1,0) [1|4] ""  Vector__XXX
+ SG_ DTC_Data : 16|32@1- (1,0) [0|0] ""  Vector__XXX
+ SG_ DTC_CODE : 0|8@1+ (1,0) [0|0] ""  Vector__XXX
 
 BO_ 2214592772 ChargeCart_ButtonEvents: 8 ChargeCart
  SG_ ButtonHVEnabled : 2|1@1- (1,0) [0|0] "bool"  BMU
@@ -1162,7 +1167,7 @@ BO_ 2365566977 MC_Fast_Info: 8 INV
  SG_ INV_Fast_Motor_Speed : 32|16@1- (1,0) [-32768|32767] "angular_speed:rpm"  VCU_F7
  SG_ INV_Fast_DC_Bus_Voltage : 48|16@1- (0.1,0) [-3276.8|3276.7] "voltage:V"  VCU_F7
 
-BO_TX_BU_ 2214986495 : PDU,BMU,ChargeCart,DCU,VCU_F7,WSBFL,WSBFR,WSBRL,WSBRR;
+BO_TX_BU_ 2214986495 : PDU,BMU,ChargeCart,DCU,VCU_F7,WSBFL,WSBFR,WSBRL,WSBRR,HIL;
 BO_TX_BU_ 2298416383 : VCU_F7,BMU,DCU,PDU,VCU_BeagleBone,WSBFL,WSBFR,WSBRL,WSBRR;
 
 
@@ -1175,6 +1180,7 @@ CM_ BU_ WSBFR "9_4_Wheel Sensor Board Front Right";
 CM_ BU_ WSBRL "10_4_Wheel Sensor Board Rear Left";
 CM_ BU_ WSBRR "11_4_Wheel Sensor Board Rear Right";
 CM_ BU_ ChargeCart "4_3_Charge Cart PCB";
+CM_ BU_ HIL "0__HIL Bench Board";
 CM_ BO_ 3221225472 "This is a message for not used signals, created by Vector CANdb++ DBC OLE DB Provider.";
 CM_ SG_ 2365566721 INV_Diag_Vqs_Cmd "Q-axis voltage command in stationary reference
 frame";
