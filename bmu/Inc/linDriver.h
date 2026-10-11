@@ -79,7 +79,8 @@ HAL_StatusTypeDef LIN_validate_checksum(
     uint8_t pID,
     uint8_t *data,
     uint8_t data_length,
-    uint8_t checksum);
+    uint8_t checksum
+);
 HAL_StatusTypeDef LIN_execute_schedule(
     UART_HandleTypeDef *huart,
     LIN_ScheduleManager_t *schedule_mgr

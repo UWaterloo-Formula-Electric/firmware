@@ -15,7 +15,7 @@ HAL_StatusTypeDef LIN_init_slot(
     }
 
     if (frameID > 0x3F || 
-        cks_type == LIN_CHECKSUM_ENHANCED && (frameID == 0x3C || frameID == 0x3D)) {
+        (cks_type == LIN_CHECKSUM_ENHANCED && (frameID == 0x3C || frameID == 0x3D))) {
         return HAL_ERROR;
     }
 
@@ -53,7 +53,7 @@ HAL_StatusTypeDef LIN_wakeup_bus(
     uint16_t portNum,
     TIM_HandleTypeDef *htim) {
     HAL_GPIO_WritePin(portType, portNum, GPIO_PIN_RESET);
-    delay_us(htim, LIN_TBIT_US*13);
+    delay_us(htim, LIN_TBIT_US * 13);
     HAL_GPIO_WritePin(portType, portNum, GPIO_PIN_SET);
 
     return HAL_OK;
@@ -128,6 +128,9 @@ HAL_StatusTypeDef LIN_receive_frame(
     LIN_ScheduleSlot_t *slot = &schedule_mgr->table[current_slot_idx];
 
     HAL_StatusTypeDef drx_status = HAL_UART_Receive_DMA(huart, schedule_mgr->buffer, slot->data_length + 3);
+    if (drx_status != HAL_OK) {
+        return drx_status;
+    }
 
     uint8_t checksum = schedule_mgr->buffer[slot->data_length + 2];
 
@@ -177,7 +180,7 @@ uint8_t LIN_calculate_checksum(uint8_t pID, uint8_t *data, uint8_t data_length) 
     for (uint8_t i = 0; i < data_length; ++i) {
         sum += data[i];
         if (sum > 0xFF) {
-            sum = sum - 0xFF;
+            sum = (sum & 0xFF) + (sum >> 8);
         }
     }
 
@@ -193,15 +196,15 @@ uint8_t LIN_calculate_PID(uint8_t frameID) {
 
 uint16_t LIN_calculate_duration_ms(LIN_ScheduleSlot_t *slot) {
     // Nominal transmission times * 1.4
-    uint16_t t_header = 47.6*LIN_TBIT_US;
-    uint16_t t_response = 14*(slot->data_length + 1)*LIN_TBIT_US;
+    uint16_t t_header = (uint16_t)(47.6f * (float)LIN_TBIT_US);
+    uint16_t t_response = (uint16_t)(14.0f * (float)(slot->data_length + 1) * (float)LIN_TBIT_US);
     return (t_header + t_response) / 1000;
 }
 
 void delay_us(TIM_HandleTypeDef *htim, uint8_t duration) {
     uint16_t start_time_us = __HAL_TIM_GET_COUNTER(htim);
 
-    while (__HAL_TIM_GET_COUNTER(htim) - start_time_us < duration) {
+    while ((uint16_t)(__HAL_TIM_GET_COUNTER(htim) - start_time_us) < duration) {
 
     }
 }
