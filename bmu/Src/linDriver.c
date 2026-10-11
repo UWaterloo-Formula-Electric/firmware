@@ -2,7 +2,6 @@
 #include "linDriver.h"
 #include "string.h"
 #include "stdint.h"
-#include "math.h"
 
 HAL_StatusTypeDef LIN_init_slot(
     LIN_ScheduleSlot_t *slot,
@@ -26,7 +25,7 @@ HAL_StatusTypeDef LIN_init_slot(
 
     slot->pID = LIN_calculate_PID(frameID);
     slot->data_length = data_length;
-    slot->duration_ms = round(LIN_calculate_duration_us(slot)/LIN_TIMEBASE_MS)*LIN_TIMEBASE_MS;
+    slot->duration_ms = (LIN_calculate_duration_ms(slot) + (LIN_TIMEBASE_MS / 2)) / LIN_TIMEBASE_MS;
     slot->direction = direction;
     slot->cks_type = cks_type;
     slot->data = data;
@@ -131,11 +130,8 @@ HAL_StatusTypeDef LIN_receive_frame(
     HAL_StatusTypeDef drx_status = HAL_UART_Receive_DMA(huart, schedule_mgr->buffer, slot->data_length + 3);
 
     uint8_t checksum = schedule_mgr->buffer[slot->data_length + 2];
-    uint8_t *data;
 
-    memcpy(data, schedule_mgr->buffer + 2, slot->data_length);
-
-    return LIN_validate_checksum(slot->pID, data, slot->data_length, checksum);
+    return LIN_validate_checksum(slot->pID, schedule_mgr->buffer + 2, slot->data_length, checksum);
 }
 
 HAL_StatusTypeDef LIN_validate_checksum(

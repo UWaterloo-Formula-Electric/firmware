@@ -31,14 +31,14 @@ typedef struct {
     uint8_t data_length;
     uint16_t duration_ms;
     LIN_Direction_t direction;
-    LIN_ChecksumType_t cks_type
+    LIN_ChecksumType_t cks_type;
 } LIN_ScheduleSlot_t;
 
 typedef struct {
     LIN_ScheduleSlot_t *table;
     uint8_t total_slots;
     uint8_t current_slot_idx;
-    uint8_t buffer[LIN_MAX_DATA_SIZE + 3]
+    uint8_t buffer[LIN_MAX_DATA_SIZE + 3];
 } LIN_ScheduleManager_t;
 
 HAL_StatusTypeDef LIN_init_slot(
@@ -47,7 +47,7 @@ HAL_StatusTypeDef LIN_init_slot(
     uint8_t data_length,
     LIN_Direction_t direction,
     LIN_ChecksumType_t cks_type,
-    uint8_t *buffer
+    uint8_t *data
 );
 HAL_StatusTypeDef LIN_init_schedule(
     LIN_ScheduleManager_t *schedule_mgr,
