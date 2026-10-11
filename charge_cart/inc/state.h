@@ -1,4 +1,7 @@
-// mirrored from bmu/Inc/F7_Inc/ltc_chip.h (can't include it here, it pulls in the STM32 HAL)
+#pragma once
+#include <stdint.h>
+
+// mirrored from bmu/Inc/F7_Inc/ltc_chip.h - can't include it here, it pulls in the STM32 HAL
 #define NUM_VOLTAGE_CELLS 140
 #define NUM_TEMP_CELLS 140
 #define BMU_CELLVOLTAGE 0x18800401
