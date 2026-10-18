@@ -12,12 +12,12 @@
 #define TLIN1029Q1_MAX_RX_PROPOGATION_DELAY_US 6U
 
 #define LIN_SYNC_BYTE 0x55U
-#define LIN_TBIT_US 50
+#define LIN_TBIT_US 50U
 #define LIN_TIMEBASE_MS 5U
+#define LIN_BUFFER_FACTOR 14U
 #define LIN_MAX_DATA_SIZE 8U
-#define LIN_BUFFER_FACTOR 14
-#define LIN_MAX_RETRIES 2U
-
+#define LIN_RX_BUFFER_SIZE 256U
+#define LIN_MAX_TRIES 2U
 
 typedef enum {
     MASTER_PUBLISH,
@@ -25,15 +25,10 @@ typedef enum {
 } LIN_Direction_t;
 
 typedef enum {
-    FRAME_UNCONDITIONAL,
-    FRAME_EVENT_TRIGGERED,
-    FRAME_DIGNOSTIC
-} LIN_FrameType_t;
-
-typedef enum {
     LIN_IDLE,
     LIN_READY,
-    LIN_TX_HEADER,
+    LIN_TX_BREAK,
+    LIN_TX_SYNC_PID,
     LIN_TX_RESPONSE,
     LIN_RX_RESPONSE,
     LIN_RECOVERY
@@ -43,19 +38,24 @@ typedef enum {
     LIN_PENDING,
     LIN_SUCCESS,
     LIN_TIMEOUT,
-    LIN_ERROR
+    LIN_OVERRUN_ERROR,
+    LIN_DMA_ERROR,
+    LIN_BIT_ERROR,
+    LIN_CHECKSUM_ERROR
 } LIN_Result_t;
 
 typedef struct {
-    uint8_t header_bytes[2];
-    uint8_t response_bytes[LIN_MAX_DATA_SIZE + 1];
-    uint8_t response_length;
+    uint8_t pID;
+    uint8_t *data;
+    uint8_t len_data;
+    uint8_t checksum;
 } LIN_Frame_t;
 
 typedef struct {
     uint8_t duration_ms;
+    // Fail count for one schedule run
+    uint8_t n_tries;
     LIN_Direction_t direction;
-    LIN_FrameType_t frame_type;
     LIN_Frame_t *frame;
 } LIN_ScheduleSlot_t;
 
@@ -64,7 +64,6 @@ typedef struct {
     uint8_t n_slots;
     uint8_t schedule_slot_idx;
     uint8_t active_slot_idx;
-    uint32_t elapsed_ms;
 } LIN_ScheduleManager_t;
 
 typedef struct {
@@ -77,18 +76,20 @@ typedef struct {
     LIN_ScheduleManager_t schedule_manager;
     volatile LIN_State_t frame_state;
     volatile LIN_Result_t frame_result;
+    uint16_t rx_buffer_idx;
+    uint8_t rx_buffer[LIN_RX_BUFFER_SIZE];
+    uint8_t tx_buffer[LIN_MAX_DATA_SIZE + 3];
 } LIN_HandleTypeDef;
 
 HAL_StatusTypeDef LIN_init_frame(
     LIN_Frame_t *frame,
     uint8_t frameID,
-    uint8_t *response_bytes,
-    uint8_t response_length
+    uint8_t *data,
+    uint8_t len_data
 );
 HAL_StatusTypeDef LIN_init_slot(
     LIN_ScheduleSlot_t *slot,
     LIN_Direction_t direction,
-    LIN_FrameType_t frame_type,
     LIN_Frame_t *frame
 );
 
@@ -99,10 +100,11 @@ HAL_StatusTypeDef LIN_init_schedule(
 );
 
 LIN_ScheduleSlot_t* get_active_slot();
+uint8_t get_rx_buffer_byte(uint16_t start, uint16_t offset);
 
-HAL_StatusTypeDef LIN_wakeup(UART_HandleTypeDef *huart);
-HAL_StatusTypeDef LIN_transmit_header(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart, const LIN_Frame_t *frame);
-HAL_StatusTypeDef LIN_transmit_response(UART_HandleTypeDef *huart, const LIN_Frame_t *frame);
+HAL_StatusTypeDef LIN_init_driver(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart);
+HAL_StatusTypeDef LIN_transmit_break(UART_HandleTypeDef *huart);
+HAL_StatusTypeDef LIN_transmit_response(UART_HandleTypeDef *huart, LIN_Frame_t *frame);
 
 uint8_t LIN_calculate_checksum(
     const uint8_t pID,
@@ -114,9 +116,9 @@ uint32_t LIN_calculate_header_transmission_time_us(void);
 uint32_t LIN_calculate_response_transmission_time_us(const uint8_t response_length);
 uint32_t LIN_calculate_slot_duration_ms(const uint8_t response_length);
 
-void LIN_start_schedule(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart);
+void LIN_advance_schedule();
 void LIN_HAL_TIM_Callback(void);
 void LIN_HAL_UART_Tx_Callback(UART_HandleTypeDef *huart);
-void LIN_HAL_UART_Rx_Callback(UART_HandleTypeDef *huart);
+void LIN_HAL_UART_Rx_Callback(UART_HandleTypeDef *huart, uint16_t size);
 
 #endif /* end of include guard: LIN_DRIVER_H */
