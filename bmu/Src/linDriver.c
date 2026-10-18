@@ -229,9 +229,9 @@ void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     LIN_Frame_t *frame = slot->frame;
 
     switch (hlin.frame_state) {
-        case LIN_TX_BREAK:
-            uint16_t dma_left = __HAL_DMA_GET_COUNTER(huart->hdmarx);
-            hlin.rx_buffer_idx = LIN_RX_BUFFER_SIZE - dma_left;
+        case LIN_TX_BREAK: {
+            uint16_t dma_remaining = __HAL_DMA_GET_COUNTER(huart->hdmarx);
+            hlin.rx_buffer_idx = LIN_RX_BUFFER_SIZE - dma_remaining;
 
             hlin.tx_buffer[0] = LIN_SYNC_BYTE;
             hlin.tx_buffer[1] = frame->pID;
@@ -239,6 +239,7 @@ void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
             hlin.frame_state = LIN_TX_SYNC_PID;
             HAL_UART_Transmit_DMA(huart, hlin.tx_buffer, 2);
             break;
+        }
         case LIN_TX_SYNC_PID:
             if (slot->direction == MASTER_PUBLISH) {
                 hlin.frame_state = LIN_TX_RESPONSE;
