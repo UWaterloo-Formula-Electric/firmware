@@ -165,6 +165,7 @@ void Error_Handler(void);
 #define CAN_RX_GPIO_Port GPIOB
 #define CAN_TX_Pin GPIO_PIN_4
 #define CAN_TX_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -174,5 +175,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2017 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -860,7 +859,7 @@ uint32_t HAL_ADC_GetError(ADC_HandleTypeDef *hadc);
   * @param  _CHANNELNB_ Channel number.  
   * @retval None
   */
-#define ADC_SMPR2(_SAMPLETIME_, _CHANNELNB_) ((_SAMPLETIME_) << (3 * ((uint32_t)((uint16_t)(_CHANNELNB_)))))
+#define ADC_SMPR2(_SAMPLETIME_, _CHANNELNB_) ((_SAMPLETIME_) << ((3UL * ((uint32_t)((uint16_t)(_CHANNELNB_)))) & 0x1FUL))
 
 /**
   * @brief  Set the selected regular channel rank for rank between 1 and 6.
@@ -956,4 +955,3 @@ uint32_t HAL_ADC_GetError(ADC_HandleTypeDef *hadc);
 #endif /* STM32F7xx_ADC_H */
 
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    gpio.c
@@ -6,16 +7,16 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
+/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
@@ -68,23 +69,23 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, PUMP_1_EN_Pin|CHARGE_EN_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PEPin PEPin PEPin */
+  /*Configure GPIO pins : CURR_SENSE_MUX_S3_Pin CURR_SENSE_MUX_S2_Pin CURR_SENSE_MUX_S1_Pin */
   GPIO_InitStruct.Pin = CURR_SENSE_MUX_S3_Pin|CURR_SENSE_MUX_S2_Pin|CURR_SENSE_MUX_S1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin */
+  /*Configure GPIO pins : I_DIAG_SENSE_SEL_Pin I_DIAG_SENSE_EN_Pin AUX_4_PWR_Pin */
   GPIO_InitStruct.Pin = I_DIAG_SENSE_SEL_Pin|I_DIAG_SENSE_EN_Pin|AUX_4_PWR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PDPin PDPin PDPin PDPin
-                           PDPin PDPin PDPin PDPin
-                           PDPin PDPin PDPin */
+  /*Configure GPIO pins : AUX_3_PWR_Pin AUX_2_PWR_Pin AUX_1_PWR_Pin RAD_EN_Pin
+                           INV_EN_Pin ACC_FANS_EN_Pin BRAKE_LIGHT_EN_Pin TCU_EN_Pin
+                           LED_R_Pin LED_Y_Pin LED_B_Pin */
   GPIO_InitStruct.Pin = AUX_3_PWR_Pin|AUX_2_PWR_Pin|AUX_1_PWR_Pin|RAD_EN_Pin
                           |INV_EN_Pin|ACC_FANS_EN_Pin|BRAKE_LIGHT_EN_Pin|TCU_EN_Pin
                           |LED_R_Pin|LED_Y_Pin|LED_B_Pin;
@@ -93,27 +94,27 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
+  /*Configure GPIO pins : WSB_EN_Pin BMU_EN_Pin CDU_EN_Pin PUMP_2_EN_Pin */
   GPIO_InitStruct.Pin = WSB_EN_Pin|BMU_EN_Pin|CDU_EN_Pin|PUMP_2_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin */
+  /*Configure GPIO pins : PUMP_1_EN_Pin CHARGE_EN_Pin */
   GPIO_InitStruct.Pin = PUMP_1_EN_Pin|CHARGE_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin PAPin */
+  /*Configure GPIO pins : CHG_STAT_1_Pin CHG_STAT_2_Pin TEMP_ALERT_Pin */
   GPIO_InitStruct.Pin = CHG_STAT_1_Pin|CHG_STAT_2_Pin|TEMP_ALERT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PDPin PDPin PDPin */
+  /*Configure GPIO pins : BUT3_Pin BUT2_Pin BUT1_Pin */
   GPIO_InitStruct.Pin = BUT3_Pin|BUT2_Pin|BUT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -124,5 +125,3 @@ void MX_GPIO_Init(void)
 /* USER CODE BEGIN 2 */
 
 /* USER CODE END 2 */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
