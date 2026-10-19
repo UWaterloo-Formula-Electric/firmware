@@ -7,9 +7,6 @@
 
 #define TLIN1029Q1_LIN_BUS_WAKEUP_US 65U
 #define TLIN1029Q1_DOMINANT_STATE_TIMEOUT_MS 45U
-#define TLIN1029Q1_NORMAL_MODE_INIT_US 35U
-#define TLIN1029Q1_POWERUP_MS 2U
-#define TLIN1029Q1_MAX_RX_PROPOGATION_DELAY_US 6U
 
 #define LIN_SYNC_BYTE 0x55U
 #define LIN_TBIT_US 50U
@@ -53,7 +50,7 @@ typedef struct {
 
 typedef struct {
     uint8_t duration_ms;
-    // Fail count for one schedule run
+    // Count of failures per schedule run
     uint8_t n_tries;
     LIN_Direction_t direction;
     LIN_Frame_t *frame;
@@ -67,7 +64,10 @@ typedef struct {
 } LIN_ScheduleManager_t;
 
 typedef struct {
+    // TIM frequency is 1 MHz
     TIM_HandleTypeDef *htim;
+    // USART RX mode is circular and TX mode is normal
+    // Enable USART global and DMA channel interrupts
     UART_HandleTypeDef *huart;
 } LIN_Config_t;
 
@@ -118,7 +118,7 @@ uint32_t LIN_calculate_slot_duration_ms(const uint8_t response_length);
 
 void LIN_advance_schedule();
 void LIN_HAL_TIM_Callback(void);
-void LIN_HAL_UART_Tx_Callback(UART_HandleTypeDef *huart);
-void LIN_HAL_UART_Rx_Callback(UART_HandleTypeDef *huart, uint16_t size);
+void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);
+void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size);
 
 #endif /* end of include guard: LIN_DRIVER_H */

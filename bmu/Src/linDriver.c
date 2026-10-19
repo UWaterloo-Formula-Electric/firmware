@@ -228,33 +228,24 @@ void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     LIN_ScheduleSlot_t *slot = get_active_slot();
     LIN_Frame_t *frame = slot->frame;
 
-    switch (hlin.frame_state) {
-        case LIN_TX_BREAK: {
-            uint16_t dma_remaining = __HAL_DMA_GET_COUNTER(huart->hdmarx);
-            hlin.rx_buffer_idx = LIN_RX_BUFFER_SIZE - dma_remaining;
+    if (hlin.frame_state == LIN_TX_BREAK) {
+        uint16_t dma_remaining = __HAL_DMA_GET_COUNTER(huart->hdmarx);
+        hlin.rx_buffer_idx = LIN_RX_BUFFER_SIZE - dma_remaining;
 
-            hlin.tx_buffer[0] = LIN_SYNC_BYTE;
-            hlin.tx_buffer[1] = frame->pID;
-            
-            hlin.frame_state = LIN_TX_SYNC_PID;
-            HAL_UART_Transmit_DMA(huart, hlin.tx_buffer, 2);
-            break;
+        hlin.tx_buffer[0] = LIN_SYNC_BYTE;
+        hlin.tx_buffer[1] = frame->pID;
+        
+        hlin.frame_state = LIN_TX_SYNC_PID;
+        HAL_UART_Transmit_DMA(huart, hlin.tx_buffer, 2);
+    }
+    else if (hlin.frame_state == LIN_TX_SYNC_PID) {
+        if (slot->direction == MASTER_PUBLISH) {
+            hlin.frame_state = LIN_TX_RESPONSE;
+            LIN_transmit_response(huart, slot->frame);
         }
-        case LIN_TX_SYNC_PID:
-            if (slot->direction == MASTER_PUBLISH) {
-                hlin.frame_state = LIN_TX_RESPONSE;
-                LIN_transmit_response(huart, slot->frame);
-            }
-            else {
-                hlin.frame_state = LIN_RX_RESPONSE;
-            }
-            break;
-        case LIN_TX_RESPONSE:
-            hlin.frame_result = LIN_SUCCESS;
-            hlin.frame_state = LIN_READY;
-            break;
-        default:
-            return;
+        else {
+            hlin.frame_state = LIN_RX_RESPONSE;
+        }
     }
 }
 
@@ -271,35 +262,45 @@ void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
 
     LIN_ScheduleSlot_t *slot = get_active_slot();
     LIN_Frame_t *frame = slot->frame;
+
     uint16_t start = hlin.rx_buffer_idx;
+    uint16_t n_rx_bytes = 0;
+
+    if (size >= start) {
+        n_rx_bytes = size - start;
+    }
+    else {
+        n_rx_bytes = LIN_RX_BUFFER_SIZE - start + size;
+    }
 
     uint16_t n_expected_bytes = 3 + frame->len_data;
     // Wait to receive complete frame
-    if (hlin.frame_state == LIN_RX_RESPONSE && size < n_expected_bytes) {
+    if (n_rx_bytes < n_expected_bytes) {
         return; 
     }
-    // Check header bytes
+
+    bool is_valid_frame = true;
+    // Verify sync and PID echo
     if (get_rx_buffer_byte(start, 0) != LIN_SYNC_BYTE ||
         get_rx_buffer_byte(start, 1) != frame->pID) {
         hlin.frame_result = LIN_BIT_ERROR;
-        return;
+        is_valid_frame = false;
     }
 
     if (slot->direction == MASTER_PUBLISH) {
-        // Check if tx data matches stored data
+        // Verify data echo
         for (uint8_t i = 0; i < frame->len_data; i++) {
             if (get_rx_buffer_byte(start, 2 + i) != frame->data[i]) {
                 hlin.frame_result = LIN_BIT_ERROR;
-                return;
+                is_valid_frame = false;
+                break;
             }
         }
-        // Check if tx checksum matches calculated checksum
+        // Verify checksum echo
         if (get_rx_buffer_byte(start, 2 + frame->len_data) != frame->checksum) {
             hlin.frame_result = LIN_BIT_ERROR;
-            return;
+            is_valid_frame = false;
         }
-
-        hlin.frame_result = LIN_SUCCESS;
     } 
     else if (slot->direction == MASTER_SUBSCRIBE) {
         uint8_t received_checksum = get_rx_buffer_byte(start, 2 + frame->len_data);
@@ -315,17 +316,31 @@ void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
             }
 
             frame->checksum = received_checksum;
-            hlin.frame_result = LIN_SUCCESS;
         } else {
             hlin.frame_result = LIN_CHECKSUM_ERROR;
         }
     }
+
+    if (is_valid_frame) {
+        hlin.frame_result = LIN_SUCCESS;
+        hlin.frame_state = LIN_READY;
+    }
+    else {
+        hlin.frame_state = LIN_RECOVERY;
+    }
+    // Start new frame after current frame
+    hlin.rx_buffer_idx = size % LIN_RX_BUFFER_SIZE; 
 }
 
 void LIN_HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
     if (huart != hlin.config.huart) return;
 
     uint32_t error_code = HAL_UART_GetError(huart);
+
+    if ((error_code & HAL_UART_ERROR_FE) && (hlin.frame_state == LIN_TX_BREAK)) {
+        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);
+        return; 
+    }
     // Reflect error in frame result
     if (error_code & HAL_UART_ERROR_ORE) {
         hlin.frame_result = LIN_OVERRUN_ERROR;
