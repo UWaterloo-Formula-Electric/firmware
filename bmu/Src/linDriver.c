@@ -1,359 +1,342 @@
-#include "stm32f7xx_hal.h"
 #include "linDriver.h"
-#include "string.h"
-#include "stdint.h"
-#include "stdbool.h"
-
-LIN_HandleTypeDef hlin = {
-    .schedule_manager = {
-        .table = NULL,
-        .n_slots = 0,
-        .schedule_slot_idx = 0,
-        .active_slot_idx = 0
-    },
-    .rx_buffer_idx = 0,
-    .frame_state = LIN_IDLE,
-    .frame_result = LIN_PENDING
-};
 
 HAL_StatusTypeDef LIN_init_frame(
     LIN_Frame_t *frame,
-    uint8_t frameID,
-    uint8_t *data,
-    uint8_t len_data) {
-    if (frame == NULL || frameID > 0x3E ||
-        len_data > LIN_MAX_DATA_SIZE || len_data == 0 ||
-        (len_data > 0 && data == NULL)) {
-        return HAL_ERROR;
-    }
-
-    frame->pID = LIN_calculate_PID(frameID);
-    frame->len_data = len_data;
-    frame->data = data;
-    frame->checksum = LIN_calculate_checksum(
-        frame->pID,
-        frame->data,
-        frame->len_data);
-
-    return HAL_OK;
- }
-
-HAL_StatusTypeDef LIN_init_slot(
-    LIN_ScheduleSlot_t *slot,
+    uint8_t id,
+    uint8_t length,
     LIN_Direction_t direction,
-    LIN_Frame_t *frame
-) {
-    if (slot == NULL || frame == NULL) {
+    LIN_FrameType_t frame_type) {
+    if (frame == NULL || length == 0 || id > LIN_MAX_FRAME_ID) {
         return HAL_ERROR;
     }
 
-    slot->duration_ms = LIN_calculate_slot_duration_ms(frame->len_data);
-    slot->n_tries = 0;
-    slot->direction = direction;
-    slot->frame = frame;
+    frame->id = id;
+    
+    frame->pid = frame->id;
+    LIN_make_protected_ID(&(frame->pid));
+    
+    frame->length = length;
+    frame->direction = direction;
+    frame->frame_type = frame_type;
+    // LIN 2.x diagnostic frames use classic checksum
+    if (frame->frame_type == LIN_FRAME_DIAGNOSTIC) {
+        frame->checksum_type = LIN_CHECKSUM_CLASSIC;
+    }
+    else {
+        frame->checksum_type = LIN_CHECKSUM_ENHANCED;
+    }
+
+    frame->rx_valid = false;
+    frame->tx_updated = false;
+
+    memset(frame->tx_bytes, 0, LIN_MAX_DATA_SIZE + 1);
+    memset(frame->rx_bytes, 0, LIN_MAX_DATA_SIZE + 1);
 
     return HAL_OK;
 }
 
 HAL_StatusTypeDef LIN_init_schedule(
-    LIN_ScheduleManager_t *schedule_manager,
-    LIN_ScheduleSlot_t *table,
-    uint8_t n_slots) {
-    if (schedule_manager == NULL || table == NULL || n_slots == 0) {
+    LIN_Schedule_t *schedule,
+    LIN_Frame_t *frames,
+    uint16_t frame_count,
+    LIN_Slot_t *slots,
+    uint16_t slot_count) {
+    if (schedule == NULL || frames == NULL || slots == NULL ||
+        frame_count == 0 || frame_count > LIN_MAX_FRAMES ||
+        slot_count == 0 || slot_count > LIN_MAX_SLOTS) {
         return HAL_ERROR;
     }
 
-    schedule_manager->table = table;
-    schedule_manager->n_slots = n_slots;
-    schedule_manager->schedule_slot_idx = 0;
-    schedule_manager->active_slot_idx = 0;
+    memcpy(schedule->frames, frames, frame_count);
+    memcpy(schedule->slots, slots, slot_count);
+
+    schedule->frame_count = frame_count;
+    schedule->slot_count = slot_count;
+    schedule->slot_index = 0;
+    schedule->elapsed_us = 0;
 
     return HAL_OK;
 }
 
-LIN_ScheduleSlot_t* get_active_slot() {
-    if (hlin.schedule_manager.table == NULL || 
-        hlin.schedule_manager.active_slot_idx >= hlin.schedule_manager.n_slots) {
-        return NULL;
-    }
+HAL_StatusTypeDef LIN_init_driver(
+    LIN_Driver_t *driver,
+    LIN_Schedule_t *schedule,
+    UART_HandleTypeDef *huart
+) {
+    if (driver == NULL || schedule == NULL || huart == NULL ||
+        schedule->frame_count == 0 || schedule->slot_count == 0) {
+        return HAL_ERROR;
+        }
 
-    uint8_t idx = hlin.schedule_manager.active_slot_idx;
-    return &hlin.schedule_manager.table[idx];
-}
-
-uint8_t get_rx_buffer_byte(uint16_t start, uint16_t offset) {
-    return hlin.rx_buffer[(start + offset) % LIN_RX_BUFFER_SIZE];
-}
-
-HAL_StatusTypeDef LIN_init_driver(TIM_HandleTypeDef *htim, UART_HandleTypeDef *huart) {
-    if (htim == NULL || huart == NULL) {
+    // Validate baud rate range
+    if (huart->Init.BaudRate < LIN_MIN_BAUD || huart->Init.BaudRate > LIN_MAX_BAUD) {
         return HAL_ERROR;
     }
 
-    hlin.config.huart = huart;
-    hlin.config.htim = htim;
-    hlin.rx_buffer_idx = 0;
-    hlin.frame_state = LIN_IDLE;
-    hlin.frame_result = LIN_PENDING;
+    // Validate word length
+    if (huart->Init.WordLength != UART_WORDLENGTH_8B) {
+        return HAL_ERROR;
+    }
 
-    // Enable Line Break Detection (LBD) interrupt
+    // Ensure that LIN mode is enabled
+    if ((huart->Instance->CR2 & USART_CR2_LINEN) == 0U) {
+        return HAL_ERROR;
+    }
+
+    memset(driver, 0, sizeof(LIN_Driver_t));
+    driver->schedule = *schedule;
+    driver->huart = huart;
+    // Arm circular RX DMA
+    HAL_StatusTypeDef circular_dma_status = HAL_UARTEx_ReceiveToIdle_DMA(
+        driver->huart,
+        driver->circ_buffer,
+        LIN_CIRC_BUFFER_SIZE
+    );
+    
+    if (circular_dma_status != HAL_OK) {
+        return circular_dma_status;
+    }
+
+    // Stop framing errors from breaking echo
+    CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
+
+    // Enable LIN Break Detection (LBD) interrupt
     __HAL_UART_ENABLE_IT(huart, UART_IT_LBD);
 
-    // Start background reception via DMA
-    return HAL_UARTEx_ReceiveToIdle_DMA(huart, hlin.rx_buffer, LIN_RX_BUFFER_SIZE);
+    return HAL_OK;
 }
 
-HAL_StatusTypeDef LIN_transmit_break( UART_HandleTypeDef *huart) {
-    if (huart == NULL) {
-        return HAL_ERROR;
-    }
-    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_TCF);
-    
-    // Signal start of new frame
-    return HAL_LIN_SendBreak(huart);
+HAL_StatusTypeDef LIN_make_protected_ID(uint8_t *p_id) {
+    if (p_id == NULL || *p_id > LIN_MAX_FRAME_ID) return HAL_ERROR;
+
+    uint8_t po = ((*p_id) ^ (*p_id >> 1U) ^ (*p_id >> 2U) ^ (*p_id >> 4U)) & 1U;
+    uint8_t p1 = (~((*p_id >> 1) ^ (*p_id >> 3U) ^ (*p_id >> 4) ^ (*p_id >> 5))) & 1U;
+
+    *p_id = *p_id | (po << 6U) | (p1 << 7U);
+
+    return HAL_OK;
 }
 
-HAL_StatusTypeDef LIN_transmit_response(UART_HandleTypeDef *huart, LIN_Frame_t *frame) {
-    if (huart == NULL || frame == NULL) {
-        return HAL_ERROR;
-    }
+HAL_StatusTypeDef LIN_calculate_checksum(
+    LIN_ChecksumType_t checksum_type,
+    const uint8_t pid,
+    const uint8_t length,
+    const uint8_t *bytes,
+    uint8_t *p_checksum) {
+    if (p_checksum == NULL || bytes == NULL || length == 0) return HAL_ERROR;
 
-    memcpy(hlin.tx_buffer, frame->data, frame->len_data);
-    hlin.tx_buffer[frame->len_data] = frame->checksum;
-
-    return HAL_UART_Transmit_DMA(huart, hlin.tx_buffer, frame->len_data + 1);
-}
-
-uint8_t LIN_calculate_checksum(
-    const uint8_t pID,
-    const uint8_t *response_bytes,
-    const uint8_t response_length) {
     uint16_t sum = 0;
-    uint8_t frame_id = pID & 0x3FU;
 
-    // Frame IDs 60 and 61 use classic checksum
-    if (frame_id != 0x3CU && frame_id != 0x3DU) {
-        sum = pID;
+    if (checksum_type == LIN_CHECKSUM_ENHANCED) {
+        sum = pid;
     }
-    // Inverted 8-bit sum with carry
-    for (uint8_t i = 0; i < response_length; ++i) {
-        sum += response_bytes[i];
+
+    for (uint8_t i = 0; i < length; ++i) {
+        sum += bytes[i];
+
         if (sum > 0xFF) {
             sum -= 0xFF;
         }
     }
 
-    return (uint8_t)(~sum);
+    *p_checksum = ~(sum & 0xFF);
+
+    return HAL_OK;
 }
 
-uint8_t LIN_calculate_PID(const uint8_t frameID) {
-    uint8_t p0 = (frameID ^ (frameID >> 1) ^ (frameID >> 2) ^ (frameID >> 4)) & 1U;
-    uint8_t p1 = (~((frameID >> 1) ^ (frameID >> 3) ^ (frameID >> 4) ^ (frameID >> 5))) & 1U;
+HAL_StatusTypeDef LIN_update_frame(
+    LIN_Schedule_t *schedule,
+    uint8_t index,
+    uint8_t *data,
+    uint8_t length) {
+    if (index >= LIN_MAX_FRAMES || data == NULL ||
+        length == 0 || length > LIN_MAX_DATA_SIZE) {
+        return HAL_ERROR;
+    }
 
-    return (p1 << 7) | (p0 << 6) | frameID;
+    LIN_Frame_t *frame = &(schedule->frames[index]);
+
+    if (frame->direction == LIN_MASTER_SUBSCRIBE) {
+        return HAL_ERROR;
+    }
+    
+    frame->tx_updated = false;
+    memcpy(frame->rx_bytes, data, length);
+    frame->length = length;
+
+    return HAL_OK;
 }
 
-uint32_t LIN_calculate_header_transmission_time_us(void) {
-    return 34 * LIN_TBIT_US;
+uint32_t LIN_calculate_nominal_t_transmission_us(
+    const uint32_t baudrate,
+    const uint8_t length) {
+    uint32_t t_bit_us = 1e6 / baudrate;
+    return length * t_bit_us * LIN_BITS_PER_BYTE;
 }
 
-uint32_t LIN_calculate_response_transmission_time_us(const uint8_t response_length) {
-    return (response_length + 1) * 10 * LIN_TBIT_US;
+uint32_t LIN_calculate_max_t_transmission_us(
+    const uint32_t baudrate,
+    const uint8_t length) {
+    uint32_t t_trx_us = LIN_calculate_nominal_t_transmission_us(baudrate, length);
+    return (t_trx_us * LIN_TIME_BUFFER_PCT + 50) / 100;
 }
 
-uint32_t LIN_calculate_slot_duration_ms(const uint8_t response_length) {
-    uint32_t t_header_us = LIN_calculate_header_transmission_time_us();
-    uint32_t t_response_us = LIN_calculate_response_transmission_time_us(response_length);
-
-    uint64_t total_us = ((uint64_t)t_header_us + t_response_us) * LIN_BUFFER_FACTOR;
-    total_us = (total_us + 9) / 10;
-
-    const uint32_t timebase_us = LIN_TIMEBASE_MS * 1000;
-
-    return (uint32_t)((total_us + timebase_us - 1) / timebase_us) * LIN_TIMEBASE_MS;
+uint32_t LIN_round_t_tranmission_to_timebase_us(const uint32_t t_transmission_us) {
+    if (t_transmission_us % LIN_TIMEBASE_US > 0) {
+        return t_transmission_us + t_transmission_us % LIN_TIMEBASE_US;
+    }
+    return t_transmission_us;
 }
 
-void LIN_advance_schedule() {
-    LIN_ScheduleManager_t *schedule_manager = &hlin.schedule_manager;
+LIN_MasterState_t LIN_master_state_machine(
+    const LIN_MasterState_t master_state,
+    const HAL_StatusTypeDef dma_status
+) {
+    LIN_MasterState_t next_state;
 
-    schedule_manager->schedule_slot_idx = ((schedule_manager->active_slot_idx + 1)
-                                                    % schedule_manager->n_slots);
-    schedule_manager->active_slot_idx = schedule_manager->schedule_slot_idx;
-
-    hlin.frame_state = LIN_TX_BREAK;
-    hlin.frame_result = LIN_PENDING;
-
-    LIN_transmit_break(hlin.config.huart);
-}
-
-void LIN_HAL_TIM_Callback(void) {
-    static uint32_t t_start_us = 0;
-    static uint32_t elapsed_ms = 0;
-
-    uint32_t t_end_us = __HAL_TIM_GET_COUNTER(hlin.config.htim);
-
-    elapsed_ms += (t_end_us - t_start_us) / 1000;
-    t_start_us = t_end_us;
-
-    LIN_ScheduleSlot_t *slot = get_active_slot();
-    uint32_t allocated_ms = slot->duration_ms;
-
-    if (elapsed_ms < allocated_ms &&
-        hlin.frame_state == LIN_RECOVERY) {
-        if (slot->n_tries < LIN_MAX_TRIES) {
-            ++slot->n_tries;
-
-            elapsed_ms = 0;
-            hlin.frame_result = LIN_PENDING;
-
-            hlin.frame_state = LIN_TX_BREAK;
-            LIN_transmit_break(hlin.config.huart);
-        }
-        else {
-            LIN_advance_schedule();
-        }
-        return;
-    }
-
-    if (elapsed_ms >= allocated_ms) {
-        LIN_advance_schedule();
-    }
-}
-
-void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart != hlin.config.huart) {
-        return;
-    }
-
-    LIN_ScheduleSlot_t *slot = get_active_slot();
-    LIN_Frame_t *frame = slot->frame;
-
-    if (hlin.frame_state == LIN_TX_BREAK) {
-        uint16_t dma_remaining = __HAL_DMA_GET_COUNTER(huart->hdmarx);
-        hlin.rx_buffer_idx = LIN_RX_BUFFER_SIZE - dma_remaining;
-
-        hlin.tx_buffer[0] = LIN_SYNC_BYTE;
-        hlin.tx_buffer[1] = frame->pID;
-        
-        hlin.frame_state = LIN_TX_SYNC_PID;
-        HAL_UART_Transmit_DMA(huart, hlin.tx_buffer, 2);
-    }
-    else if (hlin.frame_state == LIN_TX_SYNC_PID) {
-        if (slot->direction == MASTER_PUBLISH) {
-            hlin.frame_state = LIN_TX_RESPONSE;
-            LIN_transmit_response(huart, slot->frame);
-        }
-        else {
-            hlin.frame_state = LIN_RX_RESPONSE;
-        }
-    }
-}
-
-void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
-    if (huart != hlin.config.huart) {
-        return;
-    }
-    // Skip if physical and logical bus are idle
-    if (hlin.frame_state == LIN_IDLE ||
-        hlin.frame_state == LIN_READY ||
-        hlin.frame_state == LIN_RECOVERY) {
-        return;
-    }
-
-    LIN_ScheduleSlot_t *slot = get_active_slot();
-    LIN_Frame_t *frame = slot->frame;
-
-    uint16_t start = hlin.rx_buffer_idx;
-    uint16_t n_rx_bytes = 0;
-
-    if (size >= start) {
-        n_rx_bytes = size - start;
-    }
-    else {
-        n_rx_bytes = LIN_RX_BUFFER_SIZE - start + size;
-    }
-
-    uint16_t n_expected_bytes = 3 + frame->len_data;
-    // Wait to receive complete frame
-    if (n_rx_bytes < n_expected_bytes) {
-        return; 
-    }
-
-    bool is_valid_frame = true;
-    // Verify sync and PID echo
-    if (get_rx_buffer_byte(start, 0) != LIN_SYNC_BYTE ||
-        get_rx_buffer_byte(start, 1) != frame->pID) {
-        hlin.frame_result = LIN_BIT_ERROR;
-        is_valid_frame = false;
-    }
-
-    if (slot->direction == MASTER_PUBLISH) {
-        // Verify data echo
-        for (uint8_t i = 0; i < frame->len_data; i++) {
-            if (get_rx_buffer_byte(start, 2 + i) != frame->data[i]) {
-                hlin.frame_result = LIN_BIT_ERROR;
-                is_valid_frame = false;
-                break;
+    // LIN 2.x signal transmitted before frame is sent
+    switch (master_state) {
+        case LIN_MASTER_IDLE:
+            if (dma_status == HAL_OK) {
+                next_state = LIN_MASTER_TX_BREAK;
             }
-        }
-        // Verify checksum echo
-        if (get_rx_buffer_byte(start, 2 + frame->len_data) != frame->checksum) {
-            hlin.frame_result = LIN_BIT_ERROR;
-            is_valid_frame = false;
-        }
-    } 
-    else if (slot->direction == MASTER_SUBSCRIBE) {
-        uint8_t received_checksum = get_rx_buffer_byte(start, 2 + frame->len_data);
-        uint8_t calculated_checksum = LIN_calculate_checksum(
-            frame->pID,
-            frame->data,
-            frame->len_data);
-        
-        // Update slot frame with valid data
-        if (received_checksum == calculated_checksum) {
-            for (uint8_t i = 0; i < frame->len_data; i++) {
-                frame->data[i] = get_rx_buffer_byte(start, 2 + i);
+            else {
+                next_state = LIN_MASTER_ERROR;
             }
-
-            frame->checksum = received_checksum;
-        } else {
-            hlin.frame_result = LIN_CHECKSUM_ERROR;
-        }
+            break;
+        case LIN_MASTER_TX_BREAK:
+            if (dma_status == HAL_OK) {
+                next_state = LIN_MASTER_TX_SYNC;
+            }
+            else {
+                next_state = LIN_MASTER_ERROR;
+            }
+            break;
+        case LIN_MASTER_TX_SYNC:
+            if (dma_status == HAL_OK) {
+                next_state = LIN_MASTER_TX_PID;
+            }
+            else {
+                next_state = LIN_MASTER_ERROR;
+            }
+            break;
+        case LIN_MASTER_TX_PID:
+            if (dma_status == HAL_OK) {
+                next_state = LIN_MASTER_IDLE;
+            }
+            else {
+                next_state = LIN_MASTER_ERROR;
+            }
+            break;
+        case LIN_MASTER_ERROR:
+            if (dma_status == HAL_OK) {
+                next_state = LIN_MASTER_IDLE;
+            }
+            else {
+                next_state = LIN_MASTER_ERROR;
+            }
+            break;
+        default:
+            next_state = master_state;
+            break;
     }
 
-    if (is_valid_frame) {
-        hlin.frame_result = LIN_SUCCESS;
-        hlin.frame_state = LIN_READY;
-    }
-    else {
-        hlin.frame_state = LIN_RECOVERY;
-    }
-    // Start new frame after current frame
-    hlin.rx_buffer_idx = size % LIN_RX_BUFFER_SIZE; 
+    return next_state;
 }
 
-void LIN_HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-    if (huart != hlin.config.huart) return;
-
-    uint32_t error_code = HAL_UART_GetError(huart);
-
-    if ((error_code & HAL_UART_ERROR_FE) && (hlin.frame_state == LIN_TX_BREAK)) {
-        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);
-        return; 
+LIN_SlaveState_t LIN_slave_state_machine(
+    const LIN_SlaveState_t slave_state,
+    const HAL_StatusTypeDef validation_status) {
+    LIN_SlaveState_t next_state;
+    
+    // LIN 2.x signal received when checksum is valid
+    switch (slave_state) {
+        case LIN_SLAVE_IDLE:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_RX_SYNC;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_RX_SYNC:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_RX_PID;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_RX_PID:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_RX_DATA;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_RX_DATA:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_RX_CHECKSUM;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_RX_CHECKSUM:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_IDLE;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_TX_DATA:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_TX_CHECKSUM;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_TX_CHECKSUM:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_IDLE;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        case LIN_SLAVE_ERROR:
+            if (validation_status == HAL_OK) {
+                next_state = LIN_SLAVE_IDLE;
+            }
+            else {
+                next_state = LIN_SLAVE_ERROR;
+            }
+            break;
+        default:
+            next_state = slave_state;
+            break;
     }
-    // Reflect error in frame result
-    if (error_code & HAL_UART_ERROR_ORE) {
-        hlin.frame_result = LIN_OVERRUN_ERROR;
-    } else if (error_code & (HAL_UART_ERROR_FE | HAL_UART_ERROR_NE)) {
-        hlin.frame_result = LIN_BIT_ERROR;
-    } else if (error_code & HAL_UART_ERROR_DMA) {
-        hlin.frame_result = LIN_DMA_ERROR;
+
+    return next_state;
+}
+
+HAL_StatusTypeDef LIN_send_break(UART_HandleTypeDef *huart) {
+    if (huart == NULL) return HAL_ERROR;
+
+    return HAL_LIN_SendBreak(huart);
+}
+
+HAL_StatusTypeDef LIN_send_bytes(
+    UART_HandleTypeDef *huart,
+    uint8_t *data,
+    uint8_t length) {
+    if (huart == NULL || data == NULL ||
+        length == 0 || length > LIN_MAX_DATA_SIZE) {
+        return HAL_ERROR;
     }
-    // Clear error flags for next tx
-    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_OREF | UART_CLEAR_FEF | UART_CLEAR_NEF | UART_CLEAR_PEF);
-    HAL_UART_AbortReceive(huart);
-    // Recover in next timer callback
-    hlin.frame_state = LIN_RECOVERY; 
-    // Listen to rx for next frame
-    HAL_UARTEx_ReceiveToIdle_DMA(huart, hlin.rx_buffer, LIN_RX_BUFFER_SIZE);
+
+    return HAL_UART_Transmit_DMA(huart, data, length);
 }
