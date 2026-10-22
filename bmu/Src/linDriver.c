@@ -492,17 +492,29 @@ void LIN_HAL_UARTEx_RxEventCallback(
     LIN_Slot_t *slot = &(driver->schedule.slots[driver->schedule.slot_index]);
     LIN_Frame_t *frame = &(driver->schedule.frames[slot->frame_index]);
 
-    uint16_t n_bytes_left = 0;
+    uint16_t n_expected_bytes = 0;
     
     if (txn->master_state == LIN_MASTER_TX_HEADER) {
-        n_bytes_left = 2;
+        n_expected_bytes = 2;
     }
     else if (txn->master_state == LIN_MASTER_TX_RESPONSE ||
              txn->master_state == LIN_MASTER_RX_RESPONSE) {
-        n_bytes_left = frame->length + 1;
+        n_expected_bytes = frame->length + 1;
     }
 
-    uint16_t n_read_bytes = (n_bytes_left >= n_rx_bytes) ? n_rx_bytes : n_bytes_left;
+    uint16_t n_bytes_left = (frame->length + 3) - driver->echo_size;
+
+    uint16_t n_read_bytes = 0;
+
+    if (n_expected_bytes < n_rx_bytes) {
+        n_read_bytes = n_expected_bytes;
+    }
+    else if (n_bytes_left < n_rx_bytes) {
+        n_read_bytes = n_bytes_left;
+    }
+    else {
+        n_read_bytes = n_rx_bytes;
+    }
 
     for (uint16_t i = 0; i < n_read_bytes; ++i) {
         driver->echo_bytes[i + driver->echo_size] = get_dma_buffer_byte(
