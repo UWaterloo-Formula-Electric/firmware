@@ -26,17 +26,11 @@
 #define LIN_MAX_SLOTS 16U
 
 /* LIN driver constants */
-#define LIN_CIRC_BUFFER_SIZE 256U
+#define LIN_DMA_BUFFER_SIZE 256U
 
 /* TLIN1029-Q1 constants */
 #define TLIN1029Q1_WAKEUP_US 65U
 #define TLIN1029Q1_CLEAR_FALSE_WAKEUP_US 25U
-#define TLIN1029Q1_DOMINANT_STATE_TIMEOUT_US 45000U
-
-typedef enum {
-    LIN_MASTER_PUBLISH,
-    LIN_MASTER_SUBSCRIBE
-} LIN_Direction_t;
 
 typedef enum {
     LIN_FRAME_UNCONDITIONAL,
@@ -50,31 +44,26 @@ typedef enum {
     LIN_CHECKSUM_ENHANCED
 } LIN_ChecksumType_t;
 
+typedef enum {
+    LIN_MASTER_PUBLISH,
+    LIN_MASTER_SUBSCRIBE
+} LIN_Direction_t;
+
 /* LIN 2.x master task state machine */
 typedef enum {
     LIN_MASTER_IDLE,
     LIN_MASTER_TX_BREAK,
-    LIN_MASTER_TX_SYNC,
-    LIN_MASTER_TX_PID,
+    LIN_MASTER_TX_HEADER,
+    LIN_MASTER_TX_RESPONSE,
+    LIN_MASTER_RX_RESPONSE,
+    LIN_MASTER_SUCCESS,
     LIN_MASTER_ERROR
 } LIN_MasterState_t;
 
-/* LIN 2.x slave task state machine */
-typedef enum {
-    LIN_SLAVE_IDLE,
-    LIN_SLAVE_RX_SYNC,
-    LIN_SLAVE_RX_PID,
-    LIN_SLAVE_RX_DATA,
-    LIN_SLAVE_RX_CHECKSUM,
-    LIN_SLAVE_TX_DATA,
-    LIN_SLAVE_TX_CHECKSUM,
-    LIN_SLAVE_ERROR
-} LIN_SlaveState_t;
-
 typedef struct {
     LIN_MasterState_t master_state;
-    LIN_SlaveState_t slave_state;
-} LIN_FrameSM_t;
+    LIN_Direction_t direction;
+} LIN_Transaction_t;
 
 typedef struct {
     uint8_t id;
@@ -84,11 +73,11 @@ typedef struct {
     LIN_Direction_t direction;
     LIN_FrameType_t frame_type;
     LIN_ChecksumType_t checksum_type;
-    uint8_t tx_bytes[LIN_MAX_DATA_SIZE + 1];
-    // Update buffer if direction is LIN_MASTER_PUBLISH
-    uint8_t rx_bytes[LIN_MAX_DATA_SIZE + 1];
-    bool rx_valid;
-    bool tx_updated;
+    uint8_t header_bytes[2];
+    uint8_t response_bytes[LIN_MAX_DATA_SIZE + 1];
+    uint8_t update_buffer[LIN_MAX_DATA_SIZE];
+    bool rx_valid_response;
+    bool tx_update_pending;
 } LIN_Frame_t;
 
 typedef struct {
@@ -99,18 +88,22 @@ typedef struct {
 typedef struct {
     LIN_Frame_t frames[LIN_MAX_FRAMES];
     LIN_Slot_t slots[LIN_MAX_SLOTS];
-    uint16_t frame_count;
-    uint16_t slot_count;
-    uint16_t slot_index;
+    uint8_t frame_count;
+    uint8_t slot_count;
+    uint8_t slot_index;
     uint32_t elapsed_us;
 } LIN_Schedule_t;
 
 typedef struct {
+    TIM_HandleTypeDef *htim;
     UART_HandleTypeDef *huart;
     LIN_Schedule_t schedule;
-    LIN_FrameSM_t frame_processor;
-    uint8_t circ_buffer[LIN_CIRC_BUFFER_SIZE];
-    uint16_t circ_buffer_index;
+    LIN_Transaction_t transaction;
+    uint8_t dma_buffer[LIN_DMA_BUFFER_SIZE];
+    uint16_t dma_index;
+    uint8_t echo_bytes[LIN_MAX_DATA_SIZE + 3];
+    uint8_t echo_size;
+    bool is_running;
 } LIN_Driver_t;
 
 /* Initializers */
@@ -124,18 +117,19 @@ HAL_StatusTypeDef LIN_init_frame(
 HAL_StatusTypeDef LIN_init_schedule(
     LIN_Schedule_t *schedule,
     LIN_Frame_t *frames,
-    uint16_t frame_count,
+    uint8_t frame_count,
     LIN_Slot_t *slots,
-    uint16_t slot_count
+    uint8_t slot_count
 );
 HAL_StatusTypeDef LIN_init_driver(
     LIN_Driver_t *driver,
     LIN_Schedule_t *schedule,
+    TIM_HandleTypeDef *htim,
     UART_HandleTypeDef *huart
 );
 
 /* LIN 2.x protocol helpers */
-HAL_StatusTypeDef LIN_make_protected_ID(uint8_t *pid);
+HAL_StatusTypeDef LIN_make_protected_ID(uint8_t id, uint8_t *pid);
 HAL_StatusTypeDef LIN_calculate_checksum(
     LIN_ChecksumType_t checksum_type,
     const uint8_t pid,
@@ -156,29 +150,35 @@ uint32_t LIN_calculate_max_t_transmission_us(
     const uint32_t baudrate,
     const uint8_t length
 );
-uint32_t LIN_round_t_tranmission_to_timebase_us(const uint32_t t_transmission_us);
+uint32_t LIN_round_t_tranmission_to_timebase_us(const uint32_t t_us);
 
 /* LIN 2.x state machines */
-LIN_MasterState_t LIN_master_state_machine(
-    const LIN_MasterState_t master_state,
-    const HAL_StatusTypeDef dma_status
-);
-LIN_SlaveState_t LIN_slave_state_machine(
-    const LIN_SlaveState_t slave_state,
-    const HAL_StatusTypeDef validation_status
+void LIN_master_state_machine(
+    LIN_Transaction_t *transaction,
+    const bool is_complete
 );
 
 /* Transmission functions*/
-HAL_StatusTypeDef LIN_send_break(UART_HandleTypeDef *huart);
-HAL_StatusTypeDef LIN_send_bytes(
-    UART_HandleTypeDef *huart,
-    uint8_t *data,
-    uint8_t length
-);
+void LIN_read_dma_buffer(LIN_Driver_t *driver);
 
 /* Callback overrides */
-void LIN_HAL_UART_ErrorCallback(UART_HandleTypeDef *huart);
-void LIN_HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);
-void LIN_HAL_UART_RxEventCallback(UART_HandleTypeDef * huart);
+void LIN_HAL_TIM_PeriodElapsedCallback(
+    LIN_Driver_t *driver,
+    TIM_HandleTypeDef *htim
+);
+
+void LIN_HAL_UARTEx_RxEventCallback(
+    LIN_Driver_t *driver,
+    UART_HandleTypeDef *huart,
+    uint16_t Size
+);
+void LIN_HAL_UART_IRQHandler(
+    LIN_Driver_t *driver,
+    UART_HandleTypeDef *huart
+);
+void LIN_HAL_UART_ErrorCallback(
+    LIN_Driver_t *driver,
+    UART_HandleTypeDef *huart
+);
 
 #endif /* LIN_DRIVER_H */
