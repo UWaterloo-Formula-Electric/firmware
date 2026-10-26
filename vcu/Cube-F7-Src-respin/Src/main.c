@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -23,6 +23,7 @@
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
+#include "i2c.h"
 #include "iwdg.h"
 #include "tim.h"
 #include "usart.h"
@@ -106,6 +107,7 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM6_Init();
   MX_UART4_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   userInit();
   printWDResetState();
@@ -181,8 +183,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_I2C1;
   PeriphClkInitStruct.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+  PeriphClkInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();

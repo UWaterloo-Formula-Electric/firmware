@@ -124,6 +124,38 @@ float getBrakePotentiometerPercent();
 float getThrottleAFiltered();
 float getThrottleBFiltered();
 
+/* Calibration */
+#define EEPROM_CALIBRATION_ADDRESS_START 0x00 // Start address for calibration data in EEPROM
+#define EEPROM_CALIBRATION_ADDRESS_END 0x18 // End address for calibration data in EEPROM
+
+/* Default calibration values */
+#define DEFAULT_THROTTLE_A_LOW       1605U
+#define DEFAULT_THROTTLE_A_HIGH      1803U
+#define DEFAULT_THROTTLE_B_LOW       1923U
+#define DEFAULT_THROTTLE_B_HIGH      2134U
+#define DEFAULT_BRAKE_POS_LOW        1400U
+#define DEFAULT_BRAKE_POS_HIGH       1668U
+
+typedef struct
+{
+    uint32_t throttleALow;
+    uint32_t throttleAHigh;
+
+    uint32_t throttleBLow;
+    uint32_t throttleBHigh;
+
+    uint32_t brakePosLow;
+    uint32_t brakePosHigh;
+} Calibration_t;
+
+/* Global calibration currently being used */
+extern Calibration_t calibration;
+
+/* Calibration Functions */
+HAL_StatusTypeDef Calibration_Save(void);
+HAL_StatusTypeDef Calibration_Load(void);
+void setDefaultCalibration(void);
+
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
