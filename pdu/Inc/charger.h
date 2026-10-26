@@ -10,6 +10,6 @@ typedef enum {
     CHARGER_WRONG_CHIP // wrong chip ID read, mark the charger as unavailalbe, release CE
 } bqReadStatus_t;
 
-bqReadStatus_t chargerVerifyChip(uint8_t reg, uint8_t *data);
+bqReadStatus_t chargerVerifyChip(uint8_t *data);
 
 #endif  // CHARGER_H

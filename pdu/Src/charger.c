@@ -7,8 +7,8 @@
 #include "state_machine.h"
 
 //verifying youre talking to the right chip
-bqReadStatus_t chargerVerifyChip(uint8_t partInfoReg, uint8_t *data){
-    HAL_StatusTypeDef status = chargerReadRegister(partInfoReg, data);
+bqReadStatus_t chargerVerifyChip(uint8_t *data){
+    HAL_StatusTypeDef status = chargerReadRegister(BQ_REG_PART_INFO, data);
 
     uint8_t partInfoData = (*data & BQ_PART_NUM_MASK) >> BQ_PART_NUM_SHIFT; // shift and mask to get part number
     
@@ -16,7 +16,7 @@ bqReadStatus_t chargerVerifyChip(uint8_t partInfoReg, uint8_t *data){
         return CHARGER_BUS_ERROR; //retried in 5 tries, at least 1 ms apart, and was unable to read
     }
 
-    if ((partInfoData != (BQ_PART_NUMBER_EXPECTED)) && partInfoReg == BQ_REG_PART_INFO){
+    if (partInfoData != BQ_PART_NUMBER_EXPECTED){
         return CHARGER_WRONG_CHIP; // wrong chip ID read, mark the charger as unavailalbe, release CE
     }
 
