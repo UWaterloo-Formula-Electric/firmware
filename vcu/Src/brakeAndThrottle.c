@@ -22,6 +22,7 @@
 #include "canReceive.h"
 #include "wheelConstants.h"
 #include "mathUtils.h"
+#include "eeprom.h"
 
 #if IS_BOARD_NUCLEO_F7
 #define MOCK_ADC_READINGS
@@ -37,6 +38,17 @@ bool appsBrakePedalPlausibilityCheckFail(float throttle);
 uint32_t brakeThrottleSteeringADCVals[NUM_ADC_CHANNELS] = {0};
 static float throttlePercentReading = 0.0f;
 
+Calibration_t calibration =
+{
+    .throttleALow = DEFAULT_THROTTLE_A_LOW,
+    .throttleAHigh = DEFAULT_THROTTLE_A_HIGH,
+
+    .throttleBLow = DEFAULT_THROTTLE_B_LOW,
+    .throttleBHigh = DEFAULT_THROTTLE_B_HIGH,
+
+    .brakePosLow = DEFAULT_BRAKE_POS_LOW,
+    .brakePosHigh = DEFAULT_BRAKE_POS_HIGH,
+};
 /*********************************************************************************************************************/
 /*-----------------------------------------------------Helpers-------------------------------------------------------*/
 /*********************************************************************************************************************/
@@ -91,12 +103,12 @@ static float getBrakePresFiltered()
 
 static bool isBrakePositionRawInRange(float brakePos)
 {
-    return brakePos >= BRAKE_POS_LOW && brakePos <= BRAKE_POS_HIGH;
+    return brakePos >= calibration.brakePosLow && brakePos <= calibration.brakePosHigh;
 }
 
 static float getBrakePotentiometerPercentFromRaw(float brakePos)
 {
-    return map_range_float(brakePos, BRAKE_POS_LOW, BRAKE_POS_HIGH, PERCENT_MIN, PERCENT_MAX);
+    return map_range_float(brakePos, calibration.brakePosLow, calibration.brakePosHigh, PERCENT_MIN, PERCENT_MAX);
 }
 
 float getBrakePotentiometerPercent()
@@ -132,34 +144,34 @@ float getBrakePositionPercent()
 }
 
 bool is_throttle1_in_range(uint32_t throttle) {
-  return throttle <= THROTT_A_HIGH+MAX_THROTTLE_A_DEADZONE && throttle >= THROTT_A_LOW-MAX_THROTTLE_A_DEADZONE;
+  return throttle <= calibration.throttleAHigh+MAX_THROTTLE_A_DEADZONE && throttle >= calibration.throttleALow-MAX_THROTTLE_A_DEADZONE;
 }
 
 bool is_throttle2_in_range(uint32_t throttle) {
-  return throttle <= THROTT_B_HIGH+MAX_THROTTLE_B_DEADZONE && throttle >= THROTT_B_LOW-MAX_THROTTLE_B_DEADZONE;
+  return throttle <= calibration.throttleBHigh+MAX_THROTTLE_B_DEADZONE && throttle >= calibration.throttleBLow-MAX_THROTTLE_B_DEADZONE;
 }
 
 float calculate_throttle_percent1(uint16_t tps_value)
 {
     // Throttle A is inverted
-    return PERCENT_MAX - map_range_float((float)tps_value, THROTT_A_LOW, THROTT_A_HIGH,
+    return PERCENT_MAX - map_range_float((float)tps_value, calibration.throttleALow, calibration.throttleAHigh,
       PERCENT_MIN, PERCENT_MAX);
 }
 
 float calculate_throttle_percent2(uint16_t tps_value)
 {
-    return map_range_float((float)tps_value, THROTT_B_LOW, THROTT_B_HIGH,
+    return map_range_float((float)tps_value, calibration.throttleBLow, calibration.throttleBHigh,
       PERCENT_MIN, PERCENT_MAX);
 }
 
 // These are for testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent)
 {
-  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_A_LOW, THROTT_A_HIGH);
+  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, calibration.throttleALow, calibration.throttleAHigh);
 }
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
 {
-  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_B_LOW, THROTT_B_HIGH);
+  return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, calibration.throttleBLow, calibration.throttleBHigh);
 }
 
 bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
@@ -251,7 +263,7 @@ __unused static bool checkBrakeImplausibility()
     float brakePos = getBrakePosFiltered();
     if (!isBrakePositionRawInRange(brakePos)) {
         ERROR_PRINT("Brake position out of range: %.1f [%.1f, %.1f]\n",
-                    brakePos, (float)BRAKE_POS_LOW, (float)BRAKE_POS_HIGH);
+                    brakePos, (float)calibration.brakePosLow, (float)calibration.brakePosHigh);
         fsmSendEventUrgent(&VCUFsmHandle, EV_Brake_Position_Fault, portMAX_DELAY);
         return true;
     }
@@ -374,7 +386,13 @@ int getSteeringAngle() {
 }
 
 HAL_StatusTypeDef brakeAndThrottleStart()
-{
+{   
+    if (Calibration_Load() != HAL_OK)
+    {
+        setDefaultCalibration();
+        ERROR_PRINT("Using default calibration\n");
+    }
+
     if (startADCConversions() != HAL_OK)
     {
         ERROR_PRINT("Failed to start brake and throttle ADC conversions\n");
@@ -418,6 +436,39 @@ void disableRegen() {
     ENDURANCE_LED_OFF;
 }
 
+void setDefaultCalibration(void)
+{
+    calibration.throttleALow = DEFAULT_THROTTLE_A_LOW;
+    calibration.throttleAHigh = DEFAULT_THROTTLE_A_HIGH;
+    calibration.throttleBLow = DEFAULT_THROTTLE_B_LOW;
+    calibration.throttleBHigh = DEFAULT_THROTTLE_B_HIGH;
+    calibration.brakePosLow = DEFAULT_BRAKE_POS_LOW;
+    calibration.brakePosHigh = DEFAULT_BRAKE_POS_HIGH;
+}
+
+HAL_StatusTypeDef Calibration_Save(void)
+{
+    return EEPROM_Write(EEPROM_CALIBRATION_ADDRESS_START,
+                        (const uint8_t *)&calibration,
+                        sizeof(Calibration_t));
+}
+
+HAL_StatusTypeDef Calibration_Load(void)
+{
+    HAL_StatusTypeDef status;
+
+    status = EEPROM_Read(EEPROM_CALIBRATION_ADDRESS_START,
+                         (uint8_t *)&calibration,
+                         sizeof(Calibration_t));
+
+    if (status != HAL_OK)
+    {
+        setDefaultCalibration();
+        return status;
+    }
+
+    return HAL_OK;
+}
 /*********************************************************************************************************************/
 /*----------------------------------------------------Tasks----------------------------------------------------------*/
 /*********************************************************************************************************************/
