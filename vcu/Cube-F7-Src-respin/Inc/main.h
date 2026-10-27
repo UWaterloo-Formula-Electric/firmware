@@ -99,6 +99,8 @@ void Error_Handler(void);
 #define LED_BTN_TC_EN_GPIO_Port GPIOC
 #define LED_BTN_ENDUR_EN_Pin GPIO_PIN_9
 #define LED_BTN_ENDUR_EN_GPIO_Port GPIOC
+#define BTN_FAN_TEST_Pin GPIO_PIN_8
+#define BTN_FAN_TEST_GPIO_Port GPIOA
 #define UART_DBG2MCU_Pin GPIO_PIN_10
 #define UART_DBG2MCU_GPIO_Port GPIOC
 #define UART_MCU2DBG_Pin GPIO_PIN_11
