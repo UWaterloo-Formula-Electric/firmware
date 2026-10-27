@@ -7,6 +7,7 @@
 #include <string.h>
 
 /* LIN 2.x protocol constants */
+#define LIN_BITS_PER_BYTE 10U
 #define LIN_SYNC_BYTE 0x55U
 #define LIN_MAX_DATA_SIZE 8U
 #define LIN_HEADER_SIZE 2U
@@ -95,11 +96,16 @@ typedef struct {
     uint8_t slotIndex;
     uint32_t startTick;
     uint32_t endTick;
+    uint32_t delay_us;
 } LIN_Schedule_t;
 
 typedef struct {
     TIM_HandleTypeDef *htim;
     UART_HandleTypeDef *huart;
+} LIN_Settings_t;
+
+typedef struct {
+    LIN_Settings_t settings;
     LIN_Schedule_t schedule;
     LIN_Transaction_t transaction;
     uint8_t dmaBuffer[LIN_DMA_BUFFER_SIZE];
@@ -109,9 +115,8 @@ typedef struct {
     bool isRunning;
 } LIN_Driver_t;
 
-HAL_StatusTypeDef LIN_frameInitDefault(LIN_Frame_t *frame);
-HAL_StatusTypeDef LIN_scheduleInitDefault(LIN_Schedule_t *schedule);
-HAL_StatusTypeDef LIN_driverInitDefault(LIN_Driver_t *driver);
+HAL_StatusTypeDef LIN_setSettings(LIN_Settings_t *settings);
+HAL_StatusTypeDef LIN_setSchedule(LIN_Schedule_t *schedule);
 
 HAL_StatusTypeDef LIN_setProtectedID(LIN_Frame_t *frame);
 HAL_StatusTypeDef LIN_setChecksum(LIN_Frame_t *frame);
@@ -122,30 +127,16 @@ HAL_StatusTypeDef LIN_deepcopyFrame(
     LIN_Frame_t *copy
 );
 HAL_StatusTypeDef LIN_updateResponse(
-    LIN_Schedule_t *schedule,
     uint8_t *data,
     uint8_t size,
     uint8_t index
 );
 
-HAL_StatusTypeDef LIN_startSchedule(LIN_Driver_t *driver);
+HAL_StatusTypeDef LIN_startSchedule(void);
 
-void LIN_HAL_TIM_PeriodElapsedCallback(
-    LIN_Driver_t *driver,
-    TIM_HandleTypeDef *htim
-);
-void LIN_HAL_UARTEx_RxEventCallback(
-    LIN_Driver_t *driver,
-    UART_HandleTypeDef *huart,
-    uint16_t Size
-);
-void LIN_HAL_UART_IRQHandler(
-    LIN_Driver_t *driver,
-    UART_HandleTypeDef *huart
-);
-void LIN_HAL_UART_ErrorCallback(
-    LIN_Driver_t *driver,
-    UART_HandleTypeDef *huart
-);
+void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
+void LIN_HAL_UART_IRQHandler(UART_HandleTypeDef *huart);
+void LIN_HAL_UART_ErrorCallback(UART_HandleTypeDef *huart);
 
 #endif /* LIN_DRIVER_H */
