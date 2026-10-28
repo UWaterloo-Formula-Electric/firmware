@@ -15,8 +15,22 @@ static void goToNextSlot(void);
 static void stateMachine(
     LIN_Transaction_t *transaction,
     const bool cpltWithErrorNone);
+const char* getErrorString(LIN_Error_t error);
+void logError(void);
 
-/* Public Functions */
+static const char* const errorStringTable[] = {
+    "NONE",
+    "Timeout",
+    "Bad Parameters",
+    "Overrun Error",
+    "Framing Error",
+    "Noise Error",
+    "Bit Error",
+    "Checksum Error",
+    "UART Error",
+    "DMA Error"
+};
+
 LIN_Driver_t linDriver = {
     .settings = {
         .htim = NULL,
@@ -41,6 +55,8 @@ LIN_Driver_t linDriver = {
         .slot = NULL
     }
 };
+
+/* Public Functions */
 
 HAL_StatusTypeDef LIN_setSettings(LIN_Settings_t *settings) {
     if (settings == NULL || settings->htim == NULL ||
@@ -148,15 +164,15 @@ HAL_StatusTypeDef LIN_startSchedule(void) {
     
     LIN_Slot_t *p_slot = &linDriver.schedule.slots[linDriver.schedule.slotIndex];
     LIN_Frame_t *p_frame = &linDriver.schedule.frames[p_slot->frameIndex];
-    LIN_Transaction_t *p_transaction = &linDriver.transaction;
-    p_transaction->frame = p_frame;
-    p_transaction->slot = p_slot;
-    p_transaction->tryCount = 0;
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
+    p_txn->frame = p_frame;
+    p_txn->slot = p_slot;
+    p_txn->tryCount = 0;
 
     linDriver.schedule.startTick = __HAL_TIM_GET_COUNTER(linDriver.settings.htim);
-    stateMachine(p_transaction, sendBreak());
+    stateMachine(p_txn, sendBreak());
 
-    return p_transaction->state == LIN_RECOVERY ? HAL_ERROR : HAL_OK;
+    return p_txn->state == LIN_RECOVERY ? HAL_ERROR : HAL_OK;
 }
 
 void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -166,33 +182,32 @@ void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     uint32_t elapsed_us = linDriver.schedule.endTick - linDriver.schedule.startTick;
 
     LIN_Slot_t *p_slot = &linDriver.schedule.slots[linDriver.schedule.slotIndex];
-    LIN_Transaction_t *p_transaction = &linDriver.transaction;
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
 
     if (elapsed_us >= p_slot->duration_us &&
         linDriver.schedule.delay_us == 0 &&
-        p_transaction->error == LIN_ERROR_NONE) {
-        p_transaction->error = LIN_TIMEOUT;
+        p_txn->error == LIN_ERROR_NONE) {
+        p_txn->error = LIN_TIMEOUT;
     }
     // Progress the schedule if the current slot ends early
     bool startSlot = false;
     
-    if (p_transaction->state == LIN_DONE && p_transaction->error == LIN_ERROR_NONE) {
-        p_transaction->state = LIN_READY;
+    if (p_txn->state == LIN_DONE && p_txn->error == LIN_ERROR_NONE) {
         startSlot = true;
         goToNextSlot();
     }
     
-    if (p_transaction->error != LIN_ERROR_NONE || p_transaction->state == LIN_RECOVERY) {
-        p_transaction->state = LIN_READY;
-        p_transaction->error = LIN_ERROR_NONE;
-
+    if (p_txn->error != LIN_ERROR_NONE || p_txn->state == LIN_RECOVERY) {
         HAL_UART_DMAStop(linDriver.settings.huart);
         memset(linDriver.dmaBuffer, 0, LIN_DMA_BUFFER_SIZE);
         linDriver.dmaIndex = 0;
-        linDriver.echoSize = 0;
 
-        if (p_transaction->tryCount < p_slot->maxTries) {
-            ++p_transaction->tryCount;
+        if (p_txn->tryCount < p_slot->maxTries) {
+            ++p_txn->tryCount;
+
+            linDriver.transaction.state = LIN_READY;
+            linDriver.transaction.error = LIN_ERROR_NONE;
+            linDriver.echoSize = 0;
         } else {
             goToNextSlot();
         }
@@ -206,8 +221,8 @@ void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 
     if (elapsed_us >= linDriver.schedule.delay_us) {
-        linDriver.schedule.delay_us = 0;
         startSlot = true;
+        linDriver.schedule.delay_us = 0;
         // Restart receipt after delay
         HAL_UARTEx_ReceiveToIdle_DMA(
             linDriver.settings.huart,
@@ -217,7 +232,7 @@ void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
     if (startSlot) {
         linDriver.schedule.startTick = __HAL_TIM_GET_COUNTER(linDriver.settings.htim);
-        stateMachine(p_transaction, sendBreak());
+        stateMachine(p_txn, sendBreak());
     }
 }
 
@@ -227,8 +242,8 @@ void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
     uint16_t numRxBytes = countNewDMABufferBytes(Size);
     if (numRxBytes == 0) return;
 
-    LIN_Transaction_t *p_transaction = &linDriver.transaction;
-    if (p_transaction->state == LIN_READY) {
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
+    if (p_txn->state == LIN_READY) {
         // Discard junk bytes
         linDriver.dmaIndex = Size % LIN_DMA_BUFFER_SIZE;
         return;
@@ -253,10 +268,10 @@ void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 
     uint16_t numExpectedBytes = 0;
     
-    if (p_transaction->state == LIN_SEND_HEADER) {
+    if (p_txn->state == LIN_SEND_HEADER) {
         numExpectedBytes = LIN_HEADER_SIZE;
     }
-    else if (p_transaction->state == LIN_TRANSCEIVE_RESPONSE) {
+    else if (p_txn->state == LIN_TRANSCEIVE_RESPONSE) {
         numExpectedBytes = p_frame->responseSize + 1U;
     }
 
@@ -286,15 +301,15 @@ void LIN_HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 void LIN_HAL_UART_IRQHandler(UART_HandleTypeDef *huart) {
     if (huart == NULL || huart != linDriver.settings.huart) return;
 
-    LIN_Transaction_t *p_transaction = &linDriver.transaction;
-    bool cpltWithErrorNone = p_transaction->state == LIN_SEND_BREAK && 
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
+    bool cpltWithErrorNone = p_txn->state == LIN_SEND_BREAK && 
                             __HAL_UART_GET_FLAG(huart, UART_FLAG_LBDF) != RESET;
 
     __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_LBDF);
     // UART detects break as a framing error
     __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_FE);
     
-    stateMachine(p_transaction, cpltWithErrorNone);
+    stateMachine(p_txn, cpltWithErrorNone);
 
     HAL_UART_IRQHandler(huart);
 }
@@ -333,7 +348,6 @@ static bool sendBreak(void) {
        linDriver.transaction.error = LIN_UART_ERROR;
        startWithErrorNone = false;
     }
-
     return startWithErrorNone;
 }
 
@@ -358,7 +372,6 @@ static bool sendHeader(void) {
         linDriver.transaction.error = LIN_DMA_ERROR;
         startWithErrorNone = false;
     }
-
     return startWithErrorNone;
 }
 
@@ -399,7 +412,6 @@ static bool sendResponse(void) {
         linDriver.transaction.error = LIN_BAD_PARAMS;
         startWithErrorNone = false;
     }
-
     return startWithErrorNone;
 }
 
@@ -438,6 +450,8 @@ static void goToNextSlot(void) {
     LIN_Frame_t *p_nextFrame = &linDriver.schedule.frames[p_nextSlot->frameIndex];
     linDriver.transaction.frame = p_nextFrame;
     linDriver.transaction.slot = p_nextSlot;
+    linDriver.transaction.state = LIN_READY;
+    linDriver.transaction.error = LIN_ERROR_NONE;
     linDriver.transaction.tryCount = 0;
 }
 
@@ -483,6 +497,7 @@ static void stateMachine(
             }
             break;
         case LIN_RECOVERY:
+            logError();
             if (cpltWithErrorNone) {
                 nextState = LIN_READY;
             }
@@ -499,13 +514,13 @@ static void stateMachine(
 }
 
 static void readDMABuffer(void) {
-    LIN_Transaction_t *p_transaction = &linDriver.transaction;
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
     LIN_Slot_t *p_slot = &linDriver.schedule.slots[linDriver.schedule.slotIndex];
     LIN_Frame_t *p_frame = &linDriver.schedule.frames[p_slot->frameIndex];
 
     bool cpltWithErrorNone = true;
 
-    switch (p_transaction->state) {
+    switch (p_txn->state) {
         case LIN_SEND_HEADER:
             if (linDriver.echoSize < LIN_HEADER_SIZE) return;
 
@@ -513,7 +528,7 @@ static void readDMABuffer(void) {
                                 linDriver.echoBytes[1] == p_frame->pid;
 
             if (!cpltWithErrorNone) {
-                p_transaction->error = LIN_BIT_ERROR;
+                p_txn->error = LIN_BIT_ERROR;
             }
             break;
         case LIN_TRANSCEIVE_RESPONSE:
@@ -523,7 +538,7 @@ static void readDMABuffer(void) {
                 for (uint8_t i = 0; i < p_frame->responseSize + 1U; ++i) {
                     if (linDriver.echoBytes[LIN_HEADER_SIZE + i] != p_frame->responseBytes[i]) {
                         cpltWithErrorNone = false;
-                        p_transaction->error = LIN_BIT_ERROR;
+                        p_txn->error = LIN_BIT_ERROR;
                         break;
                     }
                 }
@@ -556,19 +571,37 @@ static void readDMABuffer(void) {
                     else {
                         cpltWithErrorNone = false;
                         p_frame->rxValidResponse = false;
-                        p_transaction->error = LIN_CHECKSUM_ERROR;
+                        p_txn->error = LIN_CHECKSUM_ERROR;
                     }
                 }
                 else {
                     cpltWithErrorNone = false;
                     p_frame->rxValidResponse = false;
-                    p_transaction->error = LIN_BAD_PARAMS;
+                    p_txn->error = LIN_BAD_PARAMS;
                 } 
             }
             break;
         default:
             return;
     }
+    stateMachine(p_txn, cpltWithErrorNone);
+}
 
-    stateMachine(p_transaction, cpltWithErrorNone);
+const char* getErrorString(LIN_Error_t error) {
+    if (error > LIN_DMA_ERROR) {
+        return "Unknown Error";
+    }
+    return errorStringTable[error];
+}
+
+void logError(void) {
+    LIN_Transaction_t *p_txn = &linDriver.transaction;
+
+    if (p_txn->error == LIN_ERROR_NONE) return;
+
+    ERROR_PRINT("[LIN ERR] State:%d | ID:0x%02X | Attempt:%d | Err:%s\r\n",
+           p_txn->state,
+           p_txn->frame->id,
+           p_txn->tryCount,
+           getErrorString(p_txn->error));
 }
