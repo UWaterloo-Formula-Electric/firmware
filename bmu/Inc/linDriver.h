@@ -10,8 +10,8 @@
 #define LIN_BITS_PER_BYTE 10U
 #define LIN_SYNC_BYTE 0x55U
 #define LIN_MAX_DATA_SIZE 8U
-#define LIN_HEADER_SIZE 2U
 #define LIN_MAX_RESPONSE_SIZE 9U
+#define LIN_HEADER_SIZE 2U
 #define LIN_MAX_FRAME_ID 0x3DU
 #define LIN_DIAG_MASTER_REQUEST_FRAME 0x3CU
 #define LIN_DIAG_SLAVE_RESPONSE_FRAME 0x3DU
@@ -40,9 +40,9 @@ typedef enum {
 
 typedef enum {
     LIN_READY,
-    LIN_TX_BREAK,
-    LIN_TX_HEADER,
-    LIN_TRX_RESPONSE,
+    LIN_SEND_BREAK,
+    LIN_SEND_HEADER,
+    LIN_TRANSCEIVE_RESPONSE,
     LIN_DONE,
     LIN_RECOVERY
 } LIN_State_t;
@@ -61,13 +61,6 @@ typedef enum {
 } LIN_Error_t;
 
 typedef struct {
-    LIN_State_t state;
-    LIN_Direction_t direction;
-    LIN_Error_t error;
-    uint8_t tryCount;
-} LIN_Transaction_t;
-
-typedef struct {
     uint8_t id;
     uint8_t pid;
     LIN_Direction_t direction;
@@ -75,8 +68,10 @@ typedef struct {
     LIN_ChecksumType_t checksumType;
     uint8_t headerBytes[LIN_HEADER_SIZE];
     uint8_t responseBytes[LIN_MAX_RESPONSE_SIZE];
+    // Number of data bytes only
     uint8_t responseSize;
     uint8_t updateBuffer[LIN_MAX_DATA_SIZE];
+    // Number of update data bytes
     uint8_t updateSize;
     bool rxValidResponse;
     bool txUpdatePending;
@@ -98,6 +93,14 @@ typedef struct {
     uint32_t endTick;
     uint32_t delay_us;
 } LIN_Schedule_t;
+
+typedef struct {
+    LIN_State_t state;
+    LIN_Error_t error;
+    LIN_Slot_t *slot;
+    LIN_Frame_t *frame;
+    uint8_t tryCount;
+} LIN_Transaction_t;
 
 typedef struct {
     TIM_HandleTypeDef *htim;
