@@ -177,7 +177,7 @@ HAL_StatusTypeDef LIN_startSchedule(void) {
 
 void LIN_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == NULL || htim != linDriver.settings.htim) return;
-
+    // Assume timer frequency is 1MHz
     linDriver.schedule.endTick = __HAL_TIM_GET_COUNTER(linDriver.settings.htim);
     uint32_t elapsed_us = linDriver.schedule.endTick - linDriver.schedule.startTick;
 
@@ -469,6 +469,7 @@ static void stateMachine(
                 nextState = LIN_SEND_BREAK;
             }
             else {
+                logError();
                 nextState = LIN_RECOVERY;
             }
             break;
@@ -477,6 +478,7 @@ static void stateMachine(
                 nextState = LIN_SEND_HEADER;
             }
             else {
+                logError();
                 nextState = LIN_RECOVERY;
             }
             break;
@@ -485,6 +487,7 @@ static void stateMachine(
                 nextState = LIN_TRANSCEIVE_RESPONSE;
             }
             else {
+                logError();
                 nextState = LIN_RECOVERY;
             }
             break;
@@ -493,15 +496,16 @@ static void stateMachine(
                 nextState = LIN_DONE;
             }
             else {
+                logError();
                 nextState = LIN_RECOVERY;
             }
             break;
         case LIN_RECOVERY:
-            logError();
             if (cpltWithErrorNone) {
                 nextState = LIN_READY;
             }
             else {
+                logError();
                 nextState = LIN_RECOVERY;
             }
             break;
