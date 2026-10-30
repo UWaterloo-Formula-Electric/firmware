@@ -40,11 +40,14 @@ typedef enum {
 
 typedef enum {
     LIN_READY,
-    LIN_SEND_BREAK,
-    LIN_SEND_HEADER,
-    LIN_TRANSCEIVE_RESPONSE,
+    LIN_TX_BREAK,
+    LIN_TX_SYNC,
+    LIN_TX_PID,
+    LIN_TRX_DATA,
+    LIN_TRX_CHECKSUM,
     LIN_DONE,
-    LIN_RECOVERY
+    LIN_STOP,
+    LIN_RESTART,
 } LIN_State_t;
 
 typedef enum {
@@ -100,6 +103,7 @@ typedef struct {
     LIN_Slot_t *slot;
     LIN_Frame_t *frame;
     uint8_t tryCount;
+    uint8_t responseByteCount;
 } LIN_Transaction_t;
 
 typedef struct {
@@ -114,7 +118,7 @@ typedef struct {
     uint8_t dmaBuffer[LIN_DMA_BUFFER_SIZE];
     uint16_t dmaIndex;
     uint8_t echoBytes[LIN_HEADER_SIZE + LIN_MAX_RESPONSE_SIZE];
-    uint8_t echoSize;
+    uint8_t echoIndex;
     bool isRunning;
 } LIN_Driver_t;
 
