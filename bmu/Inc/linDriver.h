@@ -7,7 +7,7 @@
 #include <string.h>
 
 extern UART_HandleTypeDef huart5;
-extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim2; // free-running, 32-bit, 1MHz
 
 /* LIN 2.x protocol constants */
 #define LIN_SYNC_BYTE         0x55U
@@ -18,7 +18,7 @@ extern TIM_HandleTypeDef htim2;
 
 /* LIN driver constants */
 #define LIN_UART_HANDLE       (&huart5)
-#define LIN_TIM_HANDLE        (&htim2) // free-running, 32-bit, 1MHz
+#define LIN_TIM_HANDLE        (&htim2) 
 #define LIN_RX_BUFFER_SIZE    32U
 #define LIN_BREAK_TIMEOUT_US  2000U
 
@@ -28,12 +28,22 @@ typedef struct {
     uint8_t buffer[LIN_MAX_RESPONSE_SIZE + LIN_HEADER_SIZE];
     uint8_t length; // total bytes (sync + PID + data + checksum)
     uint32_t duration_us;
-    bool isRxBuffer; // true if slave response is expected
-    bool rxValid;
+    bool isRxBuffer;
 } LIN_Frame_t;
 
 // Set frame->id and frame->isRxBuffer first
-HAL_StatusTypeDef buildFrame(LIN_Frame_t *frame, const uint8_t *data, uint8_t dataLength);
+HAL_StatusTypeDef buildFrame(
+    LIN_Frame_t *frame,
+    const uint8_t *data,
+    uint8_t dataLength);
 HAL_StatusTypeDef transferFrame(LIN_Frame_t *frame);
+HAL_StatusTypeDef linPublish(
+    uint8_t id,
+    const uint8_t *data,
+    uint8_t dataLength);
+HAL_StatusTypeDef linRequest(
+    uint8_t id,
+    uint8_t *out,
+    uint8_t dataLength);
 
 #endif

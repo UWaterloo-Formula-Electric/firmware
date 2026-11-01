@@ -69,7 +69,6 @@ HAL_StatusTypeDef buildFrame(
     // Max frame time = 1.4 * (34 + 10 * (N + 1)) bit times
     uint32_t baud = LIN_UART_HANDLE->Init.BaudRate;
     frame->duration_us = (14UL * (34UL + 10UL * (dataLength + 1UL)) * 100000UL) / baud;
-    frame->rxValid = false;
 
     return HAL_OK;
 }
@@ -108,7 +107,7 @@ static HAL_StatusTypeDef waitForDma(uint32_t duration_us) {
     while (huart->RxState != HAL_UART_STATE_READY || huart->gState != HAL_UART_STATE_READY) {
         if ((TickType_t)(xTaskGetTickCount() - start) > limit) {
             HAL_UART_Abort(huart);
-            ERROR_PRINT("Slave failed to receive break before timeout");
+            ERROR_PRINT("UART DMA transfer timed out");
             return HAL_TIMEOUT;
         }
         vTaskDelay(1);
@@ -125,7 +124,6 @@ HAL_StatusTypeDef transferFrame(LIN_Frame_t *frame) {
         return HAL_ERROR;
     }
 
-    frame->rxValid = false;
     huart->ErrorCode = HAL_UART_ERROR_NONE;
 
     HAL_StatusTypeDef status = txBreak();
@@ -184,7 +182,33 @@ HAL_StatusTypeDef transferFrame(LIN_Frame_t *frame) {
         }
         memcpy(frame->buffer + LIN_HEADER_SIZE, rxBuffer + LIN_HEADER_SIZE,
                frame->length - LIN_HEADER_SIZE);
-        frame->rxValid = true;
     }
     return HAL_OK;
+}
+
+HAL_StatusTypeDef linPublish(uint8_t id, const uint8_t *data, uint8_t dataLength) {
+    LIN_Frame_t frame = {.id = id, .isRxBuffer = false};
+    HAL_StatusTypeDef status = buildFrame(&frame, data, dataLength);
+
+    if (status == HAL_OK) {
+        return transferFrame(&frame);
+    }
+    return status;
+}
+
+HAL_StatusTypeDef linRequest(uint8_t id, uint8_t *out, uint8_t dataLength) {
+    LIN_Frame_t frame = {.id = id, .isRxBuffer = true};
+    HAL_StatusTypeDef status = buildFrame(&frame, NULL, dataLength);
+
+    if (status != HAL_OK) {
+        return status;
+    }
+
+    status = transferFrame(&frame);
+
+    if (status == HAL_OK) {
+        memcpy(out, frame.buffer + LIN_HEADER_SIZE, dataLength);
+    }
+
+    return status;
 }
