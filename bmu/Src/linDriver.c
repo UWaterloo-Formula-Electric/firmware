@@ -65,7 +65,6 @@ HAL_StatusTypeDef buildFrame(
         frame->buffer[frame->length - 1U] =
             calcChecksum(frame->id, frame->pid, data, dataLength);
     }
-
     // Max frame time = 1.4 * (34 + 10 * (N + 1)) bit times
     uint32_t baud = LIN_UART_HANDLE->Init.BaudRate;
     frame->duration_us = (14UL * (34UL + 10UL * (dataLength + 1UL)) * 100000UL) / baud;
@@ -83,7 +82,6 @@ static HAL_StatusTypeDef txBreak(void) {
         ERROR_PRINT("Failed to send LIN break");
         return HAL_ERROR;
     }
-
     // Wait for the transceiver to see the echoed break
     while (!__HAL_UART_GET_FLAG(huart, UART_FLAG_LBDF) &&
            !__HAL_UART_GET_FLAG(huart, UART_FLAG_FE)) {
@@ -137,7 +135,6 @@ HAL_StatusTypeDef transferFrame(LIN_Frame_t *frame) {
         ERROR_PRINT("Failed to start DMA reception");
         return HAL_ERROR;
     }
-
     // Write the frame to RAM for transmission
     // Avoid address alignment errors
     SCB_CleanDCache_by_Addr((uint32_t *)((uint32_t)frame->buffer & ~31U), 64U);
@@ -159,7 +156,6 @@ HAL_StatusTypeDef transferFrame(LIN_Frame_t *frame) {
         ERROR_PRINT("Failed to transmit frame due to UART error");
         return HAL_ERROR;
     }
-
     // Clear old data from cache
     SCB_InvalidateDCache_by_Addr((uint32_t *)rxBuffer, sizeof(rxBuffer));
 
