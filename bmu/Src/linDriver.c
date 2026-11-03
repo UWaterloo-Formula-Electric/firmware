@@ -1,7 +1,5 @@
 /* Transceiver Datasheet: https://www.ti.com/lit/ds/symlink/tlin1029-q1.pdf */
 
-#include "FreeRTOS.h"
-#include "task.h"
 #include "debug.h"
 #include "linDriver.h"
 
@@ -207,4 +205,136 @@ HAL_StatusTypeDef linRequest(uint8_t id, uint8_t *out, uint8_t dataLength) {
     }
 
     return status;
+}
+
+static BaseType_t cmdLinPublish(
+    char *writeBuffer,
+    size_t writeBufferLength,
+    const char *commandString) 
+{
+    BaseType_t paramLen;
+    
+    const char *idStr = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    if (idStr == NULL) {
+        COMMAND_OUTPUT("Missing ID parameter\r\n");
+        return pdFALSE;
+    }
+    uint8_t id = (uint8_t)strtoul(idStr, NULL, 0);
+
+    if (id > LIN_MAX_FRAME_ID) {
+        COMMAND_OUTPUT("ID must be in range 0x00 to 0x3D\r\n");
+        return pdFALSE;
+    }
+
+    const char *dataLengthStr = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    if (dataLengthStr == NULL) {
+        COMMAND_OUTPUT("Missing data length parameter\r\n");
+        return pdFALSE;
+    }
+    uint8_t dataLength = (uint8_t)strtoul(dataLengthStr, NULL, 0);
+
+    if (dataLength > LIN_MAX_DATA_SIZE) {
+        COMMAND_OUTPUT("Data length cannot exceed 8 bytes\r\n");
+        return pdFALSE;
+    }
+
+    const char *dataStr = FreeRTOS_CLIGetParameter(commandString, 3, &paramLen);
+    if (dataStr == NULL && dataLength > 0) {
+        COMMAND_OUTPUT("Missing data parameter\r\n");
+        return pdFALSE;
+    }
+
+    uint8_t data[LIN_MAX_DATA_SIZE] = {0}; 
+    const char *ptr = dataStr;
+    for (uint8_t i = 0; i < dataLength; i++) {
+        if (ptr == NULL || *ptr == '\0') {
+            COMMAND_OUTPUT("Too few bytes in data string.\r\n");
+            return pdFALSE;
+        }
+
+        data[i] = (uint8_t)strtoul(ptr, (char **)&ptr, 0);
+        
+        if (*ptr == ',') {
+            ++ptr;
+        }
+    }
+
+    HAL_StatusTypeDef status = linPublish(id, data, dataLength);
+
+    if (status == HAL_OK) {
+        COMMAND_OUTPUT("LIN publish succeeded for ID 0x%02X\r\n", id);
+    } else {
+        COMMAND_OUTPUT("LIN publish failed with HAL status: %d\r\n", status);
+    }
+
+    return pdFALSE;
+}
+
+static CLI_Command_Definition_t linPublishDefinition = {
+    .pcCommand = "linpublish",
+    .pcHelpString = "linpublish <id> <length> <data>:\r\nTransmit data via LIN bus (e.g linpublish 0x19 3 0x37,0x42,0x51)\r\n",
+    .pxCommandInterpreter = cmdLinPublish,
+    .cExpectedNumberOfParameters = 3
+};
+
+static BaseType_t cmdLinRequest(
+    char *writeBuffer,
+    size_t writeBufferLength,
+    const char *commandString) {
+    BaseType_t paramLen;
+    
+    const char *idStr = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    if (idStr == NULL) {
+        COMMAND_OUTPUT("Missing ID parameter\r\n");
+        return pdFALSE;
+    }
+    uint8_t id = (uint8_t)strtoul(idStr, NULL, 0);
+
+    if (id > LIN_MAX_FRAME_ID) {
+        COMMAND_OUTPUT("ID must be in range 0x00 to 0x3D\r\n");
+        return pdFALSE;
+    }
+
+    const char *dataLengthStr = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    if (dataLengthStr == NULL) {
+        COMMAND_OUTPUT("Missing data length parameter\r\n");
+        return pdFALSE;
+    }
+    uint8_t dataLength = (uint8_t)strtoul(dataLengthStr, NULL, 0);
+
+    if (dataLength > LIN_MAX_DATA_SIZE) {
+        COMMAND_OUTPUT("Data length cannot exceed 8 bytes\r\n");
+        return pdFALSE;
+    }
+
+    uint8_t rxBuffer[LIN_MAX_DATA_SIZE] = {0};
+
+    HAL_StatusTypeDef status = linRequest(id, rxBuffer, dataLength);
+
+    if (status == HAL_OK) {
+        char dataStr[64] = {0};
+        uint8_t dataOffset = 0;
+
+        for (uint8_t i = 0; i < dataLength; i++) {
+            dataOffset += snprintf(dataStr + dataOffset, sizeof(dataStr) - dataOffset, "0x%02X ", rxBuffer[i]);
+        }
+
+        COMMAND_OUTPUT("LIN request succeeded for ID 0x%02X. Data: %s\r\n", id, dataStr);
+    } else {
+        COMMAND_OUTPUT("LIN request failed with HAL status: %d\r\n", status);
+    }
+
+    return pdFALSE;
+}
+
+static CLI_Command_Definition_t linRequestDefinition = {
+    .pcCommand = "linrequest",
+    .pcHelpString = "linrequest <id> <length>:\r\n Request data via LIN bus (e.g linrequest 0x37 5)\r\n",
+    .pxCommandInterpreter = cmdLinRequest,
+    .cExpectedNumberOfParameters = 2
+};
+
+void registerLinCommands(void) {
+    FreeRTOS_CLIRegisterCommand(&linPublishDefinition);
+    FreeRTOS_CLIRegisterCommand(&linRequestDefinition);
 }

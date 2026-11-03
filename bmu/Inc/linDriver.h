@@ -1,7 +1,10 @@
 #ifndef LIN_DRIVER_H
 #define LIN_DRIVER_H
 
+#include "FreeRTOS.h"
+#include "FreeRTOS_CLI.h"
 #include "stm32f7xx_hal.h"
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -45,5 +48,7 @@ HAL_StatusTypeDef linRequest(
     uint8_t id,
     uint8_t *out,
     uint8_t dataLength);
+
+void registerLinCommands(void);
 
 #endif
