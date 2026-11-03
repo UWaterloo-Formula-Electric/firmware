@@ -1,7 +1,10 @@
 #include "controlStateMachine_mock.h"
 #include "controlStateMachine.h"
+#include "charger.h"
+#include "chargerI2c.h"
 #include "debug.h"
 #include "string.h"
+#include <stdlib.h>
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
 #include "lvMeasure.h"
@@ -616,6 +619,66 @@ static const CLI_Command_Definition_t auxEnableCommandDefinition =
     2 /* Number of parameters */
 };
 
+BaseType_t bqVerify(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint8_t data;
+    bqReadStatus_t status = chargerVerifyChip(&data);
+    if (status == CHARGER_OK) {
+        COMMAND_OUTPUT("Charger verified successfully. Part number: %u, Revision: %u\n", chargerDecodePartNumber(data), chargerDecodeRevision(data));
+    } else if (status == CHARGER_BUS_ERROR) {
+        COMMAND_OUTPUT("Error: Unable to communicate with charger IC.\n");
+    } else if (status == CHARGER_WRONG_CHIP) {
+        COMMAND_OUTPUT("Error: Wrong chip ID read from charger IC. Part info register: 0x%02X\n", data);
+    } else if (status == CHARGER_INVALID_ARG) {
+        COMMAND_OUTPUT("Error: Invalid argument passed to chargerVerifyChip.\n");
+    } else {
+        COMMAND_OUTPUT("Error: Unknown error occurred while verifying charger.\n");
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqVerifyCommandDefinition =
+{
+    "bqVerify",
+    "bqVerify:\r\n Read the BQ charger part info register and check the part number\r\n",
+    bqVerify,
+    0 /* Number of parameters */
+};
+
+BaseType_t bqRead(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t paramLen;
+    uint8_t data;
+
+    const char *regParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+
+    // base 0 accepts hex (0x14) or decimal (20); reject trailing junk and anything above 0xFF
+    char *end;
+    unsigned long reg = strtoul(regParam, &end, 0);
+    if (end != regParam + paramLen || reg > 0xFF) {
+        COMMAND_OUTPUT("Error: Invalid register '%.*s'\n", (int)paramLen, regParam);
+        return pdFALSE;
+    }
+
+    HAL_StatusTypeDef status = chargerReadRegister((uint8_t)reg, &data);
+    if (status == HAL_OK) {
+        COMMAND_OUTPUT("Register 0x%02lX: 0x%02X\n", reg, data);
+    } else {
+        COMMAND_OUTPUT("Error: Unable to read register 0x%02lX, HAL status %d\n", reg, status);
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqReadCommandDefinition =
+{
+    "bqRead",
+    "bqRead <reg>:\r\n Read one BQ charger register (hex 0x14 or decimal 20)\r\n",
+    bqRead,
+    1 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
@@ -672,6 +735,11 @@ HAL_StatusTypeDef mockStateMachineInit()
     if (FreeRTOS_CLIRegisterCommand(&getBusMeasurementCommandDefinition) != pdPASS){
         return HAL_ERROR;
     }
-
+    if (FreeRTOS_CLIRegisterCommand(&bqVerifyCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bqReadCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
     return HAL_OK;
 }
