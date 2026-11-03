@@ -49,6 +49,6 @@ HAL_StatusTypeDef linRequest(
     uint8_t *out,
     uint8_t dataLength);
 
-void registerLinCommands(void);
+HAL_StatusTypeDef registerLinCommands(void);
 
 #endif
