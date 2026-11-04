@@ -1,13 +1,9 @@
 #ifndef LIN_DRIVER_H
 #define LIN_DRIVER_H
 
-#include "FreeRTOS.h"
-#include "FreeRTOS_CLI.h"
 #include "stm32f7xx_hal.h"
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 
 extern UART_HandleTypeDef huart5;
 extern TIM_HandleTypeDef htim2; // free-running, 32-bit, 1MHz
@@ -34,6 +30,12 @@ typedef struct {
     bool isRxBuffer;
 } LIN_Frame_t;
 
+uint8_t calcChecksum(
+    uint8_t id,
+    uint8_t pid,
+    const uint8_t *data,
+    uint8_t dataLength);
+uint8_t calcProtectedID(uint8_t id);
 // Set frame->id and frame->isRxBuffer first
 HAL_StatusTypeDef buildFrame(
     LIN_Frame_t *frame,
@@ -49,6 +51,4 @@ HAL_StatusTypeDef linRequest(
     uint8_t *out,
     uint8_t dataLength);
 
-HAL_StatusTypeDef registerLinCommands(void);
-
-#endif
+#endif /* Include Guard: LIN_DRIVER_H*/
