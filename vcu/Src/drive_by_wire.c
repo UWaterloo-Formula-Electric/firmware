@@ -58,6 +58,8 @@ extern osThreadId throttlePollingHandle;
 static uint32_t sendHvToggle(uint32_t event);
 static uint32_t sendEmToggle(uint32_t event);
 static uint32_t processHvState(uint32_t event);
+static uint32_t sendFanToggle(uint32_t event);
+
 // static uint32_t processEmState(uint32_t event);
 static uint32_t fatalTransition(uint32_t event);
 static uint32_t toggleTC(uint32_t event);
@@ -69,6 +71,7 @@ static int sendHVToggleMsg(void);
 static int sendEMToggleMsg(void);
 static int sendEnduranceToggleMsg(void);
 static int sendTCToggleMsg(void);
+static int sendFanToggleMsg(void);
 
 static TimerHandle_t buzzerSoundTimer;
 // static TimerHandle_t debounceTimer;
@@ -88,6 +91,7 @@ Transition_t transitions[] = {
     { STATE_HV_Disable, EV_Brake_Position_Fault, &EM_Fault },
     { STATE_HV_Disable, EV_Throttle_Failure, &EM_Fault },
     { STATE_HV_Enable, EV_EM_Toggle, &EM_Enable },
+    { STATE_ANY, EV_BTN_Fan_Toggle, &sendFanToggle},
     { STATE_HV_Enable, EV_Hv_Disable, & EM_Fault},
     { STATE_EM_Enable, EV_Hv_Disable, &EM_Fault },
     { STATE_EM_Enable, EV_Brake_Pressure_Fault, &EM_Fault },
@@ -706,6 +710,7 @@ static int sendHVToggleMsg(void)
     ButtonTCEnabled = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
+    Cooling = 0;
     return sendCAN_VCU_buttonEvents();
 }
 
@@ -718,6 +723,7 @@ static int sendEMToggleMsg(void)
     ButtonTCEnabled = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
+    Cooling = 0;
     return sendCAN_VCU_buttonEvents();
 }
 
@@ -730,6 +736,7 @@ static int sendEnduranceToggleMsg(void)
     ButtonTCEnabled = 0;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
+    Cooling = 0;
     return sendCAN_VCU_buttonEvents();
 }
 
@@ -742,5 +749,30 @@ static int sendTCToggleMsg(void)
     ButtonTCEnabled = 1;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
+    Cooling = 0;
     return sendCAN_VCU_buttonEvents();
+}
+
+static int sendFanToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    Cooling = 1;
+    return sendCAN_VCU_buttonEvents();
+}
+
+
+static uint32_t sendFanToggle(uint32_t event)
+{
+    if (sendFanToggleMsg() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send Fan Toggle button event!\n");
+        Error_Handler();
+    }
+    return fsmGetState(&VCUFsmHandle);
 }
