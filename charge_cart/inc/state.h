@@ -26,10 +26,18 @@ typedef enum {
 } BMU_States_t;
 
 typedef struct {
+    uint32_t id;
+    uint8_t len;
+    uint8_t data[8];
+    uint64_t rx_ms;
+} can_frame_t;
+
+typedef struct {
     float voltage[NUM_VOLTAGE_CELLS];
     float voltageAdjusted[NUM_VOLTAGE_CELLS];
     float temperature[NUM_TEMP_CELLS];
     uint64_t cell_rx_ms[NUM_VOLTAGE_CELLS];
+    uint64_t cell_adjusted_rx_ms[NUM_VOLTAGE_CELLS];
     uint64_t temp_rx_ms[NUM_TEMP_CELLS];
 
     float voltageBusHV;
@@ -48,4 +56,5 @@ typedef struct {
     uint64_t status_rx_ms;
 
     float AMS_PackVoltage;
+    uint64_t ams_rx_ms; 
 } state_t;

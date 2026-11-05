@@ -64,7 +64,7 @@ int can_read (int fd, can_frame_t *out, int max) {
             out[count].id  = kf.can_id & CAN_EFF_MASK;
             out[count].len = kf.can_dlc;
             memcpy(out[count].data, kf.data, 8);
-            out[count].rx_ms = now_ms();
+            out[count].rx_ms = now_ms(); // TODO: get actual time
             count++;
         }
     }
