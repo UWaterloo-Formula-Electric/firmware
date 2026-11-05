@@ -1,12 +1,12 @@
-// Copied from vcu/Inc/brakeAndThrottle.h
+// from vcu code brakeAndThrottle
 #define THROTTLE_SIM_A_RELEASED 2096.0f   // THROTT_A_HIGH, pot A is inverted
 #define THROTTLE_SIM_A_PRESSED   313.0f   // THROTT_A_LOW
 #define THROTTLE_SIM_B_RELEASED 2044.0f   // THROTT_B_LOW
 #define THROTTLE_SIM_B_PRESSED  3804.0f   // THROTT_B_HIGH
 #define THROTTLE_SIM_DAC_MAX    4095.0f
 
-#include "throttleSim.h"   // brings in stdint and the HAL types
-#include "i2cDac.h"        // i2cDacSetCodes
+#include "throttleSim.h"  
+#include "i2cDac.h"        // i2cDacSetCodes we need this function
 
 
 static uint16_t percentToCode(float released, float pressed, float percent)
