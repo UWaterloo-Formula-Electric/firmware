@@ -17,6 +17,7 @@
 #include "canInject.h"
 #include "hilCli.h"
 #include "pwmBus.h"
+#include "i2cDac.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -49,6 +50,11 @@ void userInit()
     if (pwmBusInit() != HAL_OK) {
         Error_Handler();
     }
+
+    if (i2cDacInit() != HAL_OK) {
+        Error_Handler();
+    }
+
 
     if (hilCliInit() != HAL_OK) {
         Error_Handler();

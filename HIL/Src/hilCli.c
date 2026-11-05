@@ -30,6 +30,8 @@
 #include "debug.h"
 #include "i2cBus.h"
 #include "pwmBus.h"
+#include "i2cDac.h"
+#include "throttleSim.h"
 
 // Valid 7 bit range, excluding the reserved blocks at each end
 #define I2C_SCAN_FIRST_ADDRESS 0x08
@@ -37,6 +39,17 @@
 
 #define PWM_FIRST_CHANNEL 8
 #define PWM_LAST_CHANNEL 10
+#define THROTTLE_PERCENT_MIN -10.0f
+#define THROTTLE_PERCENT_MAX 110.0f
+
+static HAL_StatusTypeDef getThrottlePercentFromParam(const char *param, float *percent)
+{
+    if (param == NULL || sscanf(param, "%f", percent) != 1) {
+        return HAL_ERROR;
+    }
+
+    return (*percent >= THROTTLE_PERCENT_MIN && *percent <= THROTTLE_PERCENT_MAX) ? HAL_OK : HAL_ERROR;
+}
 
 static HAL_StatusTypeDef getBusFromParam(const char *param, I2cBus_t *bus)
 {
@@ -341,6 +354,133 @@ static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
     1 /* Number of parameters */
 };
 
+static BaseType_t dacProbeCommand(char *writeBuffer, size_t writeBufferLength,
+                                  const char *commandString)
+{
+    (void)commandString;
+
+    if (i2cDacProbe() != HAL_OK) {
+        COMMAND_OUTPUT("No ACK from MCP4728 at 0x60 on I2C1\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("MCP4728 acknowledged\n");
+    return pdFALSE;
+}
+
+static BaseType_t dacSetCodesCommand(char *writeBuffer, size_t writeBufferLength,
+                                     const char *commandString)
+{
+    BaseType_t paramLen;
+    unsigned int codeA;
+    unsigned int codeB;
+
+    if (getHexFromParam(FreeRTOS_CLIGetParameter(commandString, 1, &paramLen),
+                        I2C_DAC_CODE_MAX, &codeA) != HAL_OK) {
+        COMMAND_OUTPUT("Codes must be hex, 0x000 to 0xFFF\n");
+        return pdFALSE;
+    }
+
+    if (getHexFromParam(FreeRTOS_CLIGetParameter(commandString, 2, &paramLen),
+                        I2C_DAC_CODE_MAX, &codeB) != HAL_OK) {
+        COMMAND_OUTPUT("Codes must be hex, 0x000 to 0xFFF\n");
+        return pdFALSE;
+    }
+
+    if (i2cDacSetCodes((uint16_t)codeA, (uint16_t)codeB) != HAL_OK) {
+        COMMAND_OUTPUT("DAC write failed\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Set A=0x%03X B=0x%03X\n", codeA, codeB);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t dacSetCodesCommandDefinition =
+{
+    "dacSetCodes",
+    "dacSetCodes <codeA> <codeB>:\r\n  Set MCP4728 channels A and B to 12 bit hex codes (000 to FFF)\r\n",
+    dacSetCodesCommand,
+    2 /* Number of parameters */
+};
+
+static const CLI_Command_Definition_t dacProbeCommandDefinition =
+{
+    "dacProbe",
+    "dacProbe:\r\n  Check that the MCP4728 acknowledges on I2C1\r\n",
+    dacProbeCommand,
+    0 /* Number of parameters */
+};
+
+static BaseType_t throttleSetCommand(char *writeBuffer, size_t writeBufferLength,
+                                     const char *commandString)
+{
+    BaseType_t paramLen;
+    float percent;
+    uint16_t codeA;
+    uint16_t codeB;
+
+    if (getThrottlePercentFromParam(FreeRTOS_CLIGetParameter(commandString, 1, &paramLen),
+                                    &percent) != HAL_OK) {
+        COMMAND_OUTPUT("Percent must be a number, -10 to 110\n");
+        return pdFALSE;
+    }
+
+    if (throttleSimSetPercents(percent, percent, &codeA, &codeB) != HAL_OK) {
+        COMMAND_OUTPUT("DAC write failed\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Set A=B=%.1f%% (A=0x%03X B=0x%03X)\n", percent, codeA, codeB);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t throttleSetCommandDefinition =
+{
+    "throttleSet",
+    "throttleSet <percent>:\r\n  Drive both throttle pots to the same pedal percentage\r\n",
+    throttleSetCommand,
+    1 /* Number of parameters */
+};
+
+static BaseType_t throttleSplitCommand(char *writeBuffer, size_t writeBufferLength,
+                                       const char *commandString)
+{
+    BaseType_t paramLen;
+    float percentA;
+    float percentB;
+    uint16_t codeA;
+    uint16_t codeB;
+
+    if (getThrottlePercentFromParam(FreeRTOS_CLIGetParameter(commandString, 1, &paramLen),
+                                    &percentA) != HAL_OK) {
+        COMMAND_OUTPUT("Percent A must be a number, -10 to 110\n");
+        return pdFALSE;
+    }
+
+    if (getThrottlePercentFromParam(FreeRTOS_CLIGetParameter(commandString, 2, &paramLen),
+                                    &percentB) != HAL_OK) {
+        COMMAND_OUTPUT("Percent B must be a number, -10 to 110\n");
+        return pdFALSE;
+    }
+
+    if (throttleSimSetPercents(percentA, percentB, &codeA, &codeB) != HAL_OK) {
+        COMMAND_OUTPUT("DAC write failed\n");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Set A=%.1f%% (0x%03X) B=%.1f%% (0x%03X)\n", percentA, codeA, percentB, codeB);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t throttleSplitCommandDefinition =
+{
+    "throttleSplit",
+    "throttleSplit <percentA> <percentB>:\r\n  Drive pot A and pot B to different pedal percentages\r\n",
+    throttleSplitCommand,
+    2 /* Number of parameters */
+};
+
 HAL_StatusTypeDef hilCliInit(void)
 {
     if (FreeRTOS_CLIRegisterCommand(&i2cScanCommandDefinition) != pdPASS) {
@@ -368,6 +508,22 @@ HAL_StatusTypeDef hilCliInit(void)
     }
 
     if (FreeRTOS_CLIRegisterCommand(&gpio3v1EnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&dacProbeCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    
+    if (FreeRTOS_CLIRegisterCommand(&dacSetCodesCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&throttleSetCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&throttleSplitCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
