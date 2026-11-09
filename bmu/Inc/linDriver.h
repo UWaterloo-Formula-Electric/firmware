@@ -20,6 +20,7 @@ extern TIM_HandleTypeDef htim2; // free-running, 32-bit, 1MHz
 #define LIN_TIM_HANDLE        (&htim2) 
 #define LIN_RX_BUFFER_SIZE    32U
 #define LIN_BREAK_TIMEOUT_US  2000U
+#define LIN_MOCK_RESPONSE 0
 
 typedef struct {
     uint8_t id;
@@ -29,6 +30,13 @@ typedef struct {
     uint32_t duration_us;
     bool isRxBuffer;
 } LIN_Frame_t;
+
+typedef struct {
+    uint8_t id;
+    uint8_t pid;
+    uint8_t bytes[LIN_MAX_RESPONSE_SIZE];
+    uint8_t length;
+} LIN_MockResponse_t;
 
 uint8_t calcChecksum(
     uint8_t id,
@@ -50,5 +58,10 @@ HAL_StatusTypeDef linRequest(
     uint8_t id,
     uint8_t *out,
     uint8_t dataLength);
+void buildMockResponse(
+    uint8_t id,
+    uint8_t *data,
+    uint8_t dataLength);
+HAL_StatusTypeDef registerLinCommands(void);
 
 #endif /* Include Guard: LIN_DRIVER_H*/
