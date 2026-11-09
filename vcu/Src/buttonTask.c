@@ -17,7 +17,8 @@ enum ButtonOffsets {
     HV_TOGGLE_OFFSET = 0,
     EM_TOGGLE_OFFSET,
     TC_TOGGLE_OFFSET,
-    ENDURANCE_TOGGLE_OFFSET
+    ENDURANCE_TOGGLE_OFFSET,
+    COOLING_TOGGLE_OFFSET
 };
 
 
@@ -37,7 +38,7 @@ void buttonTask(void *pvParameters) {
         state[index] |= (HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT, EM_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << EM_TOGGLE_OFFSET;
         state[index] |= (HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT, TC_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << TC_TOGGLE_OFFSET;
         state[index] |= (HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT, ENDURANCE_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << ENDURANCE_TOGGLE_OFFSET;
-
+        state[index] |= (HAL_GPIO_ReadPin(COOLING_TOGGLE_BUTTON_PORT, COOLING_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << COOLING_TOGGLE_OFFSET;
         // Debounce the buttons
         debouncedState = 0xFF;  // Start with all bits set
         for (int i = 0; i < NUM_DEBOUNCE_CHECKS; i++) {
@@ -66,6 +67,10 @@ void buttonTask(void *pvParameters) {
             case 1u << ENDURANCE_TOGGLE_OFFSET:
                 DEBUG_PRINT("received endurance button\n");
                 fsmSendEvent(&VCUFsmHandle, EV_BTN_Endurance_Mode_Toggle, portMAX_DELAY);
+                break;
+            case 1u << COOLING_TOGGLE_OFFSET:
+                DEBUG_PRINT("received cooling button\n");
+                fsmSendEvent(&VCUFsmHandle, EV_BTN_Cooling_Toggle, portMAX_DELAY);
                 break;
             case 0:
                 // No button pressed

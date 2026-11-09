@@ -102,6 +102,7 @@ Transition_t transitions[] = {
     { STATE_EM_Enable, EV_BTN_TC_Toggle, &toggleTC},        // From DCU
     // { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleEnduranceMode},     // From DCU
     { STATE_EM_Enable, EV_BTN_Endurance_Mode_Toggle, &toggleRegenMode},     // From DCU
+    { STATE_ANY, EV_BTN_Cooling_Toggle, &toggleCooling},
     { STATE_ANY, EV_Fatal, &EM_Fault },
     { STATE_ANY, EV_ANY, &DefaultTransition}
 };

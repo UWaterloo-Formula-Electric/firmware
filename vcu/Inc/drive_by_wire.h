@@ -46,6 +46,7 @@ typedef enum VCU_Events_t {
     EV_Throttle_Failure,
     EV_Fatal,
     EV_Brake_Position_Fault,
+    EV_BTN_Cooling_Toggle,
     EV_ANY, // Must be the last event
 } VCU_Events_t;
 
