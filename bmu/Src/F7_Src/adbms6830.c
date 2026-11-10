@@ -825,7 +825,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 		}
 
         if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-            DEBUG_PRINT("ADBMS6830 voltage read failed (block %u)\r\n", block);
             return HAL_ERROR;
         }
 

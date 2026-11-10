@@ -621,6 +621,17 @@ bool boundedContinueRedCar()
 }
 
 /**
+ * @brief Called when the AMS boards couldn't be read. Faults the AMS like @ref boundedContinueRedCar, or only takes HV
+ * down like @ref boundedContinue when AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED is 1
+ *
+ * @return true if the battery task should retry, false otherwise
+ */
+static bool boundedContinueAmsReadFail()
+{
+    return AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED ? boundedContinue() : boundedContinueRedCar();
+}
+
+/**
  * @brief Call on a succesful run through main loop.
  * Decrements error counter on succesful run through main loop
  */
@@ -691,13 +702,14 @@ static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {2, 3, 15, 17, 20, 23, 24, 28
 
 // The voltage to temp conversion bottoms out at -17 C when the thermistor input is at 0 V (thermistor open or
 // shorted to ground), so a reading this low is never a real temperature. Those channels are skipped like dead ones
+// when THERMISTOR_AT_0V_SKIP_ENABLED is 1
 #define THERMISTOR_INPUT_AT_0V_TEMP_C (-16.0F)
 
 /// Set once a warning was printed for a channel at 0 V that isn't in DEAD_THERMISTOR_CHANNELS
 static bool warnedThermistorAt0V[NUM_TEMP_CELLS];
 
 static bool isThermistorAt0V(int channel) {
-   return TempChannel[channel] <= THERMISTOR_INPUT_AT_0V_TEMP_C;
+   return THERMISTOR_AT_0V_SKIP_ENABLED && TempChannel[channel] <= THERMISTOR_INPUT_AT_0V_TEMP_C;
 }
 
 static bool isDeadThermistorChannel(int channel) {
@@ -751,10 +763,12 @@ float getAvgValidTemp(void)
  * @param[out] minTemp The cell temperature of the cell with the min temperature
  * @param[out] packVoltage The sum of all the cell voltages, which should be
  * the output voltage of the pack
+ * @param[out] cellVoltageOutOfLimits Set if any cell is under or overvoltage
  *
- * @return HAL_StatusTypeDef
+ * @return HAL_ERROR if any cell is overtemp, or under or overvoltage unless CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED
+ * is 1 (an AMS fault), HAL_OK otherwise
  */
-HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage)
+HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage, bool *cellVoltageOutOfLimits)
 {
    HAL_StatusTypeDef rc = HAL_OK;
    float measure;
@@ -767,6 +781,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    *minTemp = CELL_OVERTEMP;
    *packVoltage = 0;
    *adjustedPackVoltage = 0;
+   *cellVoltageOutOfLimits = false;
 
    // Unfortunately the thermistors may run slower than the cell voltage measurements
    static uint8_t thermistor_lag_counter = 0;
@@ -785,11 +800,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       if (measure_high < limit_undervoltage) {
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
-         rc = HAL_ERROR;
+         *cellVoltageOutOfLimits = true;
       } else if (measure_low > limit_overvoltage) {
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-         rc = HAL_ERROR;
+         *cellVoltageOutOfLimits = true;
       } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
          ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
          sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -803,6 +818,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       // Sum up cell voltages to get overall pack voltage
       (*adjustedPackVoltage) += measure_high; /*This is our adjusted cell voltage*/
       (*packVoltage) += measure_low;
+   }
+
+   if (*cellVoltageOutOfLimits && !CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED) {
+      rc = HAL_ERROR;
    }
 
    if(thermistor_lag_counter >= THERMISTOR_LAG_PASSES)
@@ -1285,16 +1304,15 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            // Couldn't reach the AMS boards, so drop HV without latching an AMS fault
-            if (boundedContinue()) { continue; }
+            if (boundedContinueAmsReadFail()) { continue; }
         }
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         bool openWireReadFailed;
         if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            // Only a detected open wire is an AMS fault, a failed read just drops HV
-            if (openWireReadFailed ? boundedContinue() : boundedContinueRedCar()) { continue; }
+            // A detected open wire always faults the AMS
+            if (openWireReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1307,11 +1325,17 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         /*
          * Safety checks for cells
          */
-        if (checkCellVoltagesAndTemps(
+        bool cellVoltageOutOfLimits;
+        HAL_StatusTypeDef cellCheckRc = checkCellVoltagesAndTemps(
                 ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
                 ((float *)&TempCellMax), ((float *)&TempCellMin),
-                &packVoltage, &adjustedPackVoltage) != HAL_OK)
-        {
+                &packVoltage, &adjustedPackVoltage, &cellVoltageOutOfLimits);
+        // With CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED, an under or overvoltage cell stops charging and takes HV down
+        // without faulting the AMS
+        if (CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED && cellVoltageOutOfLimits) {
+            if (boundedContinue()) { continue; }
+        }
+        if (cellCheckRc != HAL_OK) {
             if (boundedContinueRedCar()) { continue; }
         }
 
@@ -1521,8 +1545,7 @@ bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
         return true;
     }
 
-    // No margin on the low side: the undervoltage limit is the driving cutoff
-    if (minCell < DEFAULT_LIMIT_UNDERVOLTAGE) {
+    if (minCell < CLOSE_TO_RED_MIN_CELL_VOLTAGE) {
         DEBUG_PRINT("min cell");
         return true;
     }
@@ -1657,14 +1680,15 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
+
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         bool openWireReadFailed;
         if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Open wire test failed!\n");
-            // Only a detected open wire is an AMS fault, a failed read just drops HV
-            if (openWireReadFailed ? boundedContinue() : boundedContinueRedCar()) { continue; }
+            // A detected open wire always faults the AMS
+            if (openWireReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1673,20 +1697,23 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            // Couldn't reach the AMS boards, so drop HV without latching an AMS fault
-            if (boundedContinue()) { continue; }
+            if (boundedContinueAmsReadFail()) { continue; }
         }
 #endif
         //  read the voltages and temps for close to red checks
+        bool cellVoltageOutOfLimits;
         HAL_StatusTypeDef ret = checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
-              &packVoltage, &adjustedPackVoltage);
-        
-        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+              &packVoltage, &adjustedPackVoltage, &cellVoltageOutOfLimits);
+
+        // With CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED, an under or overvoltage cell takes HV down (or keeps it from
+        // coming up) like close to red, without faulting the AMS
+        if ((CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED && cellVoltageOutOfLimits)
+            || hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
             BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Going HV Down close to edge");
+            ERROR_PRINT("Going HV Down close to edge\n");
             if (boundedContinue()) { continue; }
         }
 

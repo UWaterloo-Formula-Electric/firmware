@@ -19,7 +19,7 @@
  */
 
 /// Number of AMS boards in system
-#define NUM_SEGMENTS 4
+#define NUM_SEGMENTS 5
 #define NUM_BOARDS_PER_SEGMENT      1
 
 #define NUM_BOARDS                  (NUM_SEGMENTS * NUM_BOARDS_PER_SEGMENT)
@@ -61,7 +61,7 @@
 
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_ERROR (3)
 #define NUM_PEC_MISMATCH_CONSECUTIVE_FAILS_WARNING (2)
-#define PRINT_ALL_PEC_ERRORS (1)
+#define PRINT_ALL_PEC_ERRORS (0)
 // Extra attempts for an AMS read that fails its PEC before the read counts as failed
 #define AMS_READ_RETRIES (2)
 
@@ -76,13 +76,13 @@
 #define OPEN_WIRE_RATIO_MIN 0.75
 #define OPEN_WIRE_RATIO_MAX 1.40
 
-// Cells in NO_DISCHARGE_CELLS (ltc_chip.c) have their bleed resistors removed: they're skipped in the
-// open wire check and never balanced. Set to 0 once every cell has its discharge path back (AMS respin)
-#define NO_DISCHARGE_CELLS_ENABLED (1)
+// Set to 1 to skip the cells in NO_DISCHARGE_CELLS (ltc_chip.c) in the open wire check and never balance them, for
+// cells whose bleed resistors are removed
+#define NO_DISCHARGE_CELLS_ENABLED (0)
 
-// Cells in DO_NOT_BALANCE_CELLS (ltc_chip.c) sit next to a high-resistance sense tap: draining them displaces
-// the tap and gives false readings. They're never balanced but keep every other check. Set to 0 once fixed
-#define DO_NOT_BALANCE_CELLS_ENABLED (1)
+// Set to 1 to never balance the cells in DO_NOT_BALANCE_CELLS (ltc_chip.c), for cells next to a high-resistance sense
+// tap: draining them displaces the tap and gives false readings. They keep every other check
+#define DO_NOT_BALANCE_CELLS_ENABLED (0)
 
 // PWM duty (0-15) written to the discharge registers while a cell is balancing
 #define BALANCE_PWM_DUTY_MAX (0x0F)

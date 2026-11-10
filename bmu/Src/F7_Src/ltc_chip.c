@@ -223,7 +223,6 @@ HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array){
 
     if (batt_read_cell_voltages(cell_voltage_array) != HAL_OK) {
-        ERROR_PRINT("Failed to read cell voltages\n");
         return HAL_ERROR;
     }
     if (batt_read_cell_temps(cell_temp_array) != HAL_OK) {
@@ -311,10 +310,11 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
     return HAL_OK;
 }
 
-// Cells with bleed resistors removed
+// Cells with bleed resistors removed. 0-based, so battInfo's cell number minus 1
 // S-ADC measures through the discharge path so the
 // ADCV/ADSV ratio check will not work on these cells, and they can't be balanced
-static const uint8_t NO_DISCHARGE_CELLS[] = {1, 2, 16, 24, 25, 38, 52, 60, 68, 72, 83, 97, 114, 136, 137};
+// Empty since the rev C AMS boards: every cell has its bleed resistor
+static const uint8_t NO_DISCHARGE_CELLS[] = {};
 
 bool batt_cell_can_discharge(int cell) {
     if (!NO_DISCHARGE_CELLS_ENABLED) {
@@ -328,9 +328,10 @@ bool batt_cell_can_discharge(int cell) {
     return true;
 }
 
-// Cells on either side of a high-resistance sense tap (board 1 between cells 33/34, board 2 between
-// cells 76/77). Draining them displaces the tap for longer than the balance pause, so never balance them
-static const uint8_t DO_NOT_BALANCE_CELLS[] = {33, 34, 76, 77};
+// Cells on either side of a high-resistance sense tap. 0-based, so battInfo's cell number minus 1
+// Draining them displaces the tap for longer than the balance pause, so never balance them
+// Empty since the rev C AMS boards
+static const uint8_t DO_NOT_BALANCE_CELLS[] = {};
 
 bool batt_cell_can_balance(int cell) {
     if (!batt_cell_can_discharge(cell)) {

@@ -66,7 +66,7 @@
 
 // Set to 0 to keep the accumulator fans off: automatic cooling, CLI and CAN channel commands can't turn them on.
 // Radiators and pumps are unaffected
-#define ACC_FANS_ALLOWED (0)
+#define ACC_FANS_ALLOWED (1)
 #if !ACC_FANS_ALLOWED
 #undef ACC_FANS_1_EN
 #undef ACC_FANS_2_EN

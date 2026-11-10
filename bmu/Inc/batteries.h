@@ -33,9 +33,16 @@
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 2.5F
-/// Minimum voltage of a cell (IR compensated) while running/driving. Below it HV is taken down
-/// ("close to red") and a critical DTC is sent
-#define DEFAULT_LIMIT_UNDERVOLTAGE 2.9F
+/// Minimum voltage of a cell (IR compensated). Below it a critical DTC is sent and the AMS faults (red car)
+#define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
+/// Driving cutoff: HV is taken down ("close to red") when the lowest cell (IR compensated) is below this. Must stay
+/// above DEFAULT_LIMIT_UNDERVOLTAGE, so HV comes down before the AMS faults
+#define CLOSE_TO_RED_MIN_CELL_VOLTAGE 2.9F
+/// Set to 1 so an under or overvoltage cell only takes HV down (like close to red) instead of faulting the AMS
+#define CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED (0)
+/// Set to 1 so a failed AMS read (cell voltages, temps or the open wire readings) only takes HV down instead of
+/// faulting the AMS. A detected open wire always faults the AMS
+#define AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED (0)
 /// Precharge (starting the car) is refused if any cell (IR compensated) is below this
 #define LIMIT_UNDERVOLTAGE_TO_START 3.0F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
@@ -67,6 +74,9 @@
 #define CELL_UNDERTEMP_WARNING 5
 /** Set to 0 to use every thermistor, including ones in DEAD_THERMISTOR_CHANNELS */
 #define DEAD_THERMISTOR_SKIP_ENABLED (1)
+/** Set to 0 to use thermistors whose input reads 0 V (open or shorted to ground) instead of warning once and skipping
+ * them */
+#define THERMISTOR_AT_0V_SKIP_ENABLED (0)
 
 /** @} Cell Characteristics */
 
@@ -102,7 +112,7 @@
  * balanced, charging stops as soon as the highest cell reaches @ref CHARGE_STOP_SOC, since nothing can bring it
  * back down
  */
-#define BALANCE_WHILE_CHARGING_ENABLED (0)
+#define BALANCE_WHILE_CHARGING_ENABLED (1)
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
