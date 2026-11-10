@@ -18,7 +18,10 @@ typedef enum ltc_command_t {
 	ADAX_UP,
 	ADAX_DOWN,
 	ADAX2,
-	ADSV
+	ADSV,
+	ADCV_RD,      // ADCV with RD = 1: C-ADC and S-ADC together, compared against CTH (ADBMS6830)
+	ADSV_OW_EVEN, // ADSV with the open wire switches on for even channels (ADBMS6830)
+	ADSV_OW_ODD   // ADSV with the open wire switches on for odd channels (ADBMS6830)
 } ltc_command_t;
 
 typedef enum voltage_operation_t {
@@ -64,6 +67,11 @@ int batt_pwm_duty_from_pwm_readback(int global_cell,
 	const uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	const uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
+HAL_StatusTypeDef batt_read_rdstatd(uint8_t statd[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
+/* CLRFLAG for the C-ADC vs S-ADC mismatch flags (CSxFLT, status C) only, on every chip */
+HAL_StatusTypeDef batt_clear_cs_flags(void);
+/* CLOVUV: clears every cell OV/UV flag (status D) on every chip */
+HAL_StatusTypeDef batt_clear_ovuv_flags(void);
 HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 #endif
 
