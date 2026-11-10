@@ -139,6 +139,7 @@
 #define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
 #define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
 #define CLOSE_TO_RED_FAIL_BIT                       (1U << 5)
+#define AMS_DIAGNOSTIC_FLAGS_FAIL_BIT               (1U << 6)
 
 #if CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS
 #error "Cell relaxation time must be < task period battery charge task period"
