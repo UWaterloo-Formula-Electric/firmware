@@ -9,7 +9,8 @@
 #define TEMP_CHANNELS_PER_BOARD     14
 #define VOLTAGE_MEASURE_DELAY_MS    2   // Length of time for voltage measurements to finish
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
-#define TEMP_MEASURE_DELAY_US 1000 // Time for measurements to finsh
+// Time for a single channel ADAX to finish: 1 ms typical, up to 1.1 ms at the slowest AUX update rate (Table 3)
+#define TEMP_MEASURE_DELAY_US 2000
 #define VOLTAGE_MEASURE_DELAY_US 1000 // Time for measurements to finsh
 // Time for a single shot S-ADC conversion to finish: ADSV, or ADCV with RD = 1 (C-ADC and S-ADC together). 8 ms
 // typical, and the slowest S-ADC update rate (110 Hz) makes it up to 9.1 ms (Table 2)
@@ -104,6 +105,9 @@
 /* RDSTATC group C: thermal shutdown flag in STER5 (byte 5), bit 2 */
 #define RDSTATC_STER5_IDX            5u
 #define RDSTATC_THERMAL_SHUTDOWN_BIT 2u
+/* RDSTATC group C: SLEEP flag in STER5 (byte 5), bit 3. Set when the chip has power cycled or slept since it was
+ * last cleared, which also means every other register is back at its default (Table 108) */
+#define RDSTATC_SLEEP_BIT            3u
 #define rdstatc_thermal_shutdown(statc_row) \
 (GETBIT((statc_row)[RDSTATC_STER5_IDX], RDSTATC_THERMAL_SHUTDOWN_BIT))
 #endif
