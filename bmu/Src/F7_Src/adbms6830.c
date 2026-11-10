@@ -298,6 +298,8 @@
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x04
 #define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<7))
+// ADAX of the internal die temperature (CH = 10011, Table 24), result in status A bytes 2-3
+#define ADAX_ITMP_BYTE1 0x53
 
 #define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x00
@@ -742,6 +744,23 @@ int batt_pwm_duty_from_pwm_readback(int global_cell,
 	return (int)((pwm_bit >> shift) & PWM_DUTY_MASK);
 }
 
+/* Status A (Table 89): VREF2 in bytes 0-1, ITMP (die temperature) in bytes 2-3, LSB first */
+HAL_StatusTypeDef batt_read_rdstata(uint8_t stata[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+	memset(response_buffer, 0xFF, response_buffer_size);
+	if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(stata[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
+		}
+	}
+	return HAL_OK;
+}
+
 /* Run ADSTAT first if status snapshots may be stale (datasheet). */
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
 	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
@@ -830,6 +849,18 @@ HAL_StatusTypeDef batt_clear_ovuv_flags(void) {
 	static const uint8_t clearOvUvFlags[BATT_CONFIG_SIZE] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
 	if (send_command_with_data(CLOVUV_BYTE0, CLOVUV_BYTE1, clearOvUvFlags) != HAL_OK) {
 		ERROR_PRINT("Failed to send CLOVUV\n");
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_clear_reset_flags(void) {
+	// CFD5 clears status C byte 5 bit for bit (Table 25): CL_SLEEP and CL_THSD only
+	static const uint8_t clearResetFlags[BATT_CONFIG_SIZE] = {
+		0x00, 0x00, 0x00, 0x00, 0x00, (1u << RDSTATC_SLEEP_BIT) | (1u << RDSTATC_THERMAL_SHUTDOWN_BIT)
+	};
+	if (send_command_with_data(CLRFLAG_BYTE0, CLRFLAG_BYTE1, clearResetFlags) != HAL_OK) {
+		ERROR_PRINT("Failed to send CLRFLAG (SLEEP and THSD flags)\n");
 		return HAL_ERROR;
 	}
 	return HAL_OK;
@@ -995,6 +1026,30 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 			command_byte_high = ADSV_BYTE1(ADSV_OW_BITS_ODD);
 			break;
 		}
+		case(CLEAR_CELL_RESULTS):
+		{
+			command_byte_low = CLRCELL_BYTE0;
+			command_byte_high = CLRCELL_BYTE1;
+			break;
+		}
+		case(CLEAR_S_RESULTS):
+		{
+			command_byte_low = CLRSPIN_BYTE0;
+			command_byte_high = CLRSPIN_BYTE1;
+			break;
+		}
+		case(CLEAR_AUX_RESULTS):
+		{
+			command_byte_low = CLRAUX_BYTE0;
+			command_byte_high = CLRAUX_BYTE1;
+			break;
+		}
+		case(ADAX_ITMP):
+		{
+			command_byte_low = ADAX_BYTE0;
+			command_byte_high = ADAX_ITMP_BYTE1;
+			break;
+		}
 		case(ADAX_DOWN):
 		{
 			command_byte_low = ADAX_BYTE0;
@@ -1076,6 +1131,39 @@ HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array)
 	return HAL_OK;
 }
 
+/* RDACA..E after ADCV: 6 bytes/group, three 16-bit averaged cell codes (LSB first per word). Fails silently on a reset
+ * value (0x8000), the only user being the information only C-S log */
+HAL_StatusTypeDef batt_read_averaged_cell_voltages(float *cell_voltage_array)
+{
+	static const uint8_t rdacCmds[5][2] = {
+		{ RDACA_BYTE0, RDACA_BYTE1 }, { RDACB_BYTE0, RDACB_BYTE1 }, { RDACC_BYTE0, RDACC_BYTE1 },
+		{ RDACD_BYTE0, RDACD_BYTE1 }, { RDACE_BYTE0, RDACE_BYTE1 },
+	};
+
+	// Each group holds 3 cells per device
+	for (int group = 0; group * 3 < CELLS_PER_CHIP; group++) {
+		uint8_t data[NUM_DEVICES * VOLTAGE_BLOCK_SIZE];
+		if (batt_read_data(rdacCmds[group][0], rdacCmds[group][1], data, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
+			return HAL_ERROR;
+		}
+		for (int dev = 0; dev < NUM_DEVICES; dev++) {
+			const int board = dev / NUM_LTC_CHIPS_PER_BOARD;
+			const int chip = dev % NUM_LTC_CHIPS_PER_BOARD;
+			for (int cell = 0; cell < 3 && group * 3 + cell < CELLS_PER_CHIP; cell++) {
+				const size_t dataIdx = dev * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
+				const int16_t adc = (int16_t)(((uint16_t)data[dataIdx + 1] << 8) | data[dataIdx]);
+				if (adc == ADC_RESET_CODE) {
+					return HAL_ERROR;
+				}
+				// Averaged cell voltage = ACxV * 150 uV + 1.5 V (Table 104)
+				cell_voltage_array[board * CELLS_PER_BOARD + chip * CELLS_PER_CHIP + group * 3 + cell] =
+					(adc * 0.000150f) + 1.5f;
+			}
+		}
+	}
+	return HAL_OK;
+}
+
 /*
  * Read the cell results after ADCV (cAdc true, RDCVA..E) or ADSV (RDSVA..E) without needing every device to answer,
  * for tools that have to work with fewer boards connected than configured. deviceOk[dev] ends up false for a device
@@ -1148,6 +1236,13 @@ HAL_StatusTypeDef batt_read_cell_results_partial(bool cAdc, float *cell_voltage_
 	return HAL_OK;
 }
 
+// Raw ADC code of each thermistor channel's last reading, for checks that need it exact
+static int16_t thermistorCodes[NUM_TEMP_CELLS];
+
+int16_t batt_get_thermistor_code(int channel) {
+	return thermistorCodes[channel];
+}
+
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
 	// adc values for one AUX block from all boards
 	uint8_t adc_vals[AUX_BLOCK_SIZE * NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD] = {0};
@@ -1172,6 +1267,8 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 				            (unsigned)tempIdx);
 				return HAL_ERROR;
 			}
+
+			thermistorCodes[tempIdx] = adcCounts;
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V
