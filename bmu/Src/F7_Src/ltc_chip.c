@@ -755,6 +755,9 @@ HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed)
 
 /// Times each chip has reset since boot, for the prints
 static uint32_t chipResetCount[NUM_DEVICES];
+/// Set when a chip's reset is reported, cleared once its SLEEP flag reads clear, so a reset whose restore fails or
+/// doesn't take is reported once and not again every pass while it's retried
+static bool chipResetReported[NUM_DEVICES];
 
 /*
  * A chip that power cycled or slept (a brown-out from a connector bounce, a thermal shutdown, or no valid command for
@@ -763,7 +766,8 @@ static uint32_t chipResetCount[NUM_DEVICES];
  * every chip getting its current settings, and its flags are cleared once the reference is back up. That also clears
  * flags the other chips set since the last flag check, but only on a pass where a chip reset.
  * A chip that shut down from heat gets its balancing turned off first and held off for
- * THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS, so restoring it doesn't heat it straight into another shutdown
+ * THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS, so restoring it doesn't heat it straight into another shutdown.
+ * resets[dev] is only set the pass a reset is first seen
  */
 HAL_StatusTypeDef batt_recover_reset_chips(chip_reset_t resets[NUM_DEVICES])
 {
@@ -779,12 +783,18 @@ HAL_StatusTypeDef batt_recover_reset_chips(chip_reset_t resets[NUM_DEVICES])
     for (int board = 0; board < NUM_BOARDS; board++) {
         for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
             const uint8_t flags = statc[board][chip][RDSTATC_STER5_IDX];
+            const int dev = board * NUM_LTC_CHIPS_PER_BOARD + chip;
             if (!GETBIT(flags, RDSTATC_SLEEP_BIT)) {
+                chipResetReported[dev] = false;
                 continue;
             }
-            const int dev = board * NUM_LTC_CHIPS_PER_BOARD + chip;
-            chipResetCount[dev]++;
+            // Restore it again whatever happens, but report the reset only once
             anyReset = true;
+            if (chipResetReported[dev]) {
+                continue;
+            }
+            chipResetReported[dev] = true;
+            chipResetCount[dev]++;
 
             if (GETBIT(flags, RDSTATC_THERMAL_SHUTDOWN_BIT)) {
                 resets[dev] = CHIP_THERMAL_SHUTDOWN;
