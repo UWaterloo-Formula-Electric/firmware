@@ -73,8 +73,13 @@
 #define NUM_TEMP_CELLS              (NUM_SEGMENTS * THERMISTORS_PER_SEGMENT*NUM_LTC_CHIPS_PER_BOARD)
 #define NUM_DEVICES                 (NUM_BOARDS*NUM_LTC_CHIPS_PER_BOARD)
 
-#define OPEN_WIRE_RATIO_MIN 0.75
-#define OPEN_WIRE_RATIO_MAX 1.40
+// Open wire test: each cell's S-ADC reading divided by its C-ADC reading, from an ADSV with the open wire switches on
+// for the even channels and one with them on for the odd channels. With intact wiring a channel reads 85-95 % of its
+// cell voltage while its own switch is on (Table 2), and about 100 % while it's off
+#define OPEN_WIRE_SWITCH_ON_RATIO_MIN 0.80f
+#define OPEN_WIRE_SWITCH_ON_RATIO_MAX 1.00f
+#define OPEN_WIRE_SWITCH_OFF_RATIO_MIN 0.95f
+#define OPEN_WIRE_SWITCH_OFF_RATIO_MAX 1.05f
 
 // Set to 1 to skip the cells in NO_DISCHARGE_CELLS (ltc_chip.c) in the open wire check and never balance them, for
 // cells whose bleed resistors are removed
@@ -162,11 +167,15 @@ HAL_StatusTypeDef batt_unset_balancing_all_cells(void);
 HAL_StatusTypeDef batt_write_balancing_config(void);
 /* Sets *readFailed if the AMS boards couldn't be read, as opposed to an open wire being detected */
 HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed);
-/* Why one cell's averaged open wire readings look open, or NULL if they look fine (same checks as above) */
-const char *batt_open_wire_reason(int cell, float adcv, float adsv);
+/* Why one cell's averaged open wire readings look open, or NULL if they look fine: its C-ADC reading (c) and its S-ADC
+ * readings with the even channels' switches on (sEvenOn) and with the odd channels' on (sOddOn) */
+const char *batt_open_wire_reason(int cell, float c, float sEvenOn, float sOddOn);
 #if LTC_CHIP == ADBMS_CHIP_6830B
 /* Open wire readings that work with fewer boards connected than configured. deviceOk[dev] is false if it didn't answer */
-HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, float *adsv);
+HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *c, float *sEvenOn, float *sOddOn);
+/* Checks the C-ADC vs S-ADC mismatch and hardware OV/UV flags the chips set themselves, then clears them. Run after
+ * batt_read_cell_voltages. Sets *readFailed if the flags couldn't be read or cleared, as opposed to a flag being set */
+HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed);
 #endif
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
