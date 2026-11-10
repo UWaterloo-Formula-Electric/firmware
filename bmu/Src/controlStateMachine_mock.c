@@ -1642,6 +1642,112 @@ static const CLI_Command_Definition_t getOpenCommandDefinition =
     0 /* Number of parameters */
 };
 
+/*
+ * C-ADC minus S-ADC of every cell, from the redundant readings the battery task takes each pass, for picking CTH. The
+ * worst cell first, then one line per cell. Information only
+ */
+BaseType_t csDiffCommand(char *writeBuffer, size_t writeBufferLength,
+                         const char *commandString)
+{
+#if LTC_CHIP == ADBMS_CHIP_6830B && CS_DIFF_LOG_ENABLED
+    static int line = -1;
+    float latest, lowest, highest;
+
+    if (line == -1) {
+        int worstCell;
+        const uint32_t samples = batt_get_cs_diff_samples(&worstCell);
+        if (samples == 0 || !batt_get_cs_diff(worstCell, &latest, &lowest, &highest)) {
+            COMMAND_OUTPUT("csDiff: nothing logged yet\r\n");
+            return pdFALSE;
+        }
+        COMMAND_OUTPUT("C-S over %lu readings: worst cell %d (#%d), %+.2f to %+.2f mV\r\n", (unsigned long)samples,
+                       worstCell, worstCell + 1, lowest * 1000.0f, highest * 1000.0f);
+        line = 0;
+        return pdTRUE;
+    }
+
+    if (batt_get_cs_diff(line, &latest, &lowest, &highest)) {
+        COMMAND_OUTPUT("Cell %d (#%d): now %+.2f, min %+.2f, max %+.2f mV\r\n", line, line + 1,
+                       latest * 1000.0f, lowest * 1000.0f, highest * 1000.0f);
+    } else {
+        COMMAND_OUTPUT("Cell %d (#%d): no reading\r\n", line, line + 1);
+    }
+
+    line++;
+    if (line >= NUM_VOLTAGE_CELLS) {
+        line = -1;
+        return pdFALSE;
+    }
+    return pdTRUE;
+#else
+    COMMAND_OUTPUT("csDiff needs the ADBMS6830 and CS_DIFF_LOG_ENABLED\r\n");
+    return pdFALSE;
+#endif
+}
+
+static const CLI_Command_Definition_t csDiffCommandDefinition =
+{
+    "csDiff",
+    "csDiff:\r\n Each cell's C-ADC minus S-ADC (now, min, max) since boot or csDiffReset, for picking CTH\r\n",
+    csDiffCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t csDiffResetCommand(char *writeBuffer, size_t writeBufferLength,
+                              const char *commandString)
+{
+#if LTC_CHIP == ADBMS_CHIP_6830B && CS_DIFF_LOG_ENABLED
+    batt_reset_cs_diff();
+    COMMAND_OUTPUT("C-S log cleared\r\n");
+#else
+    COMMAND_OUTPUT("csDiffReset needs the ADBMS6830 and CS_DIFF_LOG_ENABLED\r\n");
+#endif
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t csDiffResetCommandDefinition =
+{
+    "csDiffReset",
+    "csDiffReset:\r\n Clear the csDiff log\r\n",
+    csDiffResetCommand,
+    0 /* Number of parameters */
+};
+
+// Each AMS chip's die temperature, as the battery task last read it. One line per chip
+BaseType_t chipTempsCommand(char *writeBuffer, size_t writeBufferLength,
+                            const char *commandString)
+{
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    static int dev = 0;
+    float latest, highest;
+
+    if (batt_get_die_temp(dev, &latest, &highest)) {
+        COMMAND_OUTPUT("Board %d chip %d: die %.1f C now, %.1f C max since boot\r\n",
+                       dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD, latest, highest);
+    } else {
+        COMMAND_OUTPUT("Board %d chip %d: not read yet\r\n", dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD);
+    }
+
+    dev++;
+    if (dev >= NUM_DEVICES) {
+        dev = 0;
+        return pdFALSE;
+    }
+    return pdTRUE;
+#else
+    COMMAND_OUTPUT("chipTemps only supports the ADBMS6830\r\n");
+    return pdFALSE;
+#endif
+}
+
+static const CLI_Command_Definition_t chipTempsCommandDefinition =
+{
+    "chipTemps",
+    "chipTemps:\r\n Each AMS chip's die temperature, now and highest since boot\r\n",
+    chipTempsCommand,
+    0 /* Number of parameters */
+};
+
 /**
  * @brief Manual PWM discharge for one global cell, same sequence as @ref handleCharge
  *        balance path (batteries.c): per-cell state, WRPWM, then discharge timer + WRCFGA/B.
@@ -2171,6 +2277,15 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&getOpenCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&csDiffCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&csDiffResetCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&chipTempsCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&dischargeCellsCommandDefinition) != pdPASS) {
