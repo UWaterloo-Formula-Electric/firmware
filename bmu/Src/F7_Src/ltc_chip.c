@@ -20,6 +20,93 @@ static void waitForSAdcConversion(void)
     vTaskDelay(pdMS_TO_TICKS(SADC_CONVERSION_DELAY_MS) + 1);
 }
 
+/*
+ * Starts a conversion, first setting the results it writes to 0x8000. A chip that misses the conversion command then
+ * reads back 0x8000, which the reads reject, instead of its previous result with a valid PEC. ADCV and ADSV reset their
+ * results themselves once received, but ADAX doesn't
+ */
+static HAL_StatusTypeDef clearAndStartConversion(ltc_command_t conversion)
+{
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    HAL_StatusTypeDef rc = HAL_OK;
+    switch (conversion) {
+        case ADCV:
+            rc = batt_broadcast_command(CLEAR_CELL_RESULTS);
+            break;
+        case ADCV_RD:
+            // Writes the S-ADC results too
+            rc = batt_broadcast_command(CLEAR_CELL_RESULTS);
+            if (rc == HAL_OK) {
+                rc = batt_broadcast_command(CLEAR_S_RESULTS);
+            }
+            break;
+        case ADSV:
+        case ADSV_OW_EVEN:
+        case ADSV_OW_ODD:
+            rc = batt_broadcast_command(CLEAR_S_RESULTS);
+            break;
+        case ADAX_UP:
+        case ADAX_DOWN:
+        case ADAX_ITMP:
+            rc = batt_broadcast_command(CLEAR_AUX_RESULTS);
+            break;
+        default:
+            break;
+    }
+    if (rc != HAL_OK) {
+        return rc;
+    }
+#endif
+    return batt_broadcast_command(conversion);
+}
+
+#if LTC_CHIP == ADBMS_CHIP_6830B && CS_DIFF_LOG_ENABLED
+// Averaged C-ADC minus S-ADC of each cell from the redundant readings, see batt_get_cs_diff
+static float csDiffLatest[NUM_VOLTAGE_CELLS];
+static float csDiffLowest[NUM_VOLTAGE_CELLS];
+static float csDiffHighest[NUM_VOLTAGE_CELLS];
+static uint32_t csDiffSamples = 0;
+
+// After a redundant ADCV (RD = 1) the chip compares the averaged C-ADC results (8 conversions) with the S-ADC results,
+// so log the same two. Information only: a failed read just skips this reading
+static void logCsDiff(void)
+{
+    static float acVoltages[NUM_VOLTAGE_CELLS];
+    static float sVoltages[NUM_VOLTAGE_CELLS];
+    if (batt_read_averaged_cell_voltages(acVoltages) != HAL_OK || batt_read_ADSV(sVoltages) != HAL_OK) {
+        return;
+    }
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++) {
+        const float diff = acVoltages[cell] - sVoltages[cell];
+        csDiffLatest[cell] = diff;
+        if (csDiffSamples == 0 || diff < csDiffLowest[cell]) {
+            csDiffLowest[cell] = diff;
+        }
+        if (csDiffSamples == 0 || diff > csDiffHighest[cell]) {
+            csDiffHighest[cell] = diff;
+        }
+    }
+    csDiffSamples++;
+}
+#endif
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+// Chips whose balancing is held off after a thermal shutdown, and since when (batt_recover_reset_chips)
+static bool balanceHeldOff[NUM_DEVICES];
+static TickType_t balanceHeldOffTick[NUM_DEVICES];
+
+static bool isBalanceHeldOff(int board, int chip)
+{
+    const int dev = board * NUM_LTC_CHIPS_PER_BOARD + chip;
+    if (balanceHeldOff[dev]
+        && xTaskGetTickCount() - balanceHeldOffTick[dev] >= pdMS_TO_TICKS(THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS)) {
+        balanceHeldOff[dev] = false;
+        ERROR_PRINT("AMS board %d chip %d: balancing allowed again after its thermal shutdown\n", board, chip);
+    }
+    return balanceHeldOff[dev];
+}
+#endif
+
 HAL_StatusTypeDef batt_init()
 {
 
@@ -43,10 +130,10 @@ HAL_StatusTypeDef batt_init()
 	}
 
 #if LTC_CHIP == ADBMS_CHIP_6830B
-    // The C-ADC vs S-ADC and OV/UV flags are all set after power up or sleep. batt_verify_config has already waited
-    // for the reference, and the clears only work once it's up
+    // The C-ADC vs S-ADC, OV/UV and SLEEP flags are all set after power up or sleep. batt_verify_config has already
+    // waited for the reference, and the clears only work once it's up
     batt_spi_wakeup(false);
-    if (batt_clear_cs_flags() != HAL_OK || batt_clear_ovuv_flags() != HAL_OK) {
+    if (batt_clear_cs_flags() != HAL_OK || batt_clear_ovuv_flags() != HAL_OK || batt_clear_reset_flags() != HAL_OK) {
         ERROR_PRINT("Failed to clear the AMS diagnostic flags\n");
         return HAL_ERROR;
     }
@@ -86,7 +173,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 #if LTC_CHIP == ADBMS_CHIP_6830B
     // Redundant measurement: the chips also compare each cell's C-ADC and S-ADC results, see
     // batt_check_diagnostic_flags
-    if (batt_broadcast_command(ADCV_RD) != HAL_OK) {
+    if (clearAndStartConversion(ADCV_RD) != HAL_OK) {
         return HAL_ERROR;
     }
     waitForSAdcConversion();
@@ -106,6 +193,10 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
     {
         return HAL_ERROR;
     }
+
+#if LTC_CHIP == ADBMS_CHIP_6830B && CS_DIFF_LOG_ENABLED
+    logCsDiff();
+#endif
 
     return HAL_OK;
 }
@@ -144,7 +235,7 @@ HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *ce
         return HAL_ERROR;
     }
     #elif LTC_CHIP == ADBMS_CHIP_6830B
-    if (batt_broadcast_command(ADAX_DOWN) != HAL_OK) {
+    if (clearAndStartConversion(ADAX_DOWN) != HAL_OK) {
         return HAL_ERROR;
     }
     #endif
@@ -225,7 +316,7 @@ HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
     }
 
     // Open wire switches off, so this is a plain S-ADC reading
-    if (batt_broadcast_command(ADSV) != HAL_OK) {
+    if (clearAndStartConversion(ADSV) != HAL_OK) {
         return HAL_ERROR;
     }
 
@@ -245,6 +336,65 @@ HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
 #endif
 }
 
+#if LTC_CHIP == ADBMS_CHIP_6830B
+// Each chip's die temperature, see batt_get_die_temp. Information only
+static float dieTempLatest[NUM_DEVICES];
+static float dieTempHighest[NUM_DEVICES];
+static bool dieTempRead[NUM_DEVICES];
+static bool dieTempWarned[NUM_DEVICES];
+
+// Reads every chip's die temperature (ADAX of ITMP, then status A). A failed read or a reset value just leaves the
+// previous reading, and the warnings only print
+static void readDieTemps(void)
+{
+    static uint8_t stata[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+
+    if (batt_spi_wakeup(false) != HAL_OK || clearAndStartConversion(ADAX_ITMP) != HAL_OK) {
+        return;
+    }
+    delay_us(TEMP_MEASURE_DELAY_US);
+    if (batt_spi_wakeup(false) != HAL_OK || batt_read_rdstata(stata) != HAL_OK) {
+        return;
+    }
+
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+            const int dev = board * NUM_LTC_CHIPS_PER_BOARD + chip;
+            // Bytes 2-3, LSB first. 0x7FFF after power up or sleep, 0x8000 after CLRAUX: not converted
+            const int16_t code = (int16_t)(((uint16_t)stata[board][chip][3] << 8) | stata[board][chip][2]);
+            if (code == ADC_RESET_CODE || code == INT16_MAX) {
+                continue;
+            }
+            // Temperature = (ITMP * 150 uV + 1.5 V) / 7.5 mV/C - 273 C = ITMP * 0.02 - 73 C (Table 105)
+            const float temp = (code * 0.02f) - 73.0f;
+            dieTempLatest[dev] = temp;
+            if (!dieTempRead[dev] || temp > dieTempHighest[dev]) {
+                dieTempHighest[dev] = temp;
+            }
+            dieTempRead[dev] = true;
+
+            if (!dieTempWarned[dev] && temp >= DIE_TEMP_WARN_C) {
+                ERROR_PRINT("WARN: AMS board %d chip %d die at %.1f C\n", board, chip, temp);
+                dieTempWarned[dev] = true;
+            } else if (dieTempWarned[dev] && temp < DIE_TEMP_WARN_CLEAR_C) {
+                ERROR_PRINT("AMS board %d chip %d die back down to %.1f C\n", board, chip, temp);
+                dieTempWarned[dev] = false;
+            }
+        }
+    }
+}
+
+bool batt_get_die_temp(int dev, float *latest, float *highest)
+{
+    if (dev < 0 || dev >= NUM_DEVICES || !dieTempRead[dev]) {
+        return false;
+    }
+    *latest = dieTempLatest[dev];
+    *highest = dieTempHighest[dev];
+    return true;
+}
+#endif
+
 HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, float *cell_temp_array){
 
     if (batt_read_cell_voltages(cell_voltage_array) != HAL_OK) {
@@ -254,6 +404,11 @@ HAL_StatusTypeDef batt_read_cell_voltages_and_temps(float *cell_voltage_array, f
         ERROR_PRINT("Failed to read cell temperatures\n");
         return HAL_ERROR;
     }
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    // After the thermistor sweep. Information only, so it never fails this read
+    readDieTemps();
+#endif
 
     return HAL_OK;
 }
@@ -326,7 +481,7 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, open_wire_
             return HAL_ERROR;
         }
         #elif LTC_CHIP == ADBMS_CHIP_6830B
-        if (batt_broadcast_command(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
+        if (clearAndStartConversion(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
             return HAL_ERROR;
         }
         #endif
@@ -384,6 +539,11 @@ bool batt_cell_can_balance(int cell) {
     if (!batt_cell_can_discharge(cell)) {
         return false;
     }
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    if (isBalanceHeldOff(cell / CELLS_PER_BOARD, (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP)) {
+        return false;
+    }
+#endif
     if (!DO_NOT_BALANCE_CELLS_ENABLED) {
         return true;
     }
@@ -503,7 +663,7 @@ HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *c, floa
     for (int pass = 0; pass < NUM_OPEN_WIRE_PASSES; pass++) {
         const bool cAdc = (pass == OPEN_WIRE_PASS_C);
         for (int reading = 0; reading < NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS; reading++) {
-            if (batt_spi_wakeup(false) != HAL_OK || batt_broadcast_command(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
+            if (batt_spi_wakeup(false) != HAL_OK || clearAndStartConversion(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
                 return HAL_ERROR;
             }
             waitForOpenWirePassConversion((open_wire_pass_t)pass);
@@ -550,6 +710,12 @@ HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed)
             uint16_t overvoltage = 0;
             uint16_t undervoltage = 0;
 
+            // Reset since batt_recover_reset_chips last ran: its flags are back at their defaults (all set), so they
+            // mean nothing. The next pass restores it
+            if (GETBIT(statc[board][chip][RDSTATC_STER5_IDX], RDSTATC_SLEEP_BIT)) {
+                continue;
+            }
+
             // Only the wired cells. Each status D byte holds 4 cells, UV in the even bit and OV in the odd bit
             for (int c = 0; c < CELLS_PER_CHIP; c++) {
                 // S-ADC readings of a cell without its discharge path aren't comparable
@@ -568,6 +734,10 @@ HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed)
                 ERROR_PRINT("AMS board %d chip %d (cells %d-%d): C/S mismatch 0x%04X, HW OV 0x%04X, HW UV 0x%04X\n",
                             board, chip, firstCell, firstCell + CELLS_PER_CHIP - 1,
                             csMismatch, overvoltage, undervoltage);
+            }
+            // Only the kinds of flag set to fault, the rest are just the print above
+            if ((CS_MISMATCH_FAULT_ENABLED && csMismatch) || (HW_OV_FAULT_ENABLED && overvoltage)
+                || (HW_UV_FAULT_ENABLED && undervoltage)) {
                 ret = HAL_ERROR;
             }
         }
@@ -581,6 +751,116 @@ HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed)
         return HAL_ERROR;
     }
     return ret;
+}
+
+/// Times each chip has reset since boot, for the prints
+static uint32_t chipResetCount[NUM_DEVICES];
+
+/*
+ * A chip that power cycled or slept (a brown-out from a connector bounce, a thermal shutdown, or no valid command for
+ * about 2 s) comes back with every register at its default: reference off, CTH, VOV/VUV, MUX and discharge settings
+ * gone, and all its flags set. Its SLEEP flag says so. Writing the configuration and PWM registers again restores it,
+ * every chip getting its current settings, and its flags are cleared once the reference is back up. That also clears
+ * flags the other chips set since the last flag check, but only on a pass where a chip reset.
+ * A chip that shut down from heat gets its balancing turned off first and held off for
+ * THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS, so restoring it doesn't heat it straight into another shutdown
+ */
+HAL_StatusTypeDef batt_recover_reset_chips(chip_reset_t resets[NUM_DEVICES])
+{
+    static uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+    for (int dev = 0; dev < NUM_DEVICES; dev++) {
+        resets[dev] = CHIP_NOT_RESET;
+    }
+    if (batt_spi_wakeup(false) != HAL_OK || batt_read_rdstatc(statc) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    bool anyReset = false;
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+            const uint8_t flags = statc[board][chip][RDSTATC_STER5_IDX];
+            if (!GETBIT(flags, RDSTATC_SLEEP_BIT)) {
+                continue;
+            }
+            const int dev = board * NUM_LTC_CHIPS_PER_BOARD + chip;
+            chipResetCount[dev]++;
+            anyReset = true;
+
+            if (GETBIT(flags, RDSTATC_THERMAL_SHUTDOWN_BIT)) {
+                resets[dev] = CHIP_THERMAL_SHUTDOWN;
+                balanceHeldOff[dev] = true;
+                balanceHeldOffTick[dev] = xTaskGetTickCount();
+                for (int cell = 0; cell < CELLS_PER_CHIP; cell++) {
+                    batt_unset_balancing_cell(board, chip, cell);
+                }
+                ERROR_PRINT("WARN: AMS board %d chip %d thermal shutdown, restoring it, no balancing for %lu s\n",
+                            board, chip, THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS / 1000UL);
+            } else {
+                resets[dev] = CHIP_RESET;
+                ERROR_PRINT("WARN: AMS board %d chip %d power cycled or slept, restoring it\n", board, chip);
+            }
+            ERROR_PRINT("AMS board %d chip %d: %lu resets since boot\n", board, chip,
+                        (unsigned long)chipResetCount[dev]);
+        }
+    }
+    if (!anyReset) {
+        return HAL_OK;
+    }
+
+    if (batt_write_config() != HAL_OK || batt_write_config_pwm() != HAL_OK) {
+        return HAL_ERROR;
+    }
+    // The clears only work once the reference is back up
+    vTaskDelay(pdMS_TO_TICKS(T_REFUP_MS) + 1);
+    if (batt_spi_wakeup(false) != HAL_OK || batt_clear_cs_flags() != HAL_OK || batt_clear_ovuv_flags() != HAL_OK
+        || batt_clear_reset_flags() != HAL_OK) {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
+}
+
+bool batt_get_cs_diff(int cell, float *latest, float *lowest, float *highest)
+{
+#if CS_DIFF_LOG_ENABLED
+    if (cell < 0 || cell >= NUM_VOLTAGE_CELLS || csDiffSamples == 0) {
+        return false;
+    }
+    *latest = csDiffLatest[cell];
+    *lowest = csDiffLowest[cell];
+    *highest = csDiffHighest[cell];
+    return true;
+#else
+    (void)cell;
+    (void)latest;
+    (void)lowest;
+    (void)highest;
+    return false;
+#endif
+}
+
+uint32_t batt_get_cs_diff_samples(int *worstCell)
+{
+    *worstCell = -1;
+#if CS_DIFF_LOG_ENABLED
+    float worst = 0.0f;
+    for (int cell = 0; csDiffSamples > 0 && cell < NUM_VOLTAGE_CELLS; cell++) {
+        const float largest = fmaxf(float_abs(csDiffLowest[cell]), float_abs(csDiffHighest[cell]));
+        if (*worstCell < 0 || largest > worst) {
+            worst = largest;
+            *worstCell = cell;
+        }
+    }
+    return csDiffSamples;
+#else
+    return 0;
+#endif
+}
+
+void batt_reset_cs_diff(void)
+{
+#if CS_DIFF_LOG_ENABLED
+    csDiffSamples = 0;
+#endif
 }
 #endif
 
@@ -596,6 +876,13 @@ HAL_StatusTypeDef batt_balance_cell(int cell)
     int boardIdx = cell / CELLS_PER_BOARD;
     int chipIdx = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
     int amsCellIdx = cell % CELLS_PER_CHIP;
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    // Covers every way of turning balancing on, resumeBalance and the CLI included
+    if (isBalanceHeldOff(boardIdx, chipIdx)) {
+        return HAL_OK;
+    }
+#endif
 
     batt_set_balancing_cell(boardIdx, chipIdx, amsCellIdx, BALANCE_PWM_DUTY_MAX);
 
