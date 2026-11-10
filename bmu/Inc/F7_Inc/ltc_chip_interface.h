@@ -21,7 +21,11 @@ typedef enum ltc_command_t {
 	ADSV,
 	ADCV_RD,      // ADCV with RD = 1: C-ADC and S-ADC together, compared against CTH (ADBMS6830)
 	ADSV_OW_EVEN, // ADSV with the open wire switches on for even channels (ADBMS6830)
-	ADSV_OW_ODD   // ADSV with the open wire switches on for odd channels (ADBMS6830)
+	ADSV_OW_ODD,  // ADSV with the open wire switches on for odd channels (ADBMS6830)
+	CLEAR_CELL_RESULTS, // CLRCELL: C-ADC results to 0x8000 (ADBMS6830)
+	CLEAR_S_RESULTS,    // CLRSPIN: S-ADC results to 0x8000 (ADBMS6830)
+	CLEAR_AUX_RESULTS,  // CLRAUX: AUX (GPIO) results and status A/B to 0x8000 (ADBMS6830)
+	ADAX_ITMP           // ADAX of the internal die temperature, result in status A (ADBMS6830)
 } ltc_command_t;
 
 typedef enum voltage_operation_t {
@@ -58,6 +62,8 @@ HAL_StatusTypeDef batt_read_config_ADSV(
 	uint8_t adsv_f[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
 /* After ADSV conversion: read RDSVA..F into cell_voltage_array (same global indexing as batt_readBackCellVoltage). */
 HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array);
+/* After ADCV: read the averaged C-ADC results RDACA..E (the average of 8 conversions) into cell_voltage_array */
+HAL_StatusTypeDef batt_read_averaged_cell_voltages(float *cell_voltage_array);
 /* Cell results after ADCV (cAdc) or ADSV, keeping every device that answers. deviceOk[dev] is false for the rest */
 HAL_StatusTypeDef batt_read_cell_results_partial(bool cAdc, float *cell_voltage_array, bool deviceOk[NUM_DEVICES]);
 /* RDPWMA/RDPWMB readback: 4-bit PWM duty per cell (same nibble layout as WRPWM / batt_set_balancing_cell). */
@@ -66,12 +72,17 @@ HAL_StatusTypeDef batt_read_pwm(uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD
 int batt_pwm_duty_from_pwm_readback(int global_cell,
 	const uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE],
 	const uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE]);
+HAL_StatusTypeDef batt_read_rdstata(uint8_t stata[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 HAL_StatusTypeDef batt_read_rdstatd(uint8_t statd[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 /* CLRFLAG for the C-ADC vs S-ADC mismatch flags (CSxFLT, status C) only, on every chip */
 HAL_StatusTypeDef batt_clear_cs_flags(void);
 /* CLOVUV: clears every cell OV/UV flag (status D) on every chip */
 HAL_StatusTypeDef batt_clear_ovuv_flags(void);
+/* CLRFLAG for the SLEEP and THSD flags (status C) only, on every chip */
+HAL_StatusTypeDef batt_clear_reset_flags(void);
+/* Raw ADC code of a thermistor channel's last reading (same indexing as the temps) */
+int16_t batt_get_thermistor_code(int channel);
 HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]);
 #endif
 
