@@ -89,6 +89,22 @@
 // tap: draining them displaces the tap and gives false readings. They keep every other check
 #define DO_NOT_BALANCE_CELLS_ENABLED (0)
 
+// Set to 0 to stop logging each cell's averaged C-ADC minus S-ADC difference after every redundant reading (csDiff CLI
+// command). Information only, it never fails a read or faults. Costs one read of every AC and S group per pass
+#define CS_DIFF_LOG_ENABLED (1)
+
+// Set to 1 to fault the AMS on a flag the chips set themselves (batt_check_diagnostic_flags). At 0 it's only printed
+#define CS_MISMATCH_FAULT_ENABLED (0) // A cell's averaged C-ADC and S-ADC readings differ by more than CTH
+#define HW_OV_FAULT_ENABLED       (0) // A cell over VOV. Raw voltage, like the software overvoltage check
+#define HW_UV_FAULT_ENABLED       (0) // A cell under VUV. Raw voltage, so it can trip under hard acceleration
+
+// After a thermal shutdown, a chip's balancing stays off this long, or the discharge heats it into another shutdown
+#define THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS (5UL * 60UL * 1000UL)
+
+// Each chip's die temperature is read every pass (chipTemps CLI command). Information only: crossing these just prints
+#define DIE_TEMP_WARN_C       (85.0f) // Warn once a chip gets this hot. It shuts itself down around 150 C
+#define DIE_TEMP_WARN_CLEAR_C (75.0f) // and again once it's cooled back below this
+
 // PWM duty (0-15) written to the discharge registers while a cell is balancing
 #define BALANCE_PWM_DUTY_MAX (0x0F)
 
@@ -174,8 +190,26 @@ const char *batt_open_wire_reason(int cell, float c, float sEvenOn, float sOddOn
 /* Open wire readings that work with fewer boards connected than configured. deviceOk[dev] is false if it didn't answer */
 HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *c, float *sEvenOn, float *sOddOn);
 /* Checks the C-ADC vs S-ADC mismatch and hardware OV/UV flags the chips set themselves, then clears them. Run after
- * batt_read_cell_voltages. Sets *readFailed if the flags couldn't be read or cleared, as opposed to a flag being set */
+ * batt_read_cell_voltages. HAL_ERROR for a set flag only if its *_FAULT_ENABLED is 1. Sets *readFailed if the flags
+ * couldn't be read or cleared, as opposed to a flag being set */
 HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed);
+
+typedef enum {
+    CHIP_NOT_RESET = 0,
+    CHIP_RESET,            // Power cycled or slept
+    CHIP_THERMAL_SHUTDOWN, // Reset by its thermal shutdown, balancing held off for THERMAL_SHUTDOWN_BALANCE_HOLD_OFF_MS
+} chip_reset_t;
+/* Finds chips that power cycled or slept (SLEEP flag) and restores their registers and flags, filling resets[dev].
+ * Run before a pass's conversions. Never a fault */
+HAL_StatusTypeDef batt_recover_reset_chips(chip_reset_t resets[NUM_DEVICES]);
+/* C-ADC minus S-ADC of a cell in volts, from the redundant readings since the last reset of the log: the latest, and the
+ * lowest and highest seen. False if the cell has no logged reading yet */
+bool batt_get_cs_diff(int cell, float *latest, float *lowest, float *highest);
+/* Number of redundant readings logged, and the cell with the largest difference either way (-1 if none) */
+uint32_t batt_get_cs_diff_samples(int *worstCell);
+/* A chip's die temperature in C: the latest reading and the highest since boot. False if it hasn't been read yet */
+bool batt_get_die_temp(int dev, float *latest, float *highest);
+void batt_reset_cs_diff(void);
 #endif
 HAL_StatusTypeDef batt_start_ADC_conversion(void);
 HAL_StatusTypeDef batt_start_ADSV_conversion(void);
