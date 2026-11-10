@@ -743,6 +743,74 @@ float getAvgValidTemp(void)
    return (count > 0) ? (sum / count) : 0.0f;
 }
 
+#if IS_BOARD_F7
+/*
+ * Each chip picks its thermistor with a MUX on GPIO1-4 (batt_set_temp_config). A stuck or bridged select line makes
+ * the channels whose addresses differ only in that line read the same thermistor. Different thermistors at the same
+ * temperature match now and then, so a line is only suspect when THERMISTOR_MUX_MIN_MATCHING_PAIRS or more of its
+ * channel pairs match in one sweep, and only reported once that held for THERMISTOR_MUX_SUSPECT_SWEEPS sweeps in a
+ * row. A warning only, never a fault
+ */
+#define THERMISTORS_PER_CHIP SEGMENT_THERMISTORS_AMS1
+#define THERMISTOR_MUX_SELECT_LINES 4
+/// Two readings of the same thermistor a few ms apart differ by a few ADC counts, about 0.005 C each
+#define THERMISTOR_MUX_MATCH_TOLERANCE_C (0.03F)
+#define THERMISTOR_MUX_MIN_MATCHING_PAIRS 3
+#define THERMISTOR_MUX_SUSPECT_SWEEPS 10
+/// An open thermistor input sits at the pull-up and converts to about 89 C. Like inputs at 0 V, those all read alike
+#define THERMISTOR_INPUT_AT_PULLUP_TEMP_C (85.0F)
+
+/// Sweeps in a row each chip's select line has looked stuck or bridged, up to THERMISTOR_MUX_SUSPECT_SWEEPS
+static uint8_t thermistorMuxSuspectSweeps[NUM_DEVICES][THERMISTOR_MUX_SELECT_LINES];
+
+static bool isThermistorUsableForMuxCheck(int channel) {
+   const float temp = TempChannel[channel];
+   return !isDeadThermistorChannel(channel) && temp > THERMISTOR_INPUT_AT_0V_TEMP_C
+          && temp < THERMISTOR_INPUT_AT_PULLUP_TEMP_C;
+}
+
+static void checkThermistorMuxSelectLines(void)
+{
+   for (int dev = 0; dev < NUM_DEVICES; dev++) {
+      const int firstChannel = dev * THERMISTORS_PER_CHIP;
+      for (int line = 0; line < THERMISTOR_MUX_SELECT_LINES; line++) {
+         const int lineBit = 1 << line;
+         int matchingPairs = 0;
+         for (int ch = 0; ch < THERMISTORS_PER_CHIP; ch++) {
+            const int partner = ch | lineBit;
+            if ((ch & lineBit) || partner >= THERMISTORS_PER_CHIP) {
+               continue;
+            }
+            const int a = firstChannel + ch;
+            const int b = firstChannel + partner;
+            if (isThermistorUsableForMuxCheck(a) && isThermistorUsableForMuxCheck(b)
+                && fabsf(TempChannel[a] - TempChannel[b]) <= THERMISTOR_MUX_MATCH_TOLERANCE_C) {
+               matchingPairs++;
+            }
+         }
+
+         uint8_t *suspectSweeps = &thermistorMuxSuspectSweeps[dev][line];
+         if (matchingPairs >= THERMISTOR_MUX_MIN_MATCHING_PAIRS) {
+            if (*suspectSweeps < THERMISTOR_MUX_SUSPECT_SWEEPS) {
+               (*suspectSweeps)++;
+               if (*suspectSweeps == THERMISTOR_MUX_SUSPECT_SWEEPS) {
+                  ERROR_PRINT("WARN: AMS board %d chip %d: temp MUX line GPIO%d stuck/bridged? %d pairs match\n",
+                              dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD, line + 1,
+                              matchingPairs);
+               }
+            }
+         } else {
+            if (*suspectSweeps >= THERMISTOR_MUX_SUSPECT_SWEEPS) {
+               ERROR_PRINT("AMS board %d chip %d: temp MUX line GPIO%d readings differ again\n",
+                           dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD, line + 1);
+            }
+            *suspectSweeps = 0;
+         }
+      }
+   }
+}
+#endif
+
 // Battery task passes needed to read every thermistor mux channel once. Each pass reads the
 // same channels on every chip at once, so this does not scale with NUM_LTC_CHIPS_PER_BOARD.
 #define THERMISTOR_PASSES_PER_SWEEP ((THERMISTORS_PER_SEGMENT + NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE - 1) / NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE)
@@ -878,6 +946,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             }
             if (measure < (*minTemp)) {(*minTemp) = measure;}
         }
+
+#if IS_BOARD_F7
+        // NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE reads every channel each pass, so each pass is one sweep
+        checkThermistorMuxSelectLines();
+#endif
    }
    else
    {
@@ -1102,7 +1175,7 @@ HAL_StatusTypeDef stopBalance()
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1170,7 +1243,7 @@ HAL_StatusTypeDef resumeBalance()
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1201,7 +1274,7 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   else batt_stop_balance_cell(cell);
 #endif
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1307,6 +1380,17 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             if (boundedContinueAmsReadFail()) { continue; }
         }
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        bool diagnosticReadFailed;
+        if (batt_check_diagnostic_flags(&diagnosticReadFailed) != HAL_OK) {
+            BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
+            ERROR_PRINT("AMS diagnostic flags check failed!\n");
+            // A C/S mismatch or hardware OV/UV flag always faults the AMS
+            if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
+        }
+#endif
+
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         bool openWireReadFailed;
         if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
@@ -1399,7 +1483,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
 #endif
-                if (batt_spi_wakeup(true) != HAL_OK) {
+                if (batt_spi_wakeup(false) != HAL_OK) {
                     ERROR_PRINT("Failed to wake up boards\n");
                     stopBalance();
                     return CHARGE_ERROR;
@@ -1698,6 +1782,17 @@ void batteryTask(void *pvParameter)
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
             if (boundedContinueAmsReadFail()) { continue; }
+        }
+#endif
+
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        bool diagnosticReadFailed;
+        if (batt_check_diagnostic_flags(&diagnosticReadFailed) != HAL_OK) {
+            BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
+            ERROR_PRINT("AMS diagnostic flags check failed!\n");
+            // A C/S mismatch or hardware OV/UV flag always faults the AMS
+            if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
         //  read the voltages and temps for close to red checks
