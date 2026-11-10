@@ -11,7 +11,9 @@
 #define VOLTAGE_MEASURE_DELAY_EXTRA_US 400 // Time to add on to ms delay for measurements to finsh
 #define TEMP_MEASURE_DELAY_US 1000 // Time for measurements to finsh
 #define VOLTAGE_MEASURE_DELAY_US 1000 // Time for measurements to finsh
-#define ADSV_MEASURE_DELAY_US 1000 // Time for measurements to finsh
+// Time for a single shot S-ADC conversion to finish: ADSV, or ADCV with RD = 1 (C-ADC and S-ADC together). 8 ms
+// typical, and the slowest S-ADC update rate (110 Hz) makes it up to 9.1 ms (Table 2)
+#define SADC_CONVERSION_DELAY_MS 10
 #define MUX_MEASURE_DELAY_US  1 // Time for Mux to switch
 
 #define PEC_INIT_VAL 0x0010
@@ -46,6 +48,16 @@
 #define T_READY_US           10 // The time to bring up ISOSPI bus if already in standby
 #define T_IDLE_US            4400 // Time for ISOSPI bus to go to idle state (min 4.4ms, typ 5.5 ms)
 #define T_REFUP_MS           5 // Reference takes 4.4 ms to power up; vTaskDelay only takes whole 1 ms ticks, so round up
+
+/* Chain wake-up in batt_spi_wakeup: one pulse pair (CS low, then high) per chip. Pulses must come more than the
+ * chips' wake time apart, and less than tIDLE (4.3 ms min) apart so the chips woken first stay ready */
+#define WAKE_PULSE_LOW_US       15  // CS low brings the converter's own isoSPI port up first (tREADY, 10 us max)
+#define WAKE_SPACING_SLEEP_US   (LTC_T_WAKE_MAX_US + 100) // Chips asleep: each takes up to tWAKE
+#define WAKE_SPACING_STANDBY_US (LTC_T_READY_US * 2)      // Chips awake with their isoSPI ports idle: tREADY each
+// Traffic this recent means the isoSPI ports are still up. Ticks are 1 ms, so 3 ticks is under 4 ms, below tIDLE
+#define PORT_READY_MAX_TICKS    pdMS_TO_TICKS(3)
+// A command this recent means the chips haven't gone to sleep (watchdog tSLEEP is 1.8 s min)
+#define CHIPS_AWAKE_MAX_TICKS   pdMS_TO_TICKS(1500)
 
 // Config Byte 0 options
 // CFGR0 RD/WR GPIO5 GPIO4 GPIO3 GPIO2 GPIO1 REFON SWTRD ADCOPT
@@ -96,9 +108,21 @@
 (GETBIT((statc_row)[RDSTATC_STER5_IDX], RDSTATC_THERMAL_SHUTDOWN_BIT))
 #endif
 
-/** Voltage constants in 100uV steps **/
-#define VUV 0x1CA // based on: (VUV * 16 * 150uV) + 1.5V and target VUV of 2.6V
-#define VOV 0x36B // based on: (VOV * 16 * 150uV) + 1.5V and target VOV of 3.6V
+/*
+ * The chips' own cell OV/UV comparison (VOV/VUV in configuration register B, flags in status register D), a backstop
+ * to the software limits in batteries.h. Kept slightly outside DEFAULT_LIMIT_OVERVOLTAGE and DEFAULT_LIMIT_UNDERVOLTAGE.
+ * The chip compares raw C-ADC readings, while the software undervoltage check uses IR compensated ones
+ */
+#define CELL_HW_OV_THRESHOLD_V 4.25f
+#define CELL_HW_UV_THRESHOLD_V 2.45f
+// 12-bit register value for a threshold: (V - 1.5 V) / 2.4 mV, e.g. 4.2 V is 1125 (Table 103)
+#define CELL_HW_THRESHOLD_CODE(volts) ((uint16_t)(((volts) - 1.5f) / 0.0024f))
+#define VUV CELL_HW_THRESHOLD_CODE(CELL_HW_UV_THRESHOLD_V)
+#define VOV CELL_HW_THRESHOLD_CODE(CELL_HW_OV_THRESHOLD_V)
+
+// Reset value of the 16-bit result registers, until a conversion writes them (power up, sleep, a clear command, or the
+// start of an ADCV/ADSV). Converts to -3.4152 V, so a reading with it is never real
+#define ADC_RESET_CODE ((int16_t)0x8000)
 
 
 #define VOLTAGE_REGISTER_COUNTS_PER_VOLT 15000 // 1 LSB is 150uV
