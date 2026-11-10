@@ -1576,15 +1576,16 @@ BaseType_t getOpenCommand(char *writeBuffer, size_t writeBufferLength,
 #if LTC_CHIP == ADBMS_CHIP_6830B
     static int line = -1;
     static bool deviceOk[NUM_DEVICES];
-    static float adcv[NUM_VOLTAGE_CELLS];
-    static float adsv[NUM_VOLTAGE_CELLS];
+    static float c[NUM_VOLTAGE_CELLS];
+    static float sEvenOn[NUM_VOLTAGE_CELLS];
+    static float sOddOn[NUM_VOLTAGE_CELLS];
     static uint8_t openCells[NUM_VOLTAGE_CELLS];
     static int numOpen = 0;
     static int numSkipped = 0;
     static int numUnchecked = 0;
 
     if (line == -1) {
-        if (batt_open_wire_scan(deviceOk, adcv, adsv) != HAL_OK) {
+        if (batt_open_wire_scan(deviceOk, c, sEvenOn, sOddOn) != HAL_OK) {
             COMMAND_OUTPUT("getOpen: AMS read failed\r\n");
             return pdFALSE;
         }
@@ -1597,10 +1598,11 @@ BaseType_t getOpenCommand(char *writeBuffer, size_t writeBufferLength,
             const int chip = (cell % CELLS_PER_BOARD) / CELLS_PER_CHIP;
             if (!deviceOk[board * NUM_LTC_CHIPS_PER_BOARD + chip]) {
                 numUnchecked++;
-            } else if (cell % CELLS_PER_BOARD != 0 && !batt_cell_can_discharge(cell)) {
-                numSkipped++;
-            } else if (batt_open_wire_reason(cell, adcv[cell], adsv[cell]) != NULL) {
+            } else if (batt_open_wire_reason(cell, c[cell], sEvenOn[cell], sOddOn[cell]) != NULL) {
                 openCells[numOpen++] = cell;
+            } else if (!batt_cell_can_discharge(cell)) {
+                // Only got the C-ADC check
+                numSkipped++;
             }
         }
         line = 0;
@@ -1614,10 +1616,11 @@ BaseType_t getOpenCommand(char *writeBuffer, size_t writeBufferLength,
                        deviceOk[board * NUM_LTC_CHIPS_PER_BOARD + 1] ? "ok" : "NO REPLY");
     } else if (line < NUM_BOARDS + numOpen) {
         const int cell = openCells[line - NUM_BOARDS];
-        COMMAND_OUTPUT("Cell %d (battInfo #%d) OPEN, %s: PU %.4f V, PD %.4f V\r\n", cell, cell + 1,
-                       batt_open_wire_reason(cell, adcv[cell], adsv[cell]), adcv[cell], adsv[cell]);
+        COMMAND_OUTPUT("Cell %d (#%d) %s: C %.4f, S even %.4f, S odd %.4f V\r\n", cell, cell + 1,
+                       batt_open_wire_reason(cell, c[cell], sEvenOn[cell], sOddOn[cell]),
+                       c[cell], sEvenOn[cell], sOddOn[cell]);
     } else {
-        COMMAND_OUTPUT("%d open, %d skipped (NO_DISCHARGE_CELLS), %d not checked (chip not answering)\r\n",
+        COMMAND_OUTPUT("%d open, %d C-ADC check only (NO_DISCHARGE_CELLS), %d not checked (no reply)\r\n",
                        numOpen, numSkipped, numUnchecked);
         line = -1;
         return pdFALSE;
