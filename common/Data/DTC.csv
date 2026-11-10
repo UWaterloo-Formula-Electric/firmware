@@ -71,3 +71,5 @@ DTC CODE,NAME,ORIGIN,SEVERITY,SUBSCRIBERS,DATA,MESSAGE
 70,AMS_Failure,BMU,1,"PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"AMS failed"
 71, BMU_Close_To_Edge, BMU, 1, "PDU,DCU,VCU_F7,VCU_BEAGLEBONE,BMU",NA,"BMU close to edge, going hv down"
 72,Brake_Position_FAIL,VCU_F7,1,"PDU,BMU,VCU_BEAGLEBONE,DCU",NA,Brake position sensor detected a failure
+73,AMS_Chip_Reset,BMU,4,"PDU,DCU,VCU_F7,VCU_BEAGLEBONE",Device,"AMS chip #data power cycled or slept, BMU restored its settings"
+74,AMS_Chip_Thermal_Shutdown,BMU,4,"PDU,DCU,VCU_F7,VCU_BEAGLEBONE",Device,"AMS chip #data thermal shutdown, its balancing is off for 5 min"
