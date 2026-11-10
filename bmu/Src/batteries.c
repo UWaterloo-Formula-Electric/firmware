@@ -25,6 +25,7 @@
 #include "controlStateMachine.h"
 #include "debug.h"
 #include "math.h"
+#include <stdlib.h>
 #include "bmu_can.h"
 #include "bmu_dtc.h"
 #include "boardTypes.h"
@@ -620,6 +621,36 @@ bool boundedContinueRedCar()
     }
 }
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+/**
+ * @brief Restores any AMS chip that reset, and reports each reset over CAN without faulting: a warning DTC naming the
+ * chip, and the count since boot in BMU_BatteryChecks. A failed read here shows up in the reads that follow
+ */
+static void recoverResetAmsChips(void)
+{
+    static uint32_t totalResets = 0;
+    chip_reset_t resets[NUM_DEVICES];
+    (void)batt_recover_reset_chips(resets);
+
+    bool anyReset = false;
+    for (int dev = 0; dev < NUM_DEVICES; dev++) {
+        if (resets[dev] == CHIP_THERMAL_SHUTDOWN) {
+            sendDTC_WARNING_AMS_Chip_Thermal_Shutdown(dev);
+        } else if (resets[dev] == CHIP_RESET) {
+            sendDTC_WARNING_AMS_Chip_Reset(dev);
+        } else {
+            continue;
+        }
+        totalResets++;
+        anyReset = true;
+    }
+    if (anyReset) {
+        AmsChipResetCount = (totalResets > UINT8_MAX) ? UINT8_MAX : totalResets;
+        sendCAN_BMU_BatteryChecks();
+    }
+}
+#endif
+
 /**
  * @brief Called when the AMS boards couldn't be read. Faults the AMS like @ref boundedContinueRedCar, or only takes HV
  * down like @ref boundedContinue when AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED is 1
@@ -743,18 +774,18 @@ float getAvgValidTemp(void)
    return (count > 0) ? (sum / count) : 0.0f;
 }
 
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && LTC_CHIP == ADBMS_CHIP_6830B
 /*
  * Each chip picks its thermistor with a MUX on GPIO1-4 (batt_set_temp_config). A stuck or bridged select line makes
- * the channels whose addresses differ only in that line read the same thermistor. Different thermistors at the same
- * temperature match now and then, so a line is only suspect when THERMISTOR_MUX_MIN_MATCHING_PAIRS or more of its
- * channel pairs match in one sweep, and only reported once that held for THERMISTOR_MUX_SUSPECT_SWEEPS sweeps in a
- * row. A warning only, never a fault
+ * the channels whose addresses differ only in that line read the same thermistor, so their raw ADC codes come out
+ * identical. Different thermistors at the same temperature match now and then, so a line is only suspect when
+ * THERMISTOR_MUX_MIN_MATCHING_PAIRS or more of its channel pairs match in one sweep, and only reported once that held
+ * for THERMISTOR_MUX_SUSPECT_SWEEPS sweeps in a row. A warning only, never a fault
  */
 #define THERMISTORS_PER_CHIP SEGMENT_THERMISTORS_AMS1
 #define THERMISTOR_MUX_SELECT_LINES 4
-/// Two readings of the same thermistor a few ms apart differ by a few ADC counts, about 0.005 C each
-#define THERMISTOR_MUX_MATCH_TOLERANCE_C (0.03F)
+/// Raw codes (150 uV each, about 0.005 C) that count as the same reading. A bridged S0/S1 gave identical codes
+#define THERMISTOR_MUX_MATCH_TOLERANCE_CODES 1
 #define THERMISTOR_MUX_MIN_MATCHING_PAIRS 3
 #define THERMISTOR_MUX_SUSPECT_SWEEPS 10
 /// An open thermistor input sits at the pull-up and converts to about 89 C. Like inputs at 0 V, those all read alike
@@ -784,7 +815,8 @@ static void checkThermistorMuxSelectLines(void)
             const int a = firstChannel + ch;
             const int b = firstChannel + partner;
             if (isThermistorUsableForMuxCheck(a) && isThermistorUsableForMuxCheck(b)
-                && fabsf(TempChannel[a] - TempChannel[b]) <= THERMISTOR_MUX_MATCH_TOLERANCE_C) {
+                && abs(batt_get_thermistor_code(a) - batt_get_thermistor_code(b))
+                   <= THERMISTOR_MUX_MATCH_TOLERANCE_CODES) {
                matchingPairs++;
             }
          }
@@ -947,7 +979,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             if (measure < (*minTemp)) {(*minTemp) = measure;}
         }
 
-#if IS_BOARD_F7
+#if IS_BOARD_F7 && LTC_CHIP == ADBMS_CHIP_6830B
         // NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE reads every channel each pass, so each pass is one sweep
         checkThermistorMuxSelectLines();
 #endif
@@ -1373,6 +1405,11 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        // Restore any chip that reset, before this pass's conversions
+        recoverResetAmsChips();
+#endif
+
         if (readCellVoltagesAndTemps() != HAL_OK) {
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
@@ -1386,7 +1423,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
             BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("AMS diagnostic flags check failed!\n");
-            // A C/S mismatch or hardware OV/UV flag always faults the AMS
+            // A set flag only faults the AMS if its *_FAULT_ENABLED is 1 (ltc_chip.h)
             if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
@@ -1765,6 +1802,11 @@ void batteryTask(void *pvParameter)
             }
         }
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        // Restore any chip that reset, before this pass's conversions
+        recoverResetAmsChips();
+#endif
+
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
         bool openWireReadFailed;
         if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
@@ -1791,7 +1833,7 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("AMS diagnostic flags check failed!\n");
-            // A C/S mismatch or hardware OV/UV flag always faults the AMS
+            // A set flag only faults the AMS if its *_FAULT_ENABLED is 1 (ltc_chip.h)
             if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
