@@ -14,6 +14,12 @@
 #define OPEN_WIRE_IBUS_TOLERANCE_A (10.0f)
 #define OPEN_WIRE_MIN_DIVISOR_V (0.0002f)
 
+// Waits out a single shot S-ADC conversion. vTaskDelay can return up to a tick early, so wait one tick more
+static void waitForSAdcConversion(void)
+{
+    vTaskDelay(pdMS_TO_TICKS(SADC_CONVERSION_DELAY_MS) + 1);
+}
+
 HAL_StatusTypeDef batt_init()
 {
 
@@ -35,6 +41,16 @@ HAL_StatusTypeDef batt_init()
 		ERROR_PRINT("Failed to read batt config from boards\n");
 		return HAL_ERROR;
 	}
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    // The C-ADC vs S-ADC and OV/UV flags are all set after power up or sleep. batt_verify_config has already waited
+    // for the reference, and the clears only work once it's up
+    batt_spi_wakeup(false);
+    if (batt_clear_cs_flags() != HAL_OK || batt_clear_ovuv_flags() != HAL_OK) {
+        ERROR_PRINT("Failed to clear the AMS diagnostic flags\n");
+        return HAL_ERROR;
+    }
+#endif
 
     if(batt_start_ADC_conversion() != HAL_OK){
         ERROR_PRINT("Failed to start ADC conversion\n");
@@ -67,16 +83,24 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
         return HAL_ERROR;
     }
 
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    // Redundant measurement: the chips also compare each cell's C-ADC and S-ADC results, see
+    // batt_check_diagnostic_flags
+    if (batt_broadcast_command(ADCV_RD) != HAL_OK) {
+        return HAL_ERROR;
+    }
+    waitForSAdcConversion();
+#else
     if (batt_broadcast_command(ADCV) != HAL_OK) {
         return HAL_ERROR;
     }
+    delay_us(VOLTAGE_MEASURE_DELAY_US);
+#endif
 
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
-
-    delay_us(VOLTAGE_MEASURE_DELAY_US);
 
     if (batt_readBackCellVoltage(cell_voltage_array, POLL_VOLTAGE) != HAL_OK)
     {
@@ -88,7 +112,7 @@ HAL_StatusTypeDef batt_read_cell_voltages(float *cell_voltage_array)
 
 HAL_StatusTypeDef batt_read_cell_temps_single_channel(uint8_t channel, float *cell_temp_array)
 {
-    if (batt_spi_wakeup(true))
+    if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
@@ -194,22 +218,23 @@ HAL_StatusTypeDef batt_read_cell_voltages_ADSV(float *cell_voltage_array)
     (void)cell_voltage_array;
     return HAL_ERROR;
 #else
-    /* Mirror batt_read_cell_voltages: wake → start conversion → wake → settle → read back. */
+    /* Mirror batt_read_cell_voltages: wake → start conversion → settle → wake → read back. */
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
 
+    // Open wire switches off, so this is a plain S-ADC reading
     if (batt_broadcast_command(ADSV) != HAL_OK) {
         return HAL_ERROR;
     }
 
+    waitForSAdcConversion();
+
     if (batt_spi_wakeup(false /* not sleeping*/))
     {
         return HAL_ERROR;
     }
-
-    delay_us(ADSV_MEASURE_DELAY_US);
 
     if (batt_read_ADSV(cell_voltage_array) != HAL_OK)
     {
@@ -259,9 +284,32 @@ void divideCellVoltages(float *cell_voltages_average, unsigned int num_readings)
 // Arrays to use with open wire test
 float cell_voltages_single_reading[CELLS_PER_BOARD * NUM_BOARDS];
 
-// Perform open wire test cell voltage reading, either adcv or adsv
+// The readings the open wire test compares
+typedef enum {
+    OPEN_WIRE_PASS_C = 0,  // C-ADC
+    OPEN_WIRE_PASS_S_EVEN, // S-ADC with the open wire switches on for even channels
+    OPEN_WIRE_PASS_S_ODD,  // S-ADC with the open wire switches on for odd channels
+    NUM_OPEN_WIRE_PASSES
+} open_wire_pass_t;
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+static const ltc_command_t OPEN_WIRE_PASS_COMMANDS[NUM_OPEN_WIRE_PASSES] = { ADCV, ADSV_OW_EVEN, ADSV_OW_ODD };
+#endif
+
+// Waits for an open wire pass's conversion: about 1 ms for the C-ADC, 8 ms for the S-ADC
+static void waitForOpenWirePassConversion(open_wire_pass_t pass)
+{
+    if (pass == OPEN_WIRE_PASS_C) {
+        vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
+        delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+    } else {
+        waitForSAdcConversion();
+    }
+}
+
+// Perform open wire test cell voltage reading for one pass
 // Sums num_readings voltages into cell_voltages to account for noise; the caller divides.
-HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
+HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, open_wire_pass_t pass,
                                                 unsigned int num_readings)
 {
     if (num_readings <= 0) {
@@ -274,17 +322,16 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
         }
 
         #if LTC_CHIP == LTC_CHIP_6804 || LTC_CHIP == LTC_CHIP_6812
-        if (batt_broadcast_command(adcv ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
+        if (batt_broadcast_command(pass == OPEN_WIRE_PASS_C ? ADOW_UP : ADOW_DOWN) != HAL_OK) {
             return HAL_ERROR;
         }
         #elif LTC_CHIP == ADBMS_CHIP_6830B
-        if (batt_broadcast_command(adcv ? ADCV : ADSV) != HAL_OK) {
+        if (batt_broadcast_command(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
             return HAL_ERROR;
         }
         #endif
-        
-        vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-        delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+
+        waitForOpenWirePassConversion(pass);
 
 		if (batt_spi_wakeup(false /* not sleeping*/))
 		{
@@ -292,7 +339,7 @@ HAL_StatusTypeDef performOpenCircuitTestReading(float *cell_voltages, bool adcv,
 		}
 
         #if LTC_CHIP == ADBMS_CHIP_6830B
-        if (!adcv) {
+        if (pass != OPEN_WIRE_PASS_C) {
             if (batt_read_ADSV(cell_voltages_single_reading) != HAL_OK) {
                 return HAL_ERROR;
             }
@@ -353,32 +400,24 @@ HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed)
     *readFailed = false;
 
     // Perform averaging of multiple voltage readings to account for potential
-    // bad connections to AMS boards that causes noise
-    float cell_voltages_adcv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
-    float cell_voltages_adsv[CELLS_PER_BOARD * NUM_BOARDS] = {0};
-	
+    // bad connections to AMS boards that causes noise. Static, since three of these don't fit the task's stack
+    static float cell_voltages_pass[NUM_OPEN_WIRE_PASSES][CELLS_PER_BOARD * NUM_BOARDS];
+    memset(cell_voltages_pass, 0, sizeof(cell_voltages_pass));
+
 	float last_IBus = 0.0f;
 	// If we can't get it from the IBus queue, skip the check
 	bool skip_IBus_check = (getIBus(&last_IBus) != HAL_OK);
 
-    if (performOpenCircuitTestReading(cell_voltages_adcv, true /* adcv */,
-                                      NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
-        != HAL_OK)
-    {
-        *readFailed = true;
-        return HAL_ERROR;
+    for (int pass = 0; pass < NUM_OPEN_WIRE_PASSES; pass++) {
+        if (performOpenCircuitTestReading(cell_voltages_pass[pass], (open_wire_pass_t)pass,
+                                          NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
+            != HAL_OK)
+        {
+            *readFailed = true;
+            return HAL_ERROR;
+        }
+        divideCellVoltages(cell_voltages_pass[pass], NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
     }
-
-    if (performOpenCircuitTestReading(cell_voltages_adsv, false /* adsv */,
-                                      NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS)
-        != HAL_OK)
-    {
-        *readFailed = true;
-        return HAL_ERROR;
-    }
-
-    divideCellVoltages(cell_voltages_adcv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
-    divideCellVoltages(cell_voltages_adsv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
 
     float curr_IBus = 0.0f;
 	skip_IBus_check |= (getIBus(&curr_IBus) != HAL_OK);
@@ -394,87 +433,44 @@ HAL_StatusTypeDef checkForOpenCircuit(bool *readFailed)
 	}
     HAL_StatusTypeDef ret = HAL_OK;
 
-    for (int board = 0; board < NUM_BOARDS; board++)
+    for (int cell = 0; cell < NUM_VOLTAGE_CELLS; cell++)
     {
-        for (int cell = 1; cell < CELLS_PER_BOARD; cell++)
-        {
-        	uint8_t cellIdx = board * CELLS_PER_BOARD + cell;
-        	if (!batt_cell_can_discharge(cellIdx)) {
-        		continue;
-        	}
-        	if(!open_wire_failure[cellIdx].occurred)
-			{
-				float adcv = cell_voltages_adcv[cellIdx];
-				float adsv = cell_voltages_adsv[cellIdx];
-				if (float_abs(adcv) < OPEN_WIRE_MIN_DIVISOR_V)
-				{
-					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, PU magnitude below %f)\n",
-								cellIdx, adcv, adsv, OPEN_WIRE_MIN_DIVISOR_V);
-					ret = HAL_ERROR;
-				}
-				else if (float_abs(adsv/adcv) < (OPEN_WIRE_RATIO_MIN) || float_abs(adsv/adcv) > (OPEN_WIRE_RATIO_MAX))
-				{
-					ERROR_PRINT("Cell %d open (PU: %f, PD: %f, diff: %f is not within (%f, %f))\n",
-								cellIdx, adcv, adsv,
-								float_abs(adsv/adcv), OPEN_WIRE_RATIO_MIN, OPEN_WIRE_RATIO_MAX);
-					ret = HAL_ERROR;
-				}
-				if(cell == CELLS_PER_BOARD - 1 && (float_abs(cell_voltages_adsv[cellIdx] - 0) < 0.0002))
-				{	
-					ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
-								cellIdx, cell_voltages_adsv[cellIdx],
-								float_abs(cell_voltages_adsv[cellIdx] - 0));
-					ret = HAL_ERROR;
-				}
-			}
-			else // PEC mismatch on this cell
-			{
-				open_wire_failure[cellIdx].occurred = false;
-			}
+        const float c = cell_voltages_pass[OPEN_WIRE_PASS_C][cell];
+        const float sEvenOn = cell_voltages_pass[OPEN_WIRE_PASS_S_EVEN][cell];
+        const float sOddOn = cell_voltages_pass[OPEN_WIRE_PASS_S_ODD][cell];
+        const char *reason = batt_open_wire_reason(cell, c, sEvenOn, sOddOn);
+        if (reason != NULL) {
+            ERROR_PRINT("Cell %d open: %s (C %.4f, S even %.4f, S odd %.4f)\n", cell, reason, c, sEvenOn, sOddOn);
+            ret = HAL_ERROR;
         }
-
-
-		// First cell in board
-		uint8_t first_cell_idx = board*CELLS_PER_BOARD;
-        if (!open_wire_failure[first_cell_idx].occurred && (float_abs(cell_voltages_adcv[first_cell_idx] - 0) < 0.0002)) {
-                ERROR_PRINT("Cell %d open (val: %f, diff: %f < 0.0002)\n",
-                            first_cell_idx, cell_voltages_adcv[first_cell_idx],
-                            float_abs(cell_voltages_adcv[first_cell_idx] - 0));
-                ret = HAL_ERROR;
-        }
-		else if(open_wire_failure[first_cell_idx].occurred) // PEC mismatch on this cell
-		{
-			open_wire_failure[first_cell_idx].occurred = false;
-		}
-
     }
 
     return ret;
 }
 
 /*
- * Same per cell criteria as checkForOpenCircuit, for one cell's averaged C-ADC (adcv, PU) and S-ADC (adsv, PD)
- * readings. Returns NULL if the cell looks connected, otherwise why it looks open. Cells in NO_DISCHARGE_CELLS can't
- * be judged by the PD/PU ratio, so only the first cell of a board gets checked if it's in that list
+ * Same per cell criteria as checkForOpenCircuit. Returns NULL if the cell looks connected, otherwise why it looks open.
+ * Cells in NO_DISCHARGE_CELLS can't be judged by their S-ADC readings, so they only get the C-ADC check
  */
-const char *batt_open_wire_reason(int cell, float adcv, float adsv)
+const char *batt_open_wire_reason(int cell, float c, float sEvenOn, float sOddOn)
 {
-    const int cellInBoard = cell % CELLS_PER_BOARD;
-    if (cellInBoard == 0) {
-        return (float_abs(adcv) < 0.0002f) ? "PU at 0 V" : NULL;
+    if (float_abs(c) < OPEN_WIRE_MIN_DIVISOR_V) {
+        return "C at 0 V";
     }
     if (!batt_cell_can_discharge(cell)) {
         return NULL;
     }
-    if (float_abs(adcv) < OPEN_WIRE_MIN_DIVISOR_V) {
-        return "PU at 0 V";
+
+    // The datasheet numbers each chip's channels from 1, so the even channels are the odd 0-based cells
+    const bool evenChannel = ((cell % CELLS_PER_CHIP) % 2) == 1;
+    // No abs(): a negative ratio is a wiring fault too
+    const float ratioSwitchOn = (evenChannel ? sEvenOn : sOddOn) / c;
+    const float ratioSwitchOff = (evenChannel ? sOddOn : sEvenOn) / c;
+    if (ratioSwitchOn < OPEN_WIRE_SWITCH_ON_RATIO_MIN || ratioSwitchOn > OPEN_WIRE_SWITCH_ON_RATIO_MAX) {
+        return "switch-on S/C out of range";
     }
-    const float ratio = float_abs(adsv / adcv);
-    if (ratio < OPEN_WIRE_RATIO_MIN || ratio > OPEN_WIRE_RATIO_MAX) {
-        return "PD/PU ratio out of range";
-    }
-    if (cellInBoard == CELLS_PER_BOARD - 1 && float_abs(adsv) < 0.0002f) {
-        return "PD at 0 V";
+    if (ratioSwitchOff < OPEN_WIRE_SWITCH_OFF_RATIO_MIN || ratioSwitchOff > OPEN_WIRE_SWITCH_OFF_RATIO_MAX) {
+        return "switch-off S/C out of range";
     }
     return NULL;
 }
@@ -482,16 +478,18 @@ const char *batt_open_wire_reason(int cell, float adcv, float adsv)
 #if LTC_CHIP == ADBMS_CHIP_6830B
 /*
  * Open wire readings that don't need every configured board to answer, e.g. one segment on the bench with
- * NUM_SEGMENTS 5. Averages the C-ADC (adcv, PU) and S-ADC (adsv, PD) readings like checkForOpenCircuit, and
- * deviceOk[dev] is false for any device that didn't answer. Judge the readings with batt_open_wire_reason
+ * NUM_SEGMENTS 5. Averages the C-ADC and both S-ADC open wire passes like checkForOpenCircuit, and deviceOk[dev] is
+ * false for any device that didn't answer. Judge the readings with batt_open_wire_reason
  */
-HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, float *adsv)
+HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *c, float *sEvenOn, float *sOddOn)
 {
     // Own buffer, so this doesn't share cell_voltages_single_reading with the battery task
     static float singleReading[NUM_VOLTAGE_CELLS];
+    float *sums[NUM_OPEN_WIRE_PASSES] = { c, sEvenOn, sOddOn };
 
-    memset(adcv, 0, sizeof(float) * NUM_VOLTAGE_CELLS);
-    memset(adsv, 0, sizeof(float) * NUM_VOLTAGE_CELLS);
+    for (int pass = 0; pass < NUM_OPEN_WIRE_PASSES; pass++) {
+        memset(sums[pass], 0, sizeof(float) * NUM_VOLTAGE_CELLS);
+    }
     for (int dev = 0; dev < NUM_DEVICES; dev++) {
         deviceOk[dev] = true;
     }
@@ -502,15 +500,13 @@ HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, f
     }
     vTaskDelay(pdMS_TO_TICKS(5)); // Reference power up
 
-    for (int pass = 0; pass < 2; pass++) {
-        const bool cAdc = (pass == 0);
-        float *sum = cAdc ? adcv : adsv;
+    for (int pass = 0; pass < NUM_OPEN_WIRE_PASSES; pass++) {
+        const bool cAdc = (pass == OPEN_WIRE_PASS_C);
         for (int reading = 0; reading < NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS; reading++) {
-            if (batt_spi_wakeup(false) != HAL_OK || batt_broadcast_command(cAdc ? ADCV : ADSV) != HAL_OK) {
+            if (batt_spi_wakeup(false) != HAL_OK || batt_broadcast_command(OPEN_WIRE_PASS_COMMANDS[pass]) != HAL_OK) {
                 return HAL_ERROR;
             }
-            vTaskDelay(VOLTAGE_MEASURE_DELAY_MS);
-            delay_us(VOLTAGE_MEASURE_DELAY_EXTRA_US);
+            waitForOpenWirePassConversion((open_wire_pass_t)pass);
 
             bool readOk[NUM_DEVICES];
             memset(singleReading, 0, sizeof(singleReading));
@@ -520,13 +516,71 @@ HAL_StatusTypeDef batt_open_wire_scan(bool deviceOk[NUM_DEVICES], float *adcv, f
             for (int dev = 0; dev < NUM_DEVICES; dev++) {
                 deviceOk[dev] = deviceOk[dev] && readOk[dev];
             }
-            addCellVoltages(singleReading, sum);
+            addCellVoltages(singleReading, sums[pass]);
+        }
+        divideCellVoltages(sums[pass], NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
+    }
+
+    return HAL_OK;
+}
+
+/*
+ * The chips set these flags by themselves, and they stay set until cleared:
+ * - CSxFLT (status C): the redundant ADCV (RD = 1) in batt_read_cell_voltages found a cell's C-ADC and S-ADC results
+ *   differing by more than CTH
+ * - CxOV/CxUV (status D): a C-ADC conversion was beyond VOV/VUV, a backstop to the software limits
+ * Both are read here and then cleared. Every flag of one chip is printed on one line, bit n being the chip's cell n
+ */
+HAL_StatusTypeDef batt_check_diagnostic_flags(bool *readFailed)
+{
+    static uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+    static uint8_t statd[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+    *readFailed = false;
+
+    if (batt_spi_wakeup(false) != HAL_OK || batt_read_rdstatc(statc) != HAL_OK || batt_read_rdstatd(statd) != HAL_OK) {
+        *readFailed = true;
+        return HAL_ERROR;
+    }
+
+    HAL_StatusTypeDef ret = HAL_OK;
+    for (int board = 0; board < NUM_BOARDS; board++) {
+        for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+            const int firstCell = board * CELLS_PER_BOARD + chip * CELLS_PER_CHIP;
+            uint16_t csMismatch = 0;
+            uint16_t overvoltage = 0;
+            uint16_t undervoltage = 0;
+
+            // Only the wired cells. Each status D byte holds 4 cells, UV in the even bit and OV in the odd bit
+            for (int c = 0; c < CELLS_PER_CHIP; c++) {
+                // S-ADC readings of a cell without its discharge path aren't comparable
+                if (GETBIT(statc[board][chip][c / 8], c % 8) && batt_cell_can_discharge(firstCell + c)) {
+                    csMismatch |= (1u << c);
+                }
+                if (GETBIT(statd[board][chip][c / 4], (c % 4) * 2 + 1)) {
+                    overvoltage |= (1u << c);
+                }
+                if (GETBIT(statd[board][chip][c / 4], (c % 4) * 2)) {
+                    undervoltage |= (1u << c);
+                }
+            }
+
+            if (csMismatch || overvoltage || undervoltage) {
+                ERROR_PRINT("AMS board %d chip %d (cells %d-%d): C/S mismatch 0x%04X, HW OV 0x%04X, HW UV 0x%04X\n",
+                            board, chip, firstCell, firstCell + CELLS_PER_CHIP - 1,
+                            csMismatch, overvoltage, undervoltage);
+                ret = HAL_ERROR;
+            }
         }
     }
 
-    divideCellVoltages(adcv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
-    divideCellVoltages(adsv, NUM_OPEN_WIRE_TEST_VOLTAGE_READINGS);
-    return HAL_OK;
+    if (batt_clear_cs_flags() != HAL_OK || batt_clear_ovuv_flags() != HAL_OK) {
+        // A flag that was set is still reported as one
+        if (ret == HAL_OK) {
+            *readFailed = true;
+        }
+        return HAL_ERROR;
+    }
+    return ret;
 }
 #endif
 
