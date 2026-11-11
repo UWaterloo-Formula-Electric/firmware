@@ -25,6 +25,7 @@
 #include "controlStateMachine.h"
 #include "debug.h"
 #include "math.h"
+#include <stdlib.h>
 #include "bmu_can.h"
 #include "bmu_dtc.h"
 #include "boardTypes.h"
@@ -67,9 +68,10 @@ float maxChargeCurrent = CHARGE_DEFAULT_MAX_CURRENT;
 float adjustedCellIR = ADJUSTED_CELL_IR_DEFAULT;
 
 /**
- * Charging voltage limit to be sent to charger. Charging is actually stopped based on min cell SoC as specified by @ref CHARGE_STOP_SOC
+ * Charging voltage limit to be sent to charger. Charging is actually stopped based on cell SoC as specified by
+ * @ref CHARGE_STOP_SOC, or when any cell reaches @ref CHARGE_MAX_CELL_VOLTAGE
  */
-float maxChargeVoltage = DEFAULT_LIMIT_OVERVOLTAGE * NUM_VOLTAGE_CELLS;
+float maxChargeVoltage = CHARGE_MAX_CELL_VOLTAGE * NUM_VOLTAGE_CELLS;
 
 // Limits for Under/Over Voltage - Can be overwritten from the CLI
 volatile float limit_overvoltage = DEFAULT_LIMIT_OVERVOLTAGE;
@@ -619,6 +621,47 @@ bool boundedContinueRedCar()
     }
 }
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+/**
+ * @brief Restores any AMS chip that reset, and reports each reset over CAN without faulting: a warning DTC naming the
+ * chip, and the count since boot in BMU_BatteryChecks. A failed read here shows up in the reads that follow
+ */
+static void recoverResetAmsChips(void)
+{
+    static uint32_t totalResets = 0;
+    chip_reset_t resets[NUM_DEVICES];
+    (void)batt_recover_reset_chips(resets);
+
+    bool anyReset = false;
+    for (int dev = 0; dev < NUM_DEVICES; dev++) {
+        if (resets[dev] == CHIP_THERMAL_SHUTDOWN) {
+            sendDTC_WARNING_AMS_Chip_Thermal_Shutdown(dev);
+        } else if (resets[dev] == CHIP_RESET) {
+            sendDTC_WARNING_AMS_Chip_Reset(dev);
+        } else {
+            continue;
+        }
+        totalResets++;
+        anyReset = true;
+    }
+    if (anyReset) {
+        AmsChipResetCount = (totalResets > UINT8_MAX) ? UINT8_MAX : totalResets;
+        sendCAN_BMU_BatteryChecks();
+    }
+}
+#endif
+
+/**
+ * @brief Called when the AMS boards couldn't be read. Faults the AMS like @ref boundedContinueRedCar, or only takes HV
+ * down like @ref boundedContinue when AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED is 1
+ *
+ * @return true if the battery task should retry, false otherwise
+ */
+static bool boundedContinueAmsReadFail()
+{
+    return AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED ? boundedContinue() : boundedContinueRedCar();
+}
+
 /**
  * @brief Call on a succesful run through main loop.
  * Decrements error counter on succesful run through main loop
@@ -629,6 +672,15 @@ void ERROR_COUNTER_RED_SUCCESS()
   {
     errorCounterRed--;
   }
+}
+
+/**
+ * @brief Current battery task error counters, for the status CLI command
+ */
+void getBatteryErrorCounts(uint32_t *errors, uint32_t *redErrors)
+{
+  *errors = errorCounter;
+  *redErrors = errorCounterRed;
 }
 
 
@@ -675,8 +727,21 @@ void filterCellVoltages(float *cellVoltages, float *cellVoltagesFiltered)
     }
 }
 
-// Dead thermistors that report fake temps, ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1
-static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {23, 28, 29, 90, 92, 115};
+// Dead thermistors that report fake temps (about 88 C or -17 C), ignored when DEAD_THERMISTOR_SKIP_ENABLED is 1.
+// 0-based channel numbers, so battInfo's temp index minus 1
+static const uint16_t DEAD_THERMISTOR_CHANNELS[] = {2, 3, 15, 17, 20, 23, 24, 28, 29, 49, 59, 90, 92, 93, 116, 124};
+
+// The voltage to temp conversion bottoms out at -17 C when the thermistor input is at 0 V (thermistor open or
+// shorted to ground), so a reading this low is never a real temperature. Those channels are skipped like dead ones
+// when THERMISTOR_AT_0V_SKIP_ENABLED is 1
+#define THERMISTOR_INPUT_AT_0V_TEMP_C (-16.0F)
+
+/// Set once a warning was printed for a channel at 0 V that isn't in DEAD_THERMISTOR_CHANNELS
+static bool warnedThermistorAt0V[NUM_TEMP_CELLS];
+
+static bool isThermistorAt0V(int channel) {
+   return THERMISTOR_AT_0V_SKIP_ENABLED && TempChannel[channel] <= THERMISTOR_INPUT_AT_0V_TEMP_C;
+}
 
 static bool isDeadThermistorChannel(int channel) {
    if (!DEAD_THERMISTOR_SKIP_ENABLED) {
@@ -691,7 +756,7 @@ static bool isDeadThermistorChannel(int channel) {
 }
 
 /**
- * @brief Average temp over all thermistor channels, excluding dead ones
+ * @brief Average temp over all thermistor channels, excluding dead ones and ones at 0 V
  *
  * @return Average temp in deg C, or 0 if every channel is dead
  */
@@ -700,7 +765,7 @@ float getAvgValidTemp(void)
    float sum = 0.0f;
    int count = 0;
    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
-      if (isDeadThermistorChannel(i)) {
+      if (isDeadThermistorChannel(i) || isThermistorAt0V(i)) {
          continue;
       }
       sum += TempChannel[i];
@@ -708,6 +773,75 @@ float getAvgValidTemp(void)
    }
    return (count > 0) ? (sum / count) : 0.0f;
 }
+
+#if IS_BOARD_F7 && LTC_CHIP == ADBMS_CHIP_6830B
+/*
+ * Each chip picks its thermistor with a MUX on GPIO1-4 (batt_set_temp_config). A stuck or bridged select line makes
+ * the channels whose addresses differ only in that line read the same thermistor, so their raw ADC codes come out
+ * identical. Different thermistors at the same temperature match now and then, so a line is only suspect when
+ * THERMISTOR_MUX_MIN_MATCHING_PAIRS or more of its channel pairs match in one sweep, and only reported once that held
+ * for THERMISTOR_MUX_SUSPECT_SWEEPS sweeps in a row. A warning only, never a fault
+ */
+#define THERMISTORS_PER_CHIP SEGMENT_THERMISTORS_AMS1
+#define THERMISTOR_MUX_SELECT_LINES 4
+/// Raw codes (150 uV each, about 0.005 C) that count as the same reading. A bridged S0/S1 gave identical codes
+#define THERMISTOR_MUX_MATCH_TOLERANCE_CODES 1
+#define THERMISTOR_MUX_MIN_MATCHING_PAIRS 3
+#define THERMISTOR_MUX_SUSPECT_SWEEPS 10
+/// An open thermistor input sits at the pull-up and converts to about 89 C. Like inputs at 0 V, those all read alike
+#define THERMISTOR_INPUT_AT_PULLUP_TEMP_C (85.0F)
+
+/// Sweeps in a row each chip's select line has looked stuck or bridged, up to THERMISTOR_MUX_SUSPECT_SWEEPS
+static uint8_t thermistorMuxSuspectSweeps[NUM_DEVICES][THERMISTOR_MUX_SELECT_LINES];
+
+static bool isThermistorUsableForMuxCheck(int channel) {
+   const float temp = TempChannel[channel];
+   return !isDeadThermistorChannel(channel) && temp > THERMISTOR_INPUT_AT_0V_TEMP_C
+          && temp < THERMISTOR_INPUT_AT_PULLUP_TEMP_C;
+}
+
+static void checkThermistorMuxSelectLines(void)
+{
+   for (int dev = 0; dev < NUM_DEVICES; dev++) {
+      const int firstChannel = dev * THERMISTORS_PER_CHIP;
+      for (int line = 0; line < THERMISTOR_MUX_SELECT_LINES; line++) {
+         const int lineBit = 1 << line;
+         int matchingPairs = 0;
+         for (int ch = 0; ch < THERMISTORS_PER_CHIP; ch++) {
+            const int partner = ch | lineBit;
+            if ((ch & lineBit) || partner >= THERMISTORS_PER_CHIP) {
+               continue;
+            }
+            const int a = firstChannel + ch;
+            const int b = firstChannel + partner;
+            if (isThermistorUsableForMuxCheck(a) && isThermistorUsableForMuxCheck(b)
+                && abs(batt_get_thermistor_code(a) - batt_get_thermistor_code(b))
+                   <= THERMISTOR_MUX_MATCH_TOLERANCE_CODES) {
+               matchingPairs++;
+            }
+         }
+
+         uint8_t *suspectSweeps = &thermistorMuxSuspectSweeps[dev][line];
+         if (matchingPairs >= THERMISTOR_MUX_MIN_MATCHING_PAIRS) {
+            if (*suspectSweeps < THERMISTOR_MUX_SUSPECT_SWEEPS) {
+               (*suspectSweeps)++;
+               if (*suspectSweeps == THERMISTOR_MUX_SUSPECT_SWEEPS) {
+                  ERROR_PRINT("WARN: AMS board %d chip %d: temp MUX line GPIO%d stuck/bridged? %d pairs match\n",
+                              dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD, line + 1,
+                              matchingPairs);
+               }
+            }
+         } else {
+            if (*suspectSweeps >= THERMISTOR_MUX_SUSPECT_SWEEPS) {
+               ERROR_PRINT("AMS board %d chip %d: temp MUX line GPIO%d readings differ again\n",
+                           dev / NUM_LTC_CHIPS_PER_BOARD, dev % NUM_LTC_CHIPS_PER_BOARD, line + 1);
+            }
+            *suspectSweeps = 0;
+         }
+      }
+   }
+}
+#endif
 
 // Battery task passes needed to read every thermistor mux channel once. Each pass reads the
 // same channels on every chip at once, so this does not scale with NUM_LTC_CHIPS_PER_BOARD.
@@ -729,10 +863,12 @@ float getAvgValidTemp(void)
  * @param[out] minTemp The cell temperature of the cell with the min temperature
  * @param[out] packVoltage The sum of all the cell voltages, which should be
  * the output voltage of the pack
+ * @param[out] cellVoltageOutOfLimits Set if any cell is under or overvoltage
  *
- * @return HAL_StatusTypeDef
+ * @return HAL_ERROR if any cell is overtemp, or under or overvoltage unless CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED
+ * is 1 (an AMS fault), HAL_OK otherwise
  */
-HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage)
+HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage, float *maxTemp, float *minTemp, float *packVoltage, float* adjustedPackVoltage, bool *cellVoltageOutOfLimits)
 {
    HAL_StatusTypeDef rc = HAL_OK;
    float measure;
@@ -745,6 +881,7 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
    *minTemp = CELL_OVERTEMP;
    *packVoltage = 0;
    *adjustedPackVoltage = 0;
+   *cellVoltageOutOfLimits = false;
 
    // Unfortunately the thermistors may run slower than the cell voltage measurements
    static uint8_t thermistor_lag_counter = 0;
@@ -763,11 +900,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       if (measure_high < limit_undervoltage) {
          ERROR_PRINT("Cell %d is undervoltage at %f Volts\n", i, measure_high);
          sendDTC_CRITICAL_CELL_VOLTAGE_LOW(i);
-         rc = HAL_ERROR;
+         *cellVoltageOutOfLimits = true;
       } else if (measure_low > limit_overvoltage) {
          ERROR_PRINT("Cell %d is overvoltage at %f Volts\n", i, measure_low);
          sendDTC_CRITICAL_CELL_VOLTAGE_HIGH(i);
-         rc = HAL_ERROR;
+         *cellVoltageOutOfLimits = true;
       } else if (!warning_dtc_sent && measure_high < LIMIT_LOWVOLTAGE_WARNING) {
          ERROR_PRINT("WARN: Cell %d is low voltage at %f Volts\n", i, measure_high);
          sendDTC_WARNING_CELL_VOLTAGE_LOW(i);
@@ -783,6 +920,10 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
       (*packVoltage) += measure_low;
    }
 
+   if (*cellVoltageOutOfLimits && !CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED) {
+      rc = HAL_ERROR;
+   }
+
    if(thermistor_lag_counter >= THERMISTOR_LAG_PASSES)
    {
        thermistorSweepComplete = true;
@@ -792,6 +933,17 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             if (isDeadThermistorChannel(i)) {
                 continue;
             }
+
+            // A thermistor that newly reads 0 V: warn once and skip it, instead of counting -17 C as a real temp
+            if (isThermistorAt0V(i)) {
+                if (!warnedThermistorAt0V[i]) {
+                    ERROR_PRINT("WARN: Temp ch %d (battInfo #%d) reads %.1f C, input at 0 V, ignoring it\n",
+                                i, i + 1, TempChannel[i]);
+                    warnedThermistorAt0V[i] = true;
+                }
+                continue;
+            }
+            warnedThermistorAt0V[i] = false;
 
             measure = TempChannel[i];
                 
@@ -826,6 +978,11 @@ HAL_StatusTypeDef checkCellVoltagesAndTemps(float *maxVoltage, float *minVoltage
             }
             if (measure < (*minTemp)) {(*minTemp) = measure;}
         }
+
+#if IS_BOARD_F7 && LTC_CHIP == ADBMS_CHIP_6830B
+        // NUM_THERMISTOR_MEASUREMENTS_PER_CYCLE reads every channel each pass, so each pass is one sweep
+        checkThermistorMuxSelectLines();
+#endif
    }
    else
    {
@@ -1050,7 +1207,7 @@ HAL_StatusTypeDef stopBalance()
 #endif
     
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1064,6 +1221,17 @@ HAL_StatusTypeDef stopBalance()
 
 /// Array to store if a cell is balancing
 bool isCellBalancing[NUM_VOLTAGE_CELLS] = {0};
+
+/**
+ * Set by the balanceNow CLI command. Only used in balancing sessions without the charger: balances
+ * right away and ends the session once no cell needs balancing
+ */
+static volatile bool balanceNowRequested = false;
+
+void setBalanceNow(bool enable)
+{
+    balanceNowRequested = enable;
+}
 
 /**
  * @brief Stops all cells balancing, but stores which cells were balancing to
@@ -1107,7 +1275,7 @@ HAL_StatusTypeDef resumeBalance()
 #endif
 
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1138,7 +1306,7 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
   else batt_stop_balance_cell(cell);
 #endif
 #if IS_BOARD_F7 && defined(ENABLE_AMS) && defined(ENABLE_BALANCE)
-    if (batt_spi_wakeup(true) != HAL_OK) {
+    if (batt_spi_wakeup(false) != HAL_OK) {
         ERROR_PRINT("Failed to wake up boards\n");
         return HAL_ERROR;
     }
@@ -1160,8 +1328,9 @@ HAL_StatusTypeDef balance_cell(int cell, bool set)
 float getSOCFromVoltage(float cellVoltage)
 {
     // mV per step 11.88
-    float VoltsPerLookup = (limit_overvoltage - limit_undervoltage) / (NUM_SOC_LOOKUP_VALS-1);
-    float lookupIndex = (cellVoltage - limit_undervoltage) / VoltsPerLookup;
+    // Use the fixed SOC range, not the fault limits, so changing a limit doesn't rescale SOC
+    float VoltsPerLookup = (LIMIT_HIGHVOLTAGE - LIMIT_LOWVOLTAGE) / (NUM_SOC_LOOKUP_VALS-1);
+    float lookupIndex = (cellVoltage - LIMIT_LOWVOLTAGE) / VoltsPerLookup;
     if (lookupIndex < 0) { lookupIndex = 0;}
     if (lookupIndex > (NUM_SOC_LOOKUP_VALS-1)) { lookupIndex = (NUM_SOC_LOOKUP_VALS-1);}
     int lookupIndexInt = (int)lookupIndex;
@@ -1195,6 +1364,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
     bool balancingCells = false; // Are we balancing any cell currently?
     uint32_t lastBalanceCheck = 0;
     bool waitingForBalanceDone = false; // Set to true when receive stop but still balancing
+    bool balanceNowActive = false; // balanceNow override is being applied this loop
     uint32_t dbwTaskNotifications;
     float packVoltage;
     float adjustedPackVoltage;
@@ -1235,17 +1405,35 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         watchdogTaskCheckIn(BATTERY_TASK_ID);
         vTaskDelay(pdMS_TO_TICKS(CELL_RELAXATION_TIME_MS));
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        // Restore any chip that reset, before this pass's conversions
+        recoverResetAmsChips();
+#endif
+
         if (readCellVoltagesAndTemps() != HAL_OK) {
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinueRedCar()) { continue; }
+            if (boundedContinueAmsReadFail()) { continue; }
         }
 
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        bool diagnosticReadFailed;
+        if (batt_check_diagnostic_flags(&diagnosticReadFailed) != HAL_OK) {
+            BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
+            ERROR_PRINT("AMS diagnostic flags check failed!\n");
+            // A set flag only faults the AMS if its *_FAULT_ENABLED is 1 (ltc_chip.h)
+            if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
+        }
+#endif
+
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+        bool openWireReadFailed;
+        if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // A detected open wire always faults the AMS
+            if (openWireReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1258,11 +1446,17 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
         /*
          * Safety checks for cells
          */
-        if (checkCellVoltagesAndTemps(
+        bool cellVoltageOutOfLimits;
+        HAL_StatusTypeDef cellCheckRc = checkCellVoltagesAndTemps(
                 ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
                 ((float *)&TempCellMax), ((float *)&TempCellMin),
-                &packVoltage, &adjustedPackVoltage) != HAL_OK)
-        {
+                &packVoltage, &adjustedPackVoltage, &cellVoltageOutOfLimits);
+        // With CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED, an under or overvoltage cell stops charging and takes HV down
+        // without faulting the AMS
+        if (CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED && cellVoltageOutOfLimits) {
+            if (boundedContinue()) { continue; }
+        }
+        if (cellCheckRc != HAL_OK) {
             if (boundedContinueRedCar()) { continue; }
         }
 
@@ -1270,9 +1464,22 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
          * Check if we should balance any cells
          * Only balance above a minimum voltage
          */
-        if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        // balanceNow only applies without the charger. When just requested, skip the recheck wait
+        bool forceBalanceCheck = !using_charger && balanceNowRequested && !balanceNowActive;
+        balanceNowActive = !using_charger && balanceNowRequested;
+
+        if (using_charger && !BALANCE_WHILE_CHARGING_ENABLED)
         {
-            if (xTaskGetTickCount() - lastBalanceCheck
+            // Balancing while charging is disabled, make sure nothing is left balancing
+            balancingCells = false;
+            if (stopBalance() != HAL_OK) {
+                ERROR_PRINT("Failed to stop balance\n");
+                if (boundedContinue()) { continue; }
+            }
+        }
+        else if (VoltageCellMin >= BALANCE_START_VOLTAGE || !using_charger)
+        {
+            if (forceBalanceCheck || xTaskGetTickCount() - lastBalanceCheck
                 > pdMS_TO_TICKS(BALANCE_RECHECK_PERIOD_MS))
             {
                 balancingCells = false;
@@ -1292,7 +1499,8 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if PRINT_PER_CELL_BALANCE_STATE
                     DEBUG_PRINT("Cell %d Min SOC: %f, Current Voltage: %f, Current SOC: %f\n", cell, minCellSOC, AdjustedVoltageCell[cell], cellSOC);
 #endif
-                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA) {
+                    // Cells without a discharge path, or next to a bad sense tap, are never balanced
+                    if (cellSOC - minCellSOC > BALANCE_MIN_SOC_DELTA && batt_cell_can_balance(cell)) {
 #if PRINT_PER_CELL_BALANCE_STATE
                         DEBUG_PRINT("Balancing cell %d\n", cell);
 #endif
@@ -1312,7 +1520,7 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
                 batt_set_disharge_timer(DT_30_SEC);
 #endif
-                if (batt_spi_wakeup(true) != HAL_OK) {
+                if (batt_spi_wakeup(false) != HAL_OK) {
                     ERROR_PRINT("Failed to wake up boards\n");
                     stopBalance();
                     return CHARGE_ERROR;
@@ -1324,6 +1532,15 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
                 DEBUG_PRINT("Sent config to AMS boards\n");
 
                 lastBalanceCheck = xTaskGetTickCount();
+
+                // balanceNow stops by itself once every cell that can be balanced is within
+                // BALANCE_MIN_SOC_DELTA of the lowest cell
+                if (balanceNowActive && !balancingCells) {
+                    DEBUG_PRINT("balanceNow: cells balanced, stopping\n");
+                    balanceNowRequested = false;
+                    stopBalance();
+                    return CHARGE_DONE;
+                }
             }
         } else {
             balancingCells = false;
@@ -1336,9 +1553,23 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
 
         /*
          * Check if we are done charging/balancing
+         * If any cell can't be balanced, nothing can bring it back down, so stop as soon as the
+         * highest cell is full instead of waiting for the lowest cell and for balancing to finish
          */
-        if (using_charger && getSOCFromVoltage(VoltageCellMin) >= CHARGE_STOP_SOC && !balancingCells) {
+        bool canBalanceAllCells = BALANCE_WHILE_CHARGING_ENABLED && !NO_DISCHARGE_CELLS_ENABLED
+                                  && !DO_NOT_BALANCE_CELLS_ENABLED;
+        float chargeStopCellVoltage = canBalanceAllCells ? VoltageCellMin : VoltageCellMax;
+        bool reachedStopSOC = getSOCFromVoltage(chargeStopCellVoltage) >= CHARGE_STOP_SOC
+                              && (!balancingCells || !canBalanceAllCells);
+        // Hard cap on the highest cell, whatever the balancing mode
+        bool reachedMaxCellVoltage = VoltageCellMax >= CHARGE_MAX_CELL_VOLTAGE;
+        if (using_charger && (reachedStopSOC || reachedMaxCellVoltage)) {
             DEBUG_PRINT("Done charging\n");
+            if (reachedMaxCellVoltage) {
+                DEBUG_PRINT("Max cell %f V reached charge limit %f V\n", VoltageCellMax, CHARGE_MAX_CELL_VOLTAGE);
+            }
+            // Partial balancing may still be running when we stop on the highest cell
+            stopBalance();
             if (using_charger && stopCharging() != HAL_OK) {
                 return CHARGE_ERROR;
             }
@@ -1430,12 +1661,12 @@ ChargeReturn balanceCharge(Balance_Type_t using_charger)
  * @return true if close to red zone, false otherwise
  */
 bool hvDownCloseToRed(float maxCell, float minCell, float maxTemp) {
-    if (maxCell > DEFAULT_LIMIT_OVERVOLTAGE - 0.1) {
+    if (maxCell > CLOSE_TO_RED_MAX_CELL_VOLTAGE) {
         DEBUG_PRINT("max cell");
         return true;
     }
 
-    if (minCell < DEFAULT_LIMIT_UNDERVOLTAGE + 0.15) {
+    if (minCell < CLOSE_TO_RED_MIN_CELL_VOLTAGE) {
         DEBUG_PRINT("min cell");
         return true;
     }
@@ -1535,6 +1766,9 @@ void batteryTask(void *pvParameter)
                         chargeRc = CHARGE_ERROR;
                     }
 
+                    // balanceNow only lasts for one charge/balance session
+                    setBalanceNow(false);
+
                     if (HAL_OK != watchdogTaskChangeTimeout(BATTERY_TASK_ID,
                                                             2*BATTERY_TASK_PERIOD_MS))
                     {
@@ -1567,12 +1801,20 @@ void batteryTask(void *pvParameter)
                 DEBUG_PRINT("Received invalid notification\n");
             }
         }
+
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        // Restore any chip that reset, before this pass's conversions
+        recoverResetAmsChips();
+#endif
+
 #if IS_BOARD_F7 && defined(ENABLE_AMS)
-        if (checkForOpenCircuit() != HAL_OK) {
+        bool openWireReadFailed;
+        if (checkForOpenCircuit(&openWireReadFailed) != HAL_OK) {
             BatteryTaskFailure = OPEN_CIRCUIT_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Open wire test failed!\n");
-            if (boundedContinueRedCar()) { continue; }
+            // A detected open wire always faults the AMS
+            if (openWireReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
 
@@ -1581,19 +1823,34 @@ void batteryTask(void *pvParameter)
             BatteryTaskFailure = READ_CELL_VOLTAGE_TEMPS_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
             ERROR_PRINT("Failed to read cell voltages and temperatures!\n");
-            if (boundedContinueRedCar()) { continue; }
+            if (boundedContinueAmsReadFail()) { continue; }
+        }
+#endif
+
+#if IS_BOARD_F7 && defined(ENABLE_AMS) && LTC_CHIP == ADBMS_CHIP_6830B
+        bool diagnosticReadFailed;
+        if (batt_check_diagnostic_flags(&diagnosticReadFailed) != HAL_OK) {
+            BatteryTaskFailure = AMS_DIAGNOSTIC_FLAGS_FAIL_BIT;
+            sendCAN_BMU_BatteryChecks();
+            ERROR_PRINT("AMS diagnostic flags check failed!\n");
+            // A set flag only faults the AMS if its *_FAULT_ENABLED is 1 (ltc_chip.h)
+            if (diagnosticReadFailed ? boundedContinueAmsReadFail() : boundedContinueRedCar()) { continue; }
         }
 #endif
         //  read the voltages and temps for close to red checks
+        bool cellVoltageOutOfLimits;
         HAL_StatusTypeDef ret = checkCellVoltagesAndTemps(
               ((float *)&VoltageCellMax), ((float *)&VoltageCellMin),
               ((float *)&TempCellMax), ((float *)&TempCellMin),
-              &packVoltage, &adjustedPackVoltage);
-        
-        if (hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
+              &packVoltage, &adjustedPackVoltage, &cellVoltageOutOfLimits);
+
+        // With CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED, an under or overvoltage cell takes HV down (or keeps it from
+        // coming up) like close to red, without faulting the AMS
+        if ((CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED && cellVoltageOutOfLimits)
+            || hvDownCloseToRed(VoltageCellMax, VoltageCellMin, TempCellMax)){
             BatteryTaskFailure = CLOSE_TO_RED_FAIL_BIT;
             sendCAN_BMU_BatteryChecks();
-            ERROR_PRINT("Going HV Down close to edge");
+            ERROR_PRINT("Going HV Down close to edge\n");
             if (boundedContinue()) { continue; }
         }
 

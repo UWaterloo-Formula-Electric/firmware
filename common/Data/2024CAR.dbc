@@ -323,6 +323,7 @@ BO_ 2215641608 WSBFL_Sensors: 8 WSBFL
 
 BO_ 2281835521 BMU_BatteryChecks: 8 BMU
  SG_ BatteryTaskFailure : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AmsChipResetCount : 8|8@1+ (1,0) [0|255] "" Vector__XXX
 
 BO_ 2281769985 BMU_AmsVBatt: 8 BMU
  SG_ AMS_PackVoltage : 0|16@1+ (0.01,0) [0|655.35] ""  VCU_BeagleBone

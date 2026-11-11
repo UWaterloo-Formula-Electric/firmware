@@ -20,7 +20,7 @@
 #define THROTTLE_FAILURE_DTC_DETAIL 0
 
 #define MIN_BRAKE_PRESSED_VAL_PERCENT 15
-#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40  // set experimentally based on driver feedback
+#define APPS_BRAKE_PLAUSIBILITY_THRESHOLD 40.0f  // set experimentally based on driver feedback
 #define MAX_ZERO_THROTTLE_VAL_PERCENT 5
 
 #define BRAKE_PRESSURE_SENSOR_MIN_V 0.5f
@@ -32,30 +32,31 @@
 #define MOCK_BRAKE_PRESSURE_PERCENT 95
 #define BRAKE_POSITION_PRESSURE_TOLERANCE_PERCENT 10.0f
 
-#define BRAKE_PERCENT_USE_PRESSURE 0
+#define BRAKE_PERCENT_USE_PRESSURE 1
 #define BRAKE_PERCENT_USE_POSITION 0
-#define BRAKE_PERCENT_USE_COMBINED 1
+#define BRAKE_PERCENT_USE_COMBINED 0
 
 #if (BRAKE_PERCENT_USE_PRESSURE + BRAKE_PERCENT_USE_POSITION + BRAKE_PERCENT_USE_COMBINED) != 1
 #error "Exactly one brake percent source macro must be enabled"
 #endif
 
 #define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
+#define TPS_IMPLAUSIBILITY_PERSIST_MS 50  // T.4.2.5 allows 100 ms, rest is margin for median filter delay
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5
 
-#define THROTT_A_LOW (313)
-#define THROTT_B_LOW (2044)
+#define THROTT_A_LOW (380)
+#define THROTT_B_LOW (2030)
 
-#define THROTT_A_HIGH (2096)
-#define THROTT_B_HIGH (3804)
+#define THROTT_A_HIGH (2120)
+#define THROTT_B_HIGH (3765)
 
-#define BRAKE_POS_LOW (198)
-#define BRAKE_POS_HIGH (246)
+#define BRAKE_POS_LOW (175)
+#define BRAKE_POS_HIGH (204)
 
 
-#define BRAKE_PRES_LOW (418)
-#define BRAKE_PRES_HIGH (1419)
+#define BRAKE_PRES_LOW (425)
+#define BRAKE_PRES_HIGH (1720)
 
 #define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
 #define STEERING_POT_HIGH (ADC_MAX_COUNT)  // Pot value when the wheel is all the way to the right
@@ -64,8 +65,8 @@
 #define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER / PERCENT_MAX_INT)                         // Scale the pot value to range (-100,100)
 #define STEERING_POT_OFFSET (STEERING_POT_CENTER)
 
-#define MAX_THROTTLE_A_DEADZONE (30)
-#define MAX_THROTTLE_B_DEADZONE (30)
+#define MAX_THROTTLE_A_DEADZONE (100)
+#define MAX_THROTTLE_B_DEADZONE (100)
 
 #define INV_COMMAND_TASK_ID 4
 #define INV_COMMAND_FLAG_BIT (0)

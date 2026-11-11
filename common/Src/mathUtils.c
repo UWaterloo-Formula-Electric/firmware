@@ -1,4 +1,5 @@
 #include "mathUtils.h"
+#include <string.h>
 
 float min(float a, float b) {
     if (a < b) {
@@ -48,22 +49,24 @@ float map_range_float(float in, float low, float high, float low_out, float high
     return (in - low) * out_range / in_range + low_out;
 }
 
-float get_median(float *arr, size_t size) {
-    // Sort the array
+float get_median(const float *arr, size_t size) {
+    // Sort a copy, callers pass ring buffers whose order must be preserved
+    float sorted[size];
+    memcpy(sorted, arr, sizeof(sorted));
     for (size_t i = 0; i < size - 1; i++) {
         for (size_t j = i + 1; j < size; j++) {
-            if (arr[i] > arr[j]) {
-                float temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
+            if (sorted[i] > sorted[j]) {
+                float temp = sorted[i];
+                sorted[i] = sorted[j];
+                sorted[j] = temp;
             }
         }
     }
     // Return the median value
     if (size % 2 == 0) {
         // If even, return the average of the two middle values
-        return (arr[size / 2 - 1] + arr[size / 2]) / 2;
+        return (sorted[size / 2 - 1] + sorted[size / 2]) / 2;
     }
 
-    return arr[size / 2];
+    return sorted[size / 2];
 }

@@ -23,4 +23,9 @@ HAL_StatusTypeDef sendChargerCommand(float maxVoltage, float maxCurrent, bool st
 HAL_StatusTypeDef checkChargerStatus(ChargerStatus *statusOut);
 HAL_StatusTypeDef chargerInit();
 
+// True once at least one ChargeStatus frame has ever been parsed.
+bool chargerStatusEverReceived(void);
+// Milliseconds since the last parsed ChargeStatus frame (UINT32_MAX if none).
+uint32_t chargerStatusAgeMs(void);
+
 #endif /* end of include guard: CHARGERCONTROL_H */

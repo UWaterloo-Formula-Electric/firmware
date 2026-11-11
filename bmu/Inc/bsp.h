@@ -121,4 +121,13 @@ typedef enum taskId_e{
 
 #define CONSOLE_PRINT_ON
 
+/*
+ * Set to 1 when flashing the charge cart's BMU. Must be 0 on the car
+ * - The car-only IL points (BOTS, BSPD, CBRB, TSMS) always read OK. EBOX, HVD, AMS, IMD and HW check are
+ *   still checked, and the loop itself still has to be closed for the contactors to get power
+ * - Heartbeat checks are off from boot, since the PDU, VCU and DCU aren't there
+ * - HW check dropping at runtime is only logged, not a fault. Boot still waits for it
+ */
+#define CHARGE_CART_MODE (0)
+
 #endif /* __BSP_H */
