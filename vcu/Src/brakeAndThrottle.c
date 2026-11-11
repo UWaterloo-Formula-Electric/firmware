@@ -175,6 +175,30 @@ bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
 }
 
 
+bool flagThrottleImplausibility(float throttle1_percent, float throttle2_percent) {
+    static TickType_t threshold_ticks = pdMS_TO_TICKS(100);
+    static TickType_t start_tick = 0;
+    float difference = throttle1_percent > throttle2_percent ? 
+                       throttle1_percent - throttle2_percent :
+                       throttle2_percent - throttle1_percent;
+
+    TickType_t end_tick = xTaskGetTickCount();
+
+    if (difference < TPS_TOLERANCE_PERCENT &&
+        end_tick - start_tick < threshold_ticks) {
+        start_tick = 0;
+    }
+    else if (difference > TPS_TOLERANCE_PERCENT && start_tick == 0) {
+        start_tick = xTaskGetTickCount();
+    }
+    else if (difference < TPS_TOLERANCE_PERCENT &&
+            end_tick - start_tick >= threshold_ticks) {
+        start_tick = 0;
+        return true;
+    }
+    return false;
+}
+
 float getThrottleAFiltered(){
     static float throttleAReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
     static size_t throttleAIndex = 0;
@@ -225,7 +249,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     }
 
     // Check if two throttle pots agree
-    if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
+    if(flagThrottleImplausibility(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
