@@ -17,6 +17,7 @@ int source_open_can (source_t *src, const char *ifname) {
     }
     src->read = can_source_read;
     src->close = can_source_close;
+    src->wait = can_wait;
     src->ctx = (void *)(intptr_t)fd;
     return 0;
 }

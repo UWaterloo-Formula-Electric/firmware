@@ -5,6 +5,7 @@
 typedef struct source {
     int (*read)(struct source *self, can_frame_t *out, int max);
     int (*close)(struct source *self);
+    int (*wait)(struct source *self, int timeout_ms);
     void *ctx;
 } source_t;
 

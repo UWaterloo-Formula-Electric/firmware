@@ -96,7 +96,8 @@ void evaluate_state (const state_t *state, evaluation_t *evaluation, const uint6
         }
     }
 
-    double v_avg = evaluation->valid_cells ? v_sum / evaluation->valid_cells : 0.0, t_avg = evaluation->valid_temps ? t_sum / evaluation->valid_temps : 0.0;    evaluation->v_max = vmax;
+    double v_avg = evaluation->valid_cells ? v_sum / evaluation->valid_cells : 0.0, t_avg = evaluation->valid_temps ? t_sum / evaluation->valid_temps : 0.0;    
+    evaluation->v_max = vmax;
     evaluation->v_min = vmin != FLT_MAX ? vmin : 0.0;
     evaluation->v_avg = v_avg;
     evaluation->v_max_idx = vmax_idx;

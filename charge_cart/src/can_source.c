@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "../inc/can_source.h"
+#include "../inc/util.h"
+#include <poll.h>
 
 int can_open (const char *ifname) {
     int fd;
@@ -69,4 +71,17 @@ int can_read (int fd, can_frame_t *out, int max) {
         }
     }
     return count;
+}
+
+int can_wait(int fd, int timeout_ms) {
+    struct pollfd pfd = { .fd = fd, .events = POLLIN };
+    int ret = poll(&pfd, 1, timeout_ms);
+    if (ret < 0) {
+        if (errno == EINTR) {
+            return 0; // interrupted by signal, treat as timeout
+        }
+        perror("poll failed");
+        return -1;
+    }
+    return ret; // 0 = timeout, >0 = ready to read
 }

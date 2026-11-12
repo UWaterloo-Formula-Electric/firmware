@@ -1,3 +1,4 @@
+#pragma once
 #include <stdint.h>
 #include "state.h"
 #include "thresholds.h"
@@ -23,8 +24,9 @@ typedef struct {
     float v_max, v_min, v_avg, t_max, t_min, t_avg;
     int v_max_idx, v_min_idx, t_max_idx, t_min_idx, valid_cells, valid_temps;
 
-    int cell_status_counts[5];
-    int temp_status_counts[5];
+
+    int cell_status_counts[7];
+    int temp_status_counts[7];
     status_t busStatus;
     status_t AMSStatus;
     status_t batteryStatus;
