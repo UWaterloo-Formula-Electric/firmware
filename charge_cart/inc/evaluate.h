@@ -1,49 +1,33 @@
 #include <stdint.h>
 #include "state.h"
 #include "thresholds.h"
+#include <string.h>
+#include <float.h>
 
 #define STALE_MS 1000
 
 typedef enum {
-    CELL_OK,
-    CELL_LOW,
-    CELL_HIGH,
-    CELL_STALE,
-    CELL_INVALID
-} cell_status_t;
-
-typedef enum {
-    TEMP_OK,
-    TEMP_LOW,
-    TEMP_HIGH,
-    TEMP_STALE,
-    TEMP_INVALID
-} temp_status_t;
-
-typedef enum {
-    BUS_OK,
-    BUS_LOW,
-    BUS_HIGH,
-    BUS_STALE,
-    BUS_INVALID
-} bus_status_t;
-
-typedef enum {
-    AMS_OK,
-    AMS_LOW,
-    AMS_HIGH,
-    AMS_STALE,
-    AMS_INVALID
-} AMS_status_t;
-
+    STATUS_OK,
+    STATUS_LOW,
+    STATUS_HIGH,
+    STATUS_STALE,
+    STATUS_INVALID,
+    STATUS_LOW_CRITICAL,
+    STATUS_HIGH_CRITICAL
+} status_t;
 
 typedef struct {
-    cell_status_t cellStatus[NUM_VOLTAGE_CELLS];
-    temp_status_t tempStatus[NUM_TEMP_CELLS];
-    bus_status_t busStatus;
-    AMS_status_t AMSStatus;
+    status_t cellStatus[NUM_VOLTAGE_CELLS];
+    status_t tempStatus[NUM_TEMP_CELLS];
+
+    float v_max, v_min, v_avg, t_max, t_min, t_avg;
+    int v_max_idx, v_min_idx, t_max_idx, t_min_idx, valid_cells, valid_temps;
+
+    int cell_status_counts[5];
+    int temp_status_counts[5];
+    status_t busStatus;
+    status_t AMSStatus;
+    status_t batteryStatus;
 } evaluation_t;
 
-void evaluate_state (const state_t *state, evaluation_t *evaluation, uint64_t now_ms) {
-
-}
+void evaluate_state (const state_t *state, evaluation_t *evaluation, const uint64_t now_ms);
