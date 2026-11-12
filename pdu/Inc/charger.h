@@ -18,5 +18,14 @@ uint8_t chargerDecodeRevision(uint8_t data);
 
 uint8_t chargerDecodePartNumber(uint8_t data);
 
+typedef enum {
+    CHARGE_IN_PROGRESS, //stat1 low, stat2 high
+    CHARGE_DONE, //stat1 high, stat2 low
+    CHARGE_FAULT, // stat1 low, stat2 low
+    CHARGE_DISABLED //stat1 high, stat2 high
+} chargerState_t;
+
+chargerState_t chargerGetState(uint8_t stat1Level, uint8_t stat2Level);
+
 
 #endif  // CHARGER_H

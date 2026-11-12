@@ -2,9 +2,11 @@
 #include "controlStateMachine.h"
 #include "charger.h"
 #include "chargerI2c.h"
+#include "bsp.h"
 #include "debug.h"
 #include "string.h"
 #include <stdlib.h>
+#include <stdbool.h>
 #include "state_machine.h"
 #include "FreeRTOS_CLI.h"
 #include "lvMeasure.h"
@@ -679,6 +681,164 @@ static const CLI_Command_Definition_t bqReadCommandDefinition =
     1 /* Number of parameters */
 };
 
+// base 0 accepts hex (0x14) or decimal (20); rejects trailing junk, negatives wrap and fail the max check
+static bool parseCliUint(const char *param, BaseType_t len, unsigned long max, unsigned long *out)
+{
+    char *end;
+    unsigned long val = strtoul(param, &end, 0);
+    if (end != param + len || val > max) {
+        return false;
+    }
+    *out = val;
+    return true;
+}
+
+static const char *chargerStateName(chargerState_t state)
+{
+    switch (state) {
+        case CHARGE_IN_PROGRESS: return "IN_PROGRESS";
+        case CHARGE_DONE:        return "DONE";
+        case CHARGE_FAULT:       return "FAULT";
+        case CHARGE_DISABLED:    return "DISABLED";
+        default:                 return "UNKNOWN";
+    }
+}
+
+// single raw sample, no debounce: shows exactly what the pins read right now
+BaseType_t bqStat(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    uint8_t stat1Level = (READ_CHARGE_STAT_1 == GPIO_PIN_SET);
+    uint8_t stat2Level = (READ_CHARGE_STAT_2 == GPIO_PIN_SET);
+    chargerState_t state = chargerGetState(stat1Level, stat2Level);
+    COMMAND_OUTPUT("STAT1 pin: %u, STAT2 pin: %u -> %s\n", stat1Level, stat2Level, chargerStateName(state));
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqStatCommandDefinition =
+{
+    "bqStat",
+    "bqStat:\r\n Read the BQ STAT1/STAT2 pins and decode the charge state (pins are active low)\r\n",
+    bqStat,
+    0 /* Number of parameters */
+};
+
+BaseType_t bqWrite(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t regLen, valLen;
+    unsigned long reg, val;
+    const char *regParam = FreeRTOS_CLIGetParameter(commandString, 1, &regLen);
+    const char *valParam = FreeRTOS_CLIGetParameter(commandString, 2, &valLen);
+
+    if (!parseCliUint(regParam, regLen, 0xFF, &reg)) {
+        COMMAND_OUTPUT("Error: Invalid register '%.*s'\n", (int)regLen, regParam);
+        return pdFALSE;
+    }
+    if (!parseCliUint(valParam, valLen, 0xFF, &val)) {
+        COMMAND_OUTPUT("Error: Invalid value '%.*s' (must be 0-0xFF)\n", (int)valLen, valParam);
+        return pdFALSE;
+    }
+
+    HAL_StatusTypeDef status = chargerWriteRegister((uint8_t)reg, (uint8_t)val);
+    if (status != HAL_OK) {
+        COMMAND_OUTPUT("Error: Unable to write register 0x%02lX, HAL status %d\n", reg, status);
+        return pdFALSE;
+    }
+
+    // readback for the human only; self-clearing and read-only bits can legitimately differ
+    uint8_t readback;
+    status = chargerReadRegister((uint8_t)reg, &readback);
+    if (status != HAL_OK) {
+        COMMAND_OUTPUT("Wrote 0x%02lX to register 0x%02lX, readback failed, HAL status %d\n", val, reg, status);
+    } else {
+        COMMAND_OUTPUT("Wrote 0x%02lX to register 0x%02lX, read back 0x%02X%s\n", val, reg, readback,
+                       (readback == val) ? "" : " (MISMATCH)");
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqWriteCommandDefinition =
+{
+    "bqWrite",
+    "bqWrite <reg> <value>:\r\n Write one BQ charger register, then read it back\r\n",
+    bqWrite,
+    2 /* Number of parameters */
+};
+
+BaseType_t bqRead16(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t regLen;
+    unsigned long reg;
+    uint16_t data;
+    const char *regParam = FreeRTOS_CLIGetParameter(commandString, 1, &regLen);
+
+    // max 0xFE: a 16 bit register spans reg and reg + 1
+    if (!parseCliUint(regParam, regLen, 0xFE, &reg)) {
+        COMMAND_OUTPUT("Error: Invalid register '%.*s' (must be 0-0xFE)\n", (int)regLen, regParam);
+        return pdFALSE;
+    }
+
+    HAL_StatusTypeDef status = chargerRead16BitRegister((uint8_t)reg, &data);
+    if (status == HAL_OK) {
+        COMMAND_OUTPUT("Register 0x%02lX (16 bit): 0x%04X (%u)\n", reg, data, data);
+    } else {
+        COMMAND_OUTPUT("Error: Unable to read register 0x%02lX, HAL status %d\n", reg, status);
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqRead16CommandDefinition =
+{
+    "bqRead16",
+    "bqRead16 <reg>:\r\n Read a 16 bit BQ charger register (reg = LSB, reg + 1 = MSB)\r\n",
+    bqRead16,
+    1 /* Number of parameters */
+};
+
+BaseType_t bqWrite16(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    BaseType_t regLen, valLen;
+    unsigned long reg, val;
+    const char *regParam = FreeRTOS_CLIGetParameter(commandString, 1, &regLen);
+    const char *valParam = FreeRTOS_CLIGetParameter(commandString, 2, &valLen);
+
+    if (!parseCliUint(regParam, regLen, 0xFE, &reg)) {
+        COMMAND_OUTPUT("Error: Invalid register '%.*s' (must be 0-0xFE)\n", (int)regLen, regParam);
+        return pdFALSE;
+    }
+    if (!parseCliUint(valParam, valLen, 0xFFFF, &val)) {
+        COMMAND_OUTPUT("Error: Invalid value '%.*s' (must be 0-0xFFFF)\n", (int)valLen, valParam);
+        return pdFALSE;
+    }
+
+    HAL_StatusTypeDef status = chargerWrite16BitRegister((uint8_t)reg, (uint16_t)val);
+    if (status != HAL_OK) {
+        COMMAND_OUTPUT("Error: Unable to write register 0x%02lX, HAL status %d\n", reg, status);
+        return pdFALSE;
+    }
+
+    uint16_t readback;
+    status = chargerRead16BitRegister((uint8_t)reg, &readback);
+    if (status != HAL_OK) {
+        COMMAND_OUTPUT("Wrote 0x%04lX to register 0x%02lX, readback failed, HAL status %d\n", val, reg, status);
+    } else {
+        COMMAND_OUTPUT("Wrote 0x%04lX to register 0x%02lX, read back 0x%04X%s\n", val, reg, readback,
+                       (readback == val) ? "" : " (MISMATCH)");
+    }
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t bqWrite16CommandDefinition =
+{
+    "bqWrite16",
+    "bqWrite16 <reg> <value>:\r\n Write a 16 bit BQ charger register, then read it back\r\n",
+    bqWrite16,
+    2 /* Number of parameters */
+};
+
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
@@ -739,6 +899,18 @@ HAL_StatusTypeDef mockStateMachineInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&bqReadCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bqStatCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bqWriteCommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bqRead16CommandDefinition) != pdPASS){
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bqWrite16CommandDefinition) != pdPASS){
         return HAL_ERROR;
     }
     return HAL_OK;

@@ -33,3 +33,19 @@ uint8_t chargerDecodePartNumber(uint8_t data){
     return (data & BQ_PART_NUM_MASK) >> BQ_PART_NUM_SHIFT; // shift and mask to get part number
 }
 
+chargerState_t chargerGetState(uint8_t stat1Level, uint8_t stat2Level){
+    if (!stat1Level && stat2Level){
+        return CHARGE_IN_PROGRESS;
+    }
+    else if (stat1Level && !stat2Level){
+        return CHARGE_DONE;
+    }
+    else if (!stat1Level && !stat2Level){
+        return CHARGE_FAULT;
+    }
+    else{
+        return CHARGE_DISABLED;
+    }
+}
+
+
