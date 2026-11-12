@@ -341,6 +341,41 @@ static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
     1 /* Number of parameters */
 };
 
+static BaseType_t tssiGStatus(char *writeBuffer, size_t writeBufferLength,
+                              const char *commandString)
+{
+    // TSSI green is wired to GPIO12V_11 (PE9)
+    bool isHigh = GPIO12V_READ(11) == GPIO_PIN_SET;
+    COMMAND_OUTPUT("TSSI green (PE9) is %s\n", isHigh ? "HIGH": "LOW");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t tssiGStatusCommandDefinition =
+{
+    "tssiGStatus",
+    "tssiGStatus:\r\n  Read the TSSI green status input on GPIO12V_11 (PE9)\r\n",
+    tssiGStatus,
+    0 /* Number of parameters */
+};
+
+static BaseType_t tssiRStatus(char *writeBuffer, size_t writeBufferLength,
+                              const char *commandString)
+{
+    // TSSI green is wired to GPIO12V_11 (PE9)
+    bool isHigh = GPIO12V_READ(12) == GPIO_PIN_SET;
+    COMMAND_OUTPUT("TSSI red (PE10) is %s\n", isHigh ? "HIGH": "LOW");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t tssiRStatusCommandDefinition =
+{
+    "tssiRStatus",
+    "tssiRStatus:\r\n  Read the TSSI red status input on GPIO12V_12 (PE10)\r\n",
+    tssiRStatus,
+    0 /* Number of parameters */
+};
+
+
 HAL_StatusTypeDef hilCliInit(void)
 {
     if (FreeRTOS_CLIRegisterCommand(&i2cScanCommandDefinition) != pdPASS) {
@@ -368,6 +403,14 @@ HAL_StatusTypeDef hilCliInit(void)
     }
 
     if (FreeRTOS_CLIRegisterCommand(&gpio3v1EnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&tssiGStatusCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&tssiRStatusCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
