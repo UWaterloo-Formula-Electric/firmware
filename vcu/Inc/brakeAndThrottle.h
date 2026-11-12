@@ -40,6 +40,7 @@
 #error "Exactly one brake percent source macro must be enabled"
 #endif
 
+#define TPS_TOLERANCE_TICK_LIMIT (pdMS_TO_TICKS(100))
 #define TPS_TOLERANCE_PERCENT 15  // Should be 10 but pots are noisy
 #define TPS_MAX_WHILE_BRAKE_PRESSED_PERCENT 25
 #define TPS_WHILE_BRAKE_PRESSED_RESET_PERCENT 5

@@ -162,18 +162,28 @@ uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
   return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_B_LOW, THROTT_B_HIGH);
 }
 
-bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
-{
-    if (throttle1_percent == throttle2_percent
-        || ((throttle1_percent > throttle2_percent) && ((throttle1_percent - throttle2_percent) < TPS_TOLERANCE_PERCENT))
-        || ((throttle2_percent > throttle1_percent) && ((throttle2_percent - throttle1_percent) < TPS_TOLERANCE_PERCENT)))
-    {
-        return true;
-    } else {
-        return false;
-    }
-}
+bool is_tps_implausible(float throttle1_percent, float throttle2_percent) {
+    static TickType_t start_tick = 0;
+    float difference = throttle1_percent > throttle2_percent ? 
+                       throttle1_percent - throttle2_percent :
+                       throttle2_percent - throttle1_percent;
 
+    TickType_t end_tick = xTaskGetTickCount();
+
+    if (difference < TPS_TOLERANCE_PERCENT &&
+        end_tick - start_tick < TPS_TOLERANCE_TICK_LIMIT) {
+        start_tick = 0;
+    }
+    else if (difference > TPS_TOLERANCE_PERCENT && start_tick == 0) {
+        start_tick = xTaskGetTickCount();
+    }
+    else if (difference < TPS_TOLERANCE_PERCENT &&
+            end_tick - start_tick >= TPS_TOLERANCE_TICK_LIMIT) {
+        start_tick = 0;
+        return true;
+    }
+    return false;
+}
 
 float getThrottleAFiltered(){
     static float throttleAReadings[NUM_MEDIAN_FILTER_SAMPLES] = {0};
@@ -225,7 +235,7 @@ bool getThrottlePositionPercent(float *throttleOut)
     }
 
     // Check if two throttle pots agree
-    if(!is_tps_within_tolerance(throttle1_percent, throttle2_percent))
+    if(is_tps_implausible(throttle1_percent, throttle2_percent))
     {
         (*throttleOut) = 0;
         ERROR_PRINT("implausible pedal! difference: %f %%\r\n", throttle1_percent - throttle2_percent);
