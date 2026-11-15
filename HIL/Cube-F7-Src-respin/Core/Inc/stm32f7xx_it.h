@@ -22,7 +22,7 @@
 #define __STM32F7xx_IT_H
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 /* Private includes ----------------------------------------------------------*/
@@ -55,6 +55,7 @@ void DebugMon_Handler(void);
 void DMA1_Stream2_IRQHandler(void);
 void DMA1_Stream4_IRQHandler(void);
 void TIM1_UP_TIM10_IRQHandler(void);
+void TIM8_CC_IRQHandler(void);
 void CAN3_TX_IRQHandler(void);
 void CAN3_RX0_IRQHandler(void);
 void CAN3_RX1_IRQHandler(void);

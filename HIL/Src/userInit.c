@@ -17,6 +17,7 @@
 #include "canInject.h"
 #include "hilCli.h"
 #include "pwmBus.h"
+#include "pwmInput.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -47,6 +48,10 @@ void userInit()
     }
 
     if (pwmBusInit() != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (pwmInputInit() != HAL_OK){
         Error_Handler();
     }
 
