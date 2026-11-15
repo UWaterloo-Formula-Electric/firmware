@@ -30,6 +30,7 @@
 #include "debug.h"
 #include "i2cBus.h"
 #include "pwmBus.h"
+#include "pwmInput.h"
 
 // Valid 7 bit range, excluding the reserved blocks at each end
 #define I2C_SCAN_FIRST_ADDRESS 0x08
@@ -341,6 +342,46 @@ static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
     1 /* Number of parameters */
 };
 
+// TIM8 input clock from HIL_2026.ioc.
+#define TIM8_CLOCK_HZ 200000000UL
+
+static BaseType_t readPwmCommand(char *writeBuffer, size_t writeBufferLength, const char *commandString)
+{
+    (void)commandString;
+
+    uint16_t period;
+    uint16_t high;
+
+    if (!pwmInputRead(&period, &high)) {
+        const char *level =
+            HAL_GPIO_ReadPin(PWM_8_GPIO_Port, PWM_8_Pin) == GPIO_PIN_SET
+            ? "HIGH" : "LOW";
+
+        snprintf(writeBuffer, writeBufferLength,
+                 "PWM_8: no fresh capture, pin %s, frequency unavailable\r\n",
+                 level);
+        return pdFALSE;
+    }
+
+    unsigned long counterHz =
+        TIM8_CLOCK_HZ / (PWM_TIM_HANDLE.Init.Prescaler + 1UL);
+    unsigned long frequencyHz = (counterHz + period / 2UL) / period;
+    unsigned long dutyTenths = (1000UL * high + period / 2UL) / period;
+
+    snprintf(writeBuffer, writeBufferLength,
+             "PWM_8: %lu Hz, %lu.%lu%% high duty\r\n",
+             frequencyHz, dutyTenths / 10UL, dutyTenths % 10UL);
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t readPwmCommandDefinition =
+{
+    "readPwm",
+    "readPwm:\r\n  Measure frequency and high duty on PWM_8\r\n",
+    readPwmCommand,
+    0
+};
+
 HAL_StatusTypeDef hilCliInit(void)
 {
     if (FreeRTOS_CLIRegisterCommand(&i2cScanCommandDefinition) != pdPASS) {
@@ -368,6 +409,10 @@ HAL_StatusTypeDef hilCliInit(void)
     }
 
     if (FreeRTOS_CLIRegisterCommand(&gpio3v1EnableCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+
+    if (FreeRTOS_CLIRegisterCommand(&readPwmCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
