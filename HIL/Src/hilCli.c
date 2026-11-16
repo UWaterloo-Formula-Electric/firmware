@@ -344,9 +344,9 @@ static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
 static BaseType_t tssiGStatus(char *writeBuffer, size_t writeBufferLength,
                               const char *commandString)
 {
-    // TSSI green is wired to GPIO12V_11 (PE9)
-    bool isHigh = GPIO12V_READ(11) == GPIO_PIN_SET;
-    COMMAND_OUTPUT("TSSI green (PE9) is %s\n", isHigh ? "HIGH": "LOW");
+    // TSSI green GND is wired to GPIO12V_11 (PE9)
+    bool isOn = GPIO12V_READ(11) == GPIO_PIN_RESET;
+    COMMAND_OUTPUT("Green TSSI is %s\n", isOn ? "ON": "OFF");
     return pdFALSE;
 }
 
@@ -361,9 +361,9 @@ static const CLI_Command_Definition_t tssiGStatusCommandDefinition =
 static BaseType_t tssiRStatus(char *writeBuffer, size_t writeBufferLength,
                               const char *commandString)
 {
-    // TSSI green is wired to GPIO12V_11 (PE9)
-    bool isHigh = GPIO12V_READ(12) == GPIO_PIN_SET;
-    COMMAND_OUTPUT("TSSI red (PE10) is %s\n", isHigh ? "HIGH": "LOW");
+    // TSSI red GND is wired to GPIO12V_12 (PE10)
+    bool isOn = GPIO12V_READ(12) == GPIO_PIN_RESET;
+    COMMAND_OUTPUT("Red TSSI is %s\n", isOn ? "ON": "OFF");
     return pdFALSE;
 }
 
