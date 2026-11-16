@@ -374,18 +374,17 @@ int getSteeringAngle() {
   return (steeringPotVal-STEERING_POT_OFFSET) / STEERING_SCALE_DIVIDER;
 */
 
-    int32_t raw_output = (int32_t)brakeThrottleSteeringADCVals[STEERING_INDEX];
+    int raw_output = brakeThrottleSteeringADCVals[STEERING_INDEX];
 
-    int32_t unwrapped = raw_output;
-    if (raw > STEERING_WRAP_THRESHOLD) {
+    int unwrapped = raw_output;
+    if (raw_output > STEERING_WRAP_THRESHOLD) {
         unwrapped = raw_output - STEERING_ADC_RANGE;
     }
 
-    int32_t angle = ((STEERING_UNWRAPPED_CENTER - unwrapped) * 100) / STEERING_HALF_TRAVEL;
+    int angle = ((STEERING_UNWRAPPED_CENTER - unwrapped) * 100) / STEERING_HALF_TRAVEL;
 
     if (angle > 100){
         angle = 100;
-
     }
     if (angle < -100){
         angle = -100;
