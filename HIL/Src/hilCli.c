@@ -38,6 +38,8 @@
 
 #define PWM_FIRST_CHANNEL 8
 #define PWM_LAST_CHANNEL 10
+#define TIM3_CLOCK_HZ 100000000UL
+
 
 static HAL_StatusTypeDef getBusFromParam(const char *param, I2cBus_t *bus)
 {
@@ -353,24 +355,16 @@ static BaseType_t readPwmCommand(char *writeBuffer, size_t writeBufferLength, co
     uint16_t high;
 
     if (!pwmInputRead(&period, &high)) {
-        const char *level =
-            HAL_GPIO_ReadPin(PWM_8_GPIO_Port, PWM_8_Pin) == GPIO_PIN_SET
-            ? "HIGH" : "LOW";
-
-        snprintf(writeBuffer, writeBufferLength,
-                 "PWM_8: no fresh capture, pin %s, frequency unavailable\r\n",
-                 level);
+        const char *level = HAL_GPIO_ReadPin(PWM_8_GPIO_Port, PWM_8_Pin) == GPIO_PIN_SET ? "HIGH" : "LOW";
+        COMMAND_OUTPUT("PWM_8: no fresh capture, pin %s, frequency unavailable\r\n", level);
         return pdFALSE;
     }
 
-    unsigned long counterHz =
-        TIM8_CLOCK_HZ / (PWM_TIM_HANDLE.Init.Prescaler + 1UL);
+    unsigned long counterHz = TIM3_CLOCK_HZ / (htim3.Init.Prescaler + 1UL);
     unsigned long frequencyHz = (counterHz + period / 2UL) / period;
     unsigned long dutyTenths = (1000UL * high + period / 2UL) / period;
 
-    snprintf(writeBuffer, writeBufferLength,
-             "PWM_8: %lu Hz, %lu.%lu%% high duty\r\n",
-             frequencyHz, dutyTenths / 10UL, dutyTenths % 10UL);
+    COMMAND_OUTPUT("PWM_8: %lu Hz, %lu.%lu%% high duty\r\n", frequencyHz, dutyTenths / 10UL, dutyTenths % 10UL);
     return pdFALSE;
 }
 

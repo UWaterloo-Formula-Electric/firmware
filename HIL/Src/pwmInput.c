@@ -1,62 +1,57 @@
 #include "pwmInput.h"
-#include "bsp.h"
+#include "tim.h"
 
-#include <stdbool.h>
-#include <stdint.h>
+#define PWM_SAMPLE_TIMEOUT_MS 100U
 
-static uint16_t lastRise;
-static uint16_t pendingHighTicks;
-static bool haveRise;
-static bool haveFall;
-
-// Most recent complete PWM cycle. Zero period means no sample yet.
+static bool haveFirstRise;
 static volatile uint16_t periodTicks;
 static volatile uint16_t highTicks;
 static volatile uint32_t lastSampleMs;
 
 HAL_StatusTypeDef pwmInputInit(void)
 {
-    return HAL_TIM_IC_Start_IT(&PWM_TIM_HANDLE, TIM_CHANNEL_1);
+    HAL_StatusTypeDef result = HAL_TIM_IC_Start(&htim3, TIM_CHANNEL_2);
+    if (result != HAL_OK) {
+        return result;
+    }
+
+    result = HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
+    if (result != HAL_OK) {
+        HAL_TIM_IC_Stop(&htim3, TIM_CHANNEL_2);
+    }
+
+    return result;
 }
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-    if (htim != &PWM_TIM_HANDLE ||
-        htim->Channel != HAL_TIM_ACTIVE_CHANNEL_1) {
+    if (htim != &htim3 || htim->Channel != HAL_TIM_ACTIVE_CHANNEL_1) {
         return;
     }
 
-    uint16_t timestamp =
-        (uint16_t)HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+    bool haveFall = __HAL_TIM_GET_FLAG(htim, TIM_FLAG_CC2) != RESET;
+    uint16_t period = (uint16_t)HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+    uint16_t high = (uint16_t)HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
 
-    // With both-edge capture, use the pin level to identify the edge.
-    bool pinHigh =
-        HAL_GPIO_ReadPin(PWM_8_GPIO_Port, PWM_8_Pin) == GPIO_PIN_SET;
+    const uint32_t overcaptureFlags = TIM_FLAG_CC1OF | TIM_FLAG_CC2OF;
+    bool overcapture = (htim->Instance->SR & overcaptureFlags) != 0U;
 
-    if (pinHigh) {
-        if (haveRise && haveFall) {
-            // Unsigned 16-bit subtraction handles one counter wrap.
-            uint16_t period = (uint16_t)(timestamp - lastRise);
-
-            if (pendingHighTicks > 0 && pendingHighTicks < period) {
-                highTicks = pendingHighTicks;
-                periodTicks = period;
-                lastSampleMs = HAL_GetTick();
-            }
-        }
-
-        lastRise = timestamp;
-        haveRise = true;
-        haveFall = false;
-    } else if (haveRise) {
-        pendingHighTicks = (uint16_t)(timestamp - lastRise);
-        haveFall = true;
+    if (overcapture) {
+        __HAL_TIM_CLEAR_FLAG(htim, overcaptureFlags);
     }
+
+    if (haveFirstRise && haveFall && !overcapture &&
+        high > 0U && high < period) {
+        periodTicks = period;
+        highTicks = high;
+        lastSampleMs = HAL_GetTick();
+    }
+
+    haveFirstRise = true;
 }
 
 bool pwmInputRead(uint16_t *period, uint16_t *high)
 {
-    // Copy both values before the interrupt can publish another sample.
     uint32_t savedPrimask = __get_PRIMASK();
     __disable_irq();
 
@@ -66,7 +61,8 @@ bool pwmInputRead(uint16_t *period, uint16_t *high)
 
     __set_PRIMASK(savedPrimask);
 
-    if (capturedPeriod == 0 || (HAL_GetTick() - capturedAt) >= 100U) {
+    if (capturedPeriod == 0U ||
+        (HAL_GetTick() - capturedAt) >= PWM_SAMPLE_TIMEOUT_MS) {
         return false;
     }
 
