@@ -19,9 +19,6 @@
 static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timChannel)
 {
     switch (channel) {
-        case PWM_CHANNEL_8:
-            *timChannel = PWM_8_CHANNEL;
-            return HAL_OK;
         case PWM_CHANNEL_9:
             *timChannel = PWM_9_CHANNEL;
             return HAL_OK;
@@ -35,7 +32,7 @@ static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timCha
 
 HAL_StatusTypeDef pwmBusInit(void)
 {
-    for (PwmChannel_t channel = 0; channel < NUM_PWM_CHANNELS; channel++) {
+    for (PwmChannel_t channel = 9; channel < NUM_PWM_CHANNELS; channel++) {
         if (pwmInitChannel(channel) != HAL_OK) {
             return HAL_ERROR;
         }
