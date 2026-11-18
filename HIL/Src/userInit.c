@@ -55,11 +55,15 @@ void userInit()
         Error_Handler();
     }
 
+    // enable STM DAC1
+    if (HAL_DAC_Start(&DAC_HANDLE, DAC_1_CHANNEL) != HAL_OK) {
+        Error_Handler();
+    }
+
 
     if (hilCliInit() != HAL_OK) {
         Error_Handler();
     }
-
 
     printf("Finished user init\n");
 }

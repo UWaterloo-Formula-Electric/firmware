@@ -5,8 +5,10 @@
 #define THROTTLE_SIM_B_PRESSED  3804.0f   // THROTT_B_HIGH
 #define THROTTLE_SIM_DAC_MAX    4095.0f
 
+
 #include "throttleSim.h"  
 #include "i2cDac.h"        // i2cDacSetCodes we need this function
+#include "bsp.h"
 
 
 static uint16_t percentToCode(float released, float pressed, float percent)
@@ -24,8 +26,7 @@ static uint16_t percentToCode(float released, float pressed, float percent)
 
 }
 
-HAL_StatusTypeDef throttleSimSetPercents(float percentA, float percentB,
-                                         uint16_t *codeA, uint16_t *codeB)
+HAL_StatusTypeDef throttleSimSetPercents(float percentA, float percentB, uint16_t *codeA, uint16_t *codeB)
 {
     if (codeA == NULL || codeB == NULL) {
         return HAL_ERROR;
@@ -34,5 +35,9 @@ HAL_StatusTypeDef throttleSimSetPercents(float percentA, float percentB,
     *codeA = percentToCode(THROTTLE_SIM_A_RELEASED, THROTTLE_SIM_A_PRESSED, percentA);
     *codeB = percentToCode(THROTTLE_SIM_B_RELEASED, THROTTLE_SIM_B_PRESSED, percentB);
 
-    return i2cDacSetCodes(*codeA, *codeB);
+    if (HAL_DAC_SetValue(&DAC_HANDLE, DAC_1_CHANNEL, DAC_ALIGN_12B_R, *codeA) != HAL_OK) {
+        return HAL_ERROR;
+    }
+
+    return i2cDacSetCodes(*codeB, 0);
 }
