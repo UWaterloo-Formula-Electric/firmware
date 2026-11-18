@@ -17,6 +17,7 @@
 #include "canInject.h"
 #include "hilCli.h"
 #include "pwmBus.h"
+#include "i2cDac.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -50,10 +51,19 @@ void userInit()
         Error_Handler();
     }
 
-    if (hilCliInit() != HAL_OK) {
+    if (i2cDacInit() != HAL_OK) {
         Error_Handler();
     }
 
+    // enable STM DAC1
+    if (HAL_DAC_Start(&DAC_HANDLE, DAC_1_CHANNEL) != HAL_OK) {
+        Error_Handler();
+    }
+
+
+    if (hilCliInit() != HAL_OK) {
+        Error_Handler();
+    }
 
     printf("Finished user init\n");
 }
