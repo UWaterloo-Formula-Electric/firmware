@@ -58,6 +58,15 @@
 #define MCP4728_PD0                  0U
 #define MCP4728_GX                   0U
 
+// Resolved 7-bit I2C address per chip, probed during mcp4728Init().
+// Defaults to 0x60..0x63, or falls back to 0x60 for factory-fresh chips.
+static uint8_t chipAddress7[MCP4728_NUM_CHIPS] = {
+    MCP4728_BASE_ADDRESS7,
+    MCP4728_BASE_ADDRESS7 + 1U,
+    MCP4728_BASE_ADDRESS7 + 2U,
+    MCP4728_BASE_ADDRESS7 + 3U,
+};
+
 static HAL_StatusTypeDef buildOutputFrame(Mcp4728Channel_t channel, uint16_t dacCode,
                                           uint8_t frame[MCP4728_FRAME_LENGTH])
 {
@@ -95,21 +104,10 @@ static HAL_StatusTypeDef buildOutputFrame(Mcp4728Channel_t channel, uint16_t dac
 static HAL_StatusTypeDef transmitFrame(Mcp4728Chip_t chip, uint8_t frame[MCP4728_FRAME_LENGTH])
 {
     // i2cBus expects the 7-bit address shifted left by 1 bit for the R/W bit
-    uint16_t chipAddress = (uint16_t)((MCP4728_BASE_ADDRESS7 + (uint8_t)chip) << 1U);
+    uint16_t chipAddress = (uint16_t)(chipAddress7[chip] << 1U);
 
     if (i2cWrite(MCP4728_I2C_BUS, chipAddress, frame, MCP4728_FRAME_LENGTH) == HAL_OK) {
         return HAL_OK;
-    }
-
-    // Factory-fresh MCP4728 chips all share address 0x60 until their EEPROM
-    // address bits are programmed. Because UDAC = 1 defers output latching to
-    // the chip's dedicated LDAC_x pin, we can fall back to 0x60 and let
-    // activateDac() latch only the target chip.
-    if (chip != MCP4728_CHIP_1) {
-        uint16_t defaultAddress = (uint16_t)(MCP4728_BASE_ADDRESS7 << 1U);
-        if (i2cWrite(MCP4728_I2C_BUS, defaultAddress, frame, MCP4728_FRAME_LENGTH) == HAL_OK) {
-            return HAL_OK;
-        }
     }
 
     ERROR_PRINT("Failed to transmit frame to MCP4728 chip %d\n", chip + 1);
@@ -165,7 +163,18 @@ HAL_StatusTypeDef mcp4728Init(void)
 
     for (int i = 0; i < MCP4728_NUM_CHIPS; i++) {
         uint8_t address7 = (uint8_t)(MCP4728_BASE_ADDRESS7 + i);
-        if (i2cIsDeviceReady(MCP4728_I2C_BUS, (uint16_t)(address7 << 1U)) != HAL_OK) {
+        if (i2cIsDeviceReady(MCP4728_I2C_BUS, (uint16_t)(address7 << 1U)) == HAL_OK) {
+            chipAddress7[i] = address7;
+        } else if (i != 0 && i2cIsDeviceReady(MCP4728_I2C_BUS, (uint16_t)(MCP4728_BASE_ADDRESS7 << 1U)) == HAL_OK) {
+            // Factory-fresh MCP4728 chips all share address 0x60 until their
+            // EEPROM address bits are programmed. Because UDAC = 1 defers
+            // output latching to each chip's dedicated LDAC_x pin, cache 0x60
+            // so writes go directly to 0x60 without triggering NACK errors.
+            chipAddress7[i] = MCP4728_BASE_ADDRESS7;
+            DEBUG_PRINT("MCP4728 chip %d not at 0x%02X, using default 0x%02X via LDAC_%d\n",
+                        i + 1, address7, MCP4728_BASE_ADDRESS7, i + 1);
+        } else {
+            chipAddress7[i] = address7;
             DEBUG_PRINT("MCP4728 chip %d (0x%02X) did not ACK on I2C1\n", i + 1, address7);
         }
     }

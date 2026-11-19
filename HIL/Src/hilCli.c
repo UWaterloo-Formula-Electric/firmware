@@ -579,7 +579,7 @@ static BaseType_t bspdSetCurrentCommand(char *writeBuffer, size_t writeBufferLen
 static const CLI_Command_Definition_t bspdSetCurrentCommandDefinition =
 {
     "bspdSetCurrent",
-    "bspdSetCurrent <volts>:\r\n  Set simulated HV hall current sensor voltage (0.0-4.95V) on J9B Pin 12\r\n",
+    "bspdSetCurrent <volts>:\r\n  Set simulated current sensor voltage (0.0-4.95V) on J9B Pin 12\r\n",
     bspdSetCurrentCommand,
     1 /* Number of parameters */
 };
@@ -619,7 +619,7 @@ static BaseType_t bspdSimFaultCommand(char *writeBuffer, size_t writeBufferLengt
 static const CLI_Command_Definition_t bspdSimFaultCommandDefinition =
 {
     "bspdSimFault",
-    "bspdSimFault [duration_ms]:\r\n  Inject concurrent brake (2.80V > 2.50V) & current (4.20V > 4.004V) trip\r\n",
+    "bspdSimFault [duration_ms]:\r\n  Inject concurrent brake (2.80V) & current (4.20V) BSPD trip\r\n",
     bspdSimFaultCommand,
     -1 /* Optional duration parameter */
 };

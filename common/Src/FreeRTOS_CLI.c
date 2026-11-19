@@ -210,7 +210,8 @@ size_t xCommandStringLength;
 	{
 		/* The command was found, but the number of parameters with the command
 		was incorrect. */
-		strncpy( pcWriteBuffer, "Incorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n", xWriteBufferLen );
+		strncpy( pcWriteBuffer, "Incorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n", xWriteBufferLen - 1 );
+		pcWriteBuffer[ xWriteBufferLen - 1 ] = '\0';
 		pxCommand = NULL;
 	}
 	else if( pxCommand != NULL )
@@ -229,7 +230,8 @@ size_t xCommandStringLength;
 	else
 	{
 		/* pxCommand was NULL, the command was not found. */
-		strncpy( pcWriteBuffer, "Command not recognised.  Enter 'help' to view a list of available commands.\r\n\r\n", xWriteBufferLen );
+		strncpy( pcWriteBuffer, "Command not recognised.  Enter 'help' to view a list of available commands.\r\n\r\n", xWriteBufferLen - 1 );
+		pcWriteBuffer[ xWriteBufferLen - 1 ] = '\0';
 		xReturn = pdFALSE;
 	}
 
@@ -314,7 +316,8 @@ BaseType_t xReturn;
 
 	/* Return the next command help string, before moving the pointer on to
 	the next command in the list. */
-	strncpy( pcWriteBuffer, pxCommand->pxCommandLineDefinition->pcHelpString, xWriteBufferLen );
+	strncpy( pcWriteBuffer, pxCommand->pxCommandLineDefinition->pcHelpString, xWriteBufferLen - 1 );
+	pcWriteBuffer[ xWriteBufferLen - 1 ] = '\0';
 	pxCommand = pxCommand->pxNext;
 
 	if( pxCommand == NULL )
