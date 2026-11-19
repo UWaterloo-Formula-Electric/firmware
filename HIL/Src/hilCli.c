@@ -498,7 +498,7 @@ static BaseType_t mcpSetCommand(char *writeBuffer, size_t writeBufferLength, con
 static const CLI_Command_Definition_t mcpSetCommandDefinition =
 {
     "mcpSet",
-    "mcpSet <chip 1..4> <ch A..D> <millivolts> [gain]:\r\n  Set MCP4728 external DAC channel voltage in mV\r\n",
+    "mcpSet <chip 1..4> <ch A..D> <mV> [gain]:\r\n  Set MCP4728 external DAC channel in mV\r\n",
     mcpSetCommand,
     -1 /* Variable parameters: 3 or 4 */
 };
@@ -539,7 +539,7 @@ static BaseType_t bspdSetBrakeCommand(char *writeBuffer, size_t writeBufferLengt
 static const CLI_Command_Definition_t bspdSetBrakeCommandDefinition =
 {
     "bspdSetBrake",
-    "bspdSetBrake <volts>:\r\n  Set simulated brake pressure sensor voltage (0.0-3.3V) on J9A Pin 1\r\n",
+    "bspdSetBrake <volts>:\r\n  Set brake sensor voltage 0.0-3.3V (J9A Pin 1)\r\n",
     bspdSetBrakeCommand,
     1 /* Number of parameters */
 };
@@ -579,7 +579,7 @@ static BaseType_t bspdSetCurrentCommand(char *writeBuffer, size_t writeBufferLen
 static const CLI_Command_Definition_t bspdSetCurrentCommandDefinition =
 {
     "bspdSetCurrent",
-    "bspdSetCurrent <volts>:\r\n  Set simulated HV hall current sensor voltage (0.0-4.95V) on J9B Pin 12\r\n",
+    "bspdSetCurrent <volts>:\r\n  Set hall current sensor voltage 0.0-4.95V (J9B Pin 12)\r\n",
     bspdSetCurrentCommand,
     1 /* Number of parameters */
 };
@@ -611,15 +611,15 @@ static BaseType_t bspdSimFaultCommand(char *writeBuffer, size_t writeBufferLengt
     }
 
     // 3. Output confirmation to user with injected voltage and duration details
-    COMMAND_OUTPUT("Injected BSPD fault (Brake %.2fV, Current %.2fV) for %u ms, then reset to %.2fV\n",
-                   BSPD_BRAKE_ACTIVE_V, BSPD_CURRENT_TRIP_V, duration, BSPD_BRAKE_IDLE_V);
+    COMMAND_OUTPUT("BSPD fault: brake %.2fV, current %.2fV for %u ms\n",
+                   BSPD_BRAKE_ACTIVE_V, BSPD_CURRENT_TRIP_V, duration);
     return pdFALSE;
 }
 
 static const CLI_Command_Definition_t bspdSimFaultCommandDefinition =
 {
     "bspdSimFault",
-    "bspdSimFault [duration_ms]:\r\n  Inject concurrent brake (2.80V > 2.50V) & current (4.20V > 4.004V) trip\r\n",
+    "bspdSimFault [duration_ms]:\r\n  Inject concurrent brake+current trip, then reset\r\n",
     bspdSimFaultCommand,
     -1 /* Optional duration parameter */
 };
@@ -642,7 +642,7 @@ static BaseType_t bspdSimResetCommand(char *writeBuffer, size_t writeBufferLengt
     }
 
     // 2. Output confirmation to user
-    COMMAND_OUTPUT("BSPD simulation reset to idle (Brake: %.2fV on J9A P1, Current: %.2fV on J9B P12)\n",
+    COMMAND_OUTPUT("BSPD idle: brake %.2fV (J9A P1), current %.2fV (J9B P12)\n",
                    BSPD_BRAKE_IDLE_V, BSPD_CURRENT_IDLE_V);
     return pdFALSE;
 }
@@ -650,7 +650,7 @@ static BaseType_t bspdSimResetCommand(char *writeBuffer, size_t writeBufferLengt
 static const CLI_Command_Definition_t bspdSimResetCommandDefinition =
 {
     "bspdSimReset",
-    "bspdSimReset:\r\n  Reset brake and current simulated voltages to safe idle (0.50V)\r\n",
+    "bspdSimReset:\r\n  Reset brake and current sim voltages to idle (0.50V)\r\n",
     bspdSimResetCommand,
     0 /* Number of parameters */
 };
@@ -680,7 +680,7 @@ static BaseType_t bspdSimOCCommand(char *writeBuffer, size_t writeBufferLength,
 static const CLI_Command_Definition_t bspdSimOCCommandDefinition =
 {
     "bspdSimOC",
-    "bspdSimOC:\r\n  Inject brake open-circuit fault (0.10V < 0.238V threshold) on J9A Pin 1\r\n",
+    "bspdSimOC:\r\n  Inject brake open-circuit fault (0.10V) on J9A Pin 1\r\n",
     bspdSimOCCommand,
     0 /* Number of parameters */
 };
