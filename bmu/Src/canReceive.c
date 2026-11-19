@@ -15,6 +15,7 @@
 #include "debug.h"
 #include "boardTypes.h"
 #include "batteries.h"
+#include "fanControl.h"
 
 #include "controlStateMachine.h"
 
@@ -35,6 +36,11 @@ void CAN_Msg_VCU_buttonEvents_Callback()
     if (ButtonHVEnabled) {
 		DEBUG_PRINT_ISR("HV Toggle button event\n");
         fsmSendEventISR(&fsmHandle, EV_HV_Toggle);
+    }
+    if(Cooling){
+        static bool fanState = false;
+        fanState = !fanState;
+        setManualFanOverride(fanState);
     }
 }
 

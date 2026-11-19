@@ -33,6 +33,10 @@
 #define TC_TOGGLE_BUTTON_PORT           BTN_TC_SNS_GPIO_Port
 #define ENDURANCE_TOGGLE_BUTTON_PIN     BTN_ENDUR_SNS_Pin
 #define ENDURANCE_TOGGLE_BUTTON_PORT    BTN_ENDUR_SNS_GPIO_Port
+// TEMP: borrow HV button (PC4) for testing, revert to BTN_FAN_TEST (PA8) after
+#define FAN_TOGGLE_BUTTON_PIN           BTN_HV_SNS_Pin
+#define FAN_TOGGLE_BUTTON_PORT          BTN_HV_SNS_GPIO_Port
+
 
 // Additionally, each button has LED
 #define EM_LED_Pin                      LED_BTN_EM_EN_Pin
