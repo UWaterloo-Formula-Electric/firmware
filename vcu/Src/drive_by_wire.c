@@ -755,6 +755,7 @@ static int sendTCToggleMsg(void)
 
 static int sendFanToggleMsg(void)
 {
+    DEBUG_PRINT("Fan Toggle\n");
     ButtonHVEnabled = 0;
     ButtonEMEnabled = 0;
     ButtonEnduranceToggleEnabled = 0;

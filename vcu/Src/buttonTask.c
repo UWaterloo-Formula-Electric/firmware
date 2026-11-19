@@ -34,11 +34,12 @@ void buttonTask(void *pvParameters) {
         lastDebouncedState = debouncedState;
         // Read the state of the buttons
         state[index] = 0;
-        state[index] |= (HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT, HV_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << HV_TOGGLE_OFFSET;
+        // TEMP: HV read disabled while PC4 is borrowed for the fan button test
+        // state[index] |= (HAL_GPIO_ReadPin(HV_TOGGLE_BUTTON_PORT, HV_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << HV_TOGGLE_OFFSET;
         state[index] |= (HAL_GPIO_ReadPin(EM_TOGGLE_BUTTON_PORT, EM_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << EM_TOGGLE_OFFSET;
         state[index] |= (HAL_GPIO_ReadPin(TC_TOGGLE_BUTTON_PORT, TC_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << TC_TOGGLE_OFFSET;
         state[index] |= (HAL_GPIO_ReadPin(ENDURANCE_TOGGLE_BUTTON_PORT, ENDURANCE_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << ENDURANCE_TOGGLE_OFFSET;
-        state[index] |= (HAL_GPIO_ReadPin(FAN_TOGGLE_BUTTON_PORT, FAN_TOGGLE_BUTTON_PIN) == GPIO_PIN_SET) << FAN_TOGGLE_OFFSET;
+        state[index] |= (HAL_GPIO_ReadPin(FAN_TOGGLE_BUTTON_PORT, FAN_TOGGLE_BUTTON_PIN) == GPIO_PIN_RESET) << FAN_TOGGLE_OFFSET;
 
         // Debounce the buttons
         debouncedState = 0xFF;  // Start with all bits set
