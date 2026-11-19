@@ -17,6 +17,8 @@
 #include "canInject.h"
 #include "hilCli.h"
 #include "pwmBus.h"
+#include "dacBus.h"
+#include "bspdSim.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName )
@@ -48,6 +50,16 @@ void userInit()
 
     if (pwmBusInit() != HAL_OK) {
         Error_Handler();
+    }
+
+    if (dacBusInit() != HAL_OK) {
+        Error_Handler();
+    }
+
+    if (bspdSimInit() != HAL_OK) {
+        /* Do not call Error_Handler() here so the CLI still boots even if an
+         * external MCP4728 DAC on I2C1 does not ACK during bench bring-up. */
+        DEBUG_PRINT("Warning: bspdSimInit failed to set initial external DAC state\n");
     }
 
     if (hilCliInit() != HAL_OK) {
