@@ -344,8 +344,8 @@ static const CLI_Command_Definition_t gpio3v1EnableCommandDefinition =
 static BaseType_t tssiGStatus(char *writeBuffer, size_t writeBufferLength,
                               const char *commandString)
 {
-    // TSSI green GND is wired to GPIO12V_11 (PE9)
-    bool isOn = GPIO12V_READ(11) == GPIO_PIN_RESET;
+    // TSSI green GND is wired to GPIO12V_1 (PG0)
+    bool isOn = GPIO12V_READ(1) == GPIO_PIN_RESET;
     COMMAND_OUTPUT("Green TSSI is %s\n", isOn ? "ON": "OFF");
     return pdFALSE;
 }
