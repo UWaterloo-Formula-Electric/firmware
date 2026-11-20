@@ -1715,6 +1715,68 @@ static const CLI_Command_Definition_t calcDataPecCommandDefinition =
     6 /* Number of parameters */
 };
 
+BaseType_t tssiGreenOnCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    TSSI_GREEN_ON;
+    COMMAND_OUTPUT("TSSI green on\n");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t tssiGreenOnCommandDefinition =
+{
+    "tssiGreenOn",
+    "tssiGreenOn:\r\n Turn on the TSSI green LED\r\n",
+    tssiGreenOnCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t tssiGreenOffCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    TSSI_GREEN_OFF;
+    COMMAND_OUTPUT("TSSI green off\n");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t tssiGreenOffCommandDefinition =
+{
+    "tssiGreenOff",
+    "tssiGreenOff:\r\n Turn off the TSSI green LED\r\n",
+    tssiGreenOffCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t tssiRedOnCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    TSSI_RED_ON;
+    COMMAND_OUTPUT("TSSI red on (flashing)\n");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t tssiRedOnCommandDefinition =
+{
+    "tssiRedOn",
+    "tssiRedOn:\r\n Turn on (flash) the TSSI red LED\r\n",
+    tssiRedOnCommand,
+    0 /* Number of parameters */
+};
+
+BaseType_t tssiRedOffCommand(char *writeBuffer, size_t writeBufferLength,
+                       const char *commandString)
+{
+    TSSI_RED_OFF;
+    // Stopping the flash timer can leave the pin high mid-toggle
+    HAL_GPIO_WritePin(TSSI_RED_EN_GPIO_Port, TSSI_RED_EN_Pin, GPIO_PIN_RESET);
+    COMMAND_OUTPUT("TSSI red off\n");
+    return pdFALSE;
+}
+static const CLI_Command_Definition_t tssiRedOffCommandDefinition =
+{
+    "tssiRedOff",
+    "tssiRedOff:\r\n Turn off the TSSI red LED\r\n",
+    tssiRedOffCommand,
+    0 /* Number of parameters */
+};
+
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -1894,6 +1956,18 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&tssiGreenOnCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&tssiGreenOffCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&tssiRedOnCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&tssiRedOffCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
