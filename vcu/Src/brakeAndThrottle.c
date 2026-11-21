@@ -369,8 +369,25 @@ float getBrakePressurePercent() {
 // Full left turn angle: -100 degrees
 // Full right turn angle: 100 degrees
 int getSteeringAngle() {
-  int steeringPotVal = brakeThrottleSteeringADCVals[STEERING_INDEX];
-  return (steeringPotVal-STEERING_POT_OFFSET) / STEERING_SCALE_DIVIDER;
+
+    int raw_output = brakeThrottleSteeringADCVals[STEERING_INDEX];
+
+    int unwrapped = raw_output;
+    if (raw_output > STEERING_WRAP_THRESHOLD) {
+        unwrapped = raw_output - STEERING_ADC_RANGE;
+    }
+
+    int angle = ((STEERING_UNWRAPPED_CENTER - unwrapped) * 100) / STEERING_HALF_TRAVEL;
+
+    if (angle > 100){
+        angle = 100;
+    }
+    if (angle < -100){
+        angle = -100;
+    }
+
+    return angle;
+
 }
 
 HAL_StatusTypeDef brakeAndThrottleStart()
