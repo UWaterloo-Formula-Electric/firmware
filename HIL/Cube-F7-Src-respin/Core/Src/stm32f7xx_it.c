@@ -57,6 +57,7 @@
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan3;
 extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim3;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 extern TIM_HandleTypeDef htim1;
