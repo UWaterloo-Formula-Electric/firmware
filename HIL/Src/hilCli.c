@@ -42,8 +42,6 @@
 
 #define PWM_FIRST_CHANNEL 8
 #define PWM_LAST_CHANNEL 10
-#define TIM3_CLOCK_HZ 100000000UL
-
 
 #define DAC_FIRST_CHANNEL 1
 #define DAC_LAST_CHANNEL 2
@@ -411,7 +409,7 @@ static BaseType_t readPwmCommand(char *writeBuffer, size_t writeBufferLength, co
         return pdFALSE;
     }
 
-    unsigned long counterHz = TIM3_CLOCK_HZ / (htim3.Init.Prescaler + 1UL);
+    unsigned long counterHz = pwmInputCounterClockHz();
     unsigned long frequencyHz = (counterHz + period / 2UL) / period;
     unsigned long dutyTenths = (1000UL * high + period / 2UL) / period;
 

@@ -75,6 +75,10 @@
 #define GPIO3V_WRITE(n, state) HAL_GPIO_WritePin(GPIO3V_##n##_GPIO_Port, GPIO3V_##n##_Pin, (state))
 #define GPIO3V_READ(n) HAL_GPIO_ReadPin(GPIO3V_##n##_GPIO_Port, GPIO3V_##n##_Pin)
 
+#define PWM_INPUT_TIM_HANDLE htim3
+#define PWM_INPUT_PERIOD_CHANNEL TIM_CHANNEL_1
+#define PWM_INPUT_HIGH_CHANNEL TIM_CHANNEL_2
+
 // Called by common/Src/generalErrorHandler.c after a fatal error, defined in
 // Src/canReceive.c. Declared here because the generated HIL_can.h only
 // declares it once HIL receives a DTC message.
