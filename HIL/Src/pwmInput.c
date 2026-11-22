@@ -40,8 +40,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         __HAL_TIM_CLEAR_FLAG(htim, overcaptureFlags);
     }
 
-    if (haveFirstRise && haveFall && !overcapture &&
-        high > 0U && high < period) {
+    if (haveFirstRise && haveFall && !overcapture && high > 0U && high < period) {
         periodTicks = period;
         highTicks = high;
         lastSampleMs = HAL_GetTick();
