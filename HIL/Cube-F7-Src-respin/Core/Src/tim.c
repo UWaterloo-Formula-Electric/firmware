@@ -129,7 +129,6 @@ void MX_TIM8_Init(void)
   /* USER CODE END TIM8_Init 0 */
 
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
@@ -151,14 +150,6 @@ void MX_TIM8_Init(void)
   sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim8, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -222,9 +213,6 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* tim_icHandle)
     GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
     HAL_GPIO_Init(PWM_8_GPIO_Port, &GPIO_InitStruct);
 
-    /* TIM3 interrupt Init */
-    HAL_NVIC_SetPriority(TIM3_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(TIM3_IRQn);
   /* USER CODE BEGIN TIM3_MspInit 1 */
 
   /* USER CODE END TIM3_MspInit 1 */
@@ -249,10 +237,18 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
 {
-    if (tim_pwmHandle->Instance == TIM8)
-    {
-        __HAL_RCC_TIM8_CLK_ENABLE();
-    }
+
+  if(tim_pwmHandle->Instance==TIM8)
+  {
+  /* USER CODE BEGIN TIM8_MspInit 0 */
+
+  /* USER CODE END TIM8_MspInit 0 */
+    /* TIM8 clock enable */
+    __HAL_RCC_TIM8_CLK_ENABLE();
+  /* USER CODE BEGIN TIM8_MspInit 1 */
+
+  /* USER CODE END TIM8_MspInit 1 */
+  }
 }
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
 {
@@ -299,8 +295,6 @@ void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* tim_icHandle)
     */
     HAL_GPIO_DeInit(PWM_8_GPIO_Port, PWM_8_Pin);
 
-    /* TIM3 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(TIM3_IRQn);
   /* USER CODE BEGIN TIM3_MspDeInit 1 */
 
   /* USER CODE END TIM3_MspDeInit 1 */
@@ -325,12 +319,18 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
 void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* tim_pwmHandle)
 {
-    if (tim_pwmHandle->Instance == TIM8)
-    {
-        __HAL_RCC_TIM8_CLK_DISABLE();
 
-        HAL_GPIO_DeInit(GPIOC, PWM_9_Pin | PWM_10_Pin);
-    }
+  if(tim_pwmHandle->Instance==TIM8)
+  {
+  /* USER CODE BEGIN TIM8_MspDeInit 0 */
+
+  /* USER CODE END TIM8_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM8_CLK_DISABLE();
+  /* USER CODE BEGIN TIM8_MspDeInit 1 */
+
+  /* USER CODE END TIM8_MspDeInit 1 */
+  }
 }
 
 /* USER CODE BEGIN 1 */

@@ -56,8 +56,6 @@
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan3;
-extern TIM_HandleTypeDef htim8;
-extern TIM_HandleTypeDef htim3;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 extern TIM_HandleTypeDef htim1;
@@ -204,20 +202,6 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
 
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM8 capture compare interrupt.
-  */
-void TIM8_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM8_CC_IRQn 0 */
-
-  /* USER CODE END TIM8_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim8);
-  /* USER CODE BEGIN TIM8_CC_IRQn 1 */
-
-  /* USER CODE END TIM8_CC_IRQn 1 */
 }
 
 /**
