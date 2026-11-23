@@ -59,7 +59,7 @@ bool motorOverheated(void)
     return INV_Motor_Temp > EMRAX_228_LC_MAX_TEMP_C - 20.0f;
 }
 
-void coolingTask(void *pvParameters) {
+void coolingTask(void const *argument) {
     if (registerTaskToWatch(COOLING_TASK_ID, 2*COOLING_TASK_PERIOD_MS, false, NULL) != HAL_OK)
     {
         ERROR_PRINT("Failed to register cooling task with watchdog!\n");

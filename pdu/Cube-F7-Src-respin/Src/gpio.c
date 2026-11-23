@@ -67,7 +67,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, WSB_EN_Pin|BMU_EN_Pin|CDU_EN_Pin|PUMP_2_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, PUMP_1_EN_Pin|CHARGE_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PUMP_1_EN_GPIO_Port, PUMP_1_EN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CHG_EN_GPIO_Port, CHG_EN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : CURR_SENSE_MUX_S3_Pin CURR_SENSE_MUX_S2_Pin CURR_SENSE_MUX_S1_Pin */
   GPIO_InitStruct.Pin = CURR_SENSE_MUX_S3_Pin|CURR_SENSE_MUX_S2_Pin|CURR_SENSE_MUX_S1_Pin;
@@ -101,12 +104,19 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PUMP_1_EN_Pin CHARGE_EN_Pin */
-  GPIO_InitStruct.Pin = PUMP_1_EN_Pin|CHARGE_EN_Pin;
+  /*Configure GPIO pin : PUMP_1_EN_Pin */
+  GPIO_InitStruct.Pin = PUMP_1_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(PUMP_1_EN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CHG_EN_Pin */
+  GPIO_InitStruct.Pin = CHG_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(CHG_EN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : CHG_STAT_1_Pin CHG_STAT_2_Pin TEMP_ALERT_Pin */
   GPIO_InitStruct.Pin = CHG_STAT_1_Pin|CHG_STAT_2_Pin|TEMP_ALERT_Pin;

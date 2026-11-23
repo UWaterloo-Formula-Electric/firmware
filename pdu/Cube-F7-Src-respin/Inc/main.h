@@ -137,8 +137,8 @@ void Error_Handler(void);
 #define PUMP_2_EN_GPIO_Port GPIOC
 #define PUMP_1_EN_Pin GPIO_PIN_8
 #define PUMP_1_EN_GPIO_Port GPIOA
-#define CHARGE_EN_Pin GPIO_PIN_9
-#define CHARGE_EN_GPIO_Port GPIOA
+#define CHG_EN_Pin GPIO_PIN_9
+#define CHG_EN_GPIO_Port GPIOA
 #define CHG_STAT_1_Pin GPIO_PIN_10
 #define CHG_STAT_1_GPIO_Port GPIOA
 #define CHG_STAT_2_Pin GPIO_PIN_11

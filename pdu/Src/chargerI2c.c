@@ -1,39 +1,32 @@
 #include "chargerI2c.h"
 #include "chargerRegs.h"
+#include "debug.h"
 #include "i2c.h"
-#include "FreeRTOS.h"
-#include "task.h"
 
 
-#define BQ_READ_TIMEOUT_MS  2 // max wait time for I2C read operation 
-#define BQ_RETRY_DELAY_MS   2 // delay between retries for I2C read operation
-#define BQ_READ_RETRIES     5 // number of retries for I2C read operation
+#define BQ_READ_TIMEOUT_MS  2 // max wait time for I2C read operation
 #define BQ_WRITE_TIMEOUT_MS 2 // max wait time for I2C write operation
 
-// shared by the 8 and 16 bit reads, retries on bus failure
+// shared by the 8 and 16 bit reads, single attempt
 static HAL_StatusTypeDef chargerReadBytes(uint8_t reg, uint8_t *buf, uint16_t len){
-    HAL_StatusTypeDef status;
-    for (int i = 0; i < BQ_READ_RETRIES; i++){
-        status = HAL_I2C_Mem_Read(
-            &hi2c2, BQ_I2C_HAL_ADDRESS, reg,
-            I2C_MEMADD_SIZE_8BIT, buf, len, BQ_READ_TIMEOUT_MS
-        );
-        if (status == HAL_OK){
-            return status;
-        }
-        if (i < BQ_READ_RETRIES - 1) {
-            vTaskDelay(pdMS_TO_TICKS(BQ_RETRY_DELAY_MS)); // wait before retrying
-        }
+    if (HAL_I2C_Mem_Read(&hi2c2, BQ_I2C_HAL_ADDRESS, reg, I2C_MEMADD_SIZE_8BIT, buf, len, BQ_READ_TIMEOUT_MS) != HAL_OK){
+        return HAL_ERROR;
     }
-    return status; 
+    return HAL_OK;
 }
 
 // shared by the 8 and 16 bit writes, single attempt
 static HAL_StatusTypeDef chargerWriteBytes(uint8_t reg, uint8_t *buf, uint16_t len){
-    return HAL_I2C_Mem_Write(
-        &hi2c2, BQ_I2C_HAL_ADDRESS, reg,
-        I2C_MEMADD_SIZE_8BIT, buf, len, BQ_WRITE_TIMEOUT_MS
-    );
+    if (reg <= BQ_CONTROL_REG && BQ_CONTROL_REG < reg + len){   // does this write touch 0x17?
+        if (buf[BQ_CONTROL_REG - reg] & BQ_DIS_CE_MASK){     // the byte landing on 0x17
+            ERROR_PRINT("illegal attempt to write to BQ with the DIS_CE bit set\n");
+            return HAL_ERROR;  // refuse and never send
+        }                                   
+    }
+    if (HAL_I2C_Mem_Write(&hi2c2, BQ_I2C_HAL_ADDRESS, reg, I2C_MEMADD_SIZE_8BIT, buf, len, BQ_WRITE_TIMEOUT_MS) != HAL_OK){
+        return HAL_ERROR;
+    }
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef chargerReadRegister(uint8_t reg, uint8_t *data){

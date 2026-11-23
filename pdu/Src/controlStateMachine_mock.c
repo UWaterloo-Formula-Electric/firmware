@@ -625,7 +625,7 @@ BaseType_t bqVerify(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
     uint8_t data;
-    bqReadStatus_t status = chargerVerifyChip(&data);
+    bqCommStatus_t status = chargerVerifyChip(&data);
     if (status == CHARGER_OK) {
         COMMAND_OUTPUT("Charger verified successfully. Part number: %u, Revision: %u\n", chargerDecodePartNumber(data), chargerDecodeRevision(data));
     } else if (status == CHARGER_BUS_ERROR) {

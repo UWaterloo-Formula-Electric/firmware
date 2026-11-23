@@ -90,6 +90,7 @@ osThreadId canPublishHandle;
 osThreadId coolingHandle;
 osThreadId loadSensorHandle;
 osThreadId tempSensorHandle;
+osThreadId chargerHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -107,6 +108,7 @@ extern void canPublishTask(void const * argument);
 extern void coolingTask(void const * argument);
 extern void loadSensorTask(void const * argument);
 extern void tempSensorTask(void const * argument);
+extern void chargerTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -239,6 +241,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of tempSensor */
   osThreadDef(tempSensor, tempSensorTask, osPriorityNormal, 0, 256);
   tempSensorHandle = osThreadCreate(osThread(tempSensor), NULL);
+
+  /* definition and creation of charger */
+  osThreadDef(charger, chargerTask, osPriorityBelowNormal, 0, 1000);
+  chargerHandle = osThreadCreate(osThread(charger), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

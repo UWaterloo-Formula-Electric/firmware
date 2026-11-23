@@ -46,5 +46,6 @@ void mainControlTask(void *pvParameters);
 #define LOAD_SENSOR_TASK_ID 3
 #define SENSOR_TASK_ID 4
 #define COOLING_TASK_ID 5
+#define CHARGER_TASK_ID 6
 
 #endif // __CONTROL_STATE_MACHINE_H_
