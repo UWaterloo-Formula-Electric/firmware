@@ -1712,6 +1712,365 @@ static const CLI_Command_Definition_t calcDataPecCommandDefinition =
     6 /* Number of parameters */
 };
 
+/* ===========================================================================
+ * BMU bring-up test pipeline ("bmuSelfTest")
+ *
+ * Runs every automated check from the BMU Test Plan (Notion, Calibration
+ * Pipeline task) in order, prints one PASS/FAIL line per test, and stops early
+ * if a critical test fails. Run on a bench at low voltage.
+ *
+ * To add a test: write a function with the BmuTestFn signature below and add
+ * one line to bmuTests[]. COMMAND_OUTPUT can only be used once per CLI call,
+ * so the command prints one test per call and returns pdTRUE until done.
+ *
+ * Not automated (needs a person or extra hardware feedback): power rails,
+ * connector continuity, contactors/PCDC, fans, lights, LIN, lamp check,
+ * IL sweep. Those stay as manual steps in the test plan.
+ * ========================================================================= */
+
+/* Pass limits. TODO: confirm with lead for the new revision. */
+#define SELFTEST_MIN_FREE_HEAP_BYTES   1000U
+#define SELFTEST_CELL_MIN_V            LIMIT_LOWVOLTAGE    /* 2.5 V */
+#define SELFTEST_CELL_MAX_V            LIMIT_HIGHVOLTAGE   /* 4.2 V */
+#define SELFTEST_TEMP_MIN_C            (5.0F)
+#define SELFTEST_TEMP_MAX_C            (45.0F)
+#define SELFTEST_HV_MAX_V              (600.0F)
+#define SELFTEST_ISOSPI_ITERATIONS     200
+#define SELFTEST_MSG_LEN               80
+
+typedef bool (*BmuTestFn)(char *msg, size_t len);   /* true = pass */
+
+typedef struct {
+    const char *name;
+    BmuTestFn   run;
+    bool        critical;   /* stop the pipeline if this one fails */
+} BmuSelfTest_t;
+
+/* Test plan A3: firmware running with enough free memory */
+static bool selfTestHeap(char *msg, size_t len)
+{
+    size_t minFree = xPortGetMinimumEverFreeHeapSize();
+    snprintf(msg, len, "min free heap %u B", (unsigned)minFree);
+    return minFree >= SELFTEST_MIN_FREE_HEAP_BYTES;
+}
+
+/* Test plan E1: state machine finished boot and is idle with HV off */
+static bool selfTestBootState(char *msg, size_t len)
+{
+    uint8_t s = fsmGetState(&fsmHandle);
+    if (s >= STATE_ANY) {
+        snprintf(msg, len, "bad state index %u", s);
+        return false;
+    }
+    snprintf(msg, len, "state %s", BMU_states_string[s]);
+    return s == STATE_HV_Disable;
+}
+
+/* Test plan C3: every interlock loop / latch sense reads closed */
+static bool selfTestInterlockLoop(char *msg, size_t len)
+{
+    struct { const char *name; bool ok; } il[] = {
+        { "BOTS",     getBOTS_Status() },
+        { "EBOX IL",  getEbox_Il_Status() },
+        { "BSPD",     getBSPD_Status() },
+        { "HVD",      getHVD_Status() },
+        { "AMS",      getAMS_Status() },
+        { "IMD",      getIMD_Status() },
+        { "CBRB",     getCBRB_Status() },
+        { "TSMS",     getTSMS_Status() },
+        { "HW check", getHwCheck_Status() },
+    };
+    for (size_t i = 0; i < sizeof(il) / sizeof(il[0]); i++) {
+        if (!il[i].ok) {
+            snprintf(msg, len, "%s open/fault", il[i].name);
+            return false;
+        }
+    }
+    snprintf(msg, len, "all closed");
+    return true;
+}
+
+/* Test plan B1: write AMS config over isoSPI and read it back */
+static bool selfTestAmsConfig(char *msg, size_t len)
+{
+    static uint8_t cfgA[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+    static uint8_t cfgB[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+
+    if (batt_spi_wakeup(true) != HAL_OK) { snprintf(msg, len, "isoSPI wakeup failed"); return false; }
+    batt_init_chip_configs();
+    batt_init_chip_configs_pwm();
+    if (batt_write_config() != HAL_OK) { snprintf(msg, len, "config write failed"); return false; }
+    long_delay_us(2480);
+    if (batt_spi_wakeup(true) != HAL_OK) { snprintf(msg, len, "isoSPI wakeup failed"); return false; }
+    if (batt_read_config(cfgA, cfgB) != HAL_OK) { snprintf(msg, len, "config read failed (PEC?)"); return false; }
+
+#if LTC_CHIP == ADBMS_CHIP_6830B
+    /* batt_init_chip_configs() writes 0x1F to config A byte 3 (GPIO pulldowns off) */
+    for (int b = 0; b < NUM_BOARDS; b++) {
+        for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+            if ((cfgA[b][c][3] & 0x1F) != 0x1F) {
+                snprintf(msg, len, "board %d chip %d cfgA[3]=0x%02X", b, c, cfgA[b][c][3]);
+                return false;
+            }
+        }
+    }
+#endif
+    snprintf(msg, len, "%d chips read back OK", NUM_DEVICES);
+    return true;
+}
+
+/* Reads all cell voltages (with the dummy warm-up read, same as getCellVoltages) */
+static HAL_StatusTypeDef selfTestReadCells(float *v)
+{
+    if (batt_spi_wakeup(true) != HAL_OK) return HAL_ERROR;
+    batt_write_config();
+    batt_read_cell_voltages(v);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    return batt_read_cell_voltages(v);
+}
+
+/* Test plan B2: every cell voltage readable and in range */
+static bool selfTestCellVoltages(char *msg, size_t len)
+{
+    static float v[NUM_VOLTAGE_CELLS];
+    if (selfTestReadCells(v) != HAL_OK) { snprintf(msg, len, "cell voltage read failed"); return false; }
+    for (int i = 0; i < NUM_VOLTAGE_CELLS; i++) {
+        if (v[i] < SELFTEST_CELL_MIN_V || v[i] > SELFTEST_CELL_MAX_V) {
+            snprintf(msg, len, "cell %d = %.3f V", i, v[i]);
+            return false;
+        }
+    }
+    snprintf(msg, len, "%d cells in range", NUM_VOLTAGE_CELLS);
+    return true;
+}
+
+/* Test plan B3: every thermistor readable and near room temperature */
+static bool selfTestCellTemps(char *msg, size_t len)
+{
+    static float t[NUM_TEMP_CELLS];
+    if (batt_spi_wakeup(true) != HAL_OK) { snprintf(msg, len, "isoSPI wakeup failed"); return false; }
+    batt_read_cell_temps(t);                  /* first pass settles mux/ADC */
+    vTaskDelay(pdMS_TO_TICKS(50));
+    if (batt_read_cell_temps(t) != HAL_OK) { snprintf(msg, len, "temp read failed"); return false; }
+    for (int i = 0; i < NUM_TEMP_CELLS; i++) {
+        if (t[i] < SELFTEST_TEMP_MIN_C || t[i] > SELFTEST_TEMP_MAX_C) {
+            snprintf(msg, len, "channel %d = %.1f C", i, t[i]);
+            return false;
+        }
+    }
+    snprintf(msg, len, "%d channels in range", NUM_TEMP_CELLS);
+    return true;
+}
+
+/* Test plan B4: no monitor chip in thermal shutdown */
+static bool selfTestThermalShutdown(char *msg, size_t len)
+{
+    static uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE];
+    if (batt_spi_wakeup(true) != HAL_OK) { snprintf(msg, len, "isoSPI wakeup failed"); return false; }
+    if (batt_read_rdstatc(statc) != HAL_OK) { snprintf(msg, len, "RDSTATC read failed"); return false; }
+    for (int b = 0; b < NUM_BOARDS; b++) {
+        for (int c = 0; c < NUM_LTC_CHIPS_PER_BOARD; c++) {
+            if (rdstatc_thermal_shutdown(statc[b][c])) {
+                snprintf(msg, len, "board %d chip %d in thermal SD", b, c);
+                return false;
+            }
+        }
+    }
+    snprintf(msg, len, "none in shutdown");
+    return true;
+}
+
+#if IS_BOARD_F7 && (LTC_CHIP == ADBMS_CHIP_6830B)
+/* Clears all balancing. Always called at the end of the balancing test. */
+static HAL_StatusTypeDef selfTestStopBalancing(void)
+{
+    if (batt_unset_balancing_all_cells() != HAL_OK) return HAL_ERROR;
+    if (batt_set_disharge_timer(DT_OFF) != HAL_OK) return HAL_ERROR;
+    if (batt_spi_wakeup(true) != HAL_OK) return HAL_ERROR;
+    return batt_write_balancing_config();
+}
+
+/* Reads back PWM duty for every cell. */
+static HAL_StatusTypeDef selfTestReadDuty(uint8_t *duty)
+{
+    static uint8_t pwma[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+    static uint8_t pwmb[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+    if (batt_spi_wakeup(true) != HAL_OK) return HAL_ERROR;
+    if (batt_read_pwm(pwma, pwmb) != HAL_OK) return HAL_ERROR;
+    for (int g = 0; g < NUM_VOLTAGE_CELLS; g++) {
+        duty[g] = (uint8_t)batt_pwm_duty_from_pwm_readback(g, pwma, pwmb);
+    }
+    return HAL_OK;
+}
+#endif
+
+/* Test plan B5: balance cell 0 only, check readback, then turn everything off */
+static bool selfTestBalancing(char *msg, size_t len)
+{
+#if IS_BOARD_F7 && (LTC_CHIP == ADBMS_CHIP_6830B)
+    static uint8_t duty[NUM_VOLTAGE_CELLS];
+    bool pass = true;
+
+    if (batt_unset_balancing_all_cells() != HAL_OK ||
+        batt_balance_cell(0) != HAL_OK ||
+        batt_set_disharge_timer(DT_30_SEC) != HAL_OK ||
+        batt_spi_wakeup(true) != HAL_OK ||
+        batt_write_balancing_config() != HAL_OK) {
+        snprintf(msg, len, "could not enable balancing on cell 0");
+        pass = false;
+    } else if (selfTestReadDuty(duty) != HAL_OK) {
+        snprintf(msg, len, "PWM readback failed (on)");
+        pass = false;
+    } else if (duty[0] == 0) {
+        snprintf(msg, len, "cell 0 duty is 0 after enable");
+        pass = false;
+    } else {
+        for (int g = 1; g < NUM_VOLTAGE_CELLS; g++) {
+            if (duty[g] != 0) {
+                snprintf(msg, len, "cell %d on but only cell 0 requested", g);
+                pass = false;
+                break;
+            }
+        }
+    }
+
+    /* Always switch balancing off, even if the test failed */
+    if (selfTestStopBalancing() != HAL_OK) {
+        snprintf(msg, len, "FAILED TO STOP BALANCING, run stopDischargeCells");
+        return false;
+    }
+    if (pass) {
+        if (selfTestReadDuty(duty) != HAL_OK) {
+            snprintf(msg, len, "PWM readback failed (off)");
+            return false;
+        }
+        for (int g = 0; g < NUM_VOLTAGE_CELLS; g++) {
+            if (duty[g] != 0) {
+                snprintf(msg, len, "cell %d still on after stop", g);
+                return false;
+            }
+        }
+        snprintf(msg, len, "cell 0 on/off OK");
+    }
+    return pass;
+#else
+    snprintf(msg, len, "skipped (ADBMS6830 on F7 only)");
+    return true;
+#endif
+}
+
+/* Test plan F2: isoSPI noise check after new filter/TVS - many reads, zero errors */
+static bool selfTestIsoSpiStress(char *msg, size_t len)
+{
+    static float v[NUM_VOLTAGE_CELLS];
+    int errors = 0;
+    for (int i = 0; i < SELFTEST_ISOSPI_ITERATIONS; i++) {
+        if (batt_spi_wakeup(true) != HAL_OK || batt_read_cell_voltages(v) != HAL_OK) {
+            errors++;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+    snprintf(msg, len, "%d/%d reads failed", errors, SELFTEST_ISOSPI_ITERATIONS);
+    return errors == 0;
+}
+
+/* Test plan C1: HV shunt values readable and plausible */
+static bool selfTestHvMeasure(char *msg, size_t len)
+{
+    float IBus = 0, VBus = 0, VBatt = 0;
+    if (getIBus(&IBus) != HAL_OK || getVBus(&VBus) != HAL_OK || getVBatt(&VBatt) != HAL_OK) {
+        snprintf(msg, len, "could not read shunt values");
+        return false;
+    }
+    /* x != x catches NaN */
+    if (VBus != VBus || VBatt != VBatt || IBus != IBus ||
+        VBus < -1.0F || VBus > SELFTEST_HV_MAX_V ||
+        VBatt < -1.0F || VBatt > SELFTEST_HV_MAX_V) {
+        snprintf(msg, len, "implausible VBus %.1f VBatt %.1f", VBus, VBatt);
+        return false;
+    }
+    snprintf(msg, len, "VBus %.1f V, VBatt %.1f V, I %.2f A", VBus, VBatt, IBus);
+    return true;
+}
+
+/* Test plan C4: IMD answers over CAN with a valid threshold */
+static bool selfTestImd(char *msg, size_t len)
+{
+    uint16_t kohm = 0;
+    if (imdRequestIsolationThresholdError() != HAL_OK) {
+        snprintf(msg, len, "IMD request send failed");
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(IMD_CLI_RESPONSE_WAIT_MS));
+    if (!imdGetIsolationThresholdError(&kohm)) {
+        snprintf(msg, len, "no IMD response on CAN");
+        return false;
+    }
+    if (kohm < IMD_ISOLATION_THRESHOLD_ERROR_MIN_KOHM || kohm > IMD_ISOLATION_THRESHOLD_ERROR_MAX_KOHM) {
+        snprintf(msg, len, "threshold %u kOhm out of range", kohm);
+        return false;
+    }
+    snprintf(msg, len, "threshold %u kOhm", kohm);
+    return true;
+}
+
+/* The pipeline, in test plan order. Add new tests here. */
+static const BmuSelfTest_t bmuTests[] = {
+    { "Firmware alive (A3)",     selfTestHeap,            true  },
+    { "AMS config isoSPI (B1)",  selfTestAmsConfig,       true  },
+    { "Cell voltages (B2)",      selfTestCellVoltages,    true  },
+    { "Cell temps (B3)",         selfTestCellTemps,       false },
+    { "Thermal shutdown (B4)",   selfTestThermalShutdown, false },
+    { "Balancing (B5)",          selfTestBalancing,       false },
+    { "isoSPI stress (F2)",      selfTestIsoSpiStress,    false },
+    { "HV shunt (C1)",           selfTestHvMeasure,       false },
+    { "Interlock loop (C3)",     selfTestInterlockLoop,   false },
+    { "IMD over CAN (C4)",       selfTestImd,             false },
+    { "Boot state (E1)",         selfTestBootState,       false },
+};
+#define NUM_BMU_TESTS ((int)(sizeof(bmuTests) / sizeof(bmuTests[0])))
+
+BaseType_t bmuSelfTestCommand(char *writeBuffer, size_t writeBufferLength,
+                              const char *commandString)
+{
+    static int idx = 0;
+    static int passed = 0;
+    static bool stopped = false;
+    char msg[SELFTEST_MSG_LEN] = "";
+
+    (void)commandString;
+
+    /* Last call: print the summary and reset for next time */
+    if (idx >= NUM_BMU_TESTS || stopped) {
+        COMMAND_OUTPUT("%s: %d/%d passed%s\n",
+                       stopped ? "STOPPED" : "DONE", passed, NUM_BMU_TESTS,
+                       stopped ? " (critical test failed)" : "");
+        idx = 0;
+        passed = 0;
+        stopped = false;
+        return pdFALSE;
+    }
+
+    bool ok = bmuTests[idx].run(msg, sizeof(msg));
+    if (ok) {
+        passed++;
+    } else if (bmuTests[idx].critical) {
+        stopped = true;
+    }
+    COMMAND_OUTPUT("[%s] %d/%d %s: %s\n", ok ? "PASS" : "FAIL",
+                   idx + 1, NUM_BMU_TESTS, bmuTests[idx].name, msg);
+    idx++;
+    return pdTRUE;
+}
+static const CLI_Command_Definition_t bmuSelfTestCommandDefinition =
+{
+    "bmuSelfTest",
+    "bmuSelfTest:\r\n Run the automated BMU bring-up test pipeline (bench, low voltage only)\r\n",
+    bmuSelfTestCommand,
+    0 /* Number of parameters */
+};
+
+
 
 HAL_StatusTypeDef stateMachineMockInit()
 {
@@ -1891,6 +2250,9 @@ HAL_StatusTypeDef stateMachineMockInit()
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&calcDataPecCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&bmuSelfTestCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
 
