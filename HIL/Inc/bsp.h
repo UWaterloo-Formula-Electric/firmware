@@ -44,6 +44,7 @@
 #define SPI_5_HANDLE hspi5
 
 #define PWM_TIM_HANDLE htim8        // PC6/PC7/PC8
+#define PWM_TIM_CLOCK_HZ 200000000U // APB2 timer clock, from HIL_2026.ioc
 #define PWM_8_CHANNEL TIM_CHANNEL_1
 #define PWM_9_CHANNEL TIM_CHANNEL_2
 #define PWM_10_CHANNEL TIM_CHANNEL_3
