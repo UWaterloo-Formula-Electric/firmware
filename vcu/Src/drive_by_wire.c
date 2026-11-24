@@ -63,12 +63,14 @@ static uint32_t fatalTransition(uint32_t event);
 static uint32_t toggleTC(uint32_t event);
 static uint32_t toggleEnduranceMode(uint32_t event);
 static uint32_t toggleRegenMode(uint32_t event);
+static uint32_t toggleCooling(uint32_t event);
 // static void debounceTimerCallback(TimerHandle_t timer);
 static void buzzerTimerCallback(TimerHandle_t timer);
 static int sendHVToggleMsg(void);
 static int sendEMToggleMsg(void);
 static int sendEnduranceToggleMsg(void);
 static int sendTCToggleMsg(void);
+static int sendCoolingToggleMsg(void);
 
 static TimerHandle_t buzzerSoundTimer;
 // static TimerHandle_t debounceTimer;
@@ -692,6 +694,22 @@ static uint32_t toggleRegenMode(uint32_t event)
     return STATE_EM_Enable;
 }
 
+/**
+ * @brief Toggles cooling
+ */
+static uint32_t toggleCooling(uint32_t event)
+{
+    if(sendCoolingToggleMsg() != HAL_OK)
+    {
+        ERROR_PRINT("Failed to send Cooling Toggle button event!\n");
+        Error_Handler();
+    }
+    else{
+        DEBUG_PRINT("Cooling toggled\n");
+    }
+    return fsmGetState(&VCUFsmHandle);
+}
+
 static void buzzerTimerCallback(TimerHandle_t timer)
 {
     buzzerTimerStarted = false;
@@ -743,5 +761,18 @@ static int sendTCToggleMsg(void)
     ButtonTCEnabled = 1;
     ButtonScreenNavRightEnabled = 0;
     ButtonScreenNavLeftEnabled = 0;
+    return sendCAN_VCU_buttonEvents();
+}
+
+static int sendCoolingToggleMsg(void)
+{
+    ButtonHVEnabled = 0;
+    ButtonEMEnabled = 0;
+    ButtonEnduranceToggleEnabled = 0;
+    ButtonEnduranceLapEnabled = 0;
+    ButtonTCEnabled = 0;
+    ButtonScreenNavRightEnabled = 0;
+    ButtonScreenNavLeftEnabled = 0;
+    ButtonCoolingEnabled = 1;
     return sendCAN_VCU_buttonEvents();
 }
