@@ -13,7 +13,7 @@
 #define CHARGER_POLL_EVERY_N_LOOPS (5000 / CHARGER_TASK_PERIOD_MS) // full I2C poll every 5 s
 
 #define CHARGER_VFB_MV              1536            // datasheet default FB ref
-#define CHARGER_ICHG_MA             2000            s//max charge current
+#define CHARGER_ICHG_MA             2000            // max charge current
 #define CHARGER_ITERM_MA            250             // TODO: datasheet minimum, must be below ICHG
 #define CHARGER_VRECHG_SETTING      (0x3 << 6)      // TODO: 97.6% (Li-ion recommendation); LiFePO4 uses 0x0
 

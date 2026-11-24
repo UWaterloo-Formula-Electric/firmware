@@ -63,3 +63,6 @@ beaglebone/os/Makefile
 
 # Cell Tester Log Files
 cellTester/CellData
+!pdu/tests/build/
+pdu/tests/build/*
+!pdu/tests/build/.gitkeep

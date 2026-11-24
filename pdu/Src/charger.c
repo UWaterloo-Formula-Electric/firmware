@@ -16,7 +16,7 @@ bqCommStatus_t chargerVerifyChip(uint8_t *data){
     HAL_StatusTypeDef status = chargerReadRegister(BQ_PART_INFO_REG, data);
 
     if (status != HAL_OK){
-        return CHARGER_BUS_ERROR; // I2C read failed (single attempt, no retry)
+        return CHARGER_BUS_ERROR; // I2C read failed
     }
 
     uint8_t partInfoData = chargerDecodePartNumber(*data);
