@@ -161,6 +161,16 @@ uint16_t calculate_throttle_adc_from_percent2(uint16_t percent)
 {
   return map_range(percent, PERCENT_MIN_INT, PERCENT_MAX_INT, THROTT_B_LOW, THROTT_B_HIGH);
 }
+uint16_t calculate_brake_pressure_adc_from_psi(float psi)
+{
+    float sensor_v = map_range_float(psi,
+                                     BRAKE_PRESSURE_SENSOR_MIN_PSI,
+                                     BRAKE_PRESSURE_SENSOR_MAX_PSI,
+                                     BRAKE_PRESSURE_SENSOR_MIN_V,
+                                     BRAKE_PRESSURE_SENSOR_MAX_V);
+    float pin_v = sensor_v / BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE;
+    return (uint16_t)((pin_v / BRAKE_PRESSURE_ADC_REF_V) * ADC_MAX_VALUE);
+}
 
 bool is_tps_within_tolerance(float throttle1_percent, float throttle2_percent)
 {
@@ -342,15 +352,25 @@ bool throttleIsZero()
     }
 }
 
-bool checkBPSState() {
-  // TODO: Monitor brake pressure sensor (BPS) for failures
-  return true;
+static float getBrakePressureSensorVoltage()
+{
+    float raw = getBrakePresFiltered();
+    return raw / ADC_MAX_VALUE * BRAKE_PRESSURE_ADC_REF_V * BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE;
+}
+
+bool checkBPSState()
+{
+    float v = getBrakePressureSensorVoltage();
+    if (v < BRAKE_PRESSURE_SENSOR_OPEN_CIRCUIT_V || v > BRAKE_PRESSURE_SENSOR_SHORT_CIRCUIT_V) {
+        ERROR_PRINT("BPS Fault: Sensor voltage out of bounds (%.2fV)\n", v);
+        return false;
+    }
+    return true;
 }
 
 static float getBrakePressurePSI()
 {
-    float raw = getBrakePresFiltered();
-    float v = raw / ADC_MAX_VALUE * BRAKE_PRESSURE_ADC_REF_V * BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE;
+    float v = getBrakePressureSensorVoltage();
     return map_range_float(v,
                            BRAKE_PRESSURE_SENSOR_MIN_V,
                            BRAKE_PRESSURE_SENSOR_MAX_V,
