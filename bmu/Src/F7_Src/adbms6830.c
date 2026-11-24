@@ -283,12 +283,23 @@
 #define ADCV_BYTE0 0x02
 #define ADCV_BYTE1 0x60
 
+// ADCV with RD = 1 (Table 50): the S-ADC converts alongside the C-ADC, and each cell's two results are compared
+// against CTH. Single shot takes 8 ms
+#define ADCV_RD_BYTE0 0x03
+#define ADCV_RD_BYTE1 0x60
+
+// ADSV single shot, discharge not permitted. OW[1:0] (bits 1:0) picks the open wire switches (Table 20)
 #define ADSV_BYTE0 0x01
-#define ADSV_BYTE1 0x6B
+#define ADSV_BYTE1(ow) (0x68 | (ow))
+#define ADSV_OW_BITS_OFF  0x0 // Normal S-ADC reading
+#define ADSV_OW_BITS_EVEN 0x1 // Switches on for even channels (2, 4, ...), off for odd ones
+#define ADSV_OW_BITS_ODD  0x2 // Switches on for odd channels (1, 3, ...), off for even ones
 
 // Read from GPIO 5 (MUX output)
 #define ADAX_BYTE0 0x04
 #define ADAX_BYTE1(PUP) (0x15 | ((PUP)<<7))
+// ADAX of the internal die temperature (CH = 10011, Table 24), result in status A bytes 2-3
+#define ADAX_ITMP_BYTE1 0x53
 
 #define ADAX2_BYTE0 0x04
 #define ADAX2_BYTE1 0x00
@@ -303,6 +314,9 @@
 #define COMM_BK(en)    ((en) << 3)
 #define MUTE_ST(en)    ((en) << 4)
 #define CTH(en)    ((en) << 0)
+// CTH[2:0] for the C-ADC vs S-ADC comparison of ADCV with RD = 1: 6 flags cells whose readings differ by more than
+// 25.05 mV (Table 102)
+#define CS_COMPARE_CTH 6
 
 // Table 56 Configuration Register Group B
 #define DTMEN(en)    ((en) << 7)
@@ -376,7 +390,7 @@ void batt_init_chip_configs() {
 		for(int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++){
             // Table 102 Configuration Register A Bit
 			// Configuration Register A
-            m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(6));
+            m_batt_configA[board][chip][0] = (REFON(1)) | (CTH(CS_COMPARE_CTH));
             m_batt_configA[board][chip][3] = 0x1F; // Turn pulldown off on all (connected) GPIOs 
             m_batt_configA[board][chip][5] = (COMM_BK(0)) | (MUTE_ST(0));
             
@@ -465,7 +479,46 @@ HAL_StatusTypeDef batt_write_config_pwm(void) {
 static uint32_t PEC_count = 0;
 static uint32_t last_PEC_tick = 0;
 
-static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
+// Each chip's read failures print at most once per PEC_FAIL_PRINT_PERIOD_MS, with a count. A broken chain fails
+// every read, and a full print queue drops prints and stalls the battery task
+#define PEC_FAIL_PRINT_PERIOD_MS 1000
+static uint32_t chipFailsSincePrint[NUM_DEVICES] = {0};
+static TickType_t chipLastFailPrintTick[NUM_DEVICES] = {0};
+static bool chipFailPrinted[NUM_DEVICES] = {0};
+
+static void reportChipReadFail(int device, const uint8_t *chipData, unsigned int size,
+                               uint8_t first_byte, uint8_t second_byte)
+{
+	chipFailsSincePrint[device]++;
+	if (!PRINT_ALL_PEC_ERRORS) {
+		return;
+	}
+
+	const TickType_t now = xTaskGetTickCount();
+	if (chipFailPrinted[device] && now - chipLastFailPrintTick[device] < pdMS_TO_TICKS(PEC_FAIL_PRINT_PERIOD_MS)) {
+		return;
+	}
+
+	// All 0xFF means nothing came back from this chip, usually a break in the chain before it
+	bool noReply = true;
+	for (unsigned int b = 0; b < size; b++) {
+		if (chipData[b] != 0xFF) {
+			noReply = false;
+			break;
+		}
+	}
+
+	DEBUG_PRINT("AMS fail: board %d chip %d (dev %d) %s, cmd 0x%02X%02X, x%lu since last print\r\n",
+	            device / NUM_LTC_CHIPS_PER_BOARD, device % NUM_LTC_CHIPS_PER_BOARD, device,
+	            noReply ? "no reply" : "bad PEC", first_byte, second_byte,
+	            (unsigned long)chipFailsSincePrint[device]);
+	chipFailsSincePrint[device] = 0;
+	chipLastFailPrintTick[device] = now;
+	chipFailPrinted[device] = true;
+}
+
+// attempt is 0 for the first try, 1..AMS_READ_RETRIES for retries (only used in the error prints)
+static HAL_StatusTypeDef batt_read_data_once(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size, int attempt){
 	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_LTC_CHIPS_PER_BOARD * NUM_BOARDS);
 	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
 	uint8_t rxBuffer[BUFF_SIZE];
@@ -473,7 +526,8 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	memset(rxBuffer, 0xFF, BUFF_SIZE);
 	memset(txBuffer, 0xFF, BUFF_SIZE);
 
-	if(batt_spi_wakeup(true) != HAL_OK){
+	// A retry wakes the whole chain from sleep, in case a chip reset or slept since the last read
+	if(batt_spi_wakeup(attempt > 0) != HAL_OK){
 		ERROR_PRINT("Failed to wake up boards\n");
 		return HAL_ERROR;
 	}
@@ -484,23 +538,29 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
 	}
 
 	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
-		ERROR_PRINT("Failed to send read data command\n");
+		if (attempt == 0) {
+			ERROR_PRINT("Failed to send read data command\n");
+		} else {
+			ERROR_PRINT("Failed to send read data command, retry %d of %d\n", attempt, AMS_READ_RETRIES);
+		}
 		return HAL_ERROR;
 	}
-	
-	for (int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; ++i)
-        {
-			const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
-			if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK)
-			{
-				if(PRINT_ALL_PEC_ERRORS)
-				{
-					DEBUG_PRINT("PEC ERROR on board/chip %d config (adbms6830) \r\n", i);
-				}
-				PEC_count++;
-				return HAL_ERROR;
-			}
-        }
+
+	// Check every device instead of stopping at the first bad one, so every chip that fails gets named
+	bool pecFailed = false;
+	for (int i = 0; i < NUM_DEVICES; ++i)
+	{
+		const uint16_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
+		if (checkPECData(&(rxBuffer[startOfData]), response_size) != HAL_OK) {
+			pecFailed = true;
+			reportChipReadFail(i, &(rxBuffer[startOfData]), response_size + PEC_SIZE, first_byte, second_byte);
+		}
+	}
+
+	if (pecFailed) {
+		PEC_count++;
+		return HAL_ERROR;
+	}
 
 
         if(xTaskGetTickCount() - last_PEC_tick > 10000)
@@ -512,7 +572,59 @@ static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte,
         for(int i = 0; i < NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD; i++) {
 			memcpy(&(data_buffer[i*response_size]), &(rxBuffer[DATA_START_IDX + (i * (response_size + PEC_SIZE))]), response_size);
 		}
-	
+
+	return HAL_OK;
+}
+
+// Reads are non-destructive, so a read that fails its PEC (or SPI transfer) is simply retried. This rides
+// through an occasional corrupted frame from noise, while a chip that stays silent still fails every attempt
+static HAL_StatusTypeDef batt_read_data(uint8_t first_byte, uint8_t second_byte, uint8_t* data_buffer, unsigned int response_size){
+	for (int attempt = 0; attempt <= AMS_READ_RETRIES; attempt++) {
+		if (batt_read_data_once(first_byte, second_byte, data_buffer, response_size, attempt) == HAL_OK) {
+			if (attempt > 0 && PRINT_ALL_PEC_ERRORS) {
+				DEBUG_PRINT("AMS read cmd 0x%02X%02X ok on retry %d of %d\r\n", first_byte, second_byte, attempt, AMS_READ_RETRIES);
+			}
+			return HAL_OK;
+		}
+	}
+	if (PRINT_ALL_PEC_ERRORS) {
+		DEBUG_PRINT("AMS read cmd 0x%02X%02X failed, all %d retries used\r\n", first_byte, second_byte, AMS_READ_RETRIES);
+	}
+	return HAL_ERROR;
+}
+
+/*
+ * One read that doesn't need every device to answer: copies the data of each device that passes its PEC and marks
+ * it in deviceOk. Prints nothing, the caller reports which devices didn't answer
+ */
+static HAL_StatusTypeDef batt_read_data_partial(uint8_t first_byte, uint8_t second_byte, uint8_t *data_buffer,
+                                                unsigned int response_size, bool deviceOk[NUM_DEVICES],
+                                                bool fullWake)
+{
+	const size_t BUFF_SIZE = COMMAND_SIZE + PEC_SIZE + ((response_size + PEC_SIZE) * NUM_DEVICES);
+	const size_t DATA_START_IDX = COMMAND_SIZE + PEC_SIZE;
+	uint8_t rxBuffer[BUFF_SIZE];
+	uint8_t txBuffer[BUFF_SIZE];
+	memset(rxBuffer, 0xFF, BUFF_SIZE);
+	memset(txBuffer, 0xFF, BUFF_SIZE);
+
+	if (batt_spi_wakeup(fullWake) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	if (batt_format_command(first_byte, second_byte, txBuffer) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	if (spi_tx_rx(txBuffer, rxBuffer, BUFF_SIZE) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	for (int i = 0; i < NUM_DEVICES; i++) {
+		const size_t startOfData = DATA_START_IDX + (i * (response_size + PEC_SIZE));
+		deviceOk[i] = (checkPECData(&(rxBuffer[startOfData]), response_size) == HAL_OK);
+		if (deviceOk[i]) {
+			memcpy(&(data_buffer[i * response_size]), &(rxBuffer[startOfData]), response_size);
+		}
+	}
 	return HAL_OK;
 }
 
@@ -632,6 +744,23 @@ int batt_pwm_duty_from_pwm_readback(int global_cell,
 	return (int)((pwm_bit >> shift) & PWM_DUTY_MASK);
 }
 
+/* Status A (Table 89): VREF2 in bytes 0-1, ITMP (die temperature) in bytes 2-3, LSB first */
+HAL_StatusTypeDef batt_read_rdstata(uint8_t stata[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+	memset(response_buffer, 0xFF, response_buffer_size);
+	if (batt_read_data(RDSTATA_BYTE0, RDSTATA_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(stata[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
+		}
+	}
+	return HAL_OK;
+}
+
 /* Run ADSTAT first if status snapshots may be stale (datasheet). */
 HAL_StatusTypeDef batt_read_rdstatc(uint8_t statc[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
 	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
@@ -664,6 +793,75 @@ HAL_StatusTypeDef batt_read_rdstate(uint8_t state_e[NUM_BOARDS][NUM_LTC_CHIPS_PE
 			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
 			memcpy(state_e[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
 		}
+	}
+	return HAL_OK;
+}
+
+/* Cell OV/UV flags (Table 92): byte c/4 holds cells 4c+1..4c+4, UV in the even bit and OV in the odd bit of each pair */
+HAL_StatusTypeDef batt_read_rdstatd(uint8_t statd[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][STATUS_SIZE]) {
+	const size_t response_buffer_size = NUM_BOARDS * NUM_LTC_CHIPS_PER_BOARD * STATUS_SIZE;
+	uint8_t response_buffer[response_buffer_size];
+	memset(response_buffer, 0xFF, response_buffer_size);
+	if (batt_read_data(RDSTATD_BYTE0, RDSTATD_BYTE1, response_buffer, STATUS_SIZE) != HAL_OK) {
+		ERROR_PRINT("Failed to read RDSTATD (status group D)\n");
+		return HAL_ERROR;
+	}
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			int idx = (board * NUM_LTC_CHIPS_PER_BOARD) + chip;
+			memcpy(statd[board][chip], &response_buffer[idx * STATUS_SIZE], STATUS_SIZE);
+		}
+	}
+	return HAL_OK;
+}
+
+/* Send a command with the same 6 data bytes to every chip, like a config write */
+static HAL_StatusTypeDef send_command_with_data(uint8_t first_byte, uint8_t second_byte,
+                                                const uint8_t data[BATT_CONFIG_SIZE])
+{
+	const size_t BUFF_SIZE = (COMMAND_SIZE + PEC_SIZE) + ((BATT_CONFIG_SIZE + PEC_SIZE) * NUM_DEVICES);
+	uint8_t txBuffer[BUFF_SIZE];
+	uint8_t allData[NUM_BOARDS][NUM_LTC_CHIPS_PER_BOARD][BATT_CONFIG_SIZE];
+
+	for (int board = 0; board < NUM_BOARDS; board++) {
+		for (int chip = 0; chip < NUM_LTC_CHIPS_PER_BOARD; chip++) {
+			memcpy(allData[board][chip], data, BATT_CONFIG_SIZE);
+		}
+	}
+	if (batt_format_write_config_command(first_byte, second_byte, txBuffer, allData, BATT_CONFIG_SIZE) != HAL_OK) {
+		return HAL_ERROR;
+	}
+	return batt_spi_tx(txBuffer, BUFF_SIZE);
+}
+
+HAL_StatusTypeDef batt_clear_cs_flags(void) {
+	// CFD0 and CFD1 clear CS1FLT..CS16FLT (Table 25). Every other flag is left alone
+	static const uint8_t clearCsFlags[BATT_CONFIG_SIZE] = { 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00 };
+	if (send_command_with_data(CLRFLAG_BYTE0, CLRFLAG_BYTE1, clearCsFlags) != HAL_OK) {
+		ERROR_PRINT("Failed to send CLRFLAG (C-ADC vs S-ADC flags)\n");
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_clear_ovuv_flags(void) {
+	// STDR0..STDR3 clear the OV and UV flags of cells 1..16 (Table 26)
+	static const uint8_t clearOvUvFlags[BATT_CONFIG_SIZE] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
+	if (send_command_with_data(CLOVUV_BYTE0, CLOVUV_BYTE1, clearOvUvFlags) != HAL_OK) {
+		ERROR_PRINT("Failed to send CLOVUV\n");
+		return HAL_ERROR;
+	}
+	return HAL_OK;
+}
+
+HAL_StatusTypeDef batt_clear_reset_flags(void) {
+	// CFD5 clears status C byte 5 bit for bit (Table 25): CL_SLEEP and CL_THSD only
+	static const uint8_t clearResetFlags[BATT_CONFIG_SIZE] = {
+		0x00, 0x00, 0x00, 0x00, 0x00, (1u << RDSTATC_SLEEP_BIT) | (1u << RDSTATC_THERMAL_SHUTDOWN_BIT)
+	};
+	if (send_command_with_data(CLRFLAG_BYTE0, CLRFLAG_BYTE1, clearResetFlags) != HAL_OK) {
+		ERROR_PRINT("Failed to send CLRFLAG (SLEEP and THSD flags)\n");
+		return HAL_ERROR;
 	}
 	return HAL_OK;
 }
@@ -729,7 +927,6 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 		}
 
         if (batt_read_data(rd_cmds[block][0], rd_cmds[block][1], adc_vals, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
-            DEBUG_PRINT("ADBMS6830 voltage read failed (block %u)\r\n", block);
             return HAL_ERROR;
         }
 
@@ -755,12 +952,18 @@ HAL_StatusTypeDef batt_readBackCellVoltage(float *cell_voltage_array, voltage_op
 					int16_t adc = (int16_t)(((uint16_t)adc_vals[data_idx + 1] << 8) |
 									adc_vals[data_idx]);
 
+					const size_t local_cell = chip * CELLS_PER_CHIP + cell_in_chip;
+					const size_t global_cell = board * CELLS_PER_BOARD + local_cell;
+
+					if (adc == ADC_RESET_CODE) {
+						ERROR_PRINT("Cell %u C-ADC result is the reset value 0x8000, no conversion wrote it\n",
+						            (unsigned)global_cell);
+						return HAL_ERROR;
+					}
+
 					// Convert to volts
 					// From Table 104: Cell Voltage = ADC × 150 uV + 1.5 V
 					float voltage = (adc * 0.000150f) + 1.5f;
-
-					const size_t local_cell = chip * CELLS_PER_CHIP + cell_in_chip;
-					const size_t global_cell = board * CELLS_PER_BOARD + local_cell;
 
 					cell_voltage_array[global_cell] = voltage;
 
@@ -799,11 +1002,52 @@ HAL_StatusTypeDef batt_send_command(ltc_command_t curr_command, bool broadcast, 
 			command_byte_high = ADCV_BYTE1;
 			break;
 		}
-		case(ADSV): 
+		case(ADCV_RD):
+		{
+			command_byte_low = ADCV_RD_BYTE0;
+			command_byte_high = ADCV_RD_BYTE1;
+			break;
+		}
+		case(ADSV):
 		{
 			command_byte_low = ADSV_BYTE0;
-			command_byte_high = ADSV_BYTE1;
-			
+			command_byte_high = ADSV_BYTE1(ADSV_OW_BITS_OFF);
+			break;
+		}
+		case(ADSV_OW_EVEN):
+		{
+			command_byte_low = ADSV_BYTE0;
+			command_byte_high = ADSV_BYTE1(ADSV_OW_BITS_EVEN);
+			break;
+		}
+		case(ADSV_OW_ODD):
+		{
+			command_byte_low = ADSV_BYTE0;
+			command_byte_high = ADSV_BYTE1(ADSV_OW_BITS_ODD);
+			break;
+		}
+		case(CLEAR_CELL_RESULTS):
+		{
+			command_byte_low = CLRCELL_BYTE0;
+			command_byte_high = CLRCELL_BYTE1;
+			break;
+		}
+		case(CLEAR_S_RESULTS):
+		{
+			command_byte_low = CLRSPIN_BYTE0;
+			command_byte_high = CLRSPIN_BYTE1;
+			break;
+		}
+		case(CLEAR_AUX_RESULTS):
+		{
+			command_byte_low = CLRAUX_BYTE0;
+			command_byte_high = CLRAUX_BYTE1;
+			break;
+		}
+		case(ADAX_ITMP):
+		{
+			command_byte_low = ADAX_BYTE0;
+			command_byte_high = ADAX_ITMP_BYTE1;
 			break;
 		}
 		case(ADAX_DOWN):
@@ -874,12 +1118,129 @@ HAL_StatusTypeDef batt_read_ADSV(float *cell_voltage_array)
 				const uint8_t *b = grp[c / 3u][board][chip];
 				size_t off = (c % 3u) * 2u;
 				int16_t adc = (int16_t)(((uint16_t)b[off + 1] << 8) | b[off]);
-				cell_voltage_array[(size_t)board * CELLS_PER_BOARD + (size_t)chip * CELLS_PER_CHIP + c] =
+				const size_t global_cell = (size_t)board * CELLS_PER_BOARD + (size_t)chip * CELLS_PER_CHIP + c;
+				if (adc == ADC_RESET_CODE) {
+					ERROR_PRINT("Cell %u S-ADC result is the reset value 0x8000, no conversion wrote it\n",
+					            (unsigned)global_cell);
+					return HAL_ERROR;
+				}
+				cell_voltage_array[global_cell] = (adc * 0.000150f) + 1.5f;
+			}
+		}
+	}
+	return HAL_OK;
+}
+
+/* RDACA..E after ADCV: 6 bytes/group, three 16-bit averaged cell codes (LSB first per word). Fails silently on a reset
+ * value (0x8000), the only user being the information only C-S log */
+HAL_StatusTypeDef batt_read_averaged_cell_voltages(float *cell_voltage_array)
+{
+	static const uint8_t rdacCmds[5][2] = {
+		{ RDACA_BYTE0, RDACA_BYTE1 }, { RDACB_BYTE0, RDACB_BYTE1 }, { RDACC_BYTE0, RDACC_BYTE1 },
+		{ RDACD_BYTE0, RDACD_BYTE1 }, { RDACE_BYTE0, RDACE_BYTE1 },
+	};
+
+	// Each group holds 3 cells per device
+	for (int group = 0; group * 3 < CELLS_PER_CHIP; group++) {
+		uint8_t data[NUM_DEVICES * VOLTAGE_BLOCK_SIZE];
+		if (batt_read_data(rdacCmds[group][0], rdacCmds[group][1], data, VOLTAGE_BLOCK_SIZE) != HAL_OK) {
+			return HAL_ERROR;
+		}
+		for (int dev = 0; dev < NUM_DEVICES; dev++) {
+			const int board = dev / NUM_LTC_CHIPS_PER_BOARD;
+			const int chip = dev % NUM_LTC_CHIPS_PER_BOARD;
+			for (int cell = 0; cell < 3 && group * 3 + cell < CELLS_PER_CHIP; cell++) {
+				const size_t dataIdx = dev * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
+				const int16_t adc = (int16_t)(((uint16_t)data[dataIdx + 1] << 8) | data[dataIdx]);
+				if (adc == ADC_RESET_CODE) {
+					return HAL_ERROR;
+				}
+				// Averaged cell voltage = ACxV * 150 uV + 1.5 V (Table 104)
+				cell_voltage_array[board * CELLS_PER_BOARD + chip * CELLS_PER_CHIP + group * 3 + cell] =
 					(adc * 0.000150f) + 1.5f;
 			}
 		}
 	}
 	return HAL_OK;
+}
+
+/*
+ * Read the cell results after ADCV (cAdc true, RDCVA..E) or ADSV (RDSVA..E) without needing every device to answer,
+ * for tools that have to work with fewer boards connected than configured. deviceOk[dev] ends up false for a device
+ * that failed its PEC on every attempt of any group or returned a reset value (0x8000), and that device's cells are
+ * then not all valid
+ */
+HAL_StatusTypeDef batt_read_cell_results_partial(bool cAdc, float *cell_voltage_array, bool deviceOk[NUM_DEVICES])
+{
+	static const uint8_t rdcvCmds[5][2] = {
+		{ RDCVA_BYTE0, RDCVA_BYTE1 }, { RDCVB_BYTE0, RDCVB_BYTE1 }, { RDCVC_BYTE0, RDCVC_BYTE1 },
+		{ RDCVD_BYTE0, RDCVD_BYTE1 }, { RDCVE_BYTE0, RDCVE_BYTE1 },
+	};
+	static const uint8_t rdsvCmds[5][2] = {
+		{ RDSVA_BYTE0, RDSVA_BYTE1 }, { RDSVB_BYTE0, RDSVB_BYTE1 }, { RDSVC_BYTE0, RDSVC_BYTE1 },
+		{ RDSVD_BYTE0, RDSVD_BYTE1 }, { RDSVE_BYTE0, RDSVE_BYTE1 },
+	};
+	const uint8_t (*cmds)[2] = cAdc ? rdcvCmds : rdsvCmds;
+
+	for (int dev = 0; dev < NUM_DEVICES; dev++) {
+		deviceOk[dev] = true;
+	}
+
+	// Each group holds 3 cells per device
+	for (int group = 0; group * 3 < CELLS_PER_CHIP; group++) {
+		uint8_t data[NUM_DEVICES * VOLTAGE_BLOCK_SIZE];
+		bool groupOk[NUM_DEVICES] = {false};
+
+		// Retry while some device hasn't answered. A device keeps the data from the last attempt it answered
+		for (int attempt = 0; attempt <= AMS_READ_RETRIES; attempt++) {
+			bool attemptOk[NUM_DEVICES];
+			// Like batt_read_data, a retry wakes the whole chain from sleep
+			if (batt_read_data_partial(cmds[group][0], cmds[group][1], data, VOLTAGE_BLOCK_SIZE, attemptOk,
+			                           attempt > 0) != HAL_OK) {
+				return HAL_ERROR;
+			}
+			bool allOk = true;
+			for (int dev = 0; dev < NUM_DEVICES; dev++) {
+				groupOk[dev] = groupOk[dev] || attemptOk[dev];
+				allOk = allOk && groupOk[dev];
+			}
+			if (allOk) {
+				break;
+			}
+		}
+
+		for (int dev = 0; dev < NUM_DEVICES; dev++) {
+			if (!groupOk[dev]) {
+				deviceOk[dev] = false;
+				continue;
+			}
+			const int board = dev / NUM_LTC_CHIPS_PER_BOARD;
+			const int chip = dev % NUM_LTC_CHIPS_PER_BOARD;
+			for (int cell = 0; cell < 3; cell++) {
+				const int cellInChip = group * 3 + cell;
+				if (cellInChip >= CELLS_PER_CHIP) {
+					break;
+				}
+				const size_t dataIdx = dev * VOLTAGE_BLOCK_SIZE + (cell * CELL_VOLTAGE_SIZE_BYTES);
+				// LSB first. Cell voltage = ADC * 150 uV + 1.5 V (Table 104)
+				const int16_t adc = (int16_t)(((uint16_t)data[dataIdx + 1] << 8) | data[dataIdx]);
+				if (adc == ADC_RESET_CODE) {
+					deviceOk[dev] = false;
+					continue;
+				}
+				cell_voltage_array[board * CELLS_PER_BOARD + chip * CELLS_PER_CHIP + cellInChip] =
+					(adc * 0.000150f) + 1.5f;
+			}
+		}
+	}
+	return HAL_OK;
+}
+
+// Raw ADC code of each thermistor channel's last reading, for checks that need it exact
+static int16_t thermistorCodes[NUM_TEMP_CELLS];
+
+int16_t batt_get_thermistor_code(int channel) {
+	return thermistorCodes[channel];
 }
 
 HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) {
@@ -900,6 +1261,14 @@ HAL_StatusTypeDef batt_read_thermistors(size_t channel, float *cell_temp_array) 
 			const size_t boardStartIdx = (board * NUM_LTC_CHIPS_PER_BOARD + chip) * AUX_BLOCK_SIZE;
 			int16_t adcCounts = (int16_t)(((uint16_t)adc_vals[boardStartIdx + 3] << 8) |
 								adc_vals[boardStartIdx + 2]);
+
+			if (adcCounts == ADC_RESET_CODE) {
+				ERROR_PRINT("Temp ch %u GPIO result is the reset value 0x8000, no conversion wrote it\n",
+				            (unsigned)tempIdx);
+				return HAL_ERROR;
+			}
+
+			thermistorCodes[tempIdx] = adcCounts;
 
 			// Convert ADC code to volts
 			// From Table 104: GPIO Voltage = ADC × 150 uV + 1.5 V

@@ -15,6 +15,7 @@
 #include "bsp.h"
 #include "debug.h"
 #include "userCan.h"
+#include "canHeartbeat.h"
 #include "controlStateMachine_mock.h"
 #include "controlStateMachine.h"
 #include "batteries.h"
@@ -91,6 +92,12 @@ void userInit()
     }
 
     initTSSI();
+
+    if (CHARGE_CART_MODE) {
+        // No PDU, VCU or DCU on the charge cart to send heartbeats
+        disableHeartbeat();
+        printf("Charge cart mode: heartbeat checks off\n");
+    }
 
     printf("Finished user init\n");
 }

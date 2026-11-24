@@ -12,9 +12,11 @@
 // Send a CLI string to the uart to be printed. Only for use by the CLI
 // buf must be of length PRINT_QUEUE_STRING_SIZE (this is always true for CLI
 // output buffer)
+// Waits for room in the print queue, so long multi-line commands (getCellVoltages etc.) don't drop lines
+#define CONSOLE_SEND_TIMEOUT_TICKS pdMS_TO_TICKS(UART_PRINT_TIMEOUT)
 #define CONSOLE_SEND(buf) \
     do { \
-        xQueueSendFromISR(printQueue, buf, NULL); \
+        xQueueSend(printQueue, buf, CONSOLE_SEND_TIMEOUT_TICKS); \
         vTaskDelay(1); \
     } while (0)
 
@@ -50,6 +52,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     if( xHigherPriorityTaskWoken )
     {
         portYIELD();
+    }
+}
+
+// With the UART interrupt enabled, any receive error (framing, noise,
+// overrun) makes the HAL abort DMA reception, leaving the CLI deaf until
+// reset. Start receiving again.
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == &DEBUG_UART_HANDLE) {
+        uartStartReceiving(huart);
     }
 }
 

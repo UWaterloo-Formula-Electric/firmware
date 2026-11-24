@@ -31,6 +31,10 @@ HAL_StatusTypeDef sendCanMessage(uint32_t id, uint32_t length, uint8_t *data);
 HAL_StatusTypeDef sendDTCMessage(uint32_t dtcCode, int severity, uint64_t data);
 #ifdef CHARGER_CAN_HANDLE
 HAL_StatusTypeDef sendCanMessageCharger(uint32_t id, int length, uint8_t *data);
+// Raw charger-bus RX diagnostics (updated from the CAN RX ISR): total frames
+// that passed the hardware filter on the charger handle, and the last ID seen.
+uint32_t getChargerRawRxCount(void);
+uint32_t getChargerRawLastId(void);
 #endif
 #endif // DISABLE_CAN_FEATURES
 #endif /* USER_CAN_H_ */

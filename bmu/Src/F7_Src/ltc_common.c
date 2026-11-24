@@ -204,9 +204,7 @@ HAL_StatusTypeDef checkPECData(uint8_t *rxBuffer, size_t dataSize)
     {
         return HAL_OK;
     } else {
-        if (PRINT_ALL_PEC_ERRORS) {
-            DEBUG_PRINT("%u != %u. %u != %u, checkPECData\r\n", pec[0],  rxBuffer[pec_index], pec[1], rxBuffer[pec_index + 1]);
-        }
+        // The caller prints which device failed
         return HAL_ERROR;
     }
 }
@@ -219,6 +217,19 @@ void fillDummyBytes(uint8_t * buf, uint32_t length)
     }
 }
 
+// When the chain last saw any traffic (commands and wake pulses), and when it last got a command, so batt_spi_wakeup
+// knows how far it may have powered down. chainCommanded stays false until the first command
+static TickType_t lastTrafficTick = 0;
+static TickType_t lastCommandTick = 0;
+static bool chainCommanded = false;
+
+static void recordCommandSent(void)
+{
+    lastCommandTick = xTaskGetTickCount();
+    lastTrafficTick = lastCommandTick;
+    chainCommanded = true;
+}
+
 /* HSPI send/receive function */
 #define HSPI_TIMEOUT 15
 HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
@@ -229,6 +240,7 @@ HAL_StatusTypeDef spi_tx_rx(uint8_t * tdata, uint8_t * rbuffer,
     delay_us(2); // t6 = (70ns * numDevices) + 950ns
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
     delay_us(2); // t5 = (70ns * numDevices) + 900ns
+    recordCommandSent();
     return status;
 }
 
@@ -239,50 +251,36 @@ HAL_StatusTypeDef batt_spi_tx(uint8_t *txBuffer, size_t len)
     delay_us(2); // t6 = (70ns * numDevices) + 950ns
     HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
     delay_us(2); // t5 = (70ns * numDevices) + 900ns
+    recordCommandSent();
     return status;
 }
 
-// Wake up the spi bus
-// @param standby: Set to true if the core state is standby, the device wakes faster in this case
-static uint32_t lastWakeup_ticks = 0;
+/*
+ * Wake the chain as far as it may have powered down. Every chip needs its own pair of long isoSPI pulses (CS low, then
+ * high): a chip wakes on one pair and only passes on the next, so a single pulse wakes just the first chip (p51)
+ * - Traffic under tIDLE ago: the isoSPI ports are still up, nothing to do
+ * - A command under tSLEEP ago: the chips are awake but their ports have idled, so space the pulses tREADY apart
+ * - Otherwise, before the first command, or with sleeping set: the chips may be asleep, so space them tWAKE apart
+ * @param sleeping: Set to true to wake the chain from sleep whatever the timing says, e.g. at start up or to retry a
+ * failed read
+ */
 int batt_spi_wakeup(bool sleeping)
 {
-    if (!sleeping) {
-        // The boards have been initialized, so we're in the REFUP state
-        if (xTaskGetTickCount() - lastWakeup_ticks <= pdMS_TO_TICKS(US_TO_MS(T_IDLE_US))) {
-            // SPI bus already up
-            return 0;
-        }
+    const TickType_t now = xTaskGetTickCount();
+    const bool mayBeAsleep = sleeping || !chainCommanded || (now - lastCommandTick) > CHIPS_AWAKE_MAX_TICKS;
+    if (!mayBeAsleep && (now - lastTrafficTick) <= PORT_READY_MAX_TICKS) {
+        return 0;
     }
 
-    // Send some dummy bytes to wake up SPI/LTC
-    uint8_t dummy = 0xFF;
-
-    // Wake up the serial interface on device S1.
-    if (sleeping) {
-		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
-		/* TODO: take out of common file */
-        long_delay_us(LTC_T_WAKE_MAX_US * NUM_BOARDS); // Have to be careful here, with 14 AMS boards we wait 2.3ms and t_IDLE is 2.4ms
-		HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
-
-#if (LTC_T_WAKE_MAX_US * NUM_BOARDS >= T_IDLE_US) // Included as suggested by datasheet
-        if (batt_spi_tx(&dummy, JUNK_SIZE))
-        {
-            ERROR_PRINT("Failed to wake isospi after wake to core\n");
-            return 2;
-        }
-        long_delay_us(NUM_BOARDS * LTC_T_READY_US); // Have to be careful here, with 14 AMS boards we wait 2.3ms and t_IDLE is 2.4ms
-#endif
+    const uint16_t spacingUs = mayBeAsleep ? WAKE_SPACING_SLEEP_US : WAKE_SPACING_STANDBY_US;
+    // One pulse pair more than there are chips, in case the first only brings up the converter's own isoSPI port
+    for (int pulse = 0; pulse < NUM_DEVICES + 1; pulse++) {
+        HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_RESET);
+        delay_us(WAKE_PULSE_LOW_US);
+        HAL_GPIO_WritePin(ISO_SPI_NSS_GPIO_Port, ISO_SPI_NSS_Pin, GPIO_PIN_SET);
+        delay_us(spacingUs);
     }
-	else{
-		if (batt_spi_tx(&dummy, JUNK_SIZE))
-		{
-			ERROR_PRINT("Failed to wakeup isospi while not asleep\n");
-			return 1;
-		}
-	}
-
-    lastWakeup_ticks = xTaskGetTickCount();
+    lastTrafficTick = xTaskGetTickCount();
 
     return 0;
 }

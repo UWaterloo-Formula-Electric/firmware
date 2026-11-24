@@ -26,14 +26,27 @@
 /* The following is specified in Volts (floating point) */
 /// Maximum voltage of a cell, will send a critical DTC is exceeded.
 #define DEFAULT_LIMIT_OVERVOLTAGE 4.2F
+/// HV is taken down ("close to red") when the highest cell is above this, outside of charging. Must stay above
+/// CHARGE_MAX_CELL_VOLTAGE, otherwise a fully charged pack faults the BMU
+#define CLOSE_TO_RED_MAX_CELL_VOLTAGE 4.18F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_HIGHVOLTAGE 4.2F
 /// Used in SOC function. TODO: confirm this value
 #define LIMIT_LOWVOLTAGE 2.5F
-/// Minimum voltage of a cell, will send a critical DTC if it goes below
+/// Minimum voltage of a cell (IR compensated). Below it a critical DTC is sent and the AMS faults (red car)
 #define DEFAULT_LIMIT_UNDERVOLTAGE 2.5F
+/// Driving cutoff: HV is taken down ("close to red") when the lowest cell (IR compensated) is below this. Must stay
+/// above DEFAULT_LIMIT_UNDERVOLTAGE, so HV comes down before the AMS faults
+#define CLOSE_TO_RED_MIN_CELL_VOLTAGE 2.9F
+/// Set to 1 so an under or overvoltage cell only takes HV down (like close to red) instead of faulting the AMS
+#define CELL_VOLTAGE_LIMITS_HV_DOWN_ONLY_ENABLED (0)
+/// Set to 1 so a failed AMS read (cell voltages, temps or the open wire readings) only takes HV down instead of
+/// faulting the AMS. A detected open wire always faults the AMS
+#define AMS_READ_FAIL_HV_DOWN_ONLY_ENABLED (0)
+/// Precharge (starting the car) is refused if any cell (IR compensated) is below this
+#define LIMIT_UNDERVOLTAGE_TO_START 3.0F
 /// Warning voltage of a cell, will send a warning DTC if it goes below
-#define LIMIT_LOWVOLTAGE_WARNING 2.8F
+#define LIMIT_LOWVOLTAGE_WARNING 3.3F
 /// Rate at which the low voltage threshold dynamically lowers vs current
 #define LIMIT_LOWVOLTAGE_WARNING_SLOPE 0.0043125F
 
@@ -60,7 +73,10 @@
 /** Similar to @ref CELL_OVERTEMP_WARNING, temp will send warning DTC */
 #define CELL_UNDERTEMP_WARNING 5
 /** Set to 0 to use every thermistor, including ones in DEAD_THERMISTOR_CHANNELS */
-#define DEAD_THERMISTOR_SKIP_ENABLED (0)
+#define DEAD_THERMISTOR_SKIP_ENABLED (1)
+/** Set to 0 to use thermistors whose input reads 0 V (open or shorted to ground) instead of warning once and skipping
+ * them */
+#define THERMISTOR_AT_0V_SKIP_ENABLED (0)
 
 /** @} Cell Characteristics */
 
@@ -80,8 +96,23 @@
 /// Pause balancing for this length when reading cell voltages to get good readings
 #define CELL_RELAXATION_TIME_MS (250)
 
-/// SoC to stop charging at (of the cell with lowest SoC)
+/// SoC to stop charging at. Uses the lowest cell when every cell can be balanced, otherwise the highest cell
 #define CHARGE_STOP_SOC (98.0)
+
+/**
+ * Hard cap on the highest cell while charging (V). Charging stops as soon as any cell reaches this,
+ * in every balancing mode. Also sets the pack voltage limit sent to the charger
+ */
+#define CHARGE_MAX_CELL_VOLTAGE (4.15F)
+
+/**
+ * Set to 0 to charge without balancing (charging only happens on the charge cart). Charging then stops when the
+ * highest cell reads @ref CHARGE_MAX_CELL_VOLTAGE, which comes before @ref CHARGE_STOP_SOC on the highest cell.
+ * Cells in NO_DISCHARGE_CELLS (ltc_chip.c) are never balanced either (partial balancing). If any cell can't be
+ * balanced, charging stops as soon as the highest cell reaches @ref CHARGE_STOP_SOC, since nothing can bring it
+ * back down
+ */
+#define BALANCE_WHILE_CHARGING_ENABLED (1)
 
 /**
  * If using charge cart heartbeat, this heartbeat timeout. NB: We are phasing
@@ -108,6 +139,7 @@
 #define CHECK_CELL_VOLTAGE_TEMPS_FAIL_BIT           (1U << 3)
 #define PACK_VOLTAGE_FAIL_BIT                       (1U << 4)
 #define CLOSE_TO_RED_FAIL_BIT                       (1U << 5)
+#define AMS_DIAGNOSTIC_FLAGS_FAIL_BIT               (1U << 6)
 
 #if CELL_RELAXATION_TIME_MS >= BATTERY_CHARGE_TASK_PERIOD_MS
 #error "Cell relaxation time must be < task period battery charge task period"
@@ -150,6 +182,8 @@ HAL_StatusTypeDef getVBus(float *VBus);
 
 HAL_StatusTypeDef initBusVoltagesAndCurrentQueues();
 HAL_StatusTypeDef balance_cell(int cell, bool set);
+void setBalanceNow(bool enable);
+void getBatteryErrorCounts(uint32_t *errors, uint32_t *redErrors);
 HAL_StatusTypeDef getPackVoltage(float *packVoltage);
 HAL_StatusTypeDef getAdjustedPackVoltage(float *packVoltage);
 HAL_StatusTypeDef initPackVoltageQueues();

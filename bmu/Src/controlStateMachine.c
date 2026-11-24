@@ -19,6 +19,7 @@
 #include "bmu_dtc.h"
 #include "bmu_can.h"
 #include "prechargeDischarge.h"
+#include "contactorControl.h"
 #include "bsp.h"
 #include "watchdog.h"
 #include "batteries.h"
@@ -271,7 +272,10 @@ uint32_t prechargeFinished(uint32_t event)
     HV_Power_State = HV_Power_State_On;
     sendCAN_BMU_HV_Power_State();
 
-    DC_DC_ON;
+    // The charge cart has no LV loads for the DC-DC, so leave it off
+    if (!CHARGE_CART_MODE) {
+        DC_DC_ON;
+    }
 
     return STATE_HV_Enable;
 }
@@ -296,6 +300,9 @@ uint32_t handleFault(uint32_t event)
 
     uint32_t currentState = fsmGetState(&fsmHandle);
 
+    // Failure fatal is final, so nothing may close a contactor again (e.g. the PCDC task finishing a step)
+    latchContactorsOpen();
+
     HV_Power_State = HV_Power_State_Off;
     sendCAN_BMU_HV_Power_State();
 
@@ -317,6 +324,9 @@ uint32_t handleFault(uint32_t event)
         case STATE_Precharge:
             {
                 DEBUG_PRINT("hvEnabledHVFault during precharge\n");
+                // Open everything now instead of relying on the PCDC task to act on the stop. Precharge
+                // current is small, so there's no need to wait for zero current first
+                openAllContactors();
                 // Only send stop if the precharge hasn't already failed
                 // Otherwise it's been stopped already
                 if (event != EV_PrechargeDischarge_Fail) {
@@ -432,7 +442,18 @@ uint32_t chargeDone(uint32_t event)
 uint32_t chargingFault(uint32_t event)
 {
     DEBUG_PRINT("Fault! Stop Charging\r\n");
+    latchContactorsOpen();
+
+    // Stop the charger right away, the battery task only checks for the stop once per charge loop
+    sendChargerCommand(0, 0, false /* stop charging */);
     xTaskNotify(BatteryTaskHandle, (1<<BATTERY_STOP_NOTIFICATION), eSetBits);
+
+    // Stopping the charger doesn't take HV down, so discharge as well, like handleFault does at HV enable
+    HV_Power_State = HV_Power_State_Off;
+    sendCAN_BMU_HV_Power_State();
+    DC_DC_OFF;
+    xTaskNotify(PCDCHandle, (1<<DISCHARGE_NOTIFICATION), eSetBits);
+
     return STATE_Failure_Fatal;
 }
 

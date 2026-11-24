@@ -17,12 +17,34 @@
 
 uint32_t contactorThermistorADCValues[NUM_CONT_THERMISTOR_INDEX] = {0};
 
+/// Set on a fatal fault. Contactors can still be opened, but nothing can close them until the BMU resets
+static volatile bool contactorsLatchedOpen = false;
+
+/**
+ * @brief Stop any contactor from closing until reset. Doesn't open them itself, so a discharge can still wait
+ * for zero current before opening
+ */
+void latchContactorsOpen(void) {
+    contactorsLatchedOpen = true;
+}
+
+static bool closeBlockedByLatch(ContactorState_t state, const char *name) {
+    if (state == CONTACTOR_CLOSED && contactorsLatchedOpen) {
+        ERROR_PRINT("Not closing %s contactor, latched open after a fault\n", name);
+        return true;
+    }
+    return false;
+}
+
 /**
  * @brief Control negative contactor
  *
  * @param state The state to set contactor to
  */
 void setNegContactor(ContactorState_t state) {
+    if (closeBlockedByLatch(state, "negative")) {
+        return;
+    }
     DEBUG_PRINT("%s negative contactor\n", state == CONTACTOR_CLOSED ? "Closing" : "Opening");
     if (state == CONTACTOR_CLOSED)
         CONT_NEG_CLOSE;
@@ -36,6 +58,9 @@ void setNegContactor(ContactorState_t state) {
  * @param state The state to set contactor to
  */
 void setPosContactor(ContactorState_t state) {
+    if (closeBlockedByLatch(state, "positive")) {
+        return;
+    }
     DEBUG_PRINT("%s positive contactor\n", state == CONTACTOR_CLOSED ? "Closing" : "Opening");
 
     if (state == CONTACTOR_CLOSED)
@@ -51,6 +76,9 @@ void setPosContactor(ContactorState_t state) {
  * means precharge mode, open means discharge mode
  */
 void setPrechargeContactor(ContactorState_t state) {
+    if (closeBlockedByLatch(state, "precharge")) {
+        return;
+    }
     DEBUG_PRINT("%s precharge contactor\n", state == CONTACTOR_CLOSED ? "Closing" : "Opening");
 
     if (state == CONTACTOR_CLOSED)
