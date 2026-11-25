@@ -25,6 +25,11 @@
 #define PWM_MIN_PERIOD_TICKS 2U
 #define PWM_MAX_PERIOD_TICKS 65536U
 
+// Must match MX_TIM8_Init() in Cube-F7-Src-respin/Core/Src/tim.c. Not read back
+// from htim8.Init at runtime because __HAL_TIM_SET_AUTORELOAD overwrites Init.Period.
+#define PWM_DEFAULT_PRESCALER 0U
+#define PWM_DEFAULT_PERIOD 65535U
+
 static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timChannel)
 {
     switch (channel) {
@@ -171,4 +176,30 @@ HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float
 
     *actualHz = (float)PWM_FREQ_COUNTER_HZ / (float)periodTicks;
     return HAL_OK;
+}
+
+HAL_StatusTypeDef pwmRestoreDefaultFrequency(void)
+{
+    __HAL_TIM_SET_PRESCALER(&PWM_TIM_HANDLE, PWM_DEFAULT_PRESCALER);
+    __HAL_TIM_SET_AUTORELOAD(&PWM_TIM_HANDLE, PWM_DEFAULT_PERIOD);
+
+    // Load the preloaded prescaler now and restart the counter at 0
+    if (HAL_TIM_GenerateEvent(&PWM_TIM_HANDLE, TIM_EVENTSOURCE_UPDATE) != HAL_OK) {
+        ERROR_PRINT("Failed to restore PWM timer\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+bool pwmIsActive(PwmChannel_t channel)
+{
+    uint32_t timChannel;
+
+    if (getPwmTimChannel(channel, &timChannel) != HAL_OK) {
+        return false;
+    }
+
+    return HAL_TIM_GetChannelState(&PWM_TIM_HANDLE, timChannel) == HAL_TIM_CHANNEL_STATE_BUSY &&
+           __HAL_TIM_GET_COMPARE(&PWM_TIM_HANDLE, timChannel) != 0U;
 }

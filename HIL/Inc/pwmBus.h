@@ -8,6 +8,8 @@
 #ifndef PWM_BUS_H
 #define PWM_BUS_H
 
+#include <stdbool.h>
+
 #include "stm32f7xx_hal.h"
 
 typedef enum {
@@ -32,5 +34,13 @@ HAL_StatusTypeDef pwmStop(PwmChannel_t channel);
 // channels change frequency too (their compare value is not touched).
 // actualHz returns the frequency after rounding to whole timer ticks.
 HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float *actualHz);
+
+// Puts the whole PWM timer back to its CubeMX prescaler and period (~3.05 kHz).
+// Compare values are not touched, so running channels keep their tick count.
+HAL_StatusTypeDef pwmRestoreDefaultFrequency(void);
+
+// True when channel is started and its compare value is not 0, i.e. the pin is
+// actually toggling. A channel at 0% duty cycle (as after pwmBusInit()) is not active.
+bool pwmIsActive(PwmChannel_t channel);
 
 #endif /* PWM_BUS_H */
