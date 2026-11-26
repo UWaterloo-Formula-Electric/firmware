@@ -27,4 +27,13 @@ HAL_StatusTypeDef pwmInitChannel(PwmChannel_t channel);
 HAL_StatusTypeDef pwmSetDutyCycle(PwmChannel_t channel, float dutyPercent);
 HAL_StatusTypeDef pwmStop(PwmChannel_t channel);
 
+<<<<<<< HEAD
+=======
+// Sets the whole PWM timer to frequencyHz and puts channel at 50% duty cycle,
+// starting it if stopped. All channels share one timer, so other running
+// channels change frequency too (their compare value is not touched).
+// actualHz returns the frequency after rounding to whole timer ticks.
+HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float *actualHz);
+
+>>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
 #endif /* PWM_BUS_H */
