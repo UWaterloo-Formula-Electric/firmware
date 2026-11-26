@@ -7,7 +7,8 @@
   * a chip can be exercised before any driver exists for it. A driver for a
   * specific part should add its own higher level commands here, next to these.
   * Also exposes init, duty cycle and stop control for the PWM_8/9/10 bench
-  * channels, raw DAC channel control, and BSPD fault simulation commands.
+  * channels, fake fan tachometer output on PWM_9/10, raw DAC channel control,
+  * and BSPD fault simulation commands.
   *
   * Commands are registered with FreeRTOS_CLI by hilCliInit(), called from
   * userInit(). common/Src/debug.c's cliTask then reads the debug UART and
@@ -45,20 +46,22 @@
 #define DAC_FIRST_CHANNEL 1
 #define DAC_LAST_CHANNEL 2
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 // Fan tach: 2 pulses per revolution, so frequency = rpm * 2 / 60 = rpm / 30
 #define FAN_TACH_RPM_PER_HZ 30.0f
 #define FAN_TACH_MIN_RPM 200
 #define FAN_TACH_MAX_RPM 6000
 
-// Last rpm set by fanTachSet per channel, 0 when stopped. Only PWM_9/10 are used.
-static unsigned int fanTachRpm[NUM_PWM_CHANNELS] = {0};
+// PWM_8 shares TIM8, so once neither fan tach channel is toggling, put TIM8
+// back to its CubeMX frequency
+static HAL_StatusTypeDef fanTachRestoreIfIdle(void)
+{
+    if (pwmIsActive(PWM_CHANNEL_9) || pwmIsActive(PWM_CHANNEL_10)) {
+        return HAL_OK;
+    }
 
->>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
-=======
->>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
+    return pwmRestoreDefaultFrequency();
+}
+
 static HAL_StatusTypeDef getBusFromParam(const char *param, I2cBus_t *bus)
 {
     unsigned int busNumber = 0;
@@ -366,6 +369,13 @@ static BaseType_t pwmStopCommand(char *writeBuffer, size_t writeBufferLength,
         return pdFALSE;
     }
 
+    // Stopping a fan tach channel by hand may leave TIM8 at a fan tach frequency
+    if (channel != PWM_CHANNEL_8 && fanTachRestoreIfIdle() != HAL_OK) {
+        COMMAND_OUTPUT("Stopped PWM_%u, failed to restore TIM8 default frequency\n",
+                       (unsigned int)channel + PWM_FIRST_CHANNEL);
+        return pdFALSE;
+    }
+
     COMMAND_OUTPUT("Stopped PWM_%u\n", (unsigned int)channel + PWM_FIRST_CHANNEL);
     return pdFALSE;
 }
@@ -378,9 +388,6 @@ static const CLI_Command_Definition_t pwmStopCommandDefinition =
     1 /* Number of parameters */
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 /* Fan Tach Simulation Commands -------------------------------------------- */
 
 /**
@@ -388,6 +395,7 @@ static const CLI_Command_Definition_t pwmStopCommandDefinition =
  * @note   Syntax: fanTachSet <9|10> <rpm>
  *         PWM_9 (PC7, J8 pin 17) or PWM_10 (PC8, J8 pin 19), 50% duty cycle.
  *         Both share TIM8, so setting one also moves the other if it is running.
+ *         PWM_8 also shares TIM8, so its frequency changes while a fan tach is running and is restored when both stop.
  *         0 rpm stops the output.
  */
 static BaseType_t fanTachSetCommand(char *writeBuffer, size_t writeBufferLength,
@@ -423,7 +431,12 @@ static BaseType_t fanTachSetCommand(char *writeBuffer, size_t writeBufferLength,
             return pdFALSE;
         }
 
-        fanTachRpm[channel] = 0;
+        if (fanTachRestoreIfIdle() != HAL_OK) {
+            COMMAND_OUTPUT("Stopped PWM_%u, failed to restore TIM8 default frequency\n",
+                           (unsigned int)channel + PWM_FIRST_CHANNEL);
+            return pdFALSE;
+        }
+
         COMMAND_OUTPUT("Stopped PWM_%u (0 rpm)\n", (unsigned int)channel + PWM_FIRST_CHANNEL);
         return pdFALSE;
     }
@@ -433,16 +446,15 @@ static BaseType_t fanTachSetCommand(char *writeBuffer, size_t writeBufferLength,
         COMMAND_OUTPUT("Failed to set frequency\n");
         return pdFALSE;
     }
-    fanTachRpm[channel] = rpm;
 
-    // 5. The other fan channel shares TIM8, so put it back at exact 50% too
+    // 5. The other fan channel shares TIM8, so if it is toggling put it back at exact 50% too.
+    //    Read from the timer itself so a channel stopped with pwmStop is left alone.
     otherChannel = (channel == PWM_CHANNEL_9) ? PWM_CHANNEL_10 : PWM_CHANNEL_9;
-    if (fanTachRpm[otherChannel] != 0 && fanTachRpm[otherChannel] != rpm) {
+    if (pwmIsActive(otherChannel)) {
         if (pwmSetFrequency(otherChannel, (float)rpm / FAN_TACH_RPM_PER_HZ, &otherHz) != HAL_OK) {
             COMMAND_OUTPUT("Failed to update PWM_%u\n", (unsigned int)otherChannel + PWM_FIRST_CHANNEL);
             return pdFALSE;
         }
-        fanTachRpm[otherChannel] = rpm;
         movedOther = true;
     }
 
@@ -466,9 +478,6 @@ static const CLI_Command_Definition_t fanTachSetCommandDefinition =
     2 /* Number of parameters */
 };
 
->>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
-=======
->>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
 /* GPIO Bench Commands ----------------------------------------------------- */
 static BaseType_t gpio3v1EnableCommand(char *writeBuffer, size_t writeBufferLength,
                                        const char *commandString)
@@ -800,6 +809,7 @@ HAL_StatusTypeDef hilCliInit(void)
         &pwmInitCommandDefinition,
         &pwmSetDutyCommandDefinition,
         &pwmStopCommandDefinition,
+        &fanTachSetCommandDefinition,
         &gpio3v1EnableCommandDefinition,
         &dacSetCommandDefinition,
         &mcpSetCommandDefinition,
