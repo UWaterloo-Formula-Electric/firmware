@@ -7,8 +7,7 @@
   * a chip can be exercised before any driver exists for it. A driver for a
   * specific part should add its own higher level commands here, next to these.
   * Also exposes init, duty cycle and stop control for the PWM_8/9/10 bench
-  * channels, fake fan tachometer output on PWM_9/10, raw DAC channel control,
-  * and BSPD fault simulation commands.
+  * channels, raw DAC channel control, and BSPD fault simulation commands.
   *
   * Commands are registered with FreeRTOS_CLI by hilCliInit(), called from
   * userInit(). common/Src/debug.c's cliTask then reads the debug UART and
@@ -45,22 +44,6 @@
 
 #define DAC_FIRST_CHANNEL 1
 #define DAC_LAST_CHANNEL 2
-
-// Fan tach: 2 pulses per revolution, so frequency = rpm * 2 / 60 = rpm / 30
-#define FAN_TACH_RPM_PER_HZ 30.0f
-#define FAN_TACH_MIN_RPM 200
-#define FAN_TACH_MAX_RPM 6000
-
-// PWM_8 shares TIM8, so once neither fan tach channel is toggling, put TIM8
-// back to its CubeMX frequency
-static HAL_StatusTypeDef fanTachRestoreIfIdle(void)
-{
-    if (pwmIsActive(PWM_CHANNEL_9) || pwmIsActive(PWM_CHANNEL_10)) {
-        return HAL_OK;
-    }
-
-    return pwmRestoreDefaultFrequency();
-}
 
 static HAL_StatusTypeDef getBusFromParam(const char *param, I2cBus_t *bus)
 {
@@ -369,13 +352,6 @@ static BaseType_t pwmStopCommand(char *writeBuffer, size_t writeBufferLength,
         return pdFALSE;
     }
 
-    // Stopping a fan tach channel by hand may leave TIM8 at a fan tach frequency
-    if (channel != PWM_CHANNEL_8 && fanTachRestoreIfIdle() != HAL_OK) {
-        COMMAND_OUTPUT("Stopped PWM_%u, failed to restore TIM8 default frequency\n",
-                       (unsigned int)channel + PWM_FIRST_CHANNEL);
-        return pdFALSE;
-    }
-
     COMMAND_OUTPUT("Stopped PWM_%u\n", (unsigned int)channel + PWM_FIRST_CHANNEL);
     return pdFALSE;
 }
@@ -386,96 +362,6 @@ static const CLI_Command_Definition_t pwmStopCommandDefinition =
     "pwmStop <channel>:\r\n  Stop PWM output on PWM_<channel> (8-10)\r\n",
     pwmStopCommand,
     1 /* Number of parameters */
-};
-
-/* Fan Tach Simulation Commands -------------------------------------------- */
-
-/**
- * @brief  CLI handler to output a fake fan tachometer signal.
- * @note   Syntax: fanTachSet <9|10> <rpm>
- *         PWM_9 (PC7, J8 pin 17) or PWM_10 (PC8, J8 pin 19), 50% duty cycle.
- *         Both share TIM8, so setting one also moves the other if it is running.
- *         PWM_8 also shares TIM8, so its frequency changes while a fan tach is running and is restored when both stop.
- *         0 rpm stops the output.
- */
-static BaseType_t fanTachSetCommand(char *writeBuffer, size_t writeBufferLength,
-                                    const char *commandString)
-{
-    BaseType_t paramLen;
-    PwmChannel_t channel;
-    PwmChannel_t otherChannel;
-    unsigned int rpm;
-    float actualHz = 0.0f;
-    float otherHz = 0.0f;
-    bool movedOther = false;
-    const char *rpmParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
-
-    // 1. Parse channel, PWM_8 is not available for fan tach output
-    if (getPwmChannelFromParam(FreeRTOS_CLIGetParameter(commandString, 1, &paramLen), &channel) != HAL_OK ||
-        channel == PWM_CHANNEL_8) {
-        COMMAND_OUTPUT("Channel must be 9 or 10\n");
-        return pdFALSE;
-    }
-
-    // 2. Parse rpm: 0 (stopped) or within the fan's range
-    if (rpmParam == NULL || sscanf(rpmParam, "%u", &rpm) != 1 ||
-        (rpm != 0 && (rpm < FAN_TACH_MIN_RPM || rpm > FAN_TACH_MAX_RPM))) {
-        COMMAND_OUTPUT("RPM must be 0 or %d-%d\n", FAN_TACH_MIN_RPM, FAN_TACH_MAX_RPM);
-        return pdFALSE;
-    }
-
-    // 3. 0 rpm stops the output, the BMU pull-up then holds the line high
-    if (rpm == 0) {
-        if (pwmStop(channel) != HAL_OK) {
-            COMMAND_OUTPUT("Failed to stop PWM\n");
-            return pdFALSE;
-        }
-
-        if (fanTachRestoreIfIdle() != HAL_OK) {
-            COMMAND_OUTPUT("Stopped PWM_%u, failed to restore TIM8 default frequency\n",
-                           (unsigned int)channel + PWM_FIRST_CHANNEL);
-            return pdFALSE;
-        }
-
-        COMMAND_OUTPUT("Stopped PWM_%u (0 rpm)\n", (unsigned int)channel + PWM_FIRST_CHANNEL);
-        return pdFALSE;
-    }
-
-    // 4. Set the shared timer frequency, channel at 50% duty cycle
-    if (pwmSetFrequency(channel, (float)rpm / FAN_TACH_RPM_PER_HZ, &actualHz) != HAL_OK) {
-        COMMAND_OUTPUT("Failed to set frequency\n");
-        return pdFALSE;
-    }
-
-    // 5. The other fan channel shares TIM8, so if it is toggling put it back at exact 50% too.
-    //    Read from the timer itself so a channel stopped with pwmStop is left alone.
-    otherChannel = (channel == PWM_CHANNEL_9) ? PWM_CHANNEL_10 : PWM_CHANNEL_9;
-    if (pwmIsActive(otherChannel)) {
-        if (pwmSetFrequency(otherChannel, (float)rpm / FAN_TACH_RPM_PER_HZ, &otherHz) != HAL_OK) {
-            COMMAND_OUTPUT("Failed to update PWM_%u\n", (unsigned int)otherChannel + PWM_FIRST_CHANNEL);
-            return pdFALSE;
-        }
-        movedOther = true;
-    }
-
-    // 6. Output confirmation to user
-    if (movedOther) {
-        COMMAND_OUTPUT("Set PWM_%u to %u rpm (%.3f Hz), PWM_%u also moved (shared TIM8)\n",
-                       (unsigned int)channel + PWM_FIRST_CHANNEL, rpm, actualHz,
-                       (unsigned int)otherChannel + PWM_FIRST_CHANNEL);
-    } else {
-        COMMAND_OUTPUT("Set PWM_%u to %u rpm (%.3f Hz)\n",
-                       (unsigned int)channel + PWM_FIRST_CHANNEL, rpm, actualHz);
-    }
-    return pdFALSE;
-}
-
-static const CLI_Command_Definition_t fanTachSetCommandDefinition =
-{
-    "fanTachSet",
-    "fanTachSet <channel> <rpm>:\r\n  Fake fan tach on PWM_<channel> (9-10), 0 or 200-6000 rpm, 50% duty\r\n",
-    fanTachSetCommand,
-    2 /* Number of parameters */
 };
 
 /* GPIO Bench Commands ----------------------------------------------------- */
@@ -809,7 +695,6 @@ HAL_StatusTypeDef hilCliInit(void)
         &pwmInitCommandDefinition,
         &pwmSetDutyCommandDefinition,
         &pwmStopCommandDefinition,
-        &fanTachSetCommandDefinition,
         &gpio3v1EnableCommandDefinition,
         &dacSetCommandDefinition,
         &mcpSetCommandDefinition,
