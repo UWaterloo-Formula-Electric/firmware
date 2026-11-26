@@ -118,5 +118,7 @@ extern uint8_t isUartOverCanEnabled;
 
 HAL_StatusTypeDef debugInit();
 HAL_StatusTypeDef uartStartReceiving(UART_HandleTypeDef *huart);
+BaseType_t versionCLICommand(char *writeBuffer, size_t writeBufferLength,
+                            const char *commandString);
 
 #endif /* define(__DEBUG_H) */

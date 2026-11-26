@@ -1,0 +1,351 @@
+{
+  "board": "STM32 HIL_2027",
+  "verified": false,
+  "fixture_revision": "",
+  "note": "INCOMPLETE: fill acknowledged command/expect recipes using the pinned HIL DAC driver and verified harness transfer functions. ADC counts below are VCU-side targets, not DAC codes or connector voltages. Each recipe must establish all five sensor inputs.",
+  "adc_order": [
+    "throttle_A",
+    "throttle_B",
+    "brake_position",
+    "brake_pressure",
+    "steering"
+  ],
+  "idle": {
+    "adc_equivalent_reference_only": [
+      2096,
+      2044,
+      246,
+      418,
+      2048
+    ],
+    "commands": [],
+    "settle_ms": 100
+  },
+  "points": {
+    "T03.P1": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T03.P2": {
+      "expected": 50,
+      "adc_equivalent_reference_only": [
+        1205,
+        2924,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T03.P3": {
+      "expected": 100,
+      "adc_equivalent_reference_only": [
+        313,
+        3804,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T04.P1": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T04.P2": {
+      "expected": 50,
+      "adc_equivalent_reference_only": [
+        1205,
+        2924,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T04.P3": {
+      "expected": 100,
+      "adc_equivalent_reference_only": [
+        313,
+        3804,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T05.P1": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T05.P2": {
+      "expected": 50,
+      "adc_equivalent_reference_only": [
+        1205,
+        2924,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T05.P3": {
+      "expected": 100,
+      "adc_equivalent_reference_only": [
+        313,
+        3804,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T08.P1": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T08.P2": {
+      "expected": 50,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        222,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T08.P3": {
+      "expected": 100,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        198,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T09.P1": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T09.P2": {
+      "expected": 50,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        919,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T09.P3": {
+      "expected": 100,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        1419,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T10.P1": {
+      "expected": 53,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        222,
+        979,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T10.P2": {
+      "expected": 80,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        236,
+        1219,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T12.P1": {
+      "expected": -102,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        1
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T12.P2": {
+      "expected": 0,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        2048
+      ],
+      "commands": [],
+      "settle_ms": 100
+    },
+    "T12.P3": {
+      "expected": 102,
+      "adc_equivalent_reference_only": [
+        2096,
+        2044,
+        246,
+        418,
+        4095
+      ],
+      "commands": [],
+      "settle_ms": 100
+    }
+  },
+  "vcu_revision": "2027 schematic screenshots dated 2026-10-17; as-built confirmation pending",
+  "pin_map": {
+    "throttle_A": {
+      "connector": "J1A.3",
+      "mcu": "PA1"
+    },
+    "throttle_B": {
+      "connector": "J1A.4",
+      "mcu": "PA2"
+    },
+    "brake_position": {
+      "connector": "J1A.5",
+      "mcu": "PA3"
+    },
+    "brake_pressure": {
+      "connector": "J1A.6",
+      "mcu": "PA4"
+    },
+    "steering": {
+      "connector": "J1A.8",
+      "mcu": "PA5"
+    },
+    "wheel_RR": {
+      "connector": "J1A.1",
+      "mcu": "PA6"
+    },
+    "wheel_RL": {
+      "connector": "J1A.2",
+      "mcu": "PA7"
+    },
+    "wheel_FR": {
+      "connector": "J1A.9",
+      "mcu": "PE9"
+    },
+    "wheel_FL": {
+      "connector": "J1A.10",
+      "mcu": "PE11"
+    },
+    "button_HV": {
+      "connector": "J2A.1",
+      "mcu": "PC4"
+    },
+    "button_EM": {
+      "connector": "J2A.2",
+      "mcu": "PC5"
+    },
+    "button_TC": {
+      "connector": "J2A.3",
+      "mcu": "PB0"
+    },
+    "button_ENDUR": {
+      "connector": "J2A.4",
+      "mcu": "PB1"
+    },
+    "button_REGEN": {
+      "connector": "J2A.5",
+      "mcu": "PB2"
+    },
+    "button_COOLING": {
+      "connector": "J2A.6",
+      "mcu": "PE7"
+    },
+    "can_negative": {
+      "connector": "J1B.12",
+      "mcu": "CAN transceiver"
+    },
+    "can_positive": {
+      "connector": "J1B.13",
+      "mcu": "CAN transceiver"
+    }
+  },
+  "compatibility_blockers": [
+    "Current VCU ADC firmware scans PA3-PA7; schematic requires PA1-PA5.",
+    "Existing button task handles four inputs; confirm/add Regen and Cooling behavior.",
+    "Current wheel speed comes from CAN/inverter paths; physical pulse inputs need firmware support.",
+    "Confirm per-channel fitted divider/filter components and HIL output mapping."
+  ],
+  "hil_firmware_commit": "98b1298f13a70b03fd5c96eac65bf2cf516fd732",
+  "hil_firmware_branch": "HIL_2027",
+  "hil_firmware_source": "https://github.com/UWaterloo-Formula-Electric/firmware/tree/98b1298f13a70b03fd5c96eac65bf2cf516fd732/HIL",
+  "hil_dac_commands": {
+    "internal": "dacSet <1|2> <millivolts>",
+    "external": "mcpSet <chip 1..4> <A..D> <millivolts> <gain>"
+  },
+  "hil_to_vcu_mapping_status": "UNCONFIRMED: latest located VCU HIL Harness Notion page contains no pin map. Do not infer cable assignments from driver channel numbers."
+}

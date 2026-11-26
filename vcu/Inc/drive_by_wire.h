@@ -28,7 +28,7 @@ typedef enum VCU_States_t {
 char VCU_States_String[][20]={
     "Self Check", 
     "HV Disable",
-    "HV Enable" 
+    "HV Enable",
     "Em Enable", 
     "Failure Fatal"
 };
