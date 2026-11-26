@@ -17,6 +17,7 @@
 #include "debug.h"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // 200 MHz / 500 = 400 kHz counter, so 6.1 Hz (65536 ticks) to 200 Hz (2000 ticks)
 // fits the 16 bit counter with at most 0.025% rounding error
@@ -26,6 +27,8 @@
 #define PWM_MAX_PERIOD_TICKS 65536U
 
 >>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
+=======
+>>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
 static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timChannel)
 {
     switch (channel) {
@@ -126,6 +129,7 @@ HAL_StatusTypeDef pwmStop(PwmChannel_t channel)
     return HAL_OK;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float *actualHz)
@@ -176,3 +180,5 @@ HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float
     return HAL_OK;
 }
 >>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
+=======
+>>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)

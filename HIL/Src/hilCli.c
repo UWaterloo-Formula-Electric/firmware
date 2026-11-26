@@ -46,6 +46,7 @@
 #define DAC_LAST_CHANNEL 2
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Fan tach: 2 pulses per revolution, so frequency = rpm * 2 / 60 = rpm / 30
 #define FAN_TACH_RPM_PER_HZ 30.0f
@@ -56,6 +57,8 @@
 static unsigned int fanTachRpm[NUM_PWM_CHANNELS] = {0};
 
 >>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
+=======
+>>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
 static HAL_StatusTypeDef getBusFromParam(const char *param, I2cBus_t *bus)
 {
     unsigned int busNumber = 0;
@@ -376,6 +379,7 @@ static const CLI_Command_Definition_t pwmStopCommandDefinition =
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /* Fan Tach Simulation Commands -------------------------------------------- */
 
@@ -463,6 +467,8 @@ static const CLI_Command_Definition_t fanTachSetCommandDefinition =
 };
 
 >>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
+=======
+>>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
 /* GPIO Bench Commands ----------------------------------------------------- */
 static BaseType_t gpio3v1EnableCommand(char *writeBuffer, size_t writeBufferLength,
                                        const char *commandString)
