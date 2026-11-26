@@ -25,8 +25,10 @@
 
 #define BRAKE_PRESSURE_SENSOR_MIN_V 0.5f
 #define BRAKE_PRESSURE_SENSOR_MAX_V 4.5f
+#define BRAKE_PRESSURE_SENSOR_OPEN_CIRCUIT_V 0.25f
+#define BRAKE_PRESSURE_SENSOR_SHORT_CIRCUIT_V 4.75f
 #define BRAKE_PRESSURE_SENSOR_MIN_PSI 0.0f
-#define BRAKE_PRESSURE_SENSOR_MAX_PSI 2500.0f
+#define BRAKE_PRESSURE_SENSOR_MAX_PSI 5000.0f
 #define BRAKE_PRESSURE_ADC_REF_V 3.3f
 #define BRAKE_PRESSURE_VOLTAGE_DIVIDER_SCALE 1.5f
 #define MOCK_BRAKE_PRESSURE_PERCENT 95
@@ -57,12 +59,16 @@
 #define BRAKE_PRES_LOW (418)
 #define BRAKE_PRES_HIGH (1419)
 
-#define STEERING_POT_LOW (1)      // Pot value when the wheel is all the way to the left
-#define STEERING_POT_HIGH (ADC_MAX_COUNT)  // Pot value when the wheel is all the way to the right
 
-#define STEERING_POT_CENTER (((STEERING_POT_HIGH - STEERING_POT_LOW) / 2) + STEERING_POT_LOW)  // The pot value while the wheel is neutral
-#define STEERING_SCALE_DIVIDER (STEERING_POT_CENTER / PERCENT_MAX_INT)                         // Scale the pot value to range (-100,100)
-#define STEERING_POT_OFFSET (STEERING_POT_CENTER)
+#define STEERING_ADC_RANGE (4096)
+#define STEERING_WRAP_THRESHOLD (900)
+#define STEERING_RAW_FULL_LEFT (689)
+#define STEERING_RAW_FULL_RIGHT (1171)
+
+#define STEERING_UNWRAPPED_LEFT (STEERING_RAW_FULL_LEFT)
+#define STEERING_UNWRAPPED_RIGHT (STEERING_RAW_FULL_RIGHT - STEERING_ADC_RANGE)
+#define STEERING_UNWRAPPED_CENTER ((STEERING_UNWRAPPED_LEFT + STEERING_UNWRAPPED_RIGHT) /2)
+#define STEERING_HALF_TRAVEL ((STEERING_UNWRAPPED_LEFT - STEERING_UNWRAPPED_RIGHT) /2)
 
 #define MAX_THROTTLE_A_DEADZONE (30)
 #define MAX_THROTTLE_B_DEADZONE (30)
@@ -127,6 +133,7 @@ float getThrottleBFiltered();
 // For testing
 uint16_t calculate_throttle_adc_from_percent1(uint16_t percent);
 uint16_t calculate_throttle_adc_from_percent2(uint16_t percent);
+uint16_t calculate_brake_pressure_adc_from_psi(float psi);
 float calculate_throttle_percent1(uint16_t tps_value);
 float calculate_throttle_percent2(uint16_t tps_value);
 ThrottleStatus_t getNewThrottle(float *throttleOut);
