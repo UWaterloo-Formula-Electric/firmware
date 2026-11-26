@@ -5,7 +5,9 @@
   * @details PWM_8, PWM_9 and PWM_10 (PC6/PC7/PC8, TIM8 channels 1-3) are
   * broken out to the bench connectors. Duty cycle is set as a percentage of
   * the timer's live auto-reload value rather than a raw compare count, so
-  * callers don't need to know the timer's period. Device specific signal
+  * callers don't need to know the timer's period. pwmSetFrequency() changes
+  * that period for the whole timer, so all channels share one frequency.
+  * Device specific signal
   * shaping belongs in that device's own file, which should call these rather
   * than the HAL directly.
   *****************************************************************************
@@ -16,9 +18,6 @@
 #include "bsp.h"
 #include "debug.h"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 // 200 MHz / 500 = 400 kHz counter, so 6.1 Hz (65536 ticks) to 200 Hz (2000 ticks)
 // fits the 16 bit counter with at most 0.025% rounding error
 #define PWM_FREQ_PRESCALER 500U
@@ -26,9 +25,11 @@
 #define PWM_MIN_PERIOD_TICKS 2U
 #define PWM_MAX_PERIOD_TICKS 65536U
 
->>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
-=======
->>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
+// Must match MX_TIM8_Init() in Cube-F7-Src-respin/Core/Src/tim.c. Not read back
+// from htim8.Init at runtime because __HAL_TIM_SET_AUTORELOAD overwrites Init.Period.
+#define PWM_DEFAULT_PRESCALER 0U
+#define PWM_DEFAULT_PERIOD 65535U
+
 static HAL_StatusTypeDef getPwmTimChannel(PwmChannel_t channel, uint32_t *timChannel)
 {
     switch (channel) {
@@ -128,9 +129,6 @@ HAL_StatusTypeDef pwmStop(PwmChannel_t channel)
 
     return HAL_OK;
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
 HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float *actualHz)
 {
@@ -179,6 +177,29 @@ HAL_StatusTypeDef pwmSetFrequency(PwmChannel_t channel, float frequencyHz, float
     *actualHz = (float)PWM_FREQ_COUNTER_HZ / (float)periodTicks;
     return HAL_OK;
 }
->>>>>>> parent of e210a790 (HIL: restore TIM8 defaults when both fan tachs stop, check live channel state)
-=======
->>>>>>> parent of 21bbadb4 (HIL: add pwmSetFrequency and fanTachSet command for fake fan tachs on PWM_9/PWM_10)
+
+HAL_StatusTypeDef pwmRestoreDefaultFrequency(void)
+{
+    __HAL_TIM_SET_PRESCALER(&PWM_TIM_HANDLE, PWM_DEFAULT_PRESCALER);
+    __HAL_TIM_SET_AUTORELOAD(&PWM_TIM_HANDLE, PWM_DEFAULT_PERIOD);
+
+    // Load the preloaded prescaler now and restart the counter at 0
+    if (HAL_TIM_GenerateEvent(&PWM_TIM_HANDLE, TIM_EVENTSOURCE_UPDATE) != HAL_OK) {
+        ERROR_PRINT("Failed to restore PWM timer\n");
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
+}
+
+bool pwmIsActive(PwmChannel_t channel)
+{
+    uint32_t timChannel;
+
+    if (getPwmTimChannel(channel, &timChannel) != HAL_OK) {
+        return false;
+    }
+
+    return HAL_TIM_GetChannelState(&PWM_TIM_HANDLE, timChannel) == HAL_TIM_CHANNEL_STATE_BUSY &&
+           __HAL_TIM_GET_COMPARE(&PWM_TIM_HANDLE, timChannel) != 0U;
+}
