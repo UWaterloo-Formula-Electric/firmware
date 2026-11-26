@@ -8,8 +8,68 @@
 #include "loadSensor.h"
 #include "canReceive.h"
 #include "pdu_can.h"
+#include <limits.h>
+#include <math.h>
+#include <stdlib.h>
 
 extern volatile uint8_t acc_fan_command_override;
+
+static bool parseCliUnsigned(const char *parameter, unsigned int *value)
+{
+    char *end;
+    unsigned long parsed;
+
+    if (parameter == NULL || value == NULL || parameter[0] == '-') {
+        return false;
+    }
+
+    parsed = strtoul(parameter, &end, 10);
+    if (end == parameter || (*end != '\0' && *end != ' ') ||
+        parsed > UINT_MAX) {
+        return false;
+    }
+
+    *value = (unsigned int)parsed;
+    return true;
+}
+
+static bool parseCliInt(const char *parameter, int *value)
+{
+    char *end;
+    long parsed;
+
+    if (parameter == NULL || value == NULL) {
+        return false;
+    }
+
+    parsed = strtol(parameter, &end, 10);
+    if (end == parameter || (*end != '\0' && *end != ' ') ||
+        parsed < INT_MIN || parsed > INT_MAX) {
+        return false;
+    }
+
+    *value = (int)parsed;
+    return true;
+}
+
+static bool parseCliFloat(const char *parameter, float *value)
+{
+    char *end;
+    float parsed;
+
+    if (parameter == NULL || value == NULL) {
+        return false;
+    }
+
+    parsed = strtof(parameter, &end);
+    if (end == parameter || (*end != '\0' && *end != ' ') ||
+        !isfinite(parsed)) {
+        return false;
+    }
+
+    *value = parsed;
+    return true;
+}
 
 BaseType_t debugUartOverCan(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
@@ -89,6 +149,247 @@ static const CLI_Command_Definition_t getBusRawDefinition =
     0,
 };
 
+typedef struct {
+    const char *name;
+    const char *how;
+    const char *expected;
+} PDU_Test_Case_t;
+
+typedef enum {
+    PDU_TEST_NOT_RECORDED = 0,
+    PDU_TEST_PASS,
+    PDU_TEST_FAIL,
+    PDU_TEST_BLOCKED
+} PDU_Test_Result_t;
+
+static const PDU_Test_Case_t pduTestCases[] = {
+    {
+        "Build and software tests",
+        "Build with make pdu. Run make test TEST_TARGET=pdu. Save output.",
+        "Firmware builds. Unit-test results are recorded separately."
+    },
+    {
+        "Review what changed",
+        "Compare revision schematics and change lists with the previous board.",
+        "Every changed circuit has a test setup and acceptance limit."
+    },
+    {
+        "Unpowered inspection",
+        "Inspect parts, connectors, soldering, resistance, and continuity.",
+        "No defects or shorts. Readings meet electrical-team limits."
+    },
+    {
+        "First power-on and boot",
+        "Isolate vehicle loads. Use current-limited supply. Flash and power-cycle.",
+        "Repeatable boot with no excess current, heat, reset, or init error."
+    },
+    {
+        "UART command check",
+        "Use PDU UART settings. Try help, state, getBusMeas, and getChannels.",
+        "Commands respond and output is readable."
+    },
+    {
+        "CAN communication check",
+        "Use CAN analyzer and termination. Capture/decode traffic with team DBC.",
+        "Expected frames/data appear with no persistent CAN errors."
+    },
+    {
+        "Bus voltage/current measurement",
+        "Apply approved supply/load points. Compare getBusMeas and busRaw.",
+        "Readings track calibrated instruments within approved tolerance."
+    },
+    {
+        "Output-to-connector mapping",
+        "Confirm indices in schematic. Use dummy loads; switch one at a time.",
+        "Only intended output energizes and turns off; others stay unchanged."
+    },
+    {
+        "Output-current sensing",
+        "Use known dummy loads. Compare getChannels and adcRaw to meter.",
+        "Correct channel reports current and meets approved tolerance."
+    },
+    {
+        "Grouped controls and status",
+        "Test board, controlPumps, controlFans, and auxEnable with fixture.",
+        "Physical output and CAN status agree."
+    },
+    {
+        "Changed input/protection circuits",
+        "Use only approved simulator/fixture and hardware-owner procedure.",
+        "Input/protection behaves correctly; no unapproved shorts or overloads."
+    },
+    {
+        "Reset and shutdown",
+        "Return outputs to safe state. Reset with loads isolated. Save logs.",
+        "Startup is repeatable and all evidence is saved."
+    }
+};
+
+#define PDU_TEST_COUNT (sizeof(pduTestCases) / sizeof(pduTestCases[0]))
+
+static PDU_Test_Result_t pduTestResults[PDU_TEST_COUNT];
+static uint32_t pduTestIndex;
+
+static const char *pduTestResultString(PDU_Test_Result_t result)
+{
+    switch (result) {
+        case PDU_TEST_PASS:
+            return "PASS";
+        case PDU_TEST_FAIL:
+            return "FAIL";
+        case PDU_TEST_BLOCKED:
+            return "BLOCKED";
+        default:
+            return "NOT_RECORDED";
+    }
+}
+
+BaseType_t pduTestCommand(char *writeBuffer, size_t writeBufferLength,
+                          const char *commandString)
+{
+    BaseType_t paramLen;
+    const char *action;
+    const char *resultParam;
+    PDU_Test_Case_t test;
+    uint8_t state;
+
+    if (pduTestIndex >= PDU_TEST_COUNT) {
+        pduTestIndex = PDU_TEST_COUNT - 1U;
+    }
+
+    action = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
+    test = pduTestCases[pduTestIndex];
+
+    if (action == NULL) {
+        COMMAND_OUTPUT("Test %lu/%lu: %s\r\n",
+                       (unsigned long)(pduTestIndex + 1U),
+                       (unsigned long)PDU_TEST_COUNT,
+                       test.name);
+        return pdFALSE;
+    }
+
+    if (paramLen == 3 && STR_EQ(action, "how", paramLen)) {
+        COMMAND_OUTPUT("How: %s\r\n", test.how);
+        return pdFALSE;
+    }
+
+    if (paramLen == 6 && STR_EQ(action, "expect", paramLen)) {
+        COMMAND_OUTPUT("Expect: %s\r\n", test.expected);
+        return pdFALSE;
+    }
+
+    if (paramLen == 4 && STR_EQ(action, "next", paramLen)) {
+        if (pduTestResults[pduTestIndex] == PDU_TEST_NOT_RECORDED) {
+            COMMAND_OUTPUT("Record PASS, FAIL, or BLOCKED first.\r\n");
+            return pdFALSE;
+        }
+        if (pduTestIndex + 1U < PDU_TEST_COUNT) {
+            pduTestIndex++;
+            test = pduTestCases[pduTestIndex];
+            COMMAND_OUTPUT("Test %lu/%lu: %s\r\n",
+                           (unsigned long)(pduTestIndex + 1U),
+                           (unsigned long)PDU_TEST_COUNT,
+                           test.name);
+        } else {
+            COMMAND_OUTPUT("Checklist complete. Use pdutest summary.\r\n");
+        }
+        return pdFALSE;
+    }
+
+    if (paramLen == 6 && STR_EQ(action, "result", paramLen)) {
+        resultParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+        if (resultParam == NULL) {
+            COMMAND_OUTPUT("Usage: pdutest result PASS|FAIL|BLOCKED\r\n");
+            return pdFALSE;
+        }
+
+        if (paramLen == 4 && STR_EQ(resultParam, "PASS", paramLen)) {
+            pduTestResults[pduTestIndex] = PDU_TEST_PASS;
+        } else if (paramLen == 4 && STR_EQ(resultParam, "FAIL", paramLen)) {
+            pduTestResults[pduTestIndex] = PDU_TEST_FAIL;
+        } else if (paramLen == 7 && STR_EQ(resultParam, "BLOCKED", paramLen)) {
+            pduTestResults[pduTestIndex] = PDU_TEST_BLOCKED;
+        } else {
+            COMMAND_OUTPUT("Usage: pdutest result PASS|FAIL|BLOCKED\r\n");
+            return pdFALSE;
+        }
+
+        COMMAND_OUTPUT("Test %lu: %s\r\n",
+                       (unsigned long)(pduTestIndex + 1U),
+                       pduTestResultString(pduTestResults[pduTestIndex]));
+        return pdFALSE;
+    }
+
+    if (paramLen == 7 && STR_EQ(action, "summary", paramLen)) {
+        size_t offset = (size_t)snprintf(writeBuffer, writeBufferLength,
+                                         "PDU checklist:");
+        for (uint32_t i = 0; i < PDU_TEST_COUNT; i++) {
+            char status = '-';
+            if (pduTestResults[i] == PDU_TEST_PASS) {
+                status = 'P';
+            } else if (pduTestResults[i] == PDU_TEST_FAIL) {
+                status = 'F';
+            } else if (pduTestResults[i] == PDU_TEST_BLOCKED) {
+                status = 'B';
+            }
+            if (offset < writeBufferLength) {
+                int written = snprintf(&writeBuffer[offset],
+                                       writeBufferLength - offset,
+                                       " %lu:%c",
+                                       (unsigned long)(i + 1U),
+                                       status);
+                if (written > 0) {
+                    offset += (size_t)written;
+                }
+            }
+        }
+        return pdFALSE;
+    }
+
+    if (paramLen == 4 && STR_EQ(action, "auto", paramLen)) {
+        bool adc1InRange = true;
+        bool adc3InRange = true;
+        bool convertedValuesFinite = true;
+
+        state = fsmGetState(&mainFsmHandle);
+        for (size_t i = 0; i < NUM_ADC1_CHANNELS; i++) {
+            if (ADC1_Buffer[i] > 4095U) {
+                adc1InRange = false;
+            }
+            if (!isfinite(busResults.busMeas_a[i])) {
+                convertedValuesFinite = false;
+            }
+        }
+        for (size_t i = 0; i < NUM_PDU_CHANNELS; i++) {
+            if (rawADC3Buffer[i] > 4095U) {
+                adc3InRange = false;
+            }
+            if (!isfinite(channelCurrents.meas_a[i])) {
+                convertedValuesFinite = false;
+            }
+        }
+
+        COMMAND_OUTPUT("Auto: FSM=%s ADC1=%s ADC3=%s values=%s\r\n"
+                       "Sanity only; not accuracy/freshness.\r\n",
+                       state < STATE_ANY ? "PASS" : "FAIL",
+                       adc1InRange ? "PASS" : "FAIL",
+                       adc3InRange ? "PASS" : "FAIL",
+                       convertedValuesFinite ? "PASS" : "FAIL");
+        return pdFALSE;
+    }
+
+    COMMAND_OUTPUT("Usage: pdutest [how|expect|result PASS|FAIL|BLOCKED|next|summary|auto]\r\n");
+    return pdFALSE;
+}
+
+static const CLI_Command_Definition_t pduTestCommandDefinition =
+{
+    "pdutest",
+    "pdutest [how|expect|result PASS|FAIL|BLOCKED|next|summary|auto]:\r\n Guided PDU checklist and safe diagnostics\r\n",
+    pduTestCommand,
+    -1,
+};
+
 BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
@@ -99,14 +400,21 @@ BaseType_t setChannelCurrent(char *writeBuffer, size_t writeBufferLength,
     const char *idxParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     const char *currentParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
 
-    sscanf(idxParam, "%u", &channelIdx);
-
-    if ((channelIdx < 0) || (channelIdx >= NUM_PDU_CHANNELS)) {
-        COMMAND_OUTPUT("channelIdx Index must be between 0 and %d\n", NUM_PDU_CHANNELS);
+    if (!parseCliInt(idxParam, &channelIdx)) {
+        COMMAND_OUTPUT("Usage: channelCurrent <channel> <current>\r\n");
         return pdFALSE;
     }
 
-    sscanf(currentParam, "%f", &current);
+    if ((channelIdx < 0) || (channelIdx >= NUM_PDU_CHANNELS)) {
+        COMMAND_OUTPUT("channelIdx must be between 0 and %d\n", NUM_PDU_CHANNELS - 1);
+        return pdFALSE;
+    }
+
+    if (!parseCliFloat(currentParam, &current)) {
+        COMMAND_OUTPUT("Invalid current value\r\n");
+        return pdFALSE;
+    }
+
     COMMAND_OUTPUT("Channel %d current = %f A\n", channelIdx, current);
 
     // rawADC3Buffer[channelIdx] = current * ADC3_TO_AMPS_DIVIDER; // TODO: either read from CAN message or an array
@@ -128,7 +436,12 @@ BaseType_t setBusVoltage(char *writeBuffer, size_t writeBufferLength,
 
     const char *voltageParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(voltageParam, "%f", &voltage);
+    if (!parseCliFloat(voltageParam, &voltage) || voltage < 0.0f ||
+        voltage > (4095.0f / ADC1_TO_VOLTS_DIVIDER)) {
+        COMMAND_OUTPUT("Voltage must be finite and fit the 12-bit ADC range\r\n");
+        return pdFALSE;
+    }
+
     COMMAND_OUTPUT("Bus voltage = %f V\n", voltage);
 
     ADC1_Buffer[V_Main_Channel] = voltage * ADC1_TO_VOLTS_DIVIDER;
@@ -159,22 +472,27 @@ static const CLI_Command_Definition_t criticalCommandDefinition =
 BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    BaseType_t paramLen;
-    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    BaseType_t boardParamLen;
+    BaseType_t onOffParamLen;
+    const char *onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &onOffParamLen);
+    const char *boardParam = FreeRTOS_CLIGetParameter(commandString, 1, &boardParamLen);
 
     bool onOff = false;
-    if (STR_EQ(onOffParam, "on", paramLen)) {
+    if (onOffParam == NULL || boardParam == NULL) {
+        COMMAND_OUTPUT("Usage: board <BMU|VCU|MOTEC|ALL> <on|off>\r\n");
+        return pdFALSE;
+    }
+
+    if (onOffParamLen == 2 && STR_EQ(onOffParam, "on", onOffParamLen)) {
         onOff = true;
-    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+    } else if (onOffParamLen == 3 && STR_EQ(onOffParam, "off", onOffParamLen)) {
         onOff = false;
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
         return pdFALSE;
     }
 
-    const char * boardParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-
-    if (STR_EQ(boardParam, "BMU", paramLen)) {
+    if (boardParamLen == 3 && STR_EQ(boardParam, "BMU", boardParamLen)) {
         COMMAND_OUTPUT("Turning BMU %s\n", onOff?"on":"off");
         if (onOff) {
             BMU_EN;
@@ -183,7 +501,7 @@ BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
             BMU_DISABLE;
             StatusPowerBMU = StatusPowerBMU_CHANNEL_OFF;
         }
-    } else if (STR_EQ(boardParam, "VCU", paramLen)) {
+    } else if (boardParamLen == 3 && STR_EQ(boardParam, "VCU", boardParamLen)) {
         COMMAND_OUTPUT("Turning VCU %s\n", onOff?"on":"off");
         if (onOff) {
             VCU_EN;
@@ -192,7 +510,7 @@ BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
             VCU_DISABLE;
             StatusPowerVCU = StatusPowerVCU_CHANNEL_OFF;
         }
-    } else if (STR_EQ(boardParam, "MOTEC", paramLen)) {
+    } else if (boardParamLen == 5 && STR_EQ(boardParam, "MOTEC", boardParamLen)) {
         COMMAND_OUTPUT("Turning MOTEC %s\n", onOff?"on":"off");
         if (onOff) {
             MOTEC_EN;
@@ -201,7 +519,7 @@ BaseType_t boardEnableCommand(char *writeBuffer, size_t writeBufferLength,
             MOTEC_DISABLE;
             StatusPowerMotec = StatusPowerMotec_CHANNEL_OFF;
         }
-    } else if (STR_EQ(boardParam, "ALL", paramLen)) {
+    } else if (boardParamLen == 3 && STR_EQ(boardParam, "ALL", boardParamLen)) {
         COMMAND_OUTPUT("Turning ALL %s\n", onOff?"on":"off");
         if (onOff) {
             turnBoardsOn();
@@ -230,24 +548,31 @@ static const CLI_Command_Definition_t boardEnableCommandDefinition =
 BaseType_t channelEnableCommand(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-    BaseType_t paramLen;
-    const char * onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
+    BaseType_t onOffParamLen;
+    BaseType_t channelParamLen;
+    const char *onOffParam = FreeRTOS_CLIGetParameter(commandString, 2, &onOffParamLen);
 
     bool onOff = false;
-    if (STR_EQ(onOffParam, "on", paramLen)) {
+    if (onOffParam != NULL && onOffParamLen == 2 &&
+        STR_EQ(onOffParam, "on", onOffParamLen)) {
         onOff = true;
-    } else if (STR_EQ(onOffParam, "off", paramLen)) {
+    } else if (onOffParam != NULL && onOffParamLen == 3 &&
+               STR_EQ(onOffParam, "off", onOffParamLen)) {
         onOff = false;
     } else {
-        COMMAND_OUTPUT("Unknown parameter\n");
+        COMMAND_OUTPUT("Usage: channel <0-13> <on|off>\r\n");
         return pdFALSE;
     }
 
-    int channel;
-    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
-    sscanf(selectionParam, "%u", &channel);
+    unsigned int channel;
+    const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &channelParamLen);
+    if (!parseCliUnsigned(selectionParam, &channel) ||
+        channel >= NUM_PDU_CHANNELS) {
+        COMMAND_OUTPUT("Channel must be between 0 and %d\r\n", NUM_PDU_CHANNELS - 1);
+        return pdFALSE;
+    }
 
-    toggleChannel(channel, onOff);
+    toggleChannel((uint8_t)channel, onOff);
 
     return pdFALSE;
 }
@@ -267,9 +592,9 @@ BaseType_t mockEMEnableDisable(char *writeBuffer, size_t writeBufferLength,
     BaseType_t paramLen;
     const char * param = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    if (STR_EQ(param, "enable", paramLen)) {
+    if (param != NULL && paramLen == 6 && STR_EQ(param, "enable", paramLen)) {
         fsmSendEventISR(&mainFsmHandle, EV_EM_Enable);
-    } else if (STR_EQ(param, "disable", paramLen)) {
+    } else if (param != NULL && paramLen == 7 && STR_EQ(param, "disable", paramLen)) {
         fsmSendEventISR(&mainFsmHandle, EV_EM_Disable);
     } else {
         COMMAND_OUTPUT("Unknown parameter\n");
@@ -353,13 +678,15 @@ static const CLI_Command_Definition_t testOutputCommandDefinition =
 BaseType_t controlFans(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-	
     BaseType_t paramLen;
     unsigned int selection;
 
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(selectionParam, "%u", &selection);
+    if (!parseCliUnsigned(selectionParam, &selection) || selection > 3U) {
+        COMMAND_OUTPUT("Usage: controlFans <0|1|2|3>\r\n");
+        return pdFALSE;
+    }
     
     switch (selection)
     {
@@ -430,13 +757,15 @@ static const CLI_Command_Definition_t controlFansCommandDefinition =
 BaseType_t controlPumps(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-	
     BaseType_t paramLen;
     unsigned int selection;
 
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(selectionParam, "%u", &selection);
+    if (!parseCliUnsigned(selectionParam, &selection) || selection > 3U) {
+        COMMAND_OUTPUT("Usage: controlPumps <0|1|2|3>\r\n");
+        return pdFALSE;
+    }
     if (selection & 0x1)
 	{
 		PUMP_1_EN;
@@ -485,13 +814,17 @@ BaseType_t invEnable(char *writeBuffer, size_t writeBufferLength,
 
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(selectionParam, "%u", &selection);
-    if (selection == 1)
+    if (!parseCliUnsigned(selectionParam, &selection) || selection > 1U) {
+        COMMAND_OUTPUT("Usage: invEnable <0|1>\r\n");
+        return pdFALSE;
+    }
+
+    if (selection == 1U)
 	{
 		INVERTER_EN;
         StatusPowerInverter = StatusPowerInverter_CHANNEL_ON;
 	}
-	else if (selection == 0)
+	else
 	{
 		INVERTER_DISABLE;
         StatusPowerInverter = StatusPowerInverter_CHANNEL_OFF;
@@ -513,17 +846,18 @@ static const CLI_Command_Definition_t invEnableCommandDefinition =
 BaseType_t fakeBrake(char *writeBuffer, size_t writeBufferLength,
                        const char *commandString)
 {
-	
     BaseType_t paramLen;
-    unsigned int brakeValue;
+    int brakeValue;
 
     const char *selectionParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
 
-    sscanf(selectionParam, "%u", &brakeValue);
+    if (!parseCliInt(selectionParam, &brakeValue)) {
+        COMMAND_OUTPUT("Usage: fakeBrake <0-100>\r\n");
+        return pdFALSE;
+    }
 
-    // Validate input
-    if (brakeValue > 100 || brakeValue < 0){
-        DEBUG_PRINT("Error: invalid brake percent. Acceptable range is 0-100!\r\n");
+    if (brakeValue > 100 || brakeValue < 0) {
+        COMMAND_OUTPUT("Error: brake percent must be 0-100.\r\n");
         return pdFALSE;
     }
     
@@ -549,12 +883,20 @@ BaseType_t auxEnable(char *writeBuffer, size_t writeBufferLength,
     const char *channelParam = FreeRTOS_CLIGetParameter(commandString, 1, &paramLen);
     const char *stateParam = FreeRTOS_CLIGetParameter(commandString, 2, &paramLen);
 
-    sscanf(channelParam, "%u", &channel);
-    sscanf(stateParam, "%u", &power);
+    if (!parseCliUnsigned(channelParam, &channel) ||
+        !parseCliUnsigned(stateParam, &power)) {
+        COMMAND_OUTPUT("Usage: auxEnable <1-4> <0|1>\r\n");
+        return pdFALSE;
+    }
 
     // Validate channel input
     if (channel < 1 || channel > 4) {
-        DEBUG_PRINT("Error: Invalid channel in auxEnable!\r\n");
+        COMMAND_OUTPUT("Error: aux channel must be 1-4.\r\n");
+        return pdFALSE;
+    }
+
+    if (power > 1U) {
+        COMMAND_OUTPUT("Error: aux power must be 0 or 1.\r\n");
         return pdFALSE;
     }
 
@@ -619,6 +961,9 @@ static const CLI_Command_Definition_t auxEnableCommandDefinition =
 HAL_StatusTypeDef mockStateMachineInit()
 {
     if (FreeRTOS_CLIRegisterCommand(&debugUartOverCanCommandDefinition) != pdPASS) {
+        return HAL_ERROR;
+    }
+    if (FreeRTOS_CLIRegisterCommand(&pduTestCommandDefinition) != pdPASS) {
         return HAL_ERROR;
     }
     if (FreeRTOS_CLIRegisterCommand(&criticalCommandDefinition) != pdPASS) {
